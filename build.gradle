@@ -1,0 +1,45 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.8.0'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'application'
+}
+group 'nav.no.okonomi'
+version '1.0-SNAPSHOT'
+
+
+repositories {
+    mavenCentral()
+}
+
+final def ktor_version="2.2.2"
+
+dependencies {
+    implementation "io.ktor:ktor-server-netty:$ktor_version"
+    implementation "io.ktor:ktor-server-content-negotiation:$ktor_version"
+    implementation "io.ktor:ktor-serialization-jackson:$ktor_version"
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = '17'
+}
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = '17'
+}
+
+
+test {
+    useJUnitPlatform()
+}
+
+application {
+    mainClassName = 'MainKt'
+}
+
+shadowJar {
+    archiveBaseName.set("app")
+    manifest {
+        attributes "Main-Class": "MainKt"
+    }
+}
