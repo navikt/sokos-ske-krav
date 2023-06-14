@@ -44,12 +44,12 @@ test {
 }
 
 application {
-    mainClassName = 'MainKt'
+    mainClassName = 'sokos.skd.poc.MainKt'
 }
 
 shadowJar {
     archiveBaseName.set("app")
     manifest {
-        attributes "Main-Class": "MainKt"
+        attributes "Main-Class": "sokos.skd.poc.MainKt"
     }
 }
