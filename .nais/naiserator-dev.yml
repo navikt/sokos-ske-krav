@@ -6,7 +6,6 @@ metadata:
   labels:
     team: okonomi
 spec:
-  image: navikt/sokos-skd-poc
   port: 8080
   replicas:
     min: 1
