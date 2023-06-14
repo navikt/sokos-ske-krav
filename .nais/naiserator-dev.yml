@@ -30,7 +30,7 @@ spec:
     periodSeconds: 5
     timeout: 5
   ingresses:
-    - https://sokos-skd-poc.dev.intern.nav.no
+    - https://sokos-skd-poc.intern.dev.nav.no
 
 
 
