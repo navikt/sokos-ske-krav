@@ -29,8 +29,9 @@ spec:
     initialDelay: 10
     periodSeconds: 5
     timeout: 5
+  webproxy: true
   ingresses:
-    - https://sokos-skd-poc.intern.dev.nav.no
+    - https://sokos-skd-poc.dev.intern.nav.no
 
 
 
