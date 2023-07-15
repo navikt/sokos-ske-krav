@@ -7,38 +7,35 @@ import navmodels.LastLine
 import sokos.skd.poc.parseFRtoDataDetailLineClass
 import sokos.skd.poc.parseFRtoDataFirsLineClass
 import sokos.skd.poc.parseFRtoDataLastLIneClass
-import sokos.skd.poc.readFileFromOS
 import kotlin.math.roundToLong
 
-fun mapFraNavTilSkd(filename: String): List<OpprettInnkrevingsoppdragRequest> {
-    val navLines = readFileFromOS(filename)
-    val navFirstLine = parseFRtoDataFirsLineClass(navLines.first())
-    val navLastLine = parseFRtoDataLastLIneClass(navLines.last())
+fun mapFraNavTilSkd(navLines: List<String>): List<OpprettInnkrevingsoppdragRequest> {
+    val firstLine = parseFRtoDataFirsLineClass(navLines.first())
+    val lastLine = parseFRtoDataLastLIneClass(navLines.last())
     val detailLines = arrayOfDetailLines(navLines.subList(1, navLines.lastIndex))
 
-    validateLines(navFirstLine, navLastLine, detailLines)
+    validateLines(firstLine, lastLine, detailLines)
 
-    val alleKrav = hentAlleKrav(detailLines)
+    val alleKrav = mapAlleKravTilSkdModel(detailLines)
     var sumAll = 0.0
     alleKrav.forEach {
         sumAll += it.hovedstol.beloep
         it.renteBeloep.forEach { sumAll += it.beloep }
     }
-    println("Allekrav Sum: $sumAll, Antall: ${alleKrav.size}")
+    assert(alleKrav.size.equals(detailLines.size) ) { "Det er forskjellige antall linje fra OS og antall som sendes SKD!"}
     return alleKrav
 }
 
 fun validateLines(first: FirstLine, lastLine: LastLine, details: List<DetailLine>) {
     var sumAll = 0.0
-    assert(lastLine.numTransactionLines.equals(details.size))
-    println("assertion 1 OK: siste.antall: ${lastLine.numTransactionLines}, antall i arr: ${details.size}")
+    assert(lastLine.numTransactionLines.equals(details.size)) { "Antall krav stemmer ikke med antallet i siste linje!"}
     details.forEach { sumAll += it.belop+it.belopRente }
-    assert(sumAll.equals(lastLine.sumAllTransactionLines))
-    println("assertion 2 OK: siste.sum: ${lastLine.sumAllTransactionLines}, sum i arr: ${sumAll}")
+    assert(sumAll.equals(lastLine.sumAllTransactionLines)) { "Sum alle linjer stemmer ikke med sum i siste linje!"}
+    assert(first.transferDate.equals(lastLine.transferDate)) { "Dato sendt er avvikende mellom første og siste linje fra OS!"}
 }
 
-private fun hentAlleKrav(detailLines: List<DetailLine>): List<OpprettInnkrevingsoppdragRequest> {
-    var krav = mutableListOf<OpprettInnkrevingsoppdragRequest>()
+private fun mapAlleKravTilSkdModel(detailLines: List<DetailLine>): List<OpprettInnkrevingsoppdragRequest> {
+    val krav = mutableListOf<OpprettInnkrevingsoppdragRequest>()
 
     detailLines.forEach {
         val trekk = OpprettInnkrevingsoppdragRequest(

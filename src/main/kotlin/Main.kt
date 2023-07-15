@@ -10,8 +10,6 @@ fun main(args: Array<String>) {
 
     applicationState.ready = true
     HttpServer(applicationState).start()
-
-
 }
 
 class ApplicationState {

@@ -1,7 +1,5 @@
 package sokos.skd.poc
 
-import FtpClient
-import downloadFileFromFtp
 import navmodels.DetailLine
 import navmodels.FirstLine
 import navmodels.LastLine
@@ -77,12 +75,4 @@ class FrParser(val line: String) {
 
     fun parseDate(len: Int) = this.parseString(len)
         .let { LocalDate.parse(it, DateTimeFormatter.ofPattern("yyyyMMdd")) }
-}
-
-fun removeLeadingZeros(field: String) = field.trimStart('0')
-
-fun readFileFromOS(fileName: String): List<String> {
-    val ftpClient = FtpClient()
-    val lines = ftpClient.downloadFileFromFtp(fileName)   // File(fileName).readLines()
-    return lines
 }

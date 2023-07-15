@@ -4,14 +4,14 @@ import org.junit.jupiter.api.Test
 import sokos.skd.poc.parseFRtoDataDetailLineClass
 import sokos.skd.poc.parseFRtoDataFirsLineClass
 import sokos.skd.poc.parseFRtoDataLastLIneClass
-import sokos.skd.poc.readFileFromOS
+import sokos.skd.poc.readFileFromFS
 import java.net.URL
 import java.time.LocalDateTime
 import kotlin.test.assertEquals
 
 class ReadFileTest {
 
-    var liste = readFileFromOS("eksempelfil_TBK.txt".asResource().path.also { println(it) })
+    var liste = readFileFromFS("eksempelfil_TBK.txt".asResource())
     @Test
     fun lesinnHeleFila() {
         println("Antall i lista ${liste.size}")
@@ -26,7 +26,7 @@ class ReadFileTest {
             transferDate = LocalDateTime.of(2023, 5, 26, 22, 13, 40),
             sender = "OB04"
         )
-        var startlinje: FirstLine = parseFRtoDataFirsLineClass(liste.first())
+        val startlinje: FirstLine = parseFRtoDataFirsLineClass(liste.first())
         println(startlinje)
         assertEquals(expected.toString(), startlinje.toString())
 

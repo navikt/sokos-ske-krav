@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 import java.util.*
 
 class FtpClient {
-    val props = Properties().also { it.load(this::class.java.classLoader.getResourceAsStream("ftpprops.props"))  }
+    val props = Properties().also { it.load(this::class.java.classLoader.getResourceAsStream("ftpprops.local"))  }
     val ftpServer= props.getProperty("ftpServer")
     var ftpUsername = props.getProperty("ftpUsername")
     var ftpPassword = props.getProperty("ftpPassword")
@@ -14,7 +14,6 @@ fun FtpClient.downloadFileFromFtp(fileName: String): List<String> {
 
     val ftpClient = FTPClient()
     val outputStream = ByteArrayOutputStream()
-
 
     ftpClient.connect(ftpServer)
     ftpClient.login(ftpUsername, ftpPassword)

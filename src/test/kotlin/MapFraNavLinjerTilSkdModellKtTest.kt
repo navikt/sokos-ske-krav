@@ -2,6 +2,8 @@ import com.google.gson.*
 import io.ktor.util.reflect.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import sokos.skd.poc.readFileFromFS
+import sokos.skd.poc.readFileFromFtp
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -12,24 +14,23 @@ class MapFraNavLinjerTilSkdModellKtTest {
 
     @Test
     fun mapperTestRecourceFilTest() {
-        val trekklisteObj = mapFraNavTilSkd("eksempelfil_TBK.txt".asResource().path )
+        val trekklisteObj = mapFraNavTilSkd(readFileFromFS("eksempelfil_TBK.txt".asResource() ))
         val gson = GsonBuilder()
             .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
             .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeTypeAdapter())
             .create()
         val trekklisteJson = gson.toJson(trekklisteObj)
-        println(trekklisteJson)
+
     }
     @Test
     fun MapperFtpFilTest() {
-        val trekklisteObj = mapFraNavTilSkd("eksempelfil_TBK.txt")
+        val trekklisteObj = mapFraNavTilSkd(readFileFromFtp("eksempelfil_TBK.txt"))
         val gson = GsonBuilder()
             .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
             .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeTypeAdapter())
             .create()
-        trekklisteObj.forEach {
-            val trekklisteJson = gson.toJson(it)
-        }
+            val trekklisteJson = gson.toJson(trekklisteObj)
+        println(trekklisteJson)
     }
     @Test
     fun testa() {

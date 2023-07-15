@@ -5,7 +5,7 @@ class FtpClientKtTest {
 
     @Test
     fun t1() {
-        var ftpClient = FtpClient()
+        val ftpClient = FtpClient()
         ftpClient.downloadFileFromFtp("eksempelfil_TBK.txt").let { it.forEach { println(it) } }
     }
 }
