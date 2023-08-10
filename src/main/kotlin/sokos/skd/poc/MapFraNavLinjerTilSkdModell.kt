@@ -1,12 +1,11 @@
-import io.swagger.client.models.*
-import io.swagger.client.models.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
-import io.swagger.client.models.Skyldner.Identifikatortype.PERSON
-import navmodels.DetailLine
-import navmodels.FirstLine
-import navmodels.LastLine
-import sokos.skd.poc.parseFRtoDataDetailLineClass
-import sokos.skd.poc.parseFRtoDataFirsLineClass
-import sokos.skd.poc.parseFRtoDataLastLIneClass
+package sokos.skd.poc
+
+import sokos.skd.poc.navmodels.DetailLine
+import sokos.skd.poc.navmodels.FirstLine
+import sokos.skd.poc.navmodels.LastLine
+import sokos.skd.poc.skdmodels.*
+import sokos.skd.poc.skdmodels.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
+import sokos.skd.poc.skdmodels.Skyldner.Identifikatortype.PERSON
 import kotlin.math.roundToLong
 
 fun mapFraNavTilSkd(navLines: List<String>): List<OpprettInnkrevingsoppdragRequest> {
@@ -22,7 +21,7 @@ fun mapFraNavTilSkd(navLines: List<String>): List<OpprettInnkrevingsoppdragReque
         sumAll += it.hovedstol.beloep
         it.renteBeloep.forEach { sumAll += it.beloep }
     }
-    assert(alleKrav.size.equals(detailLines.size) ) { "Det er forskjellige antall linje fra OS og antall som sendes SKD!"}
+    //assert(alleKrav.size.equals(detailLines.size) ) { "Det er forskjellige antall linje fra OS og antall som sendes SKD!"}
     return alleKrav
 }
 

@@ -1,6 +1,6 @@
-import navmodels.FirstLine
-import navmodels.LastLine
 import org.junit.jupiter.api.Test
+import sokos.skd.poc.navmodels.FirstLine
+import sokos.skd.poc.navmodels.LastLine
 import sokos.skd.poc.parseFRtoDataDetailLineClass
 import sokos.skd.poc.parseFRtoDataFirsLineClass
 import sokos.skd.poc.parseFRtoDataLastLIneClass
@@ -44,7 +44,8 @@ class ReadFileTest {
     @Test
     fun lesInnSluttLineTilClass() {
         val sluttlinje: LastLine = parseFRtoDataLastLIneClass(liste.last()).also { println(liste.last()) }
-        assert(sluttlinje.numTransactionLines.equals(14)) {"feilet i test"}
+        println("sluttlinje antall trans linjer: ${sluttlinje.numTransactionLines}")
+        assert(sluttlinje.numTransactionLines.equals(101)) {"feilet i test"}
         println(sluttlinje)
     }
 

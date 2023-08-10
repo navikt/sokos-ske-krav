@@ -1,10 +1,7 @@
-package sokos.ur.iso
+package sokos.skd.poc
 
-import installCommonFeatures
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import sokos.skd.poc.ApplicationState
-import sokos.skd.poc.naisApi
 import java.util.concurrent.TimeUnit
 
 class HttpServer(

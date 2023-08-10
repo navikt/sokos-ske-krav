@@ -9,23 +9,20 @@
  * https://github.com/swagger-api/swagger-codegen.git
  * Do not edit the class manually.
  */
-package io.swagger.client.models
+package sokos.skd.poc.skdmodels
 
 
 /**
- *              Renter påløpt hos oppdragsgiver for overføring til innkrevingsmyndighet.         
+ *              Total ytelse tilgjengelig for avregning, om noe. Benyttes av innkrevingsmyndigheten ved \"avregning\"              som innkrevingstiltak.         
  * @param valuta Kun norske kroner støttes per nå.
  * @param beloep Heltall, desimaler støttes ikke. Avrunding må i så fall gjøres hos oppdragsgiver. Angis som hovedenhet i valutaen, dvs. kroner ikke ører, euro ikke cent, osv. 
- * @param renterIlagtTidspunkt              Format: YYYY-MM-DD             Dato rentene ble ilagt, benyttes bl.a. til vurdering av dekningsrekkefølge.             
  */
-data class RenteBeloep (
+data class YtelseForAvregningBeloep (
 
     /* Kun norske kroner støttes per nå. */
     val valuta: Valuta,
     /* Heltall, desimaler støttes ikke. Avrunding må i så fall gjøres hos oppdragsgiver. Angis som hovedenhet i valutaen, dvs. kroner ikke ører, euro ikke cent, osv.  */
-    val beloep: kotlin.Long,
-    /*              Format: YYYY-MM-DD             Dato rentene ble ilagt, benyttes bl.a. til vurdering av dekningsrekkefølge.              */
-    val renterIlagtTidspunkt: java.time.LocalDate
+    val beloep: kotlin.Long
 ) {
     /**
     * Kun norske kroner støttes per nå.

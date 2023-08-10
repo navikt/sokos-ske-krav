@@ -1,3 +1,6 @@
+package sokos.skd.poc
+
+
 import org.junit.jupiter.api.Test
 
 class FtpClientKtTest {

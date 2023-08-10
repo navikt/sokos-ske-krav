@@ -1,4 +1,4 @@
-package navmodels
+package sokos.skd.poc.navmodels
 
 import java.time.LocalDateTime
 

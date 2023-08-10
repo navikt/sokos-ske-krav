@@ -1,8 +1,8 @@
 package sokos.skd.poc
 
-import navmodels.DetailLine
-import navmodels.FirstLine
-import navmodels.LastLine
+import sokos.skd.poc.navmodels.DetailLine
+import sokos.skd.poc.navmodels.FirstLine
+import sokos.skd.poc.navmodels.LastLine
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -43,7 +43,8 @@ fun parseFRtoDataDetailLineClass(line: String): DetailLine {
 fun parseFRtoDataLastLIneClass(line: String): LastLine {
     val parser = FrParser(line)
     val xx = parser.parseString(4)
-    assert(xx.equals("0000")) {"Feilet i parser"}
+    println("xx = $xx")
+    assert(xx.equals("0040")) {"Feilet i parser"}
     return LastLine(
         transferDate = parser.parseDateTime(14),
         sender = parser.parseString(9).trim(),

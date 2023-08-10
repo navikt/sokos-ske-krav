@@ -1,4 +1,5 @@
 package sokos.skd.poc
+
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
 import java.io.ByteArrayOutputStream

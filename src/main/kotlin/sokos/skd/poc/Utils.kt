@@ -1,7 +1,5 @@
 package sokos.skd.poc
 
-import FtpClient
-import downloadFileFromFtp
 import java.io.File
 import java.net.URL
 

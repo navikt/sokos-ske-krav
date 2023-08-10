@@ -2,6 +2,7 @@ import com.google.gson.*
 import io.ktor.util.reflect.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import sokos.skd.poc.mapFraNavTilSkd
 import sokos.skd.poc.readFileFromFS
 import sokos.skd.poc.readFileFromFtp
 import java.time.LocalDate
@@ -19,7 +20,7 @@ class MapFraNavLinjerTilSkdModellKtTest {
             .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
             .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeTypeAdapter())
             .create()
-        val trekklisteJson = gson.toJson(trekklisteObj)
+        val trekklisteJson = gson.toJson(trekklisteObj).also { println(it) }
 
     }
     @Test
