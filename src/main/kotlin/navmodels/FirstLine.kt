@@ -2,7 +2,7 @@ package navmodels
 
 import java.time.LocalDateTime
 
-class FirstLine(
+data class FirstLine(
     val transferDate: LocalDateTime,
     val sender: String
 )

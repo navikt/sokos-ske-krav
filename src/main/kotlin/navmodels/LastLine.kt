@@ -2,7 +2,7 @@ package navmodels
 
 import java.time.LocalDateTime
 
-class LastLine(
+data class LastLine(
     val transferDate: LocalDateTime,
     val sender: String,
     val numTransactionLines: Int,

@@ -2,7 +2,7 @@ package navmodels
 
 import java.time.LocalDate
 
-class DetailLine(
+data class DetailLine(
     val lineNummer: Int,
     val saksNummer: String,
     val belop: Double,

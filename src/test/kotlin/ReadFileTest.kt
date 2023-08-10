@@ -44,6 +44,7 @@ class ReadFileTest {
     @Test
     fun lesInnSluttLineTilClass() {
         val sluttlinje: LastLine = parseFRtoDataLastLIneClass(liste.last()).also { println(liste.last()) }
+        assert(sluttlinje.numTransactionLines.equals(14)) {"feilet i test"}
         println(sluttlinje)
     }
 
