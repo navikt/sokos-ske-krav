@@ -6,12 +6,10 @@ import java.net.URL
 
 fun readFileFromFtp(fileName: String): List<String> {
     val ftpClient = FtpClient()
-    val lines = ftpClient.downloadFileFromFtp(fileName)   // File(fileName).readLines()
-    return lines
+    return ftpClient.downloadFileFromFtp(fileName)
 }
 fun readFileFromFS(file: URL): List<String> {
-    val lines = File(file.toURI()).readLines()
-    return lines
+    return File(file.toURI()).readLines()
 }
 
 

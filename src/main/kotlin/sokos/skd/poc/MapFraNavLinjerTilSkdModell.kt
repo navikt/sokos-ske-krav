@@ -41,7 +41,7 @@ private fun mapAlleKravTilSkdModel(detailLines: List<DetailLine>): List<OpprettI
             kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE,
             skyldner = Skyldner(PERSON, it.gjelderID),
             hovedstol = HovedstolBeloep(HovedstolBeloep.Valuta.NOK, it.belop.roundToLong()),
-            renteBeloep = arrayOf<RenteBeloep>(
+            renteBeloep = arrayOf(
                 RenteBeloep(
                     valuta = RenteBeloep.Valuta.NOK,
                     beloep = it.belopRente.roundToLong(),

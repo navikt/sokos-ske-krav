@@ -22,14 +22,14 @@ data class TilleggsinformasjonNav (
     /*              Hvilken stønad/ytelse innkrevingsoppdraget gjelder. Brukes bl.a. i faktura og dialog med skyldner.           */
     val stoenadstype: Stoenadstype,
     /*              Referanse til gammel sak hos NAV.              Skal da matche \"oppdragsgiversSaksnummer\" fra et tidligere innkrevingsoppdrag.          */
-    val referanseGammelSak: kotlin.String? = null,
+    val referanseGammelSak: String? = null,
     val ytelserForAvregning: YtelseForAvregningBeloep? = null
 ) {
     /**
     *              Hvilken stønad/ytelse innkrevingsoppdraget gjelder. Brukes bl.a. i faktura og dialog med skyldner.          
     * Values: FORELDREPENGER,DAGPENGER
     */
-    enum class Stoenadstype(val value: kotlin.String){
+    enum class Stoenadstype(val value: String){
         FORELDREPENGER("FORELDREPENGER"),
         DAGPENGER("DAGPENGER");
     }

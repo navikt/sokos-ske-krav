@@ -23,7 +23,7 @@ data class RenteBeloep (
     /* Kun norske kroner støttes per nå. */
     val valuta: Valuta,
     /* Heltall, desimaler støttes ikke. Avrunding må i så fall gjøres hos oppdragsgiver. Angis som hovedenhet i valutaen, dvs. kroner ikke ører, euro ikke cent, osv.  */
-    val beloep: kotlin.Long,
+    val beloep: Long,
     /*              Format: YYYY-MM-DD             Dato rentene ble ilagt, benyttes bl.a. til vurdering av dekningsrekkefølge.              */
     val renterIlagtTidspunkt: java.time.LocalDate
 ) {
@@ -31,7 +31,7 @@ data class RenteBeloep (
     * Kun norske kroner støttes per nå.
     * Values: NOK
     */
-    enum class Valuta(val value: kotlin.String){
+    enum class Valuta(val value: String){
         NOK("NOK");
     }
 }

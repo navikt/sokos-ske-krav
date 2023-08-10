@@ -53,7 +53,7 @@ class LocalDateTypeAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalD
         json: JsonElement, typeOfT: Type?,
         context: JsonDeserializationContext?
     ): LocalDate {
-        return LocalDate.parse(json.getAsString(), formatter)
+        return LocalDate.parse(json.asString, formatter)
     }
 
     override fun serialize(
@@ -72,7 +72,7 @@ class LocalDateTypeAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalD
         json: JsonElement, typeOfT: Type?,
         context: JsonDeserializationContext?
     ): LocalDateTime {
-        return LocalDateTime.parse(json.getAsString(), formatter)
+        return LocalDateTime.parse(json.asString, formatter)
     }
 
     override fun serialize(

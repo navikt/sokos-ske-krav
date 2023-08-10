@@ -18,6 +18,6 @@ package sokos.skd.poc.skdmodels
  */
 data class OpprettInnkrevingsoppdragResponse (
 
-    val kravidentifikator: kotlin.String
+    val kravidentifikator: String
 ) {
 }
