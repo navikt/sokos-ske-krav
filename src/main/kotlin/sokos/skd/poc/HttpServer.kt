@@ -2,6 +2,7 @@ package sokos.skd.poc
 
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import sokos.skd.poc.apis.naisApi
 import java.util.concurrent.TimeUnit
 
 class HttpServer(

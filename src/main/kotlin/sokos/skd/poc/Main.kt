@@ -7,7 +7,6 @@ fun main(args: Array<String>) {
 
     val applicationState = ApplicationState()
 
-
     applicationState.ready = true
     HttpServer(applicationState).start()
 }
