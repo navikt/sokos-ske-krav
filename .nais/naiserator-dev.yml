@@ -32,6 +32,21 @@ spec:
   webproxy: true
   ingresses:
     - https://sokos-skd-poc.dev.intern.nav.no
+  maskinporten:
+    enabled: true
+    scopes:
+      consumes:
+        - name: skatt:scope.read
+      exposes:
+        - allowedIntegrations:
+            - maskinporten
+          atMaxAge: 30
+          consumers:
+            - name: KST
+              orgno: "123456789"
+          enabled: true
+          name: scope.read
+          product: arbeid
 
 
 

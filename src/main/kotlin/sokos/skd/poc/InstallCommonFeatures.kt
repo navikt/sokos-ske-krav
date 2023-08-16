@@ -1,8 +1,11 @@
 package sokos.skd.poc
 
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.callid.*
 import io.ktor.server.plugins.callloging.*
+import io.ktor.server.plugins.contentnegotiation.*
+import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.slf4j.event.Level
 import java.util.*
@@ -20,4 +23,11 @@ fun Application.installCommonFeatures(){
         callIdMdc("x-correlation-id")
         disableDefaultColors()
     }
+    install(ContentNegotiation) {
+        json(Json {
+            prettyPrint = true
+            isLenient = true
+        })
+    }
+
 }
