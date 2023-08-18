@@ -6,9 +6,10 @@ fun main(args: Array<String>) {
     println("Applikasjonen starter med følgende argumenter: ${args.joinToString()}")
 
     val applicationState = ApplicationState()
+    val configuration = Configuration()
 
     applicationState.ready = true
-    HttpServer(applicationState).start()
+    HttpServer(applicationState, configuration).start()
 }
 
 class ApplicationState {

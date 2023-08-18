@@ -49,15 +49,18 @@ private fun mapAlleKravTilSkdModel(detailLines: List<DetailLine>): List<OpprettI
                 )
             ),
             oppdragsgiversSaksnummer = it.saksNummer,
-            oppdragsgiversKravidentifikator = it.kravkode,
+            oppdragsgiversKravidentifikator = it.saksNummer,
             fastsettelsesdato = it.vedtakDato,
-            tilleggsinformasjon = it.takeIf { it.referanseNummerGammelSak.isNotEmpty() }
-                .let {
-                    TilleggsinformasjonNav(
-                        stoenadstype = TilleggsinformasjonNav.Stoenadstype.DAGPENGER,
-                        referanseGammelSak = it?.referanseNummerGammelSak,
-                    )
-                }
+            tilleggsinformasjon = (TilleggsinformasjonNav.Stoenadstype from it.kravkode)?.let { it1 ->
+                TilleggsinformasjonNav(
+                    stoenadstype = it1,
+                    referanseGammelSak = it.takeIf { it.referanseNummerGammelSak.isNotEmpty() }?.referanseNummerGammelSak,
+                    ytelserForAvregning = YtelseForAvregningBeloep(
+                        valuta = YtelseForAvregningBeloep.Valuta.NOK,
+                        beloep = it.fremtidigYtelse.roundToLong()
+                        )
+                )
+            }
         )
         krav.add(trekk)
     }

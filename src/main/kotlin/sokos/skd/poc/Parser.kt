@@ -36,7 +36,7 @@ fun parseFRtoDataDetailLineClass(line: String): DetailLine {
         kodeHjemmel = parser.parseString(2),
         kodeArsak = parser.parseString(12),
         belopRente = parser.parseAmountAsDouble(20),
-        fremtidigYtelse = parser.parseString(11),
+        fremtidigYtelse = parser.parseAmountAsDouble(11),
     )
 }
 

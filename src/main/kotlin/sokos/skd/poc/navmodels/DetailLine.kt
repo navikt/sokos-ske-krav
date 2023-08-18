@@ -18,7 +18,7 @@ data class DetailLine(
     val kodeHjemmel: String,
     val kodeArsak: String,
     val belopRente: Double,
-    val fremtidigYtelse: String,
+    val fremtidigYtelse: Double,
 )
 {
     override fun toString(): String {

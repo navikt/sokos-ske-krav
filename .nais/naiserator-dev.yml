@@ -36,7 +36,12 @@ spec:
     enabled: true
     scopes:
       consumes:
-        - name: skatteetaten:innkrevingsopdrag
+        - name: skatteetaten:innkrevingsoppdrag
+  secureLogs:
+    enabled: true
+  env:
+    - name: SKD_REST_URL
+      value: https://api-test.sits.no/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag
 
 
 

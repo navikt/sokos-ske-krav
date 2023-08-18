@@ -30,7 +30,71 @@ data class TilleggsinformasjonNav (
     * Values: FORELDREPENGER,DAGPENGER
     */
     enum class Stoenadstype(val value: String){
-        FORELDREPENGER("FORELDREPENGER"),
+        FORELDREPENGER("FA FØ"),
+        KOMPENSASJON_INNTEKSTAP_FRILANSER_OG_NAERING("FR SN"),
+        OMSORG_OPPLAERING_OG_PLEIEPENGER("KT OOP"),
+        AVTALEFESTET_PENSJON("PE XP"),
+        AVTALEFESTET_PENSJON_PRIVATSEKTOR("PE AF"),
+        ALDERSPENSJON("PE AP"),
+        BARNEPENSJON("PE BP"),
+        TIDLIGERE_FAMILIEPLEIER_PENSJON("PE FP"),
+        GJENLEVENDEPENSJON("PE GP"),
+        GAMMEL_YRKESSKADEPENSJON("PE GY"),
+        KRIGSPENSJON("PE KP"),
+        UFOEREPENSJON("PE UP"),
+        REFUSSJON_UTGIFTSDEKNING("FA FE"),
+        SYKEPENGER("KT SP"),
+        SVANGERSKAPSPENGER("FA SV"),
+        UFOERETRYGD("PE UT"),
+        FORSKUDD_TILBAKEKREVING("FO FT"),
+        PERMITERINGSPENGER_KORONA("LK LK"),
+        LOENSKOMP_ARBEIDSGIVER_PERMITERTE("LK RF"),
+        BARNETRYGD("BA OR"),
+        OPPLAERINGSPENGER("BS OP"),
+        OMSORGSPENGER("BS OM"),
+        PLEIEPENGER_BARN("BS PN"),
+        PLEIEPENGER_NAERSTAAENDE("BS PP"),
+        ENSLIG_FORSOERGER_OVERGANGSSTOENAD("EF OG"),
+        ENSLIG_FORSOERGER_BARNETILSYN("EF BT"),
+        ENSLIG_FORSOERGER_SKOLEPENGER("EF UT"),
+        SUPPLERENDE_STOENAD_UFOERE("SU UF"),
+        KONTANTSTOETTE("KS KS"),
         DAGPENGER("DAGPENGER");
+
+        companion object {
+            private val map = Stoenadstype.values().associateBy { it.value }
+            infix fun from(value: String) = map[value]
+        }
     }
 }
+
+/*
+Foreldrepenger                                    	FA FØ
+Kompensasjon_inntektstap Frilanser og Næring      	FR SN
+Oms-, oppl.- og pleiepenger                       	KT OOP
+Avtalefestet pensjon                              	PE XP
+Avtalefestet pensjon i privat sektor              	PE AF
+Alderspensjon                                     	PE AP
+Barnepensjon                                      	PE BP
+Tidligere familiepleierpensjon                    	PE FP
+Gjenlevendepensjon                                	PE GP
+Gammel yrkesskadepensjon                          	PE GY
+Krigspensjon                                      	PE KP
+Uførepensjon                                      	PE UP
+Refusjon utgiftsdekning                           	FA FE
+Sykepenger                                        	KT SP
+Svangerskapspenger                                	FA SV
+Uføretrygd                                        	PE UT
+Forskudd tilbakekreving                           	FO FT
+Permitteringspenger, korona                       	LK LK
+Lønnskomp arbeidsgiver, permitterte               	LK RF
+Barnetrygd                                        	BA OR
+Opplæringspenger                                  	BS OP
+Omsorgspenger                                     	BS OM
+Pleiepenger barn                                  	BS PN
+Pleiepenger nærstående                            	BS PP
+Enslig forsørger overgangsstønad                  	EF OG
+Enslig forsørger - Barnetilsyn                    	EF BT
+Enslig forsørger - Skolepenger                    	EF UT
+Supplerende stønad uføre                          	SU UF
+Kontantstøtte                                     	KS KS   */
