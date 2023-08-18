@@ -11,8 +11,15 @@ fun Application.spkApi() {
     routing {
         route("krav") {
             get("start") {
-                val token = MaskinportenAccessTokenClient(Configuration.MaskinportenClientConfig(), defaultHttpClient ).hentAccessToken()
-                call.respondText { "Token: $token" }
+                try {
+                    val token = MaskinportenAccessTokenClient(Configuration.MaskinportenClientConfig(), defaultHttpClient ).hentAccessToken()
+                    call.respondText { "Token: $token" }
+                } catch (e: Exception) {
+                    call.respondText { "Sorry feilet: ${e.message}" }
+                }
+            }
+            get("test"){
+                call.respondText { "dette funker" }
             }
         }
     }
