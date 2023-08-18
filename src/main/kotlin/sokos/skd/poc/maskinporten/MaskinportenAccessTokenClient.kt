@@ -30,7 +30,7 @@ class MaskinportenAccessTokenClient(
         return mutex.withLock {
             when {
                 !this::token.isInitialized ||  token.expiresAt.isBefore(omToMinutter) -> {
-                    logger.info("henter ny token")
+                    println("henter ny token")
                     token = AccessToken(hentAccessTokenFraProvider())
                     token.accessToken
                 }
@@ -41,7 +41,7 @@ class MaskinportenAccessTokenClient(
     }
 
     private suspend fun hentAccessTokenFraProvider(): Token {
-        logger.info { "hentAccessToken ${maskinportenConfig.openIdConfiguration.issuer}, ${maskinportenConfig.clientId}, ${maskinportenConfig.scopes}" }
+        println { "hentAccessToken ${maskinportenConfig.openIdConfiguration.issuer}, ${maskinportenConfig.clientId}, ${maskinportenConfig.scopes}" }
         val jwt = JWT.create()
             .withAudience(maskinportenConfig.openIdConfiguration.issuer)
             .withIssuer(maskinportenConfig.clientId)
