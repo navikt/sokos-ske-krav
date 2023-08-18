@@ -13,14 +13,16 @@ fun Application.skdApi() {
                 try {
                     val skdService = SkdService()
                     skdService.runjob("1.txt")
-                    call.respondText { "Yepp somthing went ok" }
+                    call.respondText { "Yepp something went ok" }
                 } catch (e: Exception) {
                     call.respondText {
-                        "Sorry feilet: ${e.message}, ${e} \n"+
+                        "Sorry feilet: ${e.message}, \n"+
                         "clientID = ${readProperty("MASKINPORTEN_CLIENT_ID", "none")} \n " +
                         "wellKnownUrl= ${readProperty("MASKINPORTEN_WELL_KNOWN_URL", "none")} \n " +
                         "jwk_kid= ${readProperty("MASKINPORTEN_CLIENT_JWK", "none")} \n " +
-                        "scopes= ${readProperty("MASKINPORTEN_SCOPES", "none")}"
+                        "scopes= ${readProperty("MASKINPORTEN_SCOPES", "none")} \n +" +
+                        "skdurl= ${readProperty("SKD_REST_URL", "")} \n " +
+                        "Stacktrace= ${e.stackTraceToString()}"
                     }
                 }
             }
