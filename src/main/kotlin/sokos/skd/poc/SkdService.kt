@@ -1,8 +1,6 @@
 package sokos.skd.poc
 
 import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -46,7 +44,3 @@ class SkdService(
 
 fun fetchToken() = ""
 
-val defaultHttpClient = HttpClient(CIO) {
-    expectSuccess = true
-    install(Logging){ level = LogLevel.INFO}
-}

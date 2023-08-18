@@ -17,7 +17,7 @@ fun Application.skdApi() {
                     call.respondText { "Token: $token" }
                 } catch (e: Exception) {
                     call.respondText {
-                        "Sorry feilet: ${e.message} \n"+
+                        "Sorry feilet: ${e.message}, ${e} \n"+
                         "clientID = ${readProperty("MASKINPORTEN_CLIENT_ID", "none")} \n " +
                         "wellKnownUrl= ${readProperty("MASKINPORTEN_WELL_KNOWN_URL", "none")} \n " +
                         "jwk_kid= ${readProperty("MASKINPORTEN_CLIENT_JWK", "none")} \n " +

@@ -32,6 +32,7 @@ class MaskinportenAccessTokenClient(
                 !this::token.isInitialized ||  token.expiresAt.isBefore(omToMinutter) -> {
                     println("henter ny token")
                     token = AccessToken(hentAccessTokenFraProvider())
+                    println("Token hentet")
                     token.accessToken
                 }
 
