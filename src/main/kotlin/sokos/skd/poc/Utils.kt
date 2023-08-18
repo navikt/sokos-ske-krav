@@ -1,8 +1,13 @@
 package sokos.skd.poc
 
+import com.google.gson.*
+import io.ktor.util.reflect.*
 import kotlinx.coroutines.delay
 import java.io.File
 import java.net.URL
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -36,5 +41,48 @@ object Utils {
         throw error ?: IllegalStateException("Retry failed without error")
     }
 }
+
+class LocalDateTypeAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalDate?> {
+    private val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+
+    @Throws(JsonParseException::class)
+    override fun deserialize(
+        json: JsonElement, typeOfT: Type?,
+        context: JsonDeserializationContext?
+    ): LocalDate {
+        return LocalDate.parse(json.asString, formatter)
+    }
+
+    override fun serialize(
+        src: LocalDate?,
+        typeOfSrc: java.lang.reflect.Type?,
+        context: JsonSerializationContext?
+    ): JsonElement {
+        return JsonPrimitive(src?.format(formatter))
+    }
+
+}class LocalDateTimeTypeAdapter : JsonSerializer<LocalDateTime?>, JsonDeserializer<LocalDateTime?> {
+    private val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+
+    @Throws(JsonParseException::class)
+    override fun deserialize(
+        json: JsonElement, typeOfT: Type?,
+        context: JsonDeserializationContext?
+    ): LocalDateTime {
+        return LocalDateTime.parse(json.asString, formatter)
+    }
+
+    override fun serialize(
+        src: LocalDateTime?,
+        typeOfSrc: java.lang.reflect.Type?,
+        context: JsonSerializationContext?
+    ): JsonElement {
+        return JsonPrimitive(src?.format(formatter))
+    }
+}
+
+fun String.asResource(): URL = object {}.javaClass.classLoader.getResource(this)!!
+
+
 
 

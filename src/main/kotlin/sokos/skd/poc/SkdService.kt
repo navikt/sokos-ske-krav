@@ -1,46 +1,28 @@
 package sokos.skd.poc
 
-import io.ktor.client.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import kotlinx.coroutines.runBlocking
+import com.google.gson.GsonBuilder
+import java.time.LocalDate
+import java.time.LocalDateTime
 
-class SkdService(
-    private val skdEndpoint: String,
-    private val client: HttpClient = defaultHttpClient
-) {
+class SkdService {
 
-    fun doPost(path: String) {
-        val token = fetchToken()
-        runBlocking {
-            val response: HttpResponse = client.post("$skdEndpoint/$path") {
-                contentType(ContentType.Application.Json)
-                //TODO set post body og headers
-                headers {
-                    append(HttpHeaders.Authorization, " bearer $token")
-                }
-                setBody("")
+    suspend fun runjob(filnavn:String) {
+        val trekklisteObj = mapFraNavTilSkd(readFileFromFS(filnavn.asResource() ))
+        val gson = GsonBuilder()
+            .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
+            .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeTypeAdapter())
+            .create()
+
+        val skdClient = SkdClient(readProperty("SKD_REST_URL", ""))
+        trekklisteObj.forEach {
+            val kravRequest = gson.toJson(it)
+            try {
+                skdClient.doPost("innkrevingsoppdrag", kravRequest)
+            } catch (e: Exception) {
+                println("funka Ikke: ${e.message}")
             }
-            println(response.bodyAsText())
 
         }
-    }
 
-    fun doGet(path: String) {
-        val token = fetchToken()
-        runBlocking {
-            val response = defaultHttpClient.get("$skdEndpoint/$path") {
-                //TODO set post body og headers
-                headers {
-                    append(HttpHeaders.Authorization, "bearer $token")
-                }
-            }
-            println("Vi fikk: $response")
-        }
     }
-
 }
-
-fun fetchToken() = ""
-

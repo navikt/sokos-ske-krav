@@ -1,8 +1,9 @@
 package sokos.skd.poc
 
+import kotlinx.coroutines.runBlocking
 import kotlin.properties.Delegates
 
-fun main(args: Array<String>) {
+fun main(args: Array<String>) = runBlocking{
     println("Applikasjonen starter med følgende argumenter: ${args.joinToString()}")
 
     val applicationState = ApplicationState()

@@ -15,14 +15,7 @@ fun mapFraNavTilSkd(navLines: List<String>): List<OpprettInnkrevingsoppdragReque
 
     validateLines(firstLine, lastLine, detailLines)
 
-    val alleKrav = mapAlleKravTilSkdModel(detailLines)
-    var sumAll = 0.0
-    alleKrav.forEach {
-        sumAll += it.hovedstol.beloep
-        it.renteBeloep.forEach { sumAll += it.beloep }
-    }
-    //assert(alleKrav.size.equals(detailLines.size) ) { "Det er forskjellige antall linje fra OS og antall som sendes SKD!"}
-    return alleKrav
+    return mapAlleKravTilSkdModel(detailLines)
 }
 
 fun validateLines(first: FirstLine, lastLine: LastLine, details: List<DetailLine>) {

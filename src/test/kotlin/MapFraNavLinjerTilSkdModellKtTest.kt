@@ -16,7 +16,8 @@ class MapFraNavLinjerTilSkdModellKtTest {
 
     @Test
     fun mapperTestRecourceFilTest() {
-        val trekklisteObj = mapFraNavTilSkd(readFileFromFS("eksempelfil_TBK.txt".asResource() ))
+        val filnavn = "1.txt"
+        val trekklisteObj = mapFraNavTilSkd(readFileFromFS(filnavn.asResource() ))
         val gson = GsonBuilder()
             .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
             .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeTypeAdapter())
