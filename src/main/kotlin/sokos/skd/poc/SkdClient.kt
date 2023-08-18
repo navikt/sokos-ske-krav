@@ -16,7 +16,7 @@ class SkdClient(
         val token = fetchToken()
         var response: HttpResponse
         runBlocking {
-            response = client.post("$skdEndpoint/$path") {
+            response = client.post("$skdEndpoint$path") {
                 contentType(ContentType.Application.Json)
                 accept(ContentType.Application.Json)
                 headers {

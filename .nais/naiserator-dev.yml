@@ -41,7 +41,7 @@ spec:
     enabled: true
   env:
     - name: SKD_REST_URL
-      value: https://api-test.sits.no/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag
+      value: https://api-test.sits.no/api/innkreving/innkrevingsoppdrag/v1/
 
 
 
