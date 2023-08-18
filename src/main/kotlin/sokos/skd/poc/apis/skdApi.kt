@@ -7,7 +7,7 @@ import sokos.skd.poc.Configuration
 import sokos.skd.poc.defaultHttpClient
 import sokos.skd.poc.maskinporten.MaskinportenAccessTokenClient
 
-fun Application.spkApi() {
+fun Application.skdApi() {
     routing {
         route("krav") {
             get("start") {
