@@ -47,6 +47,6 @@ class SkdService(
 fun fetchToken() = ""
 
 val defaultHttpClient = HttpClient(CIO) {
-    expectSuccess = false
+    expectSuccess = true
     install(Logging){ level = LogLevel.INFO}
 }
