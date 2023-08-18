@@ -9,6 +9,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
+import kotlin.test.Ignore
 
 
 class MapFraNavLinjerTilSkdModellKtTest {
@@ -23,6 +24,7 @@ class MapFraNavLinjerTilSkdModellKtTest {
         val trekklisteJson = gson.toJson(trekklisteObj).also { println(it) }
 
     }
+    @Ignore
     @Test
     fun MapperFtpFilTest() {
         val trekklisteObj = mapFraNavTilSkd(readFileFromFtp("eksempelfil_TBK.txt"))
