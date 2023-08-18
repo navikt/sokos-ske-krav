@@ -4,7 +4,7 @@ import com.google.gson.*
 import io.ktor.util.reflect.*
 import kotlinx.coroutines.delay
 import java.io.File
-import java.net.URL
+import java.net.URI
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -20,8 +20,8 @@ fun readFileFromFtp(fileName: String): List<String> {
     val ftpClient = FtpClient()
     return ftpClient.downloadFileFromFtp(fileName)
 }
-fun readFileFromFS(file: URL): List<String> {
-    return File(file.toURI()).readLines()
+fun readFileFromFS(file: String): List<String> {
+    return File(URI(file)).readLines()
 }
 
 object Utils {
@@ -81,7 +81,7 @@ class LocalDateTypeAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalD
     }
 }
 
-fun String.asResource(): URL = object {}.javaClass.classLoader.getResource(this)!!
+fun String.asResource(): String = object {}.javaClass.classLoader.getResource(this)!!.toExternalForm()
 
 
 

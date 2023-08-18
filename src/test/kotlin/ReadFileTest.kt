@@ -5,20 +5,21 @@ import sokos.skd.poc.parseFRtoDataDetailLineClass
 import sokos.skd.poc.parseFRtoDataFirsLineClass
 import sokos.skd.poc.parseFRtoDataLastLIneClass
 import sokos.skd.poc.readFileFromFS
-import java.net.URL
 import java.time.LocalDateTime
 import kotlin.test.assertEquals
 
 class ReadFileTest {
 
-    var liste = readFileFromFS("eksempelfil_TBK.txt".asResource())
+    var liste = readFileFromFS("101.txt".asResource())
     @Test
     fun lesinnHeleFila() {
+        println("101.txt".asResource())
         println("Antall i lista ${liste.size}")
         println("Første linje: ${liste.first()}")
         liste.forEach { println(it) }
         println("Siste linje: ${liste.last()}")
     }
+    //Users/d149678/IdeaProjects/sokos-skd-poc/build/resources/test
 
     @Test
     fun lesInnStartLinjeTilclass() {
@@ -64,4 +65,4 @@ class ReadFileTest {
     }
 }
 
-fun String.asResource(): URL = object {}.javaClass.classLoader.getResource(this)!!
+fun String.asResource(): String = object {}.javaClass.classLoader.getResource(this)!!.toString()
