@@ -13,7 +13,6 @@ repositories {
 
 final def ktor_version='2.3.3'
 final def kotlin_logging_version = '3.0.4'
-final def natpryceVersion = '1.6.10.0'
 final def nimbusVersion = '9.25.6'
 final def jacksonVersion = '2.14.0'
 
@@ -45,13 +44,10 @@ dependencies {
     implementation "io.github.microutils:kotlin-logging-jvm:$kotlin_logging_version"
     implementation "com.google.code.gson:gson:2.10.1"
     implementation "commons-net:commons-net:3.9.0"
-    implementation "com.natpryce:konfig:$natpryceVersion"
     implementation "com.nimbusds:nimbus-jose-jwt:$nimbusVersion"
     implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
-
-
 
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
 }
@@ -63,7 +59,6 @@ compileKotlin {
 compileTestKotlin {
     kotlinOptions.jvmTarget = '17'
 }
-
 
 test {
     useJUnitPlatform()
