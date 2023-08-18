@@ -39,7 +39,7 @@ data class Configuration(
 
 }
 
-private fun readProperty(name: String, default: String? = null) =
+fun readProperty(name: String, default: String? = null) =
     System.getenv(name)
         ?: System.getProperty(name)
         ?: default.takeIf { it != null }?.also { logger.info("Bruker default verdi for property $name") }
