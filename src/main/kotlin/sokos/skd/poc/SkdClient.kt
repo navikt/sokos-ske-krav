@@ -21,6 +21,7 @@ class SkdClient(
                 accept(ContentType.Application.Json)
                 headers {
                     append(HttpHeaders.Authorization, " bearer $token")
+                    append("Klientid", "NAV/0.1")
                 }
                 setBody(body)
             }
