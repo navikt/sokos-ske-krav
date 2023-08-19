@@ -25,7 +25,7 @@ class SkdClient(
                 }
                 setBody(body)
             }
-            println(response.bodyAsText())
+            println("resp_body: ${response.bodyAsText()}, headers: ${response.headers}, request time: ${response.requestTime}")
         }
         return response
     }
