@@ -18,7 +18,8 @@ class SkdService {
             val kravRequest = gson.toJson(it)
             try {
                 println("Forsøker sende: $it")
-                skdClient.doPost("innkrevingsoppdrag", kravRequest)
+                val response = skdClient.doPost("innkrevingsoppdrag", kravRequest)
+                println("sendt: ${kravRequest}, Svaret er: $response")
             } catch (e: Exception) {
                 println("funka Ikke: ${e.message}, \n ${e.stackTraceToString()}")
             }
