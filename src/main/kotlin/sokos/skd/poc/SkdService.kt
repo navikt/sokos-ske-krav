@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 class SkdService {
 
     suspend fun runjob(filnavn:String) {
-        val trekklisteObj = mapFraNavTilSkd(readFileFromFS(filnavn.asResource() ))
+        val trekklisteObj = mapFraNavTilSkd(liste())
         val gson = GsonBuilder()
             .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
             .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeTypeAdapter())
@@ -17,12 +17,22 @@ class SkdService {
         trekklisteObj.forEach {
             val kravRequest = gson.toJson(it)
             try {
+                println("Forsøker sende: $it")
                 skdClient.doPost("innkrevingsoppdrag", kravRequest)
             } catch (e: Exception) {
-                println("funka Ikke: ${e.message}")
+                println("funka Ikke: ${e.message}, \n ${e.stackTraceToString()}")
             }
 
         }
 
     }
+}
+
+private fun liste(): List<String> {
+    var l: List<String>
+    l = ArrayList()
+    l.add("001020230526221340OB04")
+    l.add("00300000001OB040000520015    0000412320020230524090942292832022070120221031PE AP                     2023052448034819T                      0000000000000000000000")
+    l.add("004020230526221340OB04     00000001000000004123200")
+    return l
 }
