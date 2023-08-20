@@ -4,6 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
 import sokos.skd.poc.maskinporten.MaskinportenAccessTokenClient
 
@@ -12,6 +13,7 @@ class SkdClient(
     private val client: HttpClient = defaultHttpClient
 ) {
 
+    @OptIn(InternalAPI::class)
     suspend fun doPost(path: String, body: String): HttpResponse {
         val token = fetchToken()
         var response: HttpResponse
@@ -25,7 +27,7 @@ class SkdClient(
                 }
                 setBody(body)
             }
-            println("resp_body: ${response.bodyAsText()}, headers: ${response.headers}, request time: ${response.requestTime}")
+            println("resp_body: ${response.bodyAsText()}, \n${response.headers}, \n${response.content}, \n${response.request}")
         }
         return response
     }
