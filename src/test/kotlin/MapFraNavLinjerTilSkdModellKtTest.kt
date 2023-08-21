@@ -16,13 +16,14 @@ class MapFraNavLinjerTilSkdModellKtTest {
 
     @Test
     fun mapperTestRecourceFilTest() {
-        val filnavn = "1.txt"
+        val filnavn = "101.txt"
         val trekklisteObj = mapFraNavTilSkd(readFileFromFS(filnavn.asResource() ))
+        trekklisteObj.forEach(::println)
         val gson = GsonBuilder()
             .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
             .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeTypeAdapter())
             .create()
-        val trekklisteJson = gson.toJson(trekklisteObj).also { println(it) }
+        //val trekklisteJson = gson.toJson(trekklisteObj).also { println(it) }
 
     }
     @Ignore

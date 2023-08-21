@@ -44,7 +44,7 @@ fun parseFRtoDataLastLIneClass(line: String): LastLine {
     val parser = FrParser(line)
     val xx = parser.parseString(4)
     println("xx = $xx")
-    assert(xx.equals("0040")) {"Feilet i parser"}
+    assert(xx.equals("0040")) { "Feilet i parser" }
     return LastLine(
         transferDate = parser.parseDateTime(14),
         sender = parser.parseString(9).trim(),
@@ -73,8 +73,13 @@ class FrParser(val line: String) {
         }.toDouble()
 
     fun parseDateTime(len: Int) = this.parseString(len)
-        .let { LocalDateTime.parse(it, DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) }
+        .let {
+            it.substring(0, 4) + "-" + it.substring(4, 6) + "-" + it.substring(6, 8) + " " +
+                    it.substring(8, 10) + ":" + it.substring(10, 12) + ":" + it.substring(12, 14)
+        }
+        .let { LocalDateTime.parse(it, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) }
 
     fun parseDate(len: Int) = this.parseString(len)
-        .let { LocalDate.parse(it, DateTimeFormatter.ofPattern("yyyyMMdd")) }
+        .let { it.substring(0, 4) + "-" + it.substring(4, 6) + "-" + it.substring(6, 8) }
+        .let { LocalDate.parse(it, DateTimeFormatter.ofPattern("yyyy-MM-dd")) }
 }

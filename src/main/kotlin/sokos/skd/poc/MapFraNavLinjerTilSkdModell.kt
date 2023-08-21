@@ -3,9 +3,12 @@ package sokos.skd.poc
 import sokos.skd.poc.navmodels.DetailLine
 import sokos.skd.poc.navmodels.FirstLine
 import sokos.skd.poc.navmodels.LastLine
+import sokos.skd.poc.navmodels.Stonadstype
 import sokos.skd.poc.skdmodels.*
 import sokos.skd.poc.skdmodels.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
+import sokos.skd.poc.skdmodels.RenteBeloep.Valuta
 import sokos.skd.poc.skdmodels.Skyldner.Identifikatortype.PERSON
+import sokos.skd.poc.skdmodels.TilleggsinformasjonNav.Stoenadstype
 import kotlin.math.roundToLong
 
 fun mapFraNavTilSkd(navLines: List<String>): List<OpprettInnkrevingsoppdragRequest> {
@@ -31,23 +34,22 @@ private fun mapAlleKravTilSkdModel(detailLines: List<DetailLine>): List<OpprettI
 
     detailLines.forEach {
         val trekk = OpprettInnkrevingsoppdragRequest(
-            kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE,
+            kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE.value,
             skyldner = Skyldner(PERSON, it.gjelderID),
             hovedstol = HovedstolBeloep(HovedstolBeloep.Valuta.NOK, it.belop.roundToLong()),
             renteBeloep = arrayOf(
                 RenteBeloep(
-                    valuta = RenteBeloep.Valuta.NOK,
+                    valuta = Valuta.NOK,
                     beloep = it.belopRente.roundToLong(),
-                    renterIlagtTidspunkt = it.vedtakDato
+                    renterIlagtDato = it.vedtakDato
                 )
             ),
             oppdragsgiversSaksnummer = it.saksNummer,
             oppdragsgiversKravidentifikator = it.saksNummer,
             fastsettelsesdato = it.vedtakDato,
-            tilleggsinformasjon = (TilleggsinformasjonNav.Stoenadstype from it.kravkode)?.let { it1 ->
+            tilleggsinformasjon = (Stonadstype from it.kravkode)?.let { st ->
                 TilleggsinformasjonNav(
-                    stoenadstype = it1,
-                    referanseGammelSak = it.takeIf { it.referanseNummerGammelSak.isNotEmpty() }?.referanseNummerGammelSak,
+                    stoenadstype = Stoenadstype.valueOf(st.name).value,
                     ytelserForAvregning = YtelseForAvregningBeloep(
                         valuta = YtelseForAvregningBeloep.Valuta.NOK,
                         beloep = it.fremtidigYtelse.roundToLong()
