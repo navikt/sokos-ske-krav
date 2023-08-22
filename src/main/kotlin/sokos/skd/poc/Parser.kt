@@ -42,9 +42,7 @@ fun parseFRtoDataDetailLineClass(line: String): DetailLine {
 
 fun parseFRtoDataLastLIneClass(line: String): LastLine {
     val parser = FrParser(line)
-    val xx = parser.parseString(4)
-    println("xx = $xx")
-    assert(xx.equals("0040")) { "Feilet i parser" }
+    parser.parseString(4)
     return LastLine(
         transferDate = parser.parseDateTime(14),
         sender = parser.parseString(9).trim(),

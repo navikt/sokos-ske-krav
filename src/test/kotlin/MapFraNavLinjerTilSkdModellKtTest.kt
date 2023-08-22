@@ -18,11 +18,14 @@ class MapFraNavLinjerTilSkdModellKtTest {
     fun mapperTestRecourceFilTest() {
         val filnavn = "101.txt"
         val trekklisteObj = mapFraNavTilSkd(readFileFromFS(filnavn.asResource() ))
-        trekklisteObj.forEach(::println)
         val gson = GsonBuilder()
             .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
             .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeTypeAdapter())
             .create()
+        trekklisteObj.forEach {
+            println(it)
+            gson.toJson(it).also(::println)
+        }
         //val trekklisteJson = gson.toJson(trekklisteObj).also { println(it) }
 
     }
@@ -50,7 +53,7 @@ class MapFraNavLinjerTilSkdModellKtTest {
 }
 
 class LocalDateTypeAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalDate?> {
-    private val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
     @Throws(JsonParseException::class)
     override fun deserialize(
@@ -69,7 +72,7 @@ class LocalDateTypeAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalD
     }
 
 }class LocalDateTimeTypeAdapter : JsonSerializer<LocalDateTime?>, JsonDeserializer<LocalDateTime?> {
-    private val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     @Throws(JsonParseException::class)
     override fun deserialize(

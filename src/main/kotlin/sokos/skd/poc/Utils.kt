@@ -46,7 +46,7 @@ object Utils {
 }
 
 class LocalDateTypeAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalDate?> {
-    private val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
     @Throws(JsonParseException::class)
     override fun deserialize(
@@ -65,7 +65,7 @@ class LocalDateTypeAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalD
     }
 
 }class LocalDateTimeTypeAdapter : JsonSerializer<LocalDateTime?>, JsonDeserializer<LocalDateTime?> {
-    private val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     @Throws(JsonParseException::class)
     override fun deserialize(
