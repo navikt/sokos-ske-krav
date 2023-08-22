@@ -30,7 +30,7 @@ data class OpprettInnkrevingsoppdragRequest (
     val skyldner: Skyldner,
     val hovedstol: HovedstolBeloep,
     /*              Renter påløpt hos oppdragsgiver for overføring til innkrevingsmyndighet.          */
-    val renteBeloep: kotlin.Array<RenteBeloep>,
+    val renteBeloep: kotlin.Array<RenteBeloep>?,
     /*              Saksnummer hos oppdragsgiver for innkrevingsoppdraget. Benyttes ved kommunikasjon fra              innkrevingsmyndigheten til oppdragsgiver. Flere innkrevingsoppdrag kan ha samme oppdragsgiversSaksnummer          */
     val oppdragsgiversSaksnummer: kotlin.String,
     /*              Kravidentifikator hos oppdragsgiver. Benyttes først og fremst til sporing. Må være unik,             opprettelse av flere krav med samme oppdragsgiversKravidentifikator vil feile.          */

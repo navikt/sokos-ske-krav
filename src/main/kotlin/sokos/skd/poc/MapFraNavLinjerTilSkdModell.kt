@@ -6,7 +6,6 @@ import sokos.skd.poc.navmodels.LastLine
 import sokos.skd.poc.navmodels.Stonadstype
 import sokos.skd.poc.skdmodels.*
 import sokos.skd.poc.skdmodels.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
-import sokos.skd.poc.skdmodels.RenteBeloep.Valuta
 import sokos.skd.poc.skdmodels.Skyldner.Identifikatortype.PERSON
 import sokos.skd.poc.skdmodels.TilleggsinformasjonNav.Stoenadstype
 import kotlin.math.roundToLong
@@ -50,13 +49,14 @@ private fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRe
         kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE.value,
         skyldner = Skyldner(PERSON, krav.gjelderID),
         hovedstol = HovedstolBeloep(HovedstolBeloep.Valuta.NOK, krav.belop.roundToLong()),
-        renteBeloep = arrayOf(
-            RenteBeloep(
-                valuta = Valuta.NOK,
-                beloep = krav.belopRente.roundToLong(),
-                renterIlagtDato = krav.vedtakDato
-            )
-        ),
+        renteBeloep = emptyArray(),
+//        renteBeloep =  arrayOf(
+//            RenteBeloep(
+//                valuta = Valuta.NOK,
+//                beloep = krav.belopRente.roundToLong(),
+//                renterIlagtDato = krav.vedtakDato
+//            ).takeIf { it > 0 }
+//        ) ,
         oppdragsgiversSaksnummer = krav.saksNummer,
         oppdragsgiversKravidentifikator = krav.saksNummer,
         fastsettelsesdato = krav.vedtakDato,
