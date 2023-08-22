@@ -28,7 +28,7 @@ class SkdService(
                 println("funka Ikke: ${e.message}, \n ${e.stackTraceToString()}")
             }
         }
-
     }
+
 }
 

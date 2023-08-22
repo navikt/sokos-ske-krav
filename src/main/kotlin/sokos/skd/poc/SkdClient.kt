@@ -17,7 +17,9 @@ class SkdClient(
     private val skdEndpoint: String,
     private val client: HttpClient = defaultHttpClient
 ) {
-    suspend fun opprettKrav(body: String) = doPost(OPPRETT_KRAV, body)
+    suspend fun opprettKrav(body: String): HttpResponse = doPost(OPPRETT_KRAV, body)
+    suspend fun endreKrav(body: String): HttpResponse = doPost(ENDRE_KRAV, body)
+    suspend fun stoppKrav(body: String):HttpResponse = doPost(STOPP_KRAV, body)
 
     @OptIn(InternalAPI::class)
     private suspend fun doPost(path: String, body: String): HttpResponse {
@@ -28,7 +30,7 @@ class SkdClient(
                 contentType(ContentType.Application.Json)
                 accept(ContentType.Application.Json)
                 headers {
-                    append(HttpHeaders.Authorization, " bearer $token")
+                    append(HttpHeaders.Authorization, "Bearer $token")
                     append("Klientid", "NAV/0.1")
                 }
                 setBody(body)

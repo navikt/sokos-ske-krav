@@ -23,43 +23,62 @@ fun mapFraNavTilSkd(navLines: List<String>): List<OpprettInnkrevingsoppdragReque
 
 fun validateLines(first: FirstLine, lastLine: LastLine, details: List<DetailLine>) {
     var sumAll = 0.0
-    assert(lastLine.numTransactionLines.equals(details.size)) { "Antall krav stemmer ikke med antallet i siste linje!"}
-    details.forEach { sumAll += it.belop+it.belopRente }
-    assert(sumAll.equals(lastLine.sumAllTransactionLines)) { "Sum alle linjer stemmer ikke med sum i siste linje!"}
-    assert(first.transferDate.equals(lastLine.transferDate)) { "Dato sendt er avvikende mellom første og siste linje fra OS!"}
+    assert(lastLine.numTransactionLines.equals(details.size)) { "Antall krav stemmer ikke med antallet i siste linje!" }
+    details.forEach { sumAll += it.belop + it.belopRente }
+    assert(sumAll.equals(lastLine.sumAllTransactionLines)) { "Sum alle linjer stemmer ikke med sum i siste linje!" }
+    assert(first.transferDate.equals(lastLine.transferDate)) { "Dato sendt er avvikende mellom første og siste linje fra OS!" }
 }
 
 private fun mapAlleKravTilSkdModel(detailLines: List<DetailLine>): List<OpprettInnkrevingsoppdragRequest> {
-    val krav = mutableListOf<OpprettInnkrevingsoppdragRequest>()
+    val nyeKrav = mutableListOf<OpprettInnkrevingsoppdragRequest>()
+    val endringKrav = mutableListOf<EndringRequest>()
+    val stoppKrav = mutableListOf<AvskrivingRequest>()
 
     detailLines.forEach {
-        val trekk = OpprettInnkrevingsoppdragRequest(
-            kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE.value,
-            skyldner = Skyldner(PERSON, it.gjelderID),
-            hovedstol = HovedstolBeloep(HovedstolBeloep.Valuta.NOK, it.belop.roundToLong()),
-            renteBeloep = arrayOf(
-                RenteBeloep(
-                    valuta = Valuta.NOK,
-                    beloep = it.belopRente.roundToLong(),
-                    renterIlagtDato = it.vedtakDato
-                )
-            ),
-            oppdragsgiversSaksnummer = it.saksNummer,
-            oppdragsgiversKravidentifikator = it.saksNummer,
-            fastsettelsesdato = it.vedtakDato,
-            tilleggsinformasjon = (Stonadstype from it.kravkode)?.let { st ->
-                TilleggsinformasjonNav(
-                    stoenadstype = Stoenadstype.valueOf(st.name).value,
-                    ytelserForAvregning = YtelseForAvregningBeloep(
-                        valuta = YtelseForAvregningBeloep.Valuta.NOK,
-                        beloep = it.fremtidigYtelse.roundToLong()
-                        )
-                )
-            }
-        )
-        krav.add(trekk)
+//        when {
+//            it.erStopp() -> stoppKrav.add(lagStoppKravRequest(it))
+//            it.erEndring() -> endringKrav.add(lagEndreKravRequest(it))
+//            else -> nyeKrav.add(lagOpprettKravRequest(it))
+//        }
+        nyeKrav.add(lagOpprettKravRequest(it))
     }
-    return krav
+    return nyeKrav
+}
+
+private fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
+    return OpprettInnkrevingsoppdragRequest(
+        kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE.value,
+        skyldner = Skyldner(PERSON, krav.gjelderID),
+        hovedstol = HovedstolBeloep(HovedstolBeloep.Valuta.NOK, krav.belop.roundToLong()),
+        renteBeloep = arrayOf(
+            RenteBeloep(
+                valuta = Valuta.NOK,
+                beloep = krav.belopRente.roundToLong(),
+                renterIlagtDato = krav.vedtakDato
+            )
+        ),
+        oppdragsgiversSaksnummer = krav.saksNummer,
+        oppdragsgiversKravidentifikator = krav.saksNummer,
+        fastsettelsesdato = krav.vedtakDato,
+        tilleggsinformasjon = (Stonadstype from krav.kravkode)?.let { st ->
+            TilleggsinformasjonNav(
+                stoenadstype = Stoenadstype.valueOf(st.name).value,
+                ytelserForAvregning = YtelseForAvregningBeloep(
+                    valuta = YtelseForAvregningBeloep.Valuta.NOK,
+                    beloep = krav.fremtidigYtelse.roundToLong()
+                )
+            )
+        }
+    )
+
+}
+
+private fun lagEndreKravRequest(krav: DetailLine) {
+
+}
+
+private fun lagStoppKravRequest(krav: DetailLine) {
+
 }
 
 fun arrayOfDetailLines(lines: List<String>): List<DetailLine> {
@@ -67,3 +86,12 @@ fun arrayOfDetailLines(lines: List<String>): List<DetailLine> {
     lines.forEach { detailLines.add(parseFRtoDataDetailLineClass(it)) }
     return detailLines
 }
+
+private fun DetailLine.erEndring(): Boolean {
+    return false
+}
+
+private fun DetailLine.erStopp(): Boolean {
+    return false
+}
+
