@@ -1,4 +1,4 @@
-package sokos.skd.poc
+package sokos.skd.poc.apis
 
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*

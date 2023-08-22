@@ -7,12 +7,13 @@ import io.ktor.server.routing.*
 import sokos.skd.poc.SkdService
 import sokos.skd.poc.readProperty
 
-fun Application.skdApi() {
+fun Application.skdApi(
+    skdService: SkdService
+) {
     routing {
         route("krav") {
             get("test") {
                 try {
-                    val skdService = SkdService()
                     skdService.sjekkOmNyFilOgSendTilSkatt(1)
                     call.respond(HttpStatusCode.OK, "Krav sendt")
                 } catch (e: Exception) {

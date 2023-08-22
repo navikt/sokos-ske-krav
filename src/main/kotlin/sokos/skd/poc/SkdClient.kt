@@ -8,14 +8,20 @@ import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
 import sokos.skd.poc.maskinporten.MaskinportenAccessTokenClient
 
+private const val OPPRETT_KRAV = "innkrevingsoppdrag"
+private const val ENDRE_KRAV = "innkrevingsoppdrag/endring"
+private const val STOPP_KRAV = "innkrevingsoppdrag/avskriv"
+
 class SkdClient(
+    private val tokenProvider: MaskinportenAccessTokenClient,
     private val skdEndpoint: String,
     private val client: HttpClient = defaultHttpClient
 ) {
+    suspend fun opprettKrav(body: String) = doPost(OPPRETT_KRAV, body)
 
     @OptIn(InternalAPI::class)
-    suspend fun doPost(path: String, body: String): HttpResponse {
-        val token = fetchToken()
+    private suspend fun doPost(path: String, body: String): HttpResponse {
+        val token = tokenProvider.hentAccessToken()
         var response: HttpResponse
         runBlocking {
             response = client.post("$skdEndpoint$path") {
@@ -31,22 +37,6 @@ class SkdClient(
         }
         return response
     }
-
-    suspend fun doGet(path: String) {
-        val token = fetchToken()
-        runBlocking {
-            val response = defaultHttpClient.get("$skdEndpoint/$path") {
-                //TODO set post body og headers
-                headers {
-                    append(HttpHeaders.Authorization, "bearer $token")
-                }
-            }
-            println("Vi fikk: $response")
-        }
-    }
-
 }
 
-suspend fun fetchToken() =
-    MaskinportenAccessTokenClient(Configuration.MaskinportenClientConfig(), defaultHttpClient).hentAccessToken()
 

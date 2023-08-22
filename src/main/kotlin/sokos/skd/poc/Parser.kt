@@ -71,13 +71,8 @@ class FrParser(val line: String) {
         }.toDouble()
 
     fun parseDateTime(len: Int) = this.parseString(len)
-        .let {
-            it.substring(0, 4) + "-" + it.substring(4, 6) + "-" + it.substring(6, 8) + " " +
-                    it.substring(8, 10) + ":" + it.substring(10, 12) + ":" + it.substring(12, 14)
-        }
-        .let { LocalDateTime.parse(it, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) }
+        .let { LocalDateTime.parse(it, DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) }
 
     fun parseDate(len: Int) = this.parseString(len)
-        .let { it.substring(0, 4) + "-" + it.substring(4, 6) + "-" + it.substring(6, 8) }
-        .let { LocalDate.parse(it, DateTimeFormatter.ofPattern("yyyy-MM-dd")) }
+        .let { LocalDate.parse(it, DateTimeFormatter.ofPattern("yyyyMMdd")) }
 }

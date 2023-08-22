@@ -8,12 +8,10 @@ import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
-private val useSecurity: Boolean = readProperty("USE_AUTHENTICATION", default = "true") != "false"
 
 data class Configuration(
-    val useAuthentication: Boolean = useSecurity,
     val skdRestUrl: String = readProperty("SKD_REST_URL", ""),
-    val maskinportenClientConfig: MaskinportenClientConfig? = if (useAuthentication) MaskinportenClientConfig() else null,
+    val maskinportenClientConfig: MaskinportenClientConfig = MaskinportenClientConfig()
 ) {
     data class MaskinportenClientConfig(
         val clientId: String = readProperty("MASKINPORTEN_CLIENT_ID", ""),
