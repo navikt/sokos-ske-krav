@@ -5,19 +5,21 @@ import sokos.skd.poc.navmodels.FirstLine
 import sokos.skd.poc.navmodels.LastLine
 import sokos.skd.poc.navmodels.Stonadstype
 import sokos.skd.poc.skdmodels.*
+import sokos.skd.poc.skdmodels.AvskrivingRequest.Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
+import sokos.skd.poc.skdmodels.HovedstolBeloep.Valuta.NOK
 import sokos.skd.poc.skdmodels.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
 import sokos.skd.poc.skdmodels.Skyldner.Identifikatortype.PERSON
 import sokos.skd.poc.skdmodels.TilleggsinformasjonNav.Stoenadstype
 import kotlin.math.roundToLong
 
-fun mapFraNavTilSkd(navLines: List<String>): List<OpprettInnkrevingsoppdragRequest> {
+fun mapFraFRTilDetailAndValidate(navLines: List<String>): List<DetailLine> {
     val firstLine = parseFRtoDataFirsLineClass(navLines.first())
     val lastLine = parseFRtoDataLastLIneClass(navLines.last())
-    val detailLines = arrayOfDetailLines(navLines.subList(1, navLines.lastIndex))
+    val detailLines = mapToDetailLines(navLines.subList(1, navLines.lastIndex))
 
     validateLines(firstLine, lastLine, detailLines)
 
-    return mapAlleKravTilSkdModel(detailLines)
+    return detailLines
 }
 
 fun validateLines(first: FirstLine, lastLine: LastLine, details: List<DetailLine>) {
@@ -44,11 +46,11 @@ private fun mapAlleKravTilSkdModel(detailLines: List<DetailLine>): List<OpprettI
     return nyeKrav
 }
 
-private fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
+fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
     return OpprettInnkrevingsoppdragRequest(
         kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE.value,
         skyldner = Skyldner(PERSON, krav.gjelderID),
-        hovedstol = HovedstolBeloep(HovedstolBeloep.Valuta.NOK, krav.belop.roundToLong()),
+        hovedstol = HovedstolBeloep(NOK, krav.belop.roundToLong()),
         renteBeloep = emptyArray(),
 //        renteBeloep =  arrayOf(
 //            RenteBeloep(
@@ -73,25 +75,25 @@ private fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRe
 
 }
 
-private fun lagEndreKravRequest(krav: DetailLine) {
-
+fun lagEndreKravRequest(krav: DetailLine): EndringRequest {
+    return EndringRequest(
+        kravidentifikatortype = EndringRequest.Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR.value,
+        kravidentifikator = krav.saksNummer,
+        nyHovedstol = HovedstolBeloep(NOK, krav.belop.roundToLong()),
+        )
 }
 
-private fun lagStoppKravRequest(krav: DetailLine) {
-
+fun lagStoppKravRequest(krav: DetailLine): AvskrivingRequest {
+    return AvskrivingRequest(
+        kravidentifikatortype =  SKATTEETATENSKRAVIDENTIFIKATOR.value,
+        kravidentifikator = krav.saksNummer
+    )
 }
 
-fun arrayOfDetailLines(lines: List<String>): List<DetailLine> {
+fun mapToDetailLines(lines: List<String>): List<DetailLine> {
     val detailLines = mutableListOf<DetailLine>()
     lines.forEach { detailLines.add(parseFRtoDataDetailLineClass(it)) }
     return detailLines
 }
 
-private fun DetailLine.erEndring(): Boolean {
-    return false
-}
-
-private fun DetailLine.erStopp(): Boolean {
-    return false
-}
 
