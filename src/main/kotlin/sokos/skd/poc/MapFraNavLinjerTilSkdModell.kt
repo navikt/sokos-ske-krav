@@ -66,7 +66,7 @@ private fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRe
                 ytelserForAvregning = YtelseForAvregningBeloep(
                     valuta = YtelseForAvregningBeloep.Valuta.NOK,
                     beloep = krav.fremtidigYtelse.roundToLong()
-                )
+                ).takeIf { krav.fremtidigYtelse.roundToLong() > 0 }
             )
         }
     )
