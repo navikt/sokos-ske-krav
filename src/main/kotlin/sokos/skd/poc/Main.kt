@@ -1,6 +1,7 @@
 package sokos.skd.poc
 
 import kotlinx.coroutines.runBlocking
+import sokos.skd.poc.database.DataSource
 import sokos.skd.poc.maskinporten.MaskinportenAccessTokenClient
 import kotlin.properties.Delegates
 
@@ -11,7 +12,7 @@ fun main(args: Array<String>) = runBlocking{
     val configuration = Configuration()
     val tokenProvider = MaskinportenAccessTokenClient(configuration.maskinportenClientConfig, defaultHttpClient)
     val skdClient = SkdClient(tokenProvider, configuration.skdRestUrl)
-    val skdService = SkdService(skdClient)
+    val skdService = SkdService(DataSource(configuration.dbConfig), skdClient)
 
 
     applicationState.ready = true

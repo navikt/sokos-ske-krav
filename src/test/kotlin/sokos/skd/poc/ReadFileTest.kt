@@ -1,19 +1,18 @@
+package sokos.skd.poc
+
 import org.junit.jupiter.api.Test
 import sokos.skd.poc.navmodels.FirstLine
 import sokos.skd.poc.navmodels.LastLine
-import sokos.skd.poc.parseFRtoDataDetailLineClass
-import sokos.skd.poc.parseFRtoDataFirsLineClass
-import sokos.skd.poc.parseFRtoDataLastLIneClass
-import sokos.skd.poc.readFileFromFS
+import java.net.URL
 import java.time.LocalDateTime
 import kotlin.test.assertEquals
 
 class ReadFileTest {
 
-    var liste = readFileFromFS("101.txt".asResource())
+    var liste = readFileFromFS("101.txt".asResourceAsString())
     @Test
     fun lesinnHeleFila() {
-        println("101.txt".asResource())
+        println("101.txt".asResourceAsString())
         println("Antall i lista ${liste.size}")
         println("Første linje: ${liste.first()}")
         liste.forEach { println(it) }
@@ -65,4 +64,5 @@ class ReadFileTest {
     }
 }
 
-fun String.asResource(): String = object {}.javaClass.classLoader.getResource(this)!!.toString()
+fun String.asResourceAsString(): String = object {}.javaClass.classLoader.getResource(this)!!.toString()
+fun String.asResourceAsURL(): URL = object {}.javaClass.classLoader.getResource(this)

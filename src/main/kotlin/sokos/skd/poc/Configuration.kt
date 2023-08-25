@@ -11,7 +11,8 @@ private val logger = KotlinLogging.logger {}
 
 data class Configuration(
     val skdRestUrl: String = readProperty("SKD_REST_URL", ""),
-    val maskinportenClientConfig: MaskinportenClientConfig = MaskinportenClientConfig()
+    val maskinportenClientConfig: MaskinportenClientConfig = MaskinportenClientConfig(),
+    val dbConfig: DbConfig = DbConfig()
 ) {
     data class MaskinportenClientConfig(
         val clientId: String = readProperty("MASKINPORTEN_CLIENT_ID", ""),
@@ -34,6 +35,17 @@ data class Configuration(
             }
         }
     }
+
+    data class DbConfig(
+        val dbHost: String = readProperty(""),
+        val dbPort: String = readProperty(""),
+        val dbName: String = readProperty(""),
+        val dbUserName: String = readProperty(""),
+        val dbPassword: String = readProperty("")
+    ){
+        val jdbcUrl: String = "jdbc:postgresql://$dbHost:$dbPort/$dbName"
+    }
+
 
 }
 

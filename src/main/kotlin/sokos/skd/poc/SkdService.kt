@@ -3,12 +3,14 @@ package sokos.skd.poc
 import com.google.gson.GsonBuilder
 import io.ktor.client.statement.*
 import kotlinx.coroutines.runBlocking
+import sokos.skd.poc.database.DataSource
 import sokos.skd.poc.navmodels.DetailLine
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.math.roundToLong
 
 class SkdService(
+    private val dataSource: DataSource,
     private val skdClient: SkdClient
 ) {
     suspend fun sjekkOmNyFilOgSendTilSkatt(antall: Int) = runBlocking {
@@ -34,7 +36,7 @@ class SkdService(
                         response = skdClient.opprettKrav(gson.toJson(lagOpprettKravRequest(it)))
                     }
                 }
-                println("sendt: ${it}, Svaret er: $response")
+                println("sendt: ${it},\nSvaret er: $response")
             } catch (e: Exception) {
                 println("funka Ikke: ${e.message}, \n ${e.stackTraceToString()}")
             }
@@ -43,11 +45,11 @@ class SkdService(
 
 }
 
-private fun DetailLine.erEndring(): Boolean {
+fun DetailLine.erEndring(): Boolean {
     return !referanseNummerGammelSak.isNullOrEmpty() && !erStopp()
 }
 
-private fun DetailLine.erStopp(): Boolean {
-    return belop.roundToLong().equals(0)
+fun DetailLine.erStopp(): Boolean {
+    return belop.roundToLong().equals(0L)
 }
 

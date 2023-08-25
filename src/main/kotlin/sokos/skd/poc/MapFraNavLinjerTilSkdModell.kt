@@ -47,18 +47,18 @@ private fun mapAlleKravTilSkdModel(detailLines: List<DetailLine>): List<OpprettI
 }
 
 fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
+    if (krav.belopRente.roundToLong() > 0L) println("DENNE::::: ${krav.belopRente}")
     return OpprettInnkrevingsoppdragRequest(
         kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE.value,
         skyldner = Skyldner(PERSON, krav.gjelderID),
         hovedstol = HovedstolBeloep(NOK, krav.belop.roundToLong()),
-        renteBeloep = emptyArray(),
-//        renteBeloep =  arrayOf(
-//            RenteBeloep(
-//                valuta = Valuta.NOK,
-//                beloep = krav.belopRente.roundToLong(),
-//                renterIlagtDato = krav.vedtakDato
-//            ).takeIf { it > 0 }
-//        ) ,
+        renteBeloep =  arrayOf(
+            RenteBeloep(
+                valuta = RenteBeloep.Valuta.NOK,
+                beloep = krav.belopRente.roundToLong(),
+                renterIlagtDato = krav.vedtakDato
+            )
+        ).takeIf { krav.belopRente.roundToLong() > 0L },
         oppdragsgiversSaksnummer = krav.saksNummer,
         oppdragsgiversKravidentifikator = krav.saksNummer,
         fastsettelsesdato = krav.vedtakDato,
