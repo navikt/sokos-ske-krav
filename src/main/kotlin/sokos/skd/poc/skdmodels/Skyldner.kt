@@ -11,24 +11,28 @@
  */
 package sokos.skd.poc.skdmodels
 
+import kotlinx.serialization.Serializable
+
 
 /**
  *              Hvem som skylder penger.         
  * @param identifikatortype              Per nå støttes kun PERSON og ORGANISASJON som aktuelle typer parter innkrevingsmyndighet             kan kreve inn fra.         
  * @param identifikator              Må være et gyldig fnr/dnr, eller orgnr.         
  */
+
+@Serializable
 data class Skyldner (
 
     /*              Per nå støttes kun PERSON og ORGANISASJON som aktuelle typer parter innkrevingsmyndighet             kan kreve inn fra.          */
     val identifikatortype: Identifikatortype,
     /*              Må være et gyldig fnr/dnr, eller orgnr.          */
-    val identifikator: kotlin.String
+    val identifikator: String
 ) {
     /**
     *              Per nå støttes kun PERSON og ORGANISASJON som aktuelle typer parter innkrevingsmyndighet             kan kreve inn fra.         
     * Values: PERSON,ORGANISASJON
     */
-    enum class Identifikatortype(val value: kotlin.String){
+    enum class Identifikatortype(val value: String){
         PERSON("PERSON"),
         ORGANISASJON("ORGANISASJON");
     }

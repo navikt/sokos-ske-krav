@@ -1,12 +1,13 @@
 package sokos.skd.poc.navmodels
 
-import java.time.LocalDate
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class DetailLine(
     val lineNummer: Int,
     val saksNummer: String,
     val belop: Double,
-    val vedtakDato: LocalDate,
+    val vedtakDato: kotlinx.datetime.LocalDate,
     val gjelderID: String,
     val periodeFOM: String,
     val periodeTOM: String,

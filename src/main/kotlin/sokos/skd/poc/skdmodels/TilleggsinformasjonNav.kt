@@ -11,11 +11,15 @@
  */
 package sokos.skd.poc.skdmodels
 
+import kotlinx.serialization.Serializable
+
 /**
  * Tilleggsinformasjon spesifikt for NAV
  * @param stoenadstype              Hvilken stønad/ytelse innkrevingsoppdraget gjelder. Brukes bl.a. i faktura og dialog med skyldner.         
  * @param ytelserForAvregning 
  */
+
+@Serializable
 data class TilleggsinformasjonNav (
 
     /*              Hvilken stønad/ytelse innkrevingsoppdraget gjelder. Brukes bl.a. i faktura og dialog med skyldner.          */
@@ -26,7 +30,7 @@ data class TilleggsinformasjonNav (
     *              Hvilken stønad/ytelse innkrevingsoppdraget gjelder. Brukes bl.a. i faktura og dialog med skyldner.         
     * Values: FORELDREPENGER,KOMPENSASJONINNTEKSTAPFRILANSEROGNAERING,OMSORGOPPLAERINGOGPLEIEPENGER,AVTALEFESTETPENSJON,AVTALEFESTETPENSJONPRIVATSEKTOR,ALDERSPENSJON,BARNEPENSJON,TIDLIGEREFAMILIEPLEIERPENSJON,GJENLEVENDEPENSJON,GAMMELYRKESSKADEPENSJON,KRIGSPENSJON,UFOEREPENSJON,REFUSSJONUTGIFTSDEKNING,SYKEPENGER,SVANGERSKAPSPENGER,UFOERETRYGD,FORSKUDDTILBAKEKREVING,PERMITERINGSPENGERKORONA,LOENSKOMPARBEIDSGIVERPERMITERTE,BARNETRYGD,OPPLAERINGSPENGER,OMSORGSPENGER,PLEIEPENGERBARN,PLEIEPENGERNAERSTAAENDE,ENSLIGFORSOERGEROVERGANGSSTOENAD,ENSLIGFORSOERGERBARNETILSYN,ENSLIGFORSOERGERSKOLEPENGER,SUPPLERENDESTOENADUFOERE,KONTANTSTOETTE
     */
-    enum class Stoenadstype(val value: kotlin.String){
+    enum class Stoenadstype(val value: String){
         FORELDREPENGER("FORELDREPENGER"),
         KOMPENSASJONINNTEKSTAPFRILANSEROGNAERING("KOMPENSASJON_INNTEKSTAP_FRILANSER_OG_NAERING"),
         OMSORGOPPLAERINGOGPLEIEPENGER("OMSORG_OPPLAERING_OG_PLEIEPENGER"),

@@ -8,7 +8,6 @@ import sokos.skd.poc.parseFRtoDataDetailLineClass
 import sokos.skd.poc.parseFRtoDataFirsLineClass
 import sokos.skd.poc.parseFRtoDataLastLIneClass
 import sokos.skd.poc.readFileFromFS
-import java.time.LocalDateTime
 
 internal class ReadFileTest : FunSpec({
 
@@ -26,7 +25,7 @@ internal class ReadFileTest : FunSpec({
 
     test("lesInnStartLinjeTilclass") {
         val expected = FirstLine(
-            transferDate = LocalDateTime.of(2023, 5, 26, 22, 13, 40),
+            transferDate = kotlinx.datetime.LocalDateTime.parse("2023-05-26T22:13:40"),
             sender = "OB04"
         )
         val startlinje: FirstLine = parseFRtoDataFirsLineClass(liste.first())

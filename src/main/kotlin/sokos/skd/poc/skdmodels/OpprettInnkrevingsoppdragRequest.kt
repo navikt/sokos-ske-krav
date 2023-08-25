@@ -11,6 +11,9 @@
  */
 package sokos.skd.poc.skdmodels
 
+import kotlinx.datetime.LocalDate
+import kotlinx.serialization.Serializable
+
 /**
  * Forespørsel om opprettelse av nytt innkrevingsoppdrag
  * @param kravtype              Kravtypen for innkrevingsoppdrag. Må være en av kravtypene oppdragsgiver har avtalt med              innkrevingsmyndigheten at den skal kreve inn for oppdragsgiver.         
@@ -23,29 +26,30 @@ package sokos.skd.poc.skdmodels
  * @param foreldelsesfristensUtgangspunkt              Format: YYYY-MM-DD             Denne skal angis når den avviker fra fastsettelsesdato, og må da være tidligere i tid enn fastsettelsesdato.             Når den er den samme som fastsettelsesdato skal den følgelig ikke angis.         
  * @param tilleggsinformasjon 
  */
-data class OpprettInnkrevingsoppdragRequest (
+@Serializable
+data class OpprettInnkrevingsoppdragRequest(
 
     /*              Kravtypen for innkrevingsoppdrag. Må være en av kravtypene oppdragsgiver har avtalt med              innkrevingsmyndigheten at den skal kreve inn for oppdragsgiver.          */
     val kravtype: String,
     val skyldner: Skyldner,
     val hovedstol: HovedstolBeloep,
     /*              Renter påløpt hos oppdragsgiver for overføring til innkrevingsmyndighet.          */
-    val renteBeloep: kotlin.Array<RenteBeloep>?,
+    val renteBeloep: Array<RenteBeloep>?,
     /*              Saksnummer hos oppdragsgiver for innkrevingsoppdraget. Benyttes ved kommunikasjon fra              innkrevingsmyndigheten til oppdragsgiver. Flere innkrevingsoppdrag kan ha samme oppdragsgiversSaksnummer          */
-    val oppdragsgiversSaksnummer: kotlin.String,
+    val oppdragsgiversSaksnummer: String,
     /*              Kravidentifikator hos oppdragsgiver. Benyttes først og fremst til sporing. Må være unik,             opprettelse av flere krav med samme oppdragsgiversKravidentifikator vil feile.          */
-    val oppdragsgiversKravidentifikator: kotlin.String,
+    val oppdragsgiversKravidentifikator: String,
     /*              Format: YYYY-MM-DD             Felles betegnelse for når kravet er fastsatt, hos forskjellige oppdragsgivere er dette hhv. vedtaksdato,             rettskraftig dato, e.l.          */
-    val fastsettelsesdato: java.time.LocalDate,
+    val fastsettelsesdato: LocalDate,
     /*              Format: YYYY-MM-DD             Denne skal angis når den avviker fra fastsettelsesdato, og må da være tidligere i tid enn fastsettelsesdato.             Når den er den samme som fastsettelsesdato skal den følgelig ikke angis.          */
-    val foreldelsesfristensUtgangspunkt: java.time.LocalDate? = null,
+    val foreldelsesfristensUtgangspunkt: LocalDate? = null,
     val tilleggsinformasjon: TilleggsinformasjonNav? = null
 ) {
     /**
     *              Kravtypen for innkrevingsoppdrag. Må være en av kravtypene oppdragsgiver har avtalt med              innkrevingsmyndigheten at den skal kreve inn for oppdragsgiver.         
     * Values: TILBAKEKREVINGFEILUTBETALTYTELSE,FORSIKRINGSPREMIESELVSTENDIGNAERINGSDRIVENDE
     */
-    enum class Kravtype(val value: kotlin.String){
+    enum class Kravtype(val value: String){
         TILBAKEKREVINGFEILUTBETALTYTELSE("TILBAKEKREVING_FEILUTBETALT_YTELSE"),
         FORSIKRINGSPREMIESELVSTENDIGNAERINGSDRIVENDE("FORSIKRINGSPREMIE_SELVSTENDIG_NAERINGSDRIVENDE");
     }

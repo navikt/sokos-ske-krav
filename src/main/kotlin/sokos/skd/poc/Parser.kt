@@ -3,9 +3,6 @@ package sokos.skd.poc
 import sokos.skd.poc.navmodels.DetailLine
 import sokos.skd.poc.navmodels.FirstLine
 import sokos.skd.poc.navmodels.LastLine
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 
 fun parseFRtoDataFirsLineClass(line: String): FirstLine {
@@ -59,7 +56,8 @@ class FrParser(val line: String) {
     }
 
     fun parseInt(len: Int) = this.parseString(len).toInt()
-    fun parseLong(len: Int) = this.parseString(len).toLong()
+
+
     fun parseAmountAsDouble(len: Int) = this.parseString(len).trimStart('0')
         .let {
             when (it.length) {
@@ -70,9 +68,24 @@ class FrParser(val line: String) {
             }
         }.toDouble()
 
-    fun parseDateTime(len: Int) = this.parseString(len)
-        .let { LocalDateTime.parse(it, DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) }
+    fun parseDate(len: Int): kotlinx.datetime.LocalDate {
+        val dateString = parseString(len)
+        val year = dateString.substring(0, 4)
+        val month = dateString.substring(4, 6)
+        val day = dateString.substring(6, 8)
 
-    fun parseDate(len: Int) = this.parseString(len)
-        .let { LocalDate.parse(it, DateTimeFormatter.ofPattern("yyyyMMdd")) }
+        return kotlinx.datetime.LocalDate.parse("$year-$month-$day")
+    }
+
+    fun parseDateTime(len: Int): kotlinx.datetime.LocalDateTime {
+        val dateString = parseString(len)
+        val year = dateString.substring(0, 4)
+        val month = dateString.substring(4, 6)
+        val day = dateString.substring(6, 8)
+        val hour = dateString.substring(8, 10)
+        val minute = dateString.substring(10, 12)
+        val second = dateString.substring(12, 14)
+
+        return kotlinx.datetime.LocalDateTime.parse("$year-$month-${day}T$hour:$minute:$second")
+    }
 }

@@ -1,9 +1,10 @@
 package sokos.skd.poc.navmodels
 
-import java.time.LocalDateTime
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class LastLine(
-    val transferDate: LocalDateTime,
+    val transferDate: kotlinx.datetime.LocalDateTime,
     val sender: String,
     val numTransactionLines: Int,
     val sumAllTransactionLines: Double,

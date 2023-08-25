@@ -47,7 +47,11 @@ dependencies {
     implementation ("io.ktor:ktor-serialization-kotlinx-cbor:$ktorVersion")
     implementation ("io.ktor:ktor-serialization-kotlinx-protobuf:$ktorVersion")
     implementation ("io.ktor:ktor-serialization-jackson-jvm:$ktorVersion")
-    implementation ("com.google.code.gson:gson:$gsonVersion")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.5.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
+
+
     implementation ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation ("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")

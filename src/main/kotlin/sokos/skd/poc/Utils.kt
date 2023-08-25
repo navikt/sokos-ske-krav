@@ -1,14 +1,10 @@
 package sokos.skd.poc
 
-import com.google.gson.*
-import io.ktor.util.reflect.*
+
 import kotlinx.coroutines.delay
 import java.io.File
 import java.io.InputStream
 import java.net.URI
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -24,7 +20,7 @@ fun readFileFromFtp(fileName: String): List<String> {
 fun readFileFromFS(file: String): List<String> {
     val pn: URI = URI(file)
     pn.normalize()
-     return File(URI(file)).readLines()
+    return File(URI(file)).readLines()
 }
 
 object Utils {
@@ -45,44 +41,7 @@ object Utils {
     }
 }
 
-class LocalDateTypeAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalDate?> {
-    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-    @Throws(JsonParseException::class)
-    override fun deserialize(
-        json: JsonElement, typeOfT: Type?,
-        context: JsonDeserializationContext?
-    ): LocalDate {
-        return LocalDate.parse(json.asString, formatter)
-    }
-
-    override fun serialize(
-        src: LocalDate?,
-        typeOfSrc: java.lang.reflect.Type?,
-        context: JsonSerializationContext?
-    ): JsonElement {
-        return JsonPrimitive(src?.format(formatter))
-    }
-
-}class LocalDateTimeTypeAdapter : JsonSerializer<LocalDateTime?>, JsonDeserializer<LocalDateTime?> {
-    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-
-    @Throws(JsonParseException::class)
-    override fun deserialize(
-        json: JsonElement, typeOfT: Type?,
-        context: JsonDeserializationContext?
-    ): LocalDateTime {
-        return LocalDateTime.parse(json.asString, formatter)
-    }
-
-    override fun serialize(
-        src: LocalDateTime?,
-        typeOfSrc: java.lang.reflect.Type?,
-        context: JsonSerializationContext?
-    ): JsonElement {
-        return JsonPrimitive(src?.format(formatter))
-    }
-}
 
 fun String.asResource(): InputStream = object {}.javaClass.classLoader.getResourceAsStream(this)!!
 

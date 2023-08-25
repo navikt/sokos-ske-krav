@@ -1,12 +1,11 @@
-import com.google.gson.*
+
 import io.kotest.core.spec.style.FunSpec
-import io.ktor.util.reflect.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 
 import sokos.skd.poc.mapFraNavTilSkd
 import sokos.skd.poc.readFileFromFS
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+
 import kotlin.math.roundToLong
 
 
@@ -16,13 +15,11 @@ internal class MapFraNavLinjerTilSkdModellKtTest : FunSpec({
     test("mapperTestRecourceFilTest") {
         val filnavn = "101.txt"
         val trekklisteObj = mapFraNavTilSkd(readFileFromFS(filnavn.asResource()))
-        val gson = GsonBuilder()
-            .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
-            .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeTypeAdapter())
-            .create()
+
+
         trekklisteObj.forEach {
             println(it)
-            gson.toJson(it).also(::println)
+            println(Json.encodeToJsonElement(it).toString())
         }
         //val trekklisteJson = gson.toJson(trekklisteObj).also { println(it) }
 
@@ -48,45 +45,3 @@ internal class MapFraNavLinjerTilSkdModellKtTest : FunSpec({
 
     }
 })
-
-class LocalDateTypeAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalDate?> {
-    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-
-    @Throws(JsonParseException::class)
-    override fun deserialize(
-        json: JsonElement, typeOfT: Type?,
-        context: JsonDeserializationContext?
-    ): LocalDate {
-        return LocalDate.parse(json.asString, formatter)
-    }
-
-    override fun serialize(
-        src: LocalDate?,
-        typeOfSrc: java.lang.reflect.Type?,
-        context: JsonSerializationContext?
-    ): JsonElement {
-        return JsonPrimitive(src?.format(formatter))
-    }
-
-}
-
-class LocalDateTimeTypeAdapter : JsonSerializer<LocalDateTime?>, JsonDeserializer<LocalDateTime?> {
-    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-
-    @Throws(JsonParseException::class)
-    override fun deserialize(
-        json: JsonElement, typeOfT: Type?,
-        context: JsonDeserializationContext?
-    ): LocalDateTime {
-        return LocalDateTime.parse(json.asString, formatter)
-    }
-
-    override fun serialize(
-        src: LocalDateTime?,
-        typeOfSrc: java.lang.reflect.Type?,
-        context: JsonSerializationContext?
-    ): JsonElement {
-        return JsonPrimitive(src?.format(formatter))
-    }
-
-}
