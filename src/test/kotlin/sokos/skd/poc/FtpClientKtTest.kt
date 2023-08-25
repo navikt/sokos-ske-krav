@@ -1,16 +1,12 @@
 package sokos.skd.poc
 
 
-import org.junit.jupiter.api.Test
-import kotlin.test.Ignore
-
-class FtpClientKtTest {
+import io.kotest.core.spec.style.FunSpec
 
 
-    @Ignore
-    @Test
-    fun t1() {
-        val ftpClient = FtpClient()
-        ftpClient.downloadFileFromFtp("eksempelfil_TBK.txt").let { it.forEach { println(it) } }
+internal class FtpClientKtTest : FunSpec({
+
+    test("Ftp connection test") {
+       // FtpClient().downloadFileFromFtp("eksempelfil_TBK.txt").forEach { println(it) }
     }
-}
+})

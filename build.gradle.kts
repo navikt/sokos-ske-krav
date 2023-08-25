@@ -27,6 +27,7 @@ val jacksonVersion = "2.14.0"
 val gsonVersion = "2.10.1"
 
 dependencies {
+    // Ktor
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation ("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation ("io.ktor:ktor-server-status-pages:$ktorVersion")
@@ -40,23 +41,28 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
 
+    // Serialization
     implementation ("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation ("io.ktor:ktor-serialization-kotlinx-xml:$ktorVersion")
     implementation ("io.ktor:ktor-serialization-kotlinx-cbor:$ktorVersion")
     implementation ("io.ktor:ktor-serialization-kotlinx-protobuf:$ktorVersion")
     implementation ("io.ktor:ktor-serialization-jackson-jvm:$ktorVersion")
     implementation ("com.google.code.gson:gson:$gsonVersion")
-    implementation ("commons-net:commons-net:3.9.0")
-
-    implementation ("com.nimbusds:nimbus-jose-jwt:$nimbusVersion")
     implementation ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation ("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
 
+    // IDK
+    implementation ("commons-net:commons-net:3.9.0")
+    implementation ("com.nimbusds:nimbus-jose-jwt:$nimbusVersion")
+
+    // Logging
     implementation ("io.ktor:ktor-client-logging:$ktorVersion")
     implementation ("io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion")
 
-    testImplementation("org.jetbrains.kotlin:kotlin-test")
+    // Test
+    testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
 
 }
 

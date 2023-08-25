@@ -1,23 +1,21 @@
 import com.google.gson.*
+import io.kotest.core.spec.style.FunSpec
 import io.ktor.util.reflect.*
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
+
 import sokos.skd.poc.mapFraNavTilSkd
 import sokos.skd.poc.readFileFromFS
-import sokos.skd.poc.readFileFromFtp
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
-import kotlin.test.Ignore
 
 
-class MapFraNavLinjerTilSkdModellKtTest {
+internal class MapFraNavLinjerTilSkdModellKtTest : FunSpec({
 
-    @Test
-    fun mapperTestRecourceFilTest() {
+
+    test("mapperTestRecourceFilTest") {
         val filnavn = "101.txt"
-        val trekklisteObj = mapFraNavTilSkd(readFileFromFS(filnavn.asResource() ))
+        val trekklisteObj = mapFraNavTilSkd(readFileFromFS(filnavn.asResource()))
         val gson = GsonBuilder()
             .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
             .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeTypeAdapter())
@@ -29,28 +27,27 @@ class MapFraNavLinjerTilSkdModellKtTest {
         //val trekklisteJson = gson.toJson(trekklisteObj).also { println(it) }
 
     }
-    @Ignore
-    @Test
-    fun MapperFtpFilTest() {
-        val trekklisteObj = mapFraNavTilSkd(readFileFromFtp("eksempelfil_TBK.txt"))
-        val gson = GsonBuilder()
-            .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
-            .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeTypeAdapter())
-            .create()
-            val trekklisteJson = gson.toJson(trekklisteObj)
-        println(trekklisteJson)
-    }
-    @Test
-    fun testa() {
+
+    /*    test("MapperFtpFilTest") {
+            val trekklisteObj = mapFraNavTilSkd(readFileFromFtp("eksempelfil_TBK.txt"))
+            val gson = GsonBuilder()
+                .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
+                .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeTypeAdapter())
+                .create()
+                val trekklisteJson = gson.toJson(trekklisteObj)
+            println(trekklisteJson)
+        }*/
+
+    test("testa") {
         val dbl1 = 123.45
         val dbl2 = 123.55
-        val lng1 =  dbl1.roundToLong()
-        val lng2 =  dbl2.roundToLong()
+        val lng1 = dbl1.roundToLong()
+        val lng2 = dbl2.roundToLong()
         println("dbl: $dbl1, lng: $lng1")
         println("dbl: $dbl2, lng: $lng2")
 
     }
-}
+})
 
 class LocalDateTypeAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalDate?> {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -71,7 +68,9 @@ class LocalDateTypeAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalD
         return JsonPrimitive(src?.format(formatter))
     }
 
-}class LocalDateTimeTypeAdapter : JsonSerializer<LocalDateTime?>, JsonDeserializer<LocalDateTime?> {
+}
+
+class LocalDateTimeTypeAdapter : JsonSerializer<LocalDateTime?>, JsonDeserializer<LocalDateTime?> {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     @Throws(JsonParseException::class)
