@@ -65,8 +65,12 @@ dependencies {
     implementation ("io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion")
 
     // Test
+
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
+    testImplementation("io.mockk:mockk:1.13.7")
+    implementation("org.mockftpserver:MockFtpServer:3.1.0")
 
 }
 

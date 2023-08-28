@@ -1,0 +1,5 @@
+ftpServer=localhost
+ftpUsername=ftpuser
+ftpPassword=123
+ftpDirectory=/
+ftpPort=0

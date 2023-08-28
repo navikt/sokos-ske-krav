@@ -13,12 +13,8 @@ internal const val DEFAULT_RETRY_ATTEMPTS = 5
 internal const val DEFAULT_DELAY_DURATION = 500L
 
 
-fun readFileFromFtp(fileName: String): List<String> {
-    val ftpClient = FtpClient()
-    return ftpClient.downloadFileFromFtp(fileName)
-}
 fun readFileFromFS(file: String): List<String> {
-    val pn: URI = URI(file)
+    val pn = URI(file)
     pn.normalize()
     return File(URI(file)).readLines()
 }
