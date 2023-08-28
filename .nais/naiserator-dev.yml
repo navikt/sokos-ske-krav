@@ -31,7 +31,7 @@ spec:
     timeout: 5
   webproxy: true
   ingresses:
-    - https://sokos-skd-poc.dev.intern.nav.no
+    - https://sokos-skd-poc.intern.dev.nav.no
   maskinporten:
     enabled: true
     scopes:
@@ -42,6 +42,16 @@ spec:
   env:
     - name: SKD_REST_URL
       value: https://api-test.sits.no/api/innkreving/innkrevingsoppdrag/v1/
+    - name: FTP_SERVER
+      value: "localhost"
+    - name: FTP_USERNAME
+      value: "ftpuser"
+    - name: FTP_PASSWORD
+      value: "123"
+    - name: FTP_DIRECTORY
+      value: "/"
+    - name: FTP_PORT
+      value: "0"
 
 
 
