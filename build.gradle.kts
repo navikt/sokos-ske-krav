@@ -8,7 +8,7 @@ plugins {
     application
 }
 application {
-    mainClass.set("sokos.skd.poc.Mainkt")
+    mainClass.set("sokos.skd.poc.MainKt")
 }
 
 group = "no.nav.sokos"
@@ -25,47 +25,54 @@ val mockkVersion = "1.13.4"
 val nimbusVersion = "9.25.6"
 val jacksonVersion = "2.14.0"
 val gsonVersion = "2.10.1"
+val natpryceVersion = "1.6.10.0"
 
 dependencies {
-    // Ktor
+    // Ktor Server
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation ("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation ("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation ("io.ktor:ktor-server-call-id:$ktorVersion")
     implementation ("io.ktor:ktor-server-call-logging:$ktorVersion")
-    implementation ("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
-    implementation ("io.ktor:ktor-server-auth-jwt:$ktorVersion")
+
+    // Ktor Client
     implementation ("io.ktor:ktor-client-apache:$ktorVersion")
     implementation ("io.ktor:ktor-client-auth:$ktorVersion")
     implementation ("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
 
+    // Security
+    implementation ("io.ktor:ktor-server-auth-jwt:$ktorVersion")
+    implementation ("com.nimbusds:nimbus-jose-jwt:$nimbusVersion")
+
     // Serialization
     implementation ("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation ("io.ktor:ktor-serialization-kotlinx-xml:$ktorVersion")
     implementation ("io.ktor:ktor-serialization-kotlinx-cbor:$ktorVersion")
     implementation ("io.ktor:ktor-serialization-kotlinx-protobuf:$ktorVersion")
-    implementation ("io.ktor:ktor-serialization-jackson-jvm:$ktorVersion")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.5.1")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
-
-
+    implementation ("io.ktor:ktor-serialization-jackson-jvm:$ktorVersion")
     implementation ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation ("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
 
-    // IDK
+    // FTP
     implementation ("commons-net:commons-net:3.9.0")
-    implementation ("com.nimbusds:nimbus-jose-jwt:$nimbusVersion")
+
+    // Config
+    implementation("com.natpryce:konfig:$natpryceVersion")
+
+    // Monitorering
+    implementation ("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
 
     // Logging
     implementation ("io.ktor:ktor-client-logging:$ktorVersion")
     implementation ("io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion")
 
     // Test
-
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
@@ -93,7 +100,7 @@ tasks {
         enabled = true
         archiveFileName.set("app.jar")
         manifest {
-            attributes["Main-Class"] = "sokos.skd.poc.Mainkt"
+            attributes["Main-Class"] = "sokos.skd.poc.MainKt"
         }
     }
 
