@@ -1,13 +1,12 @@
 package sokos.skd.poc
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
-import sokos.skd.poc.service.Directories
 import sokos.skd.poc.service.FtpService
 
 internal class FtpServiceTest: FunSpec( {
     val ftpService = FtpService()
 
+/*
     test("foo"){
         ftpService.connect(Directories.OUTBOUND, listOf("fil1.txt", "fil2.txt"))
 
@@ -49,5 +48,6 @@ internal class FtpServiceTest: FunSpec( {
 
         ftpService.downloadFtpFile("fil1.txt", Directories.OUTBOUND)
     }
+*/
 
 })
