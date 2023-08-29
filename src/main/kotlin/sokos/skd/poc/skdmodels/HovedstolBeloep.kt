@@ -1,5 +1,8 @@
 package sokos.skd.poc.skdmodels
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class HovedstolBeloep (
 
     val valuta: Valuta,

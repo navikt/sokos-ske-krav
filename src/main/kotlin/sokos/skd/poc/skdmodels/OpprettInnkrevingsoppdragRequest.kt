@@ -14,41 +14,19 @@ package sokos.skd.poc.skdmodels
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 
-/**
- * Forespørsel om opprettelse av nytt innkrevingsoppdrag
- * @param kravtype              Kravtypen for innkrevingsoppdrag. Må være en av kravtypene oppdragsgiver har avtalt med              innkrevingsmyndigheten at den skal kreve inn for oppdragsgiver.         
- * @param skyldner 
- * @param hovedstol 
- * @param renteBeloep              Renter påløpt hos oppdragsgiver for overføring til innkrevingsmyndighet.         
- * @param oppdragsgiversSaksnummer              Saksnummer hos oppdragsgiver for innkrevingsoppdraget. Benyttes ved kommunikasjon fra              innkrevingsmyndigheten til oppdragsgiver. Flere innkrevingsoppdrag kan ha samme oppdragsgiversSaksnummer         
- * @param oppdragsgiversKravidentifikator              Kravidentifikator hos oppdragsgiver. Benyttes først og fremst til sporing. Må være unik,             opprettelse av flere krav med samme oppdragsgiversKravidentifikator vil feile.         
- * @param fastsettelsesdato              Format: YYYY-MM-DD             Felles betegnelse for når kravet er fastsatt, hos forskjellige oppdragsgivere er dette hhv. vedtaksdato,             rettskraftig dato, e.l.         
- * @param foreldelsesfristensUtgangspunkt              Format: YYYY-MM-DD             Denne skal angis når den avviker fra fastsettelsesdato, og må da være tidligere i tid enn fastsettelsesdato.             Når den er den samme som fastsettelsesdato skal den følgelig ikke angis.         
- * @param tilleggsinformasjon 
- */
 @Serializable
 data class OpprettInnkrevingsoppdragRequest(
 
-    /*              Kravtypen for innkrevingsoppdrag. Må være en av kravtypene oppdragsgiver har avtalt med              innkrevingsmyndigheten at den skal kreve inn for oppdragsgiver.          */
     val kravtype: String,
     val skyldner: Skyldner,
     val hovedstol: HovedstolBeloep,
-    /*              Renter påløpt hos oppdragsgiver for overføring til innkrevingsmyndighet.          */
     val renteBeloep: Array<RenteBeloep>?,
-    /*              Saksnummer hos oppdragsgiver for innkrevingsoppdraget. Benyttes ved kommunikasjon fra              innkrevingsmyndigheten til oppdragsgiver. Flere innkrevingsoppdrag kan ha samme oppdragsgiversSaksnummer          */
     val oppdragsgiversSaksnummer: String,
-    /*              Kravidentifikator hos oppdragsgiver. Benyttes først og fremst til sporing. Må være unik,             opprettelse av flere krav med samme oppdragsgiversKravidentifikator vil feile.          */
     val oppdragsgiversKravidentifikator: String,
-    /*              Format: YYYY-MM-DD             Felles betegnelse for når kravet er fastsatt, hos forskjellige oppdragsgivere er dette hhv. vedtaksdato,             rettskraftig dato, e.l.          */
     val fastsettelsesdato: LocalDate,
-    /*              Format: YYYY-MM-DD             Denne skal angis når den avviker fra fastsettelsesdato, og må da være tidligere i tid enn fastsettelsesdato.             Når den er den samme som fastsettelsesdato skal den følgelig ikke angis.          */
     val foreldelsesfristensUtgangspunkt: LocalDate? = null,
     val tilleggsinformasjon: TilleggsinformasjonNav? = null
 ) {
-    /**
-    *              Kravtypen for innkrevingsoppdrag. Må være en av kravtypene oppdragsgiver har avtalt med              innkrevingsmyndigheten at den skal kreve inn for oppdragsgiver.         
-    * Values: TILBAKEKREVINGFEILUTBETALTYTELSE,FORSIKRINGSPREMIESELVSTENDIGNAERINGSDRIVENDE
-    */
     enum class Kravtype(val value: String){
         TILBAKEKREVINGFEILUTBETALTYTELSE("TILBAKEKREVING_FEILUTBETALT_YTELSE"),
         FORSIKRINGSPREMIESELVSTENDIGNAERINGSDRIVENDE("FORSIKRINGSPREMIE_SELVSTENDIG_NAERINGSDRIVENDE");

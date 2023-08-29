@@ -1,5 +1,7 @@
 package sokos.skd.poc
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import sokos.skd.poc.navmodels.DetailLine
 import sokos.skd.poc.navmodels.FirstLine
 import sokos.skd.poc.navmodels.LastLine
@@ -30,23 +32,7 @@ fun validateLines(first: FirstLine, lastLine: LastLine, details: List<DetailLine
     assert(first.transferDate.equals(lastLine.transferDate)) { "Dato sendt er avvikende mellom første og siste linje fra OS!" }
 }
 
-private fun mapAlleKravTilSkdModel(detailLines: List<DetailLine>): List<OpprettInnkrevingsoppdragRequest> {
-    val nyeKrav = mutableListOf<OpprettInnkrevingsoppdragRequest>()
-    val endringKrav = mutableListOf<EndringRequest>()
-    val stoppKrav = mutableListOf<AvskrivingRequest>()
-
-    detailLines.forEach {
-//        when {
-//            it.erStopp() -> stoppKrav.add(lagStoppKravRequest(it))
-//            it.erEndring() -> endringKrav.add(lagEndreKravRequest(it))
-//            else -> nyeKrav.add(lagOpprettKravRequest(it))
-//        }
-        nyeKrav.add(lagOpprettKravRequest(it))
-    }
-    return nyeKrav
-}
-
-fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
+fun lagOpprettKravRequest(krav: DetailLine): String {
     if (krav.belopRente.roundToLong() > 0L) println("DENNE::::: ${krav.belopRente}")
     return OpprettInnkrevingsoppdragRequest(
         kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE.value,
@@ -71,23 +57,23 @@ fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
                 ).takeIf { krav.fremtidigYtelse.roundToLong() > 0 }
             )
         }
-    )
+    ).let { Json.encodeToJsonElement(it).toString() }
 
 }
 
-fun lagEndreKravRequest(krav: DetailLine): EndringRequest {
-    return EndringRequest(
+fun lagEndreKravRequest(krav: DetailLine): String {
+    return Json.encodeToJsonElement(EndringRequest(
         kravidentifikatortype = EndringRequest.Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR.value,
         kravidentifikator = krav.saksNummer,
         nyHovedstol = HovedstolBeloep(NOK, krav.belop.roundToLong()),
-        )
+        )).toString()
 }
 
-fun lagStoppKravRequest(krav: DetailLine): AvskrivingRequest {
-    return AvskrivingRequest(
+fun lagStoppKravRequest(krav: DetailLine): String {
+    return Json.encodeToJsonElement(AvskrivingRequest(
         kravidentifikatortype =  SKATTEETATENSKRAVIDENTIFIKATOR.value,
         kravidentifikator = krav.saksNummer
-    )
+    )).toString()
 }
 
 fun mapToDetailLines(lines: List<String>): List<DetailLine> {

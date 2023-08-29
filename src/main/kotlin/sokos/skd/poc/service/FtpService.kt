@@ -11,13 +11,11 @@ import org.mockftpserver.fake.UserAccount
 import org.mockftpserver.fake.filesystem.DirectoryEntry
 import org.mockftpserver.fake.filesystem.FileEntry
 import org.mockftpserver.fake.filesystem.UnixFakeFileSystem
-import sokos.skd.poc.*
 import sokos.skd.poc.config.PropertiesConfig
 import sokos.skd.poc.navmodels.FtpFil
 import sokos.skd.poc.skdmodels.OpprettInnkrevingsoppdragRequest
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.lang.Exception
 import java.net.URL
 
 enum class Directories(val value: String){
@@ -107,6 +105,8 @@ class FtpService(val client: FTPClient = FTPClient()) {
     }
 
 }
+
+private fun mapFraNavTilSkd(liste:List<String>)= listOf<OpprettInnkrevingsoppdragRequest>()
 
 private inline fun <reified OpprettInnkrevingsoppdragRequest> List<OpprettInnkrevingsoppdragRequest>.toJson(): JsonElement = Json.encodeToJsonElement(this)
 
