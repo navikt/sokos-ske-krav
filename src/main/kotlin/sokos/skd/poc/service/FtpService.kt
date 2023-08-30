@@ -13,7 +13,7 @@ import org.mockftpserver.fake.filesystem.FileEntry
 import org.mockftpserver.fake.filesystem.UnixFakeFileSystem
 import sokos.skd.poc.config.PropertiesConfig
 import sokos.skd.poc.navmodels.FtpFil
-import sokos.skd.poc.skdmodels.OpprettInnkrevingsoppdragRequest
+import sokos.skd.poc.skdmodels.NyttOppdrag.OpprettInnkrevingsoppdragRequest
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URL

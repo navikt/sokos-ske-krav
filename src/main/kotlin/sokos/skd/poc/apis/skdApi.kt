@@ -4,7 +4,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import sokos.skd.poc.SkdService
+import sokos.skd.poc.service.SkdService
 import sokos.skd.poc.config.PropertiesConfig
 
 

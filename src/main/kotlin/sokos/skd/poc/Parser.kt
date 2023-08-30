@@ -62,8 +62,8 @@ class FrParser(val line: String) {
         .let {
             when (it.length) {
                 0 -> "0.00"
-                1 -> "0.0" + it
-                2 -> "0." + it
+                1 -> "0.0$it"
+                2 -> "0.$it"
                 else -> "${it.dropLast(2)}.${it.drop(it.length - 2)}"
             }
         }.toDouble()

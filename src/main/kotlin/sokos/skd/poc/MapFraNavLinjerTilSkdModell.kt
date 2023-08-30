@@ -6,12 +6,13 @@ import sokos.skd.poc.navmodels.DetailLine
 import sokos.skd.poc.navmodels.FirstLine
 import sokos.skd.poc.navmodels.LastLine
 import sokos.skd.poc.navmodels.Stonadstype
-import sokos.skd.poc.skdmodels.*
-import sokos.skd.poc.skdmodels.AvskrivingRequest.Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
-import sokos.skd.poc.skdmodels.HovedstolBeloep.Valuta.NOK
-import sokos.skd.poc.skdmodels.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
-import sokos.skd.poc.skdmodels.Skyldner.Identifikatortype.PERSON
-import sokos.skd.poc.skdmodels.TilleggsinformasjonNav.Stoenadstype
+import sokos.skd.poc.skdmodels.Avskriving.AvskrivingRequest
+import sokos.skd.poc.skdmodels.Avskriving.AvskrivingRequest.Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
+import sokos.skd.poc.skdmodels.Endring.EndringRequest
+import sokos.skd.poc.skdmodels.NyttOppdrag.*
+
+import sokos.skd.poc.skdmodels.NyttOppdrag.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
+import sokos.skd.poc.skdmodels.NyttOppdrag.TilleggsinformasjonNav.Stoenadstype
 import kotlin.math.roundToLong
 
 fun mapFraFRTilDetailAndValidate(navLines: List<String>): List<DetailLine> {
@@ -36,11 +37,11 @@ fun lagOpprettKravRequest(krav: DetailLine): String {
     if (krav.belopRente.roundToLong() > 0L) println("DENNE::::: ${krav.belopRente}")
     return OpprettInnkrevingsoppdragRequest(
         kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE.value,
-        skyldner = Skyldner(PERSON, krav.gjelderID),
-        hovedstol = HovedstolBeloep(NOK, krav.belop.roundToLong()),
+        skyldner = Skyldner(Skyldner.Identifikatortype.PERSON, krav.gjelderID),
+        hovedstol = HovedstolBeloep(Valuta.NOK, krav.belop.roundToLong()),
         renteBeloep =  arrayOf(
             RenteBeloep(
-                valuta = RenteBeloep.Valuta.NOK,
+                valuta = Valuta.NOK,
                 beloep = krav.belopRente.roundToLong(),
                 renterIlagtDato = krav.vedtakDato
             )
@@ -52,7 +53,7 @@ fun lagOpprettKravRequest(krav: DetailLine): String {
             TilleggsinformasjonNav(
                 stoenadstype = Stoenadstype.valueOf(st.name).value,
                 ytelserForAvregning = YtelseForAvregningBeloep(
-                    valuta = YtelseForAvregningBeloep.Valuta.NOK,
+                    valuta = Valuta.NOK,
                     beloep = krav.fremtidigYtelse.roundToLong()
                 ).takeIf { krav.fremtidigYtelse.roundToLong() > 0 }
             )
@@ -62,18 +63,22 @@ fun lagOpprettKravRequest(krav: DetailLine): String {
 }
 
 fun lagEndreKravRequest(krav: DetailLine): String {
-    return Json.encodeToJsonElement(EndringRequest(
+    return Json.encodeToJsonElement(
+        EndringRequest(
         kravidentifikatortype = EndringRequest.Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR.value,
         kravidentifikator = krav.saksNummer,
-        nyHovedstol = HovedstolBeloep(NOK, krav.belop.roundToLong()),
-        )).toString()
+        nyHovedstol = HovedstolBeloep(Valuta.NOK, krav.belop.roundToLong()),
+        )
+    ).toString()
 }
 
 fun lagStoppKravRequest(krav: DetailLine): String {
-    return Json.encodeToJsonElement(AvskrivingRequest(
+    return Json.encodeToJsonElement(
+        AvskrivingRequest(
         kravidentifikatortype =  SKATTEETATENSKRAVIDENTIFIKATOR.value,
         kravidentifikator = krav.saksNummer
-    )).toString()
+    )
+    ).toString()
 }
 
 fun mapToDetailLines(lines: List<String>): List<DetailLine> {

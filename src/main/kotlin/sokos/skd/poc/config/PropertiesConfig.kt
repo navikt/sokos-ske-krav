@@ -20,6 +20,12 @@ private val defaultProperties = ConfigurationMap(
 )
     private val localDevProperties = ConfigurationMap(
         "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
+        "DB_HOST" to "host",
+        "DB_PORT" to "123",
+        "DB_NAME" to "name",
+        "DB_USERNAME" to "username",
+        "DB_PASSWORD" to "password",
+        "HIKARI_TEST_TABLE" to "HIKARI_TEST_TABLE"
     )
     private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
     private val prodProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.PROD.toString()))
@@ -62,14 +68,20 @@ private val defaultProperties = ConfigurationMap(
     )
 
     data class DbConfig(
-        val dbHost: String = get(""),
-        val dbPort: String = get(""),
-        val dbName: String = get(""),
-        val dbUserName: String = get(""),
-        val dbPassword: String = get("")
-    ){
-        val jdbcUrl: String = "jdbc:postgresql://$dbHost:$dbPort/$dbName"
-    }
+/*        val host: String = get("DB_HOST"),
+        val port: Int = get("DB_PORT").toInt(),
+        val name: String = get("DB_NAME"),
+        val username: String = get("DB_USERNAME"),
+        val password: String = get("DB_PASSWORD"),
+        val testTable: String = get("HIKARI_TEST_TABLE"),   */
+        val host: String = "",
+        val port: Int = 0,
+        val name: String = "",
+        val username: String = "",
+        val password: String = "",
+        val testTable: String = "",
+        val jdbcUrl: String = "jdbc:postgresql://$host:$port/$name"
+    )
 
     open class JwtConfig(private val wellKnownUrl: String) {
         val openIdConfiguration: OpenIdConfiguration by lazy {

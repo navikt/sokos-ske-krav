@@ -19,13 +19,17 @@ repositories {
 }
 
 val ktorVersion= "2.3.3"
+val hikaricpVersion = "5.0.1"
 val kotlinLoggingVersion = "3.0.4"
 val kotestVersion = "5.6.2"
-val mockkVersion = "1.13.4"
+val mockkVersion = "1.13.7"
+val testContainerVersion ="1.19.0"
+val mockFtpServerVersion = "3.1.0"
 val nimbusVersion = "9.25.6"
 val jacksonVersion = "2.14.0"
 val gsonVersion = "2.10.1"
 val natpryceVersion = "1.6.10.0"
+val postgresqlVersion = "42.6.0"
 
 dependencies {
     // Ktor Server
@@ -45,6 +49,11 @@ dependencies {
     // Security
     implementation ("io.ktor:ktor-server-auth-jwt:$ktorVersion")
     implementation ("com.nimbusds:nimbus-jose-jwt:$nimbusVersion")
+
+    // Database
+    implementation("com.zaxxer:HikariCP:$hikaricpVersion")
+    implementation("org.postgresql:postgresql:$postgresqlVersion")
+
 
     // Serialization
     implementation ("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
@@ -76,8 +85,9 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
-    testImplementation("io.mockk:mockk:1.13.7")
-    implementation("org.mockftpserver:MockFtpServer:3.1.0")
+    testImplementation("io.mockk:mockk:$mockkVersion")
+    testImplementation("org.testcontainers:postgresql:$testContainerVersion")
+    implementation("org.mockftpserver:MockFtpServer:$mockFtpServerVersion")
 
 }
 

@@ -1,4 +1,4 @@
-package sokos.skd.poc.skdmodels
+package sokos.skd.poc.skdmodels.Validering
 
 import kotlinx.serialization.Serializable
 

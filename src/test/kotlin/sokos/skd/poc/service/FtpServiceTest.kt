@@ -1,10 +1,8 @@
-package sokos.skd.poc
+package sokos.skd.poc.service
 
 import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import sokos.skd.poc.service.Directories
-import sokos.skd.poc.service.FtpService
 
 @Ignored
 internal class FtpServiceTest: FunSpec( {

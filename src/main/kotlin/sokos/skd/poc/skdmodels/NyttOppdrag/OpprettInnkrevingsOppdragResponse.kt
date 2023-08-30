@@ -1,9 +1,9 @@
-package sokos.skd.poc.skdmodels
+package sokos.skd.poc.skdmodels.NyttOppdrag
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class OpprettInnkrevingsoppdragResponse (
+data class OpprettInnkrevingsOppdragResponse (
 
     val kravidentifikator: String
 )

@@ -1,7 +1,8 @@
-package sokos.skd.poc.skdmodels
+package sokos.skd.poc.skdmodels.NyttOppdrag
 
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
+
 
 @Serializable
 data class OpprettInnkrevingsoppdragRequest(
@@ -19,5 +20,31 @@ data class OpprettInnkrevingsoppdragRequest(
     enum class Kravtype(val value: String){
         TILBAKEKREVINGFEILUTBETALTYTELSE("TILBAKEKREVING_FEILUTBETALT_YTELSE"),
         FORSIKRINGSPREMIESELVSTENDIGNAERINGSDRIVENDE("FORSIKRINGSPREMIE_SELVSTENDIG_NAERINGSDRIVENDE");
+    }
+}
+@Serializable
+enum class Valuta(val value: String){
+    NOK("NOK");
+}
+@Serializable
+data class HovedstolBeloep (
+    val valuta: Valuta,
+    val beloep: Long
+)
+@Serializable
+data class RenteBeloep (
+    val valuta: Valuta,
+    val beloep: Long,
+    val renterIlagtDato: LocalDate
+)
+
+@Serializable
+data class Skyldner (
+    val identifikatortype: Identifikatortype,
+    val identifikator: String
+) {
+    enum class Identifikatortype(val value: String){
+        PERSON("PERSON"),
+        ORGANISASJON("ORGANISASJON");
     }
 }

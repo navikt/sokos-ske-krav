@@ -1,4 +1,4 @@
-package sokos.skd.poc
+package sokos.skd.poc.service
 
 
 import io.kotest.common.runBlocking
@@ -8,6 +8,7 @@ import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.mockk.mockk
+import sokos.skd.poc.SkdClient
 
 import sokos.skd.poc.maskinporten.MaskinportenAccessTokenClient
 

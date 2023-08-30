@@ -1,14 +1,20 @@
-package sokos.skd.poc.skdmodels
+package sokos.skd.poc.skdmodels.NyttOppdrag
 
 import kotlinx.serialization.Serializable
 
+
+@Serializable
+data class YtelseForAvregningBeloep (
+    val valuta: Valuta,
+    val beloep: Long
+)
+
 @Serializable
 data class TilleggsinformasjonNav (
-
     val stoenadstype: String,
     val ytelserForAvregning: YtelseForAvregningBeloep? = null
 ) {
-    enum class Stoenadstype(val value: kotlin.String){
+    enum class Stoenadstype(val value: String){
         FORELDREPENGER("FORELDREPENGER"),
         KOMPENSASJONINNTEKSTAPFRILANSEROGNAERING("KOMPENSASJON_INNTEKSTAP_FRILANSER_OG_NAERING"),
         OMSORGOPPLAERINGOGPLEIEPENGER("OMSORG_OPPLAERING_OG_PLEIEPENGER"),

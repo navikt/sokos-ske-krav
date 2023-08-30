@@ -20,7 +20,7 @@ internal class ReadFileTest : FunSpec({
         liste.forEach { println(it) }
         println("Siste linje: ${liste.last()}")
     }
-    //Users/d149678/IdeaProjects/sokos-skd-poc/build/resources/test
+
 
 
     test("lesInnStartLinjeTilclass") {
