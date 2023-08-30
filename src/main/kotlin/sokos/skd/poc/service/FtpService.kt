@@ -23,12 +23,11 @@ enum class Directories(val value: String){
     SENDT("/behandlet"),
     FAILED("/feilfiler")
 }
-class FtpService(val client: FTPClient = FTPClient()) {
+class FtpService(private val client: FTPClient = FTPClient()) {
     private val config = PropertiesConfig.FtpConfig()
-  // private val client = FTPClient()
     private val fakeFtpServer = FakeFtpServer()
-   // val fileName = "fil1.txt"
     private val log = KotlinLogging.logger {}
+
     fun connect(directory: Directories = Directories.OUTBOUND, fileNames: List<String> = listOf("fil1.txt", "fil2.txt")): FTPClient {
         fakeFtpServer.serverControlPort = config.port
         fakeFtpServer.addUserAccount(UserAccount(config.username, config.password, config.homeDirectory))
@@ -49,10 +48,10 @@ class FtpService(val client: FTPClient = FTPClient()) {
     fun downloadNewFiles(directory: Directories = Directories.OUTBOUND): List<FtpFil> {
         val newFiles = listFiles(directory)
         val ftpFiles = newFiles.map { name ->
-            // val request = downloadFile(name, directory).takeIf { it.isNotEmpty() }!!
             val file = client.downloadFile("${directory.value}/$name")
             val request = mapFile(file, name, directory)
-            FtpFil(name, client.downloadFile("${directory.value}/$name"), request.toJson())
+            val requests: List<JsonElement> = request.map {  it.toJson() }
+            FtpFil(name, client.downloadFile("${directory.value}/$name"), request.toJson(), requests)
         }
         return ftpFiles
     }
@@ -72,8 +71,11 @@ class FtpService(val client: FTPClient = FTPClient()) {
     }
 
     fun downloadFtpFile(name: String, directory: Directories): FtpFil {
-        val request = downloadFile(name, directory)
-        return  FtpFil(name, client.downloadFile("${directory.value}/$name"), request.toJson())
+        val request:List<OpprettInnkrevingsoppdragRequest> = downloadFile(name, directory)
+
+        val requests: List<JsonElement> = request.map { it.toJson()}
+        println("request size: ${requests.size}")
+        return  FtpFil(name, client.downloadFile("${directory.value}/$name"), request.toJson(), requests)
 
     }
     private fun moveFile(name: String, from: Directories, to: Directories) {
@@ -109,6 +111,7 @@ class FtpService(val client: FTPClient = FTPClient()) {
 private fun mapFraNavTilSkd(liste:List<String>)= listOf<OpprettInnkrevingsoppdragRequest>()
 
 private inline fun <reified OpprettInnkrevingsoppdragRequest> List<OpprettInnkrevingsoppdragRequest>.toJson(): JsonElement = Json.encodeToJsonElement(this)
+private inline fun <reified OpprettInnkrevingsoppdragRequest> OpprettInnkrevingsoppdragRequest.toJson(): JsonElement = Json.encodeToJsonElement(this)
 
 
 fun FTPClient.downloadFile(fileName: String): List<String> {

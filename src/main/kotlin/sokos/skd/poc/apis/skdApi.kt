@@ -5,13 +5,28 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import sokos.skd.poc.SkdService
-import sokos.skd.poc.readProperty
+import sokos.skd.poc.config.PropertiesConfig
+
 
 fun Application.skdApi(
-    skdService: SkdService
+    skdService: SkdService,
+    maskinPortenProperties: PropertiesConfig.MaskinportenClientConfig = PropertiesConfig.MaskinportenClientConfig(),
+    skeProperties: PropertiesConfig.SKEConfig = PropertiesConfig.SKEConfig()
 ) {
     routing {
         route("krav") {
+
+            get("testFTP"){
+                val files = skdService.sjekkOmNyFtpFil()
+                call.respond(HttpStatusCode.OK, files)
+            }
+            get("testFTPSend"){
+                println("kaller api")
+                val responses = skdService.sendNyeFtpFilerTilSkatt()
+                println("responses: $responses")
+                call.respond(HttpStatusCode.OK, responses)
+            }
+
             get("test") {
                 try {
                     skdService.sjekkOmNyFilOgSendTilSkatt(1)
@@ -20,11 +35,12 @@ fun Application.skdApi(
                     call.respond(
                         HttpStatusCode.InternalServerError,
                         "Sorry feilet: ${e.message}, \n"+
-                        "clientID = ${readProperty("MASKINPORTEN_CLIENT_ID", "none")} \n " +
-                        "wellKnownUrl= ${readProperty("MASKINPORTEN_WELL_KNOWN_URL", "none")} \n " +
-                        "jwk_kid= ${readProperty("MASKINPORTEN_CLIENT_JWK", "none")} \n " +
-                        "scopes= ${readProperty("MASKINPORTEN_SCOPES", "none")} \n +" +
-                        "skdurl= ${readProperty("SKD_REST_URL", "")} \n " +
+                        "clientID = ${maskinPortenProperties.clientId} \n " +
+                        "wellKnownUrl= ${maskinPortenProperties.authorityEndpoint} \n " +
+                        "jwk_kid= ${maskinPortenProperties.rsaKey} \n " +
+
+                        "scopes= ${maskinPortenProperties.scopes} \n +" +
+                        "skdurl= ${skeProperties.skeRestUrl} \n " +
                         "Stacktrace= ${e.stackTraceToString()}"
                     )
                 }

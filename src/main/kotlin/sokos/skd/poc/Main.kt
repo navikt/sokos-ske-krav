@@ -1,24 +1,24 @@
 package sokos.skd.poc
 
-import kotlinx.coroutines.runBlocking
+import sokos.skd.poc.config.PropertiesConfig
 import sokos.skd.poc.database.DataSource
 import sokos.skd.poc.maskinporten.MaskinportenAccessTokenClient
 import kotlin.properties.Delegates
 
-fun main(args: Array<String>) = runBlocking{
+fun main(args: Array<String>) {
     println("Applikasjonen starter med følgende argumenter: ${args.joinToString()}")
 
+
     val applicationState = ApplicationState()
-    val configuration = Configuration()
-    val tokenProvider = MaskinportenAccessTokenClient(configuration.maskinportenClientConfig, defaultHttpClient)
-    val skdClient = SkdClient(tokenProvider, configuration.skdRestUrl)
-    val skdService = SkdService(DataSource(configuration.dbConfig), skdClient)
+    val tokenProvider =
+        MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), defaultHttpClient)
+    val skdClient = SkdClient(tokenProvider, PropertiesConfig.SKEConfig().skeRestUrl)
+    val skdService = SkdService(DataSource(PropertiesConfig.DbConfig()), skdClient)
 
 
     applicationState.ready = true
-    HttpServer(applicationState, skdService, configuration).start()
+    HttpServer(applicationState, skdService).start()
 }
-
 class ApplicationState {
     var ready: Boolean by Delegates.observable(false) { _, _, newValue ->
     }

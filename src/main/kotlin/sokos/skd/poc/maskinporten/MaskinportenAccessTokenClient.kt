@@ -10,12 +10,13 @@ import io.ktor.http.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import mu.KotlinLogging
-import sokos.skd.poc.Configuration
+
+import sokos.skd.poc.config.PropertiesConfig
 import java.time.Instant
 import java.util.*
 
 class MaskinportenAccessTokenClient(
-    private val maskinportenConfig: Configuration.MaskinportenClientConfig,
+    private val maskinportenConfig: PropertiesConfig.MaskinportenClientConfig,
     private val client: HttpClient,
 ) {
     private val logger = KotlinLogging.logger {}

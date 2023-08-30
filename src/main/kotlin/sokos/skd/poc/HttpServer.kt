@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit
 class HttpServer(
     private val appState: ApplicationState,
     private val skdService: SkdService,
-    private val configuration: Configuration,
     port: Int = 8080,
 ) {
 

@@ -1,6 +1,6 @@
 package sokos.skd.poc.database
 
-import sokos.skd.poc.Configuration
+import sokos.skd.poc.config.PropertiesConfig
 
-class DataSource(val dbConfig:Configuration.DbConfig) {
+class DataSource(val dbConfig: PropertiesConfig.DbConfig) {
 }
