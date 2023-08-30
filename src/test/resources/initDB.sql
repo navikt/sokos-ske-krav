@@ -1,10 +1,13 @@
+
+
+drop table if exists HIKARI_TEST_TABLE;
 create table HIKARI_TEST_TABLE
 (
     ID INT NOT NULL
 );
 insert into HIKARI_TEST_TABLE(ID) values (123);
 
-
+drop table if exists KRAV_DATA;
 create table KRAV_DATA(
     ID                INT           NOT NULL,
     KRAVIDENTIFIKATOR VARCHAR(255)  NOT NULL
