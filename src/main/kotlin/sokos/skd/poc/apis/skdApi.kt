@@ -1,15 +1,16 @@
 package sokos.skd.poc.apis
 
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import sokos.skd.poc.service.SkdService
 import sokos.skd.poc.config.PropertiesConfig
-import sokos.skd.poc.service.SkeService
 
 
 fun Application.skdApi(
-    skeService: SkeService,
+    skdService: SkdService,
     maskinPortenProperties: PropertiesConfig.MaskinportenClientConfig = PropertiesConfig.MaskinportenClientConfig(),
     skeProperties: PropertiesConfig.SKEConfig = PropertiesConfig.SKEConfig()
 ) {
@@ -17,19 +18,19 @@ fun Application.skdApi(
         route("krav") {
 
             get("testFTP"){
-                val files = skeService.sjekkOmNyFtpFil()
+                val files = skdService.sjekkOmNyFtpFil()
                 call.respond(HttpStatusCode.OK, files)
             }
             get("testFTPSend"){
-                println("kaller api")
-                val responses = skeService.sendNyeFtpFilerTilSkatt()
-                println("responses: $responses")
-                call.respond(HttpStatusCode.OK, responses)
+                val responses = skdService.sendNyeFtpFilerTilSkatt()
+                val codes = responses.flatMap { listOf( "${it.status.value}: ${it.bodyAsText()}") }
+                call.respond(codes)
+            }
             }
 
             get("test") {
                 try {
-                    skeService.sjekkOmNyFilOgSendTilSkatt(1)
+                    skdService.sendNyeFtpFilerTilSkatt()
                     call.respond(HttpStatusCode.OK, "Krav sendt")
                 } catch (e: Exception) {
                     call.respond(
@@ -47,4 +48,3 @@ fun Application.skdApi(
             }
         }
     }
-}
