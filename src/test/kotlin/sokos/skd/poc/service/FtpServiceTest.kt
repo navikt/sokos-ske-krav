@@ -1,53 +1,35 @@
 package sokos.skd.poc.service
 
-import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import sokos.skd.poc.fileValidator
 
-@Ignored
+
 internal class FtpServiceTest: FunSpec( {
     val ftpService = FtpService()
 
-    test("foo"){
+    test("Antall filer stemmer"){
         ftpService.connect(Directories.OUTBOUND, listOf("fil1.txt", "fil2.txt"))
 
-        val downloadedFiles = ftpService.downloadNewFiles(Directories.OUTBOUND)
-        println("NUMBER OF FILES: ${downloadedFiles.size}")
-        println("DOWNLOADED: ${downloadedFiles.map { it.name }}")
-
-
-    }
-    test("Move files"){
-        ftpService.connect(Directories.OUTBOUND, listOf("fil1.txt", "fil2.txt"))
-        println("connected")
-        val name = ftpService.listFiles(Directories.OUTBOUND).first()
-        println("name: $name")
-
-        val ftpFil = ftpService.downloadFtpFile(name, Directories.OUTBOUND)
-        println("downloaded file: ${ftpFil.name}")
-        ftpService.moveFiles(mutableListOf(ftpFil), Directories.OUTBOUND, Directories.FAILED)
-
-        val failedFiles = ftpService.listFiles(Directories.FAILED)
-        failedFiles.size shouldBe 1
-
+        val files = ftpService.getFiles(::fileValidator, Directories.OUTBOUND)
+        println("NUMBER OF FILES: ${files.size}")
+        println("DOWNLOADED: ${files.map { it.name }}")
 
     }
 
     test("Fail parsing"){
         ftpService.connect(Directories.OUTBOUND, listOf("fil1.txt", "fil2.txt", "fil3.txt"))
+        val files = ftpService.getFiles(::fileValidator)
+        files.size shouldBe 2
 
-        ftpService.downloadFtpFile("fil3.txt", Directories.OUTBOUND)
+        val failedFilesInDir = ftpService.listFiles(Directories.FAILED)
+        failedFilesInDir.size shouldBe 1
+        failedFilesInDir[0] shouldBe "fil3.txt"
 
-        val failedFiles = ftpService.listFiles(Directories.FAILED)
-        failedFiles.size shouldBe 1
-        failedFiles.first() shouldBe "fil3.txt"
-
-    }
-
-    test("bar"){
-        ftpService.connect(Directories.OUTBOUND, listOf("fil1.txt"))
-
-        ftpService.downloadFtpFile("fil1.txt", Directories.OUTBOUND)
+        val okFilesInDir = ftpService.listFiles(Directories.OUTBOUND)
+        okFilesInDir.size shouldBe 2
+        okFilesInDir[0] shouldBe "fil1.txt"
+        okFilesInDir[1] shouldBe "fil2.txt"
     }
 
 })

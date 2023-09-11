@@ -1,11 +1,12 @@
 package sokos.skd.poc.apis
 
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import sokos.skd.poc.config.PropertiesConfig
 import sokos.skd.poc.service.SkeService
+import sokos.skd.poc.config.PropertiesConfig
 
 
 fun Application.skdApi(
@@ -21,15 +22,15 @@ fun Application.skdApi(
                 call.respond(HttpStatusCode.OK, files)
             }
             get("testFTPSend"){
-                println("kaller api")
                 val responses = skeService.sendNyeFtpFilerTilSkatt()
-                println("responses: $responses")
-                call.respond(HttpStatusCode.OK, responses)
+                val codes = responses.flatMap { listOf( "${it.status.value}: ${it.bodyAsText()}") }
+                call.respond(codes)
+            }
             }
 
             get("test") {
                 try {
-                    skeService.sjekkOmNyFilOgSendTilSkatt(1)
+                    skeService.sendNyeFtpFilerTilSkatt()
                     call.respond(HttpStatusCode.OK, "Krav sendt")
                 } catch (e: Exception) {
                     call.respond(
@@ -47,4 +48,3 @@ fun Application.skdApi(
             }
         }
     }
-}
