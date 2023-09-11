@@ -30,6 +30,8 @@ val jacksonVersion = "2.14.0"
 val gsonVersion = "2.10.1"
 val natpryceVersion = "1.6.10.0"
 val postgresqlVersion = "42.6.0"
+val flyway_version = "9.16.1"
+
 
 dependencies {
     // Ktor Server
@@ -53,6 +55,7 @@ dependencies {
     // Database
     implementation("com.zaxxer:HikariCP:$hikaricpVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
+    implementation("no.nav:vault-jdbc:1.3.10")
 
 
     // Serialization
@@ -73,6 +76,9 @@ dependencies {
 
     // Config
     implementation("com.natpryce:konfig:$natpryceVersion")
+
+    // Flyway
+    implementation("org.flywaydb:flyway-core:$flyway_version")
 
     // Monitorering
     implementation ("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")

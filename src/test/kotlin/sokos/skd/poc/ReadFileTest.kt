@@ -1,13 +1,13 @@
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-
 import sokos.skd.poc.navmodels.FirstLine
 import sokos.skd.poc.navmodels.LastLine
-import sokos.skd.poc.parseFRtoDataDetailLineClass
-import sokos.skd.poc.parseFRtoDataFirsLineClass
-import sokos.skd.poc.parseFRtoDataLastLIneClass
 import sokos.skd.poc.readFileFromFS
+import sokos.skd.poc.service.lagOpprettKravRequest
+import sokos.skd.poc.service.parseFRtoDataDetailLineClass
+import sokos.skd.poc.service.parseFRtoDataFirsLineClass
+import sokos.skd.poc.service.parseFRtoDataLastLIneClass
 
 internal class ReadFileTest : FunSpec({
 
@@ -20,6 +20,17 @@ internal class ReadFileTest : FunSpec({
         liste.forEach { println(it) }
         println("Siste linje: ${liste.last()}")
     }
+
+    test("Kun detail lines"){
+        println(liste[1])
+        println(liste[liste.size-1])
+        liste.subList(1, liste.size-1).forEach {
+            println(it)
+            val dl = parseFRtoDataDetailLineClass(it)
+            println(lagOpprettKravRequest(dl)) }
+    }
+
+
 
 
 

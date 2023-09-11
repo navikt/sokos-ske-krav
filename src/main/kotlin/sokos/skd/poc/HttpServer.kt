@@ -5,12 +5,12 @@ import io.ktor.server.netty.*
 import sokos.skd.poc.apis.installCommonFeatures
 import sokos.skd.poc.apis.naisApi
 import sokos.skd.poc.apis.skdApi
-import sokos.skd.poc.service.SkdService
+import sokos.skd.poc.service.SkeService
 import java.util.concurrent.TimeUnit
 
 class HttpServer(
     private val appState: ApplicationState,
-    private val skdService: SkdService,
+    private val skeService: SkeService,
     port: Int = 8080,
 ) {
 
@@ -24,7 +24,7 @@ class HttpServer(
     private val embeddedServer = embeddedServer(Netty, port) {
         installCommonFeatures()
         naisApi({ appState.ready }, { appState.running })
-        skdApi(skdService)
+        skdApi(skeService)
     }
 
     fun start() {

@@ -1,4 +1,4 @@
-package sokos.skd.poc
+package sokos.skd.poc.service
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement

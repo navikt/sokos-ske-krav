@@ -3,13 +3,14 @@ package sokos.skd.poc.service
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import kotlinx.coroutines.runBlocking
-import sokos.skd.poc.*
-import sokos.skd.poc.database.PostgresDataSource
+import sokos.skd.poc.client.SkeClient
 import sokos.skd.poc.navmodels.DetailLine
+import sokos.skd.poc.testData1
+import sokos.skd.poc.testData101
 import kotlin.math.roundToLong
 
-class SkdService(
-    private val skdClient: SkdClient
+class SkeService(
+    private val skeClient: SkeClient
 )
 {
     suspend fun sjekkOmNyFilOgSendTilSkatt(antall: Int) = runBlocking {
@@ -22,15 +23,15 @@ class SkdService(
                 println("Forsøker sende: $it")
                 response = when {
                     it.erStopp() -> {
-                        skdClient.stoppKrav(lagStoppKravRequest(it))
+                        skeClient.stoppKrav(lagStoppKravRequest(it))
                     }
 
                     it.erEndring() -> {
-                        skdClient.endreKrav((lagEndreKravRequest(it)))
+                        skeClient.endreKrav((lagEndreKravRequest(it)))
                     }
 
                     else -> {
-                        skdClient.opprettKrav(lagOpprettKravRequest(it))
+                        skeClient.opprettKrav(lagOpprettKravRequest(it))
                     }
                 }
                 println("sendt: ${it},\nSvaret er: $response")
@@ -53,7 +54,7 @@ class SkdService(
         val responses = mutableListOf<HttpClientCall>()
 
         requests.first().apply {
-            responses.add (skdClient.opprettKrav(this.toString()).request.call )
+            responses.add (skeClient.opprettKrav(this.toString()).request.call )
         }
 
         println("sendte krav")

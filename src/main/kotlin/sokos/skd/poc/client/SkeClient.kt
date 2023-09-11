@@ -1,4 +1,4 @@
-package sokos.skd.poc
+package sokos.skd.poc.client
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
@@ -14,8 +14,9 @@ import sokos.skd.poc.maskinporten.MaskinportenAccessTokenClient
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
 private const val ENDRE_KRAV = "innkrevingsoppdrag/endring"
 private const val STOPP_KRAV = "innkrevingsoppdrag/avskriv"
+private const val KLIENT_ID = "NAV/0.1"
 
-class SkdClient(
+class SkeClient(
     private val tokenProvider: MaskinportenAccessTokenClient,
     private val skdEndpoint: String,
     private val engine: HttpClientEngine = CIO.create(),
@@ -37,7 +38,7 @@ class SkdClient(
                 accept(ContentType.Application.Json)
                 headers {
                     append(HttpHeaders.Authorization, "Bearer $token")
-                    append("Klientid", "NAV/0.1")
+                    append("Klientid", KLIENT_ID)
                 }
                 setBody(body)
             }
@@ -45,6 +46,24 @@ class SkdClient(
 
         return response
     }
+
+    @OptIn(InternalAPI::class)
+    private suspend fun doPut(path: String, body: String): HttpResponse {
+        val token = tokenProvider.hentAccessToken()
+        val response = client.put("$skdEndpoint$path") {
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            headers {
+                append(HttpHeaders.Authorization, "Bearer $token")
+                append("Klientid", KLIENT_ID)
+            }
+            setBody(body)
+        }
+        println("resp_body: ${response.bodyAsText()}, \n${response.headers}, \n${response.content}, \n${response.request.call}")
+
+        return response
+    }
+
 }
 
 

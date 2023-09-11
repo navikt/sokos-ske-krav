@@ -11,7 +11,7 @@ object DatabaseTestUtils {
 
 
     fun getDataSource(initScriptPath: String, reusable: Boolean = false) = PostgresDataSource(initContainer(initScriptPath, reusable))
-    private fun initContainer(initScriptPath: String, reusable: Boolean = false): PropertiesConfig.DbConfig {
+    private fun initContainer(initScriptPath: String, reusable: Boolean = false): PropertiesConfig.PostgresConfig {
         container.apply {
             withInitScript(initScriptPath)
             println("starting container")
@@ -19,13 +19,12 @@ object DatabaseTestUtils {
             start()
         }
 
-        return PropertiesConfig.DbConfig(
+        return PropertiesConfig.PostgresConfig(
             host = container.host,
-            port = container.firstMappedPort,
+            port = container.firstMappedPort.toString(),
             name = container.databaseName,
             username = container.username,
             password = container.password,
-            jdbcUrl = container.getJdbcUrl()
         )
     }
 }

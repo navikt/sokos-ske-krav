@@ -8,7 +8,7 @@ import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.mockk.mockk
-import sokos.skd.poc.SkdClient
+import sokos.skd.poc.client.SkeClient
 
 import sokos.skd.poc.maskinporten.MaskinportenAccessTokenClient
 
@@ -27,7 +27,7 @@ internal class SkdServiceTest: FunSpec ({
                 )
             }
 
-            val client = SkdClient(tokenProvider, "", engine = mockEngineOK)
+            val client = SkeClient(tokenProvider, "", engine = mockEngineOK)
            // SkdService(client).sjekkOmNyFilOgSendTilSkatt(1)
           // val responses = SkdService(skdClient = client).sendNyeFtpFilerTilSkatt()
 

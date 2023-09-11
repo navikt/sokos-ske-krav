@@ -1,9 +1,10 @@
 package sokos.skd.poc
 
+import sokos.skd.poc.client.SkeClient
+import sokos.skd.poc.client.defaultHttpClient
 import sokos.skd.poc.config.PropertiesConfig
-import sokos.skd.poc.database.PostgresDataSource
 import sokos.skd.poc.maskinporten.MaskinportenAccessTokenClient
-import sokos.skd.poc.service.SkdService
+import sokos.skd.poc.service.SkeService
 import kotlin.properties.Delegates
 
 fun main() {
@@ -11,12 +12,12 @@ fun main() {
     val applicationState = ApplicationState()
     val tokenProvider =
         MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), defaultHttpClient)
-    val skdClient = SkdClient(tokenProvider, PropertiesConfig.SKEConfig().skeRestUrl)
-    val skdService = SkdService(skdClient)
+    val skeClient = SkeClient(tokenProvider, PropertiesConfig.SKEConfig().skeRestUrl)
+    val skeService = SkeService(skeClient)
 
 
     applicationState.ready = true
-    HttpServer(applicationState, skdService).start()
+    HttpServer(applicationState, skeService).start()
 }
 class ApplicationState {
     var ready: Boolean by Delegates.observable(false) { _, _, newValue ->

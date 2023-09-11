@@ -1,4 +1,4 @@
-package sokos.skd.poc
+package sokos.skd.poc.service
 
 import sokos.skd.poc.navmodels.DetailLine
 import sokos.skd.poc.navmodels.FirstLine

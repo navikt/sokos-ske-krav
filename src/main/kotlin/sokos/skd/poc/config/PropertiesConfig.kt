@@ -6,11 +6,15 @@ import com.nimbusds.jose.jwk.RSAKey
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.runBlocking
+import mu.KotlinLogging
 
-import sokos.skd.poc.defaultHttpClient
+import sokos.skd.poc.client.defaultHttpClient
 import java.io.File
 
+private val logger = KotlinLogging.logger { }
+
 object PropertiesConfig {
+    val postgresConfig:PostgresConfig = PostgresConfig()
 
 private val defaultProperties = ConfigurationMap(
     mapOf(
@@ -67,21 +71,17 @@ private val defaultProperties = ConfigurationMap(
         val skeRestUrl: String = get("SKD_REST_URL")
     )
 
-    data class DbConfig(
-/*        val host: String = get("DB_HOST"),
-        val port: Int = get("DB_PORT").toInt(),
-        val name: String = get("DB_NAME"),
-        val username: String = get("DB_USERNAME"),
-        val password: String = get("DB_PASSWORD"),
-        val testTable: String = get("HIKARI_TEST_TABLE"),   */
-        val host: String = "",
-        val port: Int = 0,
-        val name: String = "",
-        val username: String = "",
-        val password: String = "",
-        val testTable: String = "",
+    data class PostgresConfig(
+        val host: String = readProperty("POSTGRES_HOST"),
+        val port: String = readProperty("POSTGRES_PORT"),
+        val name: String = readProperty("POSTGRES_NAME"),
+        val username: String = readProperty("POSTGRES_USERNAME", ""),
+        val password: String = readProperty("POSTGRES_PASSWORD", ""),
+        val vaultMountPath: String = readProperty("VAULT_MOUNTPATH", ""),
+        val testTable: String = readProperty("HIKARI_TEST_TABLE", ""),
+    ) {
         val jdbcUrl: String = "jdbc:postgresql://$host:$port/$name"
-    )
+    }
 
     open class JwtConfig(private val wellKnownUrl: String) {
         val openIdConfiguration: OpenIdConfiguration by lazy {
@@ -91,3 +91,9 @@ private val defaultProperties = ConfigurationMap(
         }
     }
 }
+
+private fun readProperty(name: String, default: String? = null) =
+    System.getenv(name)
+        ?: System.getProperty(name)
+        ?: default.takeIf { it != null }?.also { logger.warn { "Using default value for property $name" } }
+        ?: throw RuntimeException("Mandatory property '$name' was not found")

@@ -9,7 +9,7 @@ object Repository {
     private val log = KotlinLogging.logger {}
     fun Connection.hentKravData(): List<OpprettInnkrevingsOppdragResponse> {
         return try {
-            prepareStatement("""SELECT * FROM KRAV_DATA""").executeQuery().toOpprettInnkrevingsOppdragResponse()
+            prepareStatement("""SELECT * FROM KRAV""").executeQuery().toOpprettInnkrevingsOppdragResponse()
         } catch(e: Exception){
             log.error("exception i henting av data: ${e.message}")
             listOf()
