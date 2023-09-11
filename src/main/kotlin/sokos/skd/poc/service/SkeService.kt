@@ -3,16 +3,18 @@ package sokos.skd.poc.service
 
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import sokos.skd.poc.*
+import sokos.skd.poc.client.SkeClient
 import sokos.skd.poc.navmodels.DetailLine
 import kotlin.math.roundToLong
 
-class SkdService(
-    private val skdClient: SkdClient,
+class SkeService(
+    private val skdClient: SkeClient,
     private val ftpService: FtpService = FtpService().apply {connect(fileNames = listOf("fil1.txt")) }
 )
 {
     fun sjekkOmNyFtpFil(): List<String> = FtpService().apply { connect() }.listFiles() //brukes for testing i postman
+
+
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
         val files =  ftpService.getFiles(::fileValidator)
         val results = mutableMapOf<FtpFil, MutableList<HttpResponse>>()

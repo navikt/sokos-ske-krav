@@ -8,7 +8,7 @@ import org.mockftpserver.fake.UserAccount
 import org.mockftpserver.fake.filesystem.DirectoryEntry
 import org.mockftpserver.fake.filesystem.FileEntry
 import org.mockftpserver.fake.filesystem.UnixFakeFileSystem
-import sokos.skd.poc.ValidationResult
+
 import sokos.skd.poc.config.PropertiesConfig
 import sokos.skd.poc.navmodels.DetailLine
 

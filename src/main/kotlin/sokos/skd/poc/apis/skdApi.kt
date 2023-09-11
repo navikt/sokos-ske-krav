@@ -5,12 +5,12 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import sokos.skd.poc.service.SkdService
+import sokos.skd.poc.service.SkeService
 import sokos.skd.poc.config.PropertiesConfig
 
 
 fun Application.skdApi(
-    skdService: SkdService,
+    skeService: SkeService,
     maskinPortenProperties: PropertiesConfig.MaskinportenClientConfig = PropertiesConfig.MaskinportenClientConfig(),
     skeProperties: PropertiesConfig.SKEConfig = PropertiesConfig.SKEConfig()
 ) {
@@ -18,11 +18,11 @@ fun Application.skdApi(
         route("krav") {
 
             get("testFTP"){
-                val files = skdService.sjekkOmNyFtpFil()
+                val files = skeService.sjekkOmNyFtpFil()
                 call.respond(HttpStatusCode.OK, files)
             }
             get("testFTPSend"){
-                val responses = skdService.sendNyeFtpFilerTilSkatt()
+                val responses = skeService.sendNyeFtpFilerTilSkatt()
                 val codes = responses.flatMap { listOf( "${it.status.value}: ${it.bodyAsText()}") }
                 call.respond(codes)
             }
@@ -30,7 +30,7 @@ fun Application.skdApi(
 
             get("test") {
                 try {
-                    skdService.sendNyeFtpFilerTilSkatt()
+                    skeService.sendNyeFtpFilerTilSkatt()
                     call.respond(HttpStatusCode.OK, "Krav sendt")
                 } catch (e: Exception) {
                     call.respond(
