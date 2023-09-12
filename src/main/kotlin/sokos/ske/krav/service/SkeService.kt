@@ -24,12 +24,11 @@ class SkeService(
             val responses = mutableListOf<HttpResponse>()
 
             file.detailLines.subList(0,1).forEach{
-                val request = createRequest(it) //logge request om feiler?
 
                 val response = when {
-                    it.erStopp() -> skeClient.stoppKrav(request)
-                    it.erEndring() -> skeClient.endreKrav(request)
-                    else -> skeClient.opprettKrav(request)
+                    it.erStopp() -> skeClient.stoppKrav(lagStoppKravRequest(it))
+                    it.erEndring() -> skeClient.endreKrav(lagEndreKravRequest(it))
+                    else -> skeClient.opprettKrav(lagOpprettKravRequest(it))
                 }
 
                 println(response)
@@ -37,7 +36,7 @@ class SkeService(
 
                 if(response.status != HttpStatusCode.OK && response.status != HttpStatusCode.Created) {  //legg object i feilliste
                     failedLines[file.detailLines.indexOf(it) + 1] = it
-                    println("FAILED REQUEST: $request") //logge request?
+                    println("FAILED REQUEST: $it") //logge request?
                 }
             }
             results[file] = responses
@@ -47,18 +46,6 @@ class SkeService(
         handleSentFiles(results)
 
         return results.map { it.value }.flatten()
-    }
-
-    private fun createRequest(line: DetailLine)= when {
-        line.erStopp() -> {
-            println("er stopp")
-            lagStoppKravRequest(line)
-        }
-        line.erEndring() -> {
-            println("er endre")
-            lagEndreKravRequest(line)
-        }
-        else -> lagOpprettKravRequest(line)
     }
 
     private fun handleSentFiles(results: MutableMap<FtpFil, MutableList<HttpResponse>>){

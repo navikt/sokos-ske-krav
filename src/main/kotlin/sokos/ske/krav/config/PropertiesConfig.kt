@@ -48,18 +48,18 @@ private val defaultProperties = ConfigurationMap(
     operator fun get(key: String): String = config[Key(key, stringType)]
 
     data class FtpConfig(
-        val server:String = get("FTP_SERVER"),
-        val username:String = get("FTP_USERNAME"),
-        val password:String = get("FTP_PASSWORD"),
-        val homeDirectory:String = get("FTP_DIRECTORY"),
-        val port:Int = get("FTP_PORT").toInt()
+        val server:String = readProperty("FTP_SERVER", ""),
+        val username:String = readProperty("FTP_USERNAME", ""),
+        val password:String = readProperty("FTP_PASSWORD", ""),
+        val homeDirectory:String = readProperty("FTP_DIRECTORY", ""),
+        val port:Int = readProperty("FTP_PORT", "0").toInt()
     )
 
     data class MaskinportenClientConfig(
-        val clientId: String = get("MASKINPORTEN_CLIENT_ID"),
-        val authorityEndpoint: String = get("MASKINPORTEN_WELL_KNOWN_URL"),
-        val rsaKey: RSAKey? = RSAKey.parse(get("MASKINPORTEN_CLIENT_JWK")),
-        val scopes: String = get("MASKINPORTEN_SCOPES"),
+        val clientId: String = readProperty("MASKINPORTEN_CLIENT_ID", ""),
+        val authorityEndpoint: String = readProperty("MASKINPORTEN_WELL_KNOWN_URL", ""),
+        val rsaKey: RSAKey? = RSAKey.parse(readProperty("MASKINPORTEN_CLIENT_JWK")),
+        val scopes: String = readProperty("MASKINPORTEN_SCOPES"),
     ): JwtConfig(authorityEndpoint)
 
     data class OpenIdConfiguration(
@@ -72,9 +72,9 @@ private val defaultProperties = ConfigurationMap(
     )
 
     data class PostgresConfig(
-        val host: String = readProperty("POSTGRES_HOST"),
-        val port: String = readProperty("POSTGRES_PORT"),
-        val name: String = readProperty("POSTGRES_NAME"),
+        val host: String = readProperty("POSTGRES_HOST",""),
+        val port: String = readProperty("POSTGRES_PORT", ""),
+        val name: String = readProperty("POSTGRES_NAME", ""),
         val username: String = readProperty("POSTGRES_USERNAME", ""),
         val password: String = readProperty("POSTGRES_PASSWORD", ""),
         val vaultMountPath: String = readProperty("VAULT_MOUNTPATH", ""),

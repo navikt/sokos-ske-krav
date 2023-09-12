@@ -8,8 +8,10 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
-
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
+import sokos.ske.krav.skemodels.requests.AvskrivingRequest
+import sokos.ske.krav.skemodels.requests.EndringRequest
+import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
 
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
 private const val ENDRE_KRAV = "innkrevingsoppdrag/endring"
@@ -26,12 +28,11 @@ class SkeClient(
     },
 
     ) {
-    suspend fun opprettKrav(body: String): HttpResponse = doPost(OPPRETT_KRAV, body)
-    suspend fun endreKrav(body: String): HttpResponse = doPost(ENDRE_KRAV, body)
-    suspend fun stoppKrav(body: String):HttpResponse = doPost(STOPP_KRAV, body)
+    suspend fun opprettKrav(body: OpprettInnkrevingsoppdragRequest): HttpResponse = doPost(OPPRETT_KRAV, body)
+    suspend fun endreKrav(body: EndringRequest): HttpResponse = doPost(ENDRE_KRAV, body)
+    suspend fun stoppKrav(body: AvskrivingRequest):HttpResponse = doPost(STOPP_KRAV, body)
 
-    @OptIn(InternalAPI::class)
-    private suspend fun doPost(path: String, body: String): HttpResponse {
+    private suspend inline fun <reified T> doPost(path: String, body: T): HttpResponse {
         val token = tokenProvider.hentAccessToken()
         val response = client.post("$skeEndpoint$path") {
                 contentType(ContentType.Application.Json)
@@ -42,8 +43,7 @@ class SkeClient(
                 }
                 setBody(body)
             }
-            println("resp_body: ${response.bodyAsText()}, \n${response.headers}, \n${response.content}, \n${response.request.call}")
-
+            println("resp_body: ${response.bodyAsText()}, \n${response.headers}, \n${response.request.call}")
         return response
     }
 

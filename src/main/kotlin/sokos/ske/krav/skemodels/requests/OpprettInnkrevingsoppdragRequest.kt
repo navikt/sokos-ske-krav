@@ -18,7 +18,7 @@ data class OpprettInnkrevingsoppdragRequest(
     val fastsettelsesdato: LocalDate,
     val foreldelsesfristensUtgangspunkt: LocalDate? = null,
     val tilleggsinformasjon: TilleggsinformasjonNav? = null,
-):SkeRequest {
+) {
     enum class Kravtype(val value: String){
         TILBAKEKREVINGFEILUTBETALTYTELSE("TILBAKEKREVING_FEILUTBETALT_YTELSE"),
         FORSIKRINGSPREMIESELVSTENDIGNAERINGSDRIVENDE("FORSIKRINGSPREMIE_SELVSTENDIG_NAERINGSDRIVENDE");

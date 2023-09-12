@@ -27,6 +27,7 @@ fun Application.installCommonFeatures(){
         json(Json {
             prettyPrint = true
             isLenient = true
+            explicitNulls = false
         })
     }
 

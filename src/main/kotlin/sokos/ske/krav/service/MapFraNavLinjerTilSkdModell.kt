@@ -1,23 +1,21 @@
 package sokos.ske.krav.service
 
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.skemodels.requests.*
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
 import java.util.*
 import kotlin.math.roundToLong
 
-sealed class ValidationResult{
+sealed class ValidationResult {
     data class Success(val detailLines: List<DetailLine>) : ValidationResult()
     data class Error(val message: List<String>) : ValidationResult()
 }
+
 fun fileValidator(content: List<String>): ValidationResult {
     val firstLine = parseFRtoDataFirsLineClass(content.first())
     val lastLine = parseFRtoDataLastLIneClass(content.last())
-    val detailLines = content.subList(1, content.lastIndex).map {parseFRtoDataDetailLineClass(it)  }
+    val detailLines = content.subList(1, content.lastIndex).map { parseFRtoDataDetailLineClass(it) }
 
 //    val invalidKravkode = detailLines.any {  TilleggsinformasjonNav.Stonadstype.from(it.kravkode) == null }
     val invalidNumberOfLines = lastLine.numTransactionLines != detailLines.size
@@ -25,11 +23,11 @@ fun fileValidator(content: List<String>): ValidationResult {
     val invalidTransferDate = firstLine.transferDate != lastLine.transferDate
 
     //  if(invalidNumberOfLines || invalidSum || invalidTransferDate || invalidKravkode){
-    if(invalidNumberOfLines || invalidSum || invalidTransferDate){
+    if (invalidNumberOfLines || invalidSum || invalidTransferDate) {
         val errorMessages = mutableListOf<String>()
-        if(invalidNumberOfLines) errorMessages.add("Antall krav stemmer ikke med antallet i siste linje!")
-        if(invalidSum) errorMessages.add("Sum alle linjer stemmer ikke med sum i siste linje!")
-        if(invalidTransferDate) errorMessages.add("Dato sendt er avvikende mellom første og siste linje fra OS!")
+        if (invalidNumberOfLines) errorMessages.add("Antall krav stemmer ikke med antallet i siste linje!")
+        if (invalidSum) errorMessages.add("Sum alle linjer stemmer ikke med sum i siste linje!")
+        if (invalidTransferDate) errorMessages.add("Dato sendt er avvikende mellom første og siste linje fra OS!")
         //     if(invalidKravkode) errorMessages.add("Ugyldig kravkode!")
 
         return ValidationResult.Error(errorMessages)
@@ -37,7 +35,7 @@ fun fileValidator(content: List<String>): ValidationResult {
     return ValidationResult.Success(detailLines)
 }
 
-fun lagOpprettKravRequest(krav: DetailLine): String {
+fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
     if (krav.belopRente.roundToLong() > 0L) println("DENNE::::: ${krav.belopRente}")
 
     val kravFremtidigYtelse = krav.fremtidigYtelse.roundToLong()
@@ -53,33 +51,31 @@ fun lagOpprettKravRequest(krav: DetailLine): String {
         kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE.value,
         skyldner = Skyldner(Skyldner.Identifikatortype.PERSON, krav.gjelderID),
         hovedstol = HovedstolBeloep(beloep = krav.belop.roundToLong()),
-        renteBeloep = arrayOf(RenteBeloep(beloep = beloepRente, renterIlagtDato = krav.vedtakDato)).takeIf { beloepRente > 0L },
+        renteBeloep = arrayOf(
+            RenteBeloep(
+                beloep = beloepRente,
+                renterIlagtDato = krav.vedtakDato
+            )
+        ).takeIf { beloepRente > 0L },
         oppdragsgiversSaksnummer = saksnummerForTestRequests,
         oppdragsgiversKravidentifikator = saksnummerForTestRequests,
-/*        oppdragsgiversSaksnummer = krav.saksNummer,
-        oppdragsgiversKravidentifikator = krav.saksNummer,*/
+        /*        oppdragsgiversSaksnummer = krav.saksNummer,
+                oppdragsgiversKravidentifikator = krav.saksNummer,*/
         fastsettelsesdato = krav.vedtakDato,
         tilleggsinformasjon = tilleggsinformasjonNav
-    ).toJson()
-
+    )
 }
 
-fun lagEndreKravRequest(krav: DetailLine): String =
-        EndringRequest(
+fun lagEndreKravRequest(krav: DetailLine) =
+    EndringRequest(
         kravidentifikator = krav.saksNummer,
         nyHovedstol = HovedstolBeloep(Valuta.NOK, krav.belop.roundToLong()),
-        ).toJson()
+    )
 
 
-fun lagStoppKravRequest(krav: DetailLine): String =
-    AvskrivingRequest(kravidentifikator = krav.saksNummer).toJson()
+fun lagStoppKravRequest(krav: DetailLine) = AvskrivingRequest(kravidentifikator = krav.saksNummer)
 
 
-@OptIn(ExperimentalSerializationApi::class)
-private val builder = Json {
-    encodeDefaults = true
-    explicitNulls = false
-}
 
-fun SkeRequest.toJson() =  builder.encodeToString(this)//kan evt bruke Any i stedet for SkeRequest?
+
 
