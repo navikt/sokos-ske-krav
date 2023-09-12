@@ -54,7 +54,13 @@ spec:
       value: "/"
     - name: FTP_PORT
       value: "0"
-
-
+    - name: POSTGRES_HOST
+      value: b27dbvl030.preprod.local
+    - name: POSTGRES_PORT
+      value: "5432"
+    - name: POSTGRES_NAME
+      value: sokos-skd-krav
+    - name: VAULT_MOUNTPATH
+      value: postgresql/preprod-fss/
 
 
