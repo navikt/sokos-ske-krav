@@ -2,8 +2,6 @@ package sokos.skd.poc.service
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import sokos.skd.poc.fileValidator
-
 
 internal class FtpServiceTest: FunSpec( {
     val ftpService = FtpService()

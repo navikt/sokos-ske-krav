@@ -1,15 +1,14 @@
-package sokos.skd.poc.skdmodels.Endring
+package sokos.skd.poc.skdmodels.requests
 
 import kotlinx.serialization.Serializable
-import sokos.skd.poc.skdmodels.NyttOppdrag.HovedstolBeloep
 
 @Serializable
 data class EndringRequest (
 
-    val kravidentifikatortype: String,
+    val kravidentifikatortype: String = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR.value,
     val kravidentifikator: String,
     val nyHovedstol: HovedstolBeloep
-) {
+):SkeRequest {
     enum class Kravidentifikatortype(val value: String){
         SKATTEETATENSKRAVIDENTIFIKATOR("SKATTEETATENS_KRAVIDENTIFIKATOR");
     }

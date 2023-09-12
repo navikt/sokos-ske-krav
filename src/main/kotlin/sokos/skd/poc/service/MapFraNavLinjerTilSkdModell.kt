@@ -1,17 +1,14 @@
 package sokos.skd.poc.service
 
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
 import sokos.skd.poc.navmodels.DetailLine
-import sokos.skd.poc.navmodels.Stonadstype
-import sokos.skd.poc.skdmodels.Avskriving.AvskrivingRequest
-import sokos.skd.poc.skdmodels.Avskriving.AvskrivingRequest.Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
-import sokos.skd.poc.skdmodels.Endring.EndringRequest
-import sokos.skd.poc.skdmodels.NyttOppdrag.*
 
-import sokos.skd.poc.skdmodels.NyttOppdrag.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
-import sokos.skd.poc.skdmodels.NyttOppdrag.TilleggsinformasjonNav.Stoenadstype
+import sokos.skd.poc.skdmodels.requests.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
+import sokos.skd.poc.skdmodels.requests.*
+import java.util.*
 import kotlin.math.roundToLong
 
 sealed class ValidationResult{
@@ -43,48 +40,47 @@ fun fileValidator(content: List<String>): ValidationResult {
 
 fun lagOpprettKravRequest(krav: DetailLine): String {
     if (krav.belopRente.roundToLong() > 0L) println("DENNE::::: ${krav.belopRente}")
+
+    val kravFremtidigYtelse = krav.fremtidigYtelse.roundToLong()
+    val tilleggsinformasjonNav = TilleggsinformasjonNav(
+        stoenadstype = TilleggsinformasjonNav.Stonadstype.from(krav.kravkode).toString(),
+        YtelseForAvregningBeloep(beloep = kravFremtidigYtelse).takeIf { kravFremtidigYtelse > 0L }
+    )
+
+    val beloepRente = krav.belopRente.roundToLong()
+    val saksnummerForTestRequests = UUID.randomUUID().toString()
+
     return OpprettInnkrevingsoppdragRequest(
         kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE.value,
         skyldner = Skyldner(Skyldner.Identifikatortype.PERSON, krav.gjelderID),
-        hovedstol = HovedstolBeloep(Valuta.NOK, krav.belop.roundToLong()),
-        renteBeloep =  arrayOf(
-            RenteBeloep(
-                valuta = Valuta.NOK,
-                beloep = krav.belopRente.roundToLong(),
-                renterIlagtDato = krav.vedtakDato
-            )
-        ).takeIf { krav.belopRente.roundToLong() > 0L },
-        oppdragsgiversSaksnummer = krav.saksNummer,
-        oppdragsgiversKravidentifikator = krav.saksNummer,
+        hovedstol = HovedstolBeloep(beloep = krav.belop.roundToLong()),
+        renteBeloep = arrayOf(RenteBeloep(beloep = beloepRente, renterIlagtDato = krav.vedtakDato)).takeIf { beloepRente > 0L },
+        oppdragsgiversSaksnummer = saksnummerForTestRequests,
+        oppdragsgiversKravidentifikator = saksnummerForTestRequests,
+/*        oppdragsgiversSaksnummer = krav.saksNummer,
+        oppdragsgiversKravidentifikator = krav.saksNummer,*/
         fastsettelsesdato = krav.vedtakDato,
-        tilleggsinformasjon = (Stonadstype from krav.kravkode)?.let { st ->
-            TilleggsinformasjonNav(
-                stoenadstype = Stoenadstype.valueOf(st.name).value,
-                ytelserForAvregning = YtelseForAvregningBeloep(
-                    valuta = Valuta.NOK,
-                    beloep = krav.fremtidigYtelse.roundToLong()
-                ).takeIf { krav.fremtidigYtelse.roundToLong() > 0 }
-            )
-        }
-    ).let { Json.encodeToJsonElement(it).toString() }
+        tilleggsinformasjon = tilleggsinformasjonNav
+    ).toJson()
 
 }
 
-fun lagEndreKravRequest(krav: DetailLine): String {
-    return Json.encodeToJsonElement(
+fun lagEndreKravRequest(krav: DetailLine): String =
         EndringRequest(
-        kravidentifikatortype = EndringRequest.Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR.value,
         kravidentifikator = krav.saksNummer,
         nyHovedstol = HovedstolBeloep(Valuta.NOK, krav.belop.roundToLong()),
-        )
-    ).toString()
+        ).toJson()
+
+
+fun lagStoppKravRequest(krav: DetailLine): String =
+    AvskrivingRequest(kravidentifikator = krav.saksNummer).toJson()
+
+
+@OptIn(ExperimentalSerializationApi::class)
+private val builder = Json {
+    encodeDefaults = true
+    explicitNulls = false
 }
 
-fun lagStoppKravRequest(krav: DetailLine): String {
-    return Json.encodeToJsonElement(
-        AvskrivingRequest(
-        kravidentifikatortype =  SKATTEETATENSKRAVIDENTIFIKATOR.value,
-        kravidentifikator = krav.saksNummer
-    )
-    ).toString()
-}
+fun SkeRequest.toJson() =  builder.encodeToString(this)//kan evt bruke Any i stedet for SkeRequest?
+

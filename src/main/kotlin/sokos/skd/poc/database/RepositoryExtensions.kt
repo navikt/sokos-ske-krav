@@ -1,6 +1,6 @@
 package sokos.skd.poc.database
 
-import sokos.skd.poc.skdmodels.NyttOppdrag.OpprettInnkrevingsOppdragResponse
+import sokos.skd.poc.skdmodels.responses.OpprettInnkrevingsOppdragResponse
 import java.sql.ResultSet
 
 object RepositoryExtensions {

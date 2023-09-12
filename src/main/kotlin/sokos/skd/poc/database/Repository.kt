@@ -2,7 +2,7 @@ package sokos.skd.poc.database
 
 import mu.KotlinLogging
 import sokos.skd.poc.database.RepositoryExtensions.toOpprettInnkrevingsOppdragResponse
-import sokos.skd.poc.skdmodels.NyttOppdrag.OpprettInnkrevingsOppdragResponse
+import sokos.skd.poc.skdmodels.responses.OpprettInnkrevingsOppdragResponse
 import java.sql.Connection
 
 object Repository {
