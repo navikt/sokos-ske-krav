@@ -24,6 +24,6 @@
         </if>
     </root>
 
-    <logger name="sokos.skd.poc" level="ERROR"/>
+    <logger name="sokos.ske.krav" level="ERROR"/>
 
 </configuration>

@@ -8,7 +8,7 @@ plugins {
     application
 }
 application {
-    mainClass.set("sokos.skd.poc.MainKt")
+    mainClass.set("sokos.ske.krav.MainKt")
 }
 
 group = "no.nav.sokos"
@@ -116,7 +116,7 @@ tasks {
         enabled = true
         archiveFileName.set("app.jar")
         manifest {
-            attributes["Main-Class"] = "sokos.skd.poc.MainKt"
+            attributes["Main-Class"] = "sokos.ske.krav.MainKt"
         }
     }
 

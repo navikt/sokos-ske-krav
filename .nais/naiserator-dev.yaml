@@ -1,7 +1,7 @@
 apiVersion: "nais.io/v1alpha1"
 kind: "Application"
 metadata:
-  name: sokos-skd-poc
+  name: sokos-ske-krav
   namespace: okonomi
   labels:
     team: okonomi
@@ -31,7 +31,7 @@ spec:
     timeout: 5
   webproxy: true
   ingresses:
-    - https://sokos-skd-poc.intern.dev.nav.no
+    - https://sokos-ske-krav.intern.dev.nav.no
   maskinporten:
     enabled: true
     scopes:
@@ -42,7 +42,7 @@ spec:
   vault:
     enabled: true
   env:
-    - name: SKD_REST_URL
+    - name: ske_REST_URL
       value: https://api-test.sits.no/api/innkreving/innkrevingsoppdrag/v1/
     - name: FTP_SERVER
       value: "localhost"
