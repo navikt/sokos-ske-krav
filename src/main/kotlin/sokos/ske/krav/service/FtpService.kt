@@ -17,9 +17,9 @@ import java.io.File
 import java.net.URL
 
 enum class Directories(val value: String){
-    OUTBOUND("/ut"),
-    SENDT("/behandlet"),
-    FAILED("/feilfiler")
+    OUTBOUND("${File.separator}ut"),
+    SENDT("${File.separator}behandlet"),
+    FAILED("${File.separator}feilfiler")
 }
 
 data class FtpFil(
@@ -37,9 +37,13 @@ class FtpService(private val client: FTPClient = FTPClient()) {
         fakeFtpServer.addUserAccount(UserAccount(config.username, config.password, config.homeDirectory))
 
         fakeFtpServer.fileSystem = UnixFakeFileSystem().apply {
+            println("directory value: ${directory.value}")
             add(DirectoryEntry(directory.value))
             fileNames.forEach{fileName ->
-                add(FileEntry("${directory.value}/$fileName", File(fileName.asUrl().toURI()).readText()))
+                val filecontent = File(fileName.asUrl().toURI()).readText()
+                val path = "${directory.value}${File.separator}$fileName"
+                println("path: $path")
+                add(FileEntry(path, filecontent))
             }
         }
         fakeFtpServer.start()
@@ -48,11 +52,12 @@ class FtpService(private val client: FTPClient = FTPClient()) {
         return client
     }
     fun createFile(fileName: String, content: List<String>, directory:Directories) {
-        fakeFtpServer.fileSystem.add(FileEntry("${directory.value}/$fileName", content.joinToString("\n")))
+        val path = "${directory.value}${File.separator}$fileName"
+        fakeFtpServer.fileSystem.add(FileEntry(path, content.joinToString("\n")))
         File(fileName).writeText(content.joinToString("\n")) //for testing
     }
     fun moveFile(name: String, from: Directories, to: Directories) {
-        fakeFtpServer.fileSystem.rename("${from.value}/${name}", "${to.value}/${name}")
+        fakeFtpServer.fileSystem.rename("${from.value}${File.separator}${name}", "${to.value}${File.separator}${name}")
         listFiles(to)
     }
 
@@ -78,7 +83,7 @@ class FtpService(private val client: FTPClient = FTPClient()) {
         return successFiles
     }
 
-    private fun downloadNewFiles(directory: Directories = Directories.OUTBOUND): Map<String, List<String>> =  listFiles(directory).associateWith { client.downloadFile("${directory.value}/$it") }
+    private fun downloadNewFiles(directory: Directories = Directories.OUTBOUND): Map<String, List<String>> =  listFiles(directory).associateWith { client.downloadFile("${directory.value}${File.separator}$it") }
 }
 
 
