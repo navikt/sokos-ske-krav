@@ -24,6 +24,11 @@ private val defaultProperties = ConfigurationMap(
 )
     private val localDevProperties = ConfigurationMap(
         "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
+        "FTP_SERVER" to "localhost",
+        "FTP_USERNAME" to "username",
+        "FTP_PASSWORD" to "password",
+        "FTP_DIRECTORY" to "/",
+        "FTP_PORT" to "8080",
         "DB_HOST" to "host",
         "DB_PORT" to "123",
         "DB_NAME" to "name",
