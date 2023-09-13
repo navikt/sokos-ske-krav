@@ -14,7 +14,6 @@ import java.io.File
 private val logger = KotlinLogging.logger { }
 
 object PropertiesConfig {
-    val postgresConfig:PostgresConfig = PostgresConfig()
 
 private val defaultProperties = ConfigurationMap(
     mapOf(
@@ -29,12 +28,14 @@ private val defaultProperties = ConfigurationMap(
         "FTP_PASSWORD" to "password",
         "FTP_DIRECTORY" to "/",
         "FTP_PORT" to "8080",
-        "DB_HOST" to "host",
-        "DB_PORT" to "123",
-        "DB_NAME" to "name",
-        "DB_USERNAME" to "username",
-        "DB_PASSWORD" to "password",
-        "HIKARI_TEST_TABLE" to "HIKARI_TEST_TABLE"
+        "SKE_REST_URL" to "",
+        "POSTGRES_HOST" to "host",
+        "POSTGRES_PORT" to "123",
+        "POSTGRES_NAME" to "name",
+        "POSTGRES_USERNAME" to "username",
+        "POSTGRES_PASSWORD" to "password",
+        "HIKARI_TEST_TABLE" to "HIKARI_TEST_TABLE",
+        "VAULT_MOUNTPATH" to ""
     )
     private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
     private val prodProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.PROD.toString()))
@@ -60,10 +61,10 @@ private val defaultProperties = ConfigurationMap(
         val port:Int = get("FTP_PORT").toInt()
     )
     data class MaskinportenClientConfig(
-        val clientId: String = readProperty("MASKINPORTEN_CLIENT_ID", ""),
-        val authorityEndpoint: String = readProperty("MASKINPORTEN_WELL_KNOWN_URL", ""),
-        val rsaKey: RSAKey? = RSAKey.parse(readProperty("MASKINPORTEN_CLIENT_JWK")),
-        val scopes: String = readProperty("MASKINPORTEN_SCOPES"),
+        val clientId: String = get("MASKINPORTEN_CLIENT_ID"),
+        val authorityEndpoint: String = get("MASKINPORTEN_WELL_KNOWN_URL"),
+        val rsaKey: RSAKey? = RSAKey.parse(get("MASKINPORTEN_CLIENT_JWK")),
+        val scopes: String = get("MASKINPORTEN_SCOPES"),
     ): JwtConfig(authorityEndpoint)
 
     data class OpenIdConfiguration(
@@ -72,7 +73,7 @@ private val defaultProperties = ConfigurationMap(
         @JsonProperty("token_endpoint") val tokenEndpoint: String,
     )
     data class SKEConfig(
-        val skeRestUrl: String = get("ske_REST_URL")
+        val skeRestUrl: String = get("SKE_REST_URL")
     )
 
     data class PostgresConfig(

@@ -42,7 +42,7 @@ spec:
   vault:
     enabled: true
   env:
-    - name: ske_REST_URL
+    - name: SKE_REST_URL
       value: https://api-test.sits.no/api/innkreving/innkrevingsoppdrag/v1/
     - name: FTP_SERVER
       value: "localhost"
