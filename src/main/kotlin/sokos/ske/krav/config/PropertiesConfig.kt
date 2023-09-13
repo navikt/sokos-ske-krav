@@ -48,13 +48,12 @@ private val defaultProperties = ConfigurationMap(
     operator fun get(key: String): String = config[Key(key, stringType)]
 
     data class FtpConfig(
-        val server:String = readProperty("FTP_SERVER", ""),
-        val username:String = readProperty("FTP_USERNAME", ""),
-        val password:String = readProperty("FTP_PASSWORD", ""),
-        val homeDirectory:String = readProperty("FTP_DIRECTORY", ""),
-        val port:Int = readProperty("FTP_PORT", "0").toInt()
+        val server:String = get("FTP_SERVER"),
+        val username:String = get("FTP_USERNAME"),
+        val password:String = get("FTP_PASSWORD"),
+        val homeDirectory:String = get("FTP_DIRECTORY"),
+        val port:Int = get("FTP_PORT").toInt()
     )
-
     data class MaskinportenClientConfig(
         val clientId: String = readProperty("MASKINPORTEN_CLIENT_ID", ""),
         val authorityEndpoint: String = readProperty("MASKINPORTEN_WELL_KNOWN_URL", ""),
