@@ -14,7 +14,6 @@ import sokos.ske.krav.navmodels.DetailLine
 
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.net.URL
 
 enum class Directories(val value: String){
     OUTBOUND("${File.separator}ut"),
@@ -35,13 +34,13 @@ class FtpService(private val client: FTPClient = FTPClient()) {
     fun connect(directory: Directories = Directories.OUTBOUND, fileNames: List<String> = listOf("fil1.txt", "fil2.txt")): FTPClient {
         fakeFtpServer.serverControlPort = config.port
         fakeFtpServer.addUserAccount(UserAccount(config.username, config.password, config.homeDirectory))
-
+        println(object {}.javaClass.classLoader.name)
         fakeFtpServer.fileSystem = UnixFakeFileSystem().apply {
             add(DirectoryEntry(directory.value))
+
             fileNames.forEach{fileName ->
-                val filecontent = File(fileName.asUrl().toURI()).readText()
                 val path = "${directory.value}${File.separator}$fileName"
-                add(FileEntry(path, filecontent))
+                add(FileEntry(path, fileName.asText()))
             }
         }
         fakeFtpServer.start()
@@ -99,4 +98,4 @@ fun FTPClient.init(config: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConf
     changeWorkingDirectory(config.homeDirectory)
 }
 
-fun String.asUrl(): URL = object {}.javaClass.classLoader.getResource(this)!!
+fun String.asText(): String =  object {}.javaClass.classLoader.getResourceAsStream(this)!!.bufferedReader().use { it.readText() }
