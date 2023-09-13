@@ -37,12 +37,10 @@ class FtpService(private val client: FTPClient = FTPClient()) {
         fakeFtpServer.addUserAccount(UserAccount(config.username, config.password, config.homeDirectory))
 
         fakeFtpServer.fileSystem = UnixFakeFileSystem().apply {
-            println("directory value: ${directory.value}")
             add(DirectoryEntry(directory.value))
             fileNames.forEach{fileName ->
                 val filecontent = File(fileName.asUrl().toURI()).readText()
                 val path = "${directory.value}${File.separator}$fileName"
-                println("path: $path")
                 add(FileEntry(path, filecontent))
             }
         }
