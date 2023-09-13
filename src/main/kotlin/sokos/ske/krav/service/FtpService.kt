@@ -39,7 +39,8 @@ class FtpService(private val client: FTPClient = FTPClient()) {
         fakeFtpServer.fileSystem = UnixFakeFileSystem().apply {
             add(DirectoryEntry(directory.value))
             fileNames.forEach{fileName ->
-                val filecontent = File(fileName.asUrl().toURI()).readText()
+                val filecontent = try{File(fileName.asUrl().toURI()).readText()
+                    }catch (e: Exception ){File(fileName.asExternal()).readText()}
                 val path = "${directory.value}${File.separator}$fileName"
                 add(FileEntry(path, filecontent))
             }
@@ -100,3 +101,4 @@ fun FTPClient.init(config: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConf
 }
 
 fun String.asUrl(): URL = object {}.javaClass.classLoader.getResource(this)!!
+fun String.asExternal(): String = object {}.javaClass.classLoader.getResource(this)!!.toExternalForm()
