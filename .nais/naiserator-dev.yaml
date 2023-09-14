@@ -48,6 +48,10 @@ spec:
       value: https://api-test.sits.no/api/innkreving/innkrevingsoppdrag/v1/
     - name: FTP_SERVER
       value: "localhost"
+    - name: FTP_USERNAME
+      value: "ftpuser"
+    - name: FTP_PASSWORD
+      value: "123"
     - name: FTP_DIRECTORY
       value: "/"
     - name: FTP_PORT
