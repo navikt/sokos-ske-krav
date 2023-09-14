@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 internal class FtpServiceTest: FunSpec( {
-/*
 
     test("Antall filer stemmer"){
         val ftpService = FtpService()
@@ -13,7 +12,7 @@ internal class FtpServiceTest: FunSpec( {
         val files = ftpService.getFiles(::fileValidator, Directories.OUTBOUND)
         println("NUMBER OF FILES: ${files.size}")
         println("DOWNLOADED: ${files.map { it.name }}")
-
+        ftpService.close()
     }
 
     test("Fail parsing"){
@@ -30,6 +29,8 @@ internal class FtpServiceTest: FunSpec( {
         okFilesInDir.size shouldBe 2
         okFilesInDir[0] shouldBe "fil1.txt"
         okFilesInDir[1] shouldBe "fil2.txt"
-    }*/
+
+        ftpService.close()
+    }
 
 })

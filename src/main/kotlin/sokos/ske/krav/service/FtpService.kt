@@ -46,6 +46,8 @@ class FtpService(private val client: FTPClient = FTPClient()) {
         client.init(PropertiesConfig.FtpConfig(port = fakeFtpServer.serverControlPort))
         return client
     }
+
+    fun close() = fakeFtpServer.stop()
     fun createFile(fileName: String, content: List<String>, directory:Directories) {
         val path = "${directory.value}${File.separator}$fileName"
         fakeFtpServer.fileSystem.add(FileEntry(path, content.joinToString("\n")))
@@ -96,4 +98,7 @@ fun FTPClient.init(config: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConf
     changeWorkingDirectory(config.homeDirectory)
 }
 
+fun FTPClient.close(){
+
+}
 fun String.asText(): String =  object {}.javaClass.classLoader.getResourceAsStream(this)!!.bufferedReader().use { it.readText() }
