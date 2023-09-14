@@ -17,16 +17,16 @@ fun Application.skeApi(
     routing {
         route("krav") {
 
-            get("testFTP"){
+            get("testFTP") {
                 val files = skeService.sjekkOmNyFtpFil()
                 call.respond(HttpStatusCode.OK, files)
             }
-            get("testFTPSend"){
+            get("testFTPSend") {
                 val responses = skeService.sendNyeFtpFilerTilSkatt()
-                val codes = responses.flatMap { listOf( "${it.status.value}: ${it.bodyAsText()}") }
+                val codes = responses.flatMap { listOf("${it.status.value}: ${it.bodyAsText()}") }
                 call.respond(codes)
             }
-            }
+
 
             get("test") {
                 try {
@@ -35,16 +35,17 @@ fun Application.skeApi(
                 } catch (e: Exception) {
                     call.respond(
                         HttpStatusCode.InternalServerError,
-                        "Sorry feilet: ${e.message}, \n"+
-                        "clientID = ${maskinPortenProperties.clientId} \n " +
-                        "wellKnownUrl= ${maskinPortenProperties.authorityEndpoint} \n " +
-                        "jwk_kid= ${maskinPortenProperties.rsaKey} \n " +
+                        "Sorry feilet: ${e.message}, \n" +
+                                "clientID = ${maskinPortenProperties.clientId} \n " +
+                                "wellKnownUrl= ${maskinPortenProperties.authorityEndpoint} \n " +
+                                "jwk_kid= ${maskinPortenProperties.rsaKey} \n " +
 
-                        "scopes= ${maskinPortenProperties.scopes} \n +" +
-                        "skeurl= ${skeProperties.skeRestUrl} \n " +
-                        "Stacktrace= ${e.stackTraceToString()}"
+                                "scopes= ${maskinPortenProperties.scopes} \n +" +
+                                "skeurl= ${skeProperties.skeRestUrl} \n " +
+                                "Stacktrace= ${e.stackTraceToString()}"
                     )
                 }
             }
         }
     }
+}
