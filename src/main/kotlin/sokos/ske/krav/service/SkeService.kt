@@ -3,8 +3,11 @@ package sokos.ske.krav.service
 
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.serialization.json.Json
+import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.navmodels.DetailLine
+import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
 import kotlin.math.roundToLong
 
 class SkeService(
@@ -12,8 +15,10 @@ class SkeService(
     private val ftpService: FtpService = FtpService().apply {connect(fileNames = listOf("fil1.txt")) }
 )
 {
+    private val log = KotlinLogging.logger {}
     fun sjekkOmNyFtpFil(): List<String> = FtpService().apply { connect() }.listFiles() //brukes for testing i postman
 
+    fun HttpStatusCode.isError() = (this != HttpStatusCode.OK && this != HttpStatusCode.Created)
 
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
         val files =  ftpService.getFiles(::fileValidator)
@@ -31,12 +36,18 @@ class SkeService(
                     else -> skeClient.opprettKrav(lagOpprettKravRequest(it))
                 }
 
+                if(it.erNyttKrav()){
+                    val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
+                    //putte i database og gjøre ting...
+                }
+
                 println(response)
                 responses.add(response)
 
-                if(response.status != HttpStatusCode.OK && response.status != HttpStatusCode.Created) {  //legg object i feilliste
+                if(response.status.isError()){  //legg object i feilliste
                     failedLines[file.detailLines.indexOf(it) + 1] = it
-                    println("FAILED REQUEST: $it") //logge request?
+                    println("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}") //logge request?
+                    log.info("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}") //logge request?
                 }
             }
             results[file] = responses
@@ -69,6 +80,8 @@ class SkeService(
     }
 
 }
+
+private fun DetailLine.erNyttKrav() = (!this.erEndring() && !this.erStopp())
 private fun DetailLine.erEndring(): Boolean {
     return referanseNummerGammelSak.isNotEmpty() && !erStopp()
 }
