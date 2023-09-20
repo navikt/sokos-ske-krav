@@ -17,7 +17,7 @@ fun fileValidator(content: List<String>): ValidationResult {
     val lastLine = parseFRtoDataLastLIneClass(content.last())
     val detailLines = content.subList(1, content.lastIndex).map { parseFRtoDataDetailLineClass(it) }
 
-//    val invalidKravkode = detailLines.any {  TilleggsinformasjonNav.Stonadstype.from(it.kravkode) == null }
+    val invalidKravkode = detailLines.any {  TilleggsinformasjonNav.Stonadstype.from(it.kravkode) == null }
     val invalidNumberOfLines = lastLine.numTransactionLines != detailLines.size
     val invalidSum = detailLines.sumOf { it.belop + it.belopRente } != lastLine.sumAllTransactionLines
     val invalidTransferDate = firstLine.transferDate != lastLine.transferDate
@@ -36,8 +36,6 @@ fun fileValidator(content: List<String>): ValidationResult {
 }
 
 fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
-    if (krav.belopRente.roundToLong() > 0L) println("DENNE::::: ${krav.belopRente}")
-
     val kravFremtidigYtelse = krav.fremtidigYtelse.roundToLong()
     val tilleggsinformasjonNav = TilleggsinformasjonNav(
         stoenadstype = TilleggsinformasjonNav.Stonadstype.from(krav.kravkode).toString(),

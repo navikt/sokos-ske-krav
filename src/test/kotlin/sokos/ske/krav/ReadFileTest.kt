@@ -4,10 +4,7 @@ import io.kotest.matchers.shouldBe
 import sokos.ske.krav.navmodels.FirstLine
 import sokos.ske.krav.navmodels.LastLine
 import sokos.ske.krav.readFileFromFS
-import sokos.ske.krav.service.lagOpprettKravRequest
-import sokos.ske.krav.service.parseFRtoDataDetailLineClass
-import sokos.ske.krav.service.parseFRtoDataFirsLineClass
-import sokos.ske.krav.service.parseFRtoDataLastLIneClass
+import sokos.ske.krav.service.*
 
 internal class ReadFileTest : FunSpec({
 
@@ -25,9 +22,12 @@ internal class ReadFileTest : FunSpec({
         println(liste[1])
         println(liste[liste.size-1])
         liste.subList(1, liste.size-1).forEach {
-            println(it)
             val dl = parseFRtoDataDetailLineClass(it)
-            println(lagOpprettKravRequest(dl)) }
+            println("org: $it")
+            println("ny:  ${parseDetailLinetoFRData(dl)}")
+            println(lagOpprettKravRequest(dl))
+        }
+
     }
 
 

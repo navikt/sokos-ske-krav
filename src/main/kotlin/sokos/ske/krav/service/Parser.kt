@@ -3,6 +3,8 @@ package sokos.ske.krav.service
 import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.navmodels.FirstLine
 import sokos.ske.krav.navmodels.LastLine
+import sokos.ske.krav.prefixString
+import sokos.ske.krav.suffixStringWithSpace
 
 
 fun parseFRtoDataFirsLineClass(line: String): FirstLine {
@@ -48,6 +50,32 @@ fun parseFRtoDataLastLIneClass(line: String): LastLine {
     )
 }
 
+fun parseDetailLinetoFRData(line: DetailLine): String {
+    val res = "0030" +
+            prefixString(line.lineNummer, 7, "0") +
+            suffixStringWithSpace(line.saksNummer, 18) +
+            prefixString(line.belop, 11, "0") +
+            line.vedtakDato.year.toString() +
+                prefixString(line.vedtakDato.monthNumber, 2, "0") +
+                    prefixString(line.vedtakDato.dayOfMonth, 2, "0") +
+            line.gjelderID +
+            line.periodeFOM +
+            line.periodeTOM +
+            suffixStringWithSpace(line.kravkode, 8) +
+            suffixStringWithSpace(line.referanseNummerGammelSak, 18) +
+            line.transaksjonDato +
+            suffixStringWithSpace(line.enhetBosted, 4) +
+            suffixStringWithSpace(line.enhetBehandlende, 4) +
+            suffixStringWithSpace(line.kodeHjemmel, 2) +
+            suffixStringWithSpace(line.kodeArsak, 12)  +
+            "         " +
+            prefixString(line.belopRente, 11, "0") +
+            prefixString(line.fremtidigYtelse, 11, "0")
+
+    println("res: $res")
+    return res
+
+}
 class FrParser(val line: String) {
     private var pos = 0
     fun parseString(len: Int): String {

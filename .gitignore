@@ -9,3 +9,4 @@ out/
 *.ipr
 *.env
 .DS_Store
+defaults.properties
