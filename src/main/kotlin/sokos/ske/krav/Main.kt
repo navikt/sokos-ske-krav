@@ -1,5 +1,6 @@
 package sokos.ske.krav
 
+import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.defaultHttpClient
 import sokos.ske.krav.config.PropertiesConfig
@@ -7,8 +8,10 @@ import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.SkeService
 import kotlin.properties.Delegates
 
-fun main() {
+private val logger = KotlinLogging.logger {}
 
+fun main() {
+    logger.info {"Applikasjonen starter"}
     val applicationState = ApplicationState()
     val tokenProvider =
         MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), defaultHttpClient)

@@ -10,6 +10,7 @@ import io.ktor.http.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.Json
+import mu.KotlinLogging
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
 import sokos.ske.krav.skemodels.requests.AvskrivingRequest
 import sokos.ske.krav.skemodels.requests.EndringRequest
@@ -19,6 +20,8 @@ private const val OPPRETT_KRAV = "innkrevingsoppdrag"
 private const val ENDRE_KRAV = "innkrevingsoppdrag/endring"
 private const val STOPP_KRAV = "innkrevingsoppdrag/avskriv"
 private const val KLIENT_ID = "NAV/0.1"
+
+private val logger = KotlinLogging.logger {}
 
 class SkeClient(
     private val tokenProvider: MaskinportenAccessTokenClient,
@@ -42,8 +45,9 @@ class SkeClient(
     suspend fun endreKrav(body: EndringRequest): HttpResponse = doPut(ENDRE_KRAV, toJson(EndringRequest.serializer(), body))
     suspend fun stoppKrav(body: AvskrivingRequest): HttpResponse = doPost(STOPP_KRAV, toJson(AvskrivingRequest.serializer(), body))
     private suspend inline fun doPost(path: String, body: String): HttpResponse {
+        logger.info { "doPost: $path, henter Accesstoken" }
         val token = tokenProvider.hentAccessToken()
-        println("doPost: $body")
+        logger.info {"doPost: Token ok, $token"}
         val response = client.post("$skeEndpoint$path") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
