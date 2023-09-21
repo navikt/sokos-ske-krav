@@ -45,9 +45,9 @@ class SkeClient(
     suspend fun endreKrav(body: EndringRequest): HttpResponse = doPut(ENDRE_KRAV, toJson(EndringRequest.serializer(), body))
     suspend fun stoppKrav(body: AvskrivingRequest): HttpResponse = doPost(STOPP_KRAV, toJson(AvskrivingRequest.serializer(), body))
     private suspend inline fun doPost(path: String, body: String): HttpResponse {
-        logger.info { "doPost: $path, henter Accesstoken" }
+        println( "doPost: $path, henter Accesstoken" )
         val token = tokenProvider.hentAccessToken()
-        logger.info {"doPost: Token ok, $token"}
+        println("doPost: Token ok, $token")
         val response = client.post("$skeEndpoint$path") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)

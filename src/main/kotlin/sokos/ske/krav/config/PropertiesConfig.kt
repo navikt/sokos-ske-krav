@@ -37,6 +37,7 @@ private val defaultProperties = ConfigurationMap(
         "HIKARI_TEST_TABLE" to "HIKARI_TEST_TABLE",
         "VAULT_MOUNTPATH" to ""
     )
+
     private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
     private val prodProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.PROD.toString()))
 

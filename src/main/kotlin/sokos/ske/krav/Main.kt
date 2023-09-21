@@ -11,7 +11,7 @@ import kotlin.properties.Delegates
 private val logger = KotlinLogging.logger {}
 
 fun main() {
-    logger.info {"Applikasjonen starter"}
+    println("Applikasjonen starter")
     val applicationState = ApplicationState()
     val tokenProvider =
         MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), defaultHttpClient)

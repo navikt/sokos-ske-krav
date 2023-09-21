@@ -20,6 +20,7 @@ class SkeService(
 
 
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
+        println("Starter service")
         val files = ftpService.getFiles(::fileValidator)
 
         val responses = files.map { file ->
