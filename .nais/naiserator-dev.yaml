@@ -45,7 +45,7 @@ spec:
     enabled: true
   env:
     - name: SKE_REST_URL
-      value: https://api-test.sits.no/api/innkreving/innkrevingsoppdrag/v1/
+      value: https://api-test.sits.no/api/v1/innkrevingsoppdrag
     - name: FTP_SERVER
       value: "localhost"
     - name: FTP_USERNAME

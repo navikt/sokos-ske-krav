@@ -16,9 +16,9 @@ import sokos.ske.krav.skemodels.requests.AvskrivingRequest
 import sokos.ske.krav.skemodels.requests.EndringRequest
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
 
-private const val OPPRETT_KRAV = "innkrevingsoppdrag"
-private const val ENDRE_KRAV = "innkrevingsoppdrag/endring"
-private const val STOPP_KRAV = "innkrevingsoppdrag/avskriv"
+private const val OPPRETT_KRAV = ""
+private const val ENDRE_KRAV = "/endring"
+private const val STOPP_KRAV = "/avskriv"
 private const val KLIENT_ID = "NAV/0.1"
 
 private val logger = KotlinLogging.logger {}
