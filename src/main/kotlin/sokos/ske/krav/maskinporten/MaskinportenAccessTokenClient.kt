@@ -28,6 +28,7 @@ class MaskinportenAccessTokenClient(
 
     suspend fun hentAccessToken(): String {
         val omToMinutter = Instant.now().plusSeconds(120L)
+        println("prøver å hente token")
         return mutex.withLock {
             when {
                 !this::token.isInitialized || token.expiresAt.isBefore(omToMinutter) -> {
@@ -36,7 +37,9 @@ class MaskinportenAccessTokenClient(
                     token.accessToken
                 }
 
-                else -> token.accessToken
+                else -> {
+                    println("returnerer gammelt token")
+                    token.accessToken}
             }
         }
     }
@@ -59,7 +62,6 @@ class MaskinportenAccessTokenClient(
         }
 
         println("hentet token")
-        println("response: ${response.bodyAsText()}")
         return try {
             response.body()
         } catch (ex: Exception) {

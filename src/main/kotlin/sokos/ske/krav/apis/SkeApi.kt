@@ -18,6 +18,7 @@ fun Application.skeApi(
         route("krav") {
 
             get("testFTPSend") {
+                println("kaller ftp send")
                 val responses = skeService.sendNyeFtpFilerTilSkatt()
 
                 val okCodes = responses.filter { it.status.isSuccess() }
@@ -27,6 +28,7 @@ fun Application.skeApi(
 
 
             get("test") {
+                println("kaller test")
                 try {
                     skeService.sendNyeFtpFilerTilSkatt()
                     call.respond(HttpStatusCode.OK, "Krav sendt")
