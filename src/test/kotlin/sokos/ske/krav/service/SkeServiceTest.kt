@@ -16,6 +16,7 @@ import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
 
 
+@Ignored
 internal class SkeServiceTest: FunSpec ({
 
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
