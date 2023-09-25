@@ -9,13 +9,17 @@ import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.service.SkeService
 
 
-fun Application.skeApi(
+fun Routing.skeApi(
     skeService: SkeService,
     maskinPortenProperties: PropertiesConfig.MaskinportenClientConfig = PropertiesConfig.MaskinportenClientConfig(),
     skeProperties: PropertiesConfig.SKEConfig = PropertiesConfig.SKEConfig()
 ) {
-    routing {
+
         route("krav") {
+            get("testresp"){
+                skeService.testResponse()
+                call.respond(HttpStatusCode.OK)
+            }
 
             get("testFTPSend") {
                 println("kaller ftp send")
@@ -47,5 +51,5 @@ fun Application.skeApi(
                 }
             }
         }
-    }
+
 }

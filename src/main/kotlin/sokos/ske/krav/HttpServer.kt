@@ -2,6 +2,7 @@ package sokos.ske.krav
 
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.routing.*
 import sokos.ske.krav.apis.installCommonFeatures
 import sokos.ske.krav.apis.naisApi
 import sokos.ske.krav.apis.skeApi
@@ -24,8 +25,10 @@ class HttpServer(
 
     private val embeddedServer = embeddedServer(Netty, port) {
         installCommonFeatures()
-        naisApi({ appState.ready }, { appState.running })
-        skeApi(skeService)
+        routing {
+            naisApi({ appState.ready }, { appState.running })
+            skeApi(skeService)
+        }
     }
 
     fun start() {

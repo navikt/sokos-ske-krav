@@ -19,6 +19,15 @@ class SkeService(
     fun sjekkOmNyFtpFil(): List<String> = FtpService().apply { connect() }.listFiles() //brukes for testing i postman
 
 
+    suspend fun testResponse(){
+        val files = ftpService.getFiles(::fileValidator)
+        files.forEach {file ->
+            file.detailLines.subList(0, 10).forEach {
+               val response = skeClient.opprettKrav(lagOpprettKravRequest(it))
+                println(response.bodyAsText())
+            }
+        }
+    }
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
         println("Starter service")
         val files = ftpService.getFiles(::fileValidator)
