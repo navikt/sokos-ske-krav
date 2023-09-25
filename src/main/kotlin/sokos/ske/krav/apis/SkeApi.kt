@@ -17,14 +17,12 @@ fun Application.skeApi(
     routing {
         route("krav") {
 
-            get("testFTP") {
-                val files = skeService.sjekkOmNyFtpFil()
-                call.respond(HttpStatusCode.OK, files)
-            }
             get("testFTPSend") {
                 val responses = skeService.sendNyeFtpFilerTilSkatt()
-                val codes = responses.flatMap { listOf("${it.status.value}: ${it.bodyAsText()}") }
-                call.respond(codes)
+
+                val okCodes = responses.filter { it.status.isSuccess() }
+                val failedCodes = responses.filter { !it.status.isSuccess() }
+                call.respond(HttpStatusCode.OK, "OK: ${okCodes.size}. Feilet: ${failedCodes.size}")
             }
 
 
