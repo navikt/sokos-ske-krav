@@ -32,6 +32,7 @@ class FtpService(private val client: FTPClient = FTPClient()) {
     private val log = KotlinLogging.logger {}
 
     fun connect(directory: Directories = Directories.OUTBOUND, fileNames: List<String> = listOf("fil1.txt", "fil2.txt")): FTPClient {
+        println("FTP Connecting")
         fakeFtpServer.serverControlPort = config.port
         fakeFtpServer.addUserAccount(UserAccount(config.username, config.password, config.homeDirectory))
         fakeFtpServer.fileSystem = UnixFakeFileSystem().apply {
