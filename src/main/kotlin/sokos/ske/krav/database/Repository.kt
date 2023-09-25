@@ -13,7 +13,7 @@ object Repository {
     private val log = KotlinLogging.logger {}
     fun Connection.hentKravData(): List<OpprettInnkrevingsOppdragResponse> {
         return try {
-            prepareStatement("""SELECT * FROM KRAV""").executeQuery().toOpprettInnkrevingsOppdragResponse()
+            prepareStatement("""select * from krav""").executeQuery().toOpprettInnkrevingsOppdragResponse()
         } catch (e: Exception) {
             log.error("exception i henting av data: ${e.message}")
             listOf()
@@ -52,5 +52,13 @@ object Repository {
             println("lagring av $skeid feilet")
             println("exception lagring av nytt krav: ${e.message}")
         }
+    }
+
+    fun Connection.hentTabeller(): String {
+        return prepareStatement(
+            """
+                select * from pg_catalog.pg_namespace
+            """.trimIndent()
+        ).executeQuery().toString()
     }
 }

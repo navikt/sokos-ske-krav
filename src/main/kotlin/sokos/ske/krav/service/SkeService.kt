@@ -9,6 +9,7 @@ import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.hentKravData
+import sokos.ske.krav.database.Repository.hentTabeller
 import sokos.ske.krav.database.Repository.lagreNyttKrav
 import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.navmodels.FailedLine
@@ -60,6 +61,7 @@ class SkeService(
 
                 if(response.status.isSuccess()){
                     if (it.erNyttKrav()) {
+                        println("dbInfo: ${dataSource.connection.hentTabeller()}")
                         val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
                         dataSource.connection.lagreNyttKrav( kravident.kravidentifikator,
                             toJson(OpprettInnkrevingsoppdragRequest.serializer(),lagOpprettKravRequest(it)),
