@@ -17,8 +17,8 @@ import sokos.ske.krav.skemodels.requests.EndringRequest
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
 
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
-private const val ENDRE_KRAV = "/endring"
-private const val STOPP_KRAV = "/avskriv"
+private const val ENDRE_KRAV = "endring"
+private const val STOPP_KRAV = "avskriv"
 private const val KLIENT_ID = "NAV/0.1"
 
 private val logger = KotlinLogging.logger {}
@@ -46,7 +46,7 @@ class SkeClient(
     suspend fun stoppKrav(body: AvskrivingRequest): HttpResponse = doPost(STOPP_KRAV, toJson(AvskrivingRequest.serializer(), body))
     private suspend inline fun doPost(path: String, body: String): HttpResponse {
         val token = tokenProvider.hentAccessToken()
-        println("body: $body")
+        println("kaller ${"$skeEndpoint$path"}")
         val response = client.post("$skeEndpoint$path") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
