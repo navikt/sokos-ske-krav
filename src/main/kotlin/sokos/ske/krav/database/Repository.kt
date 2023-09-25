@@ -58,9 +58,9 @@ object Repository {
 
     fun Connection.hentTabeller(): List<String> = prepareStatement(
             """
-                select * from pg_catalog.pg_tables
+                select nspname from pg_catalog.pg_namespace
             """.trimIndent()
         ).executeQuery().toList {
-            getColumn("tablename")
+            getColumn("nspname")
         }
 }
