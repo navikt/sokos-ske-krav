@@ -28,24 +28,20 @@ class MaskinportenAccessTokenClient(
 
     suspend fun hentAccessToken(): String {
         val omToMinutter = Instant.now().plusSeconds(120L)
-        println("prøver å hente token")
         return mutex.withLock {
             when {
                 !this::token.isInitialized || token.expiresAt.isBefore(omToMinutter) -> {
-                    logger.info { "henter ny token" }
                     token = AccessToken(hentAccessTokenFraProvider())
                     token.accessToken
                 }
 
                 else -> {
-                    println("returnerer gammelt token")
                     token.accessToken}
             }
         }
     }
 
     private suspend fun hentAccessTokenFraProvider(): Token {
-        println("henter token")
         val jwt = JWT.create()
             .withAudience(maskinportenConfig.openIdConfiguration.issuer)
             .withIssuer(maskinportenConfig.clientId)
@@ -61,7 +57,6 @@ class MaskinportenAccessTokenClient(
             setBody("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=$jwt")
         }
 
-        println("hentet token")
         return try {
             response.body()
         } catch (ex: Exception) {

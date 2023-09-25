@@ -1,9 +1,7 @@
 package sokos.ske.krav.client
 
 import io.ktor.client.*
-import io.ktor.client.engine.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.logging.*
+
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -26,13 +24,9 @@ private val logger = KotlinLogging.logger {}
 class SkeClient(
     private val tokenProvider: MaskinportenAccessTokenClient,
     private val skeEndpoint: String,
-    private val engine: HttpClientEngine = CIO.create(),
-    private val client: HttpClient = HttpClient(engine) {
-        expectSuccess = false
-        install(Logging){ level = LogLevel.INFO}
-    },
-    ) {
-
+    private val client: HttpClient = defaultHttpClient
+    )
+{
     @OptIn(ExperimentalSerializationApi::class)
     private val builder = Json {
         encodeDefaults = true
@@ -44,9 +38,10 @@ class SkeClient(
     suspend fun opprettKrav(body: OpprettInnkrevingsoppdragRequest): HttpResponse = doPost(OPPRETT_KRAV, toJson(OpprettInnkrevingsoppdragRequest.serializer(), body))
     suspend fun endreKrav(body: EndringRequest): HttpResponse = doPut(ENDRE_KRAV, toJson(EndringRequest.serializer(), body))
     suspend fun stoppKrav(body: AvskrivingRequest): HttpResponse = doPost(STOPP_KRAV, toJson(AvskrivingRequest.serializer(), body))
+
     private suspend inline fun doPost(path: String, body: String): HttpResponse {
         val token = tokenProvider.hentAccessToken()
-        println("kaller ${"$skeEndpoint$path"}")
+
         val response = client.post("$skeEndpoint$path") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
