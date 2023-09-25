@@ -42,6 +42,7 @@ class MaskinportenAccessTokenClient(
     }
 
     private suspend fun hentAccessTokenFraProvider(): Token {
+        println("henter token")
         val jwt = JWT.create()
             .withAudience(maskinportenConfig.openIdConfiguration.issuer)
             .withIssuer(maskinportenConfig.clientId)
@@ -56,11 +57,15 @@ class MaskinportenAccessTokenClient(
             method = HttpMethod.Post
             setBody("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=$jwt")
         }
+
+        println("hentet token")
+        println("response: ${response.bodyAsText()}")
         return try {
             response.body()
         } catch (ex: Exception) {
             logger.error { "Kunne ikke lese accessToken, se sikker log for meldingen som string" }
             val feilmelding = response.bodyAsText()
+            println(feilmelding)
             secureLogger.error { "Feil fra tokenprovider, Token: $jwt, Feilmelding: $feilmelding" }
             throw ex
         }
