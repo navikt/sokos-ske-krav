@@ -58,9 +58,9 @@ object Repository {
 
     fun Connection.hentTabeller(): List<String> = prepareStatement(
             """
-                select nspname, nspowner from pg_catalog.pg_namespace
+                select * from pg_catalog.pg_namespace
             """.trimIndent()
         ).executeQuery().toList {
-            "Schema: " + getColumn("nspname") + " Eier: " + getColumn("nspowner")
+            getColumn<String>("nspname").toString()
         }
 }

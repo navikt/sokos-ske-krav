@@ -59,8 +59,10 @@ class SkeService(
                     else -> skeClient.opprettKrav(lagOpprettKravRequest(it))
                 }
 
+                println("post er ok")
                 if(response.status.isSuccess()){
                     if (it.erNyttKrav()) {
+                        println("henter tabell info")
                         println("dbInfo: ${dataSource.connection.hentTabeller()}")
                         val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
                         dataSource.connection.lagreNyttKrav( kravident.kravidentifikator,
