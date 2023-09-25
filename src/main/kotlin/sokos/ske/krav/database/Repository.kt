@@ -1,7 +1,9 @@
 package sokos.ske.krav.database
 
 import mu.KotlinLogging
+import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
+import sokos.ske.krav.database.RepositoryExtensions.toList
 import sokos.ske.krav.database.RepositoryExtensions.toOpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.navmodels.DetailLine
@@ -54,11 +56,11 @@ object Repository {
         }
     }
 
-    fun Connection.hentTabeller(): String {
-        return prepareStatement(
+    fun Connection.hentTabeller(): List<String> = prepareStatement(
             """
-                select * from pg_catalog.pg_namespace
+                select * from pg_catalog.pg_tables
             """.trimIndent()
-        ).executeQuery().toString()
-    }
+        ).executeQuery().toList {
+            getColumn("tablename")
+        }
 }
