@@ -4,7 +4,6 @@ import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.defaultHttpClient
 import sokos.ske.krav.config.PropertiesConfig
-import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.SkeService
 import kotlin.properties.Delegates
@@ -16,7 +15,7 @@ fun main() {
     val tokenProvider =
         MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), defaultHttpClient)
     val skeClient = SkeClient(tokenProvider, PropertiesConfig.SKEConfig().skeRestUrl)
-    val skeService = SkeService(skeClient, PostgresDataSource( ))
+    val skeService = SkeService(skeClient)
 
 
     applicationState.ready = true

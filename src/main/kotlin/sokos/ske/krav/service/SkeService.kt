@@ -15,10 +15,10 @@ import kotlin.math.roundToLong
 
 class SkeService(
     private val skeClient: SkeClient,
-    private val dataSource: PostgresDataSource,
     private val ftpService: FtpService = FtpService().apply { connect(fileNames = listOf("fil1.txt")) }
 ) {
     private val log = KotlinLogging.logger {}
+    private val dataSource: PostgresDataSource = PostgresDataSource()
 
 
     suspend fun testResponse(){
