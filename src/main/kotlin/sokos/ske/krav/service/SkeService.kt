@@ -32,21 +32,19 @@ class SkeService(
                     else -> skeClient.opprettKrav(lagOpprettKravRequest(it))
                 }
 
-                if (it.erNyttKrav()) {
-                    val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
-                    //putte i database og gjøre ting...
-                }
-
-                println(response)
-
-                if (response.status.isError()) {  //legg object i feilliste
+                if(response.status.isSuccess()){
+                    if (it.erNyttKrav()) {
+                        val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
+                        //putte i database og gjøre ting...
+                    }
+                }else{  //legg object i feilliste
                     println("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}") //logge request?
                     log.info("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}") //logge request?
                 }
                 it to response
             }
 
-            val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isError() }
+            val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess() }
             val failedLines = httpResponseFailed.map { FailedLine(it.first, it.second.status, it.second.bodyAsText()) }
             handleAnyFailedLines(failedLines, file)
             svar
