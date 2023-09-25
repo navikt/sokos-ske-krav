@@ -43,7 +43,7 @@ object Repository {
             println("lagring av $skeid OK")
         } catch (e: Exception) {
             println("lagring av $skeid feilet")
-            log.error("exception lagring av nytt krav: ${e.message}")
+            println("exception lagring av nytt krav: ${e.message}")
         }
     }
 }
