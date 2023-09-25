@@ -26,9 +26,16 @@ object Repository {
             println("Lagrer tildb: $skeid $now, $filLinje $request")
             prepareStatement(
                 """
-                |INSERT INTO KRAV (saksnummer_nav, saksnummer_ske, fildatanav, jsondataske, status, dato_sendt, dato_siste_status)
-                | VALUES (?,?,?,?,?,?,?)
-            """.trimMargin()
+                insert into krav (
+                saksnummer_nav, 
+                saksnummer_ske, 
+                fildatanav, 
+                jsondataske, 
+                status, 
+                dato_sendt, 
+                dato_siste_status
+                ) values (?,?,?,?,?,?,?)
+            """.trimIndent()
             ).withParameters(
                 param(detailLinje.saksNummer),
                 param(skeid),

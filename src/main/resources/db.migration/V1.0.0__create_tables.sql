@@ -1,6 +1,6 @@
 create table "krav"
 (
-    krav_id           bigserial primary key,
+    krav_id                  bigserial primary key,
     saksnummer_nav           varchar(40),
     saksnummer_ske           varchar(40),
     fildata_nav              varchar(250),
