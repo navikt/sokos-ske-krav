@@ -14,7 +14,7 @@ fun main() {
     val applicationState = ApplicationState()
     val tokenProvider =
         MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), defaultHttpClient)
-    val skeClient = SkeClient(tokenProvider, PropertiesConfig.SKEConfig().skeRestUrl)
+    val skeClient = SkeClient(tokenProvider, PropertiesConfig.SKEConfig().skeRestUrl, client = defaultHttpClient)
     val skeService = SkeService(skeClient)
 
 
