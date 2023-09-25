@@ -3,13 +3,16 @@ package sokos.ske.krav.service
 
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.hentKravData
+import sokos.ske.krav.database.Repository.lagreNyttKrav
 import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.navmodels.FailedLine
+import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
 import kotlin.math.roundToLong
 
@@ -19,6 +22,13 @@ class SkeService(
 ) {
     private val log = KotlinLogging.logger {}
     private val dataSource: PostgresDataSource = PostgresDataSource()
+
+    private inline fun <reified T> toJson(serializer: SerializationStrategy<T>, body: T) = builder.encodeToJsonElement(serializer, body).toString()
+
+    private val builder = Json {
+        encodeDefaults = true
+        explicitNulls = false
+    }
 
 
     suspend fun testResponse(){
@@ -51,6 +61,10 @@ class SkeService(
                 if(response.status.isSuccess()){
                     if (it.erNyttKrav()) {
                         val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
+                        dataSource.connection.lagreNyttKrav( kravident.kravidentifikator,
+                            toJson(OpprettInnkrevingsoppdragRequest.serializer(),lagOpprettKravRequest(it)),
+                            parseDetailLinetoFRData(it),
+                            it)
                         //putte i database og gjøre ting...
                         println("HentKravdata: ${dataSource.connection.hentKravData().map { it.kravidentifikator }}")
                     }
