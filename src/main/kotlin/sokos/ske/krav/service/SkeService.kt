@@ -6,6 +6,8 @@ import io.ktor.http.*
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
+import sokos.ske.krav.database.PostgresDataSource
+import sokos.ske.krav.database.Repository.hentKravData
 import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.navmodels.FailedLine
 import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
@@ -13,6 +15,7 @@ import kotlin.math.roundToLong
 
 class SkeService(
     private val skeClient: SkeClient,
+    private val dataSource: PostgresDataSource,
     private val ftpService: FtpService = FtpService().apply { connect(fileNames = listOf("fil1.txt")) }
 ) {
     private val log = KotlinLogging.logger {}
@@ -49,6 +52,7 @@ class SkeService(
                     if (it.erNyttKrav()) {
                         val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
                         //putte i database og gjøre ting...
+                        println("HentKravdata: ${dataSource.connection.hentKravData().map { it.kravidentifikator }}")
                     }
                 }else{  //legg object i feilliste
                     println("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}") //logge request?
