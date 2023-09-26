@@ -107,6 +107,13 @@ class SkeService(
         }else return "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
     }
 
+    suspend fun hentValideringsfeil(): String {
+        val response = skeClient.hentValideringsfeil("c0bc85ea-20a8-47df-9a14-ea8f554c426c")
+        if (response.status.isSuccess()) {
+            return "Status OK: ${response.bodyAsText()}"
+        }else return "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
+    }
+
     private fun handleAnyFailedLines(failedLines: List<FailedLine>, file: FtpFil) {
         if (failedLines.isNotEmpty()) {
             println("Number of failed lines: ${failedLines.size}")

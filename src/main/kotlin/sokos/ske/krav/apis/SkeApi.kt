@@ -67,6 +67,24 @@ fun Routing.skeApi(
                     )
                 }
             }
+            get("validering") {
+                println("kaller Valideringsfeil")
+                try {
+                    call.respond(skeService.hentValideringsfeil())
+                } catch (e: Exception) {
+                    call.respond(
+                        HttpStatusCode.InternalServerError,
+                        "Sorry feilet: ${e.message}, \n" +
+                                "clientID = ${maskinPortenProperties.clientId} \n " +
+                                "wellKnownUrl= ${maskinPortenProperties.authorityEndpoint} \n " +
+                                "jwk_kid= ${maskinPortenProperties.rsaKey} \n " +
+
+                                "scopes= ${maskinPortenProperties.scopes} \n +" +
+                                "skeurl= ${skeProperties.skeRestUrl} \n " +
+                                "Stacktrace= ${e.stackTraceToString()}"
+                    )
+                }
+            }
 
         }
 
