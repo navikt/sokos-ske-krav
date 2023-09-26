@@ -104,6 +104,7 @@ class SkeService(
 
     suspend fun hentOgOppdaterMottaksStatus() =
         dataSource.connection.hentAlleKravSomIkkeErReskotrofort().map {
+            println("(Status) Hentet ${it.saksnummer_ske}")
             val response = skeClient.hentMottaksStatus(it.saksnummer_ske)
             if (response.status.isSuccess()) "Status OK: ${response.bodyAsText()}"
             "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
