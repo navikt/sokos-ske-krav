@@ -21,7 +21,7 @@ class PostgresDataSource(private val postgresConfig: PropertiesConfig.PostgresCo
 
     init {
         val role = adminRole
-        logger.info { "Flyway migration opprettes med rolle $role" }
+        logger.info { "Flyway db opprettes med rolle $role" }
         Flyway.configure()
             .dataSource(dataSource(role))
             .initSql("""SET ROLE "$role"""")
