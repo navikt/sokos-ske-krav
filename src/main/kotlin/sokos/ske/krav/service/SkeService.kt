@@ -8,7 +8,9 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.database.Repository.hentKravData
+import sokos.ske.krav.database.Repository.hentAlleKravData
+import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
+import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
 import sokos.ske.krav.database.Repository.hentTabeller
 import sokos.ske.krav.database.Repository.lagreNyttKrav
 import sokos.ske.krav.navmodels.DetailLine
@@ -70,7 +72,7 @@ class SkeService(
                             parseDetailLinetoFRData(it),
                             it)
                         //putte i database og gjøre ting...
-                        println("HentKravdata: ${dataSource.connection.hentKravData().map { it.kravidentifikator }}")
+                        println("HentKravdata: ${dataSource.connection.hentAlleKravData().map { it.saksnummer_ske }}")
                     }
                 }else{  //legg object i feilliste
                     println("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}") //logge request?
@@ -100,19 +102,20 @@ class SkeService(
         }
     }
 
-    suspend fun hentOgOppdaterMottaksStatus(): String {
-        val response = skeClient.hentMottaksStatus("c0bc85ea-20a8-47df-9a14-ea8f554c426c")
-        if (response.status.isSuccess()) {
-            return "Status OK: ${response.bodyAsText()}"
-        }else return "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
-    }
+    suspend fun hentOgOppdaterMottaksStatus() =
+        dataSource.connection.hentAlleKravSomIkkeErReskotrofort().map {
+            val response = skeClient.hentMottaksStatus(it.saksnummer_ske)
+            if (response.status.isSuccess()) "Status OK: ${response.bodyAsText()}"
+            "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
+        }
 
-    suspend fun hentValideringsfeil(): String {
-        val response = skeClient.hentValideringsfeil("c0bc85ea-20a8-47df-9a14-ea8f554c426c")
-        if (response.status.isSuccess()) {
-            return "Status OK: ${response.bodyAsText()}"
-        }else return "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
-    }
+    suspend fun hentValideringsfeil() =
+        dataSource.connection.hentAlleKravMedValideringsfeil().map {
+            val response = skeClient.hentValideringsfeil(it.saksnummer_ske)
+            if (response.status.isSuccess()) "Status OK: ${response.bodyAsText()}"
+            "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
+        }
+
 
     private fun handleAnyFailedLines(failedLines: List<FailedLine>, file: FtpFil) {
         if (failedLines.isNotEmpty()) {
