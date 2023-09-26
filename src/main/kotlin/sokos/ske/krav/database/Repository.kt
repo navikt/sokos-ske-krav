@@ -27,8 +27,8 @@ object Repository {
                     fildata_nav = getColumn("fildata_nav"),
                     jsondata_ske = getColumn("jsondata_ske"),
                     status = getColumn("status"),
-                    dato_sendt = getColumn("dato_sendt"),
-                    dato_siste_status = getColumn("dato_siste_status")
+                    dato_sendt = kotlinx.datetime.LocalDateTime(2023,9, 26, 0,0,0),
+                    dato_siste_status = kotlinx.datetime.LocalDateTime(2023,9, 26, 0,0,0)
                 )
             }
         } catch (e: Exception) {
@@ -50,8 +50,8 @@ object Repository {
                         fildata_nav = getColumn("fildata_nav"),
                         jsondata_ske = getColumn("jsondata_ske"),
                         status = getColumn("status"),
-                        dato_sendt = getColumn("dato_sendt"),
-                        dato_siste_status = getColumn("dato_siste_status")
+                        dato_sendt = kotlinx.datetime.LocalDateTime(2023,9, 26, 0,0,0),
+                        dato_siste_status = kotlinx.datetime.LocalDateTime(2023,9, 26, 0,0,0)
                     )
                 }
         } catch (e: Exception) {
@@ -73,8 +73,8 @@ object Repository {
                         fildata_nav = getColumn("fildata_nav"),
                         jsondata_ske = getColumn("jsondata_ske"),
                         status = getColumn("status"),
-                        dato_sendt = getColumn("dato_sendt"),
-                        dato_siste_status = getColumn("dato_siste_status")
+                        dato_sendt = kotlinx.datetime.LocalDateTime(2023,9, 26, 0,0,0),
+                        dato_siste_status = kotlinx.datetime.LocalDateTime(2023,9, 26, 0,0,0)
                     )
                 }
         } catch (e: Exception) {
