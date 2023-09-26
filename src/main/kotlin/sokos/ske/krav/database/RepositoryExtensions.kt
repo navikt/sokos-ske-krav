@@ -37,6 +37,7 @@ object RepositoryExtensions {
             Boolean::class -> getBoolean(columnLabel)
             BigDecimal::class -> getBigDecimal(columnLabel)
             LocalDate::class -> getDate(columnLabel)?.toLocalDate()
+            kotlinx.datetime.LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()!!.toKotlinxLocalDateTime()
             LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
             else -> {
                 logger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
@@ -51,6 +52,10 @@ object RepositoryExtensions {
 
         return transform(columnValue as T)
     }
+
+    fun LocalDateTime.toKotlinxLocalDateTime(): kotlinx.datetime.LocalDateTime =
+        kotlinx.datetime.LocalDateTime(this.year, this.month, this.dayOfMonth,this.hour, this.minute, this.second, this.nano)
+
 
     fun interface Parameter {
         fun addToPreparedStatement(sp: PreparedStatement, index: Int)

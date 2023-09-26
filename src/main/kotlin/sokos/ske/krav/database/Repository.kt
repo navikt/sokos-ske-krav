@@ -73,7 +73,7 @@ object Repository {
                         fildata_nav = getColumn("fildata_nav"),
                         jsondata_ske = getColumn("jsondata_ske"),
                         status = getColumn("status"),
-                        dato_sendt = kotlinx.datetime.LocalDateTime(2023,9, 26, 0,0,0),
+                        dato_sendt = getColumn("dato_sendt"),
                         dato_siste_status = kotlinx.datetime.LocalDateTime(2023,9, 26, 0,0,0)
                     )
                 }
