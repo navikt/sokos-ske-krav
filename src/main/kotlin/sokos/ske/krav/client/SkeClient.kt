@@ -15,8 +15,10 @@ import sokos.ske.krav.skemodels.requests.EndringRequest
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
 
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
-private const val ENDRE_KRAV = "endring"
-private const val STOPP_KRAV = "avskriv"
+private const val ENDRE_KRAV = "innkrevingsoppdrag/kreendring"
+private const val STOPP_KRAV = "innkrevingsoppdrag/avskriv"
+private const val MOTTAKSSTATUS = "innkrevingsoppdrag/%s/mottaksstatus?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
+private const val VALIDERINGSFEIL = "innkrevingsoppdrag/%s/valideringsfeil?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
 private const val KLIENT_ID = "NAV/0.1"
 
 private val logger = KotlinLogging.logger {}
@@ -25,19 +27,29 @@ class SkeClient(
     private val tokenProvider: MaskinportenAccessTokenClient,
     private val skeEndpoint: String,
     private val client: HttpClient = defaultHttpClient
-    )
-{
+) {
     @OptIn(ExperimentalSerializationApi::class)
     private val builder = Json {
         encodeDefaults = true
         explicitNulls = false
     }
 
-    private inline fun <reified T> toJson(serializer: SerializationStrategy<T>, body: T) = builder.encodeToJsonElement(serializer, body).toString()
+    private inline fun <reified T> toJson(serializer: SerializationStrategy<T>, body: T) =
+        builder.encodeToJsonElement(serializer, body).toString()
 
-    suspend fun opprettKrav(body: OpprettInnkrevingsoppdragRequest): HttpResponse = doPost(OPPRETT_KRAV, toJson(OpprettInnkrevingsoppdragRequest.serializer(), body))
-    suspend fun endreKrav(body: EndringRequest): HttpResponse = doPut(ENDRE_KRAV, toJson(EndringRequest.serializer(), body))
-    suspend fun stoppKrav(body: AvskrivingRequest): HttpResponse = doPost(STOPP_KRAV, toJson(AvskrivingRequest.serializer(), body))
+    suspend fun opprettKrav(body: OpprettInnkrevingsoppdragRequest): HttpResponse =
+        doPost(OPPRETT_KRAV, toJson(OpprettInnkrevingsoppdragRequest.serializer(), body))
+
+    suspend fun endreKrav(body: EndringRequest): HttpResponse =
+        doPut(ENDRE_KRAV, toJson(EndringRequest.serializer(), body))
+
+    suspend fun stoppKrav(body: AvskrivingRequest): HttpResponse =
+        doPost(STOPP_KRAV, toJson(AvskrivingRequest.serializer(), body))
+
+    suspend fun hentMottaksStatus(kravid: String) = doGet(String.format(MOTTAKSSTATUS, kravid))
+
+    suspend fun hentValideringsfeil(kravid: String) = doGet(String.format(VALIDERINGSFEIL, kravid))
+
 
     private suspend inline fun doPost(path: String, body: String): HttpResponse {
         val token = tokenProvider.hentAccessToken()
@@ -69,13 +81,12 @@ class SkeClient(
         }
 
         println("resp_body: ${response.bodyAsText()}, \n${response.request.call}")
-
         return response
     }
 
-    private suspend fun doGet(path: String, body: String): HttpResponse {
+    private suspend fun doGet(path: String): HttpResponse {
         val token = tokenProvider.hentAccessToken()
-        println("doGet: $body")
+        println("doGet: $path")
         val response = client.get("$skeEndpoint$path") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
@@ -83,15 +94,11 @@ class SkeClient(
                 append(HttpHeaders.Authorization, "Bearer $token")
                 append("Klientid", KLIENT_ID)
             }
-            setBody(body)
         }
 
         println("resp_body: ${response.bodyAsText()}, \n${response.request.call}")
-
         return response
     }
-
-
 }
 
 
