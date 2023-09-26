@@ -31,8 +31,8 @@ object Repository {
                 insert into krav (
                 saksnummer_nav, 
                 saksnummer_ske, 
-                fildatanav, 
-                jsondataske, 
+                fildata_nav, 
+                jsondata_ske, 
                 status, 
                 dato_sendt, 
                 dato_siste_status
