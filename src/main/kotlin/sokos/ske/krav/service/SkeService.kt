@@ -100,8 +100,11 @@ class SkeService(
         }
     }
 
-    suspend fun hentOgOppdaterMottaksStatus(): HttpResponse {
-        return skeClient.hentMottaksStatus("c0bc85ea-20a8-47df-9a14-ea8f554c426c")
+    suspend fun hentOgOppdaterMottaksStatus(): String {
+        val response = skeClient.hentMottaksStatus("c0bc85ea-20a8-47df-9a14-ea8f554c426c")
+        if (response.status.isSuccess()) {
+            return "Status OK: ${response.bodyAsText()}"
+        }else return "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
     }
 
     private fun handleAnyFailedLines(failedLines: List<FailedLine>, file: FtpFil) {
