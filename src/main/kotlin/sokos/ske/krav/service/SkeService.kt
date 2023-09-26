@@ -111,7 +111,9 @@ class SkeService(
 
     suspend fun hentValideringsfeil() =
         dataSource.connection.hentAlleKravMedValideringsfeil().map {
+            println("Hentet ${it.saksnummer_ske}")
             val response = skeClient.hentValideringsfeil(it.saksnummer_ske)
+            println("Resp: ${response.status.value}, ${response.bodyAsText()}")
             if (response.status.isSuccess()) "Status OK: ${response.bodyAsText()}"
             "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
         }

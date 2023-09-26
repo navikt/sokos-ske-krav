@@ -55,7 +55,7 @@ object Repository {
                     )
                 }
         } catch (e: Exception) {
-            log.error("exception i henting av data: ${e.message}")
+            println("exception i henting (status) av data: ${e.message}")
             listOf()
         }
     }
@@ -78,7 +78,7 @@ object Repository {
                     )
                 }
         } catch (e: Exception) {
-            log.error("exception i henting av data: ${e.message}")
+            println("exception i henting (validering) av data: ${e.message}")
             listOf()
         }
     }
