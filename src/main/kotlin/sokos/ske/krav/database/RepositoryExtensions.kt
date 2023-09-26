@@ -1,6 +1,5 @@
 package sokos.ske.krav.database
 
-import kotlinx.datetime.Instant
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.Parameter
 import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
@@ -9,7 +8,6 @@ import java.sql.*
 import java.sql.Date
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 import java.util.*
 
 object RepositoryExtensions {
@@ -39,8 +37,6 @@ object RepositoryExtensions {
             Boolean::class -> getBoolean(columnLabel)
             BigDecimal::class -> getBigDecimal(columnLabel)
             LocalDate::class -> getDate(columnLabel)?.toLocalDate()
-            kotlinx.datetime.LocalDateTime::class -> Instant.fromEpochSeconds(getTimestamp(columnLabel)?.toLocalDateTime()!!.toEpochSecond(
-                ZoneOffset.MIN))
             LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
             else -> {
                 logger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
