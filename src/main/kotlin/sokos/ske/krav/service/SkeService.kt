@@ -100,6 +100,10 @@ class SkeService(
         }
     }
 
+    suspend fun hentOgOppdaterMottaksStatus(): HttpResponse {
+        return skeClient.hentMottaksStatus("c0bc85ea-20a8-47df-9a14-ea8f554c426c")
+    }
+
     private fun handleAnyFailedLines(failedLines: List<FailedLine>, file: FtpFil) {
         if (failedLines.isNotEmpty()) {
             println("Number of failed lines: ${failedLines.size}")
@@ -118,8 +122,6 @@ private fun DetailLine.erNyttKrav() = (!this.erEndring() && !this.erStopp())
 
 private fun DetailLine.erEndring() = (referanseNummerGammelSak.isNotEmpty() && !erStopp())
 
-
 private fun DetailLine.erStopp() = (belop.roundToLong() == 0L)
-
 
 fun HttpStatusCode.isError() = (this != HttpStatusCode.OK && this != HttpStatusCode.Created)
