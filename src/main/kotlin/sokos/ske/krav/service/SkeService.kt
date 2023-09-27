@@ -71,7 +71,7 @@ class SkeService(
                             toJson(OpprettInnkrevingsoppdragRequest.serializer(),lagOpprettKravRequest(it)),
                             parseDetailLinetoFRData(it),
                             it)
-                        println("HentKravdata: ${dataSource.connection.hentAlleKravData().map { it.saksnummer_ske }}")
+                        println("HentKravdata: ${dataSource.connection.hentAlleKravData().map { "\n${it.saksnummer_ske}" }}")
                     }
                 }else{  //legg object i feilliste
                     println("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}") //logge request?
@@ -118,7 +118,10 @@ class SkeService(
             println("Hentet ${it.saksnummer_ske}")
             val response = skeClient.hentValideringsfeil(it.saksnummer_ske)
             println("Resp: ${response.status.value}, ${response.bodyAsText()}")
-            if (response.status.isSuccess()) "Status OK: ${response.bodyAsText()}"
+            if (response.status.isSuccess()){
+                //lag ftpfil og  kall handleAnyFailedFiles
+                "Status OK: ${response.bodyAsText()}"
+            }
             "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
         }
 
