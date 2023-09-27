@@ -11,11 +11,12 @@ import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.hentAlleKravData
 import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
 import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
-import sokos.ske.krav.database.Repository.hentTabeller
 import sokos.ske.krav.database.Repository.lagreNyttKrav
+import sokos.ske.krav.database.Repository.oppdaterStatus
 import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.navmodels.FailedLine
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
+import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
 import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
 import kotlin.math.roundToLong
 
@@ -64,14 +65,12 @@ class SkeService(
                 println("post er ok")
                 if(response.status.isSuccess()){
                     if (it.erNyttKrav()) {
-                        println("henter tabell info")
-                        println("dbInfo: ${dataSource.connection.hentTabeller()}")
+                        println("Nytt Krav")
                         val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
                         dataSource.connection.lagreNyttKrav( kravident.kravidentifikator,
                             toJson(OpprettInnkrevingsoppdragRequest.serializer(),lagOpprettKravRequest(it)),
                             parseDetailLinetoFRData(it),
                             it)
-                        //putte i database og gjøre ting...
                         println("HentKravdata: ${dataSource.connection.hentAlleKravData().map { it.saksnummer_ske }}")
                     }
                 }else{  //legg object i feilliste
@@ -106,7 +105,11 @@ class SkeService(
         dataSource.connection.hentAlleKravSomIkkeErReskotrofort().map {
             println("(Status) Hentet ${it.saksnummer_ske}")
             val response = skeClient.hentMottaksStatus(it.saksnummer_ske)
-            if (response.status.isSuccess()) "Status OK: ${response.bodyAsText()}"
+            if (response.status.isSuccess()) {
+                val mottaksstatus = Json.decodeFromString<MottaksstatusResponse>(response.bodyAsText())
+                dataSource.connection.oppdaterStatus(mottaksstatus)
+                "Status OK: ${response.bodyAsText()}"
+            }
             "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
         }
 

@@ -7,7 +7,9 @@ import sokos.ske.krav.database.RepositoryExtensions.toList
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.navmodels.DetailLine
+import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
 import java.sql.Connection
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 const val STATUS_RESKONTROFORT = "RESKONTROFOERT"
@@ -39,9 +41,10 @@ object Repository {
 
     fun Connection.hentAlleKravSomIkkeErReskotrofort(): List<KravTable> {
         return try {
-            prepareStatement("""select * from krav where status <> ?""")
+            prepareStatement("""select * from krav where status <> ? and status <> ?""")
                 .withParameters(
-                    param(STATUS_RESKONTROFORT)
+                    param(STATUS_RESKONTROFORT),
+                    param(STATUS_VALIDERINGSFEIL)
                 ).executeQuery().toList {
                     KravTable(
                         krav_id = getColumn("krav_id"),
@@ -50,8 +53,8 @@ object Repository {
                         fildata_nav = getColumn("fildata_nav"),
                         jsondata_ske = getColumn("jsondata_ske"),
                         status = getColumn("status"),
-                        dato_sendt = kotlinx.datetime.LocalDateTime(2023,9, 26, 0,0,0),
-                        dato_siste_status = kotlinx.datetime.LocalDateTime(2023,9, 26, 0,0,0)
+                        dato_sendt = getColumn("dato_sendt"),
+                        dato_siste_status = getColumn("dato_siste_status")
                     )
                 }
         } catch (e: Exception) {
@@ -74,7 +77,7 @@ object Repository {
                         jsondata_ske = getColumn("jsondata_ske"),
                         status = getColumn("status"),
                         dato_sendt = getColumn("dato_sendt"),
-                        dato_siste_status = kotlinx.datetime.LocalDateTime(2023,9, 26, 0,0,0)
+                        dato_siste_status = getColumn("dato_siste_status")
                     )
                 }
         } catch (e: Exception) {
@@ -117,11 +120,17 @@ object Repository {
         }
     }
 
-    fun Connection.hentTabeller(): List<String> = prepareStatement(
-        """
-                select * from pg_catalog.pg_namespace
-            """.trimIndent()
-    ).executeQuery().toList {
-        getColumn<String>("nspname").toString()
+    fun Connection.oppdaterStatus(mottakStatus: MottaksstatusResponse) {
+        prepareStatement("""
+            update krav 
+            set status = ?, dato_siste_status = ?
+            where saksnumme_ske = ?
+        """.trimIndent())
+            .withParameters(
+                param(mottakStatus.mottaksstatus),
+                param(LocalDate.now()),
+                param(mottakStatus.kravidentifikator)
+            ).execute()
     }
+
 }
