@@ -24,7 +24,7 @@ class SkeService(
     private val skeClient: SkeClient,
     private val ftpService: FtpService = FtpService().apply { connect(fileNames = listOf("fil1.txt")) }
 ) {
-    private val log = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger {}
     private val dataSource: PostgresDataSource = PostgresDataSource()
 
     private inline fun <reified T> toJson(serializer: SerializationStrategy<T>, body: T) = builder.encodeToJsonElement(serializer, body).toString()
@@ -75,7 +75,7 @@ class SkeService(
                     }
                 }else{  //legg object i feilliste
                     println("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}") //logge request?
-                    log.info("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}") //logge request?
+                    logger.info("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}") //logge request?
                 }
                 it to response
             }
@@ -103,6 +103,7 @@ class SkeService(
 
     suspend fun hentOgOppdaterMottaksStatus() =
         dataSource.connection.hentAlleKravSomIkkeErReskotrofort().map {
+            logger.info { "Logger: ${it.saksnummer_ske}"}
             println("(Status) Hentet ${it.saksnummer_ske}")
             val response = skeClient.hentMottaksStatus(it.saksnummer_ske)
             if (response.status.isSuccess()) {

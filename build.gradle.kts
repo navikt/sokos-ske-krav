@@ -21,6 +21,8 @@ repositories {
 val ktorVersion= "2.3.3"
 val hikaricpVersion = "5.0.1"
 val kotlinLoggingVersion = "3.0.4"
+val logback_version = "1.4.1"
+val logstash_version = "7.3"
 val kotestVersion = "5.6.2"
 val mockkVersion = "1.13.7"
 val testContainerVersion ="1.19.0"
@@ -85,6 +87,10 @@ dependencies {
 
     // Logging
     implementation ("io.ktor:ktor-client-logging:$ktorVersion")
+    implementation ("ch.qos.logback:logback-core:$logback_version")
+    implementation ("ch.qos.logback:logback-classic:$logback_version")
+    implementation ("net.logstash.logback:logstash-logback-encoder:$logstash_version")
+
     implementation ("io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion")
 
     // Test
