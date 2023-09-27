@@ -19,7 +19,7 @@ class HttpServer(
     init {
         Runtime.getRuntime().addShutdownHook(Thread {
             appState.running = false
-            this.embeddedServer.stop(2, 5, TimeUnit.SECONDS)
+            this.embeddedServer.stop(2, 20, TimeUnit.SECONDS)
         })
     }
 
