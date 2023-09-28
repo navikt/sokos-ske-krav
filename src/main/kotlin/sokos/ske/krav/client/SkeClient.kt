@@ -54,6 +54,7 @@ class SkeClient(
     private suspend inline fun doPost(path: String, body: String): HttpResponse {
         val token = tokenProvider.hentAccessToken()
 
+        logger.info { "logger doPost body: $body" }
         val response = client.post("$skeEndpoint$path") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
@@ -86,9 +87,10 @@ class SkeClient(
 
     private suspend fun doGet(path: String): HttpResponse {
         val token = tokenProvider.hentAccessToken()
-        println("doGet: $path")
+        logger.info {"Logger doGet: Path: $skeEndpoint$path"}
+        logger.info { "Logger: Token: $token" }
         val response = client.get("$skeEndpoint$path") {
-            contentType(ContentType.Application.Json)
+//            contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
             headers {
                 append(HttpHeaders.Authorization, "Bearer $token")
