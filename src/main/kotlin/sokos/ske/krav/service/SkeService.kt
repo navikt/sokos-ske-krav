@@ -103,26 +103,32 @@ class SkeService(
 
     suspend fun hentOgOppdaterMottaksStatus() =
         dataSource.connection.hentAlleKravSomIkkeErReskotrofort().map {
-            logger.info { "Logger: ${it.saksnummer_ske}"}
-            println("(Status) Hentet ${it.saksnummer_ske}")
+            logger.info { "Logger (Status start): ${it.saksnummer_ske}"}
             val response = skeClient.hentMottaksStatus(it.saksnummer_ske)
+            logger.info { "Logger (Status hentet): ${it.saksnummer_ske}"}
             if (response.status.isSuccess()) {
+                logger.info { "Logger (Status success): ${it.saksnummer_ske}"}
                 val mottaksstatus = Json.decodeFromString<MottaksstatusResponse>(response.bodyAsText())
                 dataSource.connection.oppdaterStatus(mottaksstatus)
+                logger.info { "Logger (Status oppdatert): ${it.saksnummer_ske}"}
                 "Status OK: ${response.bodyAsText()}"
             }
+            logger.info { "Logger (Status failed): ${it.saksnummer_ske}"}
             "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
         }
 
     suspend fun hentValideringsfeil() =
         dataSource.connection.hentAlleKravMedValideringsfeil().map {
-            println("Hentet ${it.saksnummer_ske}")
+            logger.info { "Logger (Validering start): ${it.saksnummer_ske}"}
             val response = skeClient.hentValideringsfeil(it.saksnummer_ske)
-            println("Resp: ${response.status.value}, ${response.bodyAsText()}")
+            logger.info { "Logger (Validering hentet): ${it.saksnummer_ske}"}
             if (response.status.isSuccess()){
+                logger.info { "Logger (validering success): ${it.saksnummer_ske}"}
+
                 //lag ftpfil og  kall handleAnyFailedFiles
                 "Status OK: ${response.bodyAsText()}"
             }
+            logger.info { "Logger (validering failed): ${it.saksnummer_ske}"}
             "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
         }
 
