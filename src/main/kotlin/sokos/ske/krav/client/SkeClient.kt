@@ -58,7 +58,6 @@ class SkeClient(
         logger.info { "logger doPost body: $body" }
         val response = client.post("$skeEndpoint$path") {
             contentType(ContentType.Application.Json)
-            accept(ContentType.Application.Json)
             headers {
                 append(HttpHeaders.Authorization, "Bearer $token")
                 append("Klientid", KLIENT_ID)
@@ -91,15 +90,16 @@ class SkeClient(
         logger.info {"Logger doGet: Path: $skeEndpoint$path"}
         println("\n\nToken: -" + token + "-\n\n")
         val response = client.get("$skeEndpoint$path") {
-//            contentType(ContentType.Application.Json)
+            contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
             headers {
                 append(HttpHeaders.Authorization, "Bearer $token")
                 append("Klientid", KLIENT_ID)
             }
         }
+        val bd= response.bodyAsText()
 
-        println("resp_body: ${response.bodyAsText()}, \n${response.request.call}")
+        logger.info { "Logger doGet: resp_body: ${bd}, \n${response.request.call}"}
         return response
     }
 }
