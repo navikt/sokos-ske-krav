@@ -73,7 +73,7 @@ class SkeClient(
         println("doPut: $body")
         val response = client.put("$skeEndpoint$path") {
             contentType(ContentType.Application.Json)
-//            accept(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
             headers {
                 append(HttpHeaders.Authorization, "Bearer $token")
                 append("Klientid", KLIENT_ID)
@@ -91,7 +91,7 @@ class SkeClient(
         println("\n\nToken: -" + token + "-\n\n")
         val response = client.get("$skeEndpoint$path") {
             contentType(ContentType.Application.Json)
-            accept(ContentType.Application.Json)
+//            accept(ContentType.Application.Json)
             headers {
                 append(HttpHeaders.Authorization, "Bearer $token")
                 append("Klientid", KLIENT_ID)
