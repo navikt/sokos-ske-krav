@@ -91,11 +91,13 @@ class SkeClient(
         println("\n\nToken: -" + token + "-\n\n")
         val response = client.get("$skeEndpoint$path") {
             contentType(ContentType.Application.Json)
-//            accept(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
             headers {
                 append(HttpHeaders.Authorization, "Bearer $token")
                 append("Klientid", KLIENT_ID)
             }
+            val h = headers.get("content-type")
+            logger.info { "Logger doGet Header: $h" }
         }
         val bd= response.bodyAsText()
 
