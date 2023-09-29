@@ -13,8 +13,8 @@ import kotlinx.serialization.Serializable
 data class MottaksstatusResponse(
 
     val kravidentifikator: String,
-    val oppdragsgiversKravidentifikator: Mottaksstatus,
-    val mottaksstatus: String,
+    val oppdragsgiversKravidentifikator: String,
+    val mottaksstatus: Mottaksstatus,
     val statusOppdatert: LocalDateTime
 ){
     enum class Mottaksstatus(val value: kotlin.String){
