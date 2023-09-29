@@ -110,6 +110,7 @@ class SkeService(
                 logger.info { "Logger (Status success): ${it.saksnummer_ske}"}
                 try {
                     val body = response.bodyAsText()
+                    logger.info { "Logger status body: $body" }
                     val mottaksstatus = Json.decodeFromString<MottaksstatusResponse>(body)
                     logger.info { "Logger mottaksresponse: $mottaksstatus, Body: ${body}" }
                     dataSource.connection.oppdaterStatus(mottaksstatus)
