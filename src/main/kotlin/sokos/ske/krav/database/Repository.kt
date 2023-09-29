@@ -122,6 +122,7 @@ object Repository {
     }
 
     fun Connection.oppdaterStatus(mottakStatus: MottaksstatusResponse) {
+        logger.info { "Logger Lagrer mottaksstatus: ${mottakStatus.toString()}" }
         prepareStatement(
             """
             update krav 

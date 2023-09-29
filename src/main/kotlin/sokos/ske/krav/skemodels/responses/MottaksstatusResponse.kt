@@ -16,4 +16,9 @@ data class MottaksstatusResponse(
         RESKONTROFOERT("RESKONTROFOERT");
     }
 
+    override fun toString(): String {
+        return "MottaksstatusResponse(kravidentifikator='$kravidentifikator', mottaksstatus='$mottaksstatus', oppdragsgiversKravidentifikator=$oppdragsgiversKravidentifikator, statusOppdatert=$statusOppdatert)"
+    }
+
+
 }
