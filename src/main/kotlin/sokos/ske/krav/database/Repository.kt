@@ -131,7 +131,7 @@ object Repository {
         """.trimIndent()
         )
             .withParameters(
-                param(mottakStatus.mottaksstatus),
+                param(mottakStatus.mottaksstatus.value),
                 param(LocalDate.now()),
                 param(mottakStatus.kravidentifikator)
             ).execute()
