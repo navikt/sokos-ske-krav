@@ -39,15 +39,14 @@ class SkeClient(
 
     suspend fun opprettKrav(body: OpprettInnkrevingsoppdragRequest): HttpResponse =
         doPost(OPPRETT_KRAV, toJson(OpprettInnkrevingsoppdragRequest.serializer(), body))
+    suspend fun stoppKrav(body: AvskrivingRequest): HttpResponse =
+        doPost(STOPP_KRAV, toJson(AvskrivingRequest.serializer(), body))
 
     suspend fun endreKrav(body: EndringRequest): HttpResponse =
         doPut(ENDRE_KRAV, toJson(EndringRequest.serializer(), body))
 
-    suspend fun stoppKrav(body: AvskrivingRequest): HttpResponse =
-        doPost(STOPP_KRAV, toJson(AvskrivingRequest.serializer(), body))
 
     suspend fun hentMottaksStatus(kravid: String) = doGet(String.format(MOTTAKSSTATUS, kravid))
-
     suspend fun hentValideringsfeil(kravid: String) = doGet(String.format(VALIDERINGSFEIL, kravid))
 
 
@@ -96,8 +95,6 @@ class SkeClient(
                 append(HttpHeaders.Authorization, "Bearer $token")
                 append("Klientid", KLIENT_ID)
             }
-            val h = headers.get("content-type")
-            logger.info { "Logger doGet Header: $h" }
         }
         val bd= response.bodyAsText()
 
