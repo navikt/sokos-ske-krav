@@ -108,10 +108,17 @@ class SkeService(
             logger.info { "Logger (Status hentet): ${it.saksnummer_ske}"}
             if (response.status.isSuccess()) {
                 logger.info { "Logger (Status success): ${it.saksnummer_ske}"}
-                val mottaksstatus = Json.decodeFromString<MottaksstatusResponse>(response.bodyAsText())
-                dataSource.connection.oppdaterStatus(mottaksstatus)
-                logger.info { "Logger (Status oppdatert): ${it.saksnummer_ske}"}
-                "Status OK: ${response.bodyAsText()}"
+                try {
+                    val body = response.bodyAsText()
+                    val mottaksstatus = Json.decodeFromString<MottaksstatusResponse>(body)
+                    logger.info { "Logger mottaksresponse: $mottaksstatus, Body: ${body}" }
+                    dataSource.connection.oppdaterStatus(mottaksstatus)
+                    logger.info { "Logger (Status oppdatert): ${it.saksnummer_ske}" }
+                    "Status OK: ${response.bodyAsText()}"
+                } catch (e: Exception) {
+                    logger.error { "Logger Exception: ${e.message}" }
+                    throw e
+                }
             }
             logger.info { "Logger (Status failed): ${it.saksnummer_ske}"}
             "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
