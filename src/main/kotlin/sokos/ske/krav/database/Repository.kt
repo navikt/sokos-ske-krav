@@ -127,7 +127,7 @@ object Repository {
             """
             update krav 
             set status = ?, dato_siste_status = ?
-            where saksnumme_ske = ?
+            where saksnummer_ske = ?
         """.trimIndent()
         )
             .withParameters(
