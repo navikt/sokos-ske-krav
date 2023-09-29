@@ -1,6 +1,5 @@
 package sokos.ske.krav.skemodels.responses
 
-import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 
 //
@@ -15,7 +14,7 @@ data class MottaksstatusResponse(
     val kravidentifikator: String,
     val oppdragsgiversKravidentifikator: String,
     val mottaksstatus: Mottaksstatus,
-    val statusOppdatert: LocalDateTime
+    val statusOppdatert: String
 ){
     enum class Mottaksstatus(val value: kotlin.String){
         MOTTATTUNDERBEHANDLING("MOTTATT_UNDER_BEHANDLING"),
