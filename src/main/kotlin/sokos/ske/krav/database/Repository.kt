@@ -15,8 +15,9 @@ import java.time.LocalDateTime
 const val STATUS_RESKONTROFORT = "RESKONTROFOERT"
 const val STATUS_VALIDERINGSFEIL = "VALIDERINGSFEIL"
 const val STATUS_UNDER_BEHANDLING = "MOTTATT_UNDER_BEHANDLING"
+
 object Repository {
-    private val log = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger {}
 
 
     fun Connection.hentAlleKravData(): List<KravTable> {
@@ -29,12 +30,12 @@ object Repository {
                     fildata_nav = getColumn("fildata_nav"),
                     jsondata_ske = getColumn("jsondata_ske"),
                     status = getColumn("status"),
-                    dato_sendt = kotlinx.datetime.LocalDateTime(2023,9, 26, 0,0,0),
-                    dato_siste_status = kotlinx.datetime.LocalDateTime(2023,9, 26, 0,0,0)
+                    dato_sendt = kotlinx.datetime.LocalDateTime(2023, 9, 26, 0, 0, 0),
+                    dato_siste_status = kotlinx.datetime.LocalDateTime(2023, 9, 26, 0, 0, 0)
                 )
             }
         } catch (e: Exception) {
-            log.error("exception i henting av data: ${e.message}")
+            logger.error("exception i henting av data: ${e.message}")
             listOf()
         }
     }
@@ -58,7 +59,7 @@ object Repository {
                     )
                 }
         } catch (e: Exception) {
-            println("exception i henting (status) av data: ${e.message}")
+            logger.error { "exception i henting (status) av data: ${e.message}" }
             listOf()
         }
     }
@@ -81,7 +82,7 @@ object Repository {
                     )
                 }
         } catch (e: Exception) {
-            println("exception i henting (validering) av data: ${e.message}")
+            logger.error { "exception i henting (validering) av data: ${e.message}" }
             listOf()
         }
     }
@@ -121,11 +122,13 @@ object Repository {
     }
 
     fun Connection.oppdaterStatus(mottakStatus: MottaksstatusResponse) {
-        prepareStatement("""
+        prepareStatement(
+            """
             update krav 
             set status = ?, dato_siste_status = ?
             where saksnumme_ske = ?
-        """.trimIndent())
+        """.trimIndent()
+        )
             .withParameters(
                 param(mottakStatus.mottaksstatus),
                 param(LocalDate.now()),

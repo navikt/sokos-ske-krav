@@ -64,5 +64,7 @@ spec:
       value: sokos-skd-krav
     - name: VAULT_MOUNTPATH
       value: postgresql/preprod-fss/
+    - name: LOG_APPENDER
+      value: CONSOLE
 
 

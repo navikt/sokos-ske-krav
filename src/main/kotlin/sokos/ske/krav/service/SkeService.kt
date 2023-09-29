@@ -117,20 +117,25 @@ class SkeService(
             "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
         }
 
-    suspend fun hentValideringsfeil() =
-        dataSource.connection.hentAlleKravMedValideringsfeil().map {
-            logger.info { "Logger (Validering start): ${it.saksnummer_ske}"}
+    suspend fun hentValideringsfeil(): List<String> {
+        val resultat = dataSource.connection.hentAlleKravMedValideringsfeil().map {
+            logger.info { "Logger (Validering start): ${it.saksnummer_ske}" }
             val response = skeClient.hentValideringsfeil(it.saksnummer_ske)
-            logger.info { "Logger (Validering hentet): ${it.saksnummer_ske}"}
-            if (response.status.isSuccess()){
-                logger.info { "Logger (validering success): ${it.saksnummer_ske}"}
+            logger.info { "Logger (Validering hentet): ${it.saksnummer_ske}" }
+            if (response.status.isSuccess()) {
+                logger.info { "Logger (validering success): ${it.saksnummer_ske}" }
 
                 //lag ftpfil og  kall handleAnyFailedFiles
                 "Status OK: ${response.bodyAsText()}"
+            }else {
+                logger.info { "Logger (Fikk ikke hentet valideringsfeil for:  ${it.saksnummer_ske}, Status: ${response.status.value})" }
+                "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
             }
-            logger.info { "Logger (validering failed): ${it.saksnummer_ske}"}
-            "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
         }
+        if (resultat.isEmpty()) logger.info { "HENTVALIDERINGSFEIL: Ingen krav å hente validering for" }
+        else logger.info { "HENTVALIDERINGSFEIL: Det er ${resultat.size} krav det er hentet valideringsfeil for" }
+        return resultat
+    }
 
 
     private fun handleAnyFailedLines(failedLines: List<FailedLine>, file: FtpFil) {
@@ -148,9 +153,6 @@ class SkeService(
 }
 
 private fun DetailLine.erNyttKrav() = (!this.erEndring() && !this.erStopp())
-
 private fun DetailLine.erEndring() = (referanseNummerGammelSak.isNotEmpty() && !erStopp())
-
 private fun DetailLine.erStopp() = (belop.roundToLong() == 0L)
-
 fun HttpStatusCode.isError() = (this != HttpStatusCode.OK && this != HttpStatusCode.Created)

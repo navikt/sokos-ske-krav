@@ -35,7 +35,7 @@
     </logger>
 
     <root level="INFO">
-        <appender-ref ref="${LOG_APPENDER:-CONSOLE}"/>
+        <appender-ref ref="${LOG_APPENDER:-stdout_json}"/>
     </root>
 
 </configuration>
