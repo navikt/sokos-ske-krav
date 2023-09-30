@@ -27,7 +27,8 @@ class SkeService(
     private val logger = KotlinLogging.logger {}
     private val dataSource: PostgresDataSource = PostgresDataSource()
 
-    private inline fun <reified T> toJson(serializer: SerializationStrategy<T>, body: T) = builder.encodeToJsonElement(serializer, body).toString()
+    private inline fun <reified T> toJson(serializer: SerializationStrategy<T>, body: T) =
+        builder.encodeToJsonElement(serializer, body).toString()
 
     private val builder = Json {
         encodeDefaults = true
@@ -35,20 +36,21 @@ class SkeService(
     }
 
 
-    suspend fun testResponse(){
+    suspend fun testResponse() {
         val files = ftpService.getFiles(::fileValidator)
-        files.forEach {file ->
+        files.forEach { file ->
             file.detailLines.subList(0, 10).forEach {
                 try {
                     val response = skeClient.opprettKrav(lagOpprettKravRequest(it))
                     println(response.bodyAsText())
-                }catch (e: Exception){
+                } catch (e: Exception) {
                     println(e.message)
                 }
 
             }
         }
     }
+
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
         println("Starter service")
         val files = ftpService.getFiles(::fileValidator)
@@ -63,17 +65,23 @@ class SkeService(
                 }
 
                 println("post er ok")
-                if(response.status.isSuccess()){
+                if (response.status.isSuccess()) {
                     if (it.erNyttKrav()) {
                         println("Nytt Krav")
                         val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
-                        dataSource.connection.lagreNyttKrav( kravident.kravidentifikator,
-                            toJson(OpprettInnkrevingsoppdragRequest.serializer(),lagOpprettKravRequest(it)),
+                        dataSource.connection.lagreNyttKrav(
+                            kravident.kravidentifikator,
+                            toJson(OpprettInnkrevingsoppdragRequest.serializer(), lagOpprettKravRequest(it)),
                             parseDetailLinetoFRData(it),
-                            it)
-                        println("HentKravdata: ${dataSource.connection.hentAlleKravData().map { "\n${it.saksnummer_ske}" }}")
+                            it
+                        )
+                        println(
+                            "HentKravdata: ${
+                                dataSource.connection.hentAlleKravData().map { "\n${it.saksnummer_ske}" }
+                            }"
+                        )
                     }
-                }else{  //legg object i feilliste
+                } else {  //legg object i feilliste
                     println("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}") //logge request?
                     logger.info("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}") //logge request?
                 }
@@ -101,13 +109,14 @@ class SkeService(
         }
     }
 
-    suspend fun hentOgOppdaterMottaksStatus() =
-        dataSource.connection.hentAlleKravSomIkkeErReskotrofort().map {
-            logger.info { "Logger (Status start): ${it.saksnummer_ske}"}
+    suspend fun hentOgOppdaterMottaksStatus(): List<String> {
+        val connection = dataSource.connection
+        val result = connection.hentAlleKravSomIkkeErReskotrofort().map {
+            logger.info { "Logger (Status start): ${it.saksnummer_ske}" }
             val response = skeClient.hentMottaksStatus(it.saksnummer_ske)
-            logger.info { "Logger (Status hentet): ${it.saksnummer_ske}"}
+            logger.info { "Logger (Status hentet): ${it.saksnummer_ske}" }
             if (response.status.isSuccess()) {
-                logger.info { "Logger (Status success): ${it.saksnummer_ske}"}
+                logger.info { "Logger (Status success): ${it.saksnummer_ske}" }
                 try {
                     val body = response.bodyAsText()
                     logger.info { "Logger status body: $body" }
@@ -121,9 +130,14 @@ class SkeService(
                     throw e
                 }
             }
-            logger.info { "Logger (Status failed): ${it.saksnummer_ske}"}
-            "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
+            logger.info { "Logger (Status ferdig): ${it.saksnummer_ske}" }
+            "Status ok: ${response.status.value}, ${response.bodyAsText()}"
         }
+        logger.info { "Loger status: ferdig  commit og closer connectin" }
+        connection.commit()
+        connection.close()
+        return result
+    }
 
     suspend fun hentValideringsfeil(): List<String> {
         val resultat = dataSource.connection.hentAlleKravMedValideringsfeil().map {
@@ -135,7 +149,7 @@ class SkeService(
 
                 //lag ftpfil og  kall handleAnyFailedFiles
                 "Status OK: ${response.bodyAsText()}"
-            }else {
+            } else {
                 logger.info { "Logger (Fikk ikke hentet valideringsfeil for:  ${it.saksnummer_ske}, Status: ${response.status.value})" }
                 "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
             }
