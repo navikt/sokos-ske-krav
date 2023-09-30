@@ -122,19 +122,20 @@ object Repository {
     }
 
     fun Connection.oppdaterStatus(mottakStatus: MottaksstatusResponse) {
-        logger.info { "Logger Lagrer mottaksstatus: ${mottakStatus.toString()}" }
+        logger.info { "Logger repos: Lagrer mottaksstatus: ${mottakStatus}" }
         prepareStatement(
             """
             update krav 
             set status = ?, dato_siste_status = ?
             where saksnummer_ske = ?
-        """.trimIndent()
+        """.trimIndent().also { logger.info { it } }
         )
             .withParameters(
                 param(mottakStatus.mottaksstatus.value),
                 param(LocalDate.now()),
                 param(mottakStatus.kravidentifikator)
             ).execute()
+        commit()
     }
 
 }
