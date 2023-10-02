@@ -111,7 +111,10 @@ class SkeService(
 
     suspend fun hentOgOppdaterMottaksStatus(): List<String> {
         val connection = dataSource.connection
+        var antall = 0
+        var feil = 0
         val result = connection.hentAlleKravSomIkkeErReskotrofort().map {
+            antall += 1
             logger.info { "Logger (Status start): ${it.saksnummer_ske}" }
             val response = skeClient.hentMottaksStatus(it.saksnummer_ske)
             logger.info { "Logger (Status hentet): ${it.saksnummer_ske}" }
@@ -126,6 +129,7 @@ class SkeService(
                     logger.info { "Logger (Status oppdatert): ${it.saksnummer_ske}" }
                     "Status OK: ${response.bodyAsText()}"
                 } catch (e: Exception) {
+                    feil += 1
                     logger.error { "Logger Exception: ${e.message}" }
                     throw e
                 }
@@ -133,10 +137,11 @@ class SkeService(
             logger.info { "Logger (Status ferdig): ${it.saksnummer_ske}" }
             "Status ok: ${response.status.value}, ${response.bodyAsText()}"
         }
-        logger.info { "Loger status: ferdig  commit og closer connectin" }
+        logger.info { "Loger status: ferdig  (antall $antall, feilet: $feil) commit og closer connectin" }
         connection.commit()
         connection.close()
-        return result
+        val r = result + "Antall behandlet  $antall, Antall feilet: $feil"
+        return r
     }
 
     suspend fun hentValideringsfeil(): List<String> {
