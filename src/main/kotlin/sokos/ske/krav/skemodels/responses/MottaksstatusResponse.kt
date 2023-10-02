@@ -16,10 +16,15 @@ data class MottaksstatusResponse(
     val mottaksstatus: Mottaksstatus,
     val statusOppdatert: String
 ){
-    enum class Mottaksstatus(val value: kotlin.String){
+    enum class Mottaksstatus(val value: String){
         MOTTATTUNDERBEHANDLING("MOTTATT_UNDER_BEHANDLING"),
         VALIDERINGSFEIL("VALIDERINGSFEIL"),
         RESKONTROFOERT("RESKONTROFOERT");
+    }
+
+    companion object {
+        private val map = Mottaksstatus.values().associateBy { it.value }
+        infix fun from(value: String) = map[value]
     }
 
     override fun toString(): String {
