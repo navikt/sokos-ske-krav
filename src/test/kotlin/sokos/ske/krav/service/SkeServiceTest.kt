@@ -20,7 +20,8 @@ internal class SkeServiceTest: FunSpec ({
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
 
     test("Test OK filer"){
-        val ftpService = FtpService().apply {connect(fileNames = listOf("fil1.txt")) }
+        val ftpService = FtpService()
+        ftpService.connect(Directories.OUTBOUND, listOf("fil1.txt"))
         val mockEngineOK = MockEngine {
             respond(
                 content = ByteReadChannel("{\"kravidentifikator\": \"1234\"}"),
@@ -41,7 +42,8 @@ internal class SkeServiceTest: FunSpec ({
     }
 
     test("Test feilede filer"){
-        val ftpService =  FtpService().apply {connect(fileNames = listOf("fil1.txt")) }
+        val ftpService = FtpService()
+        ftpService.connect(Directories.OUTBOUND, listOf("fil1.txt"))
         val mockEngineFail = MockEngine {
             respond(
                 content = ByteReadChannel("Feil i request"),
