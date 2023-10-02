@@ -15,6 +15,7 @@ import sokos.ske.krav.navmodels.DetailLine
 import java.io.ByteArrayOutputStream
 import java.io.File
 
+
 enum class Directories(val value: String){
     OUTBOUND("${File.separator}ut"),
     SENDT("${File.separator}behandlet"),
@@ -29,7 +30,7 @@ data class FtpFil(
 class FtpService(private val client: FTPClient = FTPClient()) {
     private val config = PropertiesConfig.FtpConfig()
     private val fakeFtpServer = FakeFtpServer()
-    private val log = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger {}
 
     fun connect(directory: Directories = Directories.OUTBOUND, fileNames: List<String> = listOf("fil1.txt", "fil2.txt")): FTPClient {
         println("FTP Connecting")
@@ -73,7 +74,7 @@ class FtpService(private val client: FTPClient = FTPClient()) {
                 is ValidationResult.Error -> {
                     println("validering for ${entry.key}")
                     moveFile(entry.key, Directories.OUTBOUND, Directories.FAILED)
-                    log.info { result.message }
+                    logger.info { result.message }
                     println(result.message)
                 }
             }

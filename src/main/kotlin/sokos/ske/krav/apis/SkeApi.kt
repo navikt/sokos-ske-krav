@@ -36,7 +36,11 @@ fun Routing.skeApi(
             println("kaller test")
             try {
                 skeService.sendNyeFtpFilerTilSkatt()
+                logger.info { "Krav sendt, returnerer reponse" }
                 call.respond(HttpStatusCode.OK, "Krav sendt")
+                logger.info { "Krav sendt, oppdaterer mottaksstatus" }
+                skeService.hentOgOppdaterMottaksStatus()
+                logger.info { "Krav sendt, har oppdatert mottaksstatus" }
             } catch (e: Exception) {
                 call.respond(
                     HttpStatusCode.InternalServerError,
