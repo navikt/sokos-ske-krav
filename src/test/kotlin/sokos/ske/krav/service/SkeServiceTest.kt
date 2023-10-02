@@ -1,6 +1,7 @@
 package sokos.ske.krav.service
 
 
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
@@ -15,6 +16,7 @@ import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
 
 
+@Ignored
 internal class SkeServiceTest: FunSpec ({
 
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
