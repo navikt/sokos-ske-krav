@@ -22,6 +22,10 @@ import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
 import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
 import kotlin.math.roundToLong
 
+const val NYTT_KRAV = "NYTT_KRAV"
+const val ENDRE_KRAV = "ENDRE_KRAV"
+const val STOPP_KRAV = "STOPP_KRAV"
+
 class SkeService(
     private val skeClient: SkeClient,
     private val dataSource: PostgresDataSource = PostgresDataSource(),
@@ -80,7 +84,7 @@ class SkeService(
         println("Starter service")
         val files = fakeFtpService.getFiles(::fileValidator)
         val connection = dataSource.connection
-        val ant =  if (antall == 0) 1 else antall
+        val ant = if (antall == 0) 1 else antall
 
         val responses = files.map { file ->
             val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.subList(0, ant).map {
@@ -98,10 +102,16 @@ class SkeService(
                             kravident.kravidentifikator,
                             toJson(OpprettInnkrevingsoppdragRequest.serializer(), lagOpprettKravRequest(it)),
                             parseDetailLinetoFRData(it),
-                            it
+                            it,
+                            when {
+                                it.erStopp() -> STOPP_KRAV
+                                it.erEndring() -> ENDRE_KRAV
+                                else -> NYTT_KRAV
+                            }
                         )
                         connection.commit()
                     }
+
                 } else {
                     logger.error("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}")
                 }
