@@ -9,7 +9,6 @@ import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
 import java.sql.Connection
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 const val STATUS_RESKONTROFORT = "RESKONTROFOERT"
@@ -132,7 +131,7 @@ object Repository {
         )
             .withParameters(
                 param(mottakStatus.mottaksstatus),
-                param(LocalDate.now()),
+                param(LocalDateTime.now()),
                 param(mottakStatus.kravidentifikator)
             ).execute()
         commit()
