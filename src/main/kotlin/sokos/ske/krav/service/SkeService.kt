@@ -54,6 +54,7 @@ class SkeService(
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
         println("Starter service")
         val files = ftpService.getFiles(::fileValidator)
+        val connection = dataSource.connection
 
         val responses = files.map { file ->
             val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.subList(0, 1).map {
@@ -69,15 +70,16 @@ class SkeService(
                     if (it.erNyttKrav()) {
                         println("Nytt Krav")
                         val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
-                        dataSource.connection.lagreNyttKrav(
+                        connection.lagreNyttKrav(
                             kravident.kravidentifikator,
                             toJson(OpprettInnkrevingsoppdragRequest.serializer(), lagOpprettKravRequest(it)),
                             parseDetailLinetoFRData(it),
                             it
                         )
+                        connection.commit()
                         println(
                             "HentKravdata: ${
-                                dataSource.connection.hentAlleKravData().map { "\n${it.saksnummer_ske}, ${it.status}" }
+                                connection.hentAlleKravData().map { "\n${it.saksnummer_ske}, ${it.status}" }
                             }"
                         )
                     }
@@ -87,7 +89,7 @@ class SkeService(
                 }
                 it to response
             }
-            dataSource.connection.close()
+            connection.close()
 
             val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess() }
             val failedLines = httpResponseFailed.map { FailedLine(it.first, it.second.status, it.second.bodyAsText()) }
@@ -126,7 +128,8 @@ class SkeService(
                     logger.info { "Logger status body: $body" }
                     val mottaksstatus = Json.decodeFromString<MottaksstatusResponse>(body)
                     logger.info { "Logger mottaksresponse: $mottaksstatus, Body: ${body}" }
-                    dataSource.connection.oppdaterStatus(mottaksstatus)
+                    connection.oppdaterStatus(mottaksstatus)
+                    connection.commit()
                     logger.info { "Logger (Status oppdatert): ${it.saksnummer_ske}" }
                     "Status OK: ${response.bodyAsText()}"
                 } catch (e: Exception) {
@@ -140,7 +143,6 @@ class SkeService(
             "Status ok: ${response.status.value}, ${response.bodyAsText()}"
         }
         logger.info { "Loger status: ferdig  (antall $antall, feilet: $feil) commit og closer connectin" }
-        connection.commit()
         connection.close()
         val r = result + "Antall behandlet  $antall, Antall feilet: $feil"
         return r
