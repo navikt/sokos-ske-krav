@@ -1,2 +1,2 @@
 update "krav"
-set kravtype="NYTT_KRAV";
+set kravtype='NYTT_KRAV';
