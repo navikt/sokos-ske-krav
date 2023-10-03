@@ -69,7 +69,7 @@ class SkeClient(
 
     private suspend fun doPut(path: String, body: String): HttpResponse {
         val token = tokenProvider.hentAccessToken()
-        println("doPut: $body")
+        logger.info { "doPut: $body"}
         val response = client.put("$skeEndpoint$path") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
