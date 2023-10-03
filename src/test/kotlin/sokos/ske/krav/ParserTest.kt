@@ -3,35 +3,13 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import sokos.ske.krav.navmodels.FirstLine
 import sokos.ske.krav.navmodels.LastLine
-import sokos.ske.krav.readFileFromFS
 import sokos.ske.krav.service.*
+import java.io.File
+import java.net.URI
 
 internal class ReadFileTest : FunSpec({
 
-    val liste = readFileFromFS("101.txt".asResource())
-
-    test("lesinnHeleFila") {
-        println("101.txt".asResource())
-        println("Antall i lista ${liste.size}")
-        println("Første linje: ${liste.first()}")
-        liste.forEach { println(it) }
-        println("Siste linje: ${liste.last()}")
-    }
-
-    test("Kun detail lines"){
-        println(liste[1])
-        println(liste[liste.size-1])
-        liste.subList(1, liste.size-1).forEach {
-            val dl = parseFRtoDataDetailLineClass(it)
-            println("org: $it")
-            println("ny:  ${parseDetailLinetoFRData(dl)}")
-            println(lagOpprettKravRequest(dl))
-        }
-
-    }
-
-
-
+    val liste = readFileFromFS("fil1.txt".asResource())
 
 
     test("lesInnStartLinjeTilclass") {
@@ -40,28 +18,15 @@ internal class ReadFileTest : FunSpec({
             sender = "OB04"
         )
         val startlinje: FirstLine = parseFRtoDataFirsLineClass(liste.first())
-        println(startlinje)
         startlinje.toString() shouldBe expected.toString()
-
-    }
-
-
-    test("lesInnDetailLinjerTilClass") {
-        liste.subList(1, liste.lastIndex).forEach {
-            println(it)
-            println(parseFRtoDataDetailLineClass(it))
-        }
     }
 
 
     test("lesInnSluttLineTilClass") {
         val sluttlinje: LastLine = parseFRtoDataLastLIneClass(liste.last()).also { println(liste.last()) }
-        println("sluttlinje antall trans linjer: ${sluttlinje.numTransactionLines}")
         withClue({ "Antall transaksjonslinjer skal være 101: ${sluttlinje.numTransactionLines}" }) {
             sluttlinje.numTransactionLines shouldBe 101
         }
-
-        println(sluttlinje)
     }
 
 
@@ -70,9 +35,13 @@ internal class ReadFileTest : FunSpec({
             val parsed = parseFRtoDataDetailLineClass(it)
             parsed.belop + parsed.belopRente
         }
-
         parseFRtoDataLastLIneClass(liste.last()).sumAllTransactionLines shouldBe sumBelopOgRenter
     }
 })
+fun readFileFromFS(file: String): List<String> {
+    val pn = URI(file)
+    pn.normalize()
+    return File(URI(file)).readLines()
+}
 
 fun String.asResource(): String = object {}.javaClass.classLoader.getResource(this)!!.toString()
