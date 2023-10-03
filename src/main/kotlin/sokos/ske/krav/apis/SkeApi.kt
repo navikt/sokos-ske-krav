@@ -24,7 +24,7 @@ fun Routing.skeApi(
         }
 
         get("testFTPSend") {
-            println("kaller ftp send")
+            logger.info { "kaller ftp send" }
             val responses = skeService.sendNyeFtpFilerTilSkatt()
 
             val okCodes = responses.filter { it.status.isSuccess() }
@@ -34,14 +34,14 @@ fun Routing.skeApi(
 
 
         get("test") {
-            println("kaller test")
+            logger.info { "API kaller test" }
             try {
                 skeService.sendNyeFtpFilerTilSkatt()
-                logger.info { "Krav sendt, returnerer reponse" }
+                logger.info { "APIKrav sendt, returnerer reponse" }
                 call.respond(HttpStatusCode.OK, "Krav sendt")
-                logger.info { "Krav sendt, oppdaterer mottaksstatus" }
+                logger.info { "APIKrav sendt, oppdaterer mottaksstatus" }
                 skeService.hentOgOppdaterMottaksStatus()
-                logger.info { "Krav sendt, har oppdatert mottaksstatus" }
+                logger.info { "APIKrav sendt, har oppdatert mottaksstatus" }
             } catch (e: Exception) {
                 call.respond(
                     HttpStatusCode.InternalServerError,
@@ -58,15 +58,15 @@ fun Routing.skeApi(
         }
         get("status") {
             println("kaller mottaksstatus")
-            logger.info { "logger:  Status Start" }
+            logger.info { "APIlogger:  Status Start" }
             try {
                 call.respond(skeService.hentOgOppdaterMottaksStatus())
-                logger.info { "Logger Status ferdig" }
+                logger.info { "APILogger Status ferdig" }
             } catch (e: Exception) {
-                logger.error { " Logger: Status feilet" }
+                logger.error { " APILogger: Status feilet" }
                 call.respond(
                     HttpStatusCode.InternalServerError,
-                    "Sorry feilet: ${e.message}, \n" +
+                    "APISorry feilet: ${e.message}, \n" +
                             "clientID = ${maskinPortenProperties.clientId} \n " +
                             "wellKnownUrl= ${maskinPortenProperties.authorityEndpoint} \n " +
                             "jwk_kid= ${maskinPortenProperties.rsaKey} \n " +
@@ -78,13 +78,16 @@ fun Routing.skeApi(
             }
         }
         get("validering") {
-            println("kaller Valideringsfeil")
+            logger.info("API kaller Valideringsfeil")
             try {
-                call.respond(skeService.hentValideringsfeil())
+                val a = skeService.hentValideringsfeil()
+                if (a.isEmpty()) call.respond("ingen valideringsfeil funnet")
+                else call.respond(a)
             } catch (e: Exception) {
+                logger.error { "APIlogger: validering feilet" }
                 call.respond(
                     HttpStatusCode.InternalServerError,
-                    "Sorry feilet: ${e.message}, \n" +
+                    "Sorry validering feilet: ${e.message}, \n" +
                             "clientID = ${maskinPortenProperties.clientId} \n " +
                             "wellKnownUrl= ${maskinPortenProperties.authorityEndpoint} \n " +
                             "jwk_kid= ${maskinPortenProperties.rsaKey} \n " +

@@ -8,7 +8,6 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.database.Repository.hentAlleKravData
 import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
 import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
 import sokos.ske.krav.database.Repository.lagreNyttKrav
@@ -65,10 +64,8 @@ class SkeService(
                     else -> skeClient.opprettKrav(lagOpprettKravRequest(it))
                 }
 
-                println("post er ok")
                 if (response.status.isSuccess()) {
                     if (it.erNyttKrav()) {
-                        println("Nytt Krav")
                         val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
                         connection.lagreNyttKrav(
                             kravident.kravidentifikator,
@@ -77,15 +74,9 @@ class SkeService(
                             it
                         )
                         connection.commit()
-                        println(
-                            "HentKravdata: ${
-                                connection.hentAlleKravData().map { "\n${it.saksnummer_ske}, ${it.status}" }
-                            }"
-                        )
                     }
-                } else {  //legg object i feilliste
-                    println("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}") //logge request?
-                    logger.info("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}") //logge request?
+                } else {
+                    logger.error("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}")
                 }
                 it to response
             }
@@ -136,7 +127,6 @@ class SkeService(
                     feil += 1
                     logger.error { "Logger Exception: ${e.message}" }
                     throw e
-                } finally {
                 }
             }
             logger.info { "Logger (Status ferdig): ${it.saksnummer_ske}" }

@@ -89,7 +89,7 @@ object Repository {
     fun Connection.lagreNyttKrav(skeid: String, request: String, filLinje: String, detailLinje: DetailLine) {
         try {
             val now = LocalDateTime.now()
-            println("Lagrer tildb: $skeid $now, $filLinje $request")
+            println("Lagrer ny tildb: $skeid $now, $filLinje $request")
             prepareStatement(
                 """
                 insert into krav (
@@ -111,7 +111,6 @@ object Repository {
                 param(now),
                 param(now)
             ).execute()
-            println("Committer $skeid")
             commit()
             println("lagring av $skeid OK")
         } catch (e: Exception) {
