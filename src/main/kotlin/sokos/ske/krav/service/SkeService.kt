@@ -21,7 +21,7 @@ import kotlin.math.roundToLong
 
 class SkeService(
     private val skeClient: SkeClient,
-    private val ftpService: FtpService = FtpService().apply { connect(fileNames = listOf("fil1.txt")) }
+    private val ftpService: FtpService = FtpService().apply { connect(fileNames = listOf("fil1.txt", "fil2.txt")) }
 ) {
     private val logger = KotlinLogging.logger {}
     private val dataSource: PostgresDataSource = PostgresDataSource()
@@ -56,7 +56,7 @@ class SkeService(
         val connection = dataSource.connection
 
         val responses = files.map { file ->
-            val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.subList(0, 1).map {
+            val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.map {
 
                 val response = when {
                     it.erStopp() -> skeClient.stoppKrav(lagStoppKravRequest(it))
