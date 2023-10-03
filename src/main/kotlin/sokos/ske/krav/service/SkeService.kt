@@ -50,13 +50,14 @@ class SkeService(
         }
     }
 
-    suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
+    suspend fun sendNyeFtpFilerTilSkatt(antall: Int = 1): List<HttpResponse> {
         println("Starter service")
         val files = ftpService.getFiles(::fileValidator)
         val connection = dataSource.connection
+        val ant =  if (antall == 0) 1 else antall
 
         val responses = files.map { file ->
-            val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.map {
+            val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.subList(0, ant).map {
 
                 val response = when {
                     it.erStopp() -> skeClient.stoppKrav(lagStoppKravRequest(it))
