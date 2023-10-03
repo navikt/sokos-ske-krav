@@ -33,10 +33,10 @@ fun Routing.skeApi(
         }
 
 
-        get("test") {
+        get("test/{ant}") {
             logger.info { "API kaller test" }
             try {
-                skeService.sendNyeFtpFilerTilSkatt()
+                skeService.sendNyeFtpFilerTilSkatt(call.parameters["ant"]!!.toInt())
                 logger.info { "APIKrav sendt, returnerer reponse" }
                 call.respond(HttpStatusCode.OK, "Krav sendt")
                 logger.info { "APIKrav sendt, oppdaterer mottaksstatus" }
