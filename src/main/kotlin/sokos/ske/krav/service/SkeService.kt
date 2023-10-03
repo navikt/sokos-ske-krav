@@ -81,13 +81,13 @@ class SkeService(
                 }
                 it to response
             }
-            connection.close()
 
             val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess() }
             val failedLines = httpResponseFailed.map { FailedLine(it.first, it.second.status, it.second.bodyAsText()) }
             handleAnyFailedLines(failedLines, file)
             svar
         }
+        connection.close()
 
         //handleSentFiles(responses)
 
