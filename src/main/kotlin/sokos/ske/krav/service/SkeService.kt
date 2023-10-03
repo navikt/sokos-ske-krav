@@ -77,7 +77,7 @@ class SkeService(
                         )
                         println(
                             "HentKravdata: ${
-                                dataSource.connection.hentAlleKravData().map { "\n${it.saksnummer_ske}" }
+                                dataSource.connection.hentAlleKravData().map { "\n${it.saksnummer_ske}, ${it.status}" }
                             }"
                         )
                     }
@@ -87,6 +87,7 @@ class SkeService(
                 }
                 it to response
             }
+            dataSource.connection.close()
 
             val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess() }
             val failedLines = httpResponseFailed.map { FailedLine(it.first, it.second.status, it.second.bodyAsText()) }
@@ -132,6 +133,7 @@ class SkeService(
                     feil += 1
                     logger.error { "Logger Exception: ${e.message}" }
                     throw e
+                } finally {
                 }
             }
             logger.info { "Logger (Status ferdig): ${it.saksnummer_ske}" }

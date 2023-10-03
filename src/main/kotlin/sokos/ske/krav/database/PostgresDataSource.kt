@@ -17,6 +17,7 @@ class PostgresDataSource(private val postgresConfig: PropertiesConfig.PostgresCo
     private val adminRole = if (isLocal()) postgresConfig.username else "${postgresConfig.name}-admin"
     private val userRole = "${postgresConfig.name}-user"
     val connection: Connection get() = dataSource.connection.apply { autoCommit = false }
+
     fun close() = dataSource.close()
 
     init {

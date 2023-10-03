@@ -8,13 +8,14 @@ import mu.KotlinLogging
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.service.SkeService
 
-private val logger = KotlinLogging.logger {}
 
 fun Routing.skeApi(
     skeService: SkeService,
     maskinPortenProperties: PropertiesConfig.MaskinportenClientConfig = PropertiesConfig.MaskinportenClientConfig(),
     skeProperties: PropertiesConfig.SKEConfig = PropertiesConfig.SKEConfig()
 ) {
+    val logger = KotlinLogging.logger {}
+
 
     route("krav") {
         get("testresp") {
