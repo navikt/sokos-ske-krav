@@ -10,7 +10,7 @@ import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.Directories
-import sokos.ske.krav.service.FtpService
+import sokos.ske.krav.service.FakeFtpService
 import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.util.DatabaseTestUtils
 
@@ -29,8 +29,8 @@ internal class IntegrationTest: FunSpec ({
     test("Test insert"){
         val datasource = DatabaseTestUtils.getDataSource("initEmptyDB.sql", false)
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
-        val ftpService = FtpService()
-        ftpService.connect(Directories.OUTBOUND, listOf("fil1.txt"))
+        val fakeFtpService = FakeFtpService()
+        fakeFtpService.connect(Directories.OUTBOUND, listOf("fil1.txt"))
 
         val mockEngineOK = MockEngine {
             respond(
@@ -43,7 +43,7 @@ internal class IntegrationTest: FunSpec ({
             expectSuccess = false
         }
         val clientSendKrav = SkeClient(skeEndpoint = "", client = httpClientSendKrav, tokenProvider = tokenProvider)
-        val serviceSendKrav = SkeService(clientSendKrav, datasource, ftpService)
+        val serviceSendKrav = SkeService(clientSendKrav, datasource, fakeFtpService)
 
         serviceSendKrav.sendNyeFtpFilerTilSkatt(15)
 
@@ -76,13 +76,13 @@ internal class IntegrationTest: FunSpec ({
 
 
         val clientMottaksstatus= SkeClient(skeEndpoint = "", client = httpClientMottaksstatus, tokenProvider = tokenProvider)
-        val serviceMottaksstatus = SkeService(clientMottaksstatus, datasource, ftpService)
+        val serviceMottaksstatus = SkeService(clientMottaksstatus, datasource, fakeFtpService)
 
         val kravdata = serviceMottaksstatus.hentOgOppdaterMottaksStatus()
 
         println(kravdata)
         httpClientMottaksstatus.close()
-        ftpService.close()
+        fakeFtpService.close()
 
         datasource.close()
     }
@@ -90,8 +90,8 @@ internal class IntegrationTest: FunSpec ({
     test("foo"){
         val datasource = DatabaseTestUtils.getDataSource("initEmptyDB.sql", false)
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
-        val ftpService = FtpService()
-        ftpService.connect(Directories.OUTBOUND, listOf("fil1.txt"))
+        val fakeFtpService = FakeFtpService()
+        fakeFtpService.connect(Directories.OUTBOUND, listOf("fil1.txt"))
 
         val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
         val client = HttpClient(MockEngine) {
@@ -113,7 +113,7 @@ internal class IntegrationTest: FunSpec ({
         }
 
         val clientSendKrav = SkeClient(skeEndpoint = "", client = client, tokenProvider = tokenProvider)
-        val service = SkeService(clientSendKrav, datasource, ftpService)
+        val service = SkeService(clientSendKrav, datasource, fakeFtpService)
 
         service.sendNyeFtpFilerTilSkatt(15)
         val kravdata =  service.hentOgOppdaterMottaksStatus()
@@ -121,7 +121,7 @@ internal class IntegrationTest: FunSpec ({
 
         client.close()
 
-        ftpService.close()
+        fakeFtpService.close()
         datasource.close()
 
     }

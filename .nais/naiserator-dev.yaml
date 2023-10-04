@@ -43,19 +43,17 @@ spec:
     enabled: true
   vault:
     enabled: true
+    paths:
+      - kvPath: kv/preprod/fss/sokos-ske-krav/okonomi
+        mountPath: /secrets/okonomi
+    sidecar: true
   env:
     - name: SKE_REST_URL
       value: https://api-test.sits.no/api/innkreving/innkrevingsoppdrag/v1/
     - name: FTP_SERVER
-      value: "localhost"
-    - name: FTP_USERNAME
-      value: "ftpuser"
-    - name: FTP_PASSWORD
-      value: "123"
-    - name: FTP_DIRECTORY
-      value: "/"
+      value: b27drvl011.preprod.local
     - name: FTP_PORT
-      value: "0"
+      value: "22"
     - name: POSTGRES_HOST
       value: b27dbvl030.preprod.local
     - name: POSTGRES_PORT

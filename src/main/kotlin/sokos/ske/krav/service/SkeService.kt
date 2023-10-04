@@ -25,7 +25,7 @@ import kotlin.math.roundToLong
 class SkeService(
     private val skeClient: SkeClient,
     private val dataSource: PostgresDataSource = PostgresDataSource(),
-    private val ftpService: FtpService = FtpService().apply { connect(fileNames = listOf("fil1.txt", "fil2.txt")) },
+    private val fakeFtpService: FakeFtpService = FakeFtpService().apply { connect(fileNames = listOf("fil1.txt", "fil2.txt")) },
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -40,7 +40,7 @@ class SkeService(
 
 
     suspend fun testRepo(){
-        val files = ftpService.getFiles(::fileValidator)
+        val files = fakeFtpService.getFiles(::fileValidator)
 
         files.map { file ->
             file.detailLines.subList(0, 10).forEach{ line ->
@@ -62,7 +62,7 @@ class SkeService(
         println("HentKravdata: ${kravdata}")
     }
     suspend fun testResponse() {
-        val files = ftpService.getFiles(::fileValidator)
+        val files = fakeFtpService.getFiles(::fileValidator)
         files.forEach { file ->
             file.detailLines.subList(0, 10).forEach {
                 try {
@@ -78,7 +78,7 @@ class SkeService(
 
     suspend fun sendNyeFtpFilerTilSkatt(antall: Int = 1): List<HttpResponse> {
         println("Starter service")
-        val files = ftpService.getFiles(::fileValidator)
+        val files = fakeFtpService.getFiles(::fileValidator)
         val connection = dataSource.connection
         val ant =  if (antall == 0) 1 else antall
 
@@ -126,7 +126,7 @@ class SkeService(
         results.forEach { entry ->
             val moveTo: Directories =
                 if (entry.value.any { it.status.isError() }) Directories.FAILED else Directories.SENDT
-            ftpService.moveFile(entry.key.name, Directories.OUTBOUND, moveTo)
+            fakeFtpService.moveFile(entry.key.name, Directories.OUTBOUND, moveTo)
         }
     }
 
@@ -193,7 +193,7 @@ class SkeService(
             val failedContent: List<String> = failedLines.map {
                 parseDetailLinetoFRData(it.detailLine) + it.httpStatusCode.value
             }
-            ftpService.createFile("${file.name}-FailedLines", failedContent, Directories.FAILED)
+            fakeFtpService.createFile("${file.name}-FailedLines", failedContent, Directories.FAILED)
             //opprette sak i gosys elns
         }
     }

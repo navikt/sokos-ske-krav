@@ -59,7 +59,6 @@ dependencies {
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("no.nav:vault-jdbc:1.3.10")
 
-
     // Serialization
     implementation ("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation ("io.ktor:ktor-serialization-kotlinx-xml:$ktorVersion")
@@ -75,6 +74,9 @@ dependencies {
 
     // FTP
     implementation ("commons-net:commons-net:3.9.0")
+    implementation("com.jcraft:jsch:0.1.55")
+
+
 
     // Config
     implementation("com.natpryce:konfig:$natpryceVersion")
@@ -92,6 +94,7 @@ dependencies {
     implementation ("net.logstash.logback:logstash-logback-encoder:$logstash_version")
 
     implementation ("io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion")
+
 
     // Test
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
