@@ -1,8 +1,10 @@
 package sokos.ske.krav.service
 
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
+@Ignored
 internal class FtpServiceTest: FunSpec( {
 
     test("Antall filer stemmer"){

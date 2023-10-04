@@ -47,7 +47,7 @@ class FakeFtpService(private val client: FTPClient = FTPClient()) {
         while(!fakeFtpServer.isStarted) { Thread.sleep(100)}
        // client.init(PropertiesConfig.FtpConfig(port = fakeFtpServer.serverControlPort))
 
-        client.connect("localhost", 0)
+        client.connect("localhost", fakeFtpServer.serverControlPort)
         client.login("username","password",)
         client.enterLocalPassiveMode()
         client.setFileType(FTP.LOCAL_FILE_TYPE)
