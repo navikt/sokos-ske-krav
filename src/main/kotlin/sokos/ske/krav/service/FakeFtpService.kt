@@ -28,7 +28,7 @@ data class FtpFil(
     val detailLines: List<DetailLine>
 )
 class FakeFtpService(private val client: FTPClient = FTPClient()) {
-    private val config = PropertiesConfig.FtpConfig()
+ //   private val config = PropertiesConfig.FtpConfig()
     private val fakeFtpServer = FakeFtpServer()
     private val logger = KotlinLogging.logger {}
 
