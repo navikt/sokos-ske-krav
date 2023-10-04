@@ -50,6 +50,8 @@ spec:
       value: "b27drvl011.preprod.local"
     - name: FTP_PORT
       value: "22"
+    - name: FTP_DIRECTORY
+      value: "/"
     - name: POSTGRES_HOST
       value: b27dbvl030.preprod.local
     - name: POSTGRES_PORT
