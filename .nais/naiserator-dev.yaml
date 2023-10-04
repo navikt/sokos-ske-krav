@@ -31,7 +31,7 @@ spec:
     timeout: 5
   webproxy: true
   envFrom:
-    - secret: ftp-credentials
+    - secret: ske-sftp-creds
   ingresses:
     - https://sokos-ske-krav.intern.dev.nav.no
   maskinporten:
@@ -60,5 +60,3 @@ spec:
       value: postgresql/preprod-fss/
     - name: LOG_APPENDER
       value: CONSOLE
-
-
