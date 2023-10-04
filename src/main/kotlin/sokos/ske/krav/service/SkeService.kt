@@ -1,6 +1,7 @@
 package sokos.ske.krav.service
 
 
+import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -20,6 +21,8 @@ import sokos.ske.krav.navmodels.FailedLine
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
 import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
+import sokos.ske.krav.skemodels.responses.SokosValideringsfeil
+import sokos.ske.krav.skemodels.responses.ValideringsfeilResponse
 import kotlin.math.roundToLong
 
 const val NYTT_KRAV = "NYTT_KRAV"
@@ -182,6 +185,14 @@ class SkeService(
             logger.info { "Logger (Validering hentet): ${it.saksnummer_ske}" }
             if (response.status.isSuccess()) {
                 logger.info { "Logger (validering success): ${it.saksnummer_ske}" }
+                val valideringsfeilResponse = SokosValideringsfeil(
+                    kravidSke = it.saksnummer_ske,
+                    valideringsfeilResponse = Json.decodeFromJsonElement(
+                        ValideringsfeilResponse.serializer(),
+                        response.body()
+                    )
+                )
+                logger.info { "Serialisering gikk fint: ${valideringsfeilResponse.kravidSke}, ${valideringsfeilResponse.valideringsfeilResponse}" }
 
                 //lag ftpfil og  kall handleAnyFailedFiles
                 "Status OK: ${response.bodyAsText()}"
