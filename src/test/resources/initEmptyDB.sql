@@ -15,7 +15,7 @@ create table "krav"
     saksnummer_ske           varchar(40),
     fildata_nav              varchar(250),
     jsondata_ske             varchar(500),
-    status                   varchar(20),
+    status                   varchar(100),
     dato_sendt               timestamp,
     dato_siste_status        timestamp
 );

@@ -53,18 +53,7 @@ object Repository {
                 .withParameters(
                     param(STATUS_RESKONTROFORT),
                     param(STATUS_VALIDERINGSFEIL)
-                ).executeQuery().toList {
-                    KravTable(
-                        krav_id = getColumn("krav_id"),
-                        saksnummer_nav = getColumn("saksnummer_nav"),
-                        saksnummer_ske = getColumn("saksnummer_ske"),
-                        fildata_nav = getColumn("fildata_nav"),
-                        jsondata_ske = getColumn("jsondata_ske"),
-                        status = getColumn("status"),
-                        dato_sendt = getColumn("dato_sendt"),
-                        dato_siste_status = getColumn("dato_siste_status")
-                    )
-                }
+                ).executeQuery().toKrav()
         } catch (e: Exception) {
             logger.error { "exception i henting (status) av data: ${e.message}" }
             listOf()
