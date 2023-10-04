@@ -22,7 +22,10 @@ fun Routing.skeApi(
             skeService.testResponse()
             call.respond(HttpStatusCode.OK)
         }
-
+        get("testrepo") {
+            skeService.testRepo()
+            call.respond(HttpStatusCode.OK, "krav sendt")
+        }
         get("testFTPSend") {
             logger.info { "kaller ftp send" }
             val responses = skeService.sendNyeFtpFilerTilSkatt()

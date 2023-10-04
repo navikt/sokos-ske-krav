@@ -3,6 +3,7 @@ package sokos.ske.krav.database
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
+import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.RepositoryExtensions.toList
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.KravTable
@@ -18,7 +19,14 @@ const val STATUS_UNDER_BEHANDLING = "MOTTATT_UNDER_BEHANDLING"
 object Repository {
     private val logger = KotlinLogging.logger {}
 
-
+    fun Connection.hentKravData(): List<KravTable> {
+        return try {
+            prepareStatement("""select * from krav""").executeQuery().toKrav()
+        } catch (e: Exception) {
+            logger.error("exception i henting av data: ${e.message}")
+            listOf()
+        }
+    }
     fun Connection.hentAlleKravData(): List<KravTable> {
         return try {
             prepareStatement("""select * from krav""").executeQuery().toList {

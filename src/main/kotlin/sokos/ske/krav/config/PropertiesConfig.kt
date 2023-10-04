@@ -48,11 +48,14 @@ private val defaultProperties = ConfigurationMap(
             ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding ConfigurationProperties.fromOptionalFile(File("defaults.properties")) overriding localDevProperties overriding defaultProperties
     }
 
-
     enum class Profile {
         LOCAL, DEV, PROD
     }
     operator fun get(key: String): String = config[Key(key, stringType)]
+    data class Configuration(
+        val naisAppName: String = get("NAIS_APP_NAME"),
+        val profile: Profile = Profile.valueOf(this["APPLICATION_PROFILE"]),
+    )
 
     data class FtpConfig(
         val server:String = get("FTP_SERVER"),

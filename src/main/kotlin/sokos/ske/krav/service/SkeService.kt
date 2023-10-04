@@ -3,6 +3,7 @@ package sokos.ske.krav.service
 
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
@@ -10,8 +11,10 @@ import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
 import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
+import sokos.ske.krav.database.Repository.hentKravData
 import sokos.ske.krav.database.Repository.lagreNyttKrav
 import sokos.ske.krav.database.Repository.oppdaterStatus
+import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.navmodels.FailedLine
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
@@ -21,20 +24,43 @@ import kotlin.math.roundToLong
 
 class SkeService(
     private val skeClient: SkeClient,
-    private val ftpService: FtpService = FtpService().apply { connect(fileNames = listOf("fil1.txt", "fil2.txt")) }
+    private val dataSource: PostgresDataSource = PostgresDataSource(),
+    private val ftpService: FtpService = FtpService().apply { connect(fileNames = listOf("fil1.txt", "fil2.txt")) },
 ) {
     private val logger = KotlinLogging.logger {}
-    private val dataSource: PostgresDataSource = PostgresDataSource()
 
     private inline fun <reified T> toJson(serializer: SerializationStrategy<T>, body: T) =
         builder.encodeToJsonElement(serializer, body).toString()
 
+    @OptIn(ExperimentalSerializationApi::class)
     private val builder = Json {
         encodeDefaults = true
         explicitNulls = false
     }
 
 
+    suspend fun testRepo(){
+        val files = ftpService.getFiles(::fileValidator)
+
+        files.map { file ->
+            file.detailLines.subList(0, 10).forEach{ line ->
+                val response = skeClient.opprettKrav(lagOpprettKravRequest(line))
+                val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
+                dataSource.connection.useAndHandleErrors { con ->
+                    con.lagreNyttKrav(
+                        kravident.kravidentifikator,
+                        toJson(OpprettInnkrevingsoppdragRequest.serializer(), lagOpprettKravRequest(line)),
+                        parseDetailLinetoFRData(line),
+                        line
+                    )
+                    con.commit()
+                }
+
+            }
+        }
+        val kravdata =  dataSource.connection.useAndHandleErrors { con ->  con.hentKravData() }
+        println("HentKravdata: ${kravdata}")
+    }
     suspend fun testResponse() {
         val files = ftpService.getFiles(::fileValidator)
         files.forEach { file ->

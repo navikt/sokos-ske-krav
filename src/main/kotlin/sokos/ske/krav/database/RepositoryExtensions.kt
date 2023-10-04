@@ -2,6 +2,7 @@ package sokos.ske.krav.database
 
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.Parameter
+import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
 import java.math.BigDecimal
 import java.sql.*
@@ -83,6 +84,18 @@ object RepositoryExtensions {
 
     fun PreparedStatement.withParameters(vararg parameters: Parameter?) = apply {
         var index = 1; parameters.forEach { it?.addToPreparedStatement(this, index++) }
+    }
+    fun ResultSet.toKrav() = toList {
+        KravTable(
+            krav_id = getColumn("krav_id"),
+            saksnummer_nav = getColumn("saksnummer_nav"),
+            saksnummer_ske = getColumn("saksnummer_ske"),
+            fildata_nav = getColumn("fildata_nav"),
+            jsondata_ske = getColumn("jsondata_ske"),
+            status = getColumn("status"),
+            dato_sendt = getColumn("dato_sendt"),
+            dato_siste_status = getColumn("dato_siste_status")
+        )
     }
 
     fun <T> ResultSet.toList(mapper: ResultSet.() -> T) = mutableListOf<T>().apply {

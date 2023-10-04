@@ -7,11 +7,11 @@ import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
+import sokos.ske.krav.database.PostgresDataSource
 
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
 
@@ -19,9 +19,9 @@ import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
 @Ignored
 internal class SkeServiceTest: FunSpec ({
 
-    val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
-
     test("Test OK filer"){
+        val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
+        val dataSource = mockk<PostgresDataSource>(relaxed = true)
         val ftpService = FtpService()
         ftpService.connect(Directories.OUTBOUND, listOf("fil1.txt"))
         val mockEngineOK = MockEngine {
@@ -33,10 +33,9 @@ internal class SkeServiceTest: FunSpec ({
         }
         val httpClient = HttpClient(mockEngineOK) {
             expectSuccess = false
-            install(Logging){ level = LogLevel.INFO}
         }
         val client = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-        val service = SkeService(client, ftpService)
+        val service = SkeService(client,dataSource, ftpService)
         val responses = service.sendNyeFtpFilerTilSkatt()
         responses.map { it.status shouldBeIn listOf(HttpStatusCode.OK, HttpStatusCode.Created) }
         ftpService.close()
@@ -44,6 +43,8 @@ internal class SkeServiceTest: FunSpec ({
     }
 
     test("Test feilede filer"){
+        val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
+        val dataSource = mockk<PostgresDataSource>(relaxed = true)
         val ftpService = FtpService()
         ftpService.connect(Directories.OUTBOUND, listOf("fil1.txt"))
         val mockEngineFail = MockEngine {
@@ -55,10 +56,9 @@ internal class SkeServiceTest: FunSpec ({
         }
         val httpClient = HttpClient(mockEngineFail) {
             expectSuccess = false
-            install(Logging){ level = LogLevel.INFO}
         }
         val client = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-        val service = SkeService(client, ftpService)
+        val service = SkeService(client,dataSource, ftpService)
         val responses = service.sendNyeFtpFilerTilSkatt()
         responses.map { it.status shouldNotBeIn listOf(HttpStatusCode.OK, HttpStatusCode.Created) }
 
