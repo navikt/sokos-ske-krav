@@ -34,8 +34,8 @@ class FakeFtpService(private val client: FTPClient = FTPClient()) {
 
     fun connect(directory: Directories = Directories.OUTBOUND, fileNames: List<String> = listOf("fil1.txt", "fil2.txt")): FTPClient {
         println("FTP Connecting")
-        fakeFtpServer.serverControlPort = config.port
-        fakeFtpServer.addUserAccount(UserAccount(config.username, config.password, config.homeDirectory))
+        fakeFtpServer.serverControlPort = 0
+        fakeFtpServer.addUserAccount(UserAccount("username", "password", "/"))
         fakeFtpServer.fileSystem = UnixFakeFileSystem().apply {
             add(DirectoryEntry(directory.value))
             fileNames.forEach{fileName ->
