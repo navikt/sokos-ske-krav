@@ -103,7 +103,7 @@ fun FTPClient.init(config: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConf
     login(config.username, config.password)
     enterLocalPassiveMode()
     setFileType(FTP.LOCAL_FILE_TYPE)
-    changeWorkingDirectory(config.homeDirectory)
+   // changeWorkingDirectory(config.homeDirectory)
 }
 
 fun FTPClient.close(){
