@@ -16,7 +16,6 @@ import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
 
 
-@Ignored
 internal class SkeServiceTest: FunSpec ({
 
     test("Test OK filer"){
