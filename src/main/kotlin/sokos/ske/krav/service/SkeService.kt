@@ -191,7 +191,7 @@ class SkeService(
             logger.info { "Logger (Validering hentet): ${it.saksnummer_ske}" }
             if (response.status.isSuccess()) {
                 logger.info { "Logger (validering success): ${it.saksnummer_ske}" }
-                val resObj = response.bodyAsText()ª
+                val resObj = response.bodyAsText()
 
                 logger.info { "ValideringsObj: $resObj" }
 
