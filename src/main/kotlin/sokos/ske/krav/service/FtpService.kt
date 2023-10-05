@@ -17,7 +17,6 @@ class FtpService()  {
 
     private val securelogger = KotlinLogging.logger ("secureLogger")
     fun connect(): ChannelSftp {
-        //val secureChannel = JSch()
         JSch.setLogger(Slf4jLogger())
 
         val secureChannel= JSch().apply { addIdentity(config.privKey, config.keyPass) }
@@ -26,15 +25,11 @@ class FtpService()  {
             setConfig("PreferredAuthentications", "publickey")
         }
 
-
-        //session.setConfig("PreferredAuthentications", "publickey")
-      //  session.setConfig("StrictHostKeyChecking", "no")
         session.connect()
 
-
         val sftpChannel: ChannelSftp = session.openChannel("sftp") as ChannelSftp
-        sftpChannel.connect()
 
+        sftpChannel.connect()
 
         return sftpChannel
     }
