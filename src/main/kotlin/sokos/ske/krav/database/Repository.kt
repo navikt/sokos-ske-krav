@@ -1,6 +1,5 @@
 package sokos.ske.krav.database
 
-import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.param
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
@@ -9,7 +8,6 @@ import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
 import sokos.ske.krav.skemodels.responses.SokosValideringsfeil
-import sokos.ske.krav.skemodels.responses.ValideringsfeilResponse
 import java.sql.Connection
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -57,7 +55,13 @@ object Repository {
         }
     }
 
-    fun Connection.lagreNyttKrav(skeid: String, request: String, filLinje: String, detailLinje: DetailLine, kravtype: String) {
+    fun Connection.lagreNyttKrav(
+        skeid: String,
+        request: String,
+        filLinje: String,
+        detailLinje: DetailLine,
+        kravtype: String
+    ) {
         try {
             val now = LocalDateTime.now()
             println("Lagrer ny tildb: $skeid $now, $filLinje $request")
@@ -111,20 +115,24 @@ object Repository {
 
     fun Connection.lagreValideringsfeil(sokosValideringsfeil: SokosValideringsfeil) {
         logger.info { "logger repos: Lagrer valideringsfeil: ${sokosValideringsfeil.kravidSke}" }
-        prepareStatement(
-            """
+        sokosValideringsfeil.valideringsfeilResponse.valideringsfeil.forEach {
+            prepareStatement(
+                """
                 insert into validering (
                     saksnummer_ske,
-                    jsondata_ske,
+                    error,
+                    melding,
                     dato
                 ) 
-                values (?, ?, ?)
-            """.trimIndent().also { logger.info { it }  }
-        ).withParameters(
-            param(sokosValideringsfeil.kravidSke),
-            param(Json.encodeToString(ValideringsfeilResponse.serializer(), sokosValideringsfeil.valideringsfeilResponse)),
-            param(LocalDate.now())
-        ).execute()
+                values (?, ?, ?, ?)
+            """.trimIndent().also { logger.info { it } }
+            ).withParameters(
+                param(sokosValideringsfeil.kravidSke),
+                param(it.error),
+                param(it.message),
+                param(LocalDate.now())
+            ).execute()
+        }
         commit()
     }
 
