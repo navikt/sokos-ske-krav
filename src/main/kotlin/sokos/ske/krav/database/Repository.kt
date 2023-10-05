@@ -40,6 +40,7 @@ object Repository {
         }
     }
 
+
     fun Connection.hentAlleKravMedValideringsfeil(): List<KravTable> {
         return try {
             prepareStatement("""select * from krav where status = ?""")
