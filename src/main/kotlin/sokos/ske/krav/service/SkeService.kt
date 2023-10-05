@@ -191,6 +191,10 @@ class SkeService(
             logger.info { "Logger (Validering hentet): ${it.saksnummer_ske}" }
             if (response.status.isSuccess()) {
                 logger.info { "Logger (validering success): ${it.saksnummer_ske}" }
+                val resObj = response.bodyAsText()ª
+
+                logger.info { "ValideringsObj: $resObj" }
+
                 val valideringsfeilResponse = SokosValideringsfeil(
                     kravidSke = it.saksnummer_ske,
                     valideringsfeilResponse = Json.decodeFromJsonElement(
