@@ -4,6 +4,7 @@ import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSch
 import sokos.ske.krav.config.PropertiesConfig
 import java.io.BufferedReader
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
@@ -13,6 +14,7 @@ class FtpService()  {
     fun connect(): ChannelSftp {
         val secureChannel = JSch()
         secureChannel.addIdentity(config.username, config.password.toByteArray(), null, null)
+        secureChannel.setKnownHosts(ByteArrayInputStream(config.hostKey.toByteArray(StandardCharsets.UTF_8)))
         val session = secureChannel.getSession(config.username, config.server, config.port)
 
         try{

@@ -14,7 +14,7 @@ POSTGRES_USERNAME=$(vault kv get -field=username postgresql/preprod-fss/creds/so
 POSTGRES_PASSWORD=$(vault kv get -field=password postgresql/preprod-fss/creds/sokos-skd-krav-user)
 
 # Get AZURE system variables
-envValue=$(kubectl exec -it $(kubectl get pods | grep sokos-ske-krav | cut -f1 -d' ') -c sokos-ske-krav -- env | egrep "^MASKINPORTEN|^SKE_REST_URL|^FTP")
+envValue=$(kubectl exec -it $(kubectl get pods | grep sokos-ske-krav | cut -f1 -d' ') -c sokos-ske-krav -- env | egrep "^MASKINPORTEN|^SKE_REST_URL|^SKE_SFTP_HOST_KEY|^SKE_SFTP_USERNAME" )
 
 # Set AZURE as local environment variables
 rm -f defaults.properties

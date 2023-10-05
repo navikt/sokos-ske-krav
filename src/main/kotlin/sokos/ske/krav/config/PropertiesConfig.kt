@@ -25,7 +25,8 @@ private val defaultProperties = ConfigurationMap(
         "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
         "FTP_SERVER" to "localhost",
         "SKE_SFTP_USERNAME" to "username",
-        "SKE_SFTP_KEY" to "password",
+        "SKE_SFTP_PRIVATE_KEY" to "password",
+        "SKE_SFTP_HOST_KEY" to "hostkey",
         "FTP_DIRECTORY" to "/",
         "FTP_PORT" to "0",
         "SKE_REST_URL" to "",
@@ -60,7 +61,8 @@ private val defaultProperties = ConfigurationMap(
     data class FtpConfig(
         val server:String = get("FTP_SERVER"),
         val username:String = get("SKE_SFTP_USERNAME"),
-        val password:String = get("SKE_SFTP_KEY"),
+        val password:String = get("SKE_SFTP_PRIVATE_KEY"),
+        val hostKey:String = get("SKE_SFTP_HOST_KEY"),
       //  val homeDirectory:String = get("FTP_DIRECTORY"),
         val port:Int = get("FTP_PORT").toInt()
     )
