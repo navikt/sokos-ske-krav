@@ -1,10 +1,8 @@
 package sokos.ske.krav.database
 
 import mu.KotlinLogging
-import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
-import sokos.ske.krav.database.RepositoryExtensions.toList
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.navmodels.DetailLine
@@ -19,28 +17,10 @@ const val STATUS_UNDER_BEHANDLING = "MOTTATT_UNDER_BEHANDLING"
 object Repository {
     private val logger = KotlinLogging.logger {}
 
-    fun Connection.hentKravData(): List<KravTable> {
-        return try {
-            prepareStatement("""select * from krav""").executeQuery().toKrav()
-        } catch (e: Exception) {
-            logger.error("exception i henting av data: ${e.message}")
-            listOf()
-        }
-    }
+
     fun Connection.hentAlleKravData(): List<KravTable> {
         return try {
-            prepareStatement("""select * from krav""").executeQuery().toList {
-                KravTable(
-                    krav_id = getColumn("krav_id"),
-                    saksnummer_nav = getColumn("saksnummer_nav"),
-                    saksnummer_ske = getColumn("saksnummer_ske"),
-                    fildata_nav = getColumn("fildata_nav"),
-                    jsondata_ske = getColumn("jsondata_ske"),
-                    status = getColumn("status"),
-                    dato_sendt = kotlinx.datetime.LocalDateTime(2023, 9, 26, 0, 0, 0),
-                    dato_siste_status = kotlinx.datetime.LocalDateTime(2023, 9, 26, 0, 0, 0)
-                )
-            }
+            prepareStatement("""select * from krav""").executeQuery().toKrav()
         } catch (e: Exception) {
             logger.error("exception i henting av data: ${e.message}")
             listOf()
@@ -65,25 +45,14 @@ object Repository {
             prepareStatement("""select * from krav where status = ?""")
                 .withParameters(
                     param(STATUS_VALIDERINGSFEIL)
-                ).executeQuery().toList {
-                    KravTable(
-                        krav_id = getColumn("krav_id"),
-                        saksnummer_nav = getColumn("saksnummer_nav"),
-                        saksnummer_ske = getColumn("saksnummer_ske"),
-                        fildata_nav = getColumn("fildata_nav"),
-                        jsondata_ske = getColumn("jsondata_ske"),
-                        status = getColumn("status"),
-                        dato_sendt = getColumn("dato_sendt"),
-                        dato_siste_status = getColumn("dato_siste_status")
-                    )
-                }
+                ).executeQuery().toKrav()
         } catch (e: Exception) {
             logger.error { "exception i henting (validering) av data: ${e.message}" }
             listOf()
         }
     }
 
-    fun Connection.lagreNyttKrav(skeid: String, request: String, filLinje: String, detailLinje: DetailLine) {
+    fun Connection.lagreNyttKrav(skeid: String, request: String, filLinje: String, detailLinje: DetailLine, kravtype: String) {
         try {
             val now = LocalDateTime.now()
             println("Lagrer ny tildb: $skeid $now, $filLinje $request")
@@ -96,7 +65,8 @@ object Repository {
                 jsondata_ske, 
                 status, 
                 dato_sendt, 
-                dato_siste_status
+                dato_siste_status,
+                kravtype
                 ) values (?,?,?,?,?,?,?)
             """.trimIndent()
             ).withParameters(
@@ -106,7 +76,8 @@ object Repository {
                 param(request),
                 param("SENDT"),
                 param(now),
-                param(now)
+                param(now),
+                param(kravtype)
             ).execute()
             commit()
             println("lagring av $skeid OK")

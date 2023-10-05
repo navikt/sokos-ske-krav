@@ -12,6 +12,7 @@ data class KravTable(
     val jsondata_ske:       String,
     val status:             String,
     val dato_sendt:         LocalDateTime,
-    val dato_siste_status:  LocalDateTime
+    val dato_siste_status:  LocalDateTime,
+    val kravtype:           String
 )
 

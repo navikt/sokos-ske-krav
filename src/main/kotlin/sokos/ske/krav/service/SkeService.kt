@@ -1,6 +1,7 @@
 package sokos.ske.krav.service
 
 
+import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -9,9 +10,9 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
+import sokos.ske.krav.database.Repository.hentAlleKravData
 import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
 import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
-import sokos.ske.krav.database.Repository.hentKravData
 import sokos.ske.krav.database.Repository.lagreNyttKrav
 import sokos.ske.krav.database.Repository.oppdaterStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
@@ -20,7 +21,13 @@ import sokos.ske.krav.navmodels.FailedLine
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
 import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
+import sokos.ske.krav.skemodels.responses.SokosValideringsfeil
+import sokos.ske.krav.skemodels.responses.ValideringsfeilResponse
 import kotlin.math.roundToLong
+
+const val NYTT_KRAV = "NYTT_KRAV"
+const val ENDRE_KRAV = "ENDRE_KRAV"
+const val STOPP_KRAV = "STOPP_KRAV"
 
 class SkeService(
     private val skeClient: SkeClient,
@@ -51,14 +58,15 @@ class SkeService(
                         kravident.kravidentifikator,
                         toJson(OpprettInnkrevingsoppdragRequest.serializer(), lagOpprettKravRequest(line)),
                         parseDetailLinetoFRData(line),
-                        line
+                        line,
+                        NYTT_KRAV
                     )
                     con.commit()
                 }
 
             }
         }
-        val kravdata =  dataSource.connection.useAndHandleErrors { con ->  con.hentKravData() }
+        val kravdata =  dataSource.connection.useAndHandleErrors { con ->  con.hentAlleKravData() }
         println("HentKravdata: ${kravdata}")
     }
     suspend fun testResponse() {
@@ -80,7 +88,7 @@ class SkeService(
         println("Starter service")
         val files = fakeFtpService.getFiles(::fileValidator)
         val connection = dataSource.connection
-        val ant =  if (antall == 0) 1 else antall
+        val ant = if (antall == 0) 1 else antall
 
         val responses = files.map { file ->
             val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.subList(0, ant).map {
@@ -98,10 +106,16 @@ class SkeService(
                             kravident.kravidentifikator,
                             toJson(OpprettInnkrevingsoppdragRequest.serializer(), lagOpprettKravRequest(it)),
                             parseDetailLinetoFRData(it),
-                            it
+                            it,
+                            when {
+                                it.erStopp() -> STOPP_KRAV
+                                it.erEndring() -> ENDRE_KRAV
+                                else -> NYTT_KRAV
+                            }
                         )
                         connection.commit()
                     }
+
                 } else {
                     logger.error("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}")
                 }
@@ -172,6 +186,14 @@ class SkeService(
             logger.info { "Logger (Validering hentet): ${it.saksnummer_ske}" }
             if (response.status.isSuccess()) {
                 logger.info { "Logger (validering success): ${it.saksnummer_ske}" }
+                val valideringsfeilResponse = SokosValideringsfeil(
+                    kravidSke = it.saksnummer_ske,
+                    valideringsfeilResponse = Json.decodeFromJsonElement(
+                        ValideringsfeilResponse.serializer(),
+                        response.body()
+                    )
+                )
+                logger.info { "Serialisering gikk fint: ${valideringsfeilResponse.kravidSke}, ${valideringsfeilResponse.valideringsfeilResponse}" }
 
                 //lag ftpfil og  kall handleAnyFailedFiles
                 "Status OK: ${response.bodyAsText()}"
