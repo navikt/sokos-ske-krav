@@ -35,7 +35,6 @@ spec:
     - secret: ske-sftp-private-key
     - secret: ske-sftp-public-key
     - secret: ske-sftp-host-key
-    - secret: ske-private-key-pass
   ingresses:
     - https://sokos-ske-krav.intern.dev.nav.no
   maskinporten:
