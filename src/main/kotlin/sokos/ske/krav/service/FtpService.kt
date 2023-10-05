@@ -17,8 +17,7 @@ class FtpService()  {
 
         secureChannel.addIdentity(config.username, config.password.toByteArray(), null, null)
        // secureChannel.setKnownHosts(ByteArrayInputStream(config.hostKey.toByteArray(StandardCharsets.UTF_8)))
-        val session = secureChannel.getSession(config.username, config.server, 22)
-            logger.info { "server: ${config.server}, username: ${config.username}" }
+        val session = secureChannel.getSession(config.username, config.server, config.port)
 
             session.setConfig("PreferredAuthentications", "publickey")
             session.setConfig("StrictHostKeyChecking", "no")
