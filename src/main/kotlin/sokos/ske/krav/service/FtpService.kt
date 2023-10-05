@@ -22,11 +22,12 @@ class FtpService()  {
         val secureChannel = JSch()
         JSch.setLogger(Slf4jLogger())
         val hex =  DigestUtils("SHA3-256").digestAsHex(config.privKey);
+        securelogger.info{"hex: $hex" }
+
         secureChannel.addIdentity(config.username, config.privKey.toByteArray(), null, null)
         secureChannel.setKnownHosts(ByteArrayInputStream(config.hostKey.toByteArray()))
         val session = secureChannel.getSession(config.username, config.server, 22)
 
-        securelogger.info{"hex: $hex" }
 
         session.setConfig("PreferredAuthentications", "publickey")
         session.setConfig("StrictHostKeyChecking", "no")
