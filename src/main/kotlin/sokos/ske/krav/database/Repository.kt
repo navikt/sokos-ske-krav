@@ -68,7 +68,7 @@ object Repository {
                 dato_sendt, 
                 dato_siste_status,
                 kravtype
-                ) values (?,?,?,?,?,?,?)
+                ) values (?,?,?,?,?,?,?,?)
             """.trimIndent()
             ).withParameters(
                 param(detailLinje.saksNummer),

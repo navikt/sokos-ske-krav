@@ -149,10 +149,6 @@ class SkeService(
         }
     }
 
-    suspend fun has(): List<String> {
-        val con = dataSource.connection
-        return con.hentAlleKravSomIkkeErReskotrofort().map { it.toString() }
-    }
     suspend fun hentOgOppdaterMottaksStatus(): List<String> {
         val connection = dataSource.connection
         var antall = 0
