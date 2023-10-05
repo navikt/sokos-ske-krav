@@ -30,9 +30,11 @@ spec:
     periodSeconds: 5
     timeout: 5
   webproxy: true
+  filesFrom:
+    - secret: ske-sftp-private-key
+      mountPath: /var/run/secrets/ske-sftp-private-key
   envFrom:
     - secret: ske-sftp-username
-    - secret: ske-sftp-private-key
     - secret: ske-sftp-public-key
     - secret: ske-sftp-host-key
   ingresses:
@@ -65,3 +67,5 @@ spec:
       value: postgresql/preprod-fss/
     - name: LOG_APPENDER
       value: CONSOLE
+    - name: SFTP_PRIVATE_KEY_FILE_PATH
+      value: /var/run/secrets/ske-sftp-private-key/SKE_SFTP_PRIVATE_KEY

@@ -4,12 +4,14 @@ import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Slf4jLogger
 import mu.KotlinLogging
+import org.apache.commons.codec.digest.DigestUtils
 import sokos.ske.krav.config.PropertiesConfig
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 
 
 class FtpService()  {
@@ -23,7 +25,8 @@ class FtpService()  {
         secureChannel.addIdentity(config.username, config.privKey.toByteArray(), null, null)
         secureChannel.setKnownHosts(ByteArrayInputStream(config.hostKey.toByteArray()))
         val session = secureChannel.getSession(config.username, config.server, 22)
-
+        val hex =  DigestUtils("SHA3-256").digestAsHex(config.privKey);
+        securelogger.info{"hex: $hex" }
 
         session.setConfig("PreferredAuthentications", "publickey")
         session.setConfig("StrictHostKeyChecking", "no")
@@ -68,5 +71,11 @@ class FtpService()  {
             println("Exception i channel get: ${e.message}")
         }
         return mutableListOf(":(")
+    }
+    fun hash(): String {
+        val bytes = this.toString().toByteArray()
+        val md = MessageDigest.getInstance("SHA-256")
+        val digest = md.digest(bytes)
+        return digest.fold("") { str, it -> str + "%02x".format(it) }
     }
 }
