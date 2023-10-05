@@ -40,6 +40,7 @@ object Repository {
         }
     }
 
+
     fun Connection.hentAlleKravMedValideringsfeil(): List<KravTable> {
         return try {
             prepareStatement("""select * from krav where status = ?""")
@@ -67,7 +68,7 @@ object Repository {
                 dato_sendt, 
                 dato_siste_status,
                 kravtype
-                ) values (?,?,?,?,?,?,?)
+                ) values (?,?,?,?,?,?,?,?)
             """.trimIndent()
             ).withParameters(
                 param(detailLinje.saksNummer),
