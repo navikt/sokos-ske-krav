@@ -19,7 +19,7 @@ fun Application.installCommonFeatures(){
     }
     install(CallLogging) {
         logger = KotlinLogging.logger {}
-        level = Level.INFO
+        level = Level.WARN
         callIdMdc("x-correlation-id")
         disableDefaultColors()
     }

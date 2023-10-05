@@ -126,8 +126,6 @@ tasks {
         archiveFileName.set("app.jar")
         manifest {
             attributes["Main-Class"] = "sokos.ske.krav.MainKt"
-            attributes["Class-Path"] = "/var/run/secrets/SKE_SFTP_PRIVATE_KEY"
-            attributes["Class-Path"] = "/var/run/secrets/SKE_SFTP_HOST_KEY"
         }
     }
 

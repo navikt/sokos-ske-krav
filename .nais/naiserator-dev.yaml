@@ -33,8 +33,10 @@ spec:
   envFrom:
     - secret: ske-sftp-username
   filesFrom:
-    - secret: ske-sftp-private-key
-    - secret: ske-sftp-host-key
+    - mountPath: /var/run/secrets
+      secret: ske-sftp-private-key
+    - mountPath: /var/run/secrets
+      secret: ske-sftp-host-key
   ingresses:
     - https://sokos-ske-krav.intern.dev.nav.no
   maskinporten:
