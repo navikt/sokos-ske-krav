@@ -5,20 +5,20 @@ import com.jcraft.jsch.JSch
 import mu.KotlinLogging
 import sokos.ske.krav.config.PropertiesConfig
 import java.io.BufferedReader
-import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 
 class FtpService()  {
     private val config = PropertiesConfig.FtpConfig()
-    private val logger = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger {"secureLogger"}
     fun connect(): ChannelSftp {
         val secureChannel = JSch()
 
-        secureChannel.addIdentity(config.username, config.password.toByteArray(), config.pubKey.toByteArray(), config.keyPass.toByteArray())
-        secureChannel.setKnownHosts(ByteArrayInputStream(config.hostKey.toByteArray(StandardCharsets.UTF_8)))
-        val session = secureChannel.getSession(config.username, config.server, config.port)
+        secureChannel.addIdentity(config.username, config.password.toByteArray(), null, null)
+       // secureChannel.setKnownHosts(ByteArrayInputStream(config.hostKey.toByteArray(StandardCharsets.UTF_8)))
+        val session = secureChannel.getSession(config.username, config.server, 22)
+            logger.info { "server: ${config.server}, username: ${config.username}" }
 
             session.setConfig("PreferredAuthentications", "publickey")
             session.setConfig("StrictHostKeyChecking", "no")
