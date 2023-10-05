@@ -1,7 +1,6 @@
 package sokos.ske.krav.service
 
 
-import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -191,16 +190,13 @@ class SkeService(
             logger.info { "Logger (Validering hentet): ${it.saksnummer_ske}" }
             if (response.status.isSuccess()) {
                 logger.info { "Logger (validering success): ${it.saksnummer_ske}" }
-                val resObj = response.bodyAsText()
+                val resObj = Json.parseToJsonElement(response.bodyAsText())
 
                 logger.info { "ValideringsObj: $resObj" }
 
                 val valideringsfeilResponse = SokosValideringsfeil(
                     kravidSke = it.saksnummer_ske,
-                    valideringsfeilResponse = Json.decodeFromJsonElement(
-                        ValideringsfeilResponse.serializer(),
-                        response.body()
-                    )
+                    valideringsfeilResponse = Json.decodeFromString<ValideringsfeilResponse>(response.bodyAsText())
                 )
                 logger.info { "Serialisering gikk fint: ${valideringsfeilResponse.kravidSke}, ${valideringsfeilResponse.valideringsfeilResponse}" }
 

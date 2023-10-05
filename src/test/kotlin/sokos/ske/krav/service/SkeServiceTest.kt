@@ -9,13 +9,29 @@ import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.mockk.mockk
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.Json.Default.decodeFromJsonElement
+import kotlinx.serialization.json.Json.Default.decodeFromString
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
 
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
+import sokos.ske.krav.skemodels.responses.ValideringsfeilResponse
 
 
 internal class SkeServiceTest: FunSpec ({
+
+    test("validering deserialisering"){
+        val json = Json.parseToJsonElement("""{"valideringsfeil":[{"error":"PERSON_ER_DOED","message":"Person med fødselsdato=318830 er død"}]}""")
+        val str = """{"valideringsfeil":[{"error":"PERSON_ER_DOED","message":"Person med fødselsdato=318830 er død"}]}"""
+        val valideringsFeil1 = decodeFromJsonElement(ValideringsfeilResponse.serializer(), json)
+        val valideringsFeil2 = decodeFromString<ValideringsfeilResponse>(str)
+
+        println(valideringsFeil1.valideringsfeil.map { " Feil1: ${it.error}, ${it.message}"} )
+        println(valideringsFeil2.valideringsfeil.map { " Feil1: ${it.error}, ${it.message}"} )
+
+    }
+
 
     test("Test OK filer"){
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
