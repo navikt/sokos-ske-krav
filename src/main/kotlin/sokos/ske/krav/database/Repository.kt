@@ -1,9 +1,8 @@
 package sokos.ske.krav.database
 
 import mu.KotlinLogging
-import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
-import sokos.ske.krav.database.RepositoryExtensions.toList
+import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.navmodels.DetailLine
@@ -21,19 +20,7 @@ object Repository {
 
     fun Connection.hentAlleKravData(): List<KravTable> {
         return try {
-            prepareStatement("""select * from krav""").executeQuery().toList {
-                KravTable(
-                    krav_id = getColumn("krav_id"),
-                    saksnummer_nav = getColumn("saksnummer_nav"),
-                    saksnummer_ske = getColumn("saksnummer_ske"),
-                    fildata_nav = getColumn("fildata_nav"),
-                    jsondata_ske = getColumn("jsondata_ske"),
-                    status = getColumn("status"),
-                    dato_sendt = kotlinx.datetime.LocalDateTime(2023, 9, 26, 0, 0, 0),
-                    dato_siste_status = kotlinx.datetime.LocalDateTime(2023, 9, 26, 0, 0, 0),
-                    kravtype = getColumn("kravtype")
-                )
-            }
+            prepareStatement("""select * from krav""").executeQuery().toKrav()
         } catch (e: Exception) {
             logger.error("exception i henting av data: ${e.message}")
             listOf()
@@ -46,19 +33,7 @@ object Repository {
                 .withParameters(
                     param(STATUS_RESKONTROFORT),
                     param(STATUS_VALIDERINGSFEIL)
-                ).executeQuery().toList {
-                    KravTable(
-                        krav_id = getColumn("krav_id"),
-                        saksnummer_nav = getColumn("saksnummer_nav"),
-                        saksnummer_ske = getColumn("saksnummer_ske"),
-                        fildata_nav = getColumn("fildata_nav"),
-                        jsondata_ske = getColumn("jsondata_ske"),
-                        status = getColumn("status"),
-                        dato_sendt = getColumn("dato_sendt"),
-                        dato_siste_status = getColumn("dato_siste_status"),
-                        kravtype = getColumn("kravtype")
-                    )
-                }
+                ).executeQuery().toKrav()
         } catch (e: Exception) {
             logger.error { "exception i henting (status) av data: ${e.message}" }
             listOf()
@@ -70,19 +45,7 @@ object Repository {
             prepareStatement("""select * from krav where status = ?""")
                 .withParameters(
                     param(STATUS_VALIDERINGSFEIL)
-                ).executeQuery().toList {
-                    KravTable(
-                        krav_id = getColumn("krav_id"),
-                        saksnummer_nav = getColumn("saksnummer_nav"),
-                        saksnummer_ske = getColumn("saksnummer_ske"),
-                        fildata_nav = getColumn("fildata_nav"),
-                        jsondata_ske = getColumn("jsondata_ske"),
-                        status = getColumn("status"),
-                        dato_sendt = getColumn("dato_sendt"),
-                        dato_siste_status = getColumn("dato_siste_status"),
-                        kravtype = getColumn("kravtype")
-                    )
-                }
+                ).executeQuery().toKrav()
         } catch (e: Exception) {
             logger.error { "exception i henting (validering) av data: ${e.message}" }
             listOf()

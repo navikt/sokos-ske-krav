@@ -94,7 +94,9 @@ object RepositoryExtensions {
             jsondata_ske = getColumn("jsondata_ske"),
             status = getColumn("status"),
             dato_sendt = getColumn("dato_sendt"),
-            dato_siste_status = getColumn("dato_siste_status")
+            dato_siste_status = getColumn("dato_siste_status"),
+            kravtype = getColumn("kravtype")
+
         )
     }
 

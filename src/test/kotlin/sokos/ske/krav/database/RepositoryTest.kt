@@ -3,8 +3,7 @@ package sokos.ske.krav.database
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.LocalDateTime
-
-import sokos.ske.krav.database.Repository.hentKravData
+import sokos.ske.krav.database.Repository.hentAlleKravData
 import sokos.ske.krav.util.DatabaseTestUtils
 
 
@@ -14,7 +13,7 @@ internal class RepositoryTest: FunSpec( {
 
     test("Test hent kravdata") {
         val datasource = DatabaseTestUtils.getDataSource("initDB.sql", false)
-        val kravData = datasource.connection.hentKravData()
+        val kravData = datasource.connection.hentAlleKravData()
 
         kravData.size shouldBe 2
         kravData.forEachIndexed { i, krav ->

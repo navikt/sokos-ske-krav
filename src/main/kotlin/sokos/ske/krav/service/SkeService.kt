@@ -10,9 +10,9 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
+import sokos.ske.krav.database.Repository.hentAlleKravData
 import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
 import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
-import sokos.ske.krav.database.Repository.hentKravData
 import sokos.ske.krav.database.Repository.lagreNyttKrav
 import sokos.ske.krav.database.Repository.oppdaterStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
@@ -58,14 +58,15 @@ class SkeService(
                         kravident.kravidentifikator,
                         toJson(OpprettInnkrevingsoppdragRequest.serializer(), lagOpprettKravRequest(line)),
                         parseDetailLinetoFRData(line),
-                        line
+                        line,
+                        NYTT_KRAV
                     )
                     con.commit()
                 }
 
             }
         }
-        val kravdata =  dataSource.connection.useAndHandleErrors { con ->  con.hentKravData() }
+        val kravdata =  dataSource.connection.useAndHandleErrors { con ->  con.hentAlleKravData() }
         println("HentKravdata: ${kravdata}")
     }
     suspend fun testResponse() {

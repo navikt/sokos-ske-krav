@@ -17,11 +17,12 @@ create table "krav"
     jsondata_ske             varchar(500),
     status                   varchar(100),
     dato_sendt               timestamp,
-    dato_siste_status        timestamp
+    dato_siste_status        timestamp,
+    kravtype                 varchar(50)
 );
 
-INSERT INTO krav(saksnummer_nav, saksnummer_ske, fildata_nav, jsondata_ske, status, dato_sendt, dato_siste_status)
-VALUES('1111-nav', '1111-ske', 'fildata fra nav 1', 'json fra ske 1', 'status 1', '2023-01-01', '2023-01-02');
+INSERT INTO krav(saksnummer_nav, saksnummer_ske, fildata_nav, jsondata_ske, status, dato_sendt, dato_siste_status, kravtype)
+VALUES('1111-nav', '1111-ske', 'fildata fra nav 1', 'json fra ske 1', 'status 1', '2023-01-01', '2023-01-02', 'NYTT_KRAV');
 
-INSERT INTO krav(saksnummer_nav, saksnummer_ske, fildata_nav, jsondata_ske, status, dato_sendt, dato_siste_status)
-VALUES('2222-nav', '2222-ske', 'fildata fra nav 2', 'json fra ske 2', 'status 2', '2023-02-01', '2023-02-02');
+INSERT INTO krav(saksnummer_nav, saksnummer_ske, fildata_nav, jsondata_ske, status, dato_sendt, dato_siste_status, kravtype)
+VALUES('2222-nav', '2222-ske', 'fildata fra nav 2', 'json fra ske 2', 'status 2', '2023-02-01', '2023-02-02', 'NYTT_KRAV');
