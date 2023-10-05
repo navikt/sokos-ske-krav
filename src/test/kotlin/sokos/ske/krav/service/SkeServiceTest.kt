@@ -12,6 +12,7 @@ import io.mockk.mockk
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.Json.Default.decodeFromJsonElement
 import kotlinx.serialization.json.Json.Default.decodeFromString
+import kotlinx.serialization.json.Json.Default.encodeToString
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
 
@@ -27,8 +28,12 @@ internal class SkeServiceTest: FunSpec ({
         val valideringsFeil1 = decodeFromJsonElement(ValideringsfeilResponse.serializer(), json)
         val valideringsFeil2 = decodeFromString<ValideringsfeilResponse>(str)
 
+        val res1 = encodeToString(ValideringsfeilResponse.serializer(), valideringsFeil1)
+
         println(valideringsFeil1.valideringsfeil.map { " Feil1: ${it.error}, ${it.message}"} )
         println(valideringsFeil2.valideringsfeil.map { " Feil1: ${it.error}, ${it.message}"} )
+
+        println("And back again: $res1")
 
     }
 
