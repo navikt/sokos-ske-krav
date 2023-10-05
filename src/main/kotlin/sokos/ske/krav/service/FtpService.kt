@@ -4,10 +4,8 @@ import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Slf4jLogger
 import mu.KotlinLogging
-import org.apache.commons.codec.digest.DigestUtils
 import sokos.ske.krav.config.PropertiesConfig
 import java.io.BufferedReader
-import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
@@ -19,27 +17,25 @@ class FtpService()  {
 
     private val securelogger = KotlinLogging.logger ("secureLogger")
     fun connect(): ChannelSftp {
-        val secureChannel = JSch()
+        //val secureChannel = JSch()
         JSch.setLogger(Slf4jLogger())
-        val hex =  DigestUtils("SHA3-256").digestAsHex(config.privKey);
-        securelogger.info{"hex: $hex" }
 
-        secureChannel.addIdentity(config.username, config.privKey.toByteArray(), null, null)
-        secureChannel.setKnownHosts(ByteArrayInputStream(config.hostKey.toByteArray()))
-        val session = secureChannel.getSession(config.username, config.server, 22)
+        securelogger.info{"length: ${config.privKey.length}" }
+
+        val secureChannel= JSch().apply { addIdentity(config.privKey, config.keyPass) }
+        val session = secureChannel.getSession(config.username, config.server, config.port).apply {
+            setConfig("StrictHostKeyChecking", "no")
+        }
 
 
-        session.setConfig("PreferredAuthentications", "publickey")
-        session.setConfig("StrictHostKeyChecking", "no")
-        session.connect(5000)
+        //session.setConfig("PreferredAuthentications", "publickey")
+      //  session.setConfig("StrictHostKeyChecking", "no")
+        session.connect()
 
 
         val sftpChannel: ChannelSftp = session.openChannel("sftp") as ChannelSftp
-        try{
-            sftpChannel.connect()
-        }catch (e: Exception){
-            println("Exception i channel connect: ${e.message}")
-        }
+        sftpChannel.connect()
+
 
         return sftpChannel
     }

@@ -35,7 +35,7 @@ spec:
       mountPath: /var/run/secrets/ske-sftp-private-key
   envFrom:
     - secret: ske-sftp-username
-    - secret: ske-sftp-public-key
+    - secret: ske-sftp-private-key-password
     - secret: ske-sftp-host-key
   ingresses:
     - https://sokos-ske-krav.intern.dev.nav.no
