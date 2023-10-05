@@ -2,7 +2,6 @@ package sokos.ske.krav.service
 
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSch
-import com.jcraft.jsch.Logger
 import com.jcraft.jsch.Slf4jLogger
 import mu.KotlinLogging
 import sokos.ske.krav.config.PropertiesConfig
@@ -69,16 +68,5 @@ class FtpService()  {
             println("Exception i channel get: ${e.message}")
         }
         return mutableListOf(":(")
-    }
-}
-
-class FtpLogger: Logger{
-    private val securelogger = KotlinLogging.logger ("secureLogger")
-    override fun isEnabled(level: Int): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun log(level: Int, message: String?) {
-        securelogger.info(message)
     }
 }
