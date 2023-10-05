@@ -6,7 +6,6 @@ import com.jcraft.jsch.Slf4jLogger
 import mu.KotlinLogging
 import sokos.ske.krav.config.PropertiesConfig
 import java.io.BufferedReader
-import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
@@ -22,10 +21,10 @@ class FtpService()  {
 
         val secureChannel= JSch().apply {
             addIdentity(config.privKey, config.keyPass)
-            setKnownHosts( ByteArrayInputStream(config.hostKey.toByteArray(StandardCharsets.UTF_8)))
         }
-        val session = secureChannel.getSession(config.username, config.server, config.port).apply {
+        val session = secureChannel.getSession("srvsokosskd", config.server, config.port).apply {
             setConfig("PreferredAuthentications", "publickey")
+            setConfig("StrictHostKeyChecking", "no");
         }
 
         session.connect()
