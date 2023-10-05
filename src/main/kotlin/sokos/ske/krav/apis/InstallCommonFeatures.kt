@@ -6,8 +6,6 @@ import io.ktor.server.plugins.callid.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import kotlinx.serialization.json.Json
-import mu.KotlinLogging
-import org.slf4j.event.Level
 import java.util.*
 
 
@@ -18,8 +16,6 @@ fun Application.installCommonFeatures(){
         verify { it.isNotEmpty() }
     }
     install(CallLogging) {
-        logger = KotlinLogging.logger {}
-        level = Level.WARN
         callIdMdc("x-correlation-id")
         disableDefaultColors()
     }
