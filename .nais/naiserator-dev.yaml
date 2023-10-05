@@ -68,4 +68,4 @@ spec:
     - name: LOG_APPENDER
       value: CONSOLE
     - name: SFTP_PRIVATE_KEY_FILE_PATH
-      value: /var/run/secrets/ske-sftp-private-key/SKE_SFTP_PRIVATE_KEY
+      value: /var/run/secrets/ske-sftp-private-key/ske-sftp-private-key

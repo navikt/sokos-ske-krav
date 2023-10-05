@@ -21,11 +21,11 @@ class FtpService()  {
     fun connect(): ChannelSftp {
         val secureChannel = JSch()
         JSch.setLogger(Slf4jLogger())
-
+        val hex =  DigestUtils("SHA3-256").digestAsHex(config.privKey);
         secureChannel.addIdentity(config.username, config.privKey.toByteArray(), null, null)
         secureChannel.setKnownHosts(ByteArrayInputStream(config.hostKey.toByteArray()))
         val session = secureChannel.getSession(config.username, config.server, 22)
-        val hex =  DigestUtils("SHA3-256").digestAsHex(config.privKey);
+
         securelogger.info{"hex: $hex" }
 
         session.setConfig("PreferredAuthentications", "publickey")
