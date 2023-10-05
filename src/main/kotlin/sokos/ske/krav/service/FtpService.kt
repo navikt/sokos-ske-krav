@@ -13,17 +13,14 @@ class FtpService()  {
     private val config = PropertiesConfig.FtpConfig()
     fun connect(): ChannelSftp {
         val secureChannel = JSch()
-        secureChannel.addIdentity(config.username, config.password.toByteArray(), null, null)
+        secureChannel.addIdentity(config.username, config.password.toByteArray(), null, config.keyPass.toByteArray())
         secureChannel.setKnownHosts(ByteArrayInputStream(config.hostKey.toByteArray(StandardCharsets.UTF_8)))
         val session = secureChannel.getSession(config.username, config.server, config.port)
 
-        try{
             session.setConfig("PreferredAuthentications", "publickey")
             session.setConfig("StrictHostKeyChecking", "no")
-            session.connect()
-        }catch (e: Exception){
-            println("Exception i session connect: ${e.message}")
-        }
+            session.connect(5000)
+
 
         val sftpChannel: ChannelSftp = session.openChannel("sftp") as ChannelSftp
         try{

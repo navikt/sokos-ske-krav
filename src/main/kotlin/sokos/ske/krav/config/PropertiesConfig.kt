@@ -63,6 +63,7 @@ private val defaultProperties = ConfigurationMap(
         val username:String = get("SKE_SFTP_USERNAME"),
         val password:String = get("SKE_SFTP_PRIVATE_KEY"),
         val hostKey:String = get("SKE_SFTP_HOST_KEY"),
+        val keyPass:String = get("SKE_SFTP_PRIVATE_KEY_PASSPHRASE"),
       //  val homeDirectory:String = get("FTP_DIRECTORY"),
         val port:Int = get("FTP_PORT").toInt()
     )
