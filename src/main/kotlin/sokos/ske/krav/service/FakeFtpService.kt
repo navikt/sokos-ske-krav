@@ -100,7 +100,7 @@ fun FTPClient.downloadFile(fileName: String): List<String> {
 }
 fun FTPClient.init(config: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConfig()){
     connect(config.server, config.port)
-    login(config.username, config.password)
+    login(config.username, config.privKey)
     enterLocalPassiveMode()
     setFileType(FTP.LOCAL_FILE_TYPE)
    // changeWorkingDirectory(config.homeDirectory)

@@ -11,17 +11,19 @@ import java.nio.charset.StandardCharsets
 
 class FtpService()  {
     private val config = PropertiesConfig.FtpConfig()
-    private val logger = KotlinLogging.logger {"secureLogger"}
+    private val securelogger = KotlinLogging.logger ("secureLogger")
     fun connect(): ChannelSftp {
         val secureChannel = JSch()
+        securelogger.info{"username: ${config.username}, server: ${config.server}, port: ${config.port}, length: ${config.privKey.length}"}
 
-        secureChannel.addIdentity(config.username, config.password.toByteArray(), null, null)
+        secureChannel.addIdentity(config.username, config.privKey.toByteArray(), null, null)
        // secureChannel.setKnownHosts(ByteArrayInputStream(config.hostKey.toByteArray(StandardCharsets.UTF_8)))
         val session = secureChannel.getSession(config.username, config.server, config.port)
 
-            session.setConfig("PreferredAuthentications", "publickey")
-            session.setConfig("StrictHostKeyChecking", "no")
-            session.connect(5000)
+
+        session.setConfig("PreferredAuthentications", "publickey")
+        session.setConfig("StrictHostKeyChecking", "no")
+        session.connect(5000)
 
 
         val sftpChannel: ChannelSftp = session.openChannel("sftp") as ChannelSftp
