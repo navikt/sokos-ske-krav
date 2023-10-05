@@ -101,7 +101,7 @@ class FrParser(val line: String) {
         }.toDouble()
 
     fun parseDate(len: Int): kotlinx.datetime.LocalDate? {
-        if (line.length<pos) return null
+        if (line.length<pos+1) return null
         val dateString = parseString(len)
         val year = dateString.substring(0, 4)
         val month = dateString.substring(4, 6)
