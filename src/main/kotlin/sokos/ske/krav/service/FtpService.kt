@@ -20,11 +20,10 @@ class FtpService()  {
         //val secureChannel = JSch()
         JSch.setLogger(Slf4jLogger())
 
-        securelogger.info{"length: ${config.privKey.length}" }
-
         val secureChannel= JSch().apply { addIdentity(config.privKey, config.keyPass) }
         val session = secureChannel.getSession(config.username, config.server, config.port).apply {
             setConfig("StrictHostKeyChecking", "no")
+            setConfig("PreferredAuthentications", "publickey")
         }
 
 
