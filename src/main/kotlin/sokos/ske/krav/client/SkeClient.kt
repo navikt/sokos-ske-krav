@@ -15,8 +15,8 @@ import sokos.ske.krav.skemodels.requests.EndringRequest
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
 
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
-private const val ENDRE_KRAV = "innkrevingsoppdrag/kreendring"
-private const val STOPP_KRAV = "innkrevingsoppdrag/avskriv"
+private const val ENDRE_KRAV = "innkrevingsoppdrag/endring"
+private const val STOPP_KRAV = "innkrevingsoppdrag/avskriving"
 private const val MOTTAKSSTATUS = "innkrevingsoppdrag/%s/mottaksstatus?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
 private const val VALIDERINGSFEIL = "innkrevingsoppdrag/%s/valideringsfeil?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
 private const val KLIENT_ID = "NAV/0.1"
