@@ -22,8 +22,8 @@ fun parseFRtoDataDetailLineClass(line: String): DetailLine {
     return DetailLine(
         lineNummer = parser.parseInt(7),
         saksNummer = parser.parseString(18),
-        belop = parser.parseAmountAsDouble(11),
-        vedtakDato = parser.parseDate(8),
+        belop = parser.parseAmountAsDouble(11)!!,
+        vedtakDato = parser.parseDate(8)!!,
         gjelderID = parser.parseString(11),
         periodeFOM = parser.parseString(8),
         periodeTOM = parser.parseString(8),
@@ -36,6 +36,8 @@ fun parseFRtoDataDetailLineClass(line: String): DetailLine {
         kodeArsak = parser.parseString(12),
         belopRente = parser.parseAmountAsDouble(20),
         fremtidigYtelse = parser.parseAmountAsDouble(11),
+        utbetalDato = parser.parseDate(8),
+        fagsystemId = parser.parseString(30)
     )
 }
 
@@ -72,6 +74,7 @@ fun parseDetailLinetoFRData(line: DetailLine): String {
             prefixString(line.belopRente, 11, "0") +
             prefixString(line.fremtidigYtelse, 11, "0")
 
+
     println("res: $res")
     return res
 
@@ -79,6 +82,7 @@ fun parseDetailLinetoFRData(line: DetailLine): String {
 class FrParser(val line: String) {
     private var pos = 0
     fun parseString(len: Int): String {
+        if (line.length<pos) return ""
         if (line.length < pos + len) return line.substring(pos).trim()
         return line.substring(pos, pos + len).trim().also { pos += len }
     }
@@ -96,7 +100,8 @@ class FrParser(val line: String) {
             }
         }.toDouble()
 
-    fun parseDate(len: Int): kotlinx.datetime.LocalDate {
+    fun parseDate(len: Int): kotlinx.datetime.LocalDate? {
+        if (line.length<pos) return null
         val dateString = parseString(len)
         val year = dateString.substring(0, 4)
         val month = dateString.substring(4, 6)
