@@ -32,7 +32,14 @@ const val STOPP_KRAV = "STOPP_KRAV"
 class SkeService(
     private val skeClient: SkeClient,
     private val dataSource: PostgresDataSource = PostgresDataSource(),
-    private val fakeFtpService: FakeFtpService = FakeFtpService().apply { connect(fileNames = listOf("fil1.txt", "fil2.txt")) },
+    private val fakeFtpService: FakeFtpService = FakeFtpService().apply {
+        connect(
+            fileNames = listOf(
+                "fil1.txt",
+                "fil2.txt"
+            )
+        )
+    },
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -46,11 +53,11 @@ class SkeService(
     }
 
 
-    suspend fun testRepo(){
+    suspend fun testRepo() {
         val files = fakeFtpService.getFiles(::fileValidator)
 
         files.map { file ->
-            file.detailLines.subList(0, 10).forEach{ line ->
+            file.detailLines.subList(0, 10).forEach { line ->
                 val response = skeClient.opprettKrav(lagOpprettKravRequest(line))
                 val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
                 dataSource.connection.useAndHandleErrors { con ->
@@ -66,9 +73,10 @@ class SkeService(
 
             }
         }
-        val kravdata =  dataSource.connection.useAndHandleErrors { con ->  con.hentAlleKravData() }
+        val kravdata = dataSource.connection.useAndHandleErrors { con -> con.hentAlleKravData() }
         println("HentKravdata: ${kravdata}")
     }
+
     suspend fun testResponse() {
         val files = fakeFtpService.getFiles(::fileValidator)
         files.forEach { file ->
@@ -87,7 +95,7 @@ class SkeService(
     suspend fun sendNyeFtpFilerTilSkatt(antall: Int = 1): List<HttpResponse> {
         println("Starter service")
         val files = fakeFtpService.getFiles(::fileValidator)
-        val connection = dataSource.connection
+        val con = dataSource.connection
         val ant = if (antall == 0) 1 else antall
 
         val responses = files.map { file ->
@@ -100,22 +108,19 @@ class SkeService(
                 }
 
                 if (response.status.isSuccess()) {
-                    if (it.erNyttKrav()) {
-                        val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
-                        connection.lagreNyttKrav(
-                            kravident.kravidentifikator,
-                            toJson(OpprettInnkrevingsoppdragRequest.serializer(), lagOpprettKravRequest(it)),
-                            parseDetailLinetoFRData(it),
-                            it,
-                            when {
-                                it.erStopp() -> STOPP_KRAV
-                                it.erEndring() -> ENDRE_KRAV
-                                else -> NYTT_KRAV
-                            }
-                        )
-                        connection.commit()
-                    }
-
+                    val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
+                    con.lagreNyttKrav(
+                        kravident.kravidentifikator,
+                        toJson(OpprettInnkrevingsoppdragRequest.serializer(), lagOpprettKravRequest(it)),
+                        parseDetailLinetoFRData(it),
+                        it,
+                        when {
+                            it.erStopp() -> STOPP_KRAV
+                            it.erEndring() -> ENDRE_KRAV
+                            else -> NYTT_KRAV
+                        }
+                    )
+                    con.commit()
                 } else {
                     logger.error("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}")
                 }
@@ -127,7 +132,7 @@ class SkeService(
             handleAnyFailedLines(failedLines, file)
             svar
         }
-        connection.close()
+        con.close()
 
         //handleSentFiles(responses)
 
@@ -210,13 +215,12 @@ class SkeService(
 
     private fun handleAnyFailedLines(failedLines: List<FailedLine>, file: FtpFil) {
         if (failedLines.isNotEmpty()) {
-            println("Number of failed lines: ${failedLines.size}")
-            //oppretter ny fil som inneholder de linjene som har feilet
+            logger.error { "Number of failed lines: ${failedLines.size}"}
             val failedContent: List<String> = failedLines.map {
                 parseDetailLinetoFRData(it.detailLine) + it.httpStatusCode.value
             }
             fakeFtpService.createFile("${file.name}-FailedLines", failedContent, Directories.FAILED)
-            //opprette sak i gosys elns
+            //TODO ? opprette sak i gosys elns
         }
     }
 
