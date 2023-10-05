@@ -41,7 +41,7 @@ class FtpService()  {
         try{
             println(sftpChannel.ls("/").toList())
             println(sftpChannel.ls("/inbound/").toList())
-            return sftpChannel.ls("/inbound/test").toList() as List<String>
+            //return sftpChannel.ls("/inbound/test").toList() as List<String>
         }catch (e: Exception){
             println("Exception i channel ls: ${e.message}")
         }
