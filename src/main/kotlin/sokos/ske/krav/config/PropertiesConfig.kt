@@ -24,9 +24,9 @@ private val defaultProperties = ConfigurationMap(
     private val localDevProperties = ConfigurationMap(
         "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
         "FTP_SERVER" to "localhost",
-        "SKE_SFTP_USERNAME" to "username",
+       /* "SKE_SFTP_USERNAME" to "username",
         "SKE_SFTP_PRIVATE_KEY" to "password",
-        "SKE_SFTP_HOST_KEY" to "hostkey",
+        "SKE_SFTP_HOST_KEY" to "hostkey",*/
         "FTP_DIRECTORY" to "/",
         "FTP_PORT" to "0",
         "SKE_REST_URL" to "",
