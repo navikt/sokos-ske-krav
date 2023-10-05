@@ -1,5 +1,6 @@
 package sokos.ske.krav.database
 
+import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.param
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
@@ -7,7 +8,10 @@ import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
+import sokos.ske.krav.skemodels.responses.SokosValideringsfeil
+import sokos.ske.krav.skemodels.responses.ValideringsfeilResponse
 import java.sql.Connection
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 const val STATUS_RESKONTROFORT = "RESKONTROFOERT"
@@ -102,6 +106,25 @@ object Repository {
                 param(LocalDateTime.now()),
                 param(mottakStatus.kravidentifikator)
             ).execute()
+        commit()
+    }
+
+    fun Connection.lagreValideringsfeil(sokosValideringsfeil: SokosValideringsfeil) {
+        logger.info { "logger repos: Lagrer valideringsfeil: ${sokosValideringsfeil.kravidSke}" }
+        prepareStatement(
+            """
+                insert into validering (
+                    saksnummer_ske,
+                    jsondata_ske,
+                    dato
+                ) 
+                values (?, ?, ?)
+            """.trimIndent().also { logger.info { it }  }
+        ).withParameters(
+            param(sokosValideringsfeil.kravidSke),
+            param(Json.encodeToString(ValideringsfeilResponse.serializer(), sokosValideringsfeil.valideringsfeilResponse)),
+            param(LocalDate.now())
+        ).execute()
         commit()
     }
 

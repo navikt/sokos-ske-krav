@@ -13,6 +13,7 @@ import sokos.ske.krav.database.Repository.hentAlleKravData
 import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
 import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
 import sokos.ske.krav.database.Repository.lagreNyttKrav
+import sokos.ske.krav.database.Repository.lagreValideringsfeil
 import sokos.ske.krav.database.Repository.oppdaterStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.navmodels.DetailLine
@@ -184,7 +185,8 @@ class SkeService(
     }
 
     suspend fun hentValideringsfeil(): List<String> {
-        val resultat = dataSource.connection.hentAlleKravMedValideringsfeil().map {
+        val con = dataSource.connection
+        val resultat = con.hentAlleKravMedValideringsfeil().map {
             logger.info { "Logger (Validering start): ${it.saksnummer_ske}" }
             val response = skeClient.hentValideringsfeil(it.saksnummer_ske)
             logger.info { "Logger (Validering hentet): ${it.saksnummer_ske}" }
@@ -200,6 +202,7 @@ class SkeService(
                 )
                 logger.info { "Serialisering gikk fint: ${valideringsfeilResponse.kravidSke}, ${valideringsfeilResponse.valideringsfeilResponse}" }
 
+                con.lagreValideringsfeil(valideringsfeilResponse)
                 //lag ftpfil og  kall handleAnyFailedFiles
                 "Status OK: ${response.bodyAsText()}"
             } else {
