@@ -19,13 +19,12 @@ class FtpService()  {
     fun connect(): ChannelSftp {
         JSch.setLogger(Slf4jLogger())
 
-        println("USERNAME:")
-        println(config.username)
+        println("USERNAME: |${config.username}|")
         println("LENGTH: ${config.username.length}")
         val secureChannel= JSch().apply {
             addIdentity(config.privKey, config.keyPass)
         }
-        val session = secureChannel.getSession("srvsokosskd", config.server, config.port).apply {
+        val session = secureChannel.getSession(config.username, config.server, config.port).apply {
             setConfig("PreferredAuthentications", "publickey")
             setConfig("StrictHostKeyChecking", "no");
         }
@@ -60,7 +59,7 @@ class FtpService()  {
 
             val strings = bufferedReader.lines().toList()
 
-            println("strings = $strings")
+            //println("strings = $strings")
             return strings
 
         } catch (e: Exception) {
