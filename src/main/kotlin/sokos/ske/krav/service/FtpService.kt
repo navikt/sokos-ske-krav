@@ -73,7 +73,7 @@ class FtpService()  {
     }
 
    private fun ChannelSftp.createFile(fileName: String, directory: Directories, content: String){
-        val path = "${directory.value}$/$fileName"
+        val path = "${directory.value}/$fileName"
         try {
             put(content.toByteArray().inputStream(), path)
         }catch (e: SftpException){

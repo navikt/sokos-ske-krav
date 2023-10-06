@@ -47,6 +47,7 @@ fun Routing.skeApi(
 
                 val ftp = FtpService()
                 ftp.createFile(fileName, Directories.INBOUND, content )
+                call.respond(HttpStatusCode.OK)
 
             }
 
