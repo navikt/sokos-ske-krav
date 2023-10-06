@@ -21,10 +21,11 @@ class FtpService()  {
 
         val secureChannel= JSch().apply {
             addIdentity(config.privKey, config.keyPass)
+            setKnownHosts(config.hostKey.toByteArray().inputStream())
         }
         val session = secureChannel.getSession(config.username, config.server, config.port).apply {
             setConfig("PreferredAuthentications", "publickey")
-            setConfig("StrictHostKeyChecking", "no");
+           // setConfig("StrictHostKeyChecking", "no");
         }
 
         session.connect()
