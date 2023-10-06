@@ -8,15 +8,12 @@ import org.mockftpserver.fake.UserAccount
 import org.mockftpserver.fake.filesystem.DirectoryEntry
 import org.mockftpserver.fake.filesystem.FileEntry
 import org.mockftpserver.fake.filesystem.UnixFakeFileSystem
-
 import sokos.ske.krav.config.PropertiesConfig
-import sokos.ske.krav.navmodels.DetailLine
-
 import java.io.ByteArrayOutputStream
 import java.io.File
 
 
-enum class Directories(val value: String){
+/*enum class Directories(val value: String){
     OUTBOUND("${File.separator}ut"),
     SENDT("${File.separator}behandlet"),
     FAILED("${File.separator}feilfiler")
@@ -26,7 +23,7 @@ data class FtpFil(
     val name: String,
     val content: List<String>,
     val detailLines: List<DetailLine>
-)
+)*/
 class FakeFtpService(private val client: FTPClient = FTPClient()) {
  //   private val config = PropertiesConfig.FtpConfig()
     private val fakeFtpServer = FakeFtpServer()

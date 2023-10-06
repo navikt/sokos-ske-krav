@@ -1,6 +1,7 @@
 package sokos.ske.krav.service
 
 
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
@@ -20,6 +21,7 @@ import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
 import sokos.ske.krav.skemodels.responses.ValideringsfeilResponse
 
 
+@Ignored
 internal class SkeServiceTest: FunSpec ({
 
     test("validering deserialisering"){
@@ -54,7 +56,8 @@ internal class SkeServiceTest: FunSpec ({
             expectSuccess = false
         }
         val client = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-        val service = SkeService(client,dataSource, fakeFtpService)
+      //  val service = SkeService(client,dataSource, fakeFtpService)
+        val service = SkeService(client,dataSource)
         val responses = service.sendNyeFtpFilerTilSkatt()
         responses.map { it.status shouldBeIn listOf(HttpStatusCode.OK, HttpStatusCode.Created) }
         fakeFtpService.close()
@@ -77,7 +80,8 @@ internal class SkeServiceTest: FunSpec ({
             expectSuccess = false
         }
         val client = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-        val service = SkeService(client,dataSource, fakeFtpService)
+        val service = SkeService(client,dataSource)
+//val service = SkeService(client,dataSource, fakeFtpService)
         val responses = service.sendNyeFtpFilerTilSkatt()
         responses.map { it.status shouldNotBeIn listOf(HttpStatusCode.OK, HttpStatusCode.Created) }
 

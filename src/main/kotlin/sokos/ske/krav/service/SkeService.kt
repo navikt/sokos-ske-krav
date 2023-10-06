@@ -32,14 +32,7 @@ const val STOPP_KRAV = "STOPP_KRAV"
 class SkeService(
     private val skeClient: SkeClient,
     private val dataSource: PostgresDataSource = PostgresDataSource(),
-    private val fakeFtpService: FakeFtpService = FakeFtpService().apply {
-        connect(
-            fileNames = listOf(
-                "fil1.txt",
-                "fil2.txt"
-            )
-        )
-    },
+    private val ftpService: FtpService = FtpService()
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -54,7 +47,7 @@ class SkeService(
 
 
     suspend fun testRepo() {
-        val files = fakeFtpService.getFiles(::fileValidator)
+        val files = ftpService.getFiles(::fileValidator)
 
         files.map { file ->
             file.detailLines.subList(0, 10).forEach { line ->
@@ -77,24 +70,14 @@ class SkeService(
         println("HentKravdata: ${kravdata}")
     }
 
-    suspend fun testResponse() {
-        val files = fakeFtpService.getFiles(::fileValidator)
-        files.forEach { file ->
-            file.detailLines.subList(0, 10).forEach {
-                try {
-                    val response = skeClient.opprettKrav(lagOpprettKravRequest(it))
-                    println(response.bodyAsText())
-                } catch (e: Exception) {
-                    println(e.message)
-                }
+    suspend fun testFtp(): MutableList<FtpFil> {
+        return ftpService.getFiles(::fileValidator)
 
-            }
-        }
     }
 
     suspend fun sendNyeFtpFilerTilSkatt(antall: Int = 1): List<HttpResponse> {
         println("Starter service")
-        val files = fakeFtpService.getFiles(::fileValidator)
+        val files = ftpService.getFiles(::fileValidator)
         val con = dataSource.connection
         val ant = if (antall == 0) 1 else antall
 
@@ -144,8 +127,8 @@ class SkeService(
         //fjerne evt linjer som faila og så flytte?
         results.forEach { entry ->
             val moveTo: Directories =
-                if (entry.value.any { it.status.isError() }) Directories.FAILED else Directories.SENDT
-            fakeFtpService.moveFile(entry.key.name, Directories.OUTBOUND, moveTo)
+                if (entry.value.any { it.status.isError() }) Directories.FAILED else Directories.OUTBOUND
+            ftpService.moveFile(entry.key.name, Directories.INBOUND, moveTo)
         }
     }
 
@@ -222,7 +205,7 @@ class SkeService(
             val failedContent: List<String> = failedLines.map {
                 parseDetailLinetoFRData(it.detailLine) + it.httpStatusCode.value
             }
-            fakeFtpService.createFile("${file.name}-FailedLines", failedContent, Directories.FAILED)
+            ftpService.createFile("${file.name}-FailedLines", Directories.FAILED, failedContent)
             //TODO ? opprette sak i gosys elns
         }
     }

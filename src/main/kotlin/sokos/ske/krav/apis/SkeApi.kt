@@ -6,7 +6,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import mu.KotlinLogging
 import sokos.ske.krav.config.PropertiesConfig
-import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.service.SkeService
 
 
@@ -19,20 +18,15 @@ fun Routing.skeApi(
 
 
     route("krav") {
-        get("testresp") {
-            skeService.testResponse()
-            call.respond(HttpStatusCode.OK)
-        }
-        get("testrepo") {
-            skeService.testRepo()
-            call.respond(HttpStatusCode.OK, "krav sendt")
-        }
+
         get("testftp"){
-            val service = FtpService()
+
+            val files = skeService.testFtp()
+/*
             val channel  = service.connect()
             val files=  service.listFiles(channel)
-            service.getFiles(channel)
-            call.respond(HttpStatusCode.OK, files)
+            service.getFiles(channel)*/
+            call.respond(HttpStatusCode.OK, files.map { it.name})
 
         }
         get("testFTPSend") {

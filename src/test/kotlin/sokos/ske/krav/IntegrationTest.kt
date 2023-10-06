@@ -43,7 +43,8 @@ internal class IntegrationTest: FunSpec ({
             expectSuccess = false
         }
         val clientSendKrav = SkeClient(skeEndpoint = "", client = httpClientSendKrav, tokenProvider = tokenProvider)
-        val serviceSendKrav = SkeService(clientSendKrav, datasource, fakeFtpService)
+     //   val serviceSendKrav = SkeService(clientSendKrav, datasource, fakeFtpService)
+     val serviceSendKrav = SkeService(clientSendKrav, datasource)
 
         serviceSendKrav.sendNyeFtpFilerTilSkatt(15)
 
@@ -76,7 +77,8 @@ internal class IntegrationTest: FunSpec ({
 
 
         val clientMottaksstatus= SkeClient(skeEndpoint = "", client = httpClientMottaksstatus, tokenProvider = tokenProvider)
-        val serviceMottaksstatus = SkeService(clientMottaksstatus, datasource, fakeFtpService)
+       // val serviceMottaksstatus = SkeService(clientMottaksstatus, datasource, fakeFtpService)
+        val serviceMottaksstatus = SkeService(clientMottaksstatus, datasource)
 
         val kravdata = serviceMottaksstatus.hentOgOppdaterMottaksStatus()
 
@@ -113,7 +115,8 @@ internal class IntegrationTest: FunSpec ({
         }
 
         val clientSendKrav = SkeClient(skeEndpoint = "", client = client, tokenProvider = tokenProvider)
-        val service = SkeService(clientSendKrav, datasource, fakeFtpService)
+       val service = SkeService(clientSendKrav, datasource)
+       // val service = SkeService(clientSendKrav, datasource, fakeFtpService)
 
         service.sendNyeFtpFilerTilSkatt(15)
         val kravdata =  service.hentOgOppdaterMottaksStatus()
