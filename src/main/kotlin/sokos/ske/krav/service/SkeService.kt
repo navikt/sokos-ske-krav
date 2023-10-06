@@ -19,7 +19,6 @@ import sokos.ske.krav.database.Repository.lagreValideringsfeil
 import sokos.ske.krav.database.Repository.oppdaterStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.navmodels.DetailLine
-import sokos.ske.krav.navmodels.FailedLine
 import sokos.ske.krav.replaceSaksnrInDetailline
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
@@ -78,6 +77,44 @@ class SkeService(
 
     }
 
+    suspend fun sendFiler(): List<HttpResponse> {
+        val files = ftpService.getFiles(::fileValidator)
+        val results = mutableMapOf<FtpFil, MutableList<HttpResponse>>()
+        val failedLines = mutableListOf<FailedLine>()
+        val con = dataSource.connection
+        files.forEach { file ->
+            val responses = mutableListOf<HttpResponse>()
+
+            file.detailLines.subList(0,25).forEachIndexed{index, line ->
+
+                val response = when {
+                    line.erStopp() -> skeClient.stoppKrav(lagStoppKravRequest(con.koblesakRef(line.saksNummer)))
+                    line.erEndring() -> skeClient.endreKrav(lagEndreKravRequest(line, con.koblesakRef(line.saksNummer)))
+                    else -> skeClient.opprettKrav(lagOpprettKravRequest(replaceSaksnrInDetailline(line, con.lagreNyKobling(line.saksNummer))))
+                }
+
+                responses.add(response)
+
+                if(response.status.isSuccess()){
+                    if(line.erNyttKrav()){
+                        println(response.bodyAsText())
+                        val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
+                        //putte i database og gjøre ting...
+                    }
+                } else{  //legg object i feilliste
+                    failedLines.add(FailedLine(file, index))
+                    println("FAILED REQUEST: $line, ERROR: ${response.bodyAsText()}") //logge request?
+                }
+            }
+            results[file] = responses
+            handleAnyFailedLines(failedLines)
+        }
+
+        handleSentFiles(results)
+
+        return results.map { it.value }.flatten()
+
+    }
     suspend fun sendNyeFtpFilerTilSkatt(antall: Int = 1): List<HttpResponse> {
         println("Starter service")
         val files = ftpService.getFiles(::fileValidator)
@@ -113,9 +150,9 @@ class SkeService(
                 it to response
             }
 
-            val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess() }
+      /*      val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess() }
             val failedLines = httpResponseFailed.map { FailedLine(it.first, it.second.status, it.second.bodyAsText()) }
-            handleAnyFailedLines(failedLines, file)
+            handleAnyFailedLines(failedLines, file)*/
             svar
         }
         con.close()
@@ -202,15 +239,17 @@ class SkeService(
     }
 
 
-    private fun handleAnyFailedLines(failedLines: List<FailedLine>, file: FtpFil) {
-        if (failedLines.isNotEmpty()) {
-            logger.error { "Number of failed lines: ${failedLines.size}"}
-            val failedContent: List<String> = failedLines.map {
-                parseDetailLinetoFRData(it.detailLine) + it.httpStatusCode.value
+    private fun handleAnyFailedLines(failedLines: MutableList<FailedLine>){
+
+            if(failedLines.isNotEmpty()) {
+                println("Number of failed lines: ${failedLines.size}")
+                //oppretter ny fil som inneholder de linjene som har feilet
+                val failedContent: String =
+                    failedLines.joinToString("\n") { line -> line.file.content[line.lineNumber] }
+                ftpService.createFile("${failedLines.first().file.name}-FailedLines", Directories.FAILED, failedContent)
+                //opprette sak i gosys elns
             }
-            ftpService.createFile("${file.name}-FailedLines", Directories.FAILED, failedContent)
-            //TODO ? opprette sak i gosys elns
-        }
+
     }
 
 }

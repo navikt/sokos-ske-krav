@@ -17,6 +17,10 @@ data class FtpFil(
     val content: List<String>,
     val detailLines: List<DetailLine>
 )
+data class FailedLine(
+    val file: FtpFil,
+    val lineNumber: Int,
+)
 
 class FtpService()  {
     private val config = PropertiesConfig.FtpConfig()
@@ -55,7 +59,7 @@ class FtpService()  {
     }
 
     fun moveFile(fileName: String, from: Directories, to: Directories)= sftpChannel.moveFile(fileName, from, to)
-    fun createFile(fileName: String, directory: Directories, content: List<String>) = sftpChannel.createFile(fileName, directory, content)
+    fun createFile(fileName: String, directory: Directories, content: String) = sftpChannel.createFile(fileName, directory, content)
 
     private fun ChannelSftp.moveFile(fileName: String, from: Directories, to: Directories) {
         val oldpath = "${from.value}/${fileName}"
@@ -68,10 +72,10 @@ class FtpService()  {
         }
     }
 
-    fun ChannelSftp.createFile(fileName: String, directory: Directories, content: List<String>){
+   private fun ChannelSftp.createFile(fileName: String, directory: Directories, content: String){
         val path = "${directory.value}$/$fileName"
         try {
-            put(content.joinToString("\n"), path)
+            put(content.toByteArray().inputStream(), path)
         }catch (e: SftpException){
             logger.error{"Feil i opprettelse av fil $path: ${e.message}"}
         }

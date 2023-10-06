@@ -2,10 +2,13 @@ package sokos.ske.krav.apis
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import mu.KotlinLogging
 import sokos.ske.krav.config.PropertiesConfig
+import sokos.ske.krav.service.Directories
+import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.service.SkeService
 
 
@@ -31,12 +34,21 @@ fun Routing.skeApi(
         }
         get("testFTPSend") {
             logger.info { "kaller ftp send" }
-            val responses = skeService.sendNyeFtpFilerTilSkatt()
+            val responses = skeService.sendFiler()
 
             val okCodes = responses.filter { it.status.isSuccess() }
             val failedCodes = responses.filter { !it.status.isSuccess() }
             call.respond(HttpStatusCode.OK, "OK: ${okCodes.size}. Feilet: ${failedCodes.size}")
         }
+
+            post("lagFil/{filnavn}"){
+                val content:String = call.receiveText()
+                val fileName:String = call.parameters["filnavn"].toString()
+
+                val ftp = FtpService()
+                ftp.createFile(fileName, Directories.INBOUND, content )
+
+            }
 
 
         get("test/{ant}") {
