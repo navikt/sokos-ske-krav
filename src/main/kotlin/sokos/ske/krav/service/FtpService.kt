@@ -9,7 +9,6 @@ import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
 
 
 class FtpService()  {
@@ -21,7 +20,7 @@ class FtpService()  {
 
         val secureChannel= JSch().apply {
             addIdentity(config.privKey, config.keyPass)
-            setKnownHosts(config.hostKey.toByteArray().inputStream())
+            setKnownHosts(config.hostKey)
         }
         val session = secureChannel.getSession(config.username, config.server, config.port).apply {
             setConfig("PreferredAuthentications", "publickey")
@@ -65,11 +64,5 @@ class FtpService()  {
             println("Exception i channel get: ${e.message}")
         }
         return mutableListOf(":(")
-    }
-    fun hash(): String {
-        val bytes = this.toString().toByteArray()
-        val md = MessageDigest.getInstance("SHA-256")
-        val digest = md.digest(bytes)
-        return digest.fold("") { str, it -> str + "%02x".format(it) }
     }
 }
