@@ -1,5 +1,7 @@
 package sokos.ske.krav
 
+import sokos.ske.krav.navmodels.DetailLine
+
 
 fun prefixString(field: String, len: Int, prefix: String): String {
     var result: String = field
@@ -32,4 +34,48 @@ fun suffixStringWithSpace(field: String, len: Int): String {
     var result: String = field
     while (result.length < len) (result + " ").also { result = it }
     return result.substring(0, len)
+}
+
+
+fun replaceSaksnrInDetailline(line: DetailLine, nyref:String):DetailLine =
+        DetailLine(
+            lineNummer = line.lineNummer,
+            saksNummer = nyref,
+            belop = line.belop,
+            vedtakDato = line.vedtakDato,
+            gjelderID = line.gjelderID,
+            periodeFOM = line.periodeFOM,
+            periodeTOM = line.periodeTOM,
+            kravkode = line.kravkode,
+            referanseNummerGammelSak = line.referanseNummerGammelSak,
+            transaksjonDato = line.transaksjonDato,
+            enhetBosted = line.enhetBosted,
+            enhetBehandlende = line.enhetBehandlende,
+            kodeHjemmel = line.kodeHjemmel,
+            kodeArsak = line.kodeArsak,
+            belopRente = line.belopRente,
+            fremtidigYtelse = line.fremtidigYtelse
+        )
+
+fun replaceRefGammelSakInDetailline(line: DetailLine, nyref:String):DetailLine =
+    DetailLine(
+        lineNummer = line.lineNummer,
+        saksNummer = line.saksNummer,
+        belop = line.belop,
+        vedtakDato = line.vedtakDato,
+        gjelderID = line.gjelderID,
+        periodeFOM = line.periodeFOM,
+        periodeTOM = line.periodeTOM,
+        kravkode = line.kravkode,
+        referanseNummerGammelSak = nyref,
+        transaksjonDato = line.transaksjonDato,
+        enhetBosted = line.enhetBosted,
+        enhetBehandlende = line.enhetBehandlende,
+        kodeHjemmel = line.kodeHjemmel,
+        kodeArsak = line.kodeArsak,
+        belopRente = line.belopRente,
+        fremtidigYtelse = line.fremtidigYtelse
+    )
+
+
 }

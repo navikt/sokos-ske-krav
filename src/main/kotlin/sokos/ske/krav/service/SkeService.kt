@@ -12,6 +12,8 @@ import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.hentAlleKravData
 import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
 import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
+import sokos.ske.krav.database.Repository.koblesakRef
+import sokos.ske.krav.database.Repository.lagreNyKobling
 import sokos.ske.krav.database.Repository.lagreNyttKrav
 import sokos.ske.krav.database.Repository.lagreValideringsfeil
 import sokos.ske.krav.database.Repository.oppdaterStatus
@@ -102,9 +104,9 @@ class SkeService(
             val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.subList(0, ant).map {
 
                 val response = when {
-                    it.erStopp() -> skeClient.stoppKrav(lagStoppKravRequest(it))
-                    it.erEndring() -> skeClient.endreKrav(lagEndreKravRequest(it))
-                    else -> skeClient.opprettKrav(lagOpprettKravRequest(it))
+                    it.erStopp() -> skeClient.stoppKrav(lagStoppKravRequest(con.koblesakRef(it.saksNummer)))
+                    it.erEndring() -> skeClient.endreKrav(lagEndreKravRequest(it, con.koblesakRef(it.saksNummer)))
+                    else -> skeClient.opprettKrav(lagOpprettKravRequest(con.lagreNyKobling(it)))
                 }
 
                 if (response.status.isSuccess()) {
