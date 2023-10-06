@@ -111,7 +111,7 @@ object Repository {
         ).withParameters(
             param(ref),
             param(nyref),
-            param(LocalDate.now())
+            param(LocalDateTime.now())
         ).execute()
         commit()
         return nyref

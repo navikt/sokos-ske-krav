@@ -22,14 +22,14 @@ fun Routing.skeApi(
 
     route("krav") {
 
-        get("testftp"){
+        get("testftp") {
 
             val files = skeService.testFtp()
-/*
-            val channel  = service.connect()
-            val files=  service.listFiles(channel)
-            service.getFiles(channel)*/
-            call.respond(HttpStatusCode.OK, files.map { it.name})
+            /*
+                        val channel  = service.connect()
+                        val files=  service.listFiles(channel)
+                        service.getFiles(channel)*/
+            call.respond(HttpStatusCode.OK, files.map { it.name })
 
         }
         get("testFTPSend") {
@@ -41,15 +41,15 @@ fun Routing.skeApi(
             call.respond(HttpStatusCode.OK, "OK: ${okCodes.size}. Feilet: ${failedCodes.size}")
         }
 
-            post("lagFil/{filnavn}"){
-                val content:String = call.receiveText()
-                val fileName:String = call.parameters["filnavn"].toString()
+        post("lagFil/{filnavn}") {
+            val content: String = call.receiveText()
+            val fileName: String = call.parameters["filnavn"].toString()
 
-                val ftp = FtpService()
-                ftp.createFile(fileName, Directories.INBOUND, content )
-                call.respond(HttpStatusCode.OK)
+            val ftp = FtpService()
+            ftp.createFile(fileName, Directories.INBOUND, content)
+            call.respond(HttpStatusCode.OK)
 
-            }
+        }
 
 
         get("test/{ant}") {
