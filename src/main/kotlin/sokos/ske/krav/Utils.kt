@@ -78,4 +78,3 @@ fun replaceRefGammelSakInDetailline(line: DetailLine, nyref:String):DetailLine =
     )
 
 
-}
