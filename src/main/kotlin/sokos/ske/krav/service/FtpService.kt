@@ -19,6 +19,9 @@ class FtpService()  {
     fun connect(): ChannelSftp {
         JSch.setLogger(Slf4jLogger())
 
+        println("USERNAME:")
+        println(config.username)
+        println("LENGTH: ${config.username.length}")
         val secureChannel= JSch().apply {
             addIdentity(config.privKey, config.keyPass)
         }
