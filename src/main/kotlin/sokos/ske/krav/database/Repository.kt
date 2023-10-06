@@ -1,6 +1,7 @@
 package sokos.ske.krav.database
 
 import mu.KotlinLogging
+import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
@@ -11,6 +12,7 @@ import sokos.ske.krav.skemodels.responses.SokosValideringsfeil
 import java.sql.Connection
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 
 const val STATUS_RESKONTROFORT = "RESKONTROFOERT"
 const val STATUS_VALIDERINGSFEIL = "VALIDERINGSFEIL"
@@ -96,6 +98,40 @@ object Repository {
         }
     }
 
+    fun Connection.lagreNyKobling(ref: String): String {
+        val nyref = UUID.randomUUID().toString()
+        prepareStatement(
+            """
+            insert into kobling (
+            saksref_fil,
+            saksref_uuid,
+            dato
+            ) values (?, ?, ?)
+        """.trimIndent()
+        ).withParameters(
+            param(ref),
+            param(nyref),
+            param(LocalDate.now())
+        ).execute()
+        commit()
+        return nyref
+    }
+
+    fun Connection.koblesakRef(filref: String): String {
+        val rs = prepareStatement(
+            """
+            select distinct(saksref_uuid) from kobling
+            where saksref_fil = ?
+        """.trimIndent()
+        ).withParameters(
+            param(filref)
+        ).executeQuery()
+        if (rs.isBeforeFirst)
+            return rs.getColumn("saksref_uuid")
+        else return ""
+
+    }
+
     fun Connection.oppdaterStatus(mottakStatus: MottaksstatusResponse) {
         logger.info { "Logger repos: Lagrer mottaksstatus: ${mottakStatus}" }
         prepareStatement(
@@ -135,5 +171,4 @@ object Repository {
         }
         commit()
     }
-
 }

@@ -12,12 +12,15 @@ import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.hentAlleKravData
 import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
 import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
+import sokos.ske.krav.database.Repository.koblesakRef
+import sokos.ske.krav.database.Repository.lagreNyKobling
 import sokos.ske.krav.database.Repository.lagreNyttKrav
 import sokos.ske.krav.database.Repository.lagreValideringsfeil
 import sokos.ske.krav.database.Repository.oppdaterStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.navmodels.FailedLine
+import sokos.ske.krav.replaceSaksnrInDetailline
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
 import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
@@ -85,9 +88,9 @@ class SkeService(
             val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.subList(0, ant).map {
 
                 val response = when {
-                    it.erStopp() -> skeClient.stoppKrav(lagStoppKravRequest(it))
-                    it.erEndring() -> skeClient.endreKrav(lagEndreKravRequest(it))
-                    else -> skeClient.opprettKrav(lagOpprettKravRequest(it))
+                    it.erStopp() -> skeClient.stoppKrav(lagStoppKravRequest(con.koblesakRef(it.saksNummer)))
+                    it.erEndring() -> skeClient.endreKrav(lagEndreKravRequest(it, con.koblesakRef(it.saksNummer)))
+                    else -> skeClient.opprettKrav(lagOpprettKravRequest(replaceSaksnrInDetailline(it, con.lagreNyKobling(it.saksNummer))))
                 }
 
                 if (response.status.isSuccess()) {

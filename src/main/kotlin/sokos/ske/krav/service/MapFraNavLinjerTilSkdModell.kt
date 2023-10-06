@@ -4,7 +4,6 @@ package sokos.ske.krav.service
 import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.skemodels.requests.*
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
-import java.util.*
 import kotlin.math.roundToLong
 
 sealed class ValidationResult {
@@ -43,7 +42,8 @@ fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
     )
 
     val beloepRente = krav.belopRente.roundToLong()
-    val saksnummerForTestRequests = UUID.randomUUID().toString()
+
+    //val saksnummerForTestRequests = UUID.randomUUID().toString()
 
     return OpprettInnkrevingsoppdragRequest(
         kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE.value,
@@ -55,23 +55,21 @@ fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
                 renterIlagtDato = krav.vedtakDato
             )
         ).takeIf { beloepRente > 0L },
-        oppdragsgiversSaksnummer = saksnummerForTestRequests,
-        oppdragsgiversKravidentifikator = saksnummerForTestRequests,
-        /*        oppdragsgiversSaksnummer = krav.saksNummer,
-                oppdragsgiversKravidentifikator = krav.saksNummer,*/
+        oppdragsgiversSaksnummer = krav.saksNummer,
+        oppdragsgiversKravidentifikator = krav.saksNummer,
         fastsettelsesdato = krav.vedtakDato,
         tilleggsinformasjon = tilleggsinformasjonNav
     )
 }
 
-fun lagEndreKravRequest(krav: DetailLine) =
+fun lagEndreKravRequest(krav: DetailLine, nyref: String) =
     EndringRequest(
-        kravidentifikator = krav.saksNummer,
+        kravidentifikator = nyref,
         nyHovedstol = HovedstolBeloep(Valuta.NOK, krav.belop.roundToLong()),
     )
 
 
-fun lagStoppKravRequest(krav: DetailLine) = AvskrivingRequest(kravidentifikator = krav.saksNummer)
+fun lagStoppKravRequest(nyref: String) = AvskrivingRequest(kravidentifikator = nyref)
 
 
 
