@@ -118,6 +118,7 @@ class SkeService(
     suspend fun sendNyeFtpFilerTilSkatt(antall: Int = 1): List<HttpResponse> {
         println("Starter service")
         val files = ftpService.getFiles(::fileValidator)
+        logger.info { "Antall filer i kjøring ${files.size}" }
         val con = dataSource.connection
         val ant = if (antall == 0) 1 else antall
 

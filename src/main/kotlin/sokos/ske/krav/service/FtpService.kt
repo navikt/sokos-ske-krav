@@ -100,7 +100,7 @@ class FtpService()  {
 
     fun getFiles(validator: (content: List<String>) -> ValidationResult, directory: Directories = Directories.INBOUND): MutableList<FtpFil> {
         val successFiles = mutableListOf<FtpFil>()
-        downloadFiles(directory).map{entry ->
+        downloadFiles(directory).map { entry ->
             when(val result: ValidationResult = validator(entry.value)){
                 is ValidationResult.Success -> successFiles.add(FtpFil(entry.key, entry.value, result.detailLines))
                 is ValidationResult.Error -> {
