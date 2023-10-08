@@ -2,6 +2,7 @@ package sokos.ske.krav.database
 
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.Parameter
+import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
 import java.math.BigDecimal
@@ -97,6 +98,15 @@ object RepositoryExtensions {
             dato_siste_status = getColumn("dato_siste_status"),
             kravtype = getColumn("kravtype")
 
+        )
+    }
+
+    fun ResultSet.toKobling() = toList {
+        KoblingTable(
+            id = getColumn("id"),
+            saksref_fil = getColumn("saksref_fil"),
+            saksref_uuid = getColumn("saksref_uuid"),
+            dato = getColumn("dato")
         )
     }
 

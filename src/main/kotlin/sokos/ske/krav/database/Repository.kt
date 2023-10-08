@@ -3,8 +3,10 @@ package sokos.ske.krav.database
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
+import sokos.ske.krav.database.RepositoryExtensions.toKobling
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
+import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
@@ -126,10 +128,17 @@ object Repository {
         ).withParameters(
             param(filref)
         ).executeQuery()
-        if (rs.isBeforeFirst)
+        if (rs.next())
             return rs.getColumn("saksref_uuid")
         else return ""
+    }
 
+    fun Connection.hentAlleKoblinger(): List<KoblingTable> {
+        return prepareStatement(
+            """
+            select * from kobling
+        """.trimIndent()
+        ).executeQuery().toKobling()
     }
 
     fun Connection.oppdaterStatus(mottakStatus: MottaksstatusResponse) {
