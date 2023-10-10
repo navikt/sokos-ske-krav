@@ -78,8 +78,6 @@ internal class RepositoryTest: FunSpec( {
 
         hentetKobling shouldBe kobling1
 
-
-
         datasource.close()
     }
 })

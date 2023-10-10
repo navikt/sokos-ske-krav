@@ -9,7 +9,6 @@ import sokos.ske.krav.database.PostgresDataSource
 object DatabaseTestUtils {
     private val container = PostgreSQLContainer(DockerImageName.parse("postgres:latest"))
 
-
     fun getDataSource(initScriptPath: String, reusable: Boolean = false): PostgresDataSource = PostgresDataSource(initContainer(initScriptPath, reusable))
     private fun initContainer(initScriptPath: String, reusable: Boolean = false): PropertiesConfig.PostgresConfig {
         container.apply {

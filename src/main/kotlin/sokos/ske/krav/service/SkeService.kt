@@ -154,6 +154,7 @@ class SkeService(
       /*      val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess() }
             val failedLines = httpResponseFailed.map { FailedLine(it.first, it.second.status, it.second.bodyAsText()) }
             handleAnyFailedLines(failedLines, file)*/
+
             svar
         }
         con.close()
