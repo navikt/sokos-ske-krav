@@ -10,7 +10,6 @@ import sokos.ske.krav.database.Repository.koblesakRef
 import sokos.ske.krav.database.Repository.lagreNyKobling
 import sokos.ske.krav.database.Repository.lagreNyttKrav
 import sokos.ske.krav.navmodels.DetailLine
-import sokos.ske.krav.replaceSaksnrInDetailline
 import sokos.ske.krav.service.lagOpprettKravRequest
 import sokos.ske.krav.service.parseFRtoDataDetailLineClass
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
@@ -67,7 +66,7 @@ internal class RepositoryTest: FunSpec( {
         val ekspektedSaksnr = detail1.saksNummer
 
         val kobling1 = con.lagreNyKobling(detail1.saksNummer)
-        val detail1a = replaceSaksnrInDetailline(detail1, kobling1)
+        val detail1a = detail1.copy(saksNummer =  kobling1)
         val request1 = lagOpprettKravRequest(detail1a)
 
         con.lagreNyttKrav("skeID-001", Json.encodeToString(OpprettInnkrevingsoppdragRequest.serializer(),request1), fl1, detail1a, "NYTT_KRAV")

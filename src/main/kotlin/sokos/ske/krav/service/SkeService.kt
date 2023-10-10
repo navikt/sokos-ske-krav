@@ -19,7 +19,6 @@ import sokos.ske.krav.database.Repository.lagreValideringsfeil
 import sokos.ske.krav.database.Repository.oppdaterStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.navmodels.DetailLine
-import sokos.ske.krav.replaceSaksnrInDetailline
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
 import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
@@ -90,7 +89,7 @@ class SkeService(
                 val response = when {
                     line.erStopp() -> skeClient.stoppKrav(lagStoppKravRequest(con.koblesakRef(line.saksNummer)))
                     line.erEndring() -> skeClient.endreKrav(lagEndreKravRequest(line, con.koblesakRef(line.saksNummer)))
-                    else -> skeClient.opprettKrav(lagOpprettKravRequest(replaceSaksnrInDetailline(line, con.lagreNyKobling(line.saksNummer))))
+                    else -> skeClient.opprettKrav(lagOpprettKravRequest(line.copy(saksNummer =  con.lagreNyKobling(line.saksNummer))))
                 }
 
                 responses.add(response)
@@ -128,7 +127,7 @@ class SkeService(
                 val response = when {
                     it.erStopp() -> skeClient.stoppKrav(lagStoppKravRequest(con.koblesakRef(it.saksNummer)))
                     it.erEndring() -> skeClient.endreKrav(lagEndreKravRequest(it, con.koblesakRef(it.saksNummer)))
-                    else -> skeClient.opprettKrav(lagOpprettKravRequest(replaceSaksnrInDetailline(it, con.lagreNyKobling(it.saksNummer))))
+                    else -> skeClient.opprettKrav(lagOpprettKravRequest(it.copy(saksNummer = con.lagreNyKobling(it.saksNummer))))
                 }
 
                 if (response.status.isSuccess()) {
