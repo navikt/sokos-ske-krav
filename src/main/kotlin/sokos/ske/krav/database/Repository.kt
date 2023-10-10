@@ -103,7 +103,7 @@ object Repository {
 
     fun Connection.hentSkeKravIdent(navref: String): String {
         val rs = prepareStatement("""
-            select distinct(saksnummer_ske) from krav
+            select max(krav_id), saksnummer_ske from krav
             where saksnummer_nav = ?
         """.trimIndent()
         ).withParameters(
