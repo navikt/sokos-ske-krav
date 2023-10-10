@@ -1,7 +1,6 @@
 package sokos.ske.krav.client
 
 import io.ktor.client.*
-
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -10,9 +9,6 @@ import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
-import sokos.ske.krav.skemodels.requests.AvskrivingRequest
-import sokos.ske.krav.skemodels.requests.EndringRequest
-import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
 
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
 private const val ENDRE_KRAV = "innkrevingsoppdrag/endring"
@@ -37,13 +33,13 @@ class SkeClient(
     private inline fun <reified T> toJson(serializer: SerializationStrategy<T>, body: T) =
         builder.encodeToJsonElement(serializer, body).toString()
 
-    suspend fun opprettKrav(body: OpprettInnkrevingsoppdragRequest): HttpResponse =
-        doPost(OPPRETT_KRAV, toJson(OpprettInnkrevingsoppdragRequest.serializer(), body))
-    suspend fun stoppKrav(body: AvskrivingRequest): HttpResponse =
-        doPost(STOPP_KRAV, toJson(AvskrivingRequest.serializer(), body))
+    suspend fun opprettKrav(body: String): HttpResponse =
+        doPost(OPPRETT_KRAV,  body)
+    suspend fun stoppKrav(body: String): HttpResponse =
+        doPost(STOPP_KRAV, body)
 
-    suspend fun endreKrav(body: EndringRequest): HttpResponse =
-        doPut(ENDRE_KRAV, toJson(EndringRequest.serializer(), body))
+    suspend fun endreKrav(body: String): HttpResponse =
+        doPut(ENDRE_KRAV, body)
 
 
     suspend fun hentMottaksStatus(kravid: String) = doGet(String.format(MOTTAKSSTATUS, kravid))
