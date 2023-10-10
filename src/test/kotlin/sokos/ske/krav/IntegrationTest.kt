@@ -46,7 +46,7 @@ internal class IntegrationTest: FunSpec ({
      //   val serviceSendKrav = SkeService(clientSendKrav, datasource, fakeFtpService)
      val serviceSendKrav = SkeService(clientSendKrav, datasource)
 
-        serviceSendKrav.sendNyeFtpFilerTilSkatt(15)
+        serviceSendKrav.sendNyeFtpFilerTilSkatt()
 
         httpClientSendKrav.close()
         val content = ByteReadChannel("{\n" +
@@ -118,7 +118,7 @@ internal class IntegrationTest: FunSpec ({
        val service = SkeService(clientSendKrav, datasource)
        // val service = SkeService(clientSendKrav, datasource, fakeFtpService)
 
-        service.sendNyeFtpFilerTilSkatt(15)
+        service.sendNyeFtpFilerTilSkatt()
         val kravdata =  service.hentOgOppdaterMottaksStatus()
         println(kravdata)
 

@@ -52,12 +52,12 @@ fun Routing.skeApi(
         }
 
 
-        get("test/{ant}") {
+        get("test") {
             logger.info { "API kaller test" }
             try {
-                skeService.sendNyeFtpFilerTilSkatt(call.parameters["ant"]!!.toInt())
+                var response = skeService.sendNyeFtpFilerTilSkatt()
                 logger.info { "APIKrav sendt, returnerer reponse" }
-                call.respond(HttpStatusCode.OK, "Krav sendt")
+                call.respond(HttpStatusCode.OK, "$response")
                 logger.info { "APIKrav sendt, oppdaterer mottaksstatus" }
                 skeService.hentOgOppdaterMottaksStatus()
                 logger.info { "APIKrav sendt, har oppdatert mottaksstatus" }
@@ -65,12 +65,6 @@ fun Routing.skeApi(
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "Sorry feilet: ${e.message}, \n" +
-                            "clientID = ${maskinPortenProperties.clientId} \n " +
-                            "wellKnownUrl= ${maskinPortenProperties.authorityEndpoint} \n " +
-                            "jwk_kid= ${maskinPortenProperties.rsaKey} \n " +
-
-                            "scopes= ${maskinPortenProperties.scopes} \n +" +
-                            "skeurl= ${skeProperties.skeRestUrl} \n " +
                             "Stacktrace= ${e.stackTraceToString()}"
                 )
             }
@@ -86,12 +80,6 @@ fun Routing.skeApi(
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "APISorry feilet: ${e.message}, \n" +
-                            "clientID = ${maskinPortenProperties.clientId} \n " +
-                            "wellKnownUrl= ${maskinPortenProperties.authorityEndpoint} \n " +
-                            "jwk_kid= ${maskinPortenProperties.rsaKey} \n " +
-
-                            "scopes= ${maskinPortenProperties.scopes} \n +" +
-                            "skeurl= ${skeProperties.skeRestUrl} \n " +
                             "Stacktrace= ${e.stackTraceToString()}"
                 )
             }
@@ -107,12 +95,6 @@ fun Routing.skeApi(
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "Sorry validering feilet: ${e.message}, \n" +
-                            "clientID = ${maskinPortenProperties.clientId} \n " +
-                            "wellKnownUrl= ${maskinPortenProperties.authorityEndpoint} \n " +
-                            "jwk_kid= ${maskinPortenProperties.rsaKey} \n " +
-
-                            "scopes= ${maskinPortenProperties.scopes} \n +" +
-                            "skeurl= ${skeProperties.skeRestUrl} \n " +
                             "Stacktrace= ${e.stackTraceToString()}"
                 )
             }

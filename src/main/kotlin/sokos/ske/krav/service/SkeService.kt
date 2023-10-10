@@ -92,15 +92,14 @@ class SkeService(
 
     }
 
-    suspend fun sendNyeFtpFilerTilSkatt(antall: Int = 1): List<HttpResponse> {
-        logger.info { "Starter skeService SendNyeFtpFilertilSkatt med antall $antall" }
+    suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
+        logger.info { "Starter skeService SendNyeFtpFilertilSkatt." }
         val files = ftpService.getFiles(::fileValidator)
         logger.info { "Antall filer i kjøring ${files.size}" }
         val con = dataSource.connection
-        val ant = if (antall == 0) 1 else antall
 
         val responses = files.map { file ->
-            val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.subList(0, ant).map {
+            val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.map {
 
                 var kravident = con.hentSkeKravIdent(it.saksNummer)
                 var request: String
