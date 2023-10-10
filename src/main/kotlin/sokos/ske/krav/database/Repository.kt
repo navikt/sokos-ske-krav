@@ -100,6 +100,20 @@ object Repository {
         }
     }
 
+
+    fun Connection.hentSkeKravIdent(navref: String): String {
+        val rs = prepareStatement("""
+            select distinct(saknummer_ske) from Krav
+            where saknummer_nav = ?
+        """.trimIndent()
+        ).withParameters(
+            param(navref)
+        ).executeQuery()
+        if (rs.next())
+            return rs.getColumn("saksnummer_ske")
+        else return ""
+
+    }
     fun Connection.lagreNyKobling(ref: String): String {
         val nyref = UUID.randomUUID().toString()
         prepareStatement(
@@ -116,6 +130,7 @@ object Repository {
             param(LocalDateTime.now())
         ).execute()
         commit()
+
         return nyref
     }
 
