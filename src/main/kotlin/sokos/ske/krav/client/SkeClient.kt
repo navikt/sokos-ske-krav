@@ -57,6 +57,7 @@ class SkeClient(
         logger.info { "logger doPost body: $body" }
         val response = client.post("$skeEndpoint$path") {
             contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
             headers {
                 append(HttpHeaders.Authorization, "Bearer $token")
                 append("Klientid", KLIENT_ID)
