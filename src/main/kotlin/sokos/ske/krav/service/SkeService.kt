@@ -115,7 +115,7 @@ class SkeService(
 
     }
     suspend fun sendNyeFtpFilerTilSkatt(antall: Int = 1): List<HttpResponse> {
-        println("Starter service")
+        logger.info { "Starter skeService SendNyeFtpFilertilSkatt med antall $antall" }
         val files = ftpService.getFiles(::fileValidator)
         logger.info { "Antall filer i kjøring ${files.size}" }
         val con = dataSource.connection
@@ -150,9 +150,9 @@ class SkeService(
                 it to response
             }
 
-      /*      val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess() }
-            val failedLines = httpResponseFailed.map { FailedLine(it.first, it.second.status, it.second.bodyAsText()) }
-            handleAnyFailedLines(failedLines, file)*/
+//            val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess() }
+//            val failedLines = httpResponseFailed.map { FailedLine(file, it.first, it.second.status, it.second.bodyAsText()) }
+//            handleAnyFailedLines(failedLines, file)
 
             svar
         }
