@@ -78,7 +78,7 @@ class SkeService(
                         //putte i database og gjøre ting...
                     }
                 } else {  //legg object i feilliste
-                    failedLines.add(FailedLine(file, index))
+                    //failedLines.add(FailedLine(file, index))
                     println("FAILED REQUEST: $line, ERROR: ${response.bodyAsText()}") //logge request?
                 }
             }
@@ -106,6 +106,7 @@ class SkeService(
 
                 if (kravident.isEmpty() && !it.erNyttKrav()) {
                     //hva faen gjør vi nå??
+                    //Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
                 }
 
                 val response = when {
@@ -124,7 +125,7 @@ class SkeService(
                     else -> throw Exception("SkeService: Feil linjetype")
                 }
 
-                if (response.status.isSuccess()) {
+                if (response.status.isSuccess() || response.status.value in (409 until 422)) {
                     if (it.erNyttKrav())
                         kravident =
                             Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText()).kravidentifikator
@@ -137,18 +138,20 @@ class SkeService(
                             it.erStopp() -> STOPP_KRAV
                             it.erEndring() -> ENDRE_KRAV
                             else -> NYTT_KRAV
-                        }
+                        },
+                        response
                     )
                     con.commit()
                 } else {
-                    logger.error("FAILED REQUEST: $it, ERROR: ${response.bodyAsText()}")
+                    logger.error("FAILED REQUEST: ${it.saksNummer}, ERROR: ${response.bodyAsText()}")
                 }
                 it to response
             }
 
-//            val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess() }
-//            val failedLines = httpResponseFailed.map { FailedLine(file, it.first, it.second.status, it.second.bodyAsText()) }
-//            handleAnyFailedLines(failedLines, file)
+            val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess()  }
+
+            val failedLines = httpResponseFailed.map { FailedLine(file, parseDetailLinetoFRData(it.first), it.second.status.value.toString(), it.second.bodyAsText()) }
+            handleAnyFailedLines(failedLines)
 
             svar
         }
@@ -236,13 +239,12 @@ class SkeService(
     }
 
 
-    private fun handleAnyFailedLines(failedLines: MutableList<FailedLine>) {
+    private fun handleAnyFailedLines(failedLines: List<FailedLine>) {
 
         if (failedLines.isNotEmpty()) {
             println("Number of failed lines: ${failedLines.size}")
-            //oppretter ny fil som inneholder de linjene som har feilet
             val failedContent: String =
-                failedLines.joinToString("\n") { line -> line.file.content[line.lineNumber] }
+                failedLines.joinToString("\n") { line -> "${line.line}-${line.error},${line.message} " }
             ftpService.createFile("${failedLines.first().file.name}-FailedLines", Directories.FAILED, failedContent)
             //opprette sak i gosys elns
         }

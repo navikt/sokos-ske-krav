@@ -1,5 +1,7 @@
 package sokos.ske.krav.database
 
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
@@ -19,6 +21,9 @@ import java.util.*
 const val STATUS_RESKONTROFORT = "RESKONTROFOERT"
 const val STATUS_VALIDERINGSFEIL = "VALIDERINGSFEIL"
 const val STATUS_UNDER_BEHANDLING = "MOTTATT_UNDER_BEHANDLING"
+const val KRAV_SENDT = "KRAV_SENDT"
+const val KONFLIKT_409 = "KONFLIKT_409"
+const val VALIDERINGSFEIL_422 = "VALIDERINGSFEIL_422"
 
 object Repository {
     private val logger = KotlinLogging.logger {}
@@ -64,11 +69,13 @@ object Repository {
         request: String,
         filLinje: String,
         detailLinje: DetailLine,
-        kravtype: String
+        kravtype: String,
+        response: HttpResponse
     ) {
         try {
             val now = LocalDateTime.now()
-            println("Lagrer ny tildb: $skeid $now, $filLinje $request")
+            logger.info { "Lagrer ny tildb: $skeid $now, $filLinje, $request, $response" }
+
             prepareStatement(
                 """
                 insert into krav (
@@ -87,7 +94,13 @@ object Repository {
                 param(skeid),
                 param(filLinje),
                 param(request),
-                param("SENDT"),
+                param(
+                    when {
+                        response.status.isSuccess()  -> KRAV_SENDT
+                        response.status.value.equals(409) -> KONFLIKT_409
+                        response.status.value.equals(422) -> VALIDERINGSFEIL_422
+                        else -> "UKJENT_${response.status.value}"
+                    }),
                 param(now),
                 param(now),
                 param(kravtype)

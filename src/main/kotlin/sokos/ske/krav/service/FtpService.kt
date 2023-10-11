@@ -19,7 +19,9 @@ data class FtpFil(
 )
 data class FailedLine(
     val file: FtpFil,
-    val lineNumber: Int,
+    val line: String,
+    val error: String,
+    val message: String
 )
 
 class FtpService()  {
