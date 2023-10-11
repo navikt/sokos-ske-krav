@@ -52,8 +52,7 @@ fun parseFRtoDataLastLIneClass(line: String): LastLine {
     )
 }
 
-fun parseDetailLinetoFRData(line: DetailLine): String {
-    val res = "0030" +
+fun parseDetailLinetoFRData(line: DetailLine) = "0030" +
             prefixString(line.lineNummer, 7, "0") +
             suffixStringWithSpace(line.saksNummer, 18) +
             prefixString(line.belop, 11, "0") +
@@ -74,11 +73,6 @@ fun parseDetailLinetoFRData(line: DetailLine): String {
             prefixString(line.belopRente, 11, "0") +
             prefixString(line.fremtidigYtelse, 11, "0")
 
-
-    println("res: $res")
-    return res
-
-}
 class FrParser(val line: String) {
     private var pos = 0
     fun parseString(len: Int): String {
