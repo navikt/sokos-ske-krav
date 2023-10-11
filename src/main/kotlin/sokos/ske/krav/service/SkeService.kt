@@ -109,6 +109,10 @@ class SkeService(
                     //Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
                 }
 
+                val nyIt = it.copy(
+                    gjelderID = "1234567890"
+                )
+
                 val response = when {
                     it.erStopp() -> {
                         request = toJson(AvskrivingRequest.serializer(),lagStoppKravRequest(kravident) )
@@ -119,7 +123,7 @@ class SkeService(
                         skeClient.endreKrav(request)
                     }
                     it.erNyttKrav() -> {
-                        request = toJson(OpprettInnkrevingsoppdragRequest.serializer(), lagOpprettKravRequest(it.copy(saksNummer = con.lagreNyKobling(it.saksNummer))) )
+                        request = toJson(OpprettInnkrevingsoppdragRequest.serializer(), lagOpprettKravRequest(nyIt.copy(saksNummer = con.lagreNyKobling(nyIt.saksNummer))) )
                         skeClient.opprettKrav(request)
                     }
                     else -> throw Exception("SkeService: Feil linjetype")
