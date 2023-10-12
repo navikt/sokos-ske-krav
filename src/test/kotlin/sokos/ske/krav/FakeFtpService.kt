@@ -45,7 +45,7 @@ class FakeFtpService(private val client: FTPClient = FTPClient()) {
         }
 
         val ftpService = spyk(FtpService(config, jsch = jsch)) {
-            every { listFiles(any<Directories>()) } answers{ client.listFiles(firstArg<Directories>().value).filter { it.name.contains(".") }.map { it.name }}
+            every { listFiles(any<Directories>()) } answers{ client.listFiles(firstArg<Directories>().value).filter { it.name.contains(".txt") }.map { it.name }}
         }
         return ftpService
 

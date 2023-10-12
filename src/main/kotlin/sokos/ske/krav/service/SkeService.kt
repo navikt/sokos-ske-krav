@@ -158,10 +158,12 @@ class SkeService(
         }
         con.close()
 
-        //handleSentFiles(responses)
+        files.forEach { file ->  ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
 
         return responses.map { it.map { it.second } }.flatten()
     }
+
+
 
     private fun handleSentFiles(results: MutableMap<FtpFil, MutableList<HttpResponse>>) {
         //flytte hele denne fila til sendt mappe?
