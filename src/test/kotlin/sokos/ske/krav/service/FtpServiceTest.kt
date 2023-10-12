@@ -1,36 +1,28 @@
 package sokos.ske.krav.service
 
-import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import sokos.ske.krav.FakeFtpService
 
-@Ignored
+
 internal class FtpServiceTest: FunSpec( {
-
-    test("Antall filer stemmer"){
-        val fakeFtpService = FakeFtpService()
-        fakeFtpService.connect(Directories.OUTBOUND, listOf("fil1.txt", "fil2.txt"))
-
-        val files = fakeFtpService.getFiles(::fileValidator, Directories.OUTBOUND)
-        println("NUMBER OF FILES: ${files.size}")
-        println("DOWNLOADED: ${files.map { it.name }}")
-        fakeFtpService.close()
-    }
+    
 
     test("Fail parsing"){
         val fakeFtpService = FakeFtpService()
-        fakeFtpService.connect(Directories.OUTBOUND, listOf("fil1.txt", "fil2.txt", "fil3.txt"))
-        val files = fakeFtpService.getFiles(::fileValidator)
-        files.size shouldBe 2
+        val ftpService =  fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt", "fil2.txt", "fil3.txt"))
 
-        val failedFilesInDir = fakeFtpService.listFiles(Directories.FAILED)
+        val successFiles = ftpService.getValidatedFiles(::fileValidator)
+        successFiles.size shouldBe 2
+
+        val failedFilesInDir = ftpService.listFiles(Directories.FAILED)
         failedFilesInDir.size shouldBe 1
         failedFilesInDir[0] shouldBe "fil3.txt"
 
-        val okFilesInDir = fakeFtpService.listFiles(Directories.OUTBOUND)
-        okFilesInDir.size shouldBe 2
-        okFilesInDir[0] shouldBe "fil1.txt"
-        okFilesInDir[1] shouldBe "fil2.txt"
+        val successFilesInDir = ftpService.listFiles(Directories.INBOUND)
+        successFilesInDir.size shouldBe 2
+        successFilesInDir[0] shouldBe "fil1.txt"
+        successFilesInDir[1] shouldBe "fil2.txt"
 
         fakeFtpService.close()
     }

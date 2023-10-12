@@ -22,15 +22,14 @@ fun Routing.skeApi(
 
     route("krav") {
 
+        get("listFiles/{directory}"){
+            val files = skeService.testListFiles( call.parameters["directory"].toString())
+            call.respond(HttpStatusCode.OK, files)
+        }
+
         get("testftp") {
-
             val files = skeService.testFtp()
-            /*
-                        val channel  = service.connect()
-                        val files=  service.listFiles(channel)
-                        service.getFiles(channel)*/
             call.respond(HttpStatusCode.OK, files.map { it.name })
-
         }
         get("testFTPSend") {
             logger.info { "kaller ftp send" }
