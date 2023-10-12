@@ -31,14 +31,7 @@ fun Routing.skeApi(
             val files = skeService.testFtp()
             call.respond(HttpStatusCode.OK, files.map { it.name })
         }
-        get("testFTPSend") {
-            logger.info { "kaller ftp send" }
-            val responses = skeService.sendFiler()
 
-            val okCodes = responses.filter { it.status.isSuccess() }
-            val failedCodes = responses.filter { !it.status.isSuccess() }
-            call.respond(HttpStatusCode.OK, "OK: ${okCodes.size}. Feilet: ${failedCodes.size}")
-        }
 
         post("lagFil/{filnavn}") {
             val content: String = call.receiveText()

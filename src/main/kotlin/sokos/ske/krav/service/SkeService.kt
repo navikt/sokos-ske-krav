@@ -9,14 +9,6 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
-import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
-import sokos.ske.krav.database.Repository.hentSkeKravIdent
-import sokos.ske.krav.database.Repository.koblesakRef
-import sokos.ske.krav.database.Repository.lagreNyKobling
-import sokos.ske.krav.database.Repository.lagreNyttKrav
-import sokos.ske.krav.database.Repository.lagreValideringsfeil
-import sokos.ske.krav.database.Repository.oppdaterStatus
 import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.skemodels.requests.AvskrivingRequest
 import sokos.ske.krav.skemodels.requests.EndringRequest
@@ -38,6 +30,7 @@ class SkeService(
 ) {
     private val logger = KotlinLogging.logger {}
 
+    private val kravService = KravService(dataSource)
     private inline fun <reified T> toJson(serializer: SerializationStrategy<T>, body: T) =
         builder.encodeToJsonElement(serializer, body).toString()
 
@@ -54,55 +47,15 @@ class SkeService(
 
     }
 
-    suspend fun sendFiler(): List<HttpResponse> {
-        val files = ftpService.getValidatedFiles(::fileValidator)
-        val results = mutableMapOf<FtpFil, MutableList<HttpResponse>>()
-        val failedLines = mutableListOf<FailedLine>()
-        val con = dataSource.connection
-        files.forEach { file ->
-            val responses = mutableListOf<HttpResponse>()
-
-            file.detailLines.subList(0, 25).forEachIndexed { index, line ->
-
-                val response = when {
-                    line.erStopp() -> skeClient.stoppKrav(toJson(AvskrivingRequest.serializer(), lagStoppKravRequest(con.koblesakRef(line.saksNummer))))
-                    line.erEndring() -> skeClient.endreKrav(toJson(EndringRequest.serializer(), lagEndreKravRequest(line, con.koblesakRef(line.saksNummer))))
-                    else -> skeClient.opprettKrav(toJson(OpprettInnkrevingsoppdragRequest.serializer(), lagOpprettKravRequest(line.copy(saksNummer = con.lagreNyKobling(line.saksNummer)))))
-                }
-
-                responses.add(response)
-
-                if (response.status.isSuccess()) {
-                    if (line.erNyttKrav()) {
-                        println(response.bodyAsText())
-                        val kravident = Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText())
-                        //putte i database og gjøre ting...
-                    }
-                } else {  //legg object i feilliste
-                    //failedLines.add(FailedLine(file, index))
-                    println("FAILED REQUEST: $line, ERROR: ${response.bodyAsText()}") //logge request?
-                }
-            }
-            results[file] = responses
-            handleAnyFailedLines(failedLines)
-        }
-
-        handleSentFiles(results)
-
-        return results.map { it.value }.flatten()
-
-    }
-
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
         logger.info { "Starter skeService SendNyeFtpFilertilSkatt." }
         val files = ftpService.getValidatedFiles(::fileValidator)
         logger.info { "Antall filer i kjøring ${files.size}" }
-        val con = dataSource.connection
 
         val responses = files.map { file ->
             val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.map {
 
-                var kravident = con.hentSkeKravIdent(it.saksNummer)
+                var kravident = kravService.hentSkeKravident(it.saksNummer)
                 var request: String
 
                 if (kravident.isEmpty() && !it.erNyttKrav()) {
@@ -120,7 +73,7 @@ class SkeService(
                         skeClient.endreKrav(request)
                     }
                     it.erNyttKrav() -> {
-                        request = toJson(OpprettInnkrevingsoppdragRequest.serializer(), lagOpprettKravRequest(it.copy(saksNummer = con.lagreNyKobling(it.saksNummer))) )
+                        request = toJson(OpprettInnkrevingsoppdragRequest.serializer(), lagOpprettKravRequest(it.copy(saksNummer = kravService.lagreNyKobling(it.saksNummer))) )
                         skeClient.opprettKrav(request)
                     }
                     else -> throw Exception("SkeService: Feil linjetype")
@@ -130,7 +83,7 @@ class SkeService(
                     if (it.erNyttKrav())
                         kravident =
                             Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText()).kravidentifikator
-                    con.lagreNyttKrav(
+                    kravService.lagreNyttKrav(
                         kravident,
                         request,
                         parseDetailLinetoFRData(it),
@@ -142,7 +95,6 @@ class SkeService(
                         },
                         response
                     )
-                    con.commit()
                 } else {
                     logger.error("FAILED REQUEST: ${it.saksNummer}, ERROR: ${response.bodyAsText()}")
                 }
@@ -151,12 +103,11 @@ class SkeService(
 
             val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess()  }
 
-            val failedLines = httpResponseFailed.map { FailedLine(file, parseDetailLinetoFRData(it.first), it.second.status.value.toString(), it.second.bodyAsText()) }
-            handleAnyFailedLines(failedLines)
+          //  val failedLines = httpResponseFailed.map { FailedLine(file, parseDetailLinetoFRData(it.first), it.second.status.value.toString(), it.second.bodyAsText()) }
+         //   handleAnyFailedLines(failedLines)
 
             svar
         }
-        con.close()
 
         files.forEach { file ->  ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
 
@@ -164,22 +115,10 @@ class SkeService(
     }
 
 
-
-    private fun handleSentFiles(results: MutableMap<FtpFil, MutableList<HttpResponse>>) {
-        //flytte hele denne fila til sendt mappe?
-        //fjerne evt linjer som faila og så flytte?
-        results.forEach { entry ->
-            val moveTo: Directories =
-                if (entry.value.any { it.status.isError() }) Directories.FAILED else Directories.OUTBOUND
-            ftpService.moveFile(entry.key.name, Directories.INBOUND, moveTo)
-        }
-    }
-
     suspend fun hentOgOppdaterMottaksStatus(): List<String> {
-        val connection = dataSource.connection
         var antall = 0
         var feil = 0
-        val result = connection.hentAlleKravSomIkkeErReskotrofort().map {
+        val result = kravService.hentAlleKravSomIkkeErReskotrofort().map {
             antall += 1
             logger.info { "Logger (Status start): ${it.saksnummer_ske}" }
             val response = skeClient.hentMottaksStatus(it.saksnummer_ske)
@@ -191,8 +130,7 @@ class SkeService(
                     logger.info { "Logger status body: $body" }
                     val mottaksstatus = Json.decodeFromString<MottaksstatusResponse>(body)
                     logger.info { "Logger mottaksresponse: $mottaksstatus, Body: ${body}" }
-                    connection.oppdaterStatus(mottaksstatus)
-                    connection.commit()
+                    kravService.oppdaterStatus(mottaksstatus)
                     logger.info { "Logger (Status oppdatert): ${it.saksnummer_ske}" }
                     "Status OK: ${response.bodyAsText()}"
                 } catch (e: Exception) {
@@ -205,14 +143,12 @@ class SkeService(
             "Status ok: ${response.status.value}, ${response.bodyAsText()}"
         }
         logger.info { "Loger status: ferdig  (antall $antall, feilet: $feil) commit og closer connectin" }
-        connection.close()
         val r = result + "Antall behandlet  $antall, Antall feilet: $feil"
         return r
     }
 
     suspend fun hentValideringsfeil(): List<String> {
-        val con = dataSource.connection
-        val resultat = con.hentAlleKravMedValideringsfeil().map {
+        val resultat = kravService.hentAlleKravMedValideringsfeil().map {
             logger.info { "Logger (Validering start): ${it.saksnummer_ske}" }
             val response = skeClient.hentValideringsfeil(it.saksnummer_ske)
             logger.info { "Logger (Validering hentet): ${it.saksnummer_ske}" }
@@ -228,7 +164,7 @@ class SkeService(
                 )
                 logger.info { "Serialisering gikk fint: ${valideringsfeilResponse.kravidSke}, ${valideringsfeilResponse.valideringsfeilResponse}" }
 
-                con.lagreValideringsfeil(valideringsfeilResponse)
+                kravService.lagreValideringsfeil(valideringsfeilResponse)
                 //lag ftpfil og  kall handleAnyFailedFiles
                 "Status OK: ${response.bodyAsText()}"
             } else {
@@ -248,8 +184,8 @@ class SkeService(
             println("Number of failed lines: ${failedLines.size}")
             val failedContent: String =
                 failedLines.joinToString("\n") { line -> "${line.line}-${line.error},${line.message} " }
-            ftpService.createFile("${failedLines.first().file.name}-FailedLines", Directories.FAILED, failedContent)
-            //opprette sak i gosys elns
+
+
         }
 
     }

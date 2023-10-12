@@ -122,9 +122,9 @@ object Repository {
         ).withParameters(
             param(navref)
         ).executeQuery()
-        if (rs.next())
-            return rs.getColumn("saksnummer_ske")
-        else return ""
+        return if (rs.next())
+            rs.getColumn("saksnummer_ske")
+        else ""
 
     }
     fun Connection.lagreNyKobling(ref: String): String {
