@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class KravTable(
-    val kravid: Long,
+    val kravId: Long,
     val saksnummer_ske: String,
     val saksnummer: String,
     val belop: Double,
