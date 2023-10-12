@@ -21,9 +21,10 @@ internal class FtpServiceTest: FunSpec( {
 
         val successFilesInDir = ftpService.listFiles(Directories.INBOUND)
         successFilesInDir.size shouldBe 3
-        successFilesInDir[0] shouldBe "fil1.txt"
-        successFilesInDir[1] shouldBe "fil2.txt"
-        successFilesInDir[2] shouldBe "test.NAVI"
+        successFilesInDir[0] shouldBe "test.NAVI"
+        successFilesInDir[1] shouldBe "fil1.txt"
+        successFilesInDir[2] shouldBe "fil2.txt"
+
 
         fakeFtpService.close()
     }
