@@ -105,7 +105,7 @@ private val defaultProperties = ConfigurationMap(
     }
 }
 
-private fun readProperty(name: String, default: String? = null) =
+private fun readProperty(name: String, default: String? = "") =
     System.getenv(name)
         ?: System.getProperty(name)
         ?: default.takeIf { it != null }?.also { logger.warn { "Using default value for property $name" } }
