@@ -59,7 +59,7 @@ class FtpService(
 
     fun listAllFiles(directory: String): List<String> = sftpChannel.ls(directory).map { it.filename }
 
-    fun listFiles(directory: Directories = Directories.INBOUND): List<String> = sftpChannel.ls(directory.value).map { it.filename }.filter { it.contains(".txt")}
+    fun listFiles(directory: Directories = Directories.INBOUND): List<String> = sftpChannel.ls(directory.value).map { it.filename }.filter { it.contains(".txt") || it.contains("NAVI")}
 
     fun moveFile(fileName: String, from: Directories, to: Directories){
         sftpChannel.moveFile(fileName, from, to)
