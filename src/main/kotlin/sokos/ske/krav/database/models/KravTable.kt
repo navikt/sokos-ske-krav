@@ -28,9 +28,8 @@ data class KravTable(
     val status: String,
     val dato_sendt: LocalDateTime,
     val dato_siste_status: LocalDateTime,
-    val lineNummer: Int,
     val kravtype: String,
-    val filename: String
+    val filnavn: String
 ){
 }
 

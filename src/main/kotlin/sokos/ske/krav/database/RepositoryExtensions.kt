@@ -14,7 +14,7 @@ import java.util.*
 
 object RepositoryExtensions {
 
-    val logger = KotlinLogging.logger {  }
+    val logger = KotlinLogging.logger { }
 
     inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R {
         try {
@@ -39,7 +39,9 @@ object RepositoryExtensions {
             Boolean::class -> getBoolean(columnLabel)
             BigDecimal::class -> getBigDecimal(columnLabel)
             LocalDate::class -> getDate(columnLabel)?.toLocalDate()
-            kotlinx.datetime.LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()!!.toKotlinxLocalDateTime()
+            kotlinx.datetime.LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()!!
+                .toKotlinxLocalDateTime()
+
             LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
             else -> {
                 logger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
@@ -56,7 +58,15 @@ object RepositoryExtensions {
     }
 
     fun LocalDateTime.toKotlinxLocalDateTime(): kotlinx.datetime.LocalDateTime =
-        kotlinx.datetime.LocalDateTime(this.year, this.month, this.dayOfMonth,this.hour, this.minute, this.second, this.nano)
+        kotlinx.datetime.LocalDateTime(
+            this.year,
+            this.month,
+            this.dayOfMonth,
+            this.hour,
+            this.minute,
+            this.second,
+            this.nano
+        )
 
 
     fun interface Parameter {
@@ -79,24 +89,44 @@ object RepositoryExtensions {
     fun param(value: UUID) = Parameter { sp: PreparedStatement, index: Int -> sp.setObject(index, value) }
     fun param(value: Boolean) = Parameter { sp: PreparedStatement, index: Int -> sp.setBoolean(index, value) }
     fun param(value: BigDecimal) = Parameter { sp: PreparedStatement, index: Int -> sp.setBigDecimal(index, value) }
-    fun param(value: LocalDate) = Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value)) }
-    fun param(value: LocalDateTime) = Parameter { sp: PreparedStatement, index: Int -> sp.setTimestamp(index, Timestamp.valueOf(value)) }
+    fun param(value: LocalDate) =
+        Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value)) }
+
+    fun param(value: LocalDateTime) =
+        Parameter { sp: PreparedStatement, index: Int -> sp.setTimestamp(index, Timestamp.valueOf(value)) }
+
     fun param(value: java.sql.Array) = Parameter { sp: PreparedStatement, index: Int -> sp.setArray(index, value) }
 
     fun PreparedStatement.withParameters(vararg parameters: Parameter?) = apply {
         var index = 1; parameters.forEach { it?.addToPreparedStatement(this, index++) }
     }
+
     fun ResultSet.toKrav() = toList {
         KravTable(
-            krav_id = getColumn("krav_id"),
-            saksnummer_nav = getColumn("saksnummer_nav"),
+            kravid = getColumn("kravid"),
+            saksnummer = getColumn("saksnummer"),
             saksnummer_ske = getColumn("saksnummer_ske"),
-            fildata_nav = getColumn("fildata_nav"),
-            jsondata_ske = getColumn("jsondata_ske"),
+            belop = getColumn("belop"),
+            vedtakDato = getColumn("vedtakDato"),
+            gjelderId = getColumn("gjelderid"),
+            periodeFOM = getColumn("periodeFOM"),
+            periodeTOM = getColumn("periodeTOM"),
+            kravkode = getColumn("kravkode"),
+            referanseNummerGammelSak = getColumn("referanseNummerGammelSak"),
+            transaksjonDato = getColumn(""),
+            enhetBosted = getColumn(""),
+            enhetBehandlende = getColumn(""),
+            kodeHjemmel = getColumn(""),
+            kodeArsak = getColumn(""),
+            belopRente = getColumn(""),
+            fremtidigYtelse = getColumn(""),
+            utbetalDato = getColumn(""),
+            fagsystemId = getColumn(""),
             status = getColumn("status"),
             dato_sendt = getColumn("dato_sendt"),
             dato_siste_status = getColumn("dato_siste_status"),
-            kravtype = getColumn("kravtype")
+            kravtype = getColumn("kravtype"),
+            filnavn = getColumn("filenavn")
 
         )
     }
