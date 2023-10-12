@@ -74,11 +74,7 @@ dependencies {
 
     // FTP
     implementation ("commons-net:commons-net:3.9.0")
-  //  implementation("com.jcraft:jsch:0.1.55")
-    // https://mvnrepository.com/artifact/com.github.mwiede/jsch
     implementation("com.github.mwiede:jsch:0.2.11")
-
-
 
 
     // Config

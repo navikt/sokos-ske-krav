@@ -1,7 +1,6 @@
 package sokos.ske.krav.service
 
 
-import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
@@ -14,14 +13,13 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.Json.Default.decodeFromJsonElement
 import kotlinx.serialization.json.Json.Default.decodeFromString
 import kotlinx.serialization.json.Json.Default.encodeToString
+import sokos.ske.krav.FakeFtpService
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
-
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
 import sokos.ske.krav.skemodels.responses.ValideringsfeilResponse
 
 
-@Ignored
 internal class SkeServiceTest: FunSpec ({
 
     test("validering deserialisering"){
@@ -44,7 +42,8 @@ internal class SkeServiceTest: FunSpec ({
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
         val dataSource = mockk<PostgresDataSource>(relaxed = true)
         val fakeFtpService = FakeFtpService()
-        fakeFtpService.connect(Directories.OUTBOUND, listOf("fil1.txt"))
+
+        val ftpService =  fakeFtpService.setupMocks(Directories.OUTBOUND, listOf("fil1.txt"))
         val mockEngineOK = MockEngine {
             respond(
                 content = ByteReadChannel("{\"kravidentifikator\": \"1234\"}"),
@@ -57,7 +56,7 @@ internal class SkeServiceTest: FunSpec ({
         }
         val client = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
       //  val service = SkeService(client,dataSource, fakeFtpService)
-        val service = SkeService(client,dataSource)
+        val service = SkeService(client,dataSource, ftpService)
         val responses = service.sendNyeFtpFilerTilSkatt()
         responses.map { it.status shouldBeIn listOf(HttpStatusCode.OK, HttpStatusCode.Created) }
         fakeFtpService.close()
@@ -68,7 +67,7 @@ internal class SkeServiceTest: FunSpec ({
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
         val dataSource = mockk<PostgresDataSource>(relaxed = true)
         val fakeFtpService = FakeFtpService()
-        fakeFtpService.connect(Directories.OUTBOUND, listOf("fil1.txt"))
+        val ftpService = fakeFtpService.setupMocks(Directories.OUTBOUND, listOf("fil1.txt"))
         val mockEngineFail = MockEngine {
             respond(
                 content = ByteReadChannel("Feil i request"),
@@ -80,8 +79,8 @@ internal class SkeServiceTest: FunSpec ({
             expectSuccess = false
         }
         val client = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-        val service = SkeService(client,dataSource)
-//val service = SkeService(client,dataSource, fakeFtpService)
+        val service = SkeService(client,dataSource, ftpService)
+
         val responses = service.sendNyeFtpFilerTilSkatt()
         responses.map { it.status shouldNotBeIn listOf(HttpStatusCode.OK, HttpStatusCode.Created) }
 

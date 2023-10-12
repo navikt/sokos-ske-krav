@@ -10,7 +10,6 @@ import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.Directories
-import sokos.ske.krav.service.FakeFtpService
 import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.util.DatabaseTestUtils
 
@@ -44,7 +43,7 @@ internal class IntegrationTest: FunSpec ({
         }
         val clientSendKrav = SkeClient(skeEndpoint = "", client = httpClientSendKrav, tokenProvider = tokenProvider)
      //   val serviceSendKrav = SkeService(clientSendKrav, datasource, fakeFtpService)
-     val serviceSendKrav = SkeService(clientSendKrav, datasource)
+        val serviceSendKrav = SkeService(clientSendKrav, datasource)
 
         serviceSendKrav.sendNyeFtpFilerTilSkatt()
 

@@ -48,13 +48,14 @@ class SkeService(
     }
 
 
+    suspend fun testListFiles(directory: String): List<String> { return ftpService.listAllFiles(directory)}
     suspend fun testFtp(): List<FtpFil> {
-        return ftpService.getFiles(::fileValidator)
+        return ftpService.getValidatedFiles(::fileValidator)
 
     }
 
     suspend fun sendFiler(): List<HttpResponse> {
-        val files = ftpService.getFiles(::fileValidator)
+        val files = ftpService.getValidatedFiles(::fileValidator)
         val results = mutableMapOf<FtpFil, MutableList<HttpResponse>>()
         val failedLines = mutableListOf<FailedLine>()
         val con = dataSource.connection
@@ -94,7 +95,7 @@ class SkeService(
 
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
         logger.info { "Starter skeService SendNyeFtpFilertilSkatt." }
-        val files = ftpService.getFiles(::fileValidator)
+        val files = ftpService.getValidatedFiles(::fileValidator)
         logger.info { "Antall filer i kjøring ${files.size}" }
         val con = dataSource.connection
 

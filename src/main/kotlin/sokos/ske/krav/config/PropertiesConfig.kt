@@ -85,11 +85,11 @@ private val defaultProperties = ConfigurationMap(
     )
 
     data class PostgresConfig(
-        val host: String = readProperty("POSTGRES_HOST",""),
-        val port: String = readProperty("POSTGRES_PORT", ""),
-        val name: String = readProperty("POSTGRES_NAME", ""),
-        val username: String = readProperty("POSTGRES_USERNAME", ""),
-        val password: String = readProperty("POSTGRES_PASSWORD", ""),
+        val host: String = readProperty("POSTGRES_HOST"),
+        val port: String = readProperty ("POSTGRES_PORT"),
+        val name: String = readProperty ("POSTGRES_NAME"),
+        val username: String = readProperty("POSTGRES_USERNAME"),
+        val password: String = readProperty ("POSTGRES_PASSWORD"),
         val vaultMountPath: String = readProperty("VAULT_MOUNTPATH", ""),
         val testTable: String = readProperty("HIKARI_TEST_TABLE", ""),
     ) {
