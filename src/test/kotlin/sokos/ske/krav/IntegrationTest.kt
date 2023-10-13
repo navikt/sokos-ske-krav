@@ -1,5 +1,6 @@
 package sokos.ske.krav
 
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
@@ -31,6 +32,7 @@ val avskrivResponse =  "{\n" +
 //Repositorytest feiler hvis container i denne ikke har stoppet
 
 
+@Ignored
 internal class IntegrationTest: FunSpec ({
 
     test("Test insert"){
