@@ -1,6 +1,5 @@
 package sokos.ske.krav
 
-import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
@@ -30,7 +29,8 @@ val avskrivResponse =  "{\n" +
 
 
 //Repositorytest feiler hvis container i denne ikke har stoppet
-@Ignored
+
+
 internal class IntegrationTest: FunSpec ({
 
     test("Test insert"){
@@ -55,7 +55,7 @@ internal class IntegrationTest: FunSpec ({
         serviceSendKrav.sendNyeFtpFilerTilSkatt()
         httpClientSendKrav.close()
 
-
+/*
         val mockEngineMottaksstatus= MockEngine {
             respond(
                 content = mottattresponse,
@@ -73,7 +73,7 @@ internal class IntegrationTest: FunSpec ({
 
        // val kravdata = serviceMottaksstatus.hentOgOppdaterMottaksStatus()
 
-        httpClientMottaksstatus.close()
+        httpClientMottaksstatus.close()*/
         fakeFtpService.close()
 
         datasource.close()

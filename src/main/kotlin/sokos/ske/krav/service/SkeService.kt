@@ -55,10 +55,19 @@ class SkeService(
         val responses = files.map { file ->
             val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.map {
 
+
+                val kravTable = kravService.hentSkeKravident2(it.saksNummer)
                 var kravident = kravService.hentSkeKravident(it.saksNummer)
                 var request: String
 
+                println("KRAVTABLE SIZE: ${kravTable.size} | SAKSNUMMER: ${it.saksNummer}")
+
                 if (kravident.isEmpty() && !it.erNyttKrav()) {
+
+                    println("SAKSNUMMER: ${it.saksNummer}")
+                    println(kravTable)
+
+                    println("Hva faen gjør vi nå :( ")
                     //hva faen gjør vi nå??
                     //Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
                 }

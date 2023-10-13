@@ -127,6 +127,17 @@ object Repository {
         else ""
 
     }
+
+    fun Connection.hentSkeKravIdent2(navref: String): MutableList<KravTable> {
+        return prepareStatement("""
+            select * from krav
+            where saksnummer_nav = ? order by krav_id desc limit 1
+        """.trimIndent()
+        ).withParameters(
+            param(navref)
+        ).executeQuery().toKrav()
+
+    }
     fun Connection.lagreNyKobling(ref: String): String {
         val nyref = UUID.randomUUID().toString()
         prepareStatement(
