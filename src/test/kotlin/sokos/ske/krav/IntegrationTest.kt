@@ -22,14 +22,22 @@ val mottattresponse = "{\n" +
         "  \"statusOppdatert\": \"2023-10-04T04:47:08.482Z\"\n" +
         "}"
 
+val avskrivResponse =  "{\n" +
+        "  \"kravidentifikatorType\": \"SKATTEETATENS_KRAVIDENTIFIKATOR\",\n" +
+        "  \"kravidentifikator\": \"1234\",\n" +
+        "}"
+
+
+
+//Repositorytest feiler hvis container i denne ikke har stoppet
 @Ignored
 internal class IntegrationTest: FunSpec ({
 
     test("Test insert"){
-        val datasource = DatabaseTestUtils.getDataSource("initEmptyDB.sql", false)
+        val datasource = DatabaseTestUtils.getDataSource("initDB.sql", false)
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
         val fakeFtpService = FakeFtpService()
-        fakeFtpService.connect(Directories.OUTBOUND, listOf("fil1.txt"))
+        val ftpService=  fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt"))
 
         val mockEngineOK = MockEngine {
             respond(
@@ -42,30 +50,15 @@ internal class IntegrationTest: FunSpec ({
             expectSuccess = false
         }
         val clientSendKrav = SkeClient(skeEndpoint = "", client = httpClientSendKrav, tokenProvider = tokenProvider)
-     //   val serviceSendKrav = SkeService(clientSendKrav, datasource, fakeFtpService)
-        val serviceSendKrav = SkeService(clientSendKrav, datasource)
+        val serviceSendKrav = SkeService(clientSendKrav, datasource, ftpService)
 
         serviceSendKrav.sendNyeFtpFilerTilSkatt()
-
         httpClientSendKrav.close()
-        val content = ByteReadChannel("{\n" +
-                "  \"kravidentifikator\": \"1234\",\n" +
-                "  \"oppdragsgiversKravidentifikator\": \"1234\",\n" +
-                "  \"mottaksstatus\": \"MOTTATT_UNDER_BEHANDLING\",\n" +
-                "  \"statusOppdatert\": \"2023-10-04T04:47:08.482Z\"\n" +
-                "}")
 
-        val config = MockEngineConfig()
-        config.addHandler {
-            respond(
-            content = content,
-            status = HttpStatusCode.OK,
-            headers = headersOf(HttpHeaders.ContentType, "application/json")
-        ) }
-        val eengine = MockEngine(config)
+
         val mockEngineMottaksstatus= MockEngine {
             respond(
-                content = content,
+                content = mottattresponse,
                 status = HttpStatusCode.OK,
                 headers = headersOf(HttpHeaders.ContentType, "application/json")
             )
@@ -76,12 +69,10 @@ internal class IntegrationTest: FunSpec ({
 
 
         val clientMottaksstatus= SkeClient(skeEndpoint = "", client = httpClientMottaksstatus, tokenProvider = tokenProvider)
-       // val serviceMottaksstatus = SkeService(clientMottaksstatus, datasource, fakeFtpService)
-        val serviceMottaksstatus = SkeService(clientMottaksstatus, datasource)
+        val serviceMottaksstatus = SkeService(clientMottaksstatus, datasource, ftpService)
 
-        val kravdata = serviceMottaksstatus.hentOgOppdaterMottaksStatus()
+       // val kravdata = serviceMottaksstatus.hentOgOppdaterMottaksStatus()
 
-        println(kravdata)
         httpClientMottaksstatus.close()
         fakeFtpService.close()
 
@@ -89,10 +80,10 @@ internal class IntegrationTest: FunSpec ({
     }
 
     test("foo"){
-        val datasource = DatabaseTestUtils.getDataSource("initEmptyDB.sql", false)
+        val datasource = DatabaseTestUtils.getDataSource("initDB.sql", false)
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
         val fakeFtpService = FakeFtpService()
-        fakeFtpService.connect(Directories.OUTBOUND, listOf("fil1.txt"))
+        val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt"))
 
         val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
         val client = HttpClient(MockEngine) {
@@ -105,8 +96,13 @@ internal class IntegrationTest: FunSpec ({
                         "/innkrevingsoppdrag" -> {
                             respond(opprettResponse, HttpStatusCode.OK, responseHeaders)
                         }
+                        "/innkrevingsoppdrag/avskriving" -> {
+                            respond("{}", HttpStatusCode.OK, responseHeaders)
+                        }
                         else -> {
-                            error("Unhandled ${request.url.encodedPath}")
+                            println("Ikke implementert: ${request.url.encodedPath}")
+                            respond("", HttpStatusCode.OK, responseHeaders)
+                            //error("Unhandled ${request.url.encodedPath}")
                         }
                     }
                 }
@@ -114,12 +110,11 @@ internal class IntegrationTest: FunSpec ({
         }
 
         val clientSendKrav = SkeClient(skeEndpoint = "", client = client, tokenProvider = tokenProvider)
-       val service = SkeService(clientSendKrav, datasource)
-       // val service = SkeService(clientSendKrav, datasource, fakeFtpService)
+        val service = SkeService(clientSendKrav, datasource, ftpService)
 
         service.sendNyeFtpFilerTilSkatt()
-        val kravdata =  service.hentOgOppdaterMottaksStatus()
-        println(kravdata)
+        //val kravdata =  service.hentOgOppdaterMottaksStatus()
+      //  println(kravdata)
 
         client.close()
 

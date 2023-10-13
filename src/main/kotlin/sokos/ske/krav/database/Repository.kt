@@ -106,7 +106,7 @@ object Repository {
                 param(kravtype)
             ).execute()
             commit()
-            println("lagring av $skeid OK")
+         //   println("lagring av $skeid OK")
         } catch (e: Exception) {
             println("lagring av $skeid feilet")
             println("exception lagring av nytt krav: ${e.message}")

@@ -65,7 +65,9 @@ class SkeService(
 
                 val response = when {
                     it.erStopp() -> {
+                        println("KRAVIDENT: $kravident")
                         request = toJson(AvskrivingRequest.serializer(),lagStoppKravRequest(kravident) )
+                        println("REQUEST: $request")
                         skeClient.stoppKrav(request)
                     }
                     it.erEndring() -> {
@@ -121,6 +123,10 @@ class SkeService(
         val result = kravService.hentAlleKravSomIkkeErReskotrofort().map {
             antall += 1
             logger.info { "Logger (Status start): ${it.saksnummer_ske}" }
+            if(it.saksnummer_ske.isBlank()){
+                println("STATUS: ${it.status} , FILDATA NAV: ${it.fildata_nav}")
+                println("KRAV ID: ${it.krav_id} , KRAVTYPE: ${it.kravtype}, SAKSNUMMER NAV: ${it.saksnummer_nav}")
+            }
             val response = skeClient.hentMottaksStatus(it.saksnummer_ske)
             logger.info { "Logger (Status hentet): ${it.saksnummer_ske}" }
             if (response.status.isSuccess()) {

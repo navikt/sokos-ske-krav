@@ -22,8 +22,8 @@ import sokos.ske.krav.util.DatabaseTestUtils
 import kotlin.math.roundToLong
 
 
+//Disse testene feiler dersom testcontainer som blir brukt i Integrationtest ikke har stoppet ennå
 internal class RepositoryTest: FunSpec( {
-
 
     test("Test hent kravdata") {
         val datasource = DatabaseTestUtils.getDataSource("initDB.sql", false)

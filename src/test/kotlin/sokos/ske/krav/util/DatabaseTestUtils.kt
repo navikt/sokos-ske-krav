@@ -13,7 +13,6 @@ object DatabaseTestUtils {
     private fun initContainer(initScriptPath: String, reusable: Boolean = false): PropertiesConfig.PostgresConfig {
         container.apply {
             withInitScript(initScriptPath)
-            println("starting container")
             withReuse(reusable)
             start()
         }
