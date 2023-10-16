@@ -4,7 +4,6 @@ import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.Parameter
 import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
 import java.math.BigDecimal
 import java.sql.*
 import java.sql.Date
@@ -115,11 +114,6 @@ object RepositoryExtensions {
             add(mapper())
         }
     }
-
-    fun ResultSet.toOpprettInnkrevingsOppdragResponse() = toList {
-        OpprettInnkrevingsOppdragResponse(
-            kravidentifikator = getString("KRAVIDENTIFIKATOR")
-        )
-    }
+    
 
 }

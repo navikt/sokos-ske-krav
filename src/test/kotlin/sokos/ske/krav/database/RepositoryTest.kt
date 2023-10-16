@@ -18,15 +18,17 @@ import sokos.ske.krav.navmodels.DetailLine
 import sokos.ske.krav.service.lagOpprettKravRequest
 import sokos.ske.krav.service.parseFRtoDataDetailLineClass
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
-import sokos.ske.krav.util.DatabaseTestUtils
+import sokos.ske.krav.util.TestContainer
 import kotlin.math.roundToLong
 
 
 //Disse testene feiler dersom testcontainer som blir brukt i Integrationtest ikke har stoppet ennå
 internal class RepositoryTest: FunSpec( {
 
+
     test("Test hent kravdata") {
-        val datasource = DatabaseTestUtils.getDataSource("initDB.sql", false)
+        val testContainer = TestContainer()
+        val datasource = testContainer.getDataSource("insertData.sql", reusable = false, loadFlyway = true)
         val kravData = datasource.connection.hentAlleKravData()
 
         kravData.size shouldBe 2
@@ -43,7 +45,8 @@ internal class RepositoryTest: FunSpec( {
     }
 
     test("Tester kobling"){
-        val datasource = DatabaseTestUtils.getDataSource("initDB.sql", false)
+        val testContainer = TestContainer()
+        val datasource = testContainer.getDataSource("insertData.sql", reusable = false, loadFlyway = true)
         val con = datasource.connection
         val kravData = con.hentAlleKravData()
         val koblinger = con.hentAlleKoblinger()
@@ -59,7 +62,8 @@ internal class RepositoryTest: FunSpec( {
     }
 
     test("lagring og kobling til endring"){
-        val datasource = DatabaseTestUtils.getDataSource("initDB.sql", false)
+        val testContainer = TestContainer()
+        val datasource = testContainer.getDataSource("insertData.sql", reusable = false, loadFlyway = true)
         val con = datasource.connection
         val fl1 = "00300000035OB040000592759    0000008880020230526148201488362023030120230331FA FØ                     2023052680208020T ANNET                0000000000000000000000"
         val fl2 = "00300000035OB040000592759    0000009990020230526148201488362023030120230331FA FØ   OB040000592759    2023052680208020T ANNET                0000000000000000000000"

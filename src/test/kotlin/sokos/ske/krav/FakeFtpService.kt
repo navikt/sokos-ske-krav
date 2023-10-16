@@ -51,7 +51,7 @@ class FakeFtpService(private val client: FTPClient = FTPClient()) {
 
     }
 
-    fun connect(
+    private fun connect(
         directory: Directories = Directories.INBOUND,
         fileNames: List<String> = listOf("fil1.txt", "fil2.txt")
     ): PropertiesConfig.FtpConfig {

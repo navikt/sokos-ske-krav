@@ -1,6 +1,5 @@
 package sokos.ske.krav
 
-import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
@@ -11,7 +10,7 @@ import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.SkeService
-import sokos.ske.krav.util.DatabaseTestUtils
+import sokos.ske.krav.util.TestContainer
 
 
 val opprettResponse = "{\"kravidentifikator\": \"1234\"}"
@@ -32,11 +31,11 @@ val avskrivResponse =  "{\n" +
 //Repositorytest feiler hvis container i denne ikke har stoppet
 
 
-@Ignored
 internal class IntegrationTest: FunSpec ({
 
     test("Test insert"){
-        val datasource = DatabaseTestUtils.getDataSource("initDB.sql", false)
+        val testContainer = TestContainer()
+        val datasource = testContainer.getDataSource("insertData.sql", reusable = false, loadFlyway = true)
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
         val fakeFtpService = FakeFtpService()
         val ftpService=  fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt"))
@@ -82,7 +81,8 @@ internal class IntegrationTest: FunSpec ({
     }
 
     test("foo"){
-        val datasource = DatabaseTestUtils.getDataSource("initDB.sql", false)
+        val testContainer = TestContainer()
+        val datasource = testContainer.getDataSource("insertData.sql", reusable = false, loadFlyway = true)
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
         val fakeFtpService = FakeFtpService()
         val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt"))
@@ -99,7 +99,7 @@ internal class IntegrationTest: FunSpec ({
                             respond(opprettResponse, HttpStatusCode.OK, responseHeaders)
                         }
                         "/innkrevingsoppdrag/avskriving" -> {
-                            respond("{}", HttpStatusCode.OK, responseHeaders)
+                            respond(avskrivResponse, HttpStatusCode.OK, responseHeaders)
                         }
                         else -> {
                             println("Ikke implementert: ${request.url.encodedPath}")

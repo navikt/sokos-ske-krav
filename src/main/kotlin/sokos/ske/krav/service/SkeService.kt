@@ -59,14 +59,9 @@ class SkeService(
                 val kravTable = kravService.hentSkeKravident2(it.saksNummer)
                 var kravident = kravService.hentSkeKravident(it.saksNummer)
                 var request: String
-
-                println("KRAVTABLE SIZE: ${kravTable.size} | SAKSNUMMER: ${it.saksNummer}")
-
                 if (kravident.isEmpty() && !it.erNyttKrav()) {
 
                     println("SAKSNUMMER: ${it.saksNummer}")
-                    println(kravTable)
-
                     println("Hva faen gjør vi nå :( ")
                     //hva faen gjør vi nå??
                     //Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
@@ -74,9 +69,7 @@ class SkeService(
 
                 val response = when {
                     it.erStopp() -> {
-                        println("KRAVIDENT: $kravident")
                         request = toJson(AvskrivingRequest.serializer(),lagStoppKravRequest(kravident) )
-                        println("REQUEST: $request")
                         skeClient.stoppKrav(request)
                     }
                     it.erEndring() -> {
