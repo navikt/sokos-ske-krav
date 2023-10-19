@@ -2,8 +2,16 @@ package sokos.ske.krav.service
 
 
 import sokos.ske.krav.navmodels.DetailLine
-import sokos.ske.krav.skemodels.requests.*
+import sokos.ske.krav.skemodels.requests.AvskrivingRequest
+import sokos.ske.krav.skemodels.requests.EndringRequest
+import sokos.ske.krav.skemodels.requests.HovedstolBeloep
+import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
+import sokos.ske.krav.skemodels.requests.RenteBeloep
+import sokos.ske.krav.skemodels.requests.Skyldner
+import sokos.ske.krav.skemodels.requests.TilleggsinformasjonNav
+import sokos.ske.krav.skemodels.requests.Valuta
+import sokos.ske.krav.skemodels.requests.YtelseForAvregningBeloep
 import kotlin.math.roundToLong
 
 sealed class ValidationResult {
@@ -21,13 +29,12 @@ fun fileValidator(content: List<String>): ValidationResult {
     val invalidSum = detailLines.sumOf { it.belop + it.belopRente } != lastLine.sumAllTransactionLines
     val invalidTransferDate = firstLine.transferDate != lastLine.transferDate
 
-    //  if(invalidNumberOfLines || invalidSum || invalidTransferDate || invalidKravkode){
-    if (invalidNumberOfLines || invalidSum || invalidTransferDate) {
+    if(invalidNumberOfLines || invalidSum || invalidTransferDate || invalidKravkode){
         val errorMessages = mutableListOf<String>()
         if (invalidNumberOfLines) errorMessages.add("Antall krav stemmer ikke med antallet i siste linje!")
         if (invalidSum) errorMessages.add("Sum alle linjer stemmer ikke med sum i siste linje!")
         if (invalidTransferDate) errorMessages.add("Dato sendt er avvikende mellom første og siste linje fra OS!")
-        //     if(invalidKravkode) errorMessages.add("Ugyldig kravkode!")
+        if(invalidKravkode) errorMessages.add("Ugyldig kravkode!")
 
         return ValidationResult.Error(errorMessages)
     }

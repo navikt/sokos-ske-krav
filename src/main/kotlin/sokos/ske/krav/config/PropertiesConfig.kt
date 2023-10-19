@@ -1,13 +1,17 @@
 package sokos.ske.krav.config
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.natpryce.konfig.*
+import com.natpryce.konfig.ConfigurationMap
+import com.natpryce.konfig.ConfigurationProperties
+import com.natpryce.konfig.EnvironmentVariables
+import com.natpryce.konfig.Key
+import com.natpryce.konfig.overriding
+import com.natpryce.konfig.stringType
 import com.nimbusds.jose.jwk.RSAKey
-import io.ktor.client.call.*
-import io.ktor.client.request.*
+import io.ktor.client.call.body
+import io.ktor.client.request.get
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
-
 import sokos.ske.krav.client.defaultHttpClient
 import java.io.File
 

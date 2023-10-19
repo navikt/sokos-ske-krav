@@ -1,12 +1,14 @@
 package sokos.ske.krav.apis
 
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.request.receiveText
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Routing
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
 import mu.KotlinLogging
-import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.service.SkeService
@@ -14,8 +16,6 @@ import sokos.ske.krav.service.SkeService
 
 fun Routing.skeApi(
     skeService: SkeService,
-    maskinPortenProperties: PropertiesConfig.MaskinportenClientConfig = PropertiesConfig.MaskinportenClientConfig(),
-    skeProperties: PropertiesConfig.SKEConfig = PropertiesConfig.SKEConfig()
 ) {
     val logger = KotlinLogging.logger {}
 
@@ -47,7 +47,7 @@ fun Routing.skeApi(
         get("test") {
             logger.info { "API kaller test" }
             try {
-                var response = skeService.sendNyeFtpFilerTilSkatt()
+                val response = skeService.sendNyeFtpFilerTilSkatt()
                 logger.info { "APIKrav sendt, returnerer reponse" }
                 call.respond(HttpStatusCode.OK, "$response")
                 logger.info { "APIKrav sendt, oppdaterer mottaksstatus" }

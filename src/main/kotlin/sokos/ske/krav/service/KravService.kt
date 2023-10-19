@@ -1,11 +1,10 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.statement.*
+import io.ktor.client.statement.HttpResponse
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
 import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
 import sokos.ske.krav.database.Repository.hentSkeKravIdent
-import sokos.ske.krav.database.Repository.hentSkeKravIdent2
 import sokos.ske.krav.database.Repository.lagreNyKobling
 import sokos.ske.krav.database.Repository.lagreNyttKrav
 import sokos.ske.krav.database.Repository.lagreValideringsfeil
@@ -25,12 +24,6 @@ class KravService(
             return con.hentSkeKravIdent(navref)
         }
     }
-    fun hentSkeKravident2(navref: String): MutableList<KravTable> {
-        postgresDataSource.connection.useAndHandleErrors {con ->
-            return con.hentSkeKravIdent2(navref)
-        }
-    }
-
 
     fun lagreNyKobling(saksnummerNav: String): String {
         postgresDataSource.connection.useAndHandleErrors {con ->

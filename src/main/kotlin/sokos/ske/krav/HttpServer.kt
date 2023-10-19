@@ -1,13 +1,13 @@
 package sokos.ske.krav
 
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.routing.*
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.engine.stop
+import io.ktor.server.netty.Netty
+import io.ktor.server.routing.routing
 import sokos.ske.krav.apis.installCommonFeatures
 import sokos.ske.krav.apis.naisApi
 import sokos.ske.krav.apis.skeApi
 import sokos.ske.krav.service.SkeService
-
 import java.util.concurrent.TimeUnit
 
 class HttpServer(

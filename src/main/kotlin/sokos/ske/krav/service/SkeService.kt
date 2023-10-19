@@ -1,8 +1,9 @@
 package sokos.ske.krav.service
 
 
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.isSuccess
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.Json
@@ -25,7 +26,7 @@ const val STOPP_KRAV = "STOPP_KRAV"
 
 class SkeService(
     private val skeClient: SkeClient,
-    private val dataSource: PostgresDataSource = PostgresDataSource(),
+    dataSource: PostgresDataSource = PostgresDataSource(),
     private val ftpService: FtpService = FtpService()
 ) {
     private val logger = KotlinLogging.logger {}
@@ -41,11 +42,8 @@ class SkeService(
     }
 
 
-     fun testListFiles(directory: String): List<String> { return ftpService.listAllFiles(directory)}
-     fun testFtp(): List<FtpFil> {
-        return ftpService.getValidatedFiles(::fileValidator)
-
-    }
+    fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
+    fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles(::fileValidator)
 
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
         logger.info { "Starter skeService SendNyeFtpFilertilSkatt." }
@@ -104,10 +102,9 @@ class SkeService(
                 it to response
             }
 
-            val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess()  }
-
-          //  val failedLines = httpResponseFailed.map { FailedLine(file, parseDetailLinetoFRData(it.first), it.second.status.value.toString(), it.second.bodyAsText()) }
-         //   handleAnyFailedLines(failedLines)
+            /*val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess()  }
+            val failedLines = httpResponseFailed.map { FailedLine(file, parseDetailLinetoFRData(it.first), it.second.status.value.toString(), it.second.bodyAsText()) }
+            handleAnyFailedLines(failedLines)*/
 
             svar
         }
@@ -179,19 +176,6 @@ class SkeService(
         if (resultat.isEmpty()) logger.info { "HENTVALIDERINGSFEIL: Ingen krav å hente validering for" }
         else logger.info { "HENTVALIDERINGSFEIL: Det er ${resultat.size} krav det er hentet valideringsfeil for" }
         return resultat
-    }
-
-
-    private fun handleAnyFailedLines(failedLines: List<FailedLine>) {
-
-        if (failedLines.isNotEmpty()) {
-            println("Number of failed lines: ${failedLines.size}")
-            val failedContent: String =
-                failedLines.joinToString("\n") { line -> "${line.line}-${line.error},${line.message} " }
-
-
-        }
-
     }
 
 }

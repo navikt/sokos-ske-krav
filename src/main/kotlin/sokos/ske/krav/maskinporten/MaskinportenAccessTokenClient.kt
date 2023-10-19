@@ -2,18 +2,21 @@ package sokos.ske.krav.maskinporten
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.accept
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
+import io.ktor.http.contentType
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import mu.KotlinLogging
-
 import sokos.ske.krav.config.PropertiesConfig
 import java.time.Instant
-import java.util.*
+import java.util.Date
 
 class MaskinportenAccessTokenClient(
     private val maskinportenConfig: PropertiesConfig.MaskinportenClientConfig,

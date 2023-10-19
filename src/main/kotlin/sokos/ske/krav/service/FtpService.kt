@@ -1,6 +1,10 @@
 package sokos.ske.krav.service
 
-import com.jcraft.jsch.*
+import com.jcraft.jsch.ChannelSftp
+import com.jcraft.jsch.JSch
+import com.jcraft.jsch.JSchException
+import com.jcraft.jsch.SftpException
+import com.jcraft.jsch.Slf4jLogger
 import mu.KotlinLogging
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.navmodels.DetailLine
@@ -17,12 +21,6 @@ data class FtpFil(
     val content: List<String>,
     val detailLines: List<DetailLine>
 )
-data class FailedLine(
-    val file: FtpFil,
-    val line: String,
-    val error: String,
-    val message: String
-)
 
 class FtpService(
     private val config: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConfig(),
@@ -33,9 +31,7 @@ class FtpService(
         addIdentity(config.privKey, config.keyPass)
         setKnownHosts(config.hostKey)
     }
-    private val securelogger = KotlinLogging.logger ("secureLogger")
     private val logger = KotlinLogging.logger {}
-
 
     private val session = secureChannel.getSession(config.username, config.server, config.port).apply {
         setConfig("PreferredAuthentications", "publickey")

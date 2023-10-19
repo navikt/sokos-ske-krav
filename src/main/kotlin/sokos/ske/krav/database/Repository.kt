@@ -1,7 +1,7 @@
 package sokos.ske.krav.database
 
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.isSuccess
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
@@ -16,11 +16,9 @@ import sokos.ske.krav.skemodels.responses.SokosValideringsfeil
 import java.sql.Connection
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
-const val STATUS_RESKONTROFORT = "RESKONTROFOERT"
-const val STATUS_VALIDERINGSFEIL = "VALIDERINGSFEIL"
-const val STATUS_UNDER_BEHANDLING = "MOTTATT_UNDER_BEHANDLING"
+
 const val KRAV_SENDT = "KRAV_SENDT"
 const val KONFLIKT_409 = "KONFLIKT_409"
 const val VALIDERINGSFEIL_422 = "VALIDERINGSFEIL_422"
@@ -42,8 +40,8 @@ object Repository {
         return try {
             prepareStatement("""select * from krav where status <> ? and status <> ?""")
                 .withParameters(
-                    param(STATUS_RESKONTROFORT),
-                    param(STATUS_VALIDERINGSFEIL)
+                    param(MottaksstatusResponse.Mottaksstatus.RESKONTROFOERT.value),
+                    param(MottaksstatusResponse.Mottaksstatus.VALIDERINGSFEIL.value)
                 ).executeQuery().toKrav()
         } catch (e: Exception) {
             logger.error { "exception i henting (status) av data: ${e.message}" }
@@ -56,7 +54,7 @@ object Repository {
         return try {
             prepareStatement("""select * from krav where status = ?""")
                 .withParameters(
-                    param(STATUS_VALIDERINGSFEIL)
+                    param(MottaksstatusResponse.Mottaksstatus.VALIDERINGSFEIL.value)
                 ).executeQuery().toKrav()
         } catch (e: Exception) {
             logger.error { "exception i henting (validering) av data: ${e.message}" }
@@ -128,16 +126,6 @@ object Repository {
 
     }
 
-    fun Connection.hentSkeKravIdent2(navref: String): MutableList<KravTable> {
-        return prepareStatement("""
-            select * from krav
-            where saksnummer_nav = ? order by krav_id desc limit 1
-        """.trimIndent()
-        ).withParameters(
-            param(navref)
-        ).executeQuery().toKrav()
-
-    }
     fun Connection.lagreNyKobling(ref: String): String {
         val nyref = UUID.randomUUID().toString()
         prepareStatement(
@@ -167,9 +155,9 @@ object Repository {
         ).withParameters(
             param(filref)
         ).executeQuery()
-        if (rs.next())
-            return rs.getColumn("saksref_uuid")
-        else return ""
+        return if (rs.next())
+            rs.getColumn("saksref_uuid")
+        else ""
     }
 
     fun Connection.hentAlleKoblinger(): List<KoblingTable> {
@@ -187,9 +175,8 @@ object Repository {
             update krav 
             set status = ?, dato_siste_status = ?
             where saksnummer_ske = ?
-        """.trimIndent().also { logger.info { it } }
-        )
-            .withParameters(
+        """.trimIndent()
+        ).withParameters(
                 param(mottakStatus.mottaksstatus),
                 param(LocalDateTime.now()),
                 param(mottakStatus.kravidentifikator)
@@ -209,7 +196,7 @@ object Repository {
                     dato
                 ) 
                 values (?, ?, ?, ?)
-            """.trimIndent().also { logger.info { it } }
+            """.trimIndent()
             ).withParameters(
                 param(sokosValideringsfeil.kravidSke),
                 param(it.error),
