@@ -2,14 +2,22 @@ package sokos.ske.krav
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.client.*
-import io.ktor.client.engine.mock.*
-import io.ktor.http.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.Repository.hentAlleKravData
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
-import sokos.ske.krav.service.*
+import sokos.ske.krav.service.Directories
+import sokos.ske.krav.service.ENDRE_KRAV
+import sokos.ske.krav.service.FtpService
+import sokos.ske.krav.service.NYTT_KRAV
+import sokos.ske.krav.service.STOPP_KRAV
+import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
 import sokos.ske.krav.util.TestContainer
 import java.sql.ResultSet
@@ -17,17 +25,17 @@ import java.sql.Timestamp
 import java.time.LocalDate
 
 
-val kravident = "1234"
-val opprettResponse = "{\"kravidentifikator\": \"$kravident\"}"
+const val kravident = "1234"
+const val opprettResponse = "{\"kravidentifikator\": \"$kravident\"}"
 
-val mottattresponse = "{\n" +
+val mottattResponse = "{\n" +
         "  \"kravidentifikator\": \"$kravident\",\n" +
         "  \"oppdragsgiversKravidentifikator\": \"$kravident\",\n" +
         "  \"mottaksstatus\": \"${ MottaksstatusResponse.Mottaksstatus.RESKONTROFOERT.value}\",\n" +
         "  \"statusOppdatert\": \"2023-10-04T04:47:08.482Z\"\n" +
         "}"
 
-val valideringsfeilResponse = "{\n" +
+const val valideringsfeilResponse = "{\n" +
         "  \"valideringsfeil\": [\n" +
         "    {\n" +
         "      \"error\": \"feil\",\n" +
@@ -43,6 +51,9 @@ val iderForValideringsFeil = listOf("23", "54", "87")
 internal class IntegrationTest: FunSpec ({
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
 
+    beforeSpec{
+        TestContainer().stopAnyRunningContainer()
+    }
     afterSpec{
         TestContainer().stopAnyRunningContainer()
     }
@@ -66,7 +77,7 @@ internal class IntegrationTest: FunSpec ({
         kravdata.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
         kravdata.filter { it.kravtype == ENDRE_KRAV }.size shouldBe 0
         kravdata.filter { it.kravtype == NYTT_KRAV }.size shouldBe 99
-        kravdata.filter { it.kravtype == NYTT_KRAV && it.saksnummer_ske==kravident}.size shouldBe 99
+        kravdata.filter { it.kravtype == NYTT_KRAV && it.saksnummerSKE==kravident}.size shouldBe 99
 
         client.close()
         fakeFtpService.close()
@@ -92,7 +103,7 @@ internal class IntegrationTest: FunSpec ({
         datasource.close()
     }
 
-    data class ValideringFraDB( val saksnummer_ske: String, val error: String, val melding: String, val dato: Timestamp)
+    data class ValideringFraDB( val saksnummerSke: String, val error: String, val melding: String, val dato: Timestamp)
 
     test("Test hent valideringsfeil"){
         val client = getClient()
@@ -137,7 +148,8 @@ internal class IntegrationTest: FunSpec ({
             it.melding shouldBe "melding"
             it.dato.toString() shouldBe "${LocalDate.now()} 00:00:00.0"
         }
-
+        client.close()
+        datasource.close()
     }
 })
 
@@ -149,10 +161,10 @@ fun getClient() = HttpClient(MockEngine) {
         addHandler { request ->
             when (request.url.encodedPath) {
                 "/innkrevingsoppdrag/1234/mottaksstatus"-> {
-                    respond(mottattresponse, HttpStatusCode.OK, responseHeaders)
+                    respond(mottattResponse, HttpStatusCode.OK, responseHeaders)
                 }
                 "/innkrevingsoppdrag//mottaksstatus"-> { //fordi stopp ikke er implementert
-                    respond(mottattresponse, HttpStatusCode.OK, responseHeaders)
+                    respond(mottattResponse, HttpStatusCode.OK, responseHeaders)
                 }
                 "/innkrevingsoppdrag" -> {
                     respond(opprettResponse, HttpStatusCode.OK, responseHeaders)
