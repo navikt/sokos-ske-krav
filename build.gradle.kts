@@ -5,11 +5,8 @@ plugins {
     kotlin("jvm") version "1.8.21"
     kotlin("plugin.serialization") version "1.8.21"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    application
 }
-application {
-    mainClass.set("sokos.ske.krav.MainKt")
-}
+
 
 group = "no.nav.sokos"
 
@@ -18,14 +15,14 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
-val ktorVersion= "2.3.3"
+val ktorVersion= "2.3.5"
 val hikaricpVersion = "5.0.1"
 val kotlinLoggingVersion = "3.0.4"
 val logback_version = "1.4.1"
 val logstash_version = "7.3"
 val kotestVersion = "5.6.2"
 val mockkVersion = "1.13.7"
-val testContainerVersion ="1.19.0"
+val testContainerVersion ="1.19.1"
 val mockFtpServerVersion = "3.1.0"
 val nimbusVersion = "9.25.6"
 val jacksonVersion = "2.14.0"
@@ -113,7 +110,7 @@ kotlin {
 sourceSets {
     main {
         java {
-            srcDirs("$buildDir/generated/src/main/kotlin")
+            srcDirs("${layout.buildDirectory.get()}/generated/src/main/kotlin")
         }
     }
 }
@@ -141,5 +138,9 @@ tasks {
         }
 
         reports.forEach { report -> report.required.value(false) }
+    }
+
+    withType<Wrapper>() {
+        gradleVersion = "8.4"
     }
 }
