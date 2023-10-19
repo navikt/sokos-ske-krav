@@ -81,7 +81,6 @@ internal class IntegrationTest: FunSpec ({
 
         client.close()
         fakeFtpService.close()
-        datasource.close()
 
     }
 
@@ -96,11 +95,10 @@ internal class IntegrationTest: FunSpec ({
 
         val kravdata = datasource.connection.hentAlleKravData()
 
-
         kravdata.filter { it.status ==  MottaksstatusResponse.Mottaksstatus.RESKONTROFOERT.value}.size shouldBe 99
 
         client.close()
-        datasource.close()
+
     }
 
     data class ValideringFraDB( val saksnummerSke: String, val error: String, val melding: String, val dato: Timestamp)
