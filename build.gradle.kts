@@ -18,8 +18,8 @@ repositories {
 val ktorVersion= "2.3.5"
 val hikaricpVersion = "5.0.1"
 val kotlinLoggingVersion = "3.0.4"
-val logback_version = "1.4.1"
-val logstash_version = "7.3"
+val logbackVersion = "1.4.1"
+val logstashVersion = "7.3"
 val kotestVersion = "5.6.2"
 val mockkVersion = "1.13.7"
 val testContainerVersion ="1.19.1"
@@ -29,7 +29,7 @@ val jacksonVersion = "2.14.0"
 val gsonVersion = "2.10.1"
 val natpryceVersion = "1.6.10.0"
 val postgresqlVersion = "42.6.0"
-val flyway_version = "9.16.1"
+val flywayVersion = "9.16.1"
 
 
 dependencies {
@@ -63,7 +63,7 @@ dependencies {
     implementation ("io.ktor:ktor-serialization-kotlinx-protobuf:$ktorVersion")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.5.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
     implementation ("io.ktor:ktor-serialization-jackson-jvm:$ktorVersion")
     implementation ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation ("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
@@ -78,16 +78,16 @@ dependencies {
     implementation("com.natpryce:konfig:$natpryceVersion")
 
     // Flyway
-    implementation("org.flywaydb:flyway-core:$flyway_version")
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
 
     // Monitorering
     implementation ("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
 
     // Logging
     implementation ("io.ktor:ktor-client-logging:$ktorVersion")
-    implementation ("ch.qos.logback:logback-core:$logback_version")
-    implementation ("ch.qos.logback:logback-classic:$logback_version")
-    implementation ("net.logstash.logback:logstash-logback-encoder:$logstash_version")
+    implementation ("ch.qos.logback:logback-core:$logbackVersion")
+    implementation ("ch.qos.logback:logback-classic:$logbackVersion")
+    implementation ("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
 
     implementation ("io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion")
 
