@@ -10,15 +10,20 @@ import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.database.PostgresDataSource
 import java.io.File
 
-class TestContainer {
-    private val container = PostgreSQLContainer(DockerImageName.parse("postgres:latest"))
+class TestContainer(val name: String = "testContainer") {
+    val dockerImageName = "postgres:latest"
+    private val container = PostgreSQLContainer(DockerImageName.parse(dockerImageName))
 
-    fun getDataSource(initScript: String, reusable: Boolean = false, loadFlyway: Boolean = false): PostgresDataSource = PostgresDataSource(initContainer(listOf(initScript), reusable, loadFlyway))
+    fun getDataSource(initScript: String = "", reusable: Boolean = false, loadFlyway: Boolean = false): PostgresDataSource{
+        val list = if (initScript.isBlank()) emptyList() else listOf(initScript)
+        return PostgresDataSource(initContainer(list, reusable, loadFlyway))
+    }
 
-    private fun initContainer(scripts: List<String>, reusable: Boolean = false, loadFlyway: Boolean = false): PropertiesConfig.PostgresConfig {
+    private fun initContainer(scripts: List<String> = emptyList(), reusable: Boolean = false, loadFlyway: Boolean = false): PropertiesConfig.PostgresConfig {
 
         //Må starte container før runInitScript
         container.apply {
+            withCreateContainerCmdModifier { cmd -> cmd.withName(name) }
             withReuse(reusable)
             start()
         }
@@ -32,8 +37,10 @@ class TestContainer {
                 }
             }
         }
-        scripts.forEach { script ->
-            ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), script)
+        if(scripts.isNotEmpty()){
+            scripts.forEach { script ->
+                ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), script)
+            }
         }
 
         return PropertiesConfig.PostgresConfig(
@@ -44,6 +51,38 @@ class TestContainer {
             password = container.password,
         )
     }
+
+
+    fun getRunningContainer(name: String = getRunningContainerNameForImage()): PostgresDataSource {
+        container.apply {
+            withCreateContainerCmdModifier { cmd -> cmd.withName(name) }
+            withReuse(true)
+            start()
+        }
+        val config =   PropertiesConfig.PostgresConfig(
+            host = container.host,
+            port = container.firstMappedPort.toString(),
+            name = container.databaseName,
+            username = container.username,
+            password = container.password,
+        )
+        return PostgresDataSource(config)
+
+    }
+
+    private fun getRunningContainerNameForImage(): String {
+        val query = """ echo $(docker inspect $(docker ps -a -q --filter="ancestor=${dockerImageName}")| grep "Name" | sed -n '1p' | sed 's/^.*: //' | sed 's/"//g' | sed 's/,//g' | sed 's/\///g')"""
+        val echoName = executeCommand(query)
+        println(echoName)
+        return if(echoName.isNotEmpty()) echoName.first() else name
+
+    }
+    fun stopAnyRunningContainer(){
+        val query = """echo $(docker rm $(docker kill $(docker ps -a -q --filter="ancestor=${dockerImageName}")))"""
+        val id =  executeCommand(query).first()
+        println("stopped running container with id $id")
+    }
+
 
     private fun copyFlywayScripts(path: String = "src/main/resources/db/migration"): List<String> {
         val files =
@@ -58,5 +97,12 @@ class TestContainer {
 
     private fun getFlyWayScripts(path: String = "src/main/resources/db/migration"): List<File> = File(path).walk().filter { it.name.endsWith(".sql") }.toList().sortedBy { it.name }
 
+
+    private fun executeCommand(cmd: String): List<String> {
+        val p = ProcessBuilder("/bin/bash", "-c", cmd).start()
+        p.waitFor()
+        val lines = p.inputReader(Charsets.UTF_8).readLines()
+        return if (lines.isNotEmpty()) lines else listOf()
+    }
 
 }

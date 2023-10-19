@@ -24,10 +24,10 @@ import kotlin.math.roundToLong
 //Disse testene feiler dersom testcontainer som blir brukt i Integrationtest ikke har stoppet ennå
 internal class RepositoryTest: FunSpec( {
 
-
+    val testContainer = TestContainer("RepositoryTest")
+    val datasource = testContainer.getDataSource("insertData.sql", reusable = false, loadFlyway = true)
     test("Test hent kravdata") {
-        val testContainer = TestContainer()
-        val datasource = testContainer.getDataSource("insertData.sql", reusable = false, loadFlyway = true)
+
         val kravData = datasource.connection.hentAlleKravData()
 
         kravData.size shouldBe 2
@@ -44,8 +44,7 @@ internal class RepositoryTest: FunSpec( {
     }
 
     test("Tester kobling"){
-        val testContainer = TestContainer()
-        val datasource = testContainer.getDataSource("insertData.sql", reusable = false, loadFlyway = true)
+
         val con = datasource.connection
         val kravData = con.hentAlleKravData()
         val koblinger = con.hentAlleKoblinger()
@@ -54,15 +53,14 @@ internal class RepositoryTest: FunSpec( {
 
         koblinger.forEachIndexed { i, kobling ->
             val index = i + 1
-            kobling.saksref_uuid shouldBe "${kravData[i].saksnummer_nav}"
+            kobling.saksref_uuid shouldBe kravData[i].saksnummer_nav
             kobling.saksref_fil shouldBe "$index$index${index}0-navfil"
         }
         datasource.close()
     }
 
     test("lagring og kobling til endring"){
-        val testContainer = TestContainer()
-        val datasource = testContainer.getDataSource("insertData.sql", reusable = false, loadFlyway = true)
+
         val con = datasource.connection
         val fl1 = "00300000035OB040000592759    0000008880020230526148201488362023030120230331FA FØ                     2023052680208020T ANNET                0000000000000000000000"
         val fl2 = "00300000035OB040000592759    0000009990020230526148201488362023030120230331FA FØ   OB040000592759    2023052680208020T ANNET                0000000000000000000000"
@@ -71,7 +69,6 @@ internal class RepositoryTest: FunSpec( {
 
         detail1.erNyttKrav() shouldBe true
         detail2.erEndring() shouldBe true
-        val ekspektedSaksnr = detail1.saksNummer
 
         val kobling1 = con.lagreNyKobling(detail1.saksNummer)
         val detail1a = detail1.copy(saksNummer =  kobling1)

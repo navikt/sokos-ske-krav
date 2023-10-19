@@ -6,10 +6,8 @@ import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.KravTable
 import java.math.BigDecimal
 import java.sql.*
-import java.sql.Date
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
 
 object RepositoryExtensions {
 
@@ -21,6 +19,7 @@ object RepositoryExtensions {
                 return block(this)
             }
         } catch (ex: SQLException) {
+            println(ex.message)
             throw ex
         }
     }
@@ -62,25 +61,11 @@ object RepositoryExtensions {
         fun addToPreparedStatement(sp: PreparedStatement, index: Int)
     }
 
-    fun param(value: Int?) = Parameter { sp: PreparedStatement, index: Int ->
-        value?.let {
-            sp.setInt(index, it)
-        } ?: sp.setNull(index, Types.INTEGER)
-    }
-
-    fun param(value: Long?) = Parameter { sp: PreparedStatement, index: Int ->
-        value?.let {
-            sp.setLong(index, value)
-        } ?: sp.setNull(index, Types.BIGINT)
-    }
 
     fun param(value: String?) = Parameter { sp: PreparedStatement, index: Int -> sp.setString(index, value) }
-    fun param(value: UUID) = Parameter { sp: PreparedStatement, index: Int -> sp.setObject(index, value) }
-    fun param(value: Boolean) = Parameter { sp: PreparedStatement, index: Int -> sp.setBoolean(index, value) }
-    fun param(value: BigDecimal) = Parameter { sp: PreparedStatement, index: Int -> sp.setBigDecimal(index, value) }
     fun param(value: LocalDate) = Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value)) }
     fun param(value: LocalDateTime) = Parameter { sp: PreparedStatement, index: Int -> sp.setTimestamp(index, Timestamp.valueOf(value)) }
-    fun param(value: java.sql.Array) = Parameter { sp: PreparedStatement, index: Int -> sp.setArray(index, value) }
+
 
     fun PreparedStatement.withParameters(vararg parameters: Parameter?) = apply {
         var index = 1; parameters.forEach { it?.addToPreparedStatement(this, index++) }
@@ -109,11 +94,9 @@ object RepositoryExtensions {
         )
     }
 
-    fun <T> ResultSet.toList(mapper: ResultSet.() -> T) = mutableListOf<T>().apply {
+    private fun <T> ResultSet.toList(mapper: ResultSet.() -> T) = mutableListOf<T>().apply {
         while (next()) {
             add(mapper())
         }
     }
-    
-
 }

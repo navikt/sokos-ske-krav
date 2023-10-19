@@ -41,8 +41,8 @@ class SkeService(
     }
 
 
-    suspend fun testListFiles(directory: String): List<String> { return ftpService.listAllFiles(directory)}
-    suspend fun testFtp(): List<FtpFil> {
+     fun testListFiles(directory: String): List<String> { return ftpService.listAllFiles(directory)}
+     fun testFtp(): List<FtpFil> {
         return ftpService.getValidatedFiles(::fileValidator)
 
     }
@@ -55,10 +55,8 @@ class SkeService(
         val responses = files.map { file ->
             val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.map {
 
-
-                val kravTable = kravService.hentSkeKravident2(it.saksNummer)
                 var kravident = kravService.hentSkeKravident(it.saksNummer)
-                var request: String
+                val request: String
                 if (kravident.isEmpty() && !it.erNyttKrav()) {
 
                     println("SAKSNUMMER: ${it.saksNummer}")
@@ -87,6 +85,7 @@ class SkeService(
                     if (it.erNyttKrav())
                         kravident =
                             Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText()).kravidentifikator
+
                     kravService.lagreNyttKrav(
                         kravident,
                         request,
@@ -125,10 +124,7 @@ class SkeService(
         val result = kravService.hentAlleKravSomIkkeErReskotrofort().map {
             antall += 1
             logger.info { "Logger (Status start): ${it.saksnummer_ske}" }
-            if(it.saksnummer_ske.isBlank()){
-                println("STATUS: ${it.status} , FILDATA NAV: ${it.fildata_nav}")
-                println("KRAV ID: ${it.krav_id} , KRAVTYPE: ${it.kravtype}, SAKSNUMMER NAV: ${it.saksnummer_nav}")
-            }
+
             val response = skeClient.hentMottaksStatus(it.saksnummer_ske)
             logger.info { "Logger (Status hentet): ${it.saksnummer_ske}" }
             if (response.status.isSuccess()) {
@@ -140,7 +136,6 @@ class SkeService(
                     logger.info { "Logger mottaksresponse: $mottaksstatus, Body: ${body}" }
                     kravService.oppdaterStatus(mottaksstatus)
                     logger.info { "Logger (Status oppdatert): ${it.saksnummer_ske}" }
-                    "Status OK: ${response.bodyAsText()}"
                 } catch (e: Exception) {
                     feil += 1
                     logger.error { "Logger Exception: ${e.message}" }
@@ -163,6 +158,7 @@ class SkeService(
             if (response.status.isSuccess()) {
                 logger.info { "Logger (validering success): ${it.saksnummer_ske}" }
                 val resObj = Json.parseToJsonElement(response.bodyAsText())
+
 
                 logger.info { "ValideringsObj: $resObj" }
 
@@ -203,4 +199,3 @@ class SkeService(
 private fun DetailLine.erNyttKrav() = (!this.erEndring() && !this.erStopp())
 private fun DetailLine.erEndring() = (referanseNummerGammelSak.isNotEmpty() && !erStopp())
 private fun DetailLine.erStopp() = (belop.roundToLong() == 0L)
-fun HttpStatusCode.isError() = (this != HttpStatusCode.OK && this != HttpStatusCode.Created)
