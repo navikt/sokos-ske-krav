@@ -75,7 +75,7 @@ internal class RepositoryTest: FunSpec( {
         val request1 = lagOpprettKravRequest(detail1a)
 
 
-        val resp =  mockk<HttpResponse>(){
+        val resp =  mockk<HttpResponse> {
             every {status} returns HttpStatusCode.OK
         }
 

@@ -8,5 +8,4 @@ data class SokosValideringsfeil (
     val kravidSke: String,
     val valideringsfeilResponse: ValideringsfeilResponse,
 
-) {
-}
+)

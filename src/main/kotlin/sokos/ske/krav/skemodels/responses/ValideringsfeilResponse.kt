@@ -7,5 +7,4 @@ import sokos.ske.krav.skemodels.Validering.ValideringsfeilDTO
 data class ValideringsfeilResponse (
 
     val valideringsfeil: Array<ValideringsfeilDTO>
-) {
-}
+)

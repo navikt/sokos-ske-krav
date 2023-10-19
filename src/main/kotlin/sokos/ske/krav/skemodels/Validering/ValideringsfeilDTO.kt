@@ -7,5 +7,4 @@ data class ValideringsfeilDTO (
 
     val error: String,
     val message: String
-) {
-}
+)

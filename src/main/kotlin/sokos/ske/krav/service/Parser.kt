@@ -22,7 +22,7 @@ fun parseFRtoDataDetailLineClass(line: String): DetailLine {
     return DetailLine(
         lineNummer = parser.parseInt(7),
         saksNummer = parser.parseString(18),
-        belop = parser.parseAmountAsDouble(11)!!,
+        belop = parser.parseAmountAsDouble(11),
         vedtakDato = parser.parseDate(8)!!,
         gjelderID = parser.parseString(11),
         periodeFOM = parser.parseString(8),
