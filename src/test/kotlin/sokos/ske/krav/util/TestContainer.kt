@@ -10,8 +10,8 @@ import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.database.PostgresDataSource
 import java.io.File
 
-class TestContainer(val name: String = "testContainer") {
-    val dockerImageName = "postgres:latest"
+class TestContainer(private val name: String = "testContainer") {
+    private val dockerImageName = "postgres:latest"
     private val container = PostgreSQLContainer(DockerImageName.parse(dockerImageName))
 
     fun getDataSource(initScript: String = "", reusable: Boolean = false, loadFlyway: Boolean = false): PostgresDataSource{
@@ -53,9 +53,8 @@ class TestContainer(val name: String = "testContainer") {
     }
 
 
-    fun getRunningContainer(name: String = getRunningContainerNameForImage()): PostgresDataSource {
+    fun getRunningContainer(): PostgresDataSource {
         container.apply {
-            withCreateContainerCmdModifier { cmd -> cmd.withName(name) }
             withReuse(true)
             start()
         }
@@ -70,13 +69,6 @@ class TestContainer(val name: String = "testContainer") {
 
     }
 
-    private fun getRunningContainerNameForImage(): String {
-        val query = """ echo $(docker inspect $(docker ps -a -q --filter="ancestor=${dockerImageName}")| grep "Name" | sed -n '1p' | sed 's/^.*: //' | sed 's/"//g' | sed 's/,//g' | sed 's/\///g')"""
-        val echoName = executeCommand(query)
-        println(echoName)
-        return if(echoName.isNotEmpty()) echoName.first() else name
-
-    }
     fun stopAnyRunningContainer(){
         val query = """echo $(docker rm $(docker kill $(docker ps -a -q --filter="ancestor=${dockerImageName}")))"""
         val id =  executeCommand(query).first()
@@ -102,7 +94,7 @@ class TestContainer(val name: String = "testContainer") {
         val p = ProcessBuilder("/bin/bash", "-c", cmd).start()
         p.waitFor()
         val lines = p.inputReader(Charsets.UTF_8).readLines()
-        return if (lines.isNotEmpty()) lines else listOf()
+        return lines.ifEmpty { listOf() }
     }
 
 }
