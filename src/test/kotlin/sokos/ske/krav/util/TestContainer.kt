@@ -53,22 +53,6 @@ class TestContainer(private val name: String = "testContainer") {
     }
 
 
-    fun getRunningContainer(): PostgresDataSource {
-        container.apply {
-            withReuse(true)
-            start()
-        }
-        val config =   PropertiesConfig.PostgresConfig(
-            host = container.host,
-            port = container.firstMappedPort.toString(),
-            name = container.databaseName,
-            username = container.username,
-            password = container.password,
-        )
-        return PostgresDataSource(config)
-
-    }
-
     fun stopAnyRunningContainer(){
         val query = """echo $(docker rm $(docker kill $(docker ps -a -q --filter="ancestor=${dockerImageName}")))"""
         val id =  executeCommand(query).first()

@@ -50,17 +50,17 @@ val iderForValideringsFeil = listOf("23", "54", "87")
 
 internal class IntegrationTest: FunSpec ({
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
+    val testContainer = TestContainer("IntegrationTest-TestSendNyeKrav")
+    val datasource = testContainer.getDataSource(reusable = true, loadFlyway = true)
 
-    beforeSpec{
-        TestContainer().stopAnyRunningContainer()
-    }
+
     afterSpec{
         TestContainer().stopAnyRunningContainer()
+        datasource.close()
     }
 
     test("Kravdata skal lagres i database etter å ha sendt nye krav til SKE"){
-        val testContainer = TestContainer("IntegrationTest-TestSendNyeKrav")
-        val datasource = testContainer.getDataSource(reusable = true, loadFlyway = true)
+
         val client = getClient()
 
         val fakeFtpService = FakeFtpService()
@@ -87,7 +87,7 @@ internal class IntegrationTest: FunSpec ({
 
     test("Mottaksstatus skal oppdateres i database"){
         val client = getClient()
-        val datasource = TestContainer().getRunningContainer()
+     //   val datasource = TestContainer().getRunningContainer()
         val mockClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = tokenProvider)
         val service = SkeService(mockClient, datasource, mockk<FtpService>())
 
@@ -105,7 +105,7 @@ internal class IntegrationTest: FunSpec ({
 
     test("Test hent valideringsfeil"){
         val client = getClient()
-        val datasource = TestContainer().getRunningContainer()
+    //    val datasource = TestContainer().getRunningContainer()
         val mockClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = tokenProvider)
         val service = SkeService(mockClient, datasource, mockk<FtpService>())
 
@@ -147,7 +147,7 @@ internal class IntegrationTest: FunSpec ({
             it.dato.toString() shouldBe "${LocalDate.now()} 00:00:00.0"
         }
         client.close()
-        datasource.close()
+
     }
 })
 
