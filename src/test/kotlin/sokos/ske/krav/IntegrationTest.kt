@@ -88,7 +88,7 @@ internal class IntegrationTest: FunSpec ({
 
     test("Mottaksstatus skal oppdateres i database"){
         val client = getClient()
-        val datasource = TestContainer().getRunningContainer("IntegrationTest-TestSendNyeKrav")
+        val datasource = TestContainer().getRunningContainer()
         val mockClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = tokenProvider)
         val service = SkeService(mockClient, datasource, mockk<FtpService>())
 
@@ -107,7 +107,7 @@ internal class IntegrationTest: FunSpec ({
 
     test("Test hent valideringsfeil"){
         val client = getClient()
-        val datasource = TestContainer().getRunningContainer("IntegrationTest-TestSendNyeKrav")
+        val datasource = TestContainer().getRunningContainer()
         val mockClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = tokenProvider)
         val service = SkeService(mockClient, datasource, mockk<FtpService>())
 
