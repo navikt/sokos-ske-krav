@@ -19,7 +19,7 @@ spec:
     timeout: 5
   readiness:
     path: /internal/is_ready
-    initialDelay: 10
+    initialDelay: 5
     periodSeconds: 5
     timeout: 5
   resources:
