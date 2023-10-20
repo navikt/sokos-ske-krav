@@ -1,12 +1,12 @@
 package sokos.ske.krav.maskinporten
 
-import kotlinx.serialization.SerialName
+import com.fasterxml.jackson.annotation.JsonAlias
 import java.time.Instant
 
 data class Token(
-    @SerialName("access_token")
+    @JsonAlias("access_token")
     val accessToken: String,
-    @SerialName("expires_in")
+    @JsonAlias("expires_in")
     val expiresIn: Long
 )
  data class AccessToken(
