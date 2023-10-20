@@ -55,7 +55,10 @@ class TestContainer(private val name: String = "testContainer") {
 
     fun stopAnyRunningContainer(){
         val query = """echo $(docker rm $(docker kill $(docker ps -a -q --filter="ancestor=${dockerImageName}")))"""
-        val id =  executeCommand(query).first()
+        val p = ProcessBuilder("/bin/bash", "-c", query).start()
+        p.waitFor()
+        val lines = p.inputReader(Charsets.UTF_8).readLines()
+        val id = lines.ifEmpty { listOf() }.first()
         println("stopped running container with id $id")
     }
 
@@ -72,13 +75,4 @@ class TestContainer(private val name: String = "testContainer") {
     }
 
     private fun getFlyWayScripts(path: String = "src/main/resources/db/migration"): List<File> = File(path).walk().filter { it.name.endsWith(".sql") }.toList().sortedBy { it.name }
-
-
-    private fun executeCommand(cmd: String): List<String> {
-        val p = ProcessBuilder("/bin/bash", "-c", cmd).start()
-        p.waitFor()
-        val lines = p.inputReader(Charsets.UTF_8).readLines()
-        return lines.ifEmpty { listOf() }
-    }
-
 }

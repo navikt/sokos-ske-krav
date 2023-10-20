@@ -1,12 +1,18 @@
 package sokos.ske.krav.client
 
-import io.ktor.client.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.json.Json
+import io.ktor.client.HttpClient
+import io.ktor.client.request.accept
+import io.ktor.client.request.get
+import io.ktor.client.request.headers
+import io.ktor.client.request.post
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.request
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
 import mu.KotlinLogging
 import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
 
@@ -24,14 +30,6 @@ class SkeClient(
     private val skeEndpoint: String,
     private val client: HttpClient = defaultHttpClient
 ) {
-    @OptIn(ExperimentalSerializationApi::class)
-    private val builder = Json {
-        encodeDefaults = true
-        explicitNulls = false
-    }
-
-    private inline fun <reified T> toJson(serializer: SerializationStrategy<T>, body: T) =
-        builder.encodeToJsonElement(serializer, body).toString()
 
     suspend fun opprettKrav(body: String): HttpResponse =
         doPost(OPPRETT_KRAV,  body)

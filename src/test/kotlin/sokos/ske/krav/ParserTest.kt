@@ -1,9 +1,13 @@
+package sokos.ske.krav
+
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import sokos.ske.krav.navmodels.FirstLine
 import sokos.ske.krav.navmodels.LastLine
-import sokos.ske.krav.service.*
+import sokos.ske.krav.service.parseFRtoDataDetailLineClass
+import sokos.ske.krav.service.parseFRtoDataFirsLineClass
+import sokos.ske.krav.service.parseFRtoDataLastLIneClass
 import java.io.File
 import java.net.URI
 

@@ -11,7 +11,7 @@ fun prefixString(field: String, len: Int, prefix: String): String {
     return result.substring(0, len)
 }
 
-fun prefixString(field: Double, len: Int, prefix: String): String {
+fun prefixString(field: Double): String {
     val str: String = field.toString().let {
         val pos = it.indexOf(".")
         if (pos > -1) {
@@ -34,7 +34,7 @@ fun prefixString(field: Int, len: Int, prefix: String) = prefixString(field.toSt
 
 fun suffixStringWithSpace(field: String, len: Int): String {
     var result: String = field
-    while (result.length < len) (result + " ").also { result = it }
+    while (result.length < len) ("$result ").also { result = it }
     return result.substring(0, len)
 }
 

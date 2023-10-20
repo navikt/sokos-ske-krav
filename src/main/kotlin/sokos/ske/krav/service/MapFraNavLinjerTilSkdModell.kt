@@ -56,7 +56,7 @@ fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
         kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE.value,
         skyldner = Skyldner(Skyldner.IdentifikatorType.PERSON, krav.gjelderID),
         hovedstol = HovedstolBeloep(beloep = krav.belop.roundToLong()),
-        renteBeloep = arrayOf(
+        renteBeloep = listOf(
             RenteBeloep(
                 beloep = beloepRente,
                 renterIlagtDato = krav.vedtakDato

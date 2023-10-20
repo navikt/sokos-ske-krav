@@ -7,7 +7,6 @@ import com.jcraft.jsch.Session
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
-import mu.KotlinLogging
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
 import org.mockftpserver.fake.FakeFtpServer
@@ -25,7 +24,6 @@ import java.io.InputStream
 
 class FakeFtpService(private val client: FTPClient = FTPClient()) {
     private val fakeFtpServer = FakeFtpServer()
-    private val logger = KotlinLogging.logger {}
 
     fun setupMocks(
         directory: Directories = Directories.INBOUND,

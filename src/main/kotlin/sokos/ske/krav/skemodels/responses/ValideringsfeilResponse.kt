@@ -5,7 +5,5 @@ import sokos.ske.krav.skemodels.validering.ValideringsfeilDTO
 
 @Serializable
 data class ValideringsfeilResponse (
-
-
-    val valideringsfeil: Array<ValideringsfeilDTO>
+    val valideringsfeil: List<ValideringsfeilDTO>
 )

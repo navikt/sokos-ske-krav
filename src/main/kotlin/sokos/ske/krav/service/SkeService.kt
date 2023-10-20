@@ -18,6 +18,7 @@ import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
 import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.skemodels.responses.SokosValideringsfeil
 import sokos.ske.krav.skemodels.responses.ValideringsfeilResponse
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.roundToLong
 
 const val NYTT_KRAV = "NYTT_KRAV"
@@ -111,15 +112,15 @@ class SkeService(
 
         files.forEach { file ->  ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
 
-        return responses.map { it.map { it.second } }.flatten()
+        return responses.map { response -> response.map { it.second } }.flatten()
     }
 
 
     suspend fun hentOgOppdaterMottaksStatus(): List<String> {
-        var antall = 0
-        var feil = 0
+        val antall = AtomicInteger()
+        val feil = AtomicInteger()
         val result = kravService.hentAlleKravSomIkkeErReskotrofort().map {
-            antall += 1
+            antall.incrementAndGet()
             logger.info { "Logger (Status start): ${it.saksnummerSKE}" }
 
             val response = skeClient.hentMottaksStatus(it.saksnummerSKE)
@@ -130,11 +131,11 @@ class SkeService(
                     val body = response.bodyAsText()
                     logger.info { "Logger status body: $body" }
                     val mottaksstatus = Json.decodeFromString<MottaksstatusResponse>(body)
-                    logger.info { "Logger mottaksresponse: $mottaksstatus, Body: ${body}" }
+                    logger.info { "Logger mottaksresponse: $mottaksstatus, Body: $body" }
                     kravService.oppdaterStatus(mottaksstatus)
                     logger.info { "Logger (Status oppdatert): ${it.saksnummerSKE}" }
                 } catch (e: Exception) {
-                    feil += 1
+                    feil.incrementAndGet()
                     logger.error { "Logger Exception: ${e.message}" }
                     throw e
                 }
@@ -143,8 +144,7 @@ class SkeService(
             "Status ok: ${response.status.value}, ${response.bodyAsText()}"
         }
         logger.info { "Loger status: ferdig  (antall $antall, feilet: $feil) commit og closer connectin" }
-        val r = result + "Antall behandlet  $antall, Antall feilet: $feil"
-        return r
+        return result + "Antall behandlet  $antall, Antall feilet: $feil"
     }
 
     suspend fun hentValideringsfeil(): List<String> {

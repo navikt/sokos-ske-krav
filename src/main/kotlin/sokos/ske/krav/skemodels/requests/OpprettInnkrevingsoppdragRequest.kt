@@ -12,7 +12,7 @@ data class OpprettInnkrevingsoppdragRequest(
     val kravtype: String,
     val skyldner: Skyldner,
     val hovedstol: HovedstolBeloep,
-    val renteBeloep: Array<RenteBeloep>?,
+    val renteBeloep: List<RenteBeloep>?,
     val oppdragsgiversSaksnummer: String,
     @SerialName("oppdragsgiversKravidentifikator")
     val oppdragsgiversKravIdentifikator: String,

@@ -95,8 +95,8 @@ object Repository {
                 param(
                     when {
                         response.status.isSuccess()  -> KRAV_SENDT
-                        response.status.value.equals(409) -> KONFLIKT_409
-                        response.status.value.equals(422) -> VALIDERINGSFEIL_422
+                        response.status.value == 409 -> KONFLIKT_409
+                        response.status.value == 422 -> VALIDERINGSFEIL_422
                         else -> "UKJENT_${response.status.value}"
                     }),
                 param(now),
@@ -169,7 +169,7 @@ object Repository {
     }
 
     fun Connection.oppdaterStatus(mottakStatus: MottaksstatusResponse) {
-        logger.info { "Logger repos: Lagrer mottaksstatus: ${mottakStatus}" }
+        logger.info { "Logger repos: Lagrer mottaksstatus: $mottakStatus" }
         prepareStatement(
             """
             update krav 
