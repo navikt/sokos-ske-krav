@@ -91,7 +91,5 @@ fun Routing.skeApi(
                 )
             }
         }
-
     }
-
 }

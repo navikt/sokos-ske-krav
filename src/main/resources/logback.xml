@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
 
-    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
 
-    <appender name="stdout_json" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
     </appender>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%green(%d{HH:mm:ss.SSS}) %cyan([%-5.5t]) %boldCyan(%0.-5p) %yellow(%-20.20logger{19}) %cyan(:) %m%n</pattern>
-        </encoder>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>
+                %green(%d{HH:mm:ss}) [%X{X-Correlation-ID}] %cyan([%-5.5t]) %boldCyan(%0.-5p) %yellow(%logger{36})
+                %cyan(:) %m%n
+            </pattern>
+        </layout>
     </appender>
 
     <appender name="secureLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -26,16 +28,31 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
     </appender>
 
-    <logger name="secureLogger" level="DEBUG" additivity="false">
-        <appender-ref ref="${LOG_APPENDER:-secureLog}"/>
-    </logger>
+
+    <if condition='isDefined("NAIS_CLUSTER_NAME")'>
+        <then>
+            <logger name="secureLogger" level="DEBUG" additivity="false">
+                <appender-ref ref="${LOG_APPENDER:-secureLog}"/>
+            </logger>
+        </then>
+    </if>
+
+    <root level="INFO">
+        <if condition='isDefined("NAIS_CLUSTER_NAME")'>
+            <then>
+                <appender-ref ref="STDOUT"/>
+            </then>
+            <else>
+                <appender-ref ref="CONSOLE"/>
+            </else>
+        </if>
+    </root>
+
+    <logger name="no.nav.sokos.skattekort.person" level="INFO"/>
 
     <logger name="com.jcraft.jsch" level="DEBUG" additivity="false">
         <appender-ref ref="${LOG_APPENDER:-stdout_json}"/>
     </logger>
 
-    <root level="INFO">
-        <appender-ref ref="${LOG_APPENDER:-stdout_json}"/>
-    </root>
 
 </configuration>

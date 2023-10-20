@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class MottaksStatusResponse(
-
     val kravidentifikator: String,
     val oppdragsgiversKravidentifikator: String,
     @SerialName("mottaksstatus")
@@ -26,6 +25,4 @@ data class MottaksStatusResponse(
     override fun toString(): String {
         return "MottaksstatusResponse(kravidentifikator='$kravidentifikator', mottaksstatus='$mottaksStatus', oppdragsgiversKravidentifikator=$oppdragsgiversKravidentifikator, statusOppdatert=$statusOppdatert)"
     }
-
-
 }

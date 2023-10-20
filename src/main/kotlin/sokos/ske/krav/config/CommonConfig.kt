@@ -13,7 +13,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import java.util.UUID
 
-
 @OptIn(ExperimentalSerializationApi::class)
 fun Application.commonConfig(){
     install(CallId) {
@@ -32,5 +31,4 @@ fun Application.commonConfig(){
             explicitNulls = false
         })
     }
-
 }

@@ -30,7 +30,7 @@ val gsonVersion = "2.10.1"
 val natpryceVersion = "1.6.10.0"
 val postgresqlVersion = "42.6.0"
 val flywayVersion = "9.16.1"
-
+val janinoVersion = "3.1.10"
 
 dependencies {
     // Ktor Server
@@ -78,12 +78,10 @@ dependencies {
     implementation ("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
 
     // Logging
-    implementation ("io.ktor:ktor-client-logging:$ktorVersion")
-    implementation ("ch.qos.logback:logback-core:$logbackVersion")
+    implementation ("io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion")
+    runtimeOnly("org.codehaus.janino:janino:$janinoVersion")
     implementation ("ch.qos.logback:logback-classic:$logbackVersion")
     implementation ("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
-
-    implementation ("io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion")
 
 
     // Test
