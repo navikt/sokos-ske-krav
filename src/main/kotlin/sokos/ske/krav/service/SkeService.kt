@@ -8,16 +8,20 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
+import sokos.ske.krav.api.model.requests.AvskrivingRequest
+import sokos.ske.krav.api.model.requests.EndringRequest
+import sokos.ske.krav.api.model.requests.OpprettInnkrevingsoppdragRequest
+import sokos.ske.krav.api.model.responses.MottaksStatusResponse
+import sokos.ske.krav.api.model.responses.OpprettInnkrevingsOppdragResponse
+import sokos.ske.krav.api.model.responses.ValideringsFeilResponse
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.navmodels.DetailLine
-import sokos.ske.krav.skemodels.requests.AvskrivingRequest
-import sokos.ske.krav.skemodels.requests.EndringRequest
-import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
-import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
-import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
-import sokos.ske.krav.skemodels.responses.SokosValideringsfeil
-import sokos.ske.krav.skemodels.responses.ValideringsfeilResponse
+import sokos.ske.krav.domain.DetailLine
+import sokos.ske.krav.util.fileValidator
+import sokos.ske.krav.util.lagEndreKravRequest
+import sokos.ske.krav.util.lagOpprettKravRequest
+import sokos.ske.krav.util.lagStoppKravRequest
+import sokos.ske.krav.util.parseDetailLinetoFRData
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.roundToLong
 
@@ -66,7 +70,7 @@ class SkeService(
 
                 val response = when {
                     it.erStopp() -> {
-                        request = toJson(AvskrivingRequest.serializer(),lagStoppKravRequest(kravident) )
+                        request = toJson(AvskrivingRequest.serializer(), lagStoppKravRequest(kravident) )
                         skeClient.stoppKrav(request)
                     }
                     it.erEndring() -> {
@@ -130,7 +134,7 @@ class SkeService(
                 try {
                     val body = response.bodyAsText()
                     logger.info { "Logger status body: $body" }
-                    val mottaksstatus = Json.decodeFromString<MottaksstatusResponse>(body)
+                    val mottaksstatus = Json.decodeFromString<MottaksStatusResponse>(body)
                     logger.info { "Logger mottaksresponse: $mottaksstatus, Body: $body" }
                     kravService.oppdaterStatus(mottaksstatus)
                     logger.info { "Logger (Status oppdatert): ${it.saksnummerSKE}" }
@@ -149,23 +153,13 @@ class SkeService(
 
     suspend fun hentValideringsfeil(): List<String> {
         val resultat = kravService.hentAlleKravMedValideringsfeil().map {
-            logger.info { "Logger (Validering start): ${it.saksnummerSKE}" }
             val response = skeClient.hentValideringsfeil(it.saksnummerSKE)
-            logger.info { "Logger (Validering hentet): ${it.saksnummerSKE}" }
+
             if (response.status.isSuccess()) {
                 logger.info { "Logger (validering success): ${it.saksnummerSKE}" }
-                val resObj = Json.parseToJsonElement(response.bodyAsText())
 
-
-                logger.info { "ValideringsObj: $resObj" }
-
-                val valideringsfeilResponse = SokosValideringsfeil(
-                    kravidSke = it.saksnummerSKE,
-                    valideringsfeilResponse = Json.decodeFromString<ValideringsfeilResponse>(response.bodyAsText())
-                )
-                logger.info { "Serialisering gikk fint: ${valideringsfeilResponse.kravidSke}, ${valideringsfeilResponse.valideringsfeilResponse}" }
-
-                kravService.lagreValideringsfeil(valideringsfeilResponse)
+                val  valideringsfeilResponse = Json.decodeFromString<ValideringsFeilResponse>(response.bodyAsText())
+                kravService.lagreValideringsfeil(valideringsfeilResponse, it.saksnummerSKE)
                 //lag ftpfil og  kall handleAnyFailedFiles
                 "Status OK: ${response.bodyAsText()}"
             } else {
@@ -173,8 +167,8 @@ class SkeService(
                 "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
             }
         }
-        if (resultat.isEmpty()) logger.info { "HENTVALIDERINGSFEIL: Ingen krav å hente validering for" }
-        else logger.info { "HENTVALIDERINGSFEIL: Det er ${resultat.size} krav det er hentet valideringsfeil for" }
+        if (resultat.isNotEmpty()) logger.info { "HENTVALIDERINGSFEIL: Det er ${resultat.size} krav det er hentet valideringsfeil for" }
+
         return resultat
     }
 

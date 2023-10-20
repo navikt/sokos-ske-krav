@@ -1,4 +1,4 @@
-package sokos.ske.krav.skemodels.requests
+package sokos.ske.krav.api.model.requests
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

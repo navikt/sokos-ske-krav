@@ -1,6 +1,8 @@
 package sokos.ske.krav.service
 
 import io.ktor.client.statement.HttpResponse
+import sokos.ske.krav.api.model.responses.MottaksStatusResponse
+import sokos.ske.krav.api.model.responses.ValideringsFeilResponse
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
 import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
@@ -8,12 +10,11 @@ import sokos.ske.krav.database.Repository.hentSkeKravIdent
 import sokos.ske.krav.database.Repository.lagreNyKobling
 import sokos.ske.krav.database.Repository.lagreNyttKrav
 import sokos.ske.krav.database.Repository.lagreValideringsfeil
+
 import sokos.ske.krav.database.Repository.oppdaterStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.navmodels.DetailLine
-import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
-import sokos.ske.krav.skemodels.responses.SokosValideringsfeil
+import sokos.ske.krav.domain.DetailLine
 
 class KravService(
     private val postgresDataSource: PostgresDataSource
@@ -43,9 +44,10 @@ class KravService(
         }
     }
 
-    fun lagreValideringsfeil(sokosValideringsfeil: SokosValideringsfeil){
+
+    fun lagreValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, saksnummerSKE: String){
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.lagreValideringsfeil(sokosValideringsfeil)
+            con.lagreValideringsfeil(valideringsFeilResponse, saksnummerSKE)
         }
     }
 
@@ -55,7 +57,7 @@ class KravService(
         }
     }
 
-    fun oppdaterStatus(mottakStatus: MottaksstatusResponse){
+    fun oppdaterStatus(mottakStatus: MottaksStatusResponse){
         postgresDataSource.connection.useAndHandleErrors { con ->
             con.oppdaterStatus(mottakStatus)
         }

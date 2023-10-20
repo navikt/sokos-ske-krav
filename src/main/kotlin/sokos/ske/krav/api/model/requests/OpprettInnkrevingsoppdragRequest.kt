@@ -1,4 +1,4 @@
-package sokos.ske.krav.skemodels.requests
+package sokos.ske.krav.api.model.requests
 
 
 import kotlinx.datetime.LocalDate
@@ -97,4 +97,9 @@ data class TilleggsinformasjonNav (
             infix fun from(value: String) = map[value]
         }
     }
+}
+
+@Serializable
+enum class Valuta(val value: String){
+    NOK("NOK");
 }

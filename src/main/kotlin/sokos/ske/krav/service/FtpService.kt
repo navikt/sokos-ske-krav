@@ -7,7 +7,8 @@ import com.jcraft.jsch.SftpException
 import com.jcraft.jsch.Slf4jLogger
 import mu.KotlinLogging
 import sokos.ske.krav.config.PropertiesConfig
-import sokos.ske.krav.navmodels.DetailLine
+import sokos.ske.krav.domain.DetailLine
+import sokos.ske.krav.util.ValidationResult
 import java.io.ByteArrayOutputStream
 
 enum class Directories(val value: String){

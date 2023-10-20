@@ -58,16 +58,10 @@ dependencies {
 
     // Serialization
     implementation ("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-    implementation ("io.ktor:ktor-serialization-kotlinx-xml:$ktorVersion")
-    implementation ("io.ktor:ktor-serialization-kotlinx-cbor:$ktorVersion")
-    implementation ("io.ktor:ktor-serialization-kotlinx-protobuf:$ktorVersion")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.5.1")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
     implementation ("io.ktor:ktor-serialization-jackson-jvm:$ktorVersion")
-    implementation ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
-    implementation ("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
-    implementation ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
 
     // FTP
     implementation ("commons-net:commons-net:3.9.0")
@@ -121,7 +115,7 @@ tasks {
         enabled = true
         archiveFileName.set("app.jar")
         manifest {
-            attributes["Main-Class"] = "sokos.ske.krav.MainKt"
+            attributes["Main-Class"] = "sokos.ske.krav.ApplicationKt"
         }
     }
 

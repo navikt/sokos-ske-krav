@@ -3,6 +3,8 @@ package sokos.ske.krav.database
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.isSuccess
 import mu.KotlinLogging
+import sokos.ske.krav.api.model.responses.MottaksStatusResponse
+import sokos.ske.krav.api.model.responses.ValideringsFeilResponse
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
 import sokos.ske.krav.database.RepositoryExtensions.toKobling
@@ -10,9 +12,7 @@ import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.navmodels.DetailLine
-import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
-import sokos.ske.krav.skemodels.responses.SokosValideringsfeil
+import sokos.ske.krav.domain.DetailLine
 import java.sql.Connection
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -40,8 +40,8 @@ object Repository {
         return try {
             prepareStatement("""select * from krav where status <> ? and status <> ?""")
                 .withParameters(
-                    param(MottaksstatusResponse.MottaksStatus.RESKONTROFOERT.value),
-                    param(MottaksstatusResponse.MottaksStatus.VALIDERINGSFEIL.value)
+                    param(MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value),
+                    param(MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value)
                 ).executeQuery().toKrav()
         } catch (e: Exception) {
             logger.error { "exception i henting (status) av data: ${e.message}" }
@@ -54,7 +54,7 @@ object Repository {
         return try {
             prepareStatement("""select * from krav where status = ?""")
                 .withParameters(
-                    param(MottaksstatusResponse.MottaksStatus.VALIDERINGSFEIL.value)
+                    param(MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value)
                 ).executeQuery().toKrav()
         } catch (e: Exception) {
             logger.error { "exception i henting (validering) av data: ${e.message}" }
@@ -168,7 +168,7 @@ object Repository {
         ).executeQuery().toKobling()
     }
 
-    fun Connection.oppdaterStatus(mottakStatus: MottaksstatusResponse) {
+    fun Connection.oppdaterStatus(mottakStatus: MottaksStatusResponse) {
         logger.info { "Logger repos: Lagrer mottaksstatus: $mottakStatus" }
         prepareStatement(
             """
@@ -184,9 +184,9 @@ object Repository {
         commit()
     }
 
-    fun Connection.lagreValideringsfeil(sokosValideringsfeil: SokosValideringsfeil) {
-        logger.info { "logger repos: Lagrer valideringsfeil: ${sokosValideringsfeil.kravidSke}" }
-        sokosValideringsfeil.valideringsfeilResponse.valideringsfeil.forEach {
+    fun Connection.lagreValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, saksnummerSKE: String) {
+        logger.info { "logger repos: Lagrer valideringsfeil: $saksnummerSKE" }
+        valideringsFeilResponse.valideringsfeil.forEach {
             prepareStatement(
                 """
                 insert into validering (
@@ -198,7 +198,7 @@ object Repository {
                 values (?, ?, ?, ?)
             """.trimIndent()
             ).withParameters(
-                param(sokosValideringsfeil.kravidSke),
+                param(saksnummerSKE),
                 param(it.error),
                 param(it.message),
                 param(LocalDate.now())

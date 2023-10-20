@@ -11,14 +11,14 @@ import io.ktor.http.headersOf
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.Repository.hentAlleKravData
-import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
+import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.ENDRE_KRAV
 import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
 import sokos.ske.krav.service.SkeService
-import sokos.ske.krav.skemodels.responses.MottaksstatusResponse
+import sokos.ske.krav.api.model.responses.MottaksStatusResponse
 import sokos.ske.krav.util.TestContainer
 import java.sql.ResultSet
 import java.sql.Timestamp
@@ -31,7 +31,7 @@ const val opprettResponse = "{\"kravidentifikator\": \"$kravident\"}"
 val mottattResponse = "{\n" +
         "  \"kravidentifikator\": \"$kravident\",\n" +
         "  \"oppdragsgiversKravidentifikator\": \"$kravident\",\n" +
-        "  \"mottaksstatus\": \"${ MottaksstatusResponse.MottaksStatus.RESKONTROFOERT.value}\",\n" +
+        "  \"mottaksstatus\": \"${ MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value}\",\n" +
         "  \"statusOppdatert\": \"2023-10-04T04:47:08.482Z\"\n" +
         "}"
 
@@ -95,7 +95,7 @@ internal class IntegrationTest: FunSpec ({
 
         val kravdata = datasource.connection.hentAlleKravData()
 
-        kravdata.filter { it.status ==  MottaksstatusResponse.MottaksStatus.RESKONTROFOERT.value}.size shouldBe 99
+        kravdata.filter { it.status ==  MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value}.size shouldBe 99
 
         client.close()
 
@@ -116,7 +116,7 @@ internal class IntegrationTest: FunSpec ({
                 update krav
                 set 
                 saksnummer_ske = $id,
-                status = '${MottaksstatusResponse.MottaksStatus.VALIDERINGSFEIL.value}'
+                status = '${MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value}'
                 where krav_id = $id;
             """.trimIndent()).executeUpdate()
                 con.commit()

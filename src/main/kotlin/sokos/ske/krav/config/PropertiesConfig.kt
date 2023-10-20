@@ -12,7 +12,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
-import sokos.ske.krav.client.defaultHttpClient
+import sokos.ske.krav.util.httpClient
 import java.io.File
 
 private val logger = KotlinLogging.logger { }
@@ -106,7 +106,7 @@ private val defaultProperties = ConfigurationMap(
     open class JwtConfig(private val wellKnownUrl: String) {
         val openIdConfiguration: OpenIdConfiguration by lazy {
             runBlocking {
-                defaultHttpClient.get(wellKnownUrl).body()
+                httpClient.get(wellKnownUrl).body()
             }
         }
     }

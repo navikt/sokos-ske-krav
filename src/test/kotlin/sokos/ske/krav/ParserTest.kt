@@ -3,11 +3,11 @@ package sokos.ske.krav
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import sokos.ske.krav.navmodels.FirstLine
-import sokos.ske.krav.navmodels.LastLine
-import sokos.ske.krav.service.parseFRtoDataDetailLineClass
-import sokos.ske.krav.service.parseFRtoDataFirsLineClass
-import sokos.ske.krav.service.parseFRtoDataLastLIneClass
+import sokos.ske.krav.domain.FirstLine
+import sokos.ske.krav.domain.LastLine
+import sokos.ske.krav.util.parseFRtoDataDetailLineClass
+import sokos.ske.krav.util.parseFRtoDataFirsLineClass
+import sokos.ske.krav.util.parseFRtoDataLastLineClass
 import java.io.File
 import java.net.URI
 
@@ -27,7 +27,7 @@ internal class ReadFileTest : FunSpec({
 
 
     test("lesInnSluttLineTilClass") {
-        val sluttlinje: LastLine = parseFRtoDataLastLIneClass(liste.last()).also { println(liste.last()) }
+        val sluttlinje: LastLine = parseFRtoDataLastLineClass(liste.last()).also { println(liste.last()) }
         withClue({ "Antall transaksjonslinjer skal være 101: ${sluttlinje.numTransactionLines}" }) {
             sluttlinje.numTransactionLines shouldBe 101
         }
@@ -39,7 +39,7 @@ internal class ReadFileTest : FunSpec({
             val parsed = parseFRtoDataDetailLineClass(it)
             parsed.belop + parsed.belopRente
         }
-        parseFRtoDataLastLIneClass(liste.last()).sumAllTransactionLines shouldBe sumBelopOgRenter
+        parseFRtoDataLastLineClass(liste.last()).sumAllTransactionLines shouldBe sumBelopOgRenter
     }
 })
 fun readFileFromFS(file: String): List<String> {

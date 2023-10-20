@@ -1,7 +1,6 @@
-package sokos.ske.krav.navmodels
+package sokos.ske.krav.domain
 
 import kotlinx.serialization.Serializable
-
 @Serializable
 data class DetailLine(
     val lineNummer: Int,
@@ -27,4 +26,29 @@ data class DetailLine(
     override fun toString(): String {
         return "DetailLine(lineNummer=$lineNummer, saksNummer='$saksNummer', belop=$belop, vedtakDato=$vedtakDato, gjelderID='$gjelderID', periodeFOM='$periodeFOM', periodeTOM='$periodeTOM', kravkode='$kravkode', referanseNummerGammelSak='$referanseNummerGammelSak', transaksjonDato='$transaksjonDato', enhetBosted='$enhetBosted', enhetBehandlende='$enhetBehandlende', kodeHjemmel='$kodeHjemmel', kodeArsak='$kodeArsak', belopRente=$belopRente, fremtidigYtelse=$fremtidigYtelse, utbetalDato=$utbetalDato, fagsystemId=$fagsystemId)"
     }
+}
+
+@Serializable
+data class FirstLine(
+    val transferDate: kotlinx.datetime.LocalDateTime,
+    val sender: String
+)
+{
+    override fun toString(): String {
+        return "FirstLine(transferDate=$transferDate, sender='$sender')"
+    }
+}
+
+@Serializable
+data class LastLine(
+    val transferDate: kotlinx.datetime.LocalDateTime,
+    val sender: String,
+    val numTransactionLines: Int,
+    val sumAllTransactionLines: Double,
+)
+{
+    override fun toString(): String {
+        return "LastLine(transferDate=$transferDate, sender='$sender', numTransactionLines=$numTransactionLines, sumAllTransactionLines=$sumAllTransactionLines)"
+    }
+
 }

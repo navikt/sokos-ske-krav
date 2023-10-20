@@ -13,10 +13,10 @@ import sokos.ske.krav.database.Repository.hentAlleKravData
 import sokos.ske.krav.database.Repository.koblesakRef
 import sokos.ske.krav.database.Repository.lagreNyKobling
 import sokos.ske.krav.database.Repository.lagreNyttKrav
-import sokos.ske.krav.navmodels.DetailLine
-import sokos.ske.krav.service.lagOpprettKravRequest
-import sokos.ske.krav.service.parseFRtoDataDetailLineClass
-import sokos.ske.krav.skemodels.requests.OpprettInnkrevingsoppdragRequest
+import sokos.ske.krav.domain.DetailLine
+import sokos.ske.krav.util.lagOpprettKravRequest
+import sokos.ske.krav.util.parseFRtoDataDetailLineClass
+import sokos.ske.krav.api.model.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.util.TestContainer
 import kotlin.math.roundToLong
 

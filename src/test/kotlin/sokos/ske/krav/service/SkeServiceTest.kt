@@ -16,8 +16,8 @@ import kotlinx.serialization.json.Json.Default.encodeToString
 import sokos.ske.krav.FakeFtpService
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
-import sokos.ske.krav.skemodels.responses.ValideringsfeilResponse
+import sokos.ske.krav.security.MaskinportenAccessTokenClient
+import sokos.ske.krav.api.model.responses.ValideringsFeilResponse
 
 
 internal class SkeServiceTest: FunSpec ({
@@ -25,10 +25,10 @@ internal class SkeServiceTest: FunSpec ({
     test("validering deserialisering"){
         val json = Json.parseToJsonElement("""{"valideringsfeil":[{"error":"PERSON_ER_DOED","message":"Person med fødselsdato=318830 er død"}]}""")
         val str = """{"valideringsfeil":[{"error":"PERSON_ER_DOED","message":"Person med fødselsdato=318830 er død"}]}"""
-        val valideringsFeil1 = decodeFromJsonElement(ValideringsfeilResponse.serializer(), json)
-        val valideringsFeil2 = decodeFromString<ValideringsfeilResponse>(str)
+        val valideringsFeil1 = decodeFromJsonElement(ValideringsFeilResponse.serializer(), json)
+        val valideringsFeil2 = decodeFromString<ValideringsFeilResponse>(str)
 
-        val res1 = encodeToString(ValideringsfeilResponse.serializer(), valideringsFeil1)
+        val res1 = encodeToString(ValideringsFeilResponse.serializer(), valideringsFeil1)
 
         println(valideringsFeil1.valideringsfeil.map { " Feil1: ${it.error}, ${it.message}"} )
         println(valideringsFeil2.valideringsfeil.map { " Feil1: ${it.error}, ${it.message}"} )

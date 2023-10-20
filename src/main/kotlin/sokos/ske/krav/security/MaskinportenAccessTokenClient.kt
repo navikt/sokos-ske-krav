@@ -1,7 +1,8 @@
-package sokos.ske.krav.maskinporten
+package sokos.ske.krav.security
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.fasterxml.jackson.annotation.JsonAlias
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.accept
@@ -70,4 +71,20 @@ class MaskinportenAccessTokenClient(
             throw ex
         }
     }
+}
+
+data class Token(
+    @JsonAlias("access_token")
+    val accessToken: String,
+    @JsonAlias("expires_in")
+    val expiresIn: Long
+)
+data class AccessToken(
+    val accessToken: String,
+    val expiresAt: Instant
+) {
+    constructor(token: Token) : this(
+        accessToken = token.accessToken,
+        expiresAt = Instant.now().plusSeconds(token.expiresIn)
+    )
 }

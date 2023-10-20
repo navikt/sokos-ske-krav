@@ -1,4 +1,4 @@
-package sokos.ske.krav.apis
+package sokos.ske.krav.config
 
 
 
@@ -15,7 +15,7 @@ import java.util.UUID
 
 
 @OptIn(ExperimentalSerializationApi::class)
-fun Application.installCommonFeatures(){
+fun Application.commonConfig(){
     install(CallId) {
         header("nav-call-id")
         generate { UUID.randomUUID().toString() }

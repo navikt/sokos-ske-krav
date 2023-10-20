@@ -1,10 +1,10 @@
-package sokos.ske.krav.skemodels.responses
+package sokos.ske.krav.api.model.responses
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class MottaksstatusResponse(
+data class MottaksStatusResponse(
 
     val kravidentifikator: String,
     val oppdragsgiversKravidentifikator: String,

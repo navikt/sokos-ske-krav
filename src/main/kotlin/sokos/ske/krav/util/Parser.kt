@@ -1,14 +1,15 @@
-package sokos.ske.krav.service
+package sokos.ske.krav.util
 
-import sokos.ske.krav.navmodels.DetailLine
-import sokos.ske.krav.navmodels.FirstLine
-import sokos.ske.krav.navmodels.LastLine
-import sokos.ske.krav.prefixString
-import sokos.ske.krav.suffixStringWithSpace
+import mu.KotlinLogging
+import sokos.ske.krav.domain.DetailLine
+import sokos.ske.krav.domain.FirstLine
+import sokos.ske.krav.domain.LastLine
 
+
+private val logger = KotlinLogging.logger {}
 
 fun parseFRtoDataFirsLineClass(line: String): FirstLine {
-    val parser = FrParser(line)
+    val parser = FixedRecordParser(line)
     parser.parseString(4)
     return FirstLine(
         transferDate = parser.parseDateTime(14),
@@ -17,7 +18,7 @@ fun parseFRtoDataFirsLineClass(line: String): FirstLine {
 }
 
 fun parseFRtoDataDetailLineClass(line: String): DetailLine {
-    val parser = FrParser(line)
+    val parser = FixedRecordParser(line)
     parser.parseString(4)
     return DetailLine(
         lineNummer = parser.parseInt(7),
@@ -41,8 +42,8 @@ fun parseFRtoDataDetailLineClass(line: String): DetailLine {
     )
 }
 
-fun parseFRtoDataLastLIneClass(line: String): LastLine {
-    val parser = FrParser(line)
+fun parseFRtoDataLastLineClass(line: String): LastLine {
+    val parser = FixedRecordParser(line)
     parser.parseString(4)
     return LastLine(
         transferDate = parser.parseDateTime(14),
@@ -73,7 +74,42 @@ fun parseDetailLinetoFRData(line: DetailLine) = "0030" +
             prefixString(line.belopRente) +
             prefixString(line.fremtidigYtelse)
 
-class FrParser(private val line: String) {
+
+fun prefixString(field: String, len: Int, prefix: String): String {
+    var result: String = field
+    while (result.length < len) (prefix + result).also { result = it }
+    return result.substring(0, len)
+}
+
+fun prefixString(field: Double): String {
+    val str: String = field.toString().let {
+        val pos = it.indexOf(".")
+        if (pos > -1) {
+            when (it.length - pos) {
+                1 -> it.dropLast(1) + "00"
+                2 -> it.dropLast(2) + it.drop(pos + 1) + "0"
+                3 -> it.dropLast(3) + it.drop(pos + 1)
+                else -> {
+                    logger.info { "Skal ikke skje" }
+                    "000000000000"
+                    //TODO kaste exception ??
+                }
+            }
+        } else it
+    }
+    return prefixString(str, 11, "0")
+}
+
+private fun prefixString(field: Int, len: Int, prefix: String) = prefixString(field.toString(), len, prefix)
+
+fun suffixStringWithSpace(field: String, len: Int): String {
+    var result: String = field
+    while (result.length < len) ("$result ").also { result = it }
+    return result.substring(0, len)
+}
+
+
+class FixedRecordParser(private val line: String) {
     private var pos = 0
     fun parseString(len: Int): String {
         if (line.length<pos) return ""

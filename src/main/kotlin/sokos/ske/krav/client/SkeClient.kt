@@ -14,7 +14,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import mu.KotlinLogging
-import sokos.ske.krav.maskinporten.MaskinportenAccessTokenClient
+import sokos.ske.krav.security.MaskinportenAccessTokenClient
+import sokos.ske.krav.util.httpClient
 
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
 private const val ENDRE_KRAV = "innkrevingsoppdrag/endring"
@@ -28,7 +29,7 @@ private val logger = KotlinLogging.logger {}
 class SkeClient(
     private val tokenProvider: MaskinportenAccessTokenClient,
     private val skeEndpoint: String,
-    private val client: HttpClient = defaultHttpClient
+    private val client: HttpClient = httpClient
 ) {
 
     suspend fun opprettKrav(body: String): HttpResponse =

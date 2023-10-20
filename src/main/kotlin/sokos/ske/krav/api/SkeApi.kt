@@ -1,4 +1,4 @@
-package sokos.ske.krav.apis
+package sokos.ske.krav.api
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
