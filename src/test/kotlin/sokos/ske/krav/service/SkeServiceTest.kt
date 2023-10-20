@@ -4,20 +4,23 @@ package sokos.ske.krav.service
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
-import io.ktor.client.*
-import io.ktor.client.engine.mock.*
-import io.ktor.http.*
-import io.ktor.utils.io.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
+import io.ktor.utils.io.ByteReadChannel
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.Json.Default.decodeFromJsonElement
 import kotlinx.serialization.json.Json.Default.decodeFromString
 import kotlinx.serialization.json.Json.Default.encodeToString
-import sokos.ske.krav.FakeFtpService
+import sokos.ske.krav.api.model.responses.ValideringsFeilResponse
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
-import sokos.ske.krav.api.model.responses.ValideringsFeilResponse
+import sokos.ske.krav.util.FakeFtpService
 
 
 internal class SkeServiceTest: FunSpec ({

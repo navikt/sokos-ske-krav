@@ -9,6 +9,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.mockk.mockk
+import sokos.ske.krav.api.model.responses.MottaksStatusResponse
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.Repository.hentAlleKravData
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
@@ -18,7 +19,7 @@ import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
 import sokos.ske.krav.service.SkeService
-import sokos.ske.krav.api.model.responses.MottaksStatusResponse
+import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.TestContainer
 import java.sql.ResultSet
 import java.sql.Timestamp

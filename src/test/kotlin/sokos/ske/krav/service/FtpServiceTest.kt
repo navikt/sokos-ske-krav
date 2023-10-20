@@ -2,7 +2,7 @@ package sokos.ske.krav.service
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import sokos.ske.krav.FakeFtpService
+import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.fileValidator
 
 

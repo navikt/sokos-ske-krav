@@ -27,23 +27,18 @@ private val defaultProperties = ConfigurationMap(
 )
     private val localDevProperties = ConfigurationMap(
         "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
-        "FTP_SERVER" to "localhost",
-        "SKE_SFTP_USERNAME" to "username",
-        "SKE_SFTP_PASSWORD" to "password",
-        "SKE_SFTP_PRIVATE_KEY" to "privkey",
-        "SFTP_PRIVATE_KEY_FILE_PATH" to "/",
-        "SFTP_HOST_KEY_FILE_PATH" to "/",
-        "SKE_SFTP_HOST_KEY" to "hostkey",
+        "SFTP_HOST_KEY_FILE_PATH" to "hostKey",
+        "SFTP_PRIVATE_KEY_FILE_PATH" to "privKey",
+        "FTP_SERVER" to "10.183.32.98",
+        "FTP_PORT" to "22",
         "FTP_DIRECTORY" to "/",
-        "FTP_PORT" to "0",
         "SKE_REST_URL" to "",
-        "POSTGRES_HOST" to "host",
-        "POSTGRES_PORT" to "123",
-        "POSTGRES_NAME" to "name",
-        "POSTGRES_USERNAME" to "username",
-        "POSTGRES_PASSWORD" to "password",
-        "HIKARI_TEST_TABLE" to "HIKARI_TEST_TABLE",
-        "VAULT_MOUNTPATH" to ""
+
+        "POSTGRES_HOST" to "dev-pg.intern.nav.no",
+        "POSTGRES_PORT" to "5432",
+        "POSTGRES_NAME" to "sokos-skd-krav",
+
+        "VAULT_MOUNTPATH" to "",
     )
 
     private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
@@ -70,9 +65,7 @@ private val defaultProperties = ConfigurationMap(
         val username:String = get("SKE_SFTP_USERNAME"),
         val keyPass:String = get("SKE_SFTP_PASSWORD"),
         val privKey:String = get("SFTP_PRIVATE_KEY_FILE_PATH"),
-
         val hostKey:String = get("SFTP_HOST_KEY_FILE_PATH"),
-      //  val homeDirectory:String = get("FTP_DIRECTORY"),
         val port:Int = get("FTP_PORT").toInt()
     )
     data class MaskinportenClientConfig(
@@ -92,13 +85,12 @@ private val defaultProperties = ConfigurationMap(
     )
 
     data class PostgresConfig(
-        val host: String = readProperty("POSTGRES_HOST"),
-        val port: String = readProperty ("POSTGRES_PORT"),
-        val name: String = readProperty ("POSTGRES_NAME"),
-        val username: String = readProperty("POSTGRES_USERNAME"),
-        val password: String = readProperty ("POSTGRES_PASSWORD"),
-        val vaultMountPath: String = readProperty("VAULT_MOUNTPATH", ""),
-        val testTable: String = readProperty("HIKARI_TEST_TABLE", ""),
+        val host: String = get("POSTGRES_HOST"),
+        val port: String = get ("POSTGRES_PORT"),
+        val name: String = get ("POSTGRES_NAME"),
+        val username: String = get("POSTGRES_USERNAME").trim(),
+        val password: String = get ("POSTGRES_PASSWORD").trim(),
+        val vaultMountPath: String = get("VAULT_MOUNTPATH"),
     ) {
         val jdbcUrl: String = "jdbc:postgresql://$host:$port/$name"
     }
@@ -111,9 +103,3 @@ private val defaultProperties = ConfigurationMap(
         }
     }
 }
-
-private fun readProperty(name: String, default: String? = "") =
-    System.getenv(name)
-        ?: System.getProperty(name)
-        ?: default.takeIf { it != null }?.also { logger.warn { "Using default value for property $name" } }
-        ?: throw RuntimeException("Mandatory property '$name' was not found")

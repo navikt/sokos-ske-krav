@@ -1,4 +1,4 @@
-package sokos.ske.krav
+package sokos.ske.krav.util
 
 
 import com.jcraft.jsch.ChannelSftp

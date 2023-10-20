@@ -10,3 +10,5 @@ out/
 *.env
 .DS_Store
 defaults.properties
+/privKey
+/hostKey
