@@ -40,8 +40,8 @@ object Repository {
         return try {
             prepareStatement("""select * from krav where status <> ? and status <> ?""")
                 .withParameters(
-                    param(MottaksstatusResponse.Mottaksstatus.RESKONTROFOERT.value),
-                    param(MottaksstatusResponse.Mottaksstatus.VALIDERINGSFEIL.value)
+                    param(MottaksstatusResponse.MottaksStatus.RESKONTROFOERT.value),
+                    param(MottaksstatusResponse.MottaksStatus.VALIDERINGSFEIL.value)
                 ).executeQuery().toKrav()
         } catch (e: Exception) {
             logger.error { "exception i henting (status) av data: ${e.message}" }
@@ -54,7 +54,7 @@ object Repository {
         return try {
             prepareStatement("""select * from krav where status = ?""")
                 .withParameters(
-                    param(MottaksstatusResponse.Mottaksstatus.VALIDERINGSFEIL.value)
+                    param(MottaksstatusResponse.MottaksStatus.VALIDERINGSFEIL.value)
                 ).executeQuery().toKrav()
         } catch (e: Exception) {
             logger.error { "exception i henting (validering) av data: ${e.message}" }
@@ -177,7 +177,7 @@ object Repository {
             where saksnummer_ske = ?
         """.trimIndent()
         ).withParameters(
-                param(mottakStatus.mottaksstatus),
+                param(mottakStatus.mottaksStatus),
                 param(LocalDateTime.now()),
                 param(mottakStatus.kravidentifikator)
             ).execute()

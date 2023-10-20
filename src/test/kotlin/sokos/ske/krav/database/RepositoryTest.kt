@@ -33,12 +33,12 @@ internal class RepositoryTest: FunSpec( {
         kravData.size shouldBe 2
         kravData.forEachIndexed { i, krav ->
             val index = i + 1
-            krav.saksnummer_nav shouldBe "$index$index$index$index-navuuid"
-            krav.saksnummer_ske shouldBe "$index$index$index$index-ske"
-            krav.fildata_nav shouldBe "fildata fra nav $index"
-            krav.jsondata_ske shouldBe "json fra ske $index"
-            krav.dato_sendt shouldBe LocalDateTime.parse("2023-0$index-01T00:00:00")
-            krav.dato_siste_status shouldBe LocalDateTime.parse("2023-0$index-02T00:00:00")
+            krav.saksnummerNAV shouldBe "$index$index$index$index-navuuid"
+            krav.saksnummerSKE shouldBe "$index$index$index$index-ske"
+            krav.fildataNAV shouldBe "fildata fra nav $index"
+            krav.jsondataSKE shouldBe "json fra ske $index"
+            krav.datoSendt shouldBe LocalDateTime.parse("2023-0$index-01T00:00:00")
+            krav.datoSisteStatus shouldBe LocalDateTime.parse("2023-0$index-02T00:00:00")
         }
         datasource.close()
     }
@@ -53,8 +53,8 @@ internal class RepositoryTest: FunSpec( {
 
         koblinger.forEachIndexed { i, kobling ->
             val index = i + 1
-            kobling.saksref_uuid shouldBe kravData[i].saksnummer_nav
-            kobling.saksref_fil shouldBe "$index$index${index}0-navfil"
+            kobling.saksrefUUID shouldBe kravData[i].saksnummerNAV
+            kobling.saksrefFraFil shouldBe "$index$index${index}0-navfil"
         }
         datasource.close()
     }

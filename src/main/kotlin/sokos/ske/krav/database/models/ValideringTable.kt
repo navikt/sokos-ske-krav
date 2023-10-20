@@ -1,17 +1,15 @@
 package sokos.ske.krav.database.models
 
 import kotlinx.datetime.LocalDateTime
-import kotlinx.serialization.Serializable
 
-@Serializable
 data class ValideringTable(
-    val validering_id:  Long,
-    val saksnummer_ske: String,
-    val jsondata_ske:   String,
+    val valideringID:  Long,
+    val saksnummerSKE: String,
+    val jsondataSKE:   String,
     val dato:           LocalDateTime,
 ){
     override fun toString(): String {
-        return "ValideringTable(validering_id=$validering_id, saksnummer_ske='$saksnummer_ske', jsondata_ske='$jsondata_ske', dato=$dato)"
+        return "ValideringTable(validering_id=$valideringID, saksnummer_ske='$saksnummerSKE', jsondata_ske='$jsondataSKE', dato=$dato)"
     }
 }
 

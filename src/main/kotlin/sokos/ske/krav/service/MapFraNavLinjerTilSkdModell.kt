@@ -24,7 +24,7 @@ fun fileValidator(content: List<String>): ValidationResult {
     val lastLine = parseFRtoDataLastLIneClass(content.last())
     val detailLines = content.subList(1, content.lastIndex).map { parseFRtoDataDetailLineClass(it) }
 
-    val invalidKravkode = detailLines.any {  TilleggsinformasjonNav.Stonadstype.from(it.kravkode) == null }
+    val invalidKravkode = detailLines.any {  TilleggsinformasjonNav.StoenadsType.from(it.kravkode) == null }
     val invalidNumberOfLines = lastLine.numTransactionLines != detailLines.size
     val invalidSum = detailLines.sumOf { it.belop + it.belopRente } != lastLine.sumAllTransactionLines
     val invalidTransferDate = firstLine.transferDate != lastLine.transferDate
@@ -44,7 +44,7 @@ fun fileValidator(content: List<String>): ValidationResult {
 fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
     val kravFremtidigYtelse = krav.fremtidigYtelse.roundToLong()
     val tilleggsinformasjonNav = TilleggsinformasjonNav(
-        stoenadstype = TilleggsinformasjonNav.Stonadstype.from(krav.kravkode).toString(),
+        stoenadsType = TilleggsinformasjonNav.StoenadsType.from(krav.kravkode).toString(),
         YtelseForAvregningBeloep(beloep = kravFremtidigYtelse).takeIf { kravFremtidigYtelse > 0L }
     )
 
@@ -54,7 +54,7 @@ fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
 
     return OpprettInnkrevingsoppdragRequest(
         kravtype = TILBAKEKREVINGFEILUTBETALTYTELSE.value,
-        skyldner = Skyldner(Skyldner.Identifikatortype.PERSON, krav.gjelderID),
+        skyldner = Skyldner(Skyldner.IdentifikatorType.PERSON, krav.gjelderID),
         hovedstol = HovedstolBeloep(beloep = krav.belop.roundToLong()),
         renteBeloep = arrayOf(
             RenteBeloep(
@@ -63,9 +63,9 @@ fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
             )
         ).takeIf { beloepRente > 0L },
         oppdragsgiversSaksnummer = krav.saksNummer,
-        oppdragsgiversKravidentifikator = krav.saksNummer,
-        fastsettelsesdato = krav.vedtakDato,
-        tilleggsinformasjon = tilleggsinformasjonNav
+        oppdragsgiversKravIdentifikator = krav.saksNummer,
+        fastsettelsesDato = krav.vedtakDato,
+        tilleggsInformasjon = tilleggsinformasjonNav
     )
 }
 

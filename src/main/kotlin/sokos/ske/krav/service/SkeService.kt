@@ -120,26 +120,26 @@ class SkeService(
         var feil = 0
         val result = kravService.hentAlleKravSomIkkeErReskotrofort().map {
             antall += 1
-            logger.info { "Logger (Status start): ${it.saksnummer_ske}" }
+            logger.info { "Logger (Status start): ${it.saksnummerSKE}" }
 
-            val response = skeClient.hentMottaksStatus(it.saksnummer_ske)
-            logger.info { "Logger (Status hentet): ${it.saksnummer_ske}" }
+            val response = skeClient.hentMottaksStatus(it.saksnummerSKE)
+            logger.info { "Logger (Status hentet): ${it.saksnummerSKE}" }
             if (response.status.isSuccess()) {
-                logger.info { "Logger (Status success): ${it.saksnummer_ske}" }
+                logger.info { "Logger (Status success): ${it.saksnummerSKE}" }
                 try {
                     val body = response.bodyAsText()
                     logger.info { "Logger status body: $body" }
                     val mottaksstatus = Json.decodeFromString<MottaksstatusResponse>(body)
                     logger.info { "Logger mottaksresponse: $mottaksstatus, Body: ${body}" }
                     kravService.oppdaterStatus(mottaksstatus)
-                    logger.info { "Logger (Status oppdatert): ${it.saksnummer_ske}" }
+                    logger.info { "Logger (Status oppdatert): ${it.saksnummerSKE}" }
                 } catch (e: Exception) {
                     feil += 1
                     logger.error { "Logger Exception: ${e.message}" }
                     throw e
                 }
             }
-            logger.info { "Logger (Status ferdig): ${it.saksnummer_ske}" }
+            logger.info { "Logger (Status ferdig): ${it.saksnummerSKE}" }
             "Status ok: ${response.status.value}, ${response.bodyAsText()}"
         }
         logger.info { "Loger status: ferdig  (antall $antall, feilet: $feil) commit og closer connectin" }
@@ -149,18 +149,18 @@ class SkeService(
 
     suspend fun hentValideringsfeil(): List<String> {
         val resultat = kravService.hentAlleKravMedValideringsfeil().map {
-            logger.info { "Logger (Validering start): ${it.saksnummer_ske}" }
-            val response = skeClient.hentValideringsfeil(it.saksnummer_ske)
-            logger.info { "Logger (Validering hentet): ${it.saksnummer_ske}" }
+            logger.info { "Logger (Validering start): ${it.saksnummerSKE}" }
+            val response = skeClient.hentValideringsfeil(it.saksnummerSKE)
+            logger.info { "Logger (Validering hentet): ${it.saksnummerSKE}" }
             if (response.status.isSuccess()) {
-                logger.info { "Logger (validering success): ${it.saksnummer_ske}" }
+                logger.info { "Logger (validering success): ${it.saksnummerSKE}" }
                 val resObj = Json.parseToJsonElement(response.bodyAsText())
 
 
                 logger.info { "ValideringsObj: $resObj" }
 
                 val valideringsfeilResponse = SokosValideringsfeil(
-                    kravidSke = it.saksnummer_ske,
+                    kravidSke = it.saksnummerSKE,
                     valideringsfeilResponse = Json.decodeFromString<ValideringsfeilResponse>(response.bodyAsText())
                 )
                 logger.info { "Serialisering gikk fint: ${valideringsfeilResponse.kravidSke}, ${valideringsfeilResponse.valideringsfeilResponse}" }
@@ -169,7 +169,7 @@ class SkeService(
                 //lag ftpfil og  kall handleAnyFailedFiles
                 "Status OK: ${response.bodyAsText()}"
             } else {
-                logger.info { "Logger (Fikk ikke hentet valideringsfeil for:  ${it.saksnummer_ske}, Status: ${response.status.value})" }
+                logger.info { "Logger (Fikk ikke hentet valideringsfeil for:  ${it.saksnummerSKE}, Status: ${response.status.value})" }
                 "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
             }
         }

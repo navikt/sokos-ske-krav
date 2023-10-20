@@ -77,14 +77,14 @@ object RepositoryExtensions {
     }
     fun ResultSet.toKrav() = toList {
         KravTable(
-            krav_id = getColumn("krav_id"),
-            saksnummer_nav = getColumn("saksnummer_nav"),
-            saksnummer_ske = getColumn("saksnummer_ske"),
-            fildata_nav = getColumn("fildata_nav"),
-            jsondata_ske = getColumn("jsondata_ske"),
+            kravID = getColumn("krav_id"),
+            saksnummerNAV = getColumn("saksnummer_nav"),
+            saksnummerSKE = getColumn("saksnummer_ske"),
+            fildataNAV = getColumn("fildata_nav"),
+            jsondataSKE = getColumn("jsondata_ske"),
             status = getColumn("status"),
-            dato_sendt = getColumn("dato_sendt"),
-            dato_siste_status = getColumn("dato_siste_status"),
+            datoSendt = getColumn("dato_sendt"),
+            datoSisteStatus = getColumn("dato_siste_status"),
             kravtype = getColumn("kravtype")
 
         )
@@ -93,8 +93,8 @@ object RepositoryExtensions {
     fun ResultSet.toKobling() = toList {
         KoblingTable(
             id = getColumn("id"),
-            saksref_fil = getColumn("saksref_fil"),
-            saksref_uuid = getColumn("saksref_uuid"),
+            saksrefFraFil = getColumn("saksref_fil"),
+            saksrefUUID = getColumn("saksref_uuid"),
             dato = getColumn("dato")
         )
     }

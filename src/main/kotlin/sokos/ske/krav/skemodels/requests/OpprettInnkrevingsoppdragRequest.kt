@@ -1,5 +1,6 @@
 package sokos.ske.krav.skemodels.requests
 
+
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -8,16 +9,19 @@ import kotlinx.serialization.Serializable
 @Serializable
 @SerialName("opprettInnkrevingsoppdrag")
 data class OpprettInnkrevingsoppdragRequest(
-
     val kravtype: String,
     val skyldner: Skyldner,
     val hovedstol: HovedstolBeloep,
     val renteBeloep: Array<RenteBeloep>?,
     val oppdragsgiversSaksnummer: String,
-    val oppdragsgiversKravidentifikator: String,
-    val fastsettelsesdato: LocalDate,
-    val foreldelsesfristensUtgangspunkt: LocalDate? = null,
-    val tilleggsinformasjon: TilleggsinformasjonNav? = null,
+    @SerialName("oppdragsgiversKravidentifikator")
+    val oppdragsgiversKravIdentifikator: String,
+    @SerialName("fastsettelsesdato")
+    val fastsettelsesDato: LocalDate,
+    @SerialName("foreldelsesfristensUtgangspunkt")
+    val foreldelsesFristensUtgangspunkt: LocalDate? = null,
+    @SerialName("tilleggsinformasjon")
+    val tilleggsInformasjon: TilleggsinformasjonNav? = null,
 ) {
     enum class Kravtype(val value: String){
         TILBAKEKREVINGFEILUTBETALTYTELSE("TILBAKEKREVING_FEILUTBETALT_YTELSE"),
@@ -34,10 +38,11 @@ data class RenteBeloep (
 
 @Serializable
 data class Skyldner (
-    val identifikatortype: Identifikatortype,
+    @SerialName("identifikatortype")
+    val identifikatorType: IdentifikatorType,
     val identifikator: String
 ) {
-    enum class Identifikatortype(val value: String){
+    enum class IdentifikatorType(val value: String){
         PERSON("PERSON"),
         ORGANISASJON("ORGANISASJON");
     }
@@ -51,10 +56,11 @@ data class YtelseForAvregningBeloep (
 
 @Serializable
 data class TilleggsinformasjonNav (
-    val stoenadstype: String,
+    @SerialName("stoenadstype")
+    val stoenadsType: String,
     val ytelserForAvregning: YtelseForAvregningBeloep? = null
 ) {
-    enum class Stonadstype(val value: String){
+    enum class StoenadsType(val value: String){
         FORELDREPENGER("FA FØ"),
         KOMPENSASJON_INNTEKSTAP_FRILANSER_OG_NAERING("FR SN"),
         OMSORG_OPPLAERING_OG_PLEIEPENGER("KT OOP"),
@@ -87,7 +93,7 @@ data class TilleggsinformasjonNav (
         DAGPENGER("DAGPENGER");
 
         companion object {
-            private val map = Stonadstype.values().associateBy { it.value }
+            private val map = StoenadsType.values().associateBy { it.value }
             infix fun from(value: String) = map[value]
         }
     }

@@ -31,7 +31,7 @@ const val opprettResponse = "{\"kravidentifikator\": \"$kravident\"}"
 val mottattResponse = "{\n" +
         "  \"kravidentifikator\": \"$kravident\",\n" +
         "  \"oppdragsgiversKravidentifikator\": \"$kravident\",\n" +
-        "  \"mottaksstatus\": \"${ MottaksstatusResponse.Mottaksstatus.RESKONTROFOERT.value}\",\n" +
+        "  \"mottaksstatus\": \"${ MottaksstatusResponse.MottaksStatus.RESKONTROFOERT.value}\",\n" +
         "  \"statusOppdatert\": \"2023-10-04T04:47:08.482Z\"\n" +
         "}"
 
@@ -77,7 +77,7 @@ internal class IntegrationTest: FunSpec ({
         kravdata.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
         kravdata.filter { it.kravtype == ENDRE_KRAV }.size shouldBe 0
         kravdata.filter { it.kravtype == NYTT_KRAV }.size shouldBe 99
-        kravdata.filter { it.kravtype == NYTT_KRAV && it.saksnummer_ske==kravident}.size shouldBe 99
+        kravdata.filter { it.kravtype == NYTT_KRAV && it.saksnummerSKE==kravident}.size shouldBe 99
 
         client.close()
         fakeFtpService.close()
@@ -95,7 +95,7 @@ internal class IntegrationTest: FunSpec ({
 
         val kravdata = datasource.connection.hentAlleKravData()
 
-        kravdata.filter { it.status ==  MottaksstatusResponse.Mottaksstatus.RESKONTROFOERT.value}.size shouldBe 99
+        kravdata.filter { it.status ==  MottaksstatusResponse.MottaksStatus.RESKONTROFOERT.value}.size shouldBe 99
 
         client.close()
 
@@ -116,7 +116,7 @@ internal class IntegrationTest: FunSpec ({
                 update krav
                 set 
                 saksnummer_ske = $id,
-                status = '${MottaksstatusResponse.Mottaksstatus.VALIDERINGSFEIL.value}'
+                status = '${MottaksstatusResponse.MottaksStatus.VALIDERINGSFEIL.value}'
                 where krav_id = $id;
             """.trimIndent()).executeUpdate()
                 con.commit()

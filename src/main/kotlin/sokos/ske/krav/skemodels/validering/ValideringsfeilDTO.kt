@@ -1,4 +1,4 @@
-package sokos.ske.krav.skemodels.Validering
+package sokos.ske.krav.skemodels.validering
 
 import kotlinx.serialization.Serializable
 
