@@ -3,13 +3,13 @@ package sokos.ske.krav.database.models
 import kotlinx.datetime.LocalDateTime
 
 data class ValideringTable(
-    val valideringID:  Long,
-    val saksnummerSKE: String,
-    val jsondataSKE:   String,
-    val dato:           LocalDateTime,
-){
-    override fun toString(): String {
-        return "ValideringTable(validering_id=$valideringID, saksnummer_ske='$saksnummerSKE', jsondata_ske='$jsondataSKE', dato=$dato)"
-    }
+	val valideringID: Long,
+	val saksnummerSKE: String,
+	val jsondataSKE: String,
+	val dato: LocalDateTime,
+) {
+	override fun toString(): String {
+		return "ValideringTable(validering_id=$valideringID, saksnummer_ske='$saksnummerSKE', jsondata_ske='$jsondataSKE', dato=$dato)"
+	}
 }
 

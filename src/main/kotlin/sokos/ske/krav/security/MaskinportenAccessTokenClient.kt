@@ -20,71 +20,73 @@ import java.time.Instant
 import java.util.Date
 
 class MaskinportenAccessTokenClient(
-    private val maskinportenConfig: PropertiesConfig.MaskinportenClientConfig,
-    private val client: HttpClient,
+	private val maskinportenConfig: PropertiesConfig.MaskinportenClientConfig,
+	private val client: HttpClient,
 ) {
-    private val logger = KotlinLogging.logger {}
-    private val secureLogger = KotlinLogging.logger("secureLogger")
-    private val mutex = Mutex()
+	private val logger = KotlinLogging.logger {}
+	private val secureLogger = KotlinLogging.logger("secureLogger")
+	private val mutex = Mutex()
 
-    @Volatile
-    private lateinit var token: AccessToken
+	@Volatile
+	private lateinit var token: AccessToken
 
-    suspend fun hentAccessToken(): String {
-        val omToMinutter = Instant.now().plusSeconds(120L)
-        return mutex.withLock {
-            when {
-                !this::token.isInitialized || token.expiresAt.isBefore(omToMinutter) -> {
-                    token = AccessToken(hentAccessTokenFraProvider())
-                    token.accessToken
-                }
+	suspend fun hentAccessToken(): String {
+		val omToMinutter = Instant.now().plusSeconds(120L)
+		return mutex.withLock {
+			when {
+				!this::token.isInitialized || token.expiresAt.isBefore(omToMinutter) -> {
+					token = AccessToken(hentAccessTokenFraProvider())
+					token.accessToken
+				}
 
-                else -> {
-                    token.accessToken}
-            }
-        }
-    }
+				else -> {
+					token.accessToken
+				}
+			}
+		}
+	}
 
-    private suspend fun hentAccessTokenFraProvider(): Token {
-        val jwt = JWT.create()
-            .withAudience(maskinportenConfig.openIdConfiguration.issuer)
-            .withIssuer(maskinportenConfig.clientId)
-            .withClaim("scope", maskinportenConfig.scopes)
-            .withExpiresAt(Date(System.currentTimeMillis() + 120000))
-            .withIssuedAt(Date())
-            .withKeyId(maskinportenConfig.rsaKey?.keyID)
-            .sign(Algorithm.RSA256(null, maskinportenConfig.rsaKey?.toRSAPrivateKey()))
-        val response = client.post(maskinportenConfig.openIdConfiguration.tokenEndpoint) {
-            accept(ContentType.Application.Json)
-            contentType(ContentType.Application.FormUrlEncoded)
-            method = HttpMethod.Post
-            setBody("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=$jwt")
-        }
+	private suspend fun hentAccessTokenFraProvider(): Token {
+		val jwt = JWT.create()
+			.withAudience(maskinportenConfig.openIdConfiguration.issuer)
+			.withIssuer(maskinportenConfig.clientId)
+			.withClaim("scope", maskinportenConfig.scopes)
+			.withExpiresAt(Date(System.currentTimeMillis() + 120000))
+			.withIssuedAt(Date())
+			.withKeyId(maskinportenConfig.rsaKey?.keyID)
+			.sign(Algorithm.RSA256(null, maskinportenConfig.rsaKey?.toRSAPrivateKey()))
+		val response = client.post(maskinportenConfig.openIdConfiguration.tokenEndpoint) {
+			accept(ContentType.Application.Json)
+			contentType(ContentType.Application.FormUrlEncoded)
+			method = HttpMethod.Post
+			setBody("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=$jwt")
+		}
 
-        return try {
-            response.body()
-        } catch (ex: Exception) {
-            logger.error { "Kunne ikke lese accessToken, se sikker log for meldingen som string" }
-            val feilmelding = response.bodyAsText()
-            println(feilmelding)
-            secureLogger.error { "Feil fra tokenprovider, Token: $jwt, Feilmelding: $feilmelding" }
-            throw ex
-        }
-    }
+		return try {
+			response.body()
+		} catch (ex: Exception) {
+			logger.error { "Kunne ikke lese accessToken, se sikker log for meldingen som string" }
+			val feilmelding = response.bodyAsText()
+			println(feilmelding)
+			secureLogger.error { "Feil fra tokenprovider, Token: $jwt, Feilmelding: $feilmelding" }
+			throw ex
+		}
+	}
 }
 
 data class Token(
-    @JsonAlias("access_token")
-    val accessToken: String,
-    @JsonAlias("expires_in")
-    val expiresIn: Long
+	@JsonAlias("access_token")
+	val accessToken: String,
+	@JsonAlias("expires_in")
+	val expiresIn: Long
 )
+
 data class AccessToken(
-    val accessToken: String,
-    val expiresAt: Instant
+	val accessToken: String,
+	val expiresAt: Instant
 ) {
-    constructor(token: Token) : this(
-        accessToken = token.accessToken,
-        expiresAt = Instant.now().plusSeconds(token.expiresIn)
-    )
+	constructor(token: Token) : this(
+		accessToken = token.accessToken,
+		expiresAt = Instant.now().plusSeconds(token.expiresIn)
+	)
 }

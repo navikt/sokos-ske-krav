@@ -16,92 +16,103 @@ import java.time.LocalDateTime
 
 object RepositoryExtensions {
 
-    val logger = KotlinLogging.logger {  }
+	val logger = KotlinLogging.logger { }
 
-    inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R {
-        try {
-            use {
-                return block(this)
-            }
-        } catch (ex: SQLException) {
-            println(ex.message)
-            throw ex
-        }
-    }
+	inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R {
+		try {
+			use {
+				return block(this)
+			}
+		} catch (ex: SQLException) {
+			println(ex.message)
+			throw ex
+		}
+	}
 
-    inline fun <reified T : Any?> ResultSet.getColumn(
-        columnLabel: String,
-        transform: (T) -> T = { it },
-    ): T {
-        val columnValue = when (T::class) {
-            Int::class -> getInt(columnLabel)
-            Long::class -> getLong(columnLabel)
-            Char::class -> getString(columnLabel)?.get(0)
-            Double::class -> getDouble(columnLabel)
-            String::class -> getString(columnLabel)?.trim()
-            Boolean::class -> getBoolean(columnLabel)
-            BigDecimal::class -> getBigDecimal(columnLabel)
-            LocalDate::class -> getDate(columnLabel)?.toLocalDate()
-            kotlinx.datetime.LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()!!.toKotlinxLocalDateTime()
-            LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
-            else -> {
-                logger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
-                throw RuntimeException("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}") // TODO Feilhåndtering
-            }
-        }
+	inline fun <reified T : Any?> ResultSet.getColumn(
+		columnLabel: String,
+		transform: (T) -> T = { it },
+	): T {
+		val columnValue = when (T::class) {
+			Int::class -> getInt(columnLabel)
+			Long::class -> getLong(columnLabel)
+			Char::class -> getString(columnLabel)?.get(0)
+			Double::class -> getDouble(columnLabel)
+			String::class -> getString(columnLabel)?.trim()
+			Boolean::class -> getBoolean(columnLabel)
+			BigDecimal::class -> getBigDecimal(columnLabel)
+			LocalDate::class -> getDate(columnLabel)?.toLocalDate()
+			kotlinx.datetime.LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()!!
+				.toKotlinxLocalDateTime()
 
-        if (null !is T && columnValue == null) {
-            logger.error { "Påkrevet kolonne '$columnLabel' er null" }
-            throw RuntimeException("Påkrevet kolonne '$columnLabel' er null") // TODO Feilhåndtering
-        }
+			LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
+			else -> {
+				logger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
+				throw RuntimeException("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}") // TODO Feilhåndtering
+			}
+		}
 
-        return transform(columnValue as T)
-    }
+		if (null !is T && columnValue == null) {
+			logger.error { "Påkrevet kolonne '$columnLabel' er null" }
+			throw RuntimeException("Påkrevet kolonne '$columnLabel' er null") // TODO Feilhåndtering
+		}
 
-    fun LocalDateTime.toKotlinxLocalDateTime(): kotlinx.datetime.LocalDateTime =
-        kotlinx.datetime.LocalDateTime(this.year, this.month, this.dayOfMonth,this.hour, this.minute, this.second, this.nano)
+		return transform(columnValue as T)
+	}
 
+	fun LocalDateTime.toKotlinxLocalDateTime(): kotlinx.datetime.LocalDateTime =
+		kotlinx.datetime.LocalDateTime(
+			this.year,
+			this.month,
+			this.dayOfMonth,
+			this.hour,
+			this.minute,
+			this.second,
+			this.nano
+		)
 
-    fun interface Parameter {
-        fun addToPreparedStatement(sp: PreparedStatement, index: Int)
-    }
+	fun interface Parameter {
+		fun addToPreparedStatement(sp: PreparedStatement, index: Int)
+	}
 
+	fun param(value: String?) = Parameter { sp: PreparedStatement, index: Int -> sp.setString(index, value) }
+	fun param(value: LocalDate) =
+		Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value)) }
 
-    fun param(value: String?) = Parameter { sp: PreparedStatement, index: Int -> sp.setString(index, value) }
-    fun param(value: LocalDate) = Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value)) }
-    fun param(value: LocalDateTime) = Parameter { sp: PreparedStatement, index: Int -> sp.setTimestamp(index, Timestamp.valueOf(value)) }
+	fun param(value: LocalDateTime) =
+		Parameter { sp: PreparedStatement, index: Int -> sp.setTimestamp(index, Timestamp.valueOf(value)) }
 
+	fun PreparedStatement.withParameters(vararg parameters: Parameter?) = apply {
+		var index = 1; parameters.forEach { it?.addToPreparedStatement(this, index++) }
+	}
 
-    fun PreparedStatement.withParameters(vararg parameters: Parameter?) = apply {
-        var index = 1; parameters.forEach { it?.addToPreparedStatement(this, index++) }
-    }
-    fun ResultSet.toKrav() = toList {
-        KravTable(
-            kravID = getColumn("krav_id"),
-            saksnummerNAV = getColumn("saksnummer_nav"),
-            saksnummerSKE = getColumn("saksnummer_ske"),
-            fildataNAV = getColumn("fildata_nav"),
-            jsondataSKE = getColumn("jsondata_ske"),
-            status = getColumn("status"),
-            datoSendt = getColumn("dato_sendt"),
-            datoSisteStatus = getColumn("dato_siste_status"),
-            kravtype = getColumn("kravtype")
+	fun ResultSet.toKrav() = toList {
+		KravTable(
+			kravID = getColumn("krav_id"),
+			saksnummerNAV = getColumn("saksnummer_nav"),
+			saksnummerSKE = getColumn("saksnummer_ske"),
+			fildataNAV = getColumn("fildata_nav"),
+			jsondataSKE = getColumn("jsondata_ske"),
+			status = getColumn("status"),
+			datoSendt = getColumn("dato_sendt"),
+			datoSisteStatus = getColumn("dato_siste_status"),
+			kravtype = getColumn("kravtype")
 
-        )
-    }
+		)
+	}
 
-    fun ResultSet.toKobling() = toList {
-        KoblingTable(
-            id = getColumn("id"),
-            saksrefFraFil = getColumn("saksref_fil"),
-            saksrefUUID = getColumn("saksref_uuid"),
-            dato = getColumn("dato")
-        )
-    }
+	fun ResultSet.toKobling() = toList {
+		KoblingTable(
+			id = getColumn("id"),
+			saksrefFraFil = getColumn("saksref_fil"),
+			saksrefUUID = getColumn("saksref_uuid"),
+			dato = getColumn("dato")
+		)
+	}
 
-    private fun <T> ResultSet.toList(mapper: ResultSet.() -> T) = mutableListOf<T>().apply {
-        while (next()) {
-            add(mapper())
-        }
-    }
+	private fun <T> ResultSet.toList(mapper: ResultSet.() -> T) = mutableListOf<T>().apply {
+		while (next()) {
+			add(mapper())
+		}
+	}
 }

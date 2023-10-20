@@ -11,29 +11,28 @@ import io.ktor.serialization.jackson.jackson
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner
 import java.net.ProxySelector
 
-
 val httpClient = HttpClient(Apache) {
-    expectSuccess = false
+	expectSuccess = false
 
-    install(HttpRequestRetry) {
-        retryOnException(maxRetries = 3)
-        delayMillis { retry -> retry * 3000L }
-    }
+	install(HttpRequestRetry) {
+		retryOnException(maxRetries = 3)
+		delayMillis { retry -> retry * 3000L }
+	}
 
-    install(ContentNegotiation) {
-        jackson {
-            findAndRegisterModules()
-            disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            enable(SerializationFeature.INDENT_OUTPUT)
-            setSerializationInclusion(JsonInclude.Include.NON_NULL)
+	install(ContentNegotiation) {
+		jackson {
+			findAndRegisterModules()
+			disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+			disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+			enable(SerializationFeature.INDENT_OUTPUT)
+			setSerializationInclusion(JsonInclude.Include.NON_NULL)
 
-        }
-    }
+		}
+	}
 
-    engine {
-        customizeClient {
-            setRoutePlanner(SystemDefaultRoutePlanner(ProxySelector.getDefault()))
-        }
-    }
+	engine {
+		customizeClient {
+			setRoutePlanner(SystemDefaultRoutePlanner(ProxySelector.getDefault()))
+		}
+	}
 }

@@ -24,58 +24,57 @@ const val KONFLIKT_409 = "KONFLIKT_409"
 const val VALIDERINGSFEIL_422 = "VALIDERINGSFEIL_422"
 
 object Repository {
-    private val logger = KotlinLogging.logger {}
+	private val logger = KotlinLogging.logger {}
+
+	fun Connection.hentAlleKravData(): List<KravTable> {
+		return try {
+			prepareStatement("""select * from krav""").executeQuery().toKrav()
+		} catch (e: Exception) {
+			logger.error("exception i henting av data: ${e.message}")
+			listOf()
+		}
+	}
+
+	fun Connection.hentAlleKravSomIkkeErReskotrofort(): List<KravTable> {
+		return try {
+			prepareStatement("""select * from krav where status <> ? and status <> ?""")
+				.withParameters(
+					param(MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value),
+					param(MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value)
+				).executeQuery().toKrav()
+		} catch (e: Exception) {
+			logger.error { "exception i henting (status) av data: ${e.message}" }
+			listOf()
+		}
+	}
 
 
-    fun Connection.hentAlleKravData(): List<KravTable> {
-        return try {
-            prepareStatement("""select * from krav""").executeQuery().toKrav()
-        } catch (e: Exception) {
-            logger.error("exception i henting av data: ${e.message}")
-            listOf()
-        }
-    }
+	fun Connection.hentAlleKravMedValideringsfeil(): List<KravTable> {
+		return try {
+			prepareStatement("""select * from krav where status = ?""")
+				.withParameters(
+					param(MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value)
+				).executeQuery().toKrav()
+		} catch (e: Exception) {
+			logger.error { "exception i henting (validering) av data: ${e.message}" }
+			listOf()
+		}
+	}
 
-    fun Connection.hentAlleKravSomIkkeErReskotrofort(): List<KravTable> {
-        return try {
-            prepareStatement("""select * from krav where status <> ? and status <> ?""")
-                .withParameters(
-                    param(MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value),
-                    param(MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value)
-                ).executeQuery().toKrav()
-        } catch (e: Exception) {
-            logger.error { "exception i henting (status) av data: ${e.message}" }
-            listOf()
-        }
-    }
+	fun Connection.lagreNyttKrav(
+		skeid: String,
+		request: String,
+		filLinje: String,
+		detailLinje: DetailLine,
+		kravtype: String,
+		response: HttpResponse
+	) {
+		try {
+			val now = LocalDateTime.now()
+			logger.info { "Lagrer ny tildb: $skeid $now, $filLinje, $request, $response" }
 
-
-    fun Connection.hentAlleKravMedValideringsfeil(): List<KravTable> {
-        return try {
-            prepareStatement("""select * from krav where status = ?""")
-                .withParameters(
-                    param(MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value)
-                ).executeQuery().toKrav()
-        } catch (e: Exception) {
-            logger.error { "exception i henting (validering) av data: ${e.message}" }
-            listOf()
-        }
-    }
-
-    fun Connection.lagreNyttKrav(
-        skeid: String,
-        request: String,
-        filLinje: String,
-        detailLinje: DetailLine,
-        kravtype: String,
-        response: HttpResponse
-    ) {
-        try {
-            val now = LocalDateTime.now()
-            logger.info { "Lagrer ny tildb: $skeid $now, $filLinje, $request, $response" }
-
-            prepareStatement(
-                """
+			prepareStatement(
+				"""
                 insert into krav (
                 saksnummer_nav, 
                 saksnummer_ske, 
@@ -87,108 +86,110 @@ object Repository {
                 kravtype
                 ) values (?,?,?,?,?,?,?,?)
             """.trimIndent()
-            ).withParameters(
-                param(detailLinje.saksNummer),
-                param(skeid),
-                param(filLinje),
-                param(request),
-                param(
-                    when {
-                        response.status.isSuccess()  -> KRAV_SENDT
-                        response.status.value == 409 -> KONFLIKT_409
-                        response.status.value == 422 -> VALIDERINGSFEIL_422
-                        else -> "UKJENT_${response.status.value}"
-                    }),
-                param(now),
-                param(now),
-                param(kravtype)
-            ).execute()
-            commit()
-         //   println("lagring av $skeid OK")
-        } catch (e: Exception) {
-            println("lagring av $skeid feilet")
-            println("exception lagring av nytt krav: ${e.message}")
-        }
-    }
+			).withParameters(
+				param(detailLinje.saksNummer),
+				param(skeid),
+				param(filLinje),
+				param(request),
+				param(
+					when {
+						response.status.isSuccess() -> KRAV_SENDT
+						response.status.value == 409 -> KONFLIKT_409
+						response.status.value == 422 -> VALIDERINGSFEIL_422
+						else -> "UKJENT_${response.status.value}"
+					}
+				),
+				param(now),
+				param(now),
+				param(kravtype)
+			).execute()
+			commit()
+			//   println("lagring av $skeid OK")
+		} catch (e: Exception) {
+			println("lagring av $skeid feilet")
+			println("exception lagring av nytt krav: ${e.message}")
+		}
+	}
 
 
-    fun Connection.hentSkeKravIdent(navref: String): String {
-        val rs = prepareStatement("""
+	fun Connection.hentSkeKravIdent(navref: String): String {
+		val rs = prepareStatement(
+			"""
             select krav_id, saksnummer_ske from krav
             where saksnummer_nav = ? order by krav_id desc limit 1
         """.trimIndent()
-        ).withParameters(
-            param(navref)
-        ).executeQuery()
-        return if (rs.next())
-            rs.getColumn("saksnummer_ske")
-        else ""
+		).withParameters(
+			param(navref)
+		).executeQuery()
+		return if (rs.next())
+			rs.getColumn("saksnummer_ske")
+		else ""
 
-    }
+	}
 
-    fun Connection.lagreNyKobling(ref: String): String {
-        val nyref = UUID.randomUUID().toString()
-        prepareStatement(
-            """
+	fun Connection.lagreNyKobling(ref: String): String {
+		val nyref = UUID.randomUUID().toString()
+		prepareStatement(
+			"""
             insert into kobling (
             saksref_fil,
             saksref_uuid,
             dato
             ) values (?, ?, ?)
         """.trimIndent()
-        ).withParameters(
-            param(ref),
-            param(nyref),
-            param(LocalDateTime.now())
-        ).execute()
-        commit()
+		).withParameters(
+			param(ref),
+			param(nyref),
+			param(LocalDateTime.now())
+		).execute()
+		commit()
 
-        return nyref
-    }
+		return nyref
+	}
 
-    fun Connection.koblesakRef(filref: String): String {
-        val rs = prepareStatement(
-            """
+	fun Connection.koblesakRef(filref: String): String {
+		val rs = prepareStatement(
+			"""
             select distinct(saksref_uuid) from kobling
             where saksref_fil = ?
         """.trimIndent()
-        ).withParameters(
-            param(filref)
-        ).executeQuery()
-        return if (rs.next())
-            rs.getColumn("saksref_uuid")
-        else ""
-    }
+		).withParameters(
+			param(filref)
+		).executeQuery()
+		return if (rs.next())
+			rs.getColumn("saksref_uuid")
+		else ""
+	}
 
-    fun Connection.hentAlleKoblinger(): List<KoblingTable> {
-        return prepareStatement(
-            """
+	fun Connection.hentAlleKoblinger(): List<KoblingTable> {
+		return prepareStatement(
+			"""
             select * from kobling
         """.trimIndent()
-        ).executeQuery().toKobling()
-    }
+		).executeQuery().toKobling()
+	}
 
-    fun Connection.oppdaterStatus(mottakStatus: MottaksStatusResponse) {
-        logger.info { "Logger repos: Lagrer mottaksstatus: $mottakStatus" }
-        prepareStatement(
-            """
+	fun Connection.oppdaterStatus(mottakStatus: MottaksStatusResponse) {
+		logger.info { "Logger repos: Lagrer mottaksstatus: $mottakStatus" }
+		prepareStatement(
+			"""
             update krav 
             set status = ?, dato_siste_status = ?
             where saksnummer_ske = ?
         """.trimIndent()
-        ).withParameters(
-                param(mottakStatus.mottaksStatus),
-                param(LocalDateTime.now()),
-                param(mottakStatus.kravidentifikator)
-            ).execute()
-        commit()
-    }
+		).withParameters(
+			param(mottakStatus.mottaksStatus),
+			param(LocalDateTime.now()),
+			param(mottakStatus.kravidentifikator)
+		).execute()
+		commit()
+	}
 
-    fun Connection.lagreValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, saksnummerSKE: String) {
-        logger.info { "logger repos: Lagrer valideringsfeil: $saksnummerSKE" }
-        valideringsFeilResponse.valideringsfeil.forEach {
-            prepareStatement(
-                """
+	fun Connection.lagreValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, saksnummerSKE: String) {
+		logger.info { "logger repos: Lagrer valideringsfeil: $saksnummerSKE" }
+		valideringsFeilResponse.valideringsfeil.forEach {
+			prepareStatement(
+				"""
                 insert into validering (
                     saksnummer_ske,
                     error,
@@ -197,13 +198,13 @@ object Repository {
                 ) 
                 values (?, ?, ?, ?)
             """.trimIndent()
-            ).withParameters(
-                param(saksnummerSKE),
-                param(it.error),
-                param(it.message),
-                param(LocalDate.now())
-            ).execute()
-        }
-        commit()
-    }
+			).withParameters(
+				param(saksnummerSKE),
+				param(it.error),
+				param(it.message),
+				param(LocalDate.now())
+			).execute()
+		}
+		commit()
+	}
 }

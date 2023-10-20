@@ -12,40 +12,37 @@ import java.io.File
 import java.net.URI
 
 internal class ReadFileTest : FunSpec({
+	val liste = readFileFromFS("fil1.txt".asResource())
 
-    val liste = readFileFromFS("fil1.txt".asResource())
+	test("lesInnStartLinjeTilclass") {
+		val expected = FirstLine(
+			transferDate = kotlinx.datetime.LocalDateTime.parse("2023-05-26T22:13:40"),
+			sender = "OB04"
+		)
+		val startlinje: FirstLine = parseFRtoDataFirsLineClass(liste.first())
+		startlinje.toString() shouldBe expected.toString()
+	}
 
+	test("lesInnSluttLineTilClass") {
+		val sluttlinje: LastLine = parseFRtoDataLastLineClass(liste.last()).also { println(liste.last()) }
+		withClue({ "Antall transaksjonslinjer skal være 101: ${sluttlinje.numTransactionLines}" }) {
+			sluttlinje.numTransactionLines shouldBe 101
+		}
+	}
 
-    test("lesInnStartLinjeTilclass") {
-        val expected = FirstLine(
-            transferDate = kotlinx.datetime.LocalDateTime.parse("2023-05-26T22:13:40"),
-            sender = "OB04"
-        )
-        val startlinje: FirstLine = parseFRtoDataFirsLineClass(liste.first())
-        startlinje.toString() shouldBe expected.toString()
-    }
-
-
-    test("lesInnSluttLineTilClass") {
-        val sluttlinje: LastLine = parseFRtoDataLastLineClass(liste.last()).also { println(liste.last()) }
-        withClue({ "Antall transaksjonslinjer skal være 101: ${sluttlinje.numTransactionLines}" }) {
-            sluttlinje.numTransactionLines shouldBe 101
-        }
-    }
-
-
-    test("sjekkAtSumStemmerMedSisteLinje") {
-        val sumBelopOgRenter = liste.subList(1, liste.lastIndex).sumOf {
-            val parsed = parseFRtoDataDetailLineClass(it)
-            parsed.belop + parsed.belopRente
-        }
-        parseFRtoDataLastLineClass(liste.last()).sumAllTransactionLines shouldBe sumBelopOgRenter
-    }
+	test("sjekkAtSumStemmerMedSisteLinje") {
+		val sumBelopOgRenter = liste.subList(1, liste.lastIndex).sumOf {
+			val parsed = parseFRtoDataDetailLineClass(it)
+			parsed.belop + parsed.belopRente
+		}
+		parseFRtoDataLastLineClass(liste.last()).sumAllTransactionLines shouldBe sumBelopOgRenter
+	}
 })
+
 fun readFileFromFS(file: String): List<String> {
-    val pn = URI(file)
-    pn.normalize()
-    return File(URI(file)).readLines()
+	val pn = URI(file)
+	pn.normalize()
+	return File(URI(file)).readLines()
 }
 
 fun String.asResource(): String = object {}.javaClass.classLoader.getResource(this)!!.toString()
