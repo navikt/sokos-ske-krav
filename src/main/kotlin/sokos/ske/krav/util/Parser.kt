@@ -1,9 +1,13 @@
 package sokos.ske.krav.util
 
+import kotlinx.datetime.toKotlinLocalDate
 import mu.KotlinLogging
+import sokos.ske.krav.database.RepositoryExtensions.toKotlinxLocalDateTime
 import sokos.ske.krav.domain.DetailLine
 import sokos.ske.krav.domain.FirstLine
 import sokos.ske.krav.domain.LastLine
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 private val logger = KotlinLogging.logger {}
 
@@ -53,12 +57,12 @@ fun parseFRtoDataLastLineClass(line: String): LastLine {
 }
 
 fun parseDetailLinetoFRData(line: DetailLine) = "0030" +
-		prefixString(line.lineNummer, 7, "0") +
+		prefixString(line.lineNummer, 7) +
 		suffixStringWithSpace(line.saksNummer, 18) +
 		prefixString(line.belop) +
 		line.vedtakDato.year.toString() +
-		prefixString(line.vedtakDato.monthNumber, 2, "0") +
-		prefixString(line.vedtakDato.dayOfMonth, 2, "0") +
+		prefixString(line.vedtakDato.monthNumber, 2) +
+		prefixString(line.vedtakDato.dayOfMonth, 2) +
 		line.gjelderID +
 		line.periodeFOM +
 		line.periodeTOM +
@@ -99,7 +103,7 @@ fun prefixString(field: Double): String {
 	return prefixString(str, 11, "0")
 }
 
-private fun prefixString(field: Int, len: Int, prefix: String) = prefixString(field.toString(), len, prefix)
+private fun prefixString(field: Int, len: Int, prefix: String = "0") = prefixString(field.toString(), len, prefix)
 
 fun suffixStringWithSpace(field: String, len: Int): String {
 	var result: String = field
@@ -132,22 +136,13 @@ class FixedRecordParser(private val line: String) {
 	fun parseDate(len: Int): kotlinx.datetime.LocalDate? {
 		if (line.length < pos + 1) return null
 		val dateString = parseString(len)
-		val year = dateString.substring(0, 4)
-		val month = dateString.substring(4, 6)
-		val day = dateString.substring(6, 8)
-
-		return kotlinx.datetime.LocalDate.parse("$year-$month-$day")
+		val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
+		return java.time.LocalDate.parse(dateString, dtf).toKotlinLocalDate()
 	}
 
 	fun parseDateTime(len: Int): kotlinx.datetime.LocalDateTime {
 		val dateString = parseString(len)
-		val year = dateString.substring(0, 4)
-		val month = dateString.substring(4, 6)
-		val day = dateString.substring(6, 8)
-		val hour = dateString.substring(8, 10)
-		val minute = dateString.substring(10, 12)
-		val second = dateString.substring(12, 14)
-
-		return kotlinx.datetime.LocalDateTime.parse("$year-$month-${day}T$hour:$minute:$second")
+		val dtfCustom = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+		return LocalDateTime.parse(dateString, dtfCustom).toKotlinxLocalDateTime()
 	}
 }
