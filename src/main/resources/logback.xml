@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
-
-
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
     </appender>
@@ -29,6 +27,14 @@
     </appender>
 
 
+    <logger name="secureLogger" level="DEBUG" additivity="false">
+        <appender-ref ref="${LOG_APPENDER:-secureLog}"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="${LOG_APPENDER:-stdout_json}"/>
+    </root>
+
     <if condition='isDefined("NAIS_CLUSTER_NAME")'>
         <then>
             <logger name="secureLogger" level="DEBUG" additivity="false">
@@ -38,17 +44,10 @@
     </if>
 
     <root level="INFO">
-        <if condition='isDefined("NAIS_CLUSTER_NAME")'>
-            <then>
-                <appender-ref ref="STDOUT"/>
-            </then>
-            <else>
-                <appender-ref ref="CONSOLE"/>
-            </else>
-        </if>
+        <appender-ref ref="CONSOLE"/>
     </root>
 
-    <logger name="no.nav.sokos.skattekort.person" level="INFO"/>
+    <logger name="no.nav.sokos.ske.krav" level="INFO"/>
 
     <logger name="com.jcraft.jsch" level="DEBUG" additivity="false">
         <appender-ref ref="${LOG_APPENDER:-stdout_json}"/>
