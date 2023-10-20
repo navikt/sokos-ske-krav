@@ -88,8 +88,8 @@ private val defaultProperties = ConfigurationMap(
         val host: String = get("POSTGRES_HOST"),
         val port: String = get ("POSTGRES_PORT"),
         val name: String = get ("POSTGRES_NAME"),
-        val username: String = get("POSTGRES_USERNAME").trim(),
-        val password: String = get ("POSTGRES_PASSWORD").trim(),
+        val username: String = if(Profile.valueOf(this["APPLICATION_PROFILE"]) == Profile.LOCAL) get("POSTGRES_USERNAME").trim() else "",
+        val password: String = if(Profile.valueOf(this["APPLICATION_PROFILE"]) == Profile.LOCAL) get ("POSTGRES_PASSWORD").trim() else "",
         val vaultMountPath: String = get("VAULT_MOUNTPATH"),
     ) {
         val jdbcUrl: String = "jdbc:postgresql://$host:$port/$name"
