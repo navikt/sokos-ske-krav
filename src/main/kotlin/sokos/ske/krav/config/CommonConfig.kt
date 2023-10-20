@@ -2,6 +2,7 @@ package sokos.ske.krav.config
 
 
 
+import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -9,8 +10,10 @@ import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.callid.callIdMdc
 import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.request.path
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import org.slf4j.event.Level
 import java.util.UUID
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -21,7 +24,9 @@ fun Application.commonConfig(){
         verify { it.isNotEmpty() }
     }
     install(CallLogging) {
-        callIdMdc("x-correlation-id")
+        level = Level.INFO
+        callIdMdc(HttpHeaders.XCorrelationId)
+        filter { call -> call.request.path().startsWith("/krav") }
         disableDefaultColors()
     }
     install(ContentNegotiation) {
