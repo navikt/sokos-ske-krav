@@ -2,12 +2,6 @@ package sokos.ske.krav
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.headersOf
 import io.mockk.mockk
 import sokos.ske.krav.api.model.responses.MottaksStatusResponse
 import sokos.ske.krav.client.SkeClient
@@ -20,33 +14,11 @@ import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
 import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.util.FakeFtpService
+import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.util.TestContainer
 import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.LocalDate
-
-
-const val kravident = "1234"
-const val opprettResponse = "{\"kravidentifikator\": \"$kravident\"}"
-
-val mottattResponse = "{\n" +
-		"  \"kravidentifikator\": \"$kravident\",\n" +
-		"  \"oppdragsgiversKravidentifikator\": \"$kravident\",\n" +
-		"  \"mottaksstatus\": \"${MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value}\",\n" +
-		"  \"statusOppdatert\": \"2023-10-04T04:47:08.482Z\"\n" +
-		"}"
-
-const val valideringsfeilResponse = "{\n" +
-		"  \"valideringsfeil\": [\n" +
-		"    {\n" +
-		"      \"error\": \"feil\",\n" +
-		"      \"message\": \"melding\"\n" +
-		"    }\n" +
-		"  ]\n" +
-		"}"
-
-val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
-val iderForValideringsFeil = listOf("23", "54", "87")
 
 
 internal class IntegrationTest : FunSpec({
@@ -61,7 +33,7 @@ internal class IntegrationTest : FunSpec({
 	}
 
 	test("Kravdata skal lagres i database etter å ha sendt nye krav til SKE") {
-		val client = getClient()
+		val client = MockHttpClient(kravident = "1234").getClient()
 
 		val fakeFtpService = FakeFtpService()
 		val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt"))
@@ -77,7 +49,7 @@ internal class IntegrationTest : FunSpec({
 		kravdata.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
 		kravdata.filter { it.kravtype == ENDRE_KRAV }.size shouldBe 0
 		kravdata.filter { it.kravtype == NYTT_KRAV }.size shouldBe 99
-		kravdata.filter { it.kravtype == NYTT_KRAV && it.saksnummerSKE == kravident }.size shouldBe 99
+		kravdata.filter { it.kravtype == NYTT_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 99
 
 		client.close()
 		fakeFtpService.close()
@@ -86,7 +58,8 @@ internal class IntegrationTest : FunSpec({
 
 
 	test("Mottaksstatus skal oppdateres i database") {
-		val client = getClient()
+		val client = MockHttpClient(kravident = "1234").getClient()
+
 		//   val datasource = TestContainer().getRunningContainer()
 		val mockClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = tokenProvider)
 		val service = SkeService(mockClient, datasource, mockk<FtpService>())
@@ -104,7 +77,9 @@ internal class IntegrationTest : FunSpec({
 	data class ValideringFraDB(val saksnummerSke: String, val error: String, val melding: String, val dato: Timestamp)
 
 	test("Test hent valideringsfeil") {
-		val client = getClient()
+		val iderForValideringsFeil = listOf("23", "54", "87")
+		val client = MockHttpClient(kravident = "1234", iderForValideringsFeil = iderForValideringsFeil).getClient()
+
 		//    val datasource = TestContainer().getRunningContainer()
 		val mockClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = tokenProvider)
 		val service = SkeService(mockClient, datasource, mockk<FtpService>())
@@ -156,43 +131,3 @@ internal class IntegrationTest : FunSpec({
 	}
 })
 
-
-fun getClient() = HttpClient(MockEngine) {
-	engine {
-		addHandler { request ->
-			when (request.url.encodedPath) {
-				"/innkrevingsoppdrag/1234/mottaksstatus" -> {
-					respond(mottattResponse, HttpStatusCode.OK, responseHeaders)
-				}
-
-				"/innkrevingsoppdrag//mottaksstatus" -> { //fordi stopp ikke er implementert
-					respond(mottattResponse, HttpStatusCode.OK, responseHeaders)
-				}
-
-				"/innkrevingsoppdrag" -> {
-					respond(opprettResponse, HttpStatusCode.OK, responseHeaders)
-				}
-
-				"/innkrevingsoppdrag/avskriving" -> {
-					respond("", HttpStatusCode.OK, responseHeaders)
-				}
-
-				"/innkrevingsoppdrag/${iderForValideringsFeil[0]}/valideringsfeil" -> {
-					respond(valideringsfeilResponse, HttpStatusCode.OK, responseHeaders)
-				}
-
-				"/innkrevingsoppdrag/${iderForValideringsFeil[1]}/valideringsfeil" -> {
-					respond(valideringsfeilResponse, HttpStatusCode.OK, responseHeaders)
-				}
-
-				"/innkrevingsoppdrag/${iderForValideringsFeil[2]}/valideringsfeil" -> {
-					respond(valideringsfeilResponse, HttpStatusCode.OK, responseHeaders)
-				}
-
-				else -> {
-					error("Ikke implementert: ${request.url.encodedPath}")
-				}
-			}
-		}
-	}
-}
