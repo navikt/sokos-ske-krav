@@ -8,8 +8,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
-import io.ktor.client.statement.request
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
@@ -44,8 +42,6 @@ class SkeClient(
 	private suspend inline fun doPost(path: String, body: String): HttpResponse {
 		val token = tokenProvider.hentAccessToken()
 
-		// println("\n\nToken: -" + token + "-\n\n")
-		logger.info { "logger doPost body: $body" }
 		val response = client.post("$skeEndpoint$path") {
 			contentType(ContentType.Application.Json)
 			headers {
@@ -60,7 +56,7 @@ class SkeClient(
 
 	private suspend fun doPut(path: String, body: String): HttpResponse {
 		val token = tokenProvider.hentAccessToken()
-		logger.info { "doPut: $body" }
+
 		val response = client.put("$skeEndpoint$path") {
 			contentType(ContentType.Application.Json)
 			accept(ContentType.Application.Json)
@@ -77,7 +73,6 @@ class SkeClient(
 
 	private suspend fun doGet(path: String): HttpResponse {
 		val token = tokenProvider.hentAccessToken()
-		logger.info { "Logger doGet: Path: $skeEndpoint$path" }
 		// println("\n\nToken: -" + token + "-\n\n")
 		val response = client.get("$skeEndpoint$path") {
 			contentType(ContentType.Application.Json)
@@ -87,9 +82,6 @@ class SkeClient(
 				append("Klientid", KLIENT_ID)
 			}
 		}
-		val bd = response.bodyAsText()
-
-		logger.info { "Logger doGet: resp_body: ${bd}, \n${response.request.call}" }
 		return response
 	}
 }

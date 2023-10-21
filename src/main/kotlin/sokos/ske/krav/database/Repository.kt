@@ -71,8 +71,6 @@ object Repository {
 	) {
 		try {
 			val now = LocalDateTime.now()
-			logger.info { "Lagrer ny tildb: $skeid $now, $filLinje, $request, $response" }
-
 			prepareStatement(
 				"""
                 insert into krav (
@@ -170,7 +168,6 @@ object Repository {
 	}
 
 	fun Connection.oppdaterStatus(mottakStatus: MottaksStatusResponse) {
-		logger.info { "Logger repos: Lagrer mottaksstatus: $mottakStatus" }
 		prepareStatement(
 			"""
             update krav 
@@ -186,7 +183,6 @@ object Repository {
 	}
 
 	fun Connection.lagreValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, saksnummerSKE: String) {
-		logger.info { "logger repos: Lagrer valideringsfeil: $saksnummerSKE" }
 		valideringsFeilResponse.valideringsfeil.forEach {
 			prepareStatement(
 				"""
