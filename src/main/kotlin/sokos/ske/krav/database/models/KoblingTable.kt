@@ -1,6 +1,6 @@
 package sokos.ske.krav.database.models
 
-import kotlinx.datetime.LocalDateTime
+import java.time.LocalDateTime
 
 data class KoblingTable(
 	val id: Long,

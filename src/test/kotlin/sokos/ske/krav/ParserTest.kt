@@ -16,7 +16,7 @@ internal class ReadFileTest : FunSpec({
 
 	test("lesInnStartLinjeTilclass") {
 		val expected = FirstLine(
-			transferDate = kotlinx.datetime.LocalDateTime.parse("2023-05-26T22:13:40"),
+			transferDate = "20230526221340",
 			sender = "OB04"
 		)
 		val startlinje: FirstLine = parseFRtoDataFirsLineClass(liste.first())

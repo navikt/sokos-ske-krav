@@ -6,7 +6,6 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.api.model.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.database.Repository.hentAlleKoblinger
@@ -18,6 +17,7 @@ import sokos.ske.krav.domain.DetailLine
 import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.util.lagOpprettKravRequest
 import sokos.ske.krav.util.parseFRtoDataDetailLineClass
+import java.time.LocalDateTime
 import kotlin.math.roundToLong
 
 internal class RepositoryTest : FunSpec({

@@ -20,7 +20,6 @@ import sokos.ske.krav.util.fileValidator
 import sokos.ske.krav.util.lagEndreKravRequest
 import sokos.ske.krav.util.lagOpprettKravRequest
 import sokos.ske.krav.util.lagStoppKravRequest
-import sokos.ske.krav.util.parseDetailLinetoFRData
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.roundToLong
 
@@ -96,7 +95,7 @@ class SkeService(
 					kravService.lagreNyttKrav(
 						kravident,
 						request,
-						parseDetailLinetoFRData(it),
+						it.originalLinje,
 						it,
 						when {
 							it.erStopp() -> STOPP_KRAV
@@ -129,29 +128,24 @@ class SkeService(
 		val feil = AtomicInteger()
 		val result = kravService.hentAlleKravSomIkkeErReskotrofort().map {
 			antall.incrementAndGet()
-			logger.info { "Logger (Status start): ${it.saksnummerSKE}" }
 
 			val response = skeClient.hentMottaksStatus(it.saksnummerSKE)
-			logger.info { "Logger (Status hentet): ${it.saksnummerSKE}" }
 			if (response.status.isSuccess()) {
-				logger.info { "Logger (Status success): ${it.saksnummerSKE}" }
 				try {
 					val body = response.bodyAsText()
-					logger.info { "Logger status body: $body" }
 					val mottaksstatus = Json.decodeFromString<MottaksStatusResponse>(body)
-					logger.info { "Logger mottaksresponse: $mottaksstatus, Body: $body" }
+
 					kravService.oppdaterStatus(mottaksstatus)
-					logger.info { "Logger (Status oppdatert): ${it.saksnummerSKE}" }
 				} catch (e: Exception) {
 					feil.incrementAndGet()
 					logger.error { "Logger Exception: ${e.message}" }
 					throw e
 				}
 			}
-			logger.info { "Logger (Status ferdig): ${it.saksnummerSKE}" }
+
 			"Status ok: ${response.status.value}, ${response.bodyAsText()}"
 		}
-		logger.info { "Loger status: ferdig  (antall $antall, feilet: $feil) commit og closer connectin" }
+
 		return result + "Antall behandlet  $antall, Antall feilet: $feil"
 	}
 
@@ -160,14 +154,11 @@ class SkeService(
 			val response = skeClient.hentValideringsfeil(it.saksnummerSKE)
 
 			if (response.status.isSuccess()) {
-				logger.info { "Logger (validering success): ${it.saksnummerSKE}" }
-
 				val valideringsfeilResponse = Json.decodeFromString<ValideringsFeilResponse>(response.bodyAsText())
 				kravService.lagreValideringsfeil(valideringsfeilResponse, it.saksnummerSKE)
 				//lag ftpfil og  kall handleAnyFailedFiles
 				"Status OK: ${response.bodyAsText()}"
 			} else {
-				logger.info { "Logger (Fikk ikke hentet valideringsfeil for:  ${it.saksnummerSKE}, Status: ${response.status.value})" }
 				"Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
 			}
 		}
