@@ -4,12 +4,9 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerializationStrategy
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
-import sokos.ske.krav.api.model.requests.AvskrivingRequest
-import sokos.ske.krav.api.model.requests.EndringRequest
-import sokos.ske.krav.api.model.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.api.model.responses.MottaksStatusResponse
 import sokos.ske.krav.api.model.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.api.model.responses.ValideringsFeilResponse
@@ -27,6 +24,13 @@ const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRE_KRAV = "ENDRE_KRAV"
 const val STOPP_KRAV = "STOPP_KRAV"
 
+
+@OptIn(ExperimentalSerializationApi::class)
+val builder = Json {
+	encodeDefaults = true
+	explicitNulls = false
+}
+
 class SkeService(
 	private val skeClient: SkeClient,
 	dataSource: PostgresDataSource = PostgresDataSource(),
@@ -35,14 +39,8 @@ class SkeService(
 	private val logger = KotlinLogging.logger {}
 
 	private val kravService = KravService(dataSource)
-	private inline fun <reified T> toJson(serializer: SerializationStrategy<T>, body: T) =
-		builder.encodeToJsonElement(serializer, body).toString()
+	private inline fun <reified T> toJson(body: T) = builder.encodeToString(body)
 
-	@OptIn(ExperimentalSerializationApi::class)
-	private val builder = Json {
-		encodeDefaults = true
-		explicitNulls = false
-	}
 
 	fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
 	fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles(::fileValidator)
@@ -67,20 +65,18 @@ class SkeService(
 
 				val response = when {
 					it.erStopp() -> {
-						request = toJson(AvskrivingRequest.serializer(), lagStoppKravRequest(kravident))
+						request = toJson(lagStoppKravRequest(kravident))
 						skeClient.stoppKrav(request)
 					}
 
 					it.erEndring() -> {
-						request = toJson(EndringRequest.serializer(), lagEndreKravRequest(it, kravident))
+						request = toJson(lagEndreKravRequest(it, kravident))
 						skeClient.endreKrav(request)
 					}
 
 					it.erNyttKrav() -> {
-						request = toJson(
-							OpprettInnkrevingsoppdragRequest.serializer(),
-							lagOpprettKravRequest(it.copy(saksNummer = kravService.lagreNyKobling(it.saksNummer)))
-						)
+						request =
+							toJson(lagOpprettKravRequest(it.copy(saksNummer = kravService.lagreNyKobling(it.saksNummer))))
 						skeClient.opprettKrav(request)
 					}
 

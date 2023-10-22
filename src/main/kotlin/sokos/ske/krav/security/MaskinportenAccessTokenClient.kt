@@ -2,7 +2,6 @@ package sokos.ske.krav.security
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.fasterxml.jackson.annotation.JsonAlias
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.accept
@@ -14,9 +13,14 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.Instant
+import kotlinx.datetime.plus
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import sokos.ske.krav.config.PropertiesConfig
-import java.time.Instant
 import java.util.Date
 
 class MaskinportenAccessTokenClient(
@@ -31,10 +35,10 @@ class MaskinportenAccessTokenClient(
 	private lateinit var token: AccessToken
 
 	suspend fun hentAccessToken(): String {
-		val omToMinutter = Instant.now().plusSeconds(120L)
+		val omToMinutter = Clock.System.now().plus(120L, DateTimeUnit.SECOND)
 		return mutex.withLock {
 			when {
-				!this::token.isInitialized || token.expiresAt.isBefore(omToMinutter) -> {
+				!this::token.isInitialized || token.expiresAt < omToMinutter -> {
 					token = AccessToken(hentAccessTokenFraProvider())
 					token.accessToken
 				}
@@ -74,10 +78,11 @@ class MaskinportenAccessTokenClient(
 	}
 }
 
+@Serializable
 data class Token(
-	@JsonAlias("access_token")
+	@SerialName("access_token")
 	val accessToken: String,
-	@JsonAlias("expires_in")
+	@SerialName("expires_in")
 	val expiresIn: Long
 )
 
@@ -87,6 +92,6 @@ data class AccessToken(
 ) {
 	constructor(token: Token) : this(
 		accessToken = token.accessToken,
-		expiresAt = Instant.now().plusSeconds(token.expiresIn)
+		expiresAt = Clock.System.now().plus(token.expiresIn, DateTimeUnit.SECOND)
 	)
 }
