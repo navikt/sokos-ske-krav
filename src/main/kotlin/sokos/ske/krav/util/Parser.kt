@@ -72,8 +72,7 @@ class FixedRecordParser(private val line: String) {
 		val integer = amount.dropLast(2)
 		val dec = amount.drop(amount.length - 2)
 
-		val formatted = java.text.DecimalFormat("#######0.00").format("$integer.$dec".toDouble())
-		return formatted.toDouble()
+		return "$integer.$dec".toDouble()
 	}
 
 	fun parseDate(len: Int): LocalDate {
