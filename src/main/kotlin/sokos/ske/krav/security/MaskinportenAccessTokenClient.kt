@@ -41,26 +41,10 @@ class MaskinportenAccessTokenClient(
 		val javaOmtoMinutter = java.time.Instant.now().plusSeconds(120L)
 
 		return mutex.withLock {
-
-
 			when {
 				!this::token.isInitialized || token.expiresAt < omToMinutter -> {
-
 					token = AccessToken(hentAccessTokenFraProvider())
-					println("Java expires at ${token.javaExpiresAt}")
-					println("Kotlin expires at: ${token.expiresAt}")
-					println("Java om to minutter: $javaOmtoMinutter")
-					println("Kotlin om to minutter: $omToMinutter")
-					println("token.expiresAt < omToMinutter : ${token.expiresAt < omToMinutter}. Kontroll: ${token.expiresAt > omToMinutter}")
-					println(
-						"token.javaExpiresAt.isBefore(javaOmtoMinutter): ${token.javaExpiresAt.isBefore(javaOmtoMinutter)}. Kontroll: ${
-							!token.javaExpiresAt.isBefore(
-								javaOmtoMinutter
-							)
-						}}"
-					)
 					token.accessToken
-
 				}
 
 				else -> {
@@ -115,7 +99,5 @@ data class AccessToken(
 		accessToken = token.accessToken,
 		expiresAt = Clock.System.now().plus(token.expiresIn, DateTimeUnit.SECOND),
 		javaExpiresAt = java.time.Instant.now().plusSeconds(token.expiresIn)
-	) {
-		println("TOKEN EXPIRES IN: ${token.expiresIn}")
-	}
+	)
 }
