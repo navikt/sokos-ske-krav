@@ -35,10 +35,7 @@ class MaskinportenAccessTokenClient(
 	private lateinit var token: AccessToken
 
 	suspend fun hentAccessToken(): String {
-
-
 		val omToMinutter = Clock.System.now().plus(2, DateTimeUnit.MINUTE)
-		val javaOmtoMinutter = java.time.Instant.now().plusSeconds(120L)
 
 		return mutex.withLock {
 			when {
@@ -93,11 +90,9 @@ data class Token(
 data class AccessToken(
 	val accessToken: String,
 	val expiresAt: Instant,
-	val javaExpiresAt: java.time.Instant
 ) {
 	constructor(token: Token) : this(
 		accessToken = token.accessToken,
-		expiresAt = Clock.System.now().plus(token.expiresIn, DateTimeUnit.SECOND),
-		javaExpiresAt = java.time.Instant.now().plusSeconds(token.expiresIn)
+		expiresAt = Clock.System.now().plus(token.expiresIn, DateTimeUnit.SECOND)
 	)
 }

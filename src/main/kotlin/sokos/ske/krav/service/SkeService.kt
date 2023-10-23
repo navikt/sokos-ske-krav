@@ -3,7 +3,6 @@ package sokos.ske.krav.service
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
@@ -24,23 +23,13 @@ const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRE_KRAV = "ENDRE_KRAV"
 const val STOPP_KRAV = "STOPP_KRAV"
 
-
-@OptIn(ExperimentalSerializationApi::class)
-val builder = Json {
-	encodeDefaults = true
-	explicitNulls = false
-}
-
 class SkeService(
 	private val skeClient: SkeClient,
 	dataSource: PostgresDataSource = PostgresDataSource(),
 	private val ftpService: FtpService = FtpService()
 ) {
 	private val logger = KotlinLogging.logger {}
-
 	private val kravService = KravService(dataSource)
-	private inline fun <reified T> toJson(body: T) = builder.encodeToString(body)
-
 
 	fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
 	fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles(::fileValidator)
@@ -65,18 +54,18 @@ class SkeService(
 
 				val response = when {
 					it.erStopp() -> {
-						request = toJson(lagStoppKravRequest(kravident))
+						request = Json.encodeToString(lagStoppKravRequest(kravident))
 						skeClient.stoppKrav(request)
 					}
 
 					it.erEndring() -> {
-						request = toJson(lagEndreKravRequest(it, kravident))
+						request = Json.encodeToString(lagEndreKravRequest(it, kravident))
 						skeClient.endreKrav(request)
 					}
 
 					it.erNyttKrav() -> {
 						request =
-							toJson(lagOpprettKravRequest(it.copy(saksNummer = kravService.lagreNyKobling(it.saksNummer))))
+							Json.encodeToString(lagOpprettKravRequest(it.copy(saksNummer = kravService.lagreNyKobling(it.saksNummer))))
 						skeClient.opprettKrav(request)
 					}
 
