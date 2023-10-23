@@ -1,15 +1,17 @@
 package sokos.ske.krav.database
 
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.toJavaLocalDate
+import kotlinx.datetime.toJavaLocalDateTime
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.Parameter
+import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.skemodels.responses.OpprettInnkrevingsOppdragResponse
 import java.math.BigDecimal
 import java.sql.*
 import java.sql.Date
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.*
 
 object RepositoryExtensions {
@@ -38,12 +40,13 @@ object RepositoryExtensions {
             String::class -> getString(columnLabel)?.trim()
             Boolean::class -> getBoolean(columnLabel)
             BigDecimal::class -> getBigDecimal(columnLabel)
-            LocalDate::class -> getDate(columnLabel)?.toLocalDate()
-            kotlinx.datetime.LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()!!
+            java.time.LocalDate::class -> getDate(columnLabel)?.toLocalDate()
+            LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()!!
                 .toKotlinxLocalDateTime()
 
-            LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
+            java.time.LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
             else -> {
+                println("kol.label: $columnLabel")
                 logger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
                 throw RuntimeException("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}") // TODO Feilhåndtering
             }
@@ -57,8 +60,8 @@ object RepositoryExtensions {
         return transform(columnValue as T)
     }
 
-    fun LocalDateTime.toKotlinxLocalDateTime(): kotlinx.datetime.LocalDateTime =
-        kotlinx.datetime.LocalDateTime(
+    fun java.time.LocalDateTime.toKotlinxLocalDateTime(): LocalDateTime =
+        LocalDateTime(
             this.year,
             this.month,
             this.dayOfMonth,
@@ -89,46 +92,46 @@ object RepositoryExtensions {
     fun param(value: UUID) = Parameter { sp: PreparedStatement, index: Int -> sp.setObject(index, value) }
     fun param(value: Boolean) = Parameter { sp: PreparedStatement, index: Int -> sp.setBoolean(index, value) }
     fun param(value: BigDecimal) = Parameter { sp: PreparedStatement, index: Int -> sp.setBigDecimal(index, value) }
-    fun param(value: LocalDate) =
+    fun param(value: java.time.LocalDate) =
         Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value)) }
-
-    fun param(value: LocalDateTime) =
+    fun param(value: kotlinx.datetime.LocalDate) =
+        Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value.toJavaLocalDate())) }
+    fun param(value: java.time.LocalDateTime) =
         Parameter { sp: PreparedStatement, index: Int -> sp.setTimestamp(index, Timestamp.valueOf(value)) }
-
+    fun param(value: kotlinx.datetime.LocalDateTime) =
+        Parameter { sp: PreparedStatement, index: Int -> sp.setTimestamp(index, Timestamp.valueOf(value.toJavaLocalDateTime())) }
     fun param(value: java.sql.Array) = Parameter { sp: PreparedStatement, index: Int -> sp.setArray(index, value) }
-
     fun PreparedStatement.withParameters(vararg parameters: Parameter?) = apply {
         var index = 1; parameters.forEach { it?.addToPreparedStatement(this, index++) }
     }
 
     fun ResultSet.toKrav() = toList {
-        KravTable(
-            kravid = getColumn("kravid"),
-            saksnummer = getColumn("saksnummer"),
-            saksnummer_ske = getColumn("saksnummer_ske"),
-            belop = getColumn("belop"),
-            vedtakDato = getColumn("vedtakDato"),
-            gjelderId = getColumn("gjelderid"),
-            periodeFOM = getColumn("periodeFOM"),
-            periodeTOM = getColumn("periodeTOM"),
-            kravkode = getColumn("kravkode"),
-            referanseNummerGammelSak = getColumn("referanseNummerGammelSak"),
-            transaksjonDato = getColumn(""),
-            enhetBosted = getColumn(""),
-            enhetBehandlende = getColumn(""),
-            kodeHjemmel = getColumn(""),
-            kodeArsak = getColumn(""),
-            belopRente = getColumn(""),
-            fremtidigYtelse = getColumn(""),
-            utbetalDato = getColumn(""),
-            fagsystemId = getColumn(""),
-            status = getColumn("status"),
-            dato_sendt = getColumn("dato_sendt"),
-            dato_siste_status = getColumn("dato_siste_status"),
-            kravtype = getColumn("kravtype"),
-            filnavn = getColumn("filenavn")
-
-        )
+                KravTable(
+                    kravId = getColumn("kravId"),
+                    saksnummer = getColumn("saksnummer"),
+                    saksnummer_ske = getColumn("saksnummer_ske"),
+                    belop = getColumn("belop"),
+                    vedtakDato = getColumn("vedtakDato"),
+                    gjelderId = getColumn("gjelderid"),
+                    periodeFOM = getColumn("periodeFOM"),
+                    periodeTOM = getColumn("periodeTOM"),
+                    kravkode = getColumn("kravkode"),
+                    referanseNummerGammelSak = getColumn("referanseNummerGammelSak"),
+                    transaksjonDato = getColumn("transaksjonDato"),
+                    enhetBosted = getColumn("enhetBosted"),
+                    enhetBehandlende = getColumn("enhetBehandlende"),
+                    kodeHjemmel = getColumn("kodeHjemmel"),
+                    kodeArsak = getColumn("kodeArsak"),
+                    belopRente = getColumn("belopRente"),
+                    fremtidigYtelse = getColumn("fremtidigYtelse"),
+                    utbetalDato = getColumn("utbetalDato"),
+                    fagsystemId = getColumn("fagsystemId"),
+                    status = getColumn("status"),
+                    dato_sendt = getColumn("dato_sendt"),
+                    dato_siste_status = getColumn("dato_siste_status"),
+                    kravtype = getColumn("kravtype"),
+                    filnavn = getColumn("filnavn")
+                )
     }
 
     fun ResultSet.toKobling() = toList {
@@ -140,16 +143,31 @@ object RepositoryExtensions {
         )
     }
 
+    fun ResultSet.toOpprettInnkrevingsOppdragResponse() = toList {
+        OpprettInnkrevingsOppdragResponse(
+            kravidentifikator = getString("KRAVIDENTIFIKATOR")
+        )
+    }
+
+    fun ResultSet.toFeilmelding() = toList {
+        FeilmeldingTable(
+            feilmeldingId = getColumn("feilmeldingId"),
+                    kravId = getColumn("kravId"),
+                    saksnummer = getColumn("saksnummer"),
+                    saksnummer_ske = getColumn("saksnummer_ske"),
+                    error = getColumn("error"),
+                    melding = getColumn("melding"),
+                    navRequest = getColumn("navRequest"),
+                    skeResponse = getColumn("skeResponse"),
+                    dato = getColumn("dato")
+        )
+    }
+
     fun <T> ResultSet.toList(mapper: ResultSet.() -> T) = mutableListOf<T>().apply {
         while (next()) {
             add(mapper())
         }
     }
 
-    fun ResultSet.toOpprettInnkrevingsOppdragResponse() = toList {
-        OpprettInnkrevingsOppdragResponse(
-            kravidentifikator = getString("KRAVIDENTIFIKATOR")
-        )
-    }
 
 }

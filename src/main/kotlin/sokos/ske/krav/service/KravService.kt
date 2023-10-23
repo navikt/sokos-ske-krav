@@ -34,7 +34,7 @@ class KravService(
 
     fun lagreNyttKrav(skeKravident: String, request: String, filLinje: String, detailLine: DetailLine, kravtype: String, response: HttpResponse){
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.lagreNyttKrav(skeKravident, request, filLinje, detailLine, kravtype, response)
+            con.lagreNyttKrav(skeKravident, request, detailLine, kravtype, response.status)
         }
     }
 

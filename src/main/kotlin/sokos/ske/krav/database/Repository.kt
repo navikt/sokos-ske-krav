@@ -1,7 +1,7 @@
 package sokos.ske.krav.database
 
-import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.datetime.toJavaLocalDate
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
@@ -67,39 +67,67 @@ object Repository {
     fun Connection.lagreNyttKrav(
         skeid: String,
         request: String,
-        filLinje: String,
         detailLinje: DetailLine,
         kravtype: String,
-        response: HttpResponse
+        status: HttpStatusCode
     ) {
         try {
             val now = LocalDateTime.now()
-            logger.info { "Lagrer ny tildb: $skeid $now, $filLinje, $request, $response" }
+            logger.info { "Lagrer ny tildb: $skeid $now, $request, ${status.value}" }
 
             prepareStatement(
                 """
                 insert into krav (
-                saksnummer_nav, 
-                saksnummer_ske, 
-                fildata_nav, 
-                jsondata_ske, 
+                saksnummer, 
+                kravidentifikator_ske, 
+                belop,
+                vedtakDato,
+                gjelderId,
+                periodeFOM,
+                periodeTOM,
+                kravkode,
+                referanseNummerGammelSak,
+                transaksjonDato,
+                enhetBosted,
+                enhetBehandlende,
+                kodeHjemmel,
+                kodeArsak,
+                belopRente,
+                fremtidigYtelse,
+                utbetalDato,
+                fagsystemId,
                 status, 
                 dato_sendt, 
                 dato_siste_status,
-                kravtype
-                ) values (?,?,?,?,?,?,?,?)
+                kravtype,
+                filnavn
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """.trimIndent()
             ).withParameters(
                 param(detailLinje.saksNummer),
                 param(skeid),
-                param(filLinje),
-                param(request),
+                param(detailLinje.belop.toBigDecimal()),
+                param(detailLinje.vedtakDato),
+                param(detailLinje.gjelderID),
+                param(detailLinje.periodeFOM),
+                param(detailLinje.periodeTOM),
+                param(detailLinje.kravkode),
+                param(detailLinje.referanseNummerGammelSak),
+                param(detailLinje.transaksjonDato),
+                param(detailLinje.enhetBosted),
+                param(detailLinje.enhetBehandlende),
+                param(detailLinje.kodeHjemmel),
+                param(detailLinje.kodeArsak),
+                param(detailLinje.belopRente.toBigDecimal()),
+                param(detailLinje.fremtidigYtelse.toBigDecimal()),
+                param(detailLinje.utbetalDato?.toJavaLocalDate()!!),
+                param(detailLinje.fagsystemId),
                 param(
                     when {
-                        response.status.isSuccess()  -> KRAV_SENDT
-                        response.status.value.equals(409) -> KONFLIKT_409
-                        response.status.value.equals(422) -> VALIDERINGSFEIL_422
-                        else -> "UKJENT_${response.status.value}"
+                        status.isSuccess()  -> KRAV_SENDT
+                        status.value.equals(409) -> KONFLIKT_409
+                        status.value.equals(422) -> VALIDERINGSFEIL_422
+                        else -> "UKJENT_${status.value}"
                     }),
                 param(now),
                 param(now),

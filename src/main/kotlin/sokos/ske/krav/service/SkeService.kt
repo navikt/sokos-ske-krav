@@ -43,13 +43,13 @@ class SkeService(
 
     suspend fun testListFiles(directory: String): List<String> { return ftpService.listAllFiles(directory)}
     suspend fun testFtp(): List<FtpFil> {
-        return ftpService.getValidatedFiles(::fileValidator)
+        return ftpService.getValidatedFiles { fileValidator(it) }
 
     }
 
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
         logger.info { "Starter skeService SendNyeFtpFilertilSkatt." }
-        val files = ftpService.getValidatedFiles(::fileValidator)
+        val files = ftpService.getValidatedFiles { fileValidator(it) }
         logger.info { "Antall filer i kjøring ${files.size}" }
 
         val responses = files.map { file ->

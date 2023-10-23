@@ -68,7 +68,7 @@ class FtpService(
 
 
 
-    fun getValidatedFiles(validator: (content: List<String>) -> ValidationResult, directory: Directories = Directories.INBOUND): List<FtpFil> {
+    fun getValidatedFiles(directory: Directories = Directories.INBOUND, validator: (content: List<String>) -> ValidationResult): List<FtpFil> {
         val successFiles = mutableListOf<FtpFil>()
         downloadFiles(directory).map { entry ->
             when(val result: ValidationResult = validator(entry.value)){
