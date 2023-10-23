@@ -35,12 +35,32 @@ class MaskinportenAccessTokenClient(
 	private lateinit var token: AccessToken
 
 	suspend fun hentAccessToken(): String {
-		val omToMinutter = Clock.System.now().plus(120L, DateTimeUnit.SECOND)
+
+
+		val omToMinutter = Clock.System.now().plus(2, DateTimeUnit.MINUTE)
+		val javaOmtoMinutter = java.time.Instant.now().plusSeconds(120L)
+
 		return mutex.withLock {
+
+
 			when {
 				!this::token.isInitialized || token.expiresAt < omToMinutter -> {
+
 					token = AccessToken(hentAccessTokenFraProvider())
+					println("Java expires at ${token.javaExpiresAt}")
+					println("Kotlin expires at: ${token.expiresAt}")
+					println("Java om to minutter: $javaOmtoMinutter")
+					println("Kotlin om to minutter: $omToMinutter")
+					println("token.expiresAt < omToMinutter : ${token.expiresAt < omToMinutter}. Kontroll: ${token.expiresAt > omToMinutter}")
+					println(
+						"token.javaExpiresAt.isBefore(javaOmtoMinutter): ${token.javaExpiresAt.isBefore(javaOmtoMinutter)}. Kontroll: ${
+							!token.javaExpiresAt.isBefore(
+								javaOmtoMinutter
+							)
+						}}"
+					)
 					token.accessToken
+
 				}
 
 				else -> {
@@ -88,10 +108,14 @@ data class Token(
 
 data class AccessToken(
 	val accessToken: String,
-	val expiresAt: Instant
+	val expiresAt: Instant,
+	val javaExpiresAt: java.time.Instant
 ) {
 	constructor(token: Token) : this(
 		accessToken = token.accessToken,
-		expiresAt = Clock.System.now().plus(token.expiresIn, DateTimeUnit.SECOND)
-	)
+		expiresAt = Clock.System.now().plus(token.expiresIn, DateTimeUnit.SECOND),
+		javaExpiresAt = java.time.Instant.now().plusSeconds(token.expiresIn)
+	) {
+		println("TOKEN EXPIRES IN: ${token.expiresIn}")
+	}
 }
