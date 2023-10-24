@@ -49,7 +49,7 @@ internal class RepositoryTest: FunSpec( {
 
         koblinger.forEachIndexed { i, kobling ->
             val index = i + 1
-            kobling.saksref_uuid shouldBe "${kravData[i].saksnummer}"
+            kobling.saksref_uuid shouldBe kravData[i].saksnummer
             kobling.saksref_fil shouldBe "$index$index${index}0-navfil"
         }
         datasource.close()
@@ -65,7 +65,6 @@ internal class RepositoryTest: FunSpec( {
 
         detail1.erNyttKrav() shouldBe true
         detail2.erEndring() shouldBe true
-        val ekspektedSaksnr = detail1.saksNummer
 
         val kobling1 = con.lagreNyKobling(detail1.saksNummer)
         val detail1a = detail1.copy(saksNummer =  kobling1)
