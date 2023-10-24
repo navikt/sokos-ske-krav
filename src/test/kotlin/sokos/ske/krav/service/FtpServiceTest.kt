@@ -12,7 +12,7 @@ internal class FtpServiceTest: FunSpec( {
         val fakeFtpService = FakeFtpService()
         val ftpService =  fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt", "fil2.txt", "test.NAVI", "fil3.txt"))
 
-        val successFiles = ftpService.getValidatedFiles(::fileValidator)
+        val successFiles = ftpService.getValidatedFiles { fileValidator(it) }
         successFiles.size shouldBe 3
 
         val failedFilesInDir = ftpService.listFiles(Directories.FAILED)

@@ -3,10 +3,8 @@ package sokos.ske.krav.database
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
-import io.mockk.mockk
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.database.Repository.hentAlleKoblinger
@@ -88,9 +86,8 @@ internal class RepositoryTest: FunSpec( {
                 headers = headersOf(HttpHeaders.ContentType, "application/json")
             )
         }
-        val resp =  mockk<HttpResponse>()
 
-        con.lagreNyttKrav("skeID-001", Json.encodeToString(OpprettInnkrevingsoppdragRequest.serializer(),request1), detail1a, "NYTT_KRAV", resp.status)
+        con.lagreNyttKrav("skeID-001", Json.encodeToString(OpprettInnkrevingsoppdragRequest.serializer(),request1), detail1a, "NYTT_KRAV", HttpStatusCode.OK)
 
         val hentetKobling =con.koblesakRef(detail2.saksNummer)
 
