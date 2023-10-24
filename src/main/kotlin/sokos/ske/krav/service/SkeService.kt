@@ -31,16 +31,19 @@ class SkeService(
 	private val logger = KotlinLogging.logger {}
 	private val kravService = KravService(dataSource)
 
-	fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
-	fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles(::fileValidator)
 
-	suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
-		logger.info { "Starter skeService SendNyeFtpFilertilSkatt." }
-		val files = ftpService.getValidatedFiles(::fileValidator)
-		logger.info { "Antall filer i kjøring ${files.size}" }
+    suspend fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
+    suspend fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles { fileValidator(it) }
 
-		val responses = files.map { file ->
-			val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.map {
+    }
+
+    suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
+        logger.info { "Starter skeService SendNyeFtpFilertilSkatt." }
+        val files = ftpService.getValidatedFiles { fileValidator(it) }
+        logger.info { "Antall filer i kjøring ${files.size}" }
+
+        val responses = files.map { file ->
+            val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.map {
 
 				var kravident = kravService.hentSkeKravident(it.saksNummer)
 				val request: String
@@ -99,13 +102,13 @@ class SkeService(
 			val failedLines = httpResponseFailed.map { FailedLine(file, parseDetailLinetoFRData(it.first), it.second.status.value.toString(), it.second.bodyAsText()) }
 			handleAnyFailedLines(failedLines)*/
 
-			svar
-		}
+            svar
+        }
 
-		files.forEach { file -> ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
+        files.forEach { file ->  ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
 
-		return responses.map { response -> response.map { it.second } }.flatten()
-	}
+        return responses.map { it.map { it.second } }.flatten()
+    }
 
 
 	suspend fun hentOgOppdaterMottaksStatus(): List<String> {

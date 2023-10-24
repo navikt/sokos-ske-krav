@@ -24,9 +24,9 @@ data class FtpFil(
 )
 
 class FtpService(
-	private val config: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConfig(),
-	val jsch: JSch = JSch()
-) {
+    private val config: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConfig(),
+    val jsch: JSch = JSch()
+)  {
 
 	private val secureChannel: JSch = jsch.apply {
 		addIdentity(config.privKey, config.keyPass)
@@ -68,57 +68,51 @@ class FtpService(
 		sftpChannel.createFile(fileName, directory, content)
 
 
-	fun getValidatedFiles(
-		validator: (content: List<String>) -> ValidationResult,
-		directory: Directories = Directories.INBOUND
-	): List<FtpFil> {
-		val successFiles = mutableListOf<FtpFil>()
-		downloadFiles(directory).map { entry ->
-			when (val result: ValidationResult = validator(entry.value)) {
-				is ValidationResult.Success -> {
-					successFiles.add(FtpFil(entry.key, entry.value, result.detailLines))
-				}
+    fun getValidatedFiles(directory: Directories = Directories.INBOUND, validator: (content: List<String>) -> ValidationResult): List<FtpFil> {
+        val successFiles = mutableListOf<FtpFil>()
+        downloadFiles(directory).map { entry ->
+            when(val result: ValidationResult = validator(entry.value)){
+                is ValidationResult.Success -> {
+                    successFiles.add(FtpFil(entry.key, entry.value, result.detailLines))
+                }
+                is ValidationResult.Error -> {
+                    moveFile(entry.key,directory, Directories.FAILED)
+                }
+            }
+        }
+        return successFiles
+    }
+    private fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> = listFiles(directory).associateWith { sftpChannel.downloadFile("${directory.value}/$it") }
+    private fun ChannelSftp.downloadFile(fileName: String): List<String>
+    {
+        val outputStream = ByteArrayOutputStream()
+        try {
+            get(fileName, outputStream)
+        }catch (e: SftpException){
+            logger.error{"Feil i henting av fil $fileName: ${e.message}"}
+        }
 
-				is ValidationResult.Error -> {
-					moveFile(entry.key, directory, Directories.FAILED)
-				}
-			}
-		}
-		return successFiles
-	}
+        return String(outputStream.toByteArray()).split("\r?\n|\r".toRegex()).filter { it.isNotEmpty() }
+    }
+    private fun ChannelSftp.moveFile(fileName: String, from: Directories, to: Directories) {
+        val oldpath = "${from.value}/${fileName}"
+        val newpath = "${to.value}/${fileName}"
 
-	private fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> =
-		listFiles(directory).associateWith { sftpChannel.downloadFile("${directory.value}/$it") }
+        try {
+            rename(oldpath, newpath)
+        } catch (e: NoSuchFileException) {
+            logger.error{"Feil i flytting av fil fra $oldpath til $newpath: ${e.message}"}
+        }
+    }
+    private fun ChannelSftp.createFile(fileName: String, directory: Directories, content: String){
+        val path = "${directory.value}/$fileName"
+        try {
+            put(content.toByteArray().inputStream(), path)
+        }catch (e: SftpException){
+            logger.error{"Feil i opprettelse av fil $path: ${e.message}"}
+        }
 
-	private fun ChannelSftp.downloadFile(fileName: String): List<String> {
-		val outputStream = ByteArrayOutputStream()
-		try {
-			get(fileName, outputStream)
-		} catch (e: SftpException) {
-			logger.error { "Feil i henting av fil $fileName: ${e.message}" }
-		}
+    }
 
-		return String(outputStream.toByteArray()).split("\r?\n|\r".toRegex()).filter { it.isNotEmpty() }
-	}
 
-	private fun ChannelSftp.moveFile(fileName: String, from: Directories, to: Directories) {
-		val oldpath = "${from.value}/${fileName}"
-		val newpath = "${to.value}/${fileName}"
-
-		try {
-			rename(oldpath, newpath)
-		} catch (e: NoSuchFileException) {
-			logger.error { "Feil i flytting av fil fra $oldpath til $newpath: ${e.message}" }
-		}
-	}
-
-	private fun ChannelSftp.createFile(fileName: String, directory: Directories, content: String) {
-		val path = "${directory.value}/$fileName"
-		try {
-			put(content.toByteArray().inputStream(), path)
-		} catch (e: SftpException) {
-			logger.error { "Feil i opprettelse av fil $path: ${e.message}" }
-		}
-
-	}
 }

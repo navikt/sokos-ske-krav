@@ -1,20 +1,34 @@
 package sokos.ske.krav.database.models
 
-import java.time.LocalDateTime
+import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class KravTable(
-	val kravID: Long,
-	val saksnummerNAV: String,
-	val saksnummerSKE: String,
-	val fildataNAV: String,
-	val jsondataSKE: String,
-	val status: String,
-	val datoSendt: LocalDateTime,
-	val datoSisteStatus: LocalDateTime,
-	val kravtype: String
-) {
-	override fun toString(): String {
-		return "KravTable(krav_id=$kravID, saksnummer_nav='$saksnummerNAV', saksnummer_ske='$saksnummerSKE', fildata_nav='$fildataNAV', jsondata_ske='$jsondataSKE', status='$status', dato_sendt=$datoSendt, dato_siste_status=$datoSisteStatus, kravtype='$kravtype')"
-	}
+    val kravId: Long,
+    val saksnummer_ske: String,
+    val saksnummer: String,
+    val belop: Double,
+    val vedtakDato: LocalDateTime,
+    val gjelderId: String,
+    val periodeFOM: String,
+    val periodeTOM: String,
+    val kravkode: String,
+    val referanseNummerGammelSak: String,
+    val transaksjonDato: String,
+    val enhetBosted: String,
+    val enhetBehandlende: String,
+    val kodeHjemmel: String,
+    val kodeArsak: String,
+    val belopRente: Double,
+    val fremtidigYtelse: Double,
+    val utbetalDato: LocalDateTime? = null,
+    val fagsystemId: String? = null,
+    val status: String,
+    val dato_sendt: LocalDateTime,
+    val dato_siste_status: LocalDateTime,
+    val kravtype: String,
+    val filnavn: String
+){
 }
 
