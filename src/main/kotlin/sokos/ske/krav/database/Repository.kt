@@ -145,7 +145,7 @@ object Repository {
             param(navref)
         ).executeQuery()
         return if (rs.next())
-            rs.getColumn("saksnummer_ske")
+            rs.getColumn("kravidentifikator_ske")
         else ""
 
     }

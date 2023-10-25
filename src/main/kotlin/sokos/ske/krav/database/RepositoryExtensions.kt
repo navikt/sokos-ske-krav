@@ -158,7 +158,7 @@ object RepositoryExtensions {
             feilmeldingId = getColumn("id"),
                     kravId = getColumn("kravId"),
                     saksnummer = getColumn("saksnummer_nav"),
-                    saksnummer_ske = getColumn("kravidentifikator_ske"),
+                    kravidentifikatorSKE = getColumn("kravidentifikator_ske"),
                     error = getColumn("error"),
                     melding = getColumn("melding"),
                     navRequest = getColumn("navRequest"),

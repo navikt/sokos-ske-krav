@@ -9,7 +9,7 @@ data class ValideringTable(
 	val dato: LocalDateTime,
 ) {
 	override fun toString(): String {
-		return "ValideringTable(validering_id=$valideringID, saksnummer_ske='$saksnummerSKE', jsondata_ske='$jsondataSKE', dato=$dato)"
+		return "ValideringTable(validering_id=$valideringID, kravidentifikator_ske='$saksnummerSKE', jsondata_ske='$jsondataSKE', dato=$dato)"
 	}
 }
 
