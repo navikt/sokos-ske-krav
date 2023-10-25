@@ -1,10 +1,10 @@
 package sokos.ske.krav.util
 
-import sokos.ske.krav.domain.nav.DetailLine
+import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.TilleggsinformasjonNav
 
 sealed class ValidationResult {
-	data class Success(val detailLines: List<DetailLine>) : ValidationResult()
+	data class Success(val kravLinjer: List<KravLinje>) : ValidationResult()
 	data class Error(val message: List<String>) : ValidationResult()
 }
 
@@ -13,7 +13,7 @@ fun fileValidator(content: List<String>): ValidationResult {
 	val lastLine = parseFRtoDataLastLineClass(content.last())
 	val detailLines = content.subList(1, content.lastIndex).map { parseFRtoDataDetailLineClass(it) }
 
-	val invalidKravkode = detailLines.any { TilleggsinformasjonNav.StoenadsType.from(it.kravkode) == null }
+	val invalidKravkode = detailLines.any { TilleggsinformasjonNav.StoenadsType.from(it.stonadsKode) == null }
 	val invalidNumberOfLines = lastLine.numTransactionLines != detailLines.size
 	val invalidSum = detailLines.sumOf { it.belop + it.belopRente } != lastLine.sumAllTransactionLines
 	val invalidTransferDate = firstLine.transferDate != lastLine.transferDate

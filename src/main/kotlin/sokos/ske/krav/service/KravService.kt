@@ -11,7 +11,7 @@ import sokos.ske.krav.database.Repository.lagreValideringsfeil
 import sokos.ske.krav.database.Repository.oppdaterStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.domain.nav.DetailLine
+import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 
@@ -32,9 +32,9 @@ class KravService(
         }
     }
 
-    fun lagreNyttKrav(skeKravident: String, request: String, detailLine: DetailLine, kravtype: String, responseStatus: HttpStatusCode){
+    fun lagreNyttKrav(skeKravident: String, request: String, kravLinje: KravLinje, kravtype: String, responseStatus: HttpStatusCode){
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.lagreNyttKrav(skeKravident, request, detailLine, kravtype, responseStatus)
+            con.lagreNyttKrav(skeKravident, request, kravLinje, kravtype, responseStatus)
         }
     }
 

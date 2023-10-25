@@ -69,7 +69,7 @@ internal class IntegrationTest : FunSpec({
 
 	}
 
-	data class ValideringFraDB(val saksnummerSke: String, val error: String, val melding: String, val dato: Timestamp)
+	data class ValideringFraDB(val kravidentifikatorSKE: String, val error: String, val melding: String, val dato: Timestamp)
 
 	test("Test hent valideringsfeil") {
 		val iderForValideringsFeil = listOf("23", "54", "87")
@@ -86,9 +86,9 @@ internal class IntegrationTest : FunSpec({
 					"""
                 update krav
                 set 
-                saksnummer_ske = $id,
+                kravidentifikator_ske = $id,
                 status = '${MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value}'
-                where krav_id = $id;
+                where id = $id;
             """.trimIndent()
 				).executeUpdate()
 				con.commit()
@@ -101,12 +101,12 @@ internal class IntegrationTest : FunSpec({
 		val valideringsFeil = mutableListOf<ValideringFraDB>()
 		datasource.connection.use { con ->
 			val rs: ResultSet = con.prepareStatement(
-				"""select * from validering where saksnummer_ske in('23', '54', '87')""".trimIndent()
+				"""select * from validering where kravidentifikator_ske in('23', '54', '87')""".trimIndent()
 			).executeQuery()
 			while (rs.next()) {
 				valideringsFeil.add(
 					ValideringFraDB(
-						rs.getString("saksnummer_ske"),
+						rs.getString("kravidentifikator_ske"),
 						rs.getString("error"),
 						rs.getString("melding"),
 						rs.getTimestamp("dato")

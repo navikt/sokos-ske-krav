@@ -1,15 +1,14 @@
 package sokos.ske.krav.util
 
-import kotlinx.datetime.toKotlinLocalDate
-import sokos.ske.krav.domain.nav.DetailLine
+import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.*
 import sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
 import kotlin.math.roundToLong
 
-fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
+fun lagOpprettKravRequest(krav: KravLinje): OpprettInnkrevingsoppdragRequest {
 	val kravFremtidigYtelse = krav.fremtidigYtelse.roundToLong()
 	val tilleggsinformasjonNav = TilleggsinformasjonNav(
-		stoenadsType = TilleggsinformasjonNav.StoenadsType.from(krav.kravkode).toString(),
+		stoenadsType = TilleggsinformasjonNav.StoenadsType.from(krav.stonadsKode).toString(),
 		YtelseForAvregningBeloep(beloep = kravFremtidigYtelse).takeIf { kravFremtidigYtelse > 0L }
 	)
 
@@ -22,17 +21,17 @@ fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
 		renteBeloep = listOf(
 			RenteBeloep(
 				beloep = beloepRente,
-				renterIlagtDato = krav.vedtakDato.toKotlinLocalDate()
+				renterIlagtDato = krav.vedtakDato
 			)
 		).takeIf { beloepRente > 0L },
 		oppdragsgiversSaksnummer = krav.saksNummer,
 		oppdragsgiversKravIdentifikator = krav.saksNummer,
-		fastsettelsesDato = krav.vedtakDato.toKotlinLocalDate(),
+		fastsettelsesDato = krav.vedtakDato,
 		tilleggsInformasjon = tilleggsinformasjonNav
 	)
 }
 
-fun lagEndreKravRequest(krav: DetailLine, nyref: String) =
+fun lagEndreKravRequest(krav: KravLinje, nyref: String) =
 	EndringRequest(
 		kravidentifikator = nyref,
 		nyHovedstol = HovedstolBeloep(Valuta.NOK, krav.belop.roundToLong()),
@@ -40,9 +39,9 @@ fun lagEndreKravRequest(krav: DetailLine, nyref: String) =
 
 
 fun lagStoppKravRequest(nyref: String) = AvskrivingRequest(kravidentifikator = nyref)
-fun DetailLine.erNyttKrav() = (!this.erEndring() && !this.erStopp())
-fun DetailLine.erEndring() = (referanseNummerGammelSak.isNotEmpty() && !erStopp())
-fun DetailLine.erStopp() = (belop.roundToLong() == 0L)
+fun KravLinje.erNyttKrav() = (!this.erEndring() && !this.erStopp())
+fun KravLinje.erEndring() = (referanseNummerGammelSak.isNotEmpty() && !erStopp())
+fun KravLinje.erStopp() = (belop.roundToLong() == 0L)
 
 
 

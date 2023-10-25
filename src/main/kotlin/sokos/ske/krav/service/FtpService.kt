@@ -3,7 +3,7 @@ package sokos.ske.krav.service
 import com.jcraft.jsch.*
 import mu.KotlinLogging
 import sokos.ske.krav.config.PropertiesConfig
-import sokos.ske.krav.domain.nav.DetailLine
+import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.util.ValidationResult
 import java.io.ByteArrayOutputStream
 
@@ -16,7 +16,7 @@ enum class Directories(val value: String) {
 data class FtpFil(
 	val name: String,
 	val content: List<String>,
-	val detailLines: List<DetailLine>
+	val kravLinjer: List<KravLinje>
 )
 
 class FtpService(
@@ -69,7 +69,7 @@ class FtpService(
         downloadFiles(directory).map { entry ->
             when(val result: ValidationResult = validator(entry.value)){
                 is ValidationResult.Success -> {
-                    successFiles.add(FtpFil(entry.key, entry.value, result.detailLines))
+                    successFiles.add(FtpFil(entry.key, entry.value, result.kravLinjer))
                 }
                 is ValidationResult.Error -> {
                     moveFile(entry.key,directory, Directories.FAILED)

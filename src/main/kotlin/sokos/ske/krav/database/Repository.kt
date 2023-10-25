@@ -1,7 +1,6 @@
 package sokos.ske.krav.database
 
 import io.ktor.http.*
-import kotlinx.datetime.toLocalDateTime
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
@@ -10,7 +9,7 @@ import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.domain.nav.DetailLine
+import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import java.sql.Connection
@@ -63,9 +62,9 @@ object Repository {
 	}
 
 	fun Connection.lagreNyttKrav(
-        skeid: String,
+        kravidentSKE: String,
         request: String,
-        detailLinje: DetailLine,
+        kravLinje: KravLinje,
         kravtype: String,
         responseStatus: HttpStatusCode
 	) {
@@ -74,7 +73,7 @@ object Repository {
 			prepareStatement(
 				"""
                 insert into krav (
-                saksnummer, 
+                saksnummer_nav, 
                 kravidentifikator_ske, 
                 belop,
                 vedtakDato,
@@ -95,29 +94,28 @@ object Repository {
                 status, 
                 dato_sendt, 
                 dato_siste_status,
-                kravtype,
-                filnavn
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                kravtype
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """.trimIndent()
             ).withParameters(
-                param(detailLinje.saksNummer),
-                param(skeid),
-                param(detailLinje.belop.toBigDecimal()),
-                param(detailLinje.vedtakDato),
-                param(detailLinje.gjelderID),
-                param(detailLinje.periodeFOM),
-                param(detailLinje.periodeTOM),
-                param(detailLinje.kravkode),
-                param(detailLinje.referanseNummerGammelSak),
-                param(detailLinje.transaksjonDato),
-                param(detailLinje.enhetBosted),
-                param(detailLinje.enhetBehandlende),
-                param(detailLinje.kodeHjemmel),
-                param(detailLinje.kodeArsak),
-                param(detailLinje.belopRente.toBigDecimal()),
-                param(detailLinje.fremtidigYtelse.toBigDecimal()),
-                param(detailLinje.utbetalDato?.toLocalDateTime()!!),
-                param(detailLinje.fagsystemId),
+                param(kravLinje.saksNummer),
+                param(kravidentSKE),
+                param(kravLinje.belop.toBigDecimal()),
+                param(kravLinje.vedtakDato),
+                param(kravLinje.gjelderID),
+                param(kravLinje.periodeFOM),
+                param(kravLinje.periodeTOM),
+                param(kravLinje.stonadsKode),
+                param(kravLinje.referanseNummerGammelSak),
+                param(kravLinje.transaksjonDato),
+                param(kravLinje.enhetBosted),
+                param(kravLinje.enhetBehandlende),
+                param(kravLinje.hjemmelKode),
+                param(kravLinje.arsakKode),
+                param(kravLinje.belopRente.toBigDecimal()),
+                param(kravLinje.fremtidigYtelse.toBigDecimal()),
+                param(kravLinje.utbetalDato),
+                param(kravLinje.fagsystemId),
                 param(
                     when {
                         responseStatus.isSuccess()  -> KRAV_SENDT
@@ -130,9 +128,9 @@ object Repository {
                 param(kravtype)
             ).execute()
             commit()
-            println("lagring av $skeid OK")
+            println("lagring av $kravidentSKE OK")
         } catch (e: Exception) {
-            println("lagring av $skeid feilet")
+            println("lagring av $kravidentSKE feilet")
             println("exception lagring av nytt krav: ${e.message}")
         }
     }
@@ -140,8 +138,8 @@ object Repository {
 
     fun Connection.hentSkeKravIdent(navref: String): String {
         val rs = prepareStatement("""
-            select krav_id, saksnummer_ske from krav
-            where saksnummer_nav = ? order by krav_id desc limit 1
+            select id, kravidentifikator_ske from krav
+            where saksnummer_nav = ? order by id desc limit 1
         """.trimIndent()
         ).withParameters(
             param(navref)
@@ -198,7 +196,7 @@ object Repository {
 			"""
             update krav 
             set status = ?, dato_siste_status = ?
-            where saksnummer_ske = ?
+            where kravidentifikator_ske = ?
         """.trimIndent()
 		).withParameters(
 			param(mottakStatus.mottaksStatus),
@@ -213,7 +211,7 @@ object Repository {
             prepareStatement(
                 """
                 insert into validering (
-                    saksnummer_ske,
+                    kravidentifikator_ske,
                     error,
                     melding,
                     dato

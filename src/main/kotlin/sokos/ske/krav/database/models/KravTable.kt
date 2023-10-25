@@ -1,5 +1,6 @@
 package sokos.ske.krav.database.models
 
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 
@@ -9,7 +10,7 @@ data class KravTable(
     val saksnummerSKE: String,
     val saksnummerNAV: String,
     val belop: Double,
-    val vedtakDato: LocalDateTime,
+    val vedtakDato: LocalDate,
     val gjelderId: String,
     val periodeFOM: String,
     val periodeTOM: String,
@@ -22,13 +23,12 @@ data class KravTable(
     val kodeArsak: String,
     val belopRente: Double,
     val fremtidigYtelse: Double,
-    val utbetalDato: LocalDateTime? = null,
+    val utbetalDato: String? = null,
     val fagsystemId: String? = null,
     val status: String,
     val datoSendt: LocalDateTime,
     val datoSisteStatus: LocalDateTime,
     val kravtype: String,
-    val filnavn: String
 ){
 }
 

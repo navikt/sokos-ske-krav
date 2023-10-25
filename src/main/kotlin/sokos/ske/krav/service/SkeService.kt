@@ -7,7 +7,7 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.domain.nav.DetailLine
+import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
@@ -36,8 +36,8 @@ class SkeService(
         logger.info { "Antall filer i kjøring ${files.size}" }
 
         val responses = files.map { file ->
-			logger.info { "Antall linjer i ${file.name}: ${file.detailLines.size} (incl. start/stop)" }
-            val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.map {
+			logger.info { "Antall linjer i ${file.name}: ${file.kravLinjer.size} (incl. start/stop)" }
+            val svar: List<Pair<KravLinje, HttpResponse>> = file.kravLinjer.map {
 
 				var kravident = kravService.hentSkeKravident(it.saksNummer)
 				val request: String
@@ -47,7 +47,7 @@ class SkeService(
 						"""
 						SAKSNUMMER: ${it.saksNummer}
 						Hva F* gjør vi nå, dette skulle ikke skje
-						linjenr: ${it.lineNummer}: ${file.content[it.lineNummer]}
+						linjenr: ${it.linjeNummer}: ${file.content[it.linjeNummer]}
 						"""
 					//hva faen gjør vi nå??
 					//Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.

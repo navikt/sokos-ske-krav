@@ -1,5 +1,6 @@
 package sokos.ske.krav.database
 
+import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toJavaLocalDateTime
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.Parameter
@@ -12,7 +13,6 @@ import java.sql.*
 import java.sql.Date
 import java.time.LocalDate
 import java.util.*
-import kotlinx.datetime.toJavaLocalDate as toKotlinToJavaLocaldate
 
 object RepositoryExtensions {
 
@@ -42,6 +42,7 @@ object RepositoryExtensions {
             Boolean::class -> getBoolean(columnLabel)
             BigDecimal::class -> getBigDecimal(columnLabel)
             LocalDate::class -> getDate(columnLabel)?.toLocalDate()
+            kotlinx.datetime.LocalDate::class -> getTimestamp(columnLabel)?.toLocalDateTime()!!.toKotlinxLocalDate()
             kotlinx.datetime.LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()!!.toKotlinxLocalDateTime()
             java.time.LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
             else -> {
@@ -69,6 +70,12 @@ object RepositoryExtensions {
             this.nano
         )
 
+    fun java.time.LocalDateTime.toKotlinxLocalDate(): kotlinx.datetime.LocalDate =
+        kotlinx.datetime.LocalDate(
+            this.year,
+            this.month,
+            this.dayOfMonth
+        )
 
     fun interface Parameter {
         fun addToPreparedStatement(sp: PreparedStatement, index: Int)
@@ -93,7 +100,7 @@ object RepositoryExtensions {
     fun param(value: java.time.LocalDate) =
         Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value)) }
     fun param(value: kotlinx.datetime.LocalDate) =
-        Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value.toKotlinToJavaLocaldate())) }
+        Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value.toJavaLocalDate())) }
     fun param(value: java.time.LocalDateTime) =
         Parameter { sp: PreparedStatement, index: Int -> sp.setTimestamp(index, Timestamp.valueOf(value)) }
     fun param(value: kotlinx.datetime.LocalDateTime) =
@@ -105,9 +112,9 @@ object RepositoryExtensions {
 
     fun ResultSet.toKrav() = toList {
                 KravTable(
-                    kravId = getColumn("kravId"),
-                    saksnummerNAV = getColumn("saksnummer"),
-                    saksnummerSKE = getColumn("saksnummer_ske"),
+                    kravId = getColumn("id"),
+                    saksnummerNAV = getColumn("saksnummer_nav"),
+                    saksnummerSKE = getColumn("kravidentifikator_ske"),
                     belop = getColumn("belop"),
                     vedtakDato = getColumn("vedtakDato"),
                     gjelderId = getColumn("gjelderid"),
@@ -127,8 +134,7 @@ object RepositoryExtensions {
                     status = getColumn("status"),
                     datoSendt = getColumn("dato_sendt"),
                     datoSisteStatus = getColumn("dato_siste_status"),
-                    kravtype = getColumn("kravtype"),
-                    filnavn = getColumn("filnavn")
+                    kravtype = getColumn("kravtype")
                 )
     }
 
@@ -149,10 +155,10 @@ object RepositoryExtensions {
 
     fun ResultSet.toFeilmelding() = toList {
         FeilmeldingTable(
-            feilmeldingId = getColumn("feilmeldingId"),
+            feilmeldingId = getColumn("id"),
                     kravId = getColumn("kravId"),
-                    saksnummer = getColumn("saksnummer"),
-                    saksnummer_ske = getColumn("saksnummer_ske"),
+                    saksnummer = getColumn("saksnummer_nav"),
+                    saksnummer_ske = getColumn("kravidentifikator_ske"),
                     error = getColumn("error"),
                     melding = getColumn("melding"),
                     navRequest = getColumn("navRequest"),
@@ -166,6 +172,11 @@ object RepositoryExtensions {
             add(mapper())
         }
     }
+
+    fun String.toJavaLocaldateOrNull(): java.time.LocalDate? =
+        if (this.isNullOrEmpty()) null
+        else LocalDate.parse(this)
+
 
 
 }

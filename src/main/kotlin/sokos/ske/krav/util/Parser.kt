@@ -1,7 +1,8 @@
 package sokos.ske.krav.util
 
-import sokos.ske.krav.domain.nav.DetailLine
+import kotlinx.datetime.toKotlinLocalDate
 import sokos.ske.krav.domain.nav.FirstLine
+import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.nav.LastLine
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -15,24 +16,24 @@ fun parseFRtoDataFirsLineClass(line: String): FirstLine {
 	)
 }
 
-fun parseFRtoDataDetailLineClass(line: String): DetailLine {
+fun parseFRtoDataDetailLineClass(line: String): KravLinje {
 	val parser = FixedRecordParser(line)
 	parser.parseString(4)
-	return DetailLine(
-		lineNummer = parser.parseInt(7),
+	return KravLinje(
+		linjeNummer = parser.parseInt(7),
 		saksNummer = parser.parseString(18),
 		belop = parser.parseAmountAsDouble(11),
-		vedtakDato = parser.parseDate(8),
+		vedtakDato = parser.parseDate(8).toKotlinLocalDate(),
 		gjelderID = parser.parseString(11),
 		periodeFOM = parser.parseString(8),
 		periodeTOM = parser.parseString(8),
-		kravkode = parser.parseString(8),
+		stonadsKode = parser.parseString(8),
 		referanseNummerGammelSak = parser.parseString(18),
 		transaksjonDato = parser.parseString(8),
 		enhetBosted = parser.parseString(4),
 		enhetBehandlende = parser.parseString(4),
-		kodeHjemmel = parser.parseString(2),
-		kodeArsak = parser.parseString(12),
+		hjemmelKode = parser.parseString(2),
+		arsakKode = parser.parseString(12),
 		belopRente = parser.parseAmountAsDouble(20),
 		fremtidigYtelse = parser.parseAmountAsDouble(11),
 		utbetalDato = parser.parseString(8),

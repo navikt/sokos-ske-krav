@@ -14,12 +14,15 @@ import sokos.ske.krav.database.Repository.lagreNyKobling
 import sokos.ske.krav.database.Repository.lagreNyttKrav
 import sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.util.*
-import java.time.LocalDateTime
 
 internal class RepositoryTest : FunSpec({
 
 	val testContainer = TestContainer("RepositoryTest")
 	val datasource = testContainer.getDataSource("insertData.sql", reusable = false, loadFlyway = true)
+
+	afterSpec {
+		TestContainer().stopAnyRunningContainer()
+	}
 
 	test("Test hent kravdata") {
 
@@ -28,10 +31,10 @@ internal class RepositoryTest : FunSpec({
 		kravData.size shouldBe 2
 		kravData.forEachIndexed { i, krav ->
 			val index = i + 1
-			krav.saksnummerNAV shouldBe "$index$index$index$index-navuuid"
-			krav.saksnummerSKE shouldBe "$index$index$index$index-ske"
-			krav.datoSendt shouldBe LocalDateTime.parse("2023-0$index-01T00:00:00")
-			krav.datoSisteStatus shouldBe LocalDateTime.parse("2023-0$index-02T00:00:00")
+			krav.saksnummerNAV shouldBe "${index}${index}${index}0-navsaksnummer"
+			krav.saksnummerSKE shouldBe "$index$index$index$index-skeUUID"
+			krav.datoSendt.toString() shouldBe "2023-0$index-01T12:00"
+			krav.datoSisteStatus.toString() shouldBe "2023-0$index-01T13:00"
 		}
 		datasource.close()
 	}
@@ -45,8 +48,8 @@ internal class RepositoryTest : FunSpec({
 
 		koblinger.forEachIndexed { i, kobling ->
 			val index = i + 1
-			kobling.saksrefUUID shouldBe kravData[i].saksnummerNAV
-			kobling.saksrefFraFil shouldBe "$index$index${index}0-navfil"
+			kobling.saksrefUUID shouldBe "$index$index${index}$index-navuuid"
+			kobling.saksrefFraFil shouldBe "$index$index${index}0-navsaksnummer"
 		}
 		datasource.close()
 	}
@@ -70,6 +73,7 @@ internal class RepositoryTest : FunSpec({
 			every { status } returns HttpStatusCode.OK
 		}
 
+		println(detail1a.toString())
 		con.lagreNyttKrav(
 			"skeID-001",
 			Json.encodeToString(OpprettInnkrevingsoppdragRequest.serializer(), request1),
