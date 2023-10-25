@@ -142,13 +142,12 @@ class SkeService(
 			if (response.status.isSuccess()) {
 				val valideringsfeilResponse = Json.decodeFromString<ValideringsFeilResponse>(response.bodyAsText())
 				kravService.lagreValideringsfeil(valideringsfeilResponse, it.saksnummerSKE)
-				//lag ftpfil og  kall handleAnyFailedFiles
 				"Status OK: ${response.bodyAsText()}"
 			} else {
 				"Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
 			}
 		}
-		if (resultat.isNotEmpty()) logger.info { "HENTVALIDERINGSFEIL: Det er ${resultat.size} krav det er hentet valideringsfeil for" }
+		if (resultat.isNotEmpty()) logger.info { "HENTVALIDERINGSFEIL: Det er hentet valideringsfeil for ${resultat.size} krav" }
 
 		return resultat
 	}
