@@ -27,8 +27,8 @@ class SkeService(
 	private val kravService = KravService(dataSource)
 
 
-    suspend fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
-    suspend fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles { fileValidator(it) }
+    fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
+    fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles { fileValidator(it) }
 
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
         logger.info { "Starter skeService SendNyeFtpFilertilSkatt." }
