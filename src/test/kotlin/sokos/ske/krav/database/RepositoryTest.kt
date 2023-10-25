@@ -2,18 +2,18 @@ package sokos.ske.krav.database
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.HttpStatusCode
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
-import sokos.ske.krav.api.model.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.database.Repository.hentAlleKoblinger
 import sokos.ske.krav.database.Repository.hentAlleKravData
 import sokos.ske.krav.database.Repository.koblesakRef
 import sokos.ske.krav.database.Repository.lagreNyKobling
 import sokos.ske.krav.database.Repository.lagreNyttKrav
-import sokos.ske.krav.domain.DetailLine
+import sokos.ske.krav.domain.nav.DetailLine
+import sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.util.lagOpprettKravRequest
 import sokos.ske.krav.util.parseFRtoDataDetailLineClass
@@ -33,8 +33,6 @@ internal class RepositoryTest : FunSpec({
 			val index = i + 1
 			krav.saksnummerNAV shouldBe "$index$index$index$index-navuuid"
 			krav.saksnummerSKE shouldBe "$index$index$index$index-ske"
-			krav.fildataNAV shouldBe "fildata fra nav $index"
-			krav.jsondataSKE shouldBe "json fra ske $index"
 			krav.datoSendt shouldBe LocalDateTime.parse("2023-0$index-01T00:00:00")
 			krav.datoSisteStatus shouldBe LocalDateTime.parse("2023-0$index-02T00:00:00")
 		}

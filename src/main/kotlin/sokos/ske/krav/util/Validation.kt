@@ -1,7 +1,7 @@
 package sokos.ske.krav.util
 
-import sokos.ske.krav.api.model.requests.TilleggsinformasjonNav
-import sokos.ske.krav.domain.DetailLine
+import sokos.ske.krav.domain.nav.DetailLine
+import sokos.ske.krav.domain.ske.requests.TilleggsinformasjonNav
 
 sealed class ValidationResult {
 	data class Success(val detailLines: List<DetailLine>) : ValidationResult()

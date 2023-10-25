@@ -3,10 +3,8 @@ package sokos.ske.krav.skemodels.responses
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.fail
-import sokos.ske.krav.api.model.responses.MottaksStatusResponse
-import sokos.ske.krav.api.model.responses.MottaksStatusResponse.MottaksStatus.MOTTATTUNDERBEHANDLING
-import sokos.ske.krav.api.model.responses.MottaksStatusResponse.MottaksStatus.RESKONTROFOERT
-import sokos.ske.krav.api.model.responses.MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL
+import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
+import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse.MottaksStatus.*
 
 class MottaksstatusResponseTest : FunSpec({
 

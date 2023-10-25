@@ -1,23 +1,18 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.isSuccess
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
-import sokos.ske.krav.api.model.responses.MottaksStatusResponse
-import sokos.ske.krav.api.model.responses.OpprettInnkrevingsOppdragResponse
-import sokos.ske.krav.api.model.responses.ValideringsFeilResponse
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.domain.DetailLine
-import sokos.ske.krav.util.fileValidator
-import sokos.ske.krav.util.lagEndreKravRequest
-import sokos.ske.krav.util.lagOpprettKravRequest
-import sokos.ske.krav.util.lagStoppKravRequest
+import sokos.ske.krav.domain.nav.DetailLine
+import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
+import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
+import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
+import sokos.ske.krav.util.*
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.math.roundToLong
 
 const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRE_KRAV = "ENDRE_KRAV"
@@ -34,8 +29,6 @@ class SkeService(
 
     suspend fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
     suspend fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles { fileValidator(it) }
-
-    }
 
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
         logger.info { "Starter skeService SendNyeFtpFilertilSkatt." }
@@ -157,6 +150,3 @@ class SkeService(
 
 }
 
-private fun DetailLine.erNyttKrav() = (!this.erEndring() && !this.erStopp())
-private fun DetailLine.erEndring() = (referanseNummerGammelSak.isNotEmpty() && !erStopp())
-private fun DetailLine.erStopp() = (belop.roundToLong() == 0L)

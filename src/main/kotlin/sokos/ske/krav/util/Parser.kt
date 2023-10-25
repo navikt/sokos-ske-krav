@@ -1,9 +1,9 @@
 package sokos.ske.krav.util
 
 import mu.KotlinLogging
-import sokos.ske.krav.domain.DetailLine
-import sokos.ske.krav.domain.FirstLine
-import sokos.ske.krav.domain.LastLine
+import sokos.ske.krav.domain.nav.DetailLine
+import sokos.ske.krav.domain.nav.FirstLine
+import sokos.ske.krav.domain.nav.LastLine
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 

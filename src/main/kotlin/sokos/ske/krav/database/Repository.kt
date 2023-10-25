@@ -1,10 +1,8 @@
 package sokos.ske.krav.database
 
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.isSuccess
+import io.ktor.http.*
+import kotlinx.datetime.toLocalDateTime
 import mu.KotlinLogging
-import sokos.ske.krav.api.model.responses.MottaksStatusResponse
-import sokos.ske.krav.api.model.responses.ValideringsFeilResponse
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
 import sokos.ske.krav.database.RepositoryExtensions.toKobling
@@ -12,11 +10,13 @@ import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.domain.DetailLine
+import sokos.ske.krav.domain.nav.DetailLine
+import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
+import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import java.sql.Connection
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 
 const val KRAV_SENDT = "KRAV_SENDT"
@@ -63,12 +63,11 @@ object Repository {
 	}
 
 	fun Connection.lagreNyttKrav(
-		skeid: String,
-		request: String,
-		filLinje: String,
-		detailLinje: DetailLine,
-		kravtype: String,
-		response: HttpResponse
+        skeid: String,
+        request: String,
+        detailLinje: DetailLine,
+        kravtype: String,
+        responseStatus: HttpStatusCode
 	) {
 		try {
 			val now = LocalDateTime.now()
@@ -117,14 +116,14 @@ object Repository {
                 param(detailLinje.kodeArsak),
                 param(detailLinje.belopRente.toBigDecimal()),
                 param(detailLinje.fremtidigYtelse.toBigDecimal()),
-                param(detailLinje.utbetalDato?.toJavaLocalDate()!!),
+                param(detailLinje.utbetalDato?.toLocalDateTime()!!),
                 param(detailLinje.fagsystemId),
                 param(
                     when {
-                        status.isSuccess()  -> KRAV_SENDT
-                        status.value.equals(409) -> KONFLIKT_409
-                        status.value.equals(422) -> VALIDERINGSFEIL_422
-                        else -> "UKJENT_${status.value}"
+                        responseStatus.isSuccess()  -> KRAV_SENDT
+                        responseStatus.value.equals(409) -> KONFLIKT_409
+                        responseStatus.value.equals(422) -> VALIDERINGSFEIL_422
+                        else -> "UKJENT_${responseStatus.value}"
                     }),
                 param(now),
                 param(now),
@@ -209,8 +208,8 @@ object Repository {
 		commit()
 	}
 
-    fun Connection.lagreValideringsfeil(sokosValideringsfeil: SokosValideringsfeil) {
-        sokosValideringsfeil.valideringsfeilResponse.valideringsfeil.forEach {
+    fun Connection.lagreValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, kravidSKE: String) {
+        valideringsFeilResponse.valideringsfeil.forEach {
             prepareStatement(
                 """
                 insert into validering (
@@ -222,7 +221,7 @@ object Repository {
                 values (?, ?, ?, ?)
             """.trimIndent()
             ).withParameters(
-                param(sokosValideringsfeil.kravidSke),
+                param(kravidSKE),
                 param(it.error),
                 param(it.message),
                 param(LocalDate.now())

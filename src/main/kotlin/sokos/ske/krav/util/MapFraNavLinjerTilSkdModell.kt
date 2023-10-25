@@ -1,17 +1,9 @@
 package sokos.ske.krav.util
 
 import kotlinx.datetime.toKotlinLocalDate
-import sokos.ske.krav.api.model.requests.AvskrivingRequest
-import sokos.ske.krav.api.model.requests.EndringRequest
-import sokos.ske.krav.api.model.requests.HovedstolBeloep
-import sokos.ske.krav.api.model.requests.OpprettInnkrevingsoppdragRequest
-import sokos.ske.krav.api.model.requests.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
-import sokos.ske.krav.api.model.requests.RenteBeloep
-import sokos.ske.krav.api.model.requests.Skyldner
-import sokos.ske.krav.api.model.requests.TilleggsinformasjonNav
-import sokos.ske.krav.api.model.requests.Valuta
-import sokos.ske.krav.api.model.requests.YtelseForAvregningBeloep
-import sokos.ske.krav.domain.DetailLine
+import sokos.ske.krav.domain.nav.DetailLine
+import sokos.ske.krav.domain.ske.requests.*
+import sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest.Kravtype.TILBAKEKREVINGFEILUTBETALTYTELSE
 import kotlin.math.roundToLong
 
 fun lagOpprettKravRequest(krav: DetailLine): OpprettInnkrevingsoppdragRequest {
@@ -48,6 +40,10 @@ fun lagEndreKravRequest(krav: DetailLine, nyref: String) =
 
 
 fun lagStoppKravRequest(nyref: String) = AvskrivingRequest(kravidentifikator = nyref)
+fun DetailLine.erNyttKrav() = (!this.erEndring() && !this.erStopp())
+fun DetailLine.erEndring() = (referanseNummerGammelSak.isNotEmpty() && !erStopp())
+fun DetailLine.erStopp() = (belop.roundToLong() == 0L)
+
 
 
 

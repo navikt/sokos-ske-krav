@@ -1,8 +1,6 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.statement.HttpResponse
-import sokos.ske.krav.api.model.responses.MottaksStatusResponse
-import sokos.ske.krav.api.model.responses.ValideringsFeilResponse
+import io.ktor.client.statement.*
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
 import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
@@ -13,7 +11,9 @@ import sokos.ske.krav.database.Repository.lagreValideringsfeil
 import sokos.ske.krav.database.Repository.oppdaterStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.domain.DetailLine
+import sokos.ske.krav.domain.nav.DetailLine
+import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
+import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 
 class KravService(
     private val postgresDataSource: PostgresDataSource

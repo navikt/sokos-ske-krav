@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class KravTable(
     val kravId: Long,
-    val saksnummer_ske: String,
-    val saksnummer: String,
+    val saksnummerSKE: String,
+    val saksnummerNAV: String,
     val belop: Double,
     val vedtakDato: LocalDateTime,
     val gjelderId: String,
@@ -25,8 +25,8 @@ data class KravTable(
     val utbetalDato: LocalDateTime? = null,
     val fagsystemId: String? = null,
     val status: String,
-    val dato_sendt: LocalDateTime,
-    val dato_siste_status: LocalDateTime,
+    val datoSendt: LocalDateTime,
+    val datoSisteStatus: LocalDateTime,
     val kravtype: String,
     val filnavn: String
 ){

@@ -1,11 +1,11 @@
-package sokos.ske.krav.api.model.requests
+package sokos.ske.krav.domain.ske.requests
 
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class HovedstolBeloep(
-	val valuta: Valuta = Valuta.NOK,
-	val beloep: Long
+    val valuta: Valuta = Valuta.NOK,
+    val beloep: Long
 )
 
 enum class Kravidentifikatortype(val value: String) {

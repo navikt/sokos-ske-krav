@@ -1,22 +1,18 @@
 package sokos.ske.krav.database
 
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toJavaLocalDateTime
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.Parameter
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.KravTable
+import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import java.math.BigDecimal
-import java.sql.Connection
+import java.sql.*
 import java.sql.Date
-import java.sql.PreparedStatement
-import java.sql.ResultSet
-import java.sql.SQLException
-import java.sql.Timestamp
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.util.*
+import kotlinx.datetime.toJavaLocalDate as toKotlinToJavaLocaldate
 
 object RepositoryExtensions {
 
@@ -47,7 +43,7 @@ object RepositoryExtensions {
             BigDecimal::class -> getBigDecimal(columnLabel)
             LocalDate::class -> getDate(columnLabel)?.toLocalDate()
             kotlinx.datetime.LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()!!.toKotlinxLocalDateTime()
-            LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
+            java.time.LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
             else -> {
                 logger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
                 throw RuntimeException("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}") // TODO Feilhåndtering
@@ -62,8 +58,8 @@ object RepositoryExtensions {
         return transform(columnValue as T)
     }
 
-    fun java.time.LocalDateTime.toKotlinxLocalDateTime(): LocalDateTime =
-        LocalDateTime(
+    fun java.time.LocalDateTime.toKotlinxLocalDateTime(): kotlinx.datetime.LocalDateTime =
+        kotlinx.datetime.LocalDateTime(
             this.year,
             this.month,
             this.dayOfMonth,
@@ -97,7 +93,7 @@ object RepositoryExtensions {
     fun param(value: java.time.LocalDate) =
         Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value)) }
     fun param(value: kotlinx.datetime.LocalDate) =
-        Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value.toJavaLocalDate())) }
+        Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value.toKotlinToJavaLocaldate())) }
     fun param(value: java.time.LocalDateTime) =
         Parameter { sp: PreparedStatement, index: Int -> sp.setTimestamp(index, Timestamp.valueOf(value)) }
     fun param(value: kotlinx.datetime.LocalDateTime) =
@@ -110,8 +106,8 @@ object RepositoryExtensions {
     fun ResultSet.toKrav() = toList {
                 KravTable(
                     kravId = getColumn("kravId"),
-                    saksnummer = getColumn("saksnummer"),
-                    saksnummer_ske = getColumn("saksnummer_ske"),
+                    saksnummerNAV = getColumn("saksnummer"),
+                    saksnummerSKE = getColumn("saksnummer_ske"),
                     belop = getColumn("belop"),
                     vedtakDato = getColumn("vedtakDato"),
                     gjelderId = getColumn("gjelderid"),
@@ -129,8 +125,8 @@ object RepositoryExtensions {
                     utbetalDato = getColumn("utbetalDato"),
                     fagsystemId = getColumn("fagsystemId"),
                     status = getColumn("status"),
-                    dato_sendt = getColumn("dato_sendt"),
-                    dato_siste_status = getColumn("dato_siste_status"),
+                    datoSendt = getColumn("dato_sendt"),
+                    datoSisteStatus = getColumn("dato_siste_status"),
                     kravtype = getColumn("kravtype"),
                     filnavn = getColumn("filnavn")
                 )

@@ -3,14 +3,14 @@ package sokos.ske.krav.service
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import io.mockk.mockk
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
-import sokos.ske.krav.api.model.responses.ValideringsFeilResponse
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
+import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.MockHttpClient

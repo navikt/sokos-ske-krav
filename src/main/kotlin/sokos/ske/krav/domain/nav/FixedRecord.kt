@@ -1,4 +1,4 @@
-package sokos.ske.krav.domain
+package sokos.ske.krav.domain.nav
 
 import java.time.LocalDate
 

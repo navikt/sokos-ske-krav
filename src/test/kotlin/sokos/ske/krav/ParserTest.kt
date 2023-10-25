@@ -3,8 +3,8 @@ package sokos.ske.krav
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import sokos.ske.krav.domain.FirstLine
-import sokos.ske.krav.domain.LastLine
+import sokos.ske.krav.domain.nav.FirstLine
+import sokos.ske.krav.domain.nav.LastLine
 import sokos.ske.krav.util.parseFRtoDataDetailLineClass
 import sokos.ske.krav.util.parseFRtoDataFirsLineClass
 import sokos.ske.krav.util.parseFRtoDataLastLineClass

@@ -1,13 +1,9 @@
 package sokos.ske.krav.service
 
-import com.jcraft.jsch.ChannelSftp
-import com.jcraft.jsch.JSch
-import com.jcraft.jsch.JSchException
-import com.jcraft.jsch.SftpException
-import com.jcraft.jsch.Slf4jLogger
+import com.jcraft.jsch.*
 import mu.KotlinLogging
 import sokos.ske.krav.config.PropertiesConfig
-import sokos.ske.krav.domain.DetailLine
+import sokos.ske.krav.domain.nav.DetailLine
 import sokos.ske.krav.util.ValidationResult
 import java.io.ByteArrayOutputStream
 

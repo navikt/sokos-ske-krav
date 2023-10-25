@@ -1,4 +1,4 @@
-package sokos.ske.krav.api.model.requests
+package sokos.ske.krav.domain.ske.requests
 
 
 import kotlinx.datetime.LocalDate

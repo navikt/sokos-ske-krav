@@ -1,12 +1,9 @@
 package sokos.ske.krav.util
 
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.headersOf
-import sokos.ske.krav.api.model.responses.MottaksStatusResponse
+import io.ktor.client.*
+import io.ktor.client.engine.mock.*
+import io.ktor.http.*
+import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 
 class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: List<String> = listOf("23", "54", "87")) {
 	private val opprettResponse = "{\"kravidentifikator\": \"$kravident\"}"
