@@ -40,7 +40,6 @@ fun parseFRtoDataDetailLineClass(line: String): DetailLine {
 		fremtidigYtelse = parser.parseAmountAsDouble(11),
 		utbetalDato = parser.parseString(8),
 		fagsystemId = parser.parseString(30),
-		originalLinje = line
 	)
 }
 

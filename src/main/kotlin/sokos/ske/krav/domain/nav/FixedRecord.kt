@@ -20,9 +20,8 @@ data class DetailLine(
 	val kodeArsak: String,
 	val belopRente: Double,
 	val fremtidigYtelse: Double,
-	val utbetalDato: String,
-	val fagsystemId: String,
-	val originalLinje: String
+	val utbetalDato: String?,
+	val fagsystemId: String?,
 ) {
 	override fun toString(): String {
 		return "DetailLine(lineNummer=$lineNummer, saksNummer='$saksNummer', belop=$belop, vedtakDato=$vedtakDato, gjelderID='$gjelderID', periodeFOM='$periodeFOM', periodeTOM='$periodeTOM', kravkode='$kravkode', referanseNummerGammelSak='$referanseNummerGammelSak', transaksjonDato='$transaksjonDato', enhetBosted='$enhetBosted', enhetBehandlende='$enhetBehandlende', kodeHjemmel='$kodeHjemmel', kodeArsak='$kodeArsak', belopRente=$belopRente, fremtidigYtelse=$fremtidigYtelse, utbetalDato=$utbetalDato, fagsystemId=$fagsystemId)"

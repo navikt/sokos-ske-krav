@@ -36,16 +36,22 @@ class SkeService(
         logger.info { "Antall filer i kjøring ${files.size}" }
 
         val responses = files.map { file ->
+			logger.info { "Antall linjer i ${file.name}: ${file.detailLines.size} (incl. start/stop)" }
             val svar: List<Pair<DetailLine, HttpResponse>> = file.detailLines.map {
 
 				var kravident = kravService.hentSkeKravident(it.saksNummer)
 				val request: String
 				if (kravident.isEmpty() && !it.erNyttKrav()) {
 
-					println("SAKSNUMMER: ${it.saksNummer}")
-					println("Hva faen gjør vi nå :( ")
+					logger.error {
+						"""
+						SAKSNUMMER: ${it.saksNummer}
+						Hva F* gjør vi nå, dette skulle ikke skje
+						linjenr: ${it.lineNummer}: ${file.content[it.lineNummer]}
+						"""
 					//hva faen gjør vi nå??
 					//Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
+					}
 				}
 
 				val response = when {
@@ -76,14 +82,13 @@ class SkeService(
 					kravService.lagreNyttKrav(
 						kravident,
 						request,
-						it.originalLinje,
 						it,
 						when {
 							it.erStopp() -> STOPP_KRAV
 							it.erEndring() -> ENDRE_KRAV
 							else -> NYTT_KRAV
 						},
-						response
+						response.status
 					)
 				} else {
 					logger.error("FAILED REQUEST: ${it.saksNummer}, ERROR: ${response.bodyAsText()}")

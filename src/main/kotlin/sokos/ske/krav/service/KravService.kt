@@ -1,6 +1,6 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.statement.*
+import io.ktor.http.*
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
 import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
@@ -32,9 +32,9 @@ class KravService(
         }
     }
 
-    fun lagreNyttKrav(skeKravident: String, request: String, filLinje: String, detailLine: DetailLine, kravtype: String, response: HttpResponse){
+    fun lagreNyttKrav(skeKravident: String, request: String, detailLine: DetailLine, kravtype: String, responseStatus: HttpStatusCode){
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.lagreNyttKrav(skeKravident, request, detailLine, kravtype, response.status)
+            con.lagreNyttKrav(skeKravident, request, detailLine, kravtype, responseStatus)
         }
     }
 
