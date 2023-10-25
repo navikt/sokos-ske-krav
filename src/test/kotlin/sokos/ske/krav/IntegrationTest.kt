@@ -23,8 +23,8 @@ internal class IntegrationTest : FunSpec({
 
 
 	afterSpec {
-		TestContainer().stopAnyRunningContainer()
 		datasource.close()
+		TestContainer().stopAnyRunningContainer()
 	}
 
 	test("Kravdata skal lagres i database etter å ha sendt nye krav til SKE") {
@@ -38,7 +38,9 @@ internal class IntegrationTest : FunSpec({
 
 		service.sendNyeFtpFilerTilSkatt()
 
-		val kravdata = datasource.connection.hentAlleKravData()
+		val kravdata = datasource.connection.use {
+			it.hentAlleKravData()
+		}
 		kravdata.size shouldBe 101
 
 		kravdata.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
@@ -48,6 +50,7 @@ internal class IntegrationTest : FunSpec({
 
 		client.close()
 		fakeFtpService.close()
+		datasource.close()
 
 	}
 
@@ -61,11 +64,14 @@ internal class IntegrationTest : FunSpec({
 
 		service.hentOgOppdaterMottaksStatus()
 
-		val kravdata = datasource.connection.hentAlleKravData()
+		val kravdata = datasource.connection.use {
+			it.hentAlleKravData()
+		}
 
 		kravdata.filter { it.status == MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value }.size shouldBe 99
 
 		client.close()
+		datasource.close()
 
 	}
 
@@ -122,6 +128,7 @@ internal class IntegrationTest : FunSpec({
 			it.dato.toString() shouldBe "${LocalDate.now()} 00:00:00.0"
 		}
 		client.close()
+		datasource.close()
 
 	}
 })
