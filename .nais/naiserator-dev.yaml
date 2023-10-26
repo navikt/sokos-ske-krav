@@ -30,6 +30,9 @@ spec:
     periodSeconds: 5
     timeout: 5
   webproxy: true
+  prometheus:
+    enabled: true
+    path: /metrics
   filesFrom:
     - secret: ske-sftp-private-key
       mountPath: /var/run/secrets/ske-sftp-private-key
