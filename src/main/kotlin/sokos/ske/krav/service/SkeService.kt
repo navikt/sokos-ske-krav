@@ -35,9 +35,18 @@ class SkeService(
         val files = ftpService.getValidatedFiles { fileValidator(it) }
         logger.info { "Antall filer i kjøring ${files.size}" }
 
+		val fnrListe = getFnrListe()
+		var fnrIter = fnrListe.listIterator()
+
         val responses = files.map { file ->
 			logger.info { "Antall linjer i ${file.name}: ${file.kravLinjer.size} (incl. start/stop)" }
             val svar: List<Pair<KravLinje, HttpResponse>> = file.kravLinjer.map {
+
+				val substfnr = if (fnrIter.hasNext()) fnrIter.next()
+								else {
+									fnrIter = fnrListe.listIterator(0)
+									fnrIter.next()
+								}
 
 				var kravident = kravService.hentSkeKravident(it.saksNummer)
 				val request: String
@@ -67,7 +76,7 @@ class SkeService(
 
 					it.erNyttKrav() -> {
 						request =
-							Json.encodeToString(lagOpprettKravRequest(it.copy(saksNummer = kravService.lagreNyKobling(it.saksNummer))))
+							Json.encodeToString(lagOpprettKravRequest(it.copy(saksNummer = kravService.lagreNyKobling(it.saksNummer), gjelderID = substfnr)))
 						skeClient.opprettKrav(request)
 					}
 
