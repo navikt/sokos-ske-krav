@@ -1,13 +1,14 @@
 package sokos.ske.krav
 
-import io.ktor.server.application.Application
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.engine.stop
-import io.ktor.server.netty.Netty
+import io.ktor.server.application.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.commonConfig
 import sokos.ske.krav.config.routingConfig
+import sokos.ske.krav.metrics.Metrics
+import sokos.ske.krav.metrics.installMetrics
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.util.httpClient
@@ -37,6 +38,7 @@ class HttpServer(
 	}
 
 	private val embeddedServer = embeddedServer(Netty, port) {
+		installMetrics()
 		applicationModule(applicationState, skeService)
 	}
 
@@ -48,8 +50,12 @@ class HttpServer(
 
 class ApplicationState {
 	var ready: Boolean by Delegates.observable(false) { _, _, newValue ->
+		if (!newValue) Metrics.appStateReadyFalse.increment()
+		else Metrics.appStateReadyTrue.increment()
 	}
+
 	var running: Boolean by Delegates.observable(false) { _, _, newValue ->
+		if (!newValue) Metrics.appStateRunningFalse.increment()
 	}
 }
 

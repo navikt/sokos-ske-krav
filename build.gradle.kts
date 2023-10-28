@@ -25,7 +25,7 @@ val vaultVersion = "1.3.10"
 val natpryceVersion = "1.6.10.0"
 val kotlinxSerializationVersion = "1.5.1"
 val kotlinxDatetimeVersion = "0.4.0"
-
+val prometheusVersion = "1.11.3"
 //Test
 val kotestVersion = "5.6.2"
 val mockkVersion = "1.13.7"
@@ -73,6 +73,10 @@ dependencies {
 
 	// Flyway
 	implementation("org.flywaydb:flyway-core:$flywayVersion")
+
+	//metrics
+	implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
+	implementation("io.micrometer:micrometer-registry-prometheus:$prometheusVersion")
 
 	// Logging
 	implementation("io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion")
