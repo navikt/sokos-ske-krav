@@ -25,7 +25,7 @@ object Metrics {
         .description("App state ready changed to false.")
         .register(registry)
 
-    val appStateReadyTrue: Counter = Counter.builder("app.state.ready.false")
+    val appStateReadyTrue: Counter = Counter.builder("app.state.ready.true")
         .description("App state is ready ")
         .register(registry)
 
