@@ -51,7 +51,6 @@ class HttpServer(
 class ApplicationState {
 	var ready: Boolean by Delegates.observable(false) { _, _, newValue ->
 		if (!newValue) Metrics.appStateReadyFalse.increment()
-		else Metrics.appStateReadyTrue.increment()
 	}
 
 	var running: Boolean by Delegates.observable(false) { _, _, newValue ->

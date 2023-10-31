@@ -11,6 +11,8 @@ import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
+import sokos.ske.krav.metrics.Metrics.antallKravLest
+import sokos.ske.krav.metrics.Metrics.antallKravSendt
 import sokos.ske.krav.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -41,6 +43,7 @@ class SkeService(
         val responses = files.map { file ->
 			logger.info { "Antall linjer i ${file.name}: ${file.kravLinjer.size} (incl. start/stop)" }
             val svar: List<Pair<KravLinje, HttpResponse>> = file.kravLinjer.map {
+				antallKravLest.increment()
 
 				val substfnr = if (fnrIter.hasNext()) fnrIter.next()
 								else {
@@ -84,6 +87,7 @@ class SkeService(
 				}
 
 				if (response.status.isSuccess() || response.status.value in (409 until 422)) {
+					antallKravSendt.increment()
 					if (it.erNyttKrav())
 						kravident =
 							Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText()).kravidentifikator

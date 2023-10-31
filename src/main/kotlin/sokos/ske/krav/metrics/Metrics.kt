@@ -25,8 +25,12 @@ object Metrics {
         .description("App state ready changed to false.")
         .register(registry)
 
-    val appStateReadyTrue: Counter = Counter.builder("app.state.ready.true")
-        .description("App state is ready ")
+    val antallKravSendt: Counter = Counter.builder("krav.sendt")
+        .description("antall krav sendt til endepunkt")
+        .register(registry)
+
+    val antallKravLest: Counter = Counter.builder("krav.lest")
+        .description("antall krav Lest fra fil")
         .register(registry)
 
 }
