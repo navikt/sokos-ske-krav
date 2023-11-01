@@ -7,11 +7,9 @@ import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.commonConfig
 import sokos.ske.krav.config.routingConfig
-import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.metrics.installMetrics
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
-import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.util.httpClient
 import java.util.concurrent.TimeUnit
@@ -21,7 +19,7 @@ fun main() {
 	val applicationState = ApplicationState()
 	val tokenProvider = MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), httpClient)
 	val skeClient = SkeClient(tokenProvider, PropertiesConfig.SKEConfig().skeRestUrl)
-	val skeService = SkeService(skeClient, DatabaseService(PostgresDataSource()))
+	val skeService = SkeService(skeClient)
 
 	applicationState.ready = true
 	HttpServer(applicationState, skeService).start()
