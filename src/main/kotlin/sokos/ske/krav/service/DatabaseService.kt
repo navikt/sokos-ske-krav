@@ -15,7 +15,7 @@ import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 
-class databaseService(
+class DatabaseService(
     private val postgresDataSource: PostgresDataSource
 ) {
 

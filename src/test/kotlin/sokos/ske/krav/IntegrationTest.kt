@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.testcontainers.toDataSource
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import io.mockk.every
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
@@ -21,13 +21,7 @@ import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
-import sokos.ske.krav.service.Directories
-import sokos.ske.krav.service.ENDRE_KRAV
-import sokos.ske.krav.service.FtpService
-import sokos.ske.krav.service.KravService
-import sokos.ske.krav.service.NYTT_KRAV
-import sokos.ske.krav.service.STOPP_KRAV
-import sokos.ske.krav.service.SkeService
+import sokos.ske.krav.service.*
 import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.util.TestContainer
@@ -162,7 +156,7 @@ internal class IntegrationTest : FunSpec({
 
 })
 
-private fun mockKravService(ds: HikariDataSource): KravService = mockk<KravService>() {
+private fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseService>() {
 
 	every { hentSkeKravident(any<String>()) } answers {
 		ds.connection.useAndHandleErrors { con ->

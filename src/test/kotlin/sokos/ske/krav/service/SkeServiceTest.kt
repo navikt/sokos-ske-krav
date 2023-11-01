@@ -3,7 +3,7 @@ package sokos.ske.krav.service
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import io.mockk.mockk
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -33,7 +33,7 @@ internal class SkeServiceTest : FunSpec({
 
 	test("Test OK filer") {
 		val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
-		val mockkKravService = mockk<KravService>(relaxed = true)
+		val mockkKravService = mockk<DatabaseService>(relaxed = true)
 		val fakeFtpService = FakeFtpService()
 		val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt"))
 
@@ -50,7 +50,7 @@ internal class SkeServiceTest : FunSpec({
 
 	test("Test feilede filer") {
 		val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
-		val mockkKravService = mockk<KravService>(relaxed = true)
+		val mockkKravService = mockk<DatabaseService>(relaxed = true)
 		val fakeFtpService = FakeFtpService()
 		val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt"))
 

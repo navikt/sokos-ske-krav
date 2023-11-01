@@ -1,27 +1,18 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.isSuccess
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics.antallKravLest
 import sokos.ske.krav.metrics.Metrics.antallKravSendt
-import sokos.ske.krav.util.erEndring
-import sokos.ske.krav.util.erNyttKrav
-import sokos.ske.krav.util.erStopp
-import sokos.ske.krav.util.fileValidator
-import sokos.ske.krav.util.getFnrListe
-import sokos.ske.krav.util.lagEndreKravRequest
-import sokos.ske.krav.util.lagOpprettKravRequest
-import sokos.ske.krav.util.lagStoppKravRequest
+import sokos.ske.krav.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 const val NYTT_KRAV = "NYTT_KRAV"
@@ -30,7 +21,7 @@ const val STOPP_KRAV = "STOPP_KRAV"
 
 class SkeService(
 	private val skeClient: SkeClient,
-	private val databaseService:databaseService,
+	private val databaseService:DatabaseService,
 	private val ftpService: FtpService = FtpService()
 ) {
 	private val logger = KotlinLogging.logger {}
