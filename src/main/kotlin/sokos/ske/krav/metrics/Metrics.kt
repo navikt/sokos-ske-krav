@@ -6,6 +6,7 @@ import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Timer
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
@@ -13,6 +14,7 @@ import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.exporter.common.TextFormat
+import sokos.ske.krav.domain.ske.requests.TilleggsinformasjonNav.StoenadsType
 
 object Metrics {
     val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
@@ -32,6 +34,16 @@ object Metrics {
     val antallKravLest: Counter = Counter.builder("krav.lest")
         .description("antall krav Lest fra fil")
         .register(registry)
+
+    val apiKallTimer: (String, StoenadsType) -> Timer = { url, stonad ->
+        Timer.builder("api.kall")
+            .description("Api call timer")
+            .tags(
+                "url", url,
+                "stonadstype", stonad.value,
+            ).register(registry)
+    }
+
 
 }
 

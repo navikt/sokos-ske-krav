@@ -30,10 +30,11 @@ const val STOPP_KRAV = "STOPP_KRAV"
 
 class SkeService(
 	private val skeClient: SkeClient,
-	private val kravService: KravService = KravService(PostgresDataSource()),
+	private val databaseService:databaseService,
 	private val ftpService: FtpService = FtpService()
 ) {
 	private val logger = KotlinLogging.logger {}
+
 
     fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
     fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles { fileValidator(it) }
@@ -57,7 +58,7 @@ class SkeService(
 									fnrIter.next()
 								}
 
-				var kravident = kravService.hentSkeKravident(it.saksNummer)
+				var kravident = databaseService.hentSkeKravident(it.saksNummer)
 				val request: String
 				if (kravident.isEmpty() && !it.erNyttKrav()) {
 
@@ -85,18 +86,10 @@ class SkeService(
 
 					it.erNyttKrav() -> {
 						request =
-							Json.encodeToString(
-								lagOpprettKravRequest(
-									it.copy(
-										saksNummer = kravService.lagreNyKobling(it.saksNummer),
-										gjelderID = substfnr
-									)
-								)
-							)
+							Json.encodeToString(lagOpprettKravRequest(it.copy(saksNummer = databaseService.lagreNyKobling(it.saksNummer), gjelderID = substfnr)))
 						skeClient.opprettKrav(request)
 					}
-
-					else -> throw Exception("SkeService: Feil linjetype")
+					else -> throw Exception("SkeService: Feil linjetype/linjetype kan ikke identifiseres")
 				}
 
 				if (response.status.isSuccess() || response.status.value in (409 until 422)) {
@@ -105,7 +98,7 @@ class SkeService(
 						kravident =
 							Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText()).kravidentifikator
 
-					kravService.lagreNyttKrav(
+					databaseService.lagreNyttKrav(
 						kravident,
 						request,
 						it,
@@ -121,11 +114,6 @@ class SkeService(
 				}
 				it to response
 			}
-
-			/*val (httpResponseOk, httpResponseFailed) = svar.partition { it.second.status.isSuccess()  }
-			val failedLines = httpResponseFailed.map { FailedLine(file, parseDetailLinetoFRData(it.first), it.second.status.value.toString(), it.second.bodyAsText()) }
-			handleAnyFailedLines(failedLines)*/
-
             svar
         }
 
@@ -138,7 +126,7 @@ class SkeService(
 	suspend fun hentOgOppdaterMottaksStatus(): List<String> {
 		val antall = AtomicInteger()
 		val feil = AtomicInteger()
-		val result = kravService.hentAlleKravSomIkkeErReskotrofort().map {
+		val result = databaseService.hentAlleKravSomIkkeErReskotrofort().map {
 			antall.incrementAndGet()
 
 			val response = skeClient.hentMottaksStatus(it.saksnummerSKE)
@@ -147,7 +135,7 @@ class SkeService(
 					val body = response.bodyAsText()
 					val mottaksstatus = Json.decodeFromString<MottaksStatusResponse>(body)
 
-					kravService.oppdaterStatus(mottaksstatus)
+					databaseService.oppdaterStatus(mottaksstatus)
 				} catch (e: Exception) {
 					feil.incrementAndGet()
 					logger.error { "Logger Exception: ${e.message}" }
@@ -162,12 +150,12 @@ class SkeService(
 	}
 
 	suspend fun hentValideringsfeil(): List<String> {
-		val resultat = kravService.hentAlleKravMedValideringsfeil().map {
+		val resultat = databaseService.hentAlleKravMedValideringsfeil().map {
 			val response = skeClient.hentValideringsfeil(it.saksnummerSKE)
 
 			if (response.status.isSuccess()) {
 				val valideringsfeilResponse = Json.decodeFromString<ValideringsFeilResponse>(response.bodyAsText())
-				kravService.lagreValideringsfeil(valideringsfeilResponse, it.saksnummerSKE)
+				databaseService.lagreValideringsfeil(valideringsfeilResponse, it.saksnummerSKE)
 				"Status OK: ${response.bodyAsText()}"
 			} else {
 				"Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
