@@ -16,7 +16,6 @@ class PostgresDataSource(private val postgresConfig: PropertiesConfig.PostgresCo
 	private val adminRole = "${postgresConfig.name}-admin"
 	private val userRole = "${postgresConfig.name}-user"
 	val connection: Connection get() = dataSource.connection.apply { autoCommit = false }
-	fun close() = dataSource.connection.close()
 
 	init {
 		if (!isLocal) {
@@ -48,7 +47,7 @@ class PostgresDataSource(private val postgresConfig: PropertiesConfig.PostgresCo
 		//connectionTestQuery = "SELECT * FROM ${dbConfig.testTable} LIMIT 1"
 		jdbcUrl = postgresConfig.jdbcUrl
 		transactionIsolation = "TRANSACTION_REPEATABLE_READ"
-		if (isLocal) { //tror vi ikke trenger denne sjekken
+		if (isLocal) {
 			username = postgresConfig.username
 			password = postgresConfig.password
 		}

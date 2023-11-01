@@ -5,28 +5,17 @@ import org.testcontainers.ext.ScriptUtils
 import org.testcontainers.ext.ScriptUtils.ScriptLoadException
 import org.testcontainers.jdbc.JdbcDatabaseDelegate
 import org.testcontainers.utility.DockerImageName
-import sokos.ske.krav.config.PropertiesConfig
-import sokos.ske.krav.database.PostgresDataSource
 import java.io.File
 
 class TestContainer(private val name: String = "testContainer") {
 	private val dockerImageName = "postgres:latest"
-	private val container = PostgreSQLContainer(DockerImageName.parse(dockerImageName))
+	private val container = PostgreSQLContainer<Nothing>(DockerImageName.parse(dockerImageName))
 
-	fun getDataSource(
-		initScript: String = "",
-		reusable: Boolean = false,
-		loadFlyway: Boolean = false
-	): PostgresDataSource {
-		val list = if (initScript.isBlank()) emptyList() else listOf(initScript)
-		return PostgresDataSource(initContainer(list, reusable, loadFlyway))
-	}
-
-	private fun initContainer(
+	fun getContainer(
 		scripts: List<String> = emptyList(),
 		reusable: Boolean = false,
 		loadFlyway: Boolean = false
-	): PropertiesConfig.PostgresConfig {
+	): PostgreSQLContainer<Nothing> {
 
 		//Må starte container før runInitScript
 		container.apply {
@@ -49,14 +38,8 @@ class TestContainer(private val name: String = "testContainer") {
 				ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), script)
 			}
 		}
+		return container
 
-		return PropertiesConfig.PostgresConfig(
-			host = container.host,
-			port = container.firstMappedPort.toString(),
-			name = container.databaseName,
-			username = container.username,
-			password = container.password,
-		)
 	}
 
 

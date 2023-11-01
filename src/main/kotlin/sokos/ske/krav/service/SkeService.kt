@@ -1,7 +1,8 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.isSuccess
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
@@ -13,7 +14,14 @@ import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics.antallKravLest
 import sokos.ske.krav.metrics.Metrics.antallKravSendt
-import sokos.ske.krav.util.*
+import sokos.ske.krav.util.erEndring
+import sokos.ske.krav.util.erNyttKrav
+import sokos.ske.krav.util.erStopp
+import sokos.ske.krav.util.fileValidator
+import sokos.ske.krav.util.getFnrListe
+import sokos.ske.krav.util.lagEndreKravRequest
+import sokos.ske.krav.util.lagOpprettKravRequest
+import sokos.ske.krav.util.lagStoppKravRequest
 import java.util.concurrent.atomic.AtomicInteger
 
 const val NYTT_KRAV = "NYTT_KRAV"
@@ -22,12 +30,10 @@ const val STOPP_KRAV = "STOPP_KRAV"
 
 class SkeService(
 	private val skeClient: SkeClient,
-	dataSource: PostgresDataSource = PostgresDataSource(),
+	private val kravService: KravService = KravService(PostgresDataSource()),
 	private val ftpService: FtpService = FtpService()
 ) {
 	private val logger = KotlinLogging.logger {}
-	private val kravService = KravService(dataSource)
-
 
     fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
     fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles { fileValidator(it) }
@@ -79,7 +85,14 @@ class SkeService(
 
 					it.erNyttKrav() -> {
 						request =
-							Json.encodeToString(lagOpprettKravRequest(it.copy(saksNummer = kravService.lagreNyKobling(it.saksNummer), gjelderID = substfnr)))
+							Json.encodeToString(
+								lagOpprettKravRequest(
+									it.copy(
+										saksNummer = kravService.lagreNyKobling(it.saksNummer),
+										gjelderID = substfnr
+									)
+								)
+							)
 						skeClient.opprettKrav(request)
 					}
 

@@ -1,6 +1,7 @@
 package sokos.ske.krav.database
 
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.isSuccess
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
@@ -15,7 +16,7 @@ import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import java.sql.Connection
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 
 const val KRAV_SENDT = "KRAV_SENDT"
@@ -23,17 +24,17 @@ const val KONFLIKT_409 = "KONFLIKT_409"
 const val VALIDERINGSFEIL_422 = "VALIDERINGSFEIL_422"
 
 object Repository {
-    private val logger = KotlinLogging.logger {}
+	private val logger = KotlinLogging.logger {}
 
 
-    fun Connection.hentAlleKravData(): List<KravTable> {
-        return try {
-            prepareStatement("""select * from krav""").executeQuery().toKrav()
-        } catch (e: Exception) {
-            logger.error("exception i henting av data: ${e.message}")
-            listOf()
-        }
-    }
+	fun Connection.hentAlleKravData(): List<KravTable> {
+		return try {
+			prepareStatement("""select * from krav""").executeQuery().toKrav()
+		} catch (e: Exception) {
+			logger.error("exception i henting av data: ${e.message}")
+			listOf()
+		}
+	}
 
 	fun Connection.hentAlleKravSomIkkeErReskotrofort(): List<KravTable> {
 		return try {
@@ -62,11 +63,11 @@ object Repository {
 	}
 
 	fun Connection.lagreNyttKrav(
-        kravidentSKE: String,
-        request: String,
-        kravLinje: KravLinje,
-        kravtype: String,
-        responseStatus: HttpStatusCode
+		kravidentSKE: String,
+		request: String,
+		kravLinje: KravLinje,
+		kravtype: String,
+		responseStatus: HttpStatusCode
 	) {
 		try {
 			val now = LocalDateTime.now()
@@ -97,81 +98,83 @@ object Repository {
                 kravtype
                 ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """.trimIndent()
-            ).withParameters(
-                param(kravLinje.saksNummer),
-                param(kravidentSKE),
-                param(kravLinje.belop.toBigDecimal()),
-                param(kravLinje.vedtakDato),
-                param(kravLinje.gjelderID),
-                param(kravLinje.periodeFOM),
-                param(kravLinje.periodeTOM),
-                param(kravLinje.stonadsKode),
-                param(kravLinje.referanseNummerGammelSak),
-                param(kravLinje.transaksjonDato),
-                param(kravLinje.enhetBosted),
-                param(kravLinje.enhetBehandlende),
-                param(kravLinje.hjemmelKode),
-                param(kravLinje.arsakKode),
-                param(kravLinje.belopRente.toBigDecimal()),
-                param(kravLinje.fremtidigYtelse.toBigDecimal()),
-                param(kravLinje.utbetalDato),
-                param(kravLinje.fagsystemId),
-                param(
-                    when {
-                        responseStatus.isSuccess()  -> KRAV_SENDT
-                        responseStatus.value.equals(409) -> KONFLIKT_409
-                        responseStatus.value.equals(422) -> VALIDERINGSFEIL_422
-                        else -> "UKJENT_${responseStatus.value}"
-                    }),
-                param(now),
-                param(now),
-                param(kravtype)
-            ).execute()
-            commit()
-            println("lagring av $kravidentSKE OK")
-        } catch (e: Exception) {
-            println("lagring av $kravidentSKE feilet")
-            println("exception lagring av nytt krav: ${e.message}")
-        }
-    }
+			).withParameters(
+				param(kravLinje.saksNummer),
+				param(kravidentSKE),
+				param(kravLinje.belop.toBigDecimal()),
+				param(kravLinje.vedtakDato),
+				param(kravLinje.gjelderID),
+				param(kravLinje.periodeFOM),
+				param(kravLinje.periodeTOM),
+				param(kravLinje.stonadsKode),
+				param(kravLinje.referanseNummerGammelSak),
+				param(kravLinje.transaksjonDato),
+				param(kravLinje.enhetBosted),
+				param(kravLinje.enhetBehandlende),
+				param(kravLinje.hjemmelKode),
+				param(kravLinje.arsakKode),
+				param(kravLinje.belopRente.toBigDecimal()),
+				param(kravLinje.fremtidigYtelse.toBigDecimal()),
+				param(kravLinje.utbetalDato),
+				param(kravLinje.fagsystemId),
+				param(
+					when {
+						responseStatus.isSuccess() -> KRAV_SENDT
+						responseStatus.value.equals(409) -> KONFLIKT_409
+						responseStatus.value.equals(422) -> VALIDERINGSFEIL_422
+						else -> "UKJENT_${responseStatus.value}"
+					}
+				),
+				param(now),
+				param(now),
+				param(kravtype)
+			).execute()
+			commit()
+		} catch (e: Exception) {
+			println("lagring av $kravidentSKE feilet")
+			println("exception lagring av nytt krav: ${e.message}")
+		}
+	}
 
 
-    fun Connection.hentSkeKravIdent(navref: String): String {
-        val rs = prepareStatement("""
+	fun Connection.hentSkeKravIdent(navref: String): String {
+		val rs = prepareStatement(
+			"""
             select id, kravidentifikator_ske from krav
             where saksnummer_nav = ? order by id desc limit 1
         """.trimIndent()
-        ).withParameters(
-            param(navref)
-        ).executeQuery()
-        return if (rs.next())
-            rs.getColumn("kravidentifikator_ske")
-        else ""
+		).withParameters(
+			param(navref)
+		).executeQuery()
+		return if (rs.next())
+			rs.getColumn("kravidentifikator_ske")
+		else ""
 
-    }
-    fun Connection.lagreNyKobling(ref: String): String {
-        val nyref = UUID.randomUUID().toString()
-        prepareStatement(
-            """
+	}
+
+	fun Connection.lagreNyKobling(ref: String): String {
+		val nyref = UUID.randomUUID().toString()
+		prepareStatement(
+			"""
             insert into kobling (
             saksref_fil,
             saksref_uuid,
             dato
             ) values (?, ?, ?)
         """.trimIndent()
-        ).withParameters(
-            param(ref),
-            param(nyref),
-            param(LocalDateTime.now())
-        ).execute()
-        commit()
+		).withParameters(
+			param(ref),
+			param(nyref),
+			param(LocalDateTime.now())
+		).execute()
+		commit()
 
-        return nyref
-    }
+		return nyref
+	}
 
-    fun Connection.koblesakRef(filref: String): String {
-        val rs = prepareStatement(
-            """
+	fun Connection.koblesakRef(filref: String): String {
+		val rs = prepareStatement(
+			"""
             select distinct(saksref_uuid) from kobling
             where saksref_fil = ?
         """.trimIndent()
@@ -183,13 +186,13 @@ object Repository {
 		else ""
 	}
 
-    fun Connection.hentAlleKoblinger(): List<KoblingTable> {
-        return prepareStatement(
-            """
+	fun Connection.hentAlleKoblinger(): List<KoblingTable> {
+		return prepareStatement(
+			"""
             select * from kobling
         """.trimIndent()
-        ).executeQuery().toKobling()
-    }
+		).executeQuery().toKobling()
+	}
 
 	fun Connection.oppdaterStatus(mottakStatus: MottaksStatusResponse) {
 		prepareStatement(
@@ -206,10 +209,10 @@ object Repository {
 		commit()
 	}
 
-    fun Connection.lagreValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, kravidSKE: String) {
-        valideringsFeilResponse.valideringsfeil.forEach {
-            prepareStatement(
-                """
+	fun Connection.lagreValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, kravidSKE: String) {
+		valideringsFeilResponse.valideringsfeil.forEach {
+			prepareStatement(
+				"""
                 insert into validering (
                     kravidentifikator_ske,
                     error,
@@ -218,13 +221,13 @@ object Repository {
                 ) 
                 values (?, ?, ?, ?)
             """.trimIndent()
-            ).withParameters(
-                param(kravidSKE),
-                param(it.error),
-                param(it.message),
-                param(LocalDate.now())
-            ).execute()
-        }
-        commit()
-    }
+			).withParameters(
+				param(kravidSKE),
+				param(it.error),
+				param(it.message),
+				param(LocalDate.now())
+			).execute()
+		}
+		commit()
+	}
 }

@@ -3,13 +3,12 @@ package sokos.ske.krav.service
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import io.mockk.mockk
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.util.FakeFtpService
@@ -34,13 +33,13 @@ internal class SkeServiceTest : FunSpec({
 
 	test("Test OK filer") {
 		val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
-		val dataSource = mockk<PostgresDataSource>(relaxed = true)
+		val mockkKravService = mockk<KravService>(relaxed = true)
 		val fakeFtpService = FakeFtpService()
 		val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt"))
 
 		val httpClient = MockHttpClient().getClient()
 		val client = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-		val service = SkeService(client, dataSource, ftpService)
+		val service = SkeService(client, mockkKravService, ftpService)
 
 		val responses = service.sendNyeFtpFilerTilSkatt()
 		responses.map { it.status shouldBeIn listOf(HttpStatusCode.OK, HttpStatusCode.Created) }
@@ -51,13 +50,13 @@ internal class SkeServiceTest : FunSpec({
 
 	test("Test feilede filer") {
 		val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
-		val dataSource = mockk<PostgresDataSource>(relaxed = true)
+		val mockkKravService = mockk<KravService>(relaxed = true)
 		val fakeFtpService = FakeFtpService()
 		val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt"))
 
 		val httpClient = MockHttpClient().getClient(HttpStatusCode.BadRequest)
 		val client = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-		val service = SkeService(client, dataSource, ftpService)
+		val service = SkeService(client, mockkKravService, ftpService)
 
 		val responses = service.sendNyeFtpFilerTilSkatt()
 		responses.map { it.status shouldNotBeIn listOf(HttpStatusCode.OK, HttpStatusCode.Created) }
