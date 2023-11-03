@@ -41,71 +41,8 @@ class SkeService(
 
         val responses = files.map { file ->
 			logger.info { "Antall linjer i ${file.name}: ${file.kravLinjer.size} (incl. start/stop)" }
-            val svar: List<Pair<KravLinje, HttpResponse>> = file.kravLinjer.map {
-				antallKravLest.increment()
 
-				val substfnr = if (fnrIter.hasNext()) fnrIter.next()
-								else {
-									fnrIter = fnrListe.listIterator(0)
-									fnrIter.next()
-								}
-
-				var kravident = databaseService.hentSkeKravident(it.saksNummer)
-				val request: String
-				if (kravident.isEmpty() && !it.erNyttKrav()) {
-
-					logger.error {
-						"""
-						SAKSNUMMER: ${it.saksNummer}
-						Hva F* gjør vi nå, dette skulle ikke skje
-						linjenr: ${it.linjeNummer}: ${file.content[it.linjeNummer]}
-						"""
-					//hva faen gjør vi nå??
-					//Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
-					}
-				}
-
-				val response = when {
-					it.erStopp() -> {
-						request = Json.encodeToString(lagStoppKravRequest(kravident))
-						skeClient.stoppKrav(request)
-					}
-
-					it.erEndring() -> {
-						request = Json.encodeToString(lagEndreKravRequest(it, kravident))
-						skeClient.endreKrav(request)
-					}
-
-					it.erNyttKrav() -> {
-						request =
-							Json.encodeToString(lagOpprettKravRequest(it.copy(saksNummer = databaseService.lagreNyKobling(it.saksNummer), gjelderID = substfnr)))
-						skeClient.opprettKrav(request)
-					}
-					else -> throw Exception("SkeService: Feil linjetype/linjetype kan ikke identifiseres")
-				}
-
-				if (response.status.isSuccess() || response.status.value in (409 until 422)) {
-					antallKravSendt.increment()
-					if (it.erNyttKrav())
-						kravident =
-							Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText()).kravidentifikator
-
-					databaseService.lagreNyttKrav(
-						kravident,
-						request,
-						it,
-						when {
-							it.erStopp() -> STOPP_KRAV
-							it.erEndring() -> ENDRE_KRAV
-							else -> NYTT_KRAV
-						},
-						response.status
-					)
-				} else {
-					logger.error("FAILED REQUEST: ${it.saksNummer}, ERROR: ${response.bodyAsText()}")
-				}
-				it to response
-			}
+            val svar: List<Pair<KravLinje, HttpResponse>> = sendAlleLinjer(file, fnrIter, fnrListe)
             svar
         }
 
@@ -113,6 +50,87 @@ class SkeService(
 
         return responses.map { it.map { it.second } }.flatten()
     }
+
+	private suspend fun sendAlleLinjer(
+		file: FtpFil,
+		fnrIter: ListIterator<String>,
+		fnrListe: List<String>
+	): List<Pair<KravLinje, HttpResponse>> {
+		var fnrIter1 = fnrIter
+		return file.kravLinjer.map {
+			antallKravLest.increment()
+
+			val substfnr = if (fnrIter1.hasNext()) fnrIter1.next()
+			else {
+				fnrIter1 = fnrListe.listIterator(0)
+				fnrIter1.next()
+			}
+
+			var kravident = databaseService.hentSkeKravident(it.saksNummer)
+			val request: String
+			if (kravident.isEmpty() && !it.erNyttKrav()) {
+
+				logger.error {
+					"""
+							SAKSNUMMER: ${it.saksNummer}
+							Hva F* gjør vi nå, dette skulle ikke skje
+							linjenr: ${it.linjeNummer}: ${file.content[it.linjeNummer]}
+							"""
+					//hva faen gjør vi nå??
+					//Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
+				}
+			}
+
+			val response = when {
+				it.erStopp() -> {
+					request = Json.encodeToString(lagStoppKravRequest(kravident))
+					skeClient.stoppKrav(request)
+				}
+
+				it.erEndring() -> {
+					request = Json.encodeToString(lagEndreKravRequest(it, kravident))
+					skeClient.endreKrav(request)
+				}
+
+				it.erNyttKrav() -> {
+					request =
+						Json.encodeToString(
+							lagOpprettKravRequest(
+								it.copy(
+									saksNummer = databaseService.lagreNyKobling(it.saksNummer),
+									gjelderID = substfnr
+								)
+							)
+						)
+					skeClient.opprettKrav(request)
+				}
+
+				else -> throw Exception("SkeService: Feil linjetype/linjetype kan ikke identifiseres")
+			}
+
+			if (response.status.isSuccess() || response.status.value in (409 until 422)) {
+				antallKravSendt.increment()
+				if (it.erNyttKrav())
+					kravident =
+						Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText()).kravidentifikator
+
+				databaseService.lagreNyttKrav(
+					kravident,
+					request,
+					it,
+					when {
+						it.erStopp() -> STOPP_KRAV
+						it.erEndring() -> ENDRE_KRAV
+						else -> NYTT_KRAV
+					},
+					response.status
+				)
+			} else {
+				logger.error("FAILED REQUEST: ${it.saksNummer}, ERROR: ${response.bodyAsText()}")
+			}
+			it to response
+		}
+	}
 
 
 	suspend fun hentOgOppdaterMottaksStatus(): List<String> {

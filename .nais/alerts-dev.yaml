@@ -1,0 +1,118 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: sokos-ske-krav
+  namespace: okonomi
+  labels:
+    team: okonomi
+spec:
+  groups:
+    - name: sokos-ske-krav-alerts
+      rules:
+        - alert: Applikasjon nede
+          expr: kube_deployment_status_replicas_available{deployment="sokos-ske-krav"} == 0
+          for: 2m
+          annotations:
+            action: "Sjekk hvorfor applikasjonen er nede"
+            summary: "App {{ $labels.deployment }} er nede i namespace {{ $labels.namespace }}"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_nav_oppdrag_type: sokos-ske-krav
+            alert_type: custom
+
+        - alert: Applikasjonen har restartet flere ganger de siste 5 minuttene!
+          expr: sum(increase(kube_pod_container_status_restarts_total{container=~"sokos-ske-krav"}[5m])) by (container) > 2
+          for: 2m
+          annotations:
+            action: "Sjekk hvorfor applikasjonen ikke klarer å restarte"
+            summary: "App {{ $labels.container }} restarter mange ganger"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_nav_oppdrag_type: sokos-ske-krav
+            alert_type: custom
+
+        - alert: Høy andel error i logger
+          expr: sum by(log_app, log_pod_name, log_namespace) (floor(increase(logd_messages_total{log_app="sokos-ske-krav", log_level="Error"}[2m]))) > 2
+          for: 2m
+          annotations:
+            action: "`kubectl logs {{ $labels.log_pod_name }} -n {{ $labels.log_namespace }}`"
+            summary: "Høy andel error i logger for app {{ $labels.log_app }} feiler i namespace {{ $labels.log_namespace }}"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_nav_oppdrag_type: sokos-ske-krav
+            alert_type: custom
+
+        - alert: Høy andel warning i logger
+          expr: sum by(log_app, log_pod_name, log_namespace) (floor(increase(logd_messages_total{log_app="sokos-ske-krav", log_level="Warning"}[2m]))) > 2
+          for: 2m
+          annotations:
+            action: "`kubectl logs {{ $labels.log_pod_name }} -n {{ $labels.log_namespace }}`"
+            summary: "Høy andel warning i logger for app {{ $labels.log_app }} feiler i namespace {{ $labels.log_namespace }}"
+          labels:
+            namespace: okonomi
+            severity: warning
+            sokos_nav_oppdrag_type: sokos-ske-krav
+            alert_type: custom
+
+        - alert: Høy andel HTTP klientfeil (4xx responser)
+          expr: floor(increase(ktor_http_server_requests_seconds_count{status=~"4.*", status!~"404", app="sokos-ske-krav"}[3m])) > 2
+          for: 2m
+          annotations:
+            summary: "Følgende request feilet: `Status {{ $labels.status }} - {{ $labels.method }} {{ $labels.route }}`. 
+                      Sjekk loggene for å se hvorfor dette feiler"
+            action: "`kubectl logs {{ $labels.pod }} -n {{ $labels.namespace }}`"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_nav_oppdrag_type: sokos-ske-krav
+            alert_type: custom
+
+
+---
+
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: sokos-ske-krav-slack
+  namespace: okonomi
+  labels:
+    alertmanagerConfig: sokos-ske-krav-slack
+spec:
+  receivers:
+    - name: sokos-ske-krav-receiver
+      slackConfigs:
+        - apiURL:
+            key: apiUrl
+            name: slack-webhook
+          channel: '#team-mob-alerts-dev'
+          iconEmoji: ':alert:'
+          username: 'Alert dev-fss'
+          sendResolved: true
+          httpConfig:
+            proxyURL: http://webproxy.nais:8088
+          title: |-
+            [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
+          text: >-
+            {{ range .Alerts }}
+            {{ if or .Annotations.summary .Annotations.message }}
+            {{ or .Annotations.summary .Annotations.message }}
+            {{ println " " }}
+            {{- end }}
+            {{- if .Annotations.action }}
+            • *action*: {{ .Annotations.action }} {{ println " " }}
+            {{- end }}
+            {{ end }}
+  route:
+    groupBy:
+      - alertname
+    matchers:
+      - name: "sokos_nav_oppdrag_type"
+        matchType: "="
+        value: "sokos-ske-krav"
+    groupInterval: 10s
+    groupWait: 5s
+    receiver: sokos-ske-krav-receiver
+    repeatInterval: 2m
