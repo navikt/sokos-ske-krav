@@ -1,0 +1,40 @@
+name: Deploy alerts
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - 'LICENCE'
+      - 'Dockerfile'
+      - 'CODEOWNERS'
+      - '.gitignore'
+      - '.github/workflows/build-pr.yaml'
+      - '.github/workflows/security.yaml'
+      - '.github/workflows/deploy.yaml'
+      - '.github/dependabot.yaml'
+
+jobs:
+  deploy-alerts-dev:
+    name: Deploy alerts to dev
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to dev
+        uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-fss
+          RESOURCE: .nais/alerts-dev.yaml
+
+#  deploy-alerts-prod:
+#    name: Deploy alerts to prod
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      - name: Deploy to dev
+#        uses: nais/deploy/actions/deploy@v1
+#        env:
+#          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+#          CLUSTER: prod-fss
+#          RESOURCE: .nais/alerts-prod.yaml
