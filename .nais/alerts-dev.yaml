@@ -18,7 +18,7 @@ spec:
           labels:
             namespace: okonomi
             severity: danger
-            sokos_nav_oppdrag_type: sokos-ske-krav
+            sokos_ske_krav_type: sokos-ske-krav
             alert_type: custom
 
         - alert: Applikasjonen har restartet flere ganger de siste 5 minuttene!
@@ -30,7 +30,7 @@ spec:
           labels:
             namespace: okonomi
             severity: danger
-            sokos_nav_oppdrag_type: sokos-ske-krav
+            sokos_ske_krav_type: sokos-ske-krav
             alert_type: custom
 
         - alert: Høy andel error i logger
@@ -42,7 +42,7 @@ spec:
           labels:
             namespace: okonomi
             severity: danger
-            sokos_nav_oppdrag_type: sokos-ske-krav
+            sokos_ske_krav_type: sokos-ske-krav
             alert_type: custom
 
         - alert: Høy andel warning i logger
@@ -54,7 +54,7 @@ spec:
           labels:
             namespace: okonomi
             severity: warning
-            sokos_nav_oppdrag_type: sokos-ske-krav
+            sokos_ske_krav_type: sokos-ske-krav
             alert_type: custom
 
         - alert: Høy andel HTTP klientfeil (4xx responser)
@@ -67,7 +67,7 @@ spec:
           labels:
             namespace: okonomi
             severity: danger
-            sokos_nav_oppdrag_type: sokos-ske-krav
+            sokos_ske_krav_type: sokos-ske-krav
             alert_type: custom
 
 
@@ -109,7 +109,7 @@ spec:
     groupBy:
       - alertname
     matchers:
-      - name: "sokos_nav_oppdrag_type"
+      - name: "sokos_ske_krav_type"
         matchType: "="
         value: "sokos-ske-krav"
     groupInterval: 10s
