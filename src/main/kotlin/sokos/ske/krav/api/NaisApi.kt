@@ -9,7 +9,7 @@ fun Routing.naisApi(alive: () -> Boolean, ready: () -> Boolean) {
 	route("internal") {
 		get("is_alive") {
 			when (alive()) {
-				false -> call.respondText { "Application is alive" }
+				true -> call.respondText { "Application is alive" }
 				else -> call.respondText(
 					text = "Application is not alive",
 					status = HttpStatusCode.InternalServerError
@@ -18,7 +18,7 @@ fun Routing.naisApi(alive: () -> Boolean, ready: () -> Boolean) {
 		}
 		get("is_ready") {
 			when (ready()) {
-				false -> call.respondText { "Application is ready" }
+				true -> call.respondText { "Application is ready" }
 				else -> call.respondText(
 					text = "Application is not ready",
 					status = HttpStatusCode.InternalServerError
