@@ -1,13 +1,10 @@
 package sokos.ske.krav.api
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
-import io.ktor.server.request.receiveText
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Routing
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.route
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import mu.KotlinLogging
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
@@ -41,6 +38,13 @@ fun Routing.skeApi(
 			call.respond(HttpStatusCode.OK)
 
 		}
+
+		get("error") {
+			(0..1000).forEach{
+				logger.error { "Nå er'e feil igjen $it av 1000" }
+			}
+		}
+
 
 
 		get("test") {
