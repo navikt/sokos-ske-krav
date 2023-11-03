@@ -43,6 +43,7 @@ fun Routing.skeApi(
 			(0..1000).forEach{
 				logger.error { "Nå er'e feil igjen $it av 1000" }
 			}
+			call.respond("Nå er det 1000 errors i loggen")
 		}
 
 
