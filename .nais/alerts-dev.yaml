@@ -34,16 +34,14 @@ spec:
             alert_type: custom
 
         - alert: Høy andel error i logger
-          expr: sum by(log_app, log_pod_name, log_namespace) (floor(increase(logd_messages_total{log_app="sokos-ske-krav", log_level="Error"}[2m]))) > 2
-          for: 2m
+          expr: sum by(app, pod, namespace) (floor(increase(log_messages_errors{app="sokos-ske-krav"}[2m]))) > 0
+          for: 1s
           annotations:
-            action: "`kubectl logs {{ $labels.log_pod_name }} -n {{ $labels.log_namespace }}`"
-            summary: "Høy andel error i logger for app {{ $labels.log_app }} feiler i namespace {{ $labels.log_namespace }}"
+            action: "`Sjekk logg for app \{{ $labels.app }}`"
+            summary: "Høy andel error i logger for app \{{ $labels.app }} i namespace \{{ $labels.namespace }}"
           labels:
             namespace: okonomi
             severity: danger
-            sokos_ske_krav_type: sokos-ske-krav
-            alert_type: custom
 
         - alert: Høy andel warning i logger
           expr: sum by(log_app, log_pod_name, log_namespace) (floor(increase(logd_messages_total{log_app="sokos-ske-krav", log_level="Warning"}[2m]))) > 2
