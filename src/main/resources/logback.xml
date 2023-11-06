@@ -48,7 +48,7 @@
     </if>
 
     <root level="INFO">
-        <appender-ref ref="${LOG_APPENDER:-stdout_json}"/>
+        <appender-ref ref="STDOUT"/>
     </root>
 
     <logger name="no.nav.sokos.ske.krav" level="INFO"/>
