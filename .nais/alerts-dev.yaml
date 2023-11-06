@@ -37,8 +37,8 @@ spec:
           expr: sum by(app, pod, namespace) (floor(increase(log_messages_errors{app="sokos-ske-krav"}[2m]))) > 0
           for: 1s
           annotations:
-            action: "`Sjekk logg for app \{{ $labels.app }}`"
-            summary: "Høy andel error i logger for app \{{ $labels.app }} i namespace \{{ $labels.namespace }}"
+            action: "`Sjekk logg for app \{{ $labels.log_app }}`"
+            summary: "Høy andel error i logger for app \{{ $labels.log_app }} i namespace \{{ $labels.namespace }}"
           labels:
             namespace: okonomi
             severity: danger
