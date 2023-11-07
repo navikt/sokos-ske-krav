@@ -20,7 +20,7 @@ fun Routing.skeApi(
 	route("krav") {
 
 		get("listFiles/{directory}") {
-			val files = skeService.testListFiles(call.parameters["directory"].toString() + "/test")
+			val files = skeService.testListFiles(call.parameters["directory"].toString())
 			call.respond(HttpStatusCode.OK, files)
 		}
 

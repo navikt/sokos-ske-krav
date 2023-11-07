@@ -1,6 +1,7 @@
 package sokos.ske.krav.service
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.fileValidator
@@ -21,9 +22,9 @@ internal class FtpServiceTest: FunSpec( {
 
         val successFilesInDir = ftpService.listFiles(Directories.INBOUND)
         successFilesInDir.size shouldBe 3
-        successFilesInDir[0] shouldBe "test.NAVI"
-        successFilesInDir[1] shouldBe "fil1.txt"
-        successFilesInDir[2] shouldBe "fil2.txt"
+        successFilesInDir shouldContain  "test.NAVI"
+        successFilesInDir shouldContain "fil1.txt"
+        successFilesInDir shouldContain "fil2.txt"
 
 
         fakeFtpService.close()

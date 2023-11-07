@@ -8,8 +8,8 @@ import sokos.ske.krav.util.ValidationResult
 import java.io.ByteArrayOutputStream
 
 enum class Directories(val value: String) {
-	OUTBOUND("/outbound/test"),
-	INBOUND("/inbound/test"),
+	OUTBOUND("/outbound"),
+	INBOUND("/inbound"),
 	FAILED("/inbound/test/feilfiler")
 }
 
