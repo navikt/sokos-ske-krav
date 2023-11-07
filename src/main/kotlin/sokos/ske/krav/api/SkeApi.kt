@@ -9,6 +9,7 @@ import mu.KotlinLogging
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.service.SkeService
+import kotlin.system.exitProcess
 
 
 fun Routing.skeApi(
@@ -46,6 +47,9 @@ fun Routing.skeApi(
 			call.respond("Nå er det 1000 errors i loggen")
 		}
 
+		get("shutdown") {
+			exitProcess(10)
+		}
 
 
 		get("test") {
