@@ -49,8 +49,8 @@ spec:
           expr: sum by(app, pod, namespace) (floor(increase(log_messages_errors{app="sokos-ske-krav", level="Warning"}[2m]))) > 0
           for: 2m
           annotations:
-            action: "`kubectl logs {{ $labels.log_pod_name }} -n {{ $labels.log_namespace }}`"
-            summary: "Høy andel warning i logger for app {{ $labels.log_app }} feiler i namespace {{ $labels.log_namespace }}"
+            action: "`Sjekk logg for app {{ $labels.deployment }}`"
+            summary: "Høy andel warning i logger for app {{ $labels.deployment }} i namespace {{ $labels.namespace }}"
           labels:
             namespace: okonomi
             severity: warning
