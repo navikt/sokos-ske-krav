@@ -12,10 +12,12 @@ import io.ktor.server.request.path
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import org.slf4j.event.Level
+import sokos.ske.krav.metrics.installMetrics
 import java.util.UUID
 
 @OptIn(ExperimentalSerializationApi::class)
 fun Application.commonConfig() {
+	installMetrics()
 	install(CallId) {
 		header("nav-call-id")
 		generate { UUID.randomUUID().toString() }

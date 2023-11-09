@@ -8,24 +8,31 @@ sealed class ValidationResult {
 	data class Error(val message: List<String>) : ValidationResult()
 }
 
-fun fileValidator(content: List<String>): ValidationResult {
-	val firstLine = parseFRtoDataFirsLineClass(content.first())
-	val lastLine = parseFRtoDataLastLineClass(content.last())
-	val detailLines = content.subList(1, content.lastIndex).map { parseFRtoDataDetailLineClass(it) }
+object FileValidator {
+	fun validateFiles(content: List<String>): ValidationResult {
+		val firstLine = parseFRtoDataFirsLineClass(content.first())
+		val lastLine = parseFRtoDataLastLineClass(content.last())
+		val detailLines = content.subList(1, content.lastIndex).map { parseFRtoDataDetailLineClass(it) }
+		val linesWithInvalidKravKode =
+			detailLines.filter { TilleggsinformasjonNav.StoenadsType.from(it.stonadsKode) == null }
+		val invalidKravkode = linesWithInvalidKravKode.isNotEmpty()
+		val invalidNumberOfLines = lastLine.numTransactionLines != detailLines.size
+		val invalidSum = detailLines.sumOf { it.belop + it.belopRente } != lastLine.sumAllTransactionLines
+		val invalidTransferDate = firstLine.transferDate != lastLine.transferDate
 
-	val invalidKravkode = detailLines.any { TilleggsinformasjonNav.StoenadsType.from(it.stonadsKode) == null }
-	val invalidNumberOfLines = lastLine.numTransactionLines != detailLines.size
-	val invalidSum = detailLines.sumOf { it.belop + it.belopRente } != lastLine.sumAllTransactionLines
-	val invalidTransferDate = firstLine.transferDate != lastLine.transferDate
+		if (invalidNumberOfLines || invalidSum || invalidTransferDate || invalidKravkode) {
+			val errorMessages = mutableListOf<String>()
+			if (invalidNumberOfLines) errorMessages.add("Antall krav stemmer ikke med antallet i siste linje! Antall krav:${detailLines.size}, Antall i siste linje: ${lastLine.numTransactionLines} ")
+			if (invalidSum) errorMessages.add("Sum alle linjer stemmer ikke med sum i siste linje! Sum alle linjer: ${detailLines.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAllTransactionLines}")
+			if (invalidTransferDate) errorMessages.add("Dato sendt er avvikende mellom første og siste linje fra OS! Dato første linje: ${firstLine.transferDate}, Dato siste linje: ${lastLine.transferDate}")
+			if (invalidKravkode) errorMessages.add(
+				"Ugyldig kravkode! Kravkode: ${
+					linesWithInvalidKravKode.map { it.stonadsKode }.toSet()
+				}"
+			)
 
-	if (invalidNumberOfLines || invalidSum || invalidTransferDate || invalidKravkode) {
-		val errorMessages = mutableListOf<String>()
-		if (invalidNumberOfLines) errorMessages.add("Antall krav stemmer ikke med antallet i siste linje!")
-		if (invalidSum) errorMessages.add("Sum alle linjer stemmer ikke med sum i siste linje!")
-		if (invalidTransferDate) errorMessages.add("Dato sendt er avvikende mellom første og siste linje fra OS!")
-		if (invalidKravkode) errorMessages.add("Ugyldig kravkode!")
-
-		return ValidationResult.Error(errorMessages)
+			return ValidationResult.Error(errorMessages)
+		}
+		return ValidationResult.Success(detailLines)
 	}
-	return ValidationResult.Success(detailLines)
 }
