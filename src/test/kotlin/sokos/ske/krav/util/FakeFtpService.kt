@@ -76,7 +76,6 @@ class FakeFtpService(private val client: FTPClient = FTPClient()) {
 		fakeFtpServer.fileSystem = UnixFakeFileSystem().apply {
 			add(DirectoryEntry(Directories.INBOUND.value))
 			add(DirectoryEntry(Directories.FAILED.value))
-			add(DirectoryEntry(Directories.OUTBOUND.value))
 			fileNames.forEach { fileName ->
 				val path = "${directory.value}${File.separator}$fileName"
 				add(FileEntry(path, fileName.asText()))

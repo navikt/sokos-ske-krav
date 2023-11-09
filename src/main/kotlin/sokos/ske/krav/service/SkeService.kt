@@ -1,7 +1,8 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.isSuccess
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
@@ -13,7 +14,13 @@ import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics.antallKravLest
 import sokos.ske.krav.metrics.Metrics.antallKravSendt
-import sokos.ske.krav.util.*
+import sokos.ske.krav.util.erEndring
+import sokos.ske.krav.util.erNyttKrav
+import sokos.ske.krav.util.erStopp
+import sokos.ske.krav.util.getFnrListe
+import sokos.ske.krav.util.lagEndreKravRequest
+import sokos.ske.krav.util.lagOpprettKravRequest
+import sokos.ske.krav.util.lagStoppKravRequest
 import java.util.concurrent.atomic.AtomicInteger
 
 const val NYTT_KRAV = "NYTT_KRAV"
@@ -22,34 +29,33 @@ const val STOPP_KRAV = "STOPP_KRAV"
 
 class SkeService(
 	private val skeClient: SkeClient,
-	private val databaseService:DatabaseService = DatabaseService(PostgresDataSource()),
+	private val databaseService: DatabaseService = DatabaseService(PostgresDataSource()),
 	private val ftpService: FtpService = FtpService()
 ) {
 	private val logger = KotlinLogging.logger {}
 
 
-    fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
-    fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles { fileValidator(it) }
-
-    suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
-        logger.info { "Starter skeService SendNyeFtpFilertilSkatt." }
-        val files = ftpService.getValidatedFiles { fileValidator(it) }
-        logger.info { "Antall filer i kjøring ${files.size}" }
+	fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
+	fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles()
+	suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
+		logger.info { "Starter skeService SendNyeFtpFilertilSkatt." }
+		val files = ftpService.getValidatedFiles()
+		logger.info { "Antall filer i kjøring ${files.size}" }
 
 		val fnrListe = getFnrListe()
-		var fnrIter = fnrListe.listIterator()
+		val fnrIter = fnrListe.listIterator()
 
-        val responses = files.map { file ->
+		val responses = files.map { file ->
 			logger.info { "Antall linjer i ${file.name}: ${file.kravLinjer.size} (incl. start/stop)" }
 
-            val svar: List<Pair<KravLinje, HttpResponse>> = sendAlleLinjer(file, fnrIter, fnrListe)
-            svar
-        }
+			val svar: List<Pair<KravLinje, HttpResponse>> = sendAlleLinjer(file, fnrIter, fnrListe)
+			svar
+		}
 
-        files.forEach { file ->  ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
+		files.forEach { file -> ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
 
-        return responses.map { it.map { it.second } }.flatten()
-    }
+		return responses.map { it.map { it.second } }.flatten()
+	}
 
 	private suspend fun sendAlleLinjer(
 		file: FtpFil,
