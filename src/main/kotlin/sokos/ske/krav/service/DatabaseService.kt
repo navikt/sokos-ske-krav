@@ -1,6 +1,6 @@
 package sokos.ske.krav.service
 
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
 import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
@@ -19,20 +19,26 @@ class DatabaseService(
     private val postgresDataSource: PostgresDataSource
 ) {
 
-    fun hentSkeKravident(navref: String): String{
-        postgresDataSource.connection.useAndHandleErrors {con ->
+    fun hentSkeKravident(navref: String): String {
+        postgresDataSource.connection.useAndHandleErrors { con ->
             return con.hentSkeKravIdent(navref)
         }
     }
 
 
     fun lagreNyKobling(saksnummerNav: String): String {
-        postgresDataSource.connection.useAndHandleErrors {con ->
+        postgresDataSource.connection.useAndHandleErrors { con ->
             return con.lagreNyKobling(saksnummerNav)
         }
     }
 
-    fun lagreNyttKrav(skeKravident: String, request: String, kravLinje: KravLinje, kravtype: String, responseStatus: HttpStatusCode){
+    fun lagreNyttKrav(
+        skeKravident: String,
+        request: String,
+        kravLinje: KravLinje,
+        kravtype: String,
+        responseStatus: HttpStatusCode
+    ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
             con.lagreNyttKrav(skeKravident, request, kravLinje, kravtype, responseStatus)
         }
@@ -44,11 +50,11 @@ class DatabaseService(
         }
     }
 
-	fun lagreValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, saksnummerSKE: String) {
-		postgresDataSource.connection.useAndHandleErrors { con ->
-			con.lagreValideringsfeil(valideringsFeilResponse, saksnummerSKE)
-		}
-	}
+    fun lagreValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, saksnummerSKE: String) {
+        postgresDataSource.connection.useAndHandleErrors { con ->
+            con.lagreValideringsfeil(valideringsFeilResponse, saksnummerSKE)
+        }
+    }
 
     fun hentAlleKravSomIkkeErReskotrofort(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
@@ -56,9 +62,9 @@ class DatabaseService(
         }
     }
 
-	fun oppdaterStatus(mottakStatus: MottaksStatusResponse) {
-		postgresDataSource.connection.useAndHandleErrors { con ->
-			con.oppdaterStatus(mottakStatus)
-		}
-	}
+    fun oppdaterStatus(mottakStatus: MottaksStatusResponse) {
+        postgresDataSource.connection.useAndHandleErrors { con ->
+            con.oppdaterStatus(mottakStatus)
+        }
+    }
 }

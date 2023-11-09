@@ -4,20 +4,22 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.fail
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
-import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse.MottaksStatus.*
+import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse.MottaksStatus.MOTTATTUNDERBEHANDLING
+import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse.MottaksStatus.RESKONTROFOERT
+import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL
 
 class MottaksstatusResponseTest : FunSpec({
 
-	test("Tester at alle mottaksstatuser har riktig verdi") {
-		MottaksStatusResponse.MottaksStatus.values().forEach {
-			when (it) {
-				MOTTATTUNDERBEHANDLING -> it.value shouldBe "MOTTATT_UNDER_BEHANDLING"
-				VALIDERINGSFEIL -> it.value shouldBe "VALIDERINGSFEIL"
-				RESKONTROFOERT -> it.value shouldBe "RESKONTROFOERT"
-				else -> fail { "Mottakststaus har en verdi som ikke finnes i test" }
+    test("Tester at alle mottaksstatuser har riktig verdi") {
+        MottaksStatusResponse.MottaksStatus.values().forEach {
+            when (it) {
+                MOTTATTUNDERBEHANDLING -> it.value shouldBe "MOTTATT_UNDER_BEHANDLING"
+                VALIDERINGSFEIL -> it.value shouldBe "VALIDERINGSFEIL"
+                RESKONTROFOERT -> it.value shouldBe "RESKONTROFOERT"
+                else -> fail { "Mottakststaus har en verdi som ikke finnes i test" }
 
-			}
-		}
-	}
+            }
+        }
+    }
 })
 
