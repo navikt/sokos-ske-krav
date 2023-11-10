@@ -16,7 +16,7 @@ import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 
 class DatabaseService(
-    private val postgresDataSource: PostgresDataSource
+    private val postgresDataSource: PostgresDataSource = PostgresDataSource()
 ) {
 
     fun hentSkeKravident(navref: String): String {
@@ -24,7 +24,6 @@ class DatabaseService(
             return con.hentSkeKravIdent(navref)
         }
     }
-
 
     fun lagreNyKobling(saksnummerNav: String): String {
         postgresDataSource.connection.useAndHandleErrors { con ->

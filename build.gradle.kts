@@ -35,6 +35,7 @@ val mockkVersion = "1.13.8"
 val commonsVersion = "3.10.0"
 val testContainerVersion = "1.19.1"
 val mockFtpServerVersion = "3.1.0"
+val konsistVersion = "0.13.0"
 
 //Logging
 val janinoVersion = "3.1.10"
@@ -96,7 +97,7 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:$testContainerVersion")
     testImplementation("commons-net:commons-net:$commonsVersion")
     testImplementation("org.mockftpserver:MockFtpServer:$mockFtpServerVersion")
-
+    testImplementation("com.lemonappdev:konsist:$konsistVersion")
 }
 
 kotlin {
@@ -119,7 +120,7 @@ detekt {
 
 tasks {
     withType<Detekt>().configureEach {
-        enabled = false
+        //enabled = false
     }
     withType<ShadowJar>().configureEach {
         enabled = true

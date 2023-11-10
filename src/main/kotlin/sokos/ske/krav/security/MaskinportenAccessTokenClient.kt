@@ -16,12 +16,11 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.Instant
 import kotlinx.datetime.plus
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import sokos.ske.krav.config.PropertiesConfig
+import sokos.ske.krav.domain.maskinporten.AccessToken
+import sokos.ske.krav.domain.maskinporten.Token
 import java.util.Date
 
 class MaskinportenAccessTokenClient(
@@ -80,20 +79,3 @@ class MaskinportenAccessTokenClient(
     }
 }
 
-@Serializable
-data class Token(
-    @SerialName("access_token")
-    val accessToken: String,
-    @SerialName("expires_in")
-    val expiresIn: Long
-)
-
-data class AccessToken(
-    val accessToken: String,
-    val expiresAt: Instant,
-) {
-    constructor(token: Token) : this(
-        accessToken = token.accessToken,
-        expiresAt = Clock.System.now().plus(token.expiresIn, DateTimeUnit.SECOND)
-    )
-}

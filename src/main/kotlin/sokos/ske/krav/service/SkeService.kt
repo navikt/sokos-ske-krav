@@ -8,7 +8,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
@@ -30,11 +29,10 @@ const val STOPP_KRAV = "STOPP_KRAV"
 
 class SkeService(
     private val skeClient: SkeClient,
-    private val databaseService: DatabaseService = DatabaseService(PostgresDataSource()),
+    private val databaseService: DatabaseService = DatabaseService(),
     private val ftpService: FtpService = FtpService()
 ) {
     private val logger = KotlinLogging.logger {}
-
 
     fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
     fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles()
@@ -138,7 +136,6 @@ class SkeService(
         }
     }
 
-
     suspend fun hentOgOppdaterMottaksStatus(): List<String> {
         val antall = AtomicInteger()
         val feil = AtomicInteger()
@@ -185,6 +182,5 @@ class SkeService(
 
         return resultat
     }
-
 }
 
