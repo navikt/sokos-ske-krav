@@ -115,8 +115,14 @@ detekt {
     config.setFrom(file("config/detekt/detekt.yml"))
     buildUponDefaultConfig = true
 }
-tasks.getByPath("detekt").onlyIf { gradle.startParameter.taskNames.contains("detekt") }
+
 tasks {
+    getByName("check") {
+        this.setDependsOn(this.dependsOn.filterNot {
+            it is TaskProvider<*> && it.name == "detekt"
+        })
+    }
+
     withType<ShadowJar>().configureEach {
         enabled = true
         archiveFileName.set("sokos-ske-krav.jar")
