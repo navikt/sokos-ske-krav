@@ -118,9 +118,9 @@ detekt {
 }
 
 tasks {
-
     withType<Detekt>().configureEach {
-        enabled = false //enable igjen når vi har fått orden i sakene
+        // enabled = false
+
     }
     withType<ShadowJar>().configureEach {
         enabled = true
