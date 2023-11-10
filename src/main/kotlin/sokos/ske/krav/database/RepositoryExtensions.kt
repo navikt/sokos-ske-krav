@@ -16,6 +16,8 @@ import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+
+@Suppress("TooManyFunctions")
 object RepositoryExtensions {
 
     val logger = KotlinLogging.logger { }
@@ -48,13 +50,13 @@ object RepositoryExtensions {
 
             else -> {
                 logger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
-                throw RuntimeException("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}") // TODO Feilhåndtering
+                throw SQLException("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}") // TODO Feilhåndtering
             }
         }
 
         if (null !is T && columnValue == null) {
             logger.error { "Påkrevet kolonne '$columnLabel' er null" }
-            throw RuntimeException("Påkrevet kolonne '$columnLabel' er null") // TODO Feilhåndtering
+            throw SQLException("Påkrevet kolonne '$columnLabel' er null") // TODO Feilhåndtering
         }
 
         return transform(columnValue as T)

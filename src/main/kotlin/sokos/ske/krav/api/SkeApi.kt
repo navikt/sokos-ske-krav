@@ -15,6 +15,7 @@ import sokos.ske.krav.service.SkeService
 import kotlin.system.exitProcess
 
 
+@Suppress("LongMethod", "TooGenericExceptionCaught")
 fun Routing.skeApi(
     skeService: SkeService,
 ) {
