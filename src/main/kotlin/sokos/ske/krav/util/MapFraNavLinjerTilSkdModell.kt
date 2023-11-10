@@ -1,5 +1,6 @@
 package sokos.ske.krav.util
 
+import kotlinx.datetime.toKotlinLocalDate
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.AvskrivingRequest
 import sokos.ske.krav.domain.ske.requests.EndringRequest
@@ -29,12 +30,12 @@ fun lagOpprettKravRequest(krav: KravLinje): OpprettInnkrevingsoppdragRequest {
         renteBeloep = listOf(
             RenteBeloep(
                 beloep = beloepRente,
-                renterIlagtDato = krav.vedtakDato
+                renterIlagtDato = krav.vedtakDato.toKotlinLocalDate()
             )
         ).takeIf { beloepRente > 0L },
         oppdragsgiversSaksnummer = krav.saksNummer,
         oppdragsgiversKravIdentifikator = krav.saksNummer,
-        fastsettelsesDato = krav.vedtakDato,
+        fastsettelsesDato = krav.vedtakDato.toKotlinLocalDate(),
         tilleggsInformasjon = tilleggsinformasjonNav
     )
 }

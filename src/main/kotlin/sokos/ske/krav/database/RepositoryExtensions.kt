@@ -1,7 +1,5 @@
 package sokos.ske.krav.database
 
-import kotlinx.datetime.toJavaLocalDate
-import kotlinx.datetime.toJavaLocalDateTime
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.Parameter
 import sokos.ske.krav.database.models.FeilmeldingTable
@@ -15,9 +13,8 @@ import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Timestamp
-import java.sql.Types
 import java.time.LocalDate
-import java.util.UUID
+import java.time.LocalDateTime
 
 object RepositoryExtensions {
 
@@ -47,11 +44,8 @@ object RepositoryExtensions {
             Boolean::class -> getBoolean(columnLabel)
             BigDecimal::class -> getBigDecimal(columnLabel)
             LocalDate::class -> getDate(columnLabel)?.toLocalDate()
-            kotlinx.datetime.LocalDate::class -> getTimestamp(columnLabel)?.toLocalDateTime()!!.toKotlinxLocalDate()
-            kotlinx.datetime.LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()!!
-                .toKotlinxLocalDateTime()
+            LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
 
-            java.time.LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
             else -> {
                 logger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
                 throw RuntimeException("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}") // TODO Feilhåndtering
@@ -66,64 +60,33 @@ object RepositoryExtensions {
         return transform(columnValue as T)
     }
 
-    fun java.time.LocalDateTime.toKotlinxLocalDateTime(): kotlinx.datetime.LocalDateTime =
-        kotlinx.datetime.LocalDateTime(
-            this.year,
-            this.month,
-            this.dayOfMonth,
-            this.hour,
-            this.minute,
-            this.second,
-            this.nano
-        )
-
-    fun java.time.LocalDateTime.toKotlinxLocalDate(): kotlinx.datetime.LocalDate =
-        kotlinx.datetime.LocalDate(
-            this.year,
-            this.month,
-            this.dayOfMonth
-        )
 
     fun interface Parameter {
-        fun addToPreparedStatement(sp: PreparedStatement, index: Int)
+        fun addToPreparedStatement(statement: PreparedStatement, index: Int)
     }
 
-    fun param(value: Int?) = Parameter { sp: PreparedStatement, index: Int ->
-        value?.let {
-            sp.setInt(index, it)
-        } ?: sp.setNull(index, Types.INTEGER)
-    }
 
-    fun param(value: Long?) = Parameter { sp: PreparedStatement, index: Int ->
-        value?.let {
-            sp.setLong(index, value)
-        } ?: sp.setNull(index, Types.BIGINT)
-    }
+    fun param(value: String?) =
+        Parameter { statement: PreparedStatement, index: Int -> statement.setString(index, value) }
 
-    fun param(value: String?) = Parameter { sp: PreparedStatement, index: Int -> sp.setString(index, value) }
-    fun param(value: UUID) = Parameter { sp: PreparedStatement, index: Int -> sp.setObject(index, value) }
-    fun param(value: Boolean) = Parameter { sp: PreparedStatement, index: Int -> sp.setBoolean(index, value) }
-    fun param(value: BigDecimal) = Parameter { sp: PreparedStatement, index: Int -> sp.setBigDecimal(index, value) }
-    fun param(value: java.time.LocalDate) =
-        Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value)) }
+    fun param(value: BigDecimal) =
+        Parameter { statement: PreparedStatement, index: Int -> statement.setBigDecimal(index, value) }
 
-    fun param(value: kotlinx.datetime.LocalDate) =
-        Parameter { sp: PreparedStatement, index: Int -> sp.setDate(index, Date.valueOf(value.toJavaLocalDate())) }
+    fun param(value: LocalDate) =
+        Parameter { statement: PreparedStatement, index: Int -> statement.setDate(index, Date.valueOf(value)) }
 
-    fun param(value: java.time.LocalDateTime) =
-        Parameter { sp: PreparedStatement, index: Int -> sp.setTimestamp(index, Timestamp.valueOf(value)) }
-
-    fun param(value: kotlinx.datetime.LocalDateTime) =
-        Parameter { sp: PreparedStatement, index: Int ->
-            sp.setTimestamp(
+    fun param(value: LocalDateTime) =
+        Parameter { statement: PreparedStatement, index: Int ->
+            statement.setTimestamp(
                 index,
-                Timestamp.valueOf(value.toJavaLocalDateTime())
+                Timestamp.valueOf(value)
             )
         }
 
-    fun param(value: java.sql.Array) = Parameter { sp: PreparedStatement, index: Int -> sp.setArray(index, value) }
+
     fun PreparedStatement.withParameters(vararg parameters: Parameter?) = apply {
-        var index = 1; parameters.forEach { it?.addToPreparedStatement(this, index++) }
+        var index = 1
+        parameters.forEach { it?.addToPreparedStatement(this, index++) }
     }
 
     fun ResultSet.toKrav() = toList {
@@ -183,15 +146,9 @@ object RepositoryExtensions {
         )
     }
 
-    fun <T> ResultSet.toList(mapper: ResultSet.() -> T) = mutableListOf<T>().apply {
+    private fun <T> ResultSet.toList(mapper: ResultSet.() -> T) = mutableListOf<T>().apply {
         while (next()) {
             add(mapper())
         }
     }
-
-    fun String.toJavaLocaldateOrNull(): java.time.LocalDate? =
-        if (this.isNullOrEmpty()) null
-        else LocalDate.parse(this)
-
-
 }

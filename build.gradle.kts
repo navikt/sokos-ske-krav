@@ -4,6 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 plugins {
     kotlin("jvm") version "1.8.21"
     kotlin("plugin.serialization") version "1.8.21"
+    id("io.gitlab.arturbosch.detekt") version ("1.23.3")
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -109,8 +110,12 @@ sourceSets {
         }
     }
 }
-
-
+detekt {
+    toolVersion = "1.23.3"
+    config.setFrom(file("config/detekt/detekt.yml"))
+    buildUponDefaultConfig = true
+}
+tasks.getByPath("detekt").onlyIf { gradle.startParameter.taskNames.contains("detekt") }
 tasks {
     withType<ShadowJar>().configureEach {
         enabled = true

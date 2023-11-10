@@ -1,9 +1,8 @@
 package sokos.ske.krav.database.models
 
-import kotlinx.datetime.LocalDateTime
-import kotlinx.serialization.Serializable
+import java.time.LocalDateTime
 
-@Serializable
+
 data class FeilmeldingTable(
     val feilmeldingId: Long,
     val kravId: Long,
@@ -14,6 +13,5 @@ data class FeilmeldingTable(
     val navRequest: String,
     val skeResponse: String,
     val dato: LocalDateTime,
-) {
-}
+)
 
