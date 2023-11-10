@@ -73,18 +73,8 @@ class SkeService(
 
             var kravident = databaseService.hentSkeKravident(it.saksNummer)
             val request: String
-            if (kravident.isEmpty() && !it.erNyttKrav()) {
 
-                logger.error {
-                    """
-                        SAKSNUMMER: ${it.saksNummer}
-                        Hva F* gjør vi nå, dette skulle ikke skje
-                        linjenr: ${it.linjeNummer}: ${file.content[it.linjeNummer]}
-                    """
-                    //hva faen gjør vi nå??
-                    //Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
-                }
-            }
+            if (kravident.isEmpty() && !it.erNyttKrav()) handleHvaFGjorViNaa(it, file)
 
             val response = when {
                 it.erStopp() -> {
@@ -110,7 +100,7 @@ class SkeService(
                     skeClient.opprettKrav(request)
                 }
 
-                else -> throw Exception("SkeService: Feil linjetype/linjetype kan ikke identifiseres")
+                else -> throw IllegalArgumentException("SkeService: Feil linjetype/linjetype kan ikke identifiseres")
             }
 
             if (response.status.isSuccess() || response.status.value in (409 until 422)) {
@@ -133,6 +123,18 @@ class SkeService(
                 logger.error("FAILED REQUEST: ${it.saksNummer}, ERROR: ${response.bodyAsText()}")
             }
             it to response
+        }
+    }
+
+    private fun handleHvaFGjorViNaa(krav: KravLinje, file: FtpFil) {
+        logger.error {
+            """
+                        SAKSNUMMER: ${krav.saksNummer}
+                        Hva F* gjør vi nå, dette skulle ikke skje
+                        linjenr: ${krav.linjeNummer}: ${file.content[krav.linjeNummer]}
+                    """
+            //hva faen gjør vi nå??
+            //Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
         }
     }
 

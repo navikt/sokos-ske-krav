@@ -1,5 +1,4 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import io.gitlab.arturbosch.detekt.Detekt
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
@@ -119,9 +118,7 @@ detekt {
 }
 
 tasks {
-    withType<Detekt>().configureEach {
-        enabled = false
-    }
+
     withType<ShadowJar>().configureEach {
         enabled = true
         archiveFileName.set("sokos-ske-krav.jar")
