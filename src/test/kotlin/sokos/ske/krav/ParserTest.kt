@@ -5,9 +5,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import sokos.ske.krav.domain.nav.FirstLine
 import sokos.ske.krav.domain.nav.LastLine
-import sokos.ske.krav.util.parseFRtoDataDetailLineClass
-import sokos.ske.krav.util.parseFRtoDataFirsLineClass
-import sokos.ske.krav.util.parseFRtoDataLastLineClass
+import sokos.ske.krav.service.parseFRtoDataDetailLineClass
+import sokos.ske.krav.service.parseFRtoDataFirsLineClass
+import sokos.ske.krav.service.parseFRtoDataLastLineClass
 import java.io.File
 import java.net.URI
 

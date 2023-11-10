@@ -2,6 +2,9 @@ package sokos.ske.krav.util
 
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.TilleggsinformasjonNav
+import sokos.ske.krav.service.parseFRtoDataDetailLineClass
+import sokos.ske.krav.service.parseFRtoDataFirsLineClass
+import sokos.ske.krav.service.parseFRtoDataLastLineClass
 
 sealed class ValidationResult {
     data class Success(val kravLinjer: List<KravLinje>) : ValidationResult()
