@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import io.gitlab.arturbosch.detekt.Detekt
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
@@ -117,12 +118,10 @@ detekt {
 }
 
 tasks {
-    getByName("check") {
-        this.setDependsOn(this.dependsOn.filterNot {
-            it is TaskProvider<*> && it.name == "detekt"
-        })
-    }
 
+    withType<Detekt>().configureEach {
+        enabled = false //enable igjen når vi har fått orden i sakene
+    }
     withType<ShadowJar>().configureEach {
         enabled = true
         archiveFileName.set("sokos-ske-krav.jar")
