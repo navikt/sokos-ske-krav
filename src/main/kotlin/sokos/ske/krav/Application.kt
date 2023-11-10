@@ -16,51 +16,51 @@ import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
 
 fun main() {
-	val applicationState = ApplicationState()
-	val tokenProvider = MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), httpClient)
-	val skeClient = SkeClient(tokenProvider, PropertiesConfig.SKEConfig().skeRestUrl)
-	val skeService = SkeService(skeClient)
+    val applicationState = ApplicationState()
+    val tokenProvider = MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), httpClient)
+    val skeClient = SkeClient(tokenProvider, PropertiesConfig.SKEConfig().skeRestUrl)
+    val skeService = SkeService(skeClient)
 
-	applicationState.ready = true
-	HttpServer(applicationState, skeService).start()
+    applicationState.ready = true
+    HttpServer(applicationState, skeService).start()
 }
 
 class HttpServer(
-	private val applicationState: ApplicationState,
-	private val skeService: SkeService,
-	port: Int = 8080,
+    private val applicationState: ApplicationState,
+    private val skeService: SkeService,
+    port: Int = 8080,
 ) {
-	init {
-		Runtime.getRuntime().addShutdownHook(Thread {
-			applicationState.running = false
-			this.embeddedServer.stop(2, 20, TimeUnit.SECONDS)
-		})
-	}
+    init {
+        Runtime.getRuntime().addShutdownHook(Thread {
+            applicationState.running = false
+            this.embeddedServer.stop(gracePeriod = 2, timeout = 20, TimeUnit.SECONDS)
+        })
+    }
 
-	private val embeddedServer = embeddedServer(Netty, port) {
-		applicationModule(applicationState, skeService)
-	}
+    private val embeddedServer = embeddedServer(Netty, port) {
+        applicationModule(applicationState, skeService)
+    }
 
-	fun start() {
-		applicationState.running = true
-		embeddedServer.start(wait = true)
-	}
+    fun start() {
+        applicationState.running = true
+        embeddedServer.start(wait = true)
+    }
 }
 
 class ApplicationState {
-	var ready: Boolean by Delegates.observable(false) { _, _, newValue ->
-		if (!newValue) Metrics.appStateReadyFalse.increment()
-	}
+    var ready: Boolean by Delegates.observable(false) { _, _, newValue ->
+        if (!newValue) Metrics.appStateReadyFalse.increment()
+    }
 
-	var running: Boolean by Delegates.observable(false) { _, _, newValue ->
-		if (!newValue) Metrics.appStateRunningFalse.increment()
-	}
+    var running: Boolean by Delegates.observable(false) { _, _, newValue ->
+        if (!newValue) Metrics.appStateRunningFalse.increment()
+    }
 }
 
 private fun Application.applicationModule(
-	applicationState: ApplicationState,
-	skeService: SkeService,
+    applicationState: ApplicationState,
+    skeService: SkeService,
 ) {
-	commonConfig()
-	routingConfig(applicationState, skeService)
+    commonConfig()
+    routingConfig(applicationState, skeService)
 }

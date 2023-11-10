@@ -47,7 +47,6 @@ object Repository {
 
     fun Connection.lagreNyttKrav(
         kravidentSKE: String,
-        request: String,
         kravLinje: KravLinje,
         kravtype: String,
         responseStatus: HttpStatusCode

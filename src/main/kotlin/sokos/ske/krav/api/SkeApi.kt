@@ -45,21 +45,22 @@ fun Routing.skeApi(
         }
 
         get("error") {
-            (0..1000).forEach {
-                logger.error { "Nå er'e feil igjen, Error: $it" }
+            for (i in 0..1000) {
+                logger.error { "Nå er'e feil igjen, Error: $i" }
             }
             call.respond("Nå er det 1000 errors i loggen")
         }
 
         get("warn") {
-            (0..1000).forEach {
-                logger.warn { "Nå er'e feil igjen, Warning: $it" }
+
+            for (i in 0..1000) {
+                logger.warn { "Nå er'e feil igjen, Warning: $i" }
             }
             call.respond("Nå er det 1000 errors i loggen")
         }
 
         get("shutdown") {
-            exitProcess(10)
+            exitProcess(status = 10)
         }
 
 

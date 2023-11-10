@@ -34,13 +34,12 @@ class DatabaseService(
 
     fun lagreNyttKrav(
         skeKravident: String,
-        request: String,
         kravLinje: KravLinje,
         kravtype: String,
         responseStatus: HttpStatusCode
     ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.lagreNyttKrav(skeKravident, request, kravLinje, kravtype, responseStatus)
+            con.lagreNyttKrav(skeKravident, kravLinje, kravtype, responseStatus)
         }
     }
 

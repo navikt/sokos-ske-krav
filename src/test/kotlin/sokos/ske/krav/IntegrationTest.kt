@@ -178,7 +178,6 @@ private fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<Datab
     every {
         lagreNyttKrav(
             any<String>(),
-            any<String>(),
             any<KravLinje>(),
             any<String>(),
             any<HttpStatusCode>()
@@ -187,10 +186,9 @@ private fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<Datab
         ds.connection.useAndHandleErrors { con ->
             con.lagreNyttKrav(
                 arg<String>(0),
-                arg<String>(1),
-                arg<KravLinje>(2),
-                arg<String>(3),
-                arg<HttpStatusCode>(4)
+                arg<KravLinje>(1),
+                arg<String>(2),
+                arg<HttpStatusCode>(3)
             )
         }
     }

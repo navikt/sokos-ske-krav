@@ -57,7 +57,7 @@ class MaskinportenAccessTokenClient(
             .withAudience(maskinportenConfig.openIdConfiguration.issuer)
             .withIssuer(maskinportenConfig.clientId)
             .withClaim("scope", maskinportenConfig.scopes)
-            .withExpiresAt(Date(System.currentTimeMillis() + 120000))
+            .withExpiresAt(Date(Clock.System.now().plus(2, DateTimeUnit.MINUTE).toEpochMilliseconds()))
             .withIssuedAt(Date())
             .withKeyId(maskinportenConfig.rsaKey?.keyID)
             .sign(Algorithm.RSA256(null, maskinportenConfig.rsaKey?.toRSAPrivateKey()))

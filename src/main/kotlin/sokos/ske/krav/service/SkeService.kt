@@ -123,7 +123,6 @@ class SkeService(
 
                 databaseService.lagreNyttKrav(
                     kravident,
-                    request,
                     it,
                     when {
                         it.erStopp() -> STOPP_KRAV
