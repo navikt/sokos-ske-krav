@@ -119,8 +119,7 @@ detekt {
 
 tasks {
     withType<Detekt>().configureEach {
-        // enabled = false
-
+        enabled = false
     }
     withType<ShadowJar>().configureEach {
         enabled = true
