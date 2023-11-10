@@ -1,6 +1,5 @@
 package sokos.ske.krav.service
 
-import kotlinx.datetime.toKotlinLocalDate
 import sokos.ske.krav.domain.nav.FirstLine
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.nav.LastLine
@@ -81,7 +80,7 @@ fun parseFRtoDataDetailLineClass(line: String): KravLinje  = with(FixedRecordPar
 		linjeNummer = LINJENUMMER.parseInt(),
 		saksNummer = SAKSNUMMER.parseString(),
 		belop = BELOP.parseAmountAsDouble(),
-		vedtakDato = VEDTAKDATO.parseToJavaDate().toKotlinLocalDate(),
+		vedtakDato = VEDTAKDATO.parseToJavaDate(),
 		gjelderID = GJELDERID.parseString(),
 		periodeFOM = PERIODEFOM.parseString(),
 		periodeTOM = PERIODETOM.parseString(),
