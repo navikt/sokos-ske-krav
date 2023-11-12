@@ -9,11 +9,10 @@ import sokos.ske.krav.database.Repository.hentAlleKravData
 import sokos.ske.krav.database.Repository.koblesakRef
 import sokos.ske.krav.database.Repository.lagreNyKobling
 import sokos.ske.krav.database.Repository.lagreNyttKrav
-import sokos.ske.krav.service.parseFRtoDataDetailLineClass
+import sokos.ske.krav.util.FilParser
 import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.util.erEndring
 import sokos.ske.krav.util.erNyttKrav
-import sokos.ske.krav.util.lagOpprettKravRequest
 
 internal class RepositoryTest : FunSpec({
 
@@ -71,31 +70,29 @@ internal class RepositoryTest : FunSpec({
             "00300000035OB040000592759    0000008880020230526148201488362023030120230331FA FØ                     2023052680208020T ANNET                0000000000000000000000"
         val fl2 =
             "00300000035OB040000592759    0000009990020230526148201488362023030120230331FA FØ   OB040000592759    2023052680208020T ANNET                0000000000000000000000"
-        val detail1 = parseFRtoDataDetailLineClass(fl1)
-        val detail2 = parseFRtoDataDetailLineClass(fl2)
+        val krav1 = FilParser(listOf("", fl1, "")).parseKravLinjer().first()
+        val krav2 = FilParser(listOf("", fl2, "")).parseKravLinjer().first()
 
-        detail1.erNyttKrav() shouldBe true
-        detail2.erEndring() shouldBe true
+        krav1.erNyttKrav() shouldBe true
+        krav2.erEndring() shouldBe true
 
         val kobling1 = datasource.connection.use { con ->
-            con.lagreNyKobling(detail1.saksNummer)
+            con.lagreNyKobling(krav1.saksNummer)
         }
 
-        val detail1a = detail1.copy(saksNummer = kobling1)
-        val request1 = lagOpprettKravRequest(detail1a)
+        val krav1NyttSaksNummer = krav1.copy(saksNummer = kobling1)
 
-
-        println(detail1a.toString())
+        println(krav1NyttSaksNummer.toString())
         datasource.connection.use { con ->
             con.lagreNyttKrav(
                 "skeID-001",
-                detail1a,
+                krav1NyttSaksNummer,
                 "NYTT_KRAV",
                 HttpStatusCode.OK
             )
         }
         val hentetKobling = datasource.connection.use { con ->
-            con.koblesakRef(detail2.saksNummer)
+            con.koblesakRef(krav2.saksNummer)
         }
 
         println("kobling 1: $kobling1, hentet kobling: $hentetKobling")

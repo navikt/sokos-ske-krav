@@ -5,37 +5,35 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import sokos.ske.krav.domain.nav.FirstLine
 import sokos.ske.krav.domain.nav.LastLine
-import sokos.ske.krav.service.parseFRtoDataDetailLineClass
-import sokos.ske.krav.service.parseFRtoDataFirsLineClass
-import sokos.ske.krav.service.parseFRtoDataLastLineClass
+import sokos.ske.krav.util.FilParser
 import java.io.File
 import java.net.URI
 
 internal class ParserTest : FunSpec({
     val liste = readFileFromFS("fil1.txt".asResource())
+    val parser = FilParser(liste)
 
     test("lesInnStartLinjeTilclass") {
         val expected = FirstLine(
             transferDate = "20230526221340",
             sender = "OB04"
         )
-        val startlinje: FirstLine = parseFRtoDataFirsLineClass(liste.first())
+        val startlinje: FirstLine = parser.parseForsteLinje()
         startlinje.toString() shouldBe expected.toString()
     }
 
     test("lesInnSluttLineTilClass") {
-        val sluttlinje: LastLine = parseFRtoDataLastLineClass(liste.last()).also { println(liste.last()) }
+        val sluttlinje: LastLine = parser.parseSisteLinje()
         withClue({ "Antall transaksjonslinjer skal være 101: ${sluttlinje.numTransactionLines}" }) {
             sluttlinje.numTransactionLines shouldBe 101
         }
     }
 
     test("sjekkAtSumStemmerMedSisteLinje") {
-        val sumBelopOgRenter = liste.subList(1, liste.lastIndex).sumOf {
-            val parsed = parseFRtoDataDetailLineClass(it)
-            parsed.belop + parsed.belopRente
+        val sumBelopOgRenter = parser.parseKravLinjer().sumOf {
+            it.belop + it.belopRente
         }
-        parseFRtoDataLastLineClass(liste.last()).sumAllTransactionLines shouldBe sumBelopOgRenter
+        parser.parseSisteLinje().sumAllTransactionLines shouldBe sumBelopOgRenter
     }
 })
 

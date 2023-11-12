@@ -4,6 +4,7 @@ import com.lemonappdev.konsist.api.Konsist
 import com.lemonappdev.konsist.api.architecture.KoArchitectureCreator.assertArchitecture
 import com.lemonappdev.konsist.api.architecture.Layer
 import com.lemonappdev.konsist.api.ext.list.withAllAnnotationsOf
+import com.lemonappdev.konsist.api.ext.list.withName
 import com.lemonappdev.konsist.api.ext.list.withNameContaining
 import com.lemonappdev.konsist.api.ext.list.withNameEndingWith
 import com.lemonappdev.konsist.api.verify.assertFalse
@@ -56,6 +57,11 @@ internal class KonsistTests : FunSpec({
             .assertTrue { it.resideInPackage("sokos.ske.krav.service") }
 
         koscope
+            .packages
+            .withName("service")
+            .assertTrue { it.containingFile.hasNameEndingWith("Service") }
+
+        koscope
             .classes()
             .withNameContaining("Repository", "Table")
             .assertTrue { it.resideInPackage("sokos.ske.krav.database..") }
@@ -66,14 +72,28 @@ internal class KonsistTests : FunSpec({
             .assertTrue { it.resideInPackage("sokos.ske.krav.domain.ske.requests") }
 
         koscope
+            .packages
+            .withName("request")
+            .assertTrue { it.containingFile.hasNameEndingWith("Request") }
+        koscope
             .classes()
             .withNameEndingWith("Response")
             .assertTrue { it.resideInPackage("sokos.ske.krav.domain.ske.responses") }
 
         koscope
+            .packages
+            .withName("response")
+            .assertTrue { it.containingFile.hasNameEndingWith("Response") }
+
+        koscope
             .classes()
             .withNameEndingWith("Config")
             .assertTrue { it.resideInPackage("sokos.ske.krav.config") }
+
+        koscope
+            .packages
+            .withName("config")
+            .assertTrue { it.containingFile.hasNameEndingWith("Config") }
 
     }
 
