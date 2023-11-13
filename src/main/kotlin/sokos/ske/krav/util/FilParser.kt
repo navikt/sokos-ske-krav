@@ -4,6 +4,28 @@ import mu.KotlinLogging
 import sokos.ske.krav.domain.nav.FirstLine
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.nav.LastLine
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.ARSAK_KODE_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.BELOP_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.BELOP_RENTE_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.ENHET_BEHANDLENDE_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.ENHET_BOSTED_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.FAGSYSTEM_ID_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.FREMTIDIG_YTELSE_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.GJELDER_ID_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.HJEMMEL_KODE_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.LINJE_NUMMER_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.PERIODE_FOM_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.PERIODE_TOM_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.REFERANSE_GAMMEL_SAK_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.SAKS_NUMMER_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.STONADS_KODE_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.TRANSAKSJONS_DATO_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.UTBETAL_DATO_POS
+import sokos.ske.krav.util.FilParser.KravLinjeFeltPosisjoner.VEDTAK_DATO_POS
+import sokos.ske.krav.util.FilParser.SisteLinjeFeltPosisjoner.ANTALL_LINJER_POS
+import sokos.ske.krav.util.FilParser.SisteLinjeFeltPosisjoner.OVERFORINGS_DATO_POS
+import sokos.ske.krav.util.FilParser.SisteLinjeFeltPosisjoner.SENDER_POS
+import sokos.ske.krav.util.FilParser.SisteLinjeFeltPosisjoner.SUM_ALLE_LINJER_POS
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -15,71 +37,71 @@ class FilParser(val content: List<String>) {
 
     private fun forsteLinjeParser(linje: String): FirstLine =
         FirstLine(
-            ForsteLinjeFeltPosisjoner.overforingsDato.parseString(linje),
-            ForsteLinjeFeltPosisjoner.sender.parseString(linje),
+            transferDate = OVERFORINGS_DATO_POS.parseString(linje),
+            sender = SENDER_POS.parseString(linje),
         )
 
     private fun sisteLinjeParser(linje: String): LastLine =
         LastLine(
-            SisteLinjeFeltPosisjoner.overforingsDato.parseString(linje),
-            SisteLinjeFeltPosisjoner.sender.parseString(linje),
-            SisteLinjeFeltPosisjoner.antallLinjer.parseInt(linje),
-            SisteLinjeFeltPosisjoner.sumAlleLinjer.parseDouble(linje),
+            transferDate = OVERFORINGS_DATO_POS.parseString(linje),
+            sender = SENDER_POS.parseString(linje),
+            numTransactionLines = ANTALL_LINJER_POS.parseInt(linje),
+            sumAllTransactionLines = SUM_ALLE_LINJER_POS.parseDouble(linje),
         )
 
     private fun kravLinjeParser(linje: String) = KravLinje(
-        KravLinjeFeltPosisjoner.linjeNummer.parseInt(linje),
-        KravLinjeFeltPosisjoner.saksNummer.parseString(linje),
-        KravLinjeFeltPosisjoner.belop.parseDouble(linje),
-        KravLinjeFeltPosisjoner.vedtakDato.parseDate(linje),
-        KravLinjeFeltPosisjoner.gjelderID.parseString(linje),
-        KravLinjeFeltPosisjoner.periodeFom.parseString(linje),
-        KravLinjeFeltPosisjoner.periodeTom.parseString(linje),
-        KravLinjeFeltPosisjoner.stonadsKode.parseString(linje),
-        KravLinjeFeltPosisjoner.referanseGammelSak.parseString(linje),
-        KravLinjeFeltPosisjoner.transaksjonsDato.parseString(linje),
-        KravLinjeFeltPosisjoner.enhetBosted.parseString(linje),
-        KravLinjeFeltPosisjoner.enhetBehandlende.parseString(linje),
-        KravLinjeFeltPosisjoner.hjemmelKode.parseString(linje),
-        KravLinjeFeltPosisjoner.arsakKode.parseString(linje),
-        KravLinjeFeltPosisjoner.belopRente.parseDouble(linje),
-        KravLinjeFeltPosisjoner.fremtidigYtelse.parseDouble(linje),
-        KravLinjeFeltPosisjoner.utbetalDato.parseString(linje),
-        KravLinjeFeltPosisjoner.fagsystemID.parseString(linje),
+        linjeNummer = LINJE_NUMMER_POS.parseInt(linje),
+        saksNummer = SAKS_NUMMER_POS.parseString(linje),
+        BELOP_POS.parseDouble(linje),
+        VEDTAK_DATO_POS.parseDate(linje),
+        GJELDER_ID_POS.parseString(linje),
+        PERIODE_FOM_POS.parseString(linje),
+        PERIODE_TOM_POS.parseString(linje),
+        STONADS_KODE_POS.parseString(linje),
+        REFERANSE_GAMMEL_SAK_POS.parseString(linje),
+        TRANSAKSJONS_DATO_POS.parseString(linje),
+        ENHET_BOSTED_POS.parseString(linje),
+        ENHET_BEHANDLENDE_POS.parseString(linje),
+        HJEMMEL_KODE_POS.parseString(linje),
+        ARSAK_KODE_POS.parseString(linje),
+        BELOP_RENTE_POS.parseDouble(linje),
+        FREMTIDIG_YTELSE_POS.parseDouble(linje),
+        UTBETAL_DATO_POS.parseString(linje),
+        FAGSYSTEM_ID_POS.parseString(linje),
     )
 
     private object SisteLinjeFeltPosisjoner {
-        val overforingsDato = LinjeFeltPosisjon(start = 4, end = 18)
-        val sender = LinjeFeltPosisjon(start = overforingsDato.end, end = 27)
-        val antallLinjer = LinjeFeltPosisjon(start = sender.end, end = 35)
-        val sumAlleLinjer = LinjeFeltPosisjon(start = antallLinjer.end, end = 50)
+        val OVERFORINGS_DATO_POS = LinjeFeltPosisjon(start = 4, end = 18)
+        val SENDER_POS = LinjeFeltPosisjon(start = 18, end = 27)
+        val ANTALL_LINJER_POS = LinjeFeltPosisjon(start = 27, end = 35)
+        val SUM_ALLE_LINJER_POS = LinjeFeltPosisjon(start = 35, end = 50)
     }
 
     private object ForsteLinjeFeltPosisjoner {
-        val overforingsDato = LinjeFeltPosisjon(start = 4, end = 18)
-        val sender = LinjeFeltPosisjon(start = overforingsDato.end, end = 27)
+        val OVERFORINGS_DATO_POS = LinjeFeltPosisjon(start = 4, end = 18)
+        val SENDER_POS = LinjeFeltPosisjon(start = 18, end = 27)
     }
 
     private object KravLinjeFeltPosisjoner {
-        val linjeType = LinjeFeltPosisjon(start = 0, end = 4)
-        val linjeNummer = LinjeFeltPosisjon(start = linjeType.end, end = 11)
-        val saksNummer = LinjeFeltPosisjon(start = linjeNummer.end, end = 29)
-        val belop = LinjeFeltPosisjon(start = saksNummer.end, end = 40)
-        val vedtakDato = LinjeFeltPosisjon(start = belop.end, end = 48)
-        val gjelderID = LinjeFeltPosisjon(start = vedtakDato.end, end = 59)
-        val periodeFom = LinjeFeltPosisjon(start = gjelderID.end, end = 67)
-        val periodeTom = LinjeFeltPosisjon(start = periodeFom.end, end = 75)
-        val stonadsKode = LinjeFeltPosisjon(start = periodeTom.end, end = 83)
-        val referanseGammelSak = LinjeFeltPosisjon(start = stonadsKode.end, end = 101)
-        val transaksjonsDato = LinjeFeltPosisjon(start = referanseGammelSak.end, end = 109)
-        val enhetBosted = LinjeFeltPosisjon(start = transaksjonsDato.end, end = 113)
-        val enhetBehandlende = LinjeFeltPosisjon(start = enhetBosted.end, end = 117)
-        val hjemmelKode = LinjeFeltPosisjon(start = enhetBehandlende.end, end = 119)
-        val arsakKode = LinjeFeltPosisjon(start = hjemmelKode.end, end = 131)
-        val belopRente = LinjeFeltPosisjon(start = arsakKode.end, end = 151)
-        val fremtidigYtelse = LinjeFeltPosisjon(start = belopRente.end, end = 162)
-        val utbetalDato = LinjeFeltPosisjon(start = fremtidigYtelse.end, end = 170)
-        val fagsystemID = LinjeFeltPosisjon(start = utbetalDato.end, end = 200)
+        val LINJE_TYPE_POS = LinjeFeltPosisjon(start = 0, end = 4)
+        val LINJE_NUMMER_POS = LinjeFeltPosisjon(start = 4, end = 11)
+        val SAKS_NUMMER_POS = LinjeFeltPosisjon(start = 11, end = 29)
+        val BELOP_POS = LinjeFeltPosisjon(start = 29, end = 40)
+        val VEDTAK_DATO_POS = LinjeFeltPosisjon(start = 40, end = 48)
+        val GJELDER_ID_POS = LinjeFeltPosisjon(start = 48, end = 59)
+        val PERIODE_FOM_POS = LinjeFeltPosisjon(start = 59, end = 67)
+        val PERIODE_TOM_POS = LinjeFeltPosisjon(start = 67, end = 75)
+        val STONADS_KODE_POS = LinjeFeltPosisjon(start = 75, end = 83)
+        val REFERANSE_GAMMEL_SAK_POS = LinjeFeltPosisjon(start = 83, end = 101)
+        val TRANSAKSJONS_DATO_POS = LinjeFeltPosisjon(start = 101, end = 109)
+        val ENHET_BOSTED_POS = LinjeFeltPosisjon(start = 109, end = 113)
+        val ENHET_BEHANDLENDE_POS = LinjeFeltPosisjon(start = 113, end = 117)
+        val HJEMMEL_KODE_POS = LinjeFeltPosisjon(start = 117, end = 119)
+        val ARSAK_KODE_POS = LinjeFeltPosisjon(start = 119, end = 131)
+        val BELOP_RENTE_POS = LinjeFeltPosisjon(start = 131, end = 151)
+        val FREMTIDIG_YTELSE_POS = LinjeFeltPosisjon(start = 151, end = 162)
+        val UTBETAL_DATO_POS = LinjeFeltPosisjon(start = 162, end = 170)
+        val FAGSYSTEM_ID_POS = LinjeFeltPosisjon(start = 170, end = 200)
     }
 
     private data class LinjeFeltPosisjon(val start: Int, val end: Int) {
