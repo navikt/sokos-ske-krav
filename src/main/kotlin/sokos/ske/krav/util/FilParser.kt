@@ -1,5 +1,6 @@
 package sokos.ske.krav.util
 
+import mu.KotlinLogging
 import sokos.ske.krav.domain.nav.FirstLine
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.nav.LastLine
@@ -82,10 +83,14 @@ class FilParser(val content: List<String>) {
     }
 
     private data class LinjeFeltPosisjon(val start: Int, val end: Int) {
+        private val logger = KotlinLogging.logger {}
         fun parseString(line: String): String {
-            if (start > end || start > line.length) return ""
-
-            return if (end > line.length) line.substring(start).trim()
+            if (start > end) {
+                logger.error { "Feil i fil! Startposisjon $start er større enn sluttposisjon $end" }
+                return ""
+            }
+            return if (start > line.length) ""
+            else if (end > line.length) line.substring(start).trim()
             else line.substring(start, end).trim()
         }
 

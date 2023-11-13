@@ -1,6 +1,5 @@
 package sokos.ske.krav.util
 
-@Suppress("LongMethod")
 fun getFnrListe() =
     listOf(
         "06897998821",

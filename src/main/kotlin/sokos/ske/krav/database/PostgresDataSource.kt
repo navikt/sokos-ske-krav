@@ -37,7 +37,6 @@ class PostgresDataSource(private val postgresConfig: PropertiesConfig.PostgresCo
             role
         )
 
-    @Suppress("MagicNumber")
     private fun hikariConfig() = HikariConfig().apply {
         minimumIdle = 1
         maxLifetime = 26000

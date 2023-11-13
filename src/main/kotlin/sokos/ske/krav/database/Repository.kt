@@ -17,12 +17,10 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-
 const val KRAV_SENDT = "KRAV_SENDT"
 const val KONFLIKT_409 = "KONFLIKT_409"
 const val VALIDERINGSFEIL_422 = "VALIDERINGSFEIL_422"
 
-@Suppress("LongMethod")
 object Repository {
 
     fun Connection.hentAlleKravData(): List<KravTable> {
@@ -36,7 +34,6 @@ object Repository {
                 param(MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value)
             ).executeQuery().toKrav()
     }
-
 
     fun Connection.hentAlleKravMedValideringsfeil(): List<KravTable> {
         return prepareStatement("""select * from krav where status = ?""")
@@ -112,7 +109,6 @@ object Repository {
         ).execute()
         commit()
     }
-
 
     fun Connection.hentSkeKravIdent(navref: String): String {
         val rs = prepareStatement(

@@ -14,8 +14,6 @@ import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.service.SkeService
 import kotlin.system.exitProcess
 
-
-@Suppress("LongMethod", "TooGenericExceptionCaught")
 fun Routing.skeApi(
     skeService: SkeService,
 ) {
@@ -77,7 +75,7 @@ fun Routing.skeApi(
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "Sorry feilet: ${e.message}, \n" +
-                            "Stacktrace= ${e.stackTraceToString()}"
+                        "Stacktrace= ${e.stackTraceToString()}"
                 )
             }
         }
@@ -92,7 +90,7 @@ fun Routing.skeApi(
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "APISorry feilet: ${e.message}, \n" +
-                            "Stacktrace= ${e.stackTraceToString()}"
+                        "Stacktrace= ${e.stackTraceToString()}"
                 )
             }
         }
@@ -107,7 +105,7 @@ fun Routing.skeApi(
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "Sorry validering feilet: ${e.message}, \n" +
-                            "Stacktrace= ${e.stackTraceToString()}"
+                        "Stacktrace= ${e.stackTraceToString()}"
                 )
             }
         }

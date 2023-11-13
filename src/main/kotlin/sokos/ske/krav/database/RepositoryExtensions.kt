@@ -16,8 +16,6 @@ import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-
-@Suppress("TooManyFunctions")
 object RepositoryExtensions {
 
     val logger = KotlinLogging.logger { }
@@ -62,11 +60,9 @@ object RepositoryExtensions {
         return transform(columnValue as T)
     }
 
-
     fun interface Parameter {
         fun addToPreparedStatement(statement: PreparedStatement, index: Int)
     }
-
 
     fun param(value: String?) =
         Parameter { statement: PreparedStatement, index: Int -> statement.setString(index, value) }
@@ -84,7 +80,6 @@ object RepositoryExtensions {
                 Timestamp.valueOf(value)
             )
         }
-
 
     fun PreparedStatement.withParameters(vararg parameters: Parameter?) = apply {
         var index = 1
