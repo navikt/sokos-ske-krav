@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:avstemmingsdata xmlns:ns2="http://nav.no/virksomhet/tjenester/avstemming/meldinger/v1">
+    <aksjon>
+        <aksjonType>START</aksjonType>
+        <kildeType>AVLEV</kildeType>
+        <avstemmingType>GRSN</avstemmingType>
+        <avleverendeKomponentKode>VLFP</avleverendeKomponentKode>
+        <mottakendeKomponentKode>OS</mottakendeKomponentKode>
+        <underkomponentKode>SVP</underkomponentKode>
+        <nokkelFom>2023-11-14-07.40.05.739</nokkelFom>
+        <nokkelTom>2023-11-14-16.09.18.655</nokkelTom>
+        <tidspunktAvstemmingTom>2023-11-14-16.09.18.655</tidspunktAvstemmingTom>
+        <avleverendeAvstemmingId>0I65RGTGRUetL2fotXHVhQ</avleverendeAvstemmingId>
+        <brukerId>VL</brukerId>
+    </aksjon>
+</ns2:avstemmingsdata>
+
+
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:avstemmingsdata xmlns:ns2="http://nav.no/virksomhet/tjenester/avstemming/meldinger/v1">
+<aksjon>
+    <aksjonType>DATA</aksjonType>
+    <kildeType>AVLEV</kildeType>
+    <avstemmingType>GRSN</avstemmingType>
+    <avleverendeKomponentKode>VLFP</avleverendeKomponentKode>
+    <mottakendeKomponentKode>OS</mottakendeKomponentKode>
+    <underkomponentKode>SVP</underkomponentKode>
+    <nokkelFom>2023-11-14-07.40.05.739</nokkelFom>
+    <nokkelTom>2023-11-14-16.09.18.655</nokkelTom>
+    <tidspunktAvstemmingTom>2023-11-14-16.09.18.655</tidspunktAvstemmingTom>
+    <avleverendeAvstemmingId>0I65RGTGRUetL2fotXHVhQ</avleverendeAvstemmingId>
+    <brukerId>VL</brukerId>
+</aksjon>
+<total>
+    <totalAntall>28</totalAntall>
+    <totalBelop>152870</totalBelop>
+    <fortegn>T</fortegn>
+</total>
+<periode>
+    <datoAvstemtFom>2023111407</datoAvstemtFom>
+    <datoAvstemtTom>2023111416</datoAvstemtTom>
+</periode>
+<grunnlag>
+    <godkjentAntall>28</godkjentAntall>
+    <godkjentBelop>152870</godkjentBelop>
+    <godkjentFortegn>T</godkjentFortegn>
+    <varselAntall>0</varselAntall>
+    <varselBelop>0</varselBelop>
+    <varselFortegn>T</varselFortegn>
+    <avvistAntall>0</avvistAntall>
+    <avvistBelop>0</avvistBelop>
+    <avvistFortegn>T</avvistFortegn>
+    <manglerAntall>0</manglerAntall>
+    <manglerBelop>0</manglerBelop>
+    <manglerFortegn>T</manglerFortegn>
+</grunnlag></ns2:avstemmingsdata>
+
+
+        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:avstemmingsdata xmlns:ns2="http://nav.no/virksomhet/tjenester/avstemming/meldinger/v1">
+<aksjon>
+    <aksjonType>AVSL</aksjonType>
+    <kildeType>AVLEV</kildeType>
+    <avstemmingType>GRSN</avstemmingType>
+    <avleverendeKomponentKode>VLFP</avleverendeKomponentKode>
+    <mottakendeKomponentKode>OS</mottakendeKomponentKode>
+    <underkomponentKode>SVP</underkomponentKode>
+    <nokkelFom>2023-11-14-07.40.05.739</nokkelFom>
+    <nokkelTom>2023-11-14-16.09.18.655</nokkelTom>
+    <tidspunktAvstemmingTom>2023-11-14-16.09.18.655</tidspunktAvstemmingTom>
+    <avleverendeAvstemmingId>0I65RGTGRUetL2fotXHVhQ</avleverendeAvstemmingId>
+    <brukerId>VL</brukerId>
+</aksjon>
+</ns2:avstemmingsdata>
