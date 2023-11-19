@@ -2,12 +2,10 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
-    kotlin("jvm") version "1.8.21"
+    kotlin("jvm") version "1.9.20"
     kotlin("plugin.serialization") version "1.8.21"
-    id("io.gitlab.arturbosch.detekt") version ("1.23.3")
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
-
 
 group = "no.nav.sokos"
 
@@ -27,16 +25,15 @@ val natpryceVersion = "1.6.10.0"
 val kotlinxSerializationVersion = "1.6.0"
 val kotlinxDatetimeVersion = "0.4.1"
 val prometheusVersion = "1.11.5"
-//Test
+// Test
 val kotestVersion = "5.8.0"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.13.8"
 val commonsVersion = "3.10.0"
 val testContainerVersion = "1.19.1"
 val mockFtpServerVersion = "3.1.0"
-val konsistVersion = "0.13.0"
 
-//Logging
+// Logging
 val janinoVersion = "3.1.10"
 val kotlinLoggingVersion = "3.0.5"
 val logbackVersion = "1.4.11"
@@ -67,6 +64,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:$kotlinxDatetimeVersion")
+    implementation("javax.xml.bind:jaxb-api:2.3.1")
 
     // FTP
     implementation("com.github.mwiede:jsch:$jschVersion")
@@ -77,7 +75,7 @@ dependencies {
     // Flyway
     implementation("org.flywaydb:flyway-core:$flywayVersion")
 
-    //metrics
+    // metrics
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
     implementation("io.micrometer:micrometer-registry-prometheus:$prometheusVersion")
 
@@ -96,12 +94,11 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:$testContainerVersion")
     testImplementation("commons-net:commons-net:$commonsVersion")
     testImplementation("org.mockftpserver:MockFtpServer:$mockFtpServerVersion")
-    testImplementation("com.lemonappdev:konsist:$konsistVersion")
 }
 
 kotlin {
     jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 sourceSets {
@@ -110,11 +107,6 @@ sourceSets {
             srcDirs("${layout.buildDirectory.get()}/generated/src/main/kotlin")
         }
     }
-}
-detekt {
-    toolVersion = "1.23.3"
-    config.setFrom(file("config/detekt/detekt.yml"))
-    buildUponDefaultConfig = true
 }
 
 tasks {
@@ -130,7 +122,6 @@ tasks {
     ("jar") {
         enabled = false
     }
-
 
     withType<Test>().configureEach {
         useJUnitPlatform()
