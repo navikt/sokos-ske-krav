@@ -23,6 +23,10 @@ import sokos.ske.krav.domain.ske.requests.TilleggsinformasjonNav.StoenadsType
 object Metrics {
     val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
+    fun typeKravSendt(kode: String): Counter = Counter.builder("krav.type")
+        .tag("Kravtype", kode)
+        .register(registry)
+
     val appStateRunningFalse: Counter = Counter.builder("app.state.running.false")
         .description("App state running changed to false.")
         .register(registry)
@@ -43,12 +47,12 @@ object Metrics {
         Timer.builder("api.kall")
             .description("Api call timer")
             .tags(
-                "url", url,
-                "stonadstype", stonad.value,
+                "url",
+                url,
+                "stonadstype",
+                stonad.value,
             ).register(registry)
     }
-
-
 }
 
 fun Application.installMetrics() {
@@ -58,7 +62,7 @@ fun Application.installMetrics() {
             JvmMemoryMetrics(),
             JvmGcMetrics(),
             JvmThreadMetrics(),
-            ProcessorMetrics()
+            ProcessorMetrics(),
         )
     }
     routing {

@@ -14,6 +14,7 @@ import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics.antallKravLest
 import sokos.ske.krav.metrics.Metrics.antallKravSendt
+import sokos.ske.krav.metrics.Metrics.typeKravSendt
 import sokos.ske.krav.util.erEndring
 import sokos.ske.krav.util.erNyttKrav
 import sokos.ske.krav.util.erStopp
@@ -30,7 +31,7 @@ const val STOPP_KRAV = "STOPP_KRAV"
 class SkeService(
     private val skeClient: SkeClient,
     private val databaseService: DatabaseService = DatabaseService(),
-    private val ftpService: FtpService = FtpService()
+    private val ftpService: FtpService = FtpService(),
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -59,14 +60,15 @@ class SkeService(
     private suspend fun sendAlleLinjer(
         file: FtpFil,
         fnrIter: ListIterator<String>,
-        fnrListe: List<String>
+        fnrListe: List<String>,
     ): List<Pair<KravLinje, HttpResponse>> {
         var fnrIter1 = fnrIter
         return file.kravLinjer.map {
             antallKravLest.increment()
 
-            val substfnr = if (fnrIter1.hasNext()) fnrIter1.next()
-            else {
+            val substfnr = if (fnrIter1.hasNext()) {
+                fnrIter1.next()
+            } else {
                 fnrIter1 = fnrListe.listIterator(0)
                 fnrIter1.next()
             }
@@ -93,9 +95,9 @@ class SkeService(
                             lagOpprettKravRequest(
                                 it.copy(
                                     saksNummer = databaseService.lagreNyKobling(it.saksNummer),
-                                    gjelderID = substfnr
-                                )
-                            )
+                                    gjelderID = substfnr,
+                                ),
+                            ),
                         )
                     skeClient.opprettKrav(request)
                 }
@@ -105,9 +107,11 @@ class SkeService(
 
             if (response.status.isSuccess() || response.status.value in (409 until 422)) {
                 antallKravSendt.increment()
-                if (it.erNyttKrav())
+                typeKravSendt(it.stonadsKode).increment()
+                if (it.erNyttKrav()) {
                     kravident =
                         Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText()).kravidentifikator
+                }
 
                 databaseService.lagreNyttKrav(
                     kravident,
@@ -117,7 +121,7 @@ class SkeService(
                         it.erEndring() -> ENDRE_KRAV
                         else -> NYTT_KRAV
                     },
-                    response.status
+                    response.status,
                 )
             } else {
                 logger.error("FAILED REQUEST: ${it.saksNummer}, ERROR: ${response.bodyAsText()}")
@@ -133,8 +137,8 @@ class SkeService(
                         Hva F* gjør vi nå, dette skulle ikke skje
                         linjenr: ${krav.linjeNummer}: ${file.content[krav.linjeNummer]}
                     """
-            //hva faen gjør vi nå??
-            //Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
+            // hva faen gjør vi nå??
+            // Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
         }
     }
 
@@ -185,4 +189,3 @@ class SkeService(
         return resultat
     }
 }
-
