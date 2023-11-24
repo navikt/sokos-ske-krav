@@ -2,7 +2,9 @@ package sokos.ske.krav.service
 
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -19,7 +21,8 @@ import sokos.ske.krav.util.erEndring
 import sokos.ske.krav.util.erNyttKrav
 import sokos.ske.krav.util.erStopp
 import sokos.ske.krav.util.getFnrListe
-import sokos.ske.krav.util.lagEndreKravRequest
+import sokos.ske.krav.util.lagEndreHovedStolRequest
+import sokos.ske.krav.util.lagEndreRenteRequest
 import sokos.ske.krav.util.lagOpprettKravRequest
 import sokos.ske.krav.util.lagStoppKravRequest
 import java.util.concurrent.atomic.AtomicInteger
@@ -27,6 +30,12 @@ import java.util.concurrent.atomic.AtomicInteger
 const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRE_KRAV = "ENDRE_KRAV"
 const val STOPP_KRAV = "STOPP_KRAV"
+
+@OptIn(ExperimentalSerializationApi::class)
+val builder = Json {
+    encodeDefaults = true
+    explicitNulls = false
+}
 
 class SkeService(
     private val skeClient: SkeClient,
@@ -37,6 +46,7 @@ class SkeService(
 
     fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
     fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles()
+    private inline fun <reified T> toJson(body: T) = builder.encodeToString(body)
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
         logger.info { "Starter skeService SendNyeFtpFilertilSkatt." }
         val files = ftpService.getValidatedFiles()
@@ -75,23 +85,26 @@ class SkeService(
 
             var kravident = databaseService.hentSkeKravident(it.saksNummer)
             val request: String
-
             if (kravident.isEmpty() && !it.erNyttKrav()) handleHvaFGjorViNaa(it, file)
 
             val response = when {
                 it.erStopp() -> {
-                    request = Json.encodeToString(lagStoppKravRequest(kravident))
+                    request = toJson(lagStoppKravRequest(kravident))
                     skeClient.stoppKrav(request)
                 }
 
                 it.erEndring() -> {
-                    request = Json.encodeToString(lagEndreKravRequest(it, kravident))
-                    skeClient.endreKrav(request)
+                    val endreRenter = toJson(lagEndreRenteRequest(it))
+                    val endreHovedstol = toJson(lagEndreHovedStolRequest(it))
+
+                    // TODO: her returnerer vi bare endreHovedstol request
+                    skeClient.endreRenter(endreRenter, kravident)
+                    skeClient.endreHovedstol(endreHovedstol, kravident)
                 }
 
                 it.erNyttKrav() -> {
                     request =
-                        Json.encodeToString(
+                        toJson(
                             lagOpprettKravRequest(
                                 it.copy(
                                     saksNummer = databaseService.lagreNyKobling(it.saksNummer),
@@ -105,7 +118,7 @@ class SkeService(
                 else -> throw IllegalArgumentException("SkeService: Feil linjetype/linjetype kan ikke identifiseres")
             }
 
-            if (response.status.isSuccess() || response.status.value in (409 until 422)) {
+            if (response.status.isSuccess() || response.status.value in (HttpStatusCode.Conflict.value until HttpStatusCode.UnprocessableEntity.value)) {
                 antallKravSendt.increment()
                 typeKravSendt(it.stonadsKode).increment()
                 if (it.erNyttKrav()) {

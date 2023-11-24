@@ -33,17 +33,32 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
     fun getClient(statusCode: HttpStatusCode = HttpStatusCode.OK) = HttpClient(MockEngine) {
         engine {
             addHandler { request ->
+
                 when (request.url.encodedPath) {
                     "/innkrevingsoppdrag/1234/mottaksstatus" -> {
                         respond(mottattResponse, statusCode, responseHeaders)
                     }
-
-                    "/innkrevingsoppdrag//mottaksstatus" -> { // fordi stopp ikke er implementert
+                    "/innkrevingsoppdrag//mottaksstatus" -> { // hva f gjør vi nå
                         respond(mottattResponse, statusCode, responseHeaders)
                     }
 
                     "/innkrevingsoppdrag" -> {
                         respond(opprettResponse, statusCode, responseHeaders)
+                    }
+
+                    "/innkrevingsoppdrag/1234/renter" -> {
+                        respond("", statusCode, responseHeaders)
+                    }
+
+                    "/innkrevingsoppdrag//renter" -> { // hva f fjør vi nå
+                        respond("", statusCode, responseHeaders)
+                    }
+
+                    "/innkrevingsoppdrag//hovedstol" -> { // hva f fjør vi nå
+                        respond("", statusCode, responseHeaders)
+                    }
+                    "/innkrevingsoppdrag/1234/hovedstol" -> {
+                        respond("", statusCode, responseHeaders)
                     }
 
                     "/innkrevingsoppdrag/avskriving" -> {

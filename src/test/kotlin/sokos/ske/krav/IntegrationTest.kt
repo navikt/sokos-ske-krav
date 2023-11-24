@@ -35,11 +35,10 @@ import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.LocalDate
 
-
 internal class IntegrationTest : FunSpec({
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
     val testContainer = TestContainer("IntegrationTest-TestSendNyeKrav")
-    val container = testContainer.getContainer(reusable = true, loadFlyway = true)
+    val container = testContainer.getContainer(listOf("KravMedEndringer.sql"), reusable = true, loadFlyway = true)
 
     val ds = container.toDataSource {
         maximumPoolSize = 8
@@ -67,19 +66,17 @@ internal class IntegrationTest : FunSpec({
         val kravdata = ds.connection.use {
             it.hentAlleKravData()
         }
-        kravdata.size shouldBe 101
+        kravdata.size shouldBe 103
 
         kravdata.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
-        kravdata.filter { it.kravtype == ENDRE_KRAV }.size shouldBe 0
-        kravdata.filter { it.kravtype == NYTT_KRAV }.size shouldBe 99
-        kravdata.filter { it.kravtype == NYTT_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 99
+        kravdata.filter { it.kravtype == ENDRE_KRAV }.size shouldBe 4
+        kravdata.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
+        kravdata.filter { it.kravtype == NYTT_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 97
+        kravdata.filter { it.kravtype == ENDRE_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 4
 
         httpClient.close()
         fakeFtpService.close()
-
-
     }
-
 
     test("Mottaksstatus skal oppdateres i database") {
 
@@ -95,7 +92,7 @@ internal class IntegrationTest : FunSpec({
             it.hentAlleKravData()
         }
 
-        kravdata.filter { it.status == MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value }.size shouldBe 99
+        kravdata.filter { it.status == MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value }.size shouldBe 101
 
         httpClient.close()
     }
@@ -104,7 +101,7 @@ internal class IntegrationTest : FunSpec({
         val kravidentifikatorSKE: String,
         val error: String,
         val melding: String,
-        val dato: Timestamp
+        val dato: Timestamp,
     )
 
     test("Test hent valideringsfeil") {
@@ -116,7 +113,6 @@ internal class IntegrationTest : FunSpec({
         val mockkKravService = mockKravService(ds)
         val skeService = SkeService(skeClient, mockkKravService, mockk<FtpService>())
 
-
         ds.connection.use { con ->
             iderForValideringsFeil.forEach { id ->
                 con.prepareStatement(
@@ -126,7 +122,7 @@ internal class IntegrationTest : FunSpec({
                 kravidentifikator_ske = $id,
                 status = '${MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value}'
                 where id = $id;
-            """.trimIndent()
+                    """.trimIndent(),
                 ).executeUpdate()
                 con.commit()
             }
@@ -137,7 +133,7 @@ internal class IntegrationTest : FunSpec({
         val valideringsFeil = mutableListOf<ValideringFraDB>()
         ds.connection.use { con ->
             val rs: ResultSet = con.prepareStatement(
-                """select * from validering where kravidentifikator_ske in('23', '54', '87')""".trimIndent()
+                """select * from validering where kravidentifikator_ske in('23', '54', '87')""".trimIndent(),
             ).executeQuery()
             while (rs.next()) {
                 valideringsFeil.add(
@@ -145,8 +141,8 @@ internal class IntegrationTest : FunSpec({
                         rs.getString("kravidentifikator_ske"),
                         rs.getString("error"),
                         rs.getString("melding"),
-                        rs.getTimestamp("dato")
-                    )
+                        rs.getTimestamp("dato"),
+                    ),
                 )
             }
         }
@@ -159,11 +155,9 @@ internal class IntegrationTest : FunSpec({
         }
         httpClient.close()
     }
-
 })
 
 private fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseService>() {
-
     every { hentSkeKravident(any<String>()) } answers {
         ds.connection.useAndHandleErrors { con ->
             con.hentSkeKravIdent(firstArg<String>())
@@ -180,7 +174,7 @@ private fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<Datab
             any<String>(),
             any<KravLinje>(),
             any<String>(),
-            any<HttpStatusCode>()
+            any<HttpStatusCode>(),
         )
     } answers {
         ds.connection.useAndHandleErrors { con ->
@@ -188,7 +182,7 @@ private fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<Datab
                 arg<String>(0),
                 arg<KravLinje>(1),
                 arg<String>(2),
-                arg<HttpStatusCode>(3)
+                arg<HttpStatusCode>(3),
             )
         }
     }

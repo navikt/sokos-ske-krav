@@ -14,76 +14,82 @@ import io.ktor.http.contentType
 import mu.KotlinLogging
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.util.httpClient
+import java.util.UUID
 
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
-private const val ENDRE_KRAV = "innkrevingsoppdrag/endring"
+private const val ENDRE_RENTER = "innkrevingsoppdrag/%s/renter?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
+private const val ENDRE_HOVESTOL = "innkrevingsoppdrag/%s/hovedstol?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
 private const val STOPP_KRAV = "innkrevingsoppdrag/avskriving"
 private const val MOTTAKSSTATUS =
-	"innkrevingsoppdrag/%s/mottaksstatus?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
+    "innkrevingsoppdrag/%s/mottaksstatus?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
 private const val VALIDERINGSFEIL =
-	"innkrevingsoppdrag/%s/valideringsfeil?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
+    "innkrevingsoppdrag/%s/valideringsfeil?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
 private const val KLIENT_ID = "NAV/0.1"
 
 private val logger = KotlinLogging.logger {}
 
 class SkeClient(
-	private val tokenProvider: MaskinportenAccessTokenClient,
-	private val skeEndpoint: String,
-	private val client: HttpClient = httpClient
+    private val tokenProvider: MaskinportenAccessTokenClient,
+    private val skeEndpoint: String,
+    private val client: HttpClient = httpClient,
 ) {
 
-	suspend fun opprettKrav(body: String): HttpResponse = doPost(OPPRETT_KRAV, body)
-	suspend fun stoppKrav(body: String): HttpResponse = doPost(STOPP_KRAV, body)
-	suspend fun endreKrav(body: String): HttpResponse = doPut(ENDRE_KRAV, body)
-	suspend fun hentMottaksStatus(kravid: String) = doGet(String.format(MOTTAKSSTATUS, kravid))
-	suspend fun hentValideringsfeil(kravid: String) = doGet(String.format(VALIDERINGSFEIL, kravid))
+    suspend fun endreRenter(body: String, kravid: String): HttpResponse = doPut(String.format(ENDRE_RENTER, kravid), body, kravid)
+    suspend fun endreHovedstol(body: String, kravid: String): HttpResponse = doPut(String.format(ENDRE_HOVESTOL, kravid), body, kravid)
+    suspend fun opprettKrav(body: String): HttpResponse = doPost(OPPRETT_KRAV, body)
+    suspend fun stoppKrav(body: String): HttpResponse = doPost(STOPP_KRAV, body)
+    suspend fun hentMottaksStatus(kravid: String) = doGet(String.format(MOTTAKSSTATUS, kravid))
+    suspend fun hentValideringsfeil(kravid: String) = doGet(String.format(VALIDERINGSFEIL, kravid))
 
+    private suspend inline fun doPost(path: String, body: String): HttpResponse {
+        val token = tokenProvider.hentAccessToken()
+        val response = client.post("$skeEndpoint$path") {
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            headers {
+                append(HttpHeaders.Authorization, "Bearer $token")
+                append("Klientid", KLIENT_ID)
+                append("Korrelasjonsid", UUID.randomUUID().toString())
+            }
+            setBody(body)
+        }
+        // println("resp_body: ${response.bodyAsText()}, \n${response.headers}, \n${response.request.call}")
+        return response
+    }
 
-	private suspend inline fun doPost(path: String, body: String): HttpResponse {
-		val token = tokenProvider.hentAccessToken()
+    private suspend fun doPut(
+        path: String,
+        body: String,
+        kravidentifikator: String,
+    ): HttpResponse {
+        val token = tokenProvider.hentAccessToken()
+        val response = client.put("$skeEndpoint$path") {
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            headers {
+                append(HttpHeaders.Authorization, "Bearer $token")
+                append("Klientid", KLIENT_ID)
+                append("Korrelasjonsid", UUID.randomUUID().toString())
+                append("kravidentifikator", kravidentifikator)
+            }
+            setBody(body)
+        }
+        //  println("resp_body: ${response.bodyAsText()}, \n${response.request.call}")
+        return response
+    }
 
-		val response = client.post("$skeEndpoint$path") {
-			contentType(ContentType.Application.Json)
-			headers {
-				append(HttpHeaders.Authorization, "Bearer $token")
-				append("Klientid", KLIENT_ID)
-			}
-			setBody(body)
-		}
-		// println("resp_body: ${response.bodyAsText()}, \n${response.headers}, \n${response.request.call}")
-		return response
-	}
-
-	private suspend fun doPut(path: String, body: String): HttpResponse {
-		val token = tokenProvider.hentAccessToken()
-
-		val response = client.put("$skeEndpoint$path") {
-			contentType(ContentType.Application.Json)
-			accept(ContentType.Application.Json)
-			headers {
-				append(HttpHeaders.Authorization, "Bearer $token")
-				append("Klientid", KLIENT_ID)
-			}
-			setBody(body)
-		}
-
-		//  println("resp_body: ${response.bodyAsText()}, \n${response.request.call}")
-		return response
-	}
-
-	private suspend fun doGet(path: String): HttpResponse {
-		val token = tokenProvider.hentAccessToken()
-		// println("\n\nToken: -" + token + "-\n\n")
-		val response = client.get("$skeEndpoint$path") {
-			contentType(ContentType.Application.Json)
-			accept(ContentType.Application.Json)
-			headers {
-				append(HttpHeaders.Authorization, "Bearer $token")
-				append("Klientid", KLIENT_ID)
-			}
-		}
-		return response
-	}
+    private suspend fun doGet(path: String): HttpResponse {
+        val token = tokenProvider.hentAccessToken()
+        // println("\n\nToken: -" + token + "-\n\n")
+        val response = client.get("$skeEndpoint$path") {
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            headers {
+                append(HttpHeaders.Authorization, "Bearer $token")
+                append("Klientid", KLIENT_ID)
+                append("Korrelasjonsid", UUID.randomUUID().toString())
+            }
+        }
+        return response
+    }
 }
-
-

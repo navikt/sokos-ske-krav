@@ -18,7 +18,7 @@ import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.exporter.common.TextFormat
-import sokos.ske.krav.domain.ske.requests.TilleggsinformasjonNav.StoenadsType
+import sokos.ske.krav.util.Kravtype
 
 object Metrics {
     val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
@@ -43,14 +43,14 @@ object Metrics {
         .description("antall krav Lest fra fil")
         .register(registry)
 
-    val apiKallTimer: (String, StoenadsType) -> Timer = { url, stonad ->
+    val apiKallTimer: (String, Kravtype) -> Timer = { url, kravtype ->
         Timer.builder("api.kall")
             .description("Api call timer")
             .tags(
                 "url",
                 url,
                 "stonadstype",
-                stonad.value,
+                kravtype.name,
             ).register(registry)
     }
 }

@@ -5,31 +5,12 @@ import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
 import io.ktor.http.HttpStatusCode
 import io.mockk.mockk
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromJsonElement
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.MockHttpClient
 
 internal class SkeServiceTest : FunSpec({
-
-    test("validering deserialisering") {
-        val json =
-            Json.parseToJsonElement("""{"valideringsfeil":[{"error":"PERSON_ER_DOED","message":"Person med fødselsdato=318830 er død"}]}""")
-        val str =
-            """{"valideringsfeil":[{"error":"PERSON_ER_DOED","message":"Person med fødselsdato=318830 er død"}]}"""
-        val valideringsFeil1: ValideringsFeilResponse = Json.decodeFromJsonElement(json)
-        val valideringsFeil2: ValideringsFeilResponse = Json.decodeFromString(str)
-        val res1 = Json.encodeToString(valideringsFeil1)
-
-        println(valideringsFeil1.valideringsfeil.map { " Feil1: ${it.error}, ${it.message}" })
-        println(valideringsFeil2.valideringsfeil.map { " Feil1: ${it.error}, ${it.message}" })
-
-        println("And back again: $res1")
-    }
 
     test("Test OK filer") {
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
