@@ -1,13 +1,11 @@
 package sokos.ske.krav.service
 
+import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.domain.nav.KravLinje
@@ -31,12 +29,6 @@ const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRE_KRAV = "ENDRE_KRAV"
 const val STOPP_KRAV = "STOPP_KRAV"
 
-@OptIn(ExperimentalSerializationApi::class)
-val builder = Json {
-    encodeDefaults = true
-    explicitNulls = false
-}
-
 class SkeService(
     private val skeClient: SkeClient,
     private val databaseService: DatabaseService = DatabaseService(),
@@ -46,7 +38,7 @@ class SkeService(
 
     fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
     fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles()
-    private inline fun <reified T> toJson(body: T) = builder.encodeToString(body)
+
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
         logger.info { "Starter skeService SendNyeFtpFilertilSkatt." }
         val files = ftpService.getValidatedFiles()
@@ -116,8 +108,7 @@ class SkeService(
                 antallKravSendt.increment()
                 typeKravSendt(it.stonadsKode).increment()
                 if (it.erNyttKrav()) {
-                    kravident =
-                        Json.decodeFromString<OpprettInnkrevingsOppdragResponse>(response.bodyAsText()).kravidentifikator
+                    kravident = response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
                 }
 
                 databaseService.lagreNyttKrav(
@@ -158,9 +149,7 @@ class SkeService(
             val response = skeClient.hentMottaksStatus(it.saksnummerSKE)
             if (response.status.isSuccess()) {
                 try {
-                    val body = response.bodyAsText()
-                    val mottaksstatus = Json.decodeFromString<MottaksStatusResponse>(body)
-
+                    val mottaksstatus = response.body<MottaksStatusResponse>()
                     databaseService.oppdaterStatus(mottaksstatus)
                 } catch (e: SerializationException) {
                     feil.incrementAndGet()
@@ -184,7 +173,7 @@ class SkeService(
             val response = skeClient.hentValideringsfeil(it.saksnummerSKE)
 
             if (response.status.isSuccess()) {
-                val valideringsfeilResponse = Json.decodeFromString<ValideringsFeilResponse>(response.bodyAsText())
+                val valideringsfeilResponse = response.body<ValideringsFeilResponse>()
                 databaseService.lagreValideringsfeil(valideringsfeilResponse, it.saksnummerSKE)
                 "Status OK: ${response.bodyAsText()}"
             } else {
