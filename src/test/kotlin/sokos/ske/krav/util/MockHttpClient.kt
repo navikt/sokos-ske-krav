@@ -3,9 +3,13 @@ package sokos.ske.krav.util
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 
 class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: List<String> = listOf("23", "54", "87")) {
@@ -31,6 +35,17 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
 
     private val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
     fun getClient(statusCode: HttpStatusCode = HttpStatusCode.OK) = HttpClient(MockEngine) {
+        install(ContentNegotiation) {
+            json(
+                Json {
+                    prettyPrint = true
+                    ignoreUnknownKeys = true
+                    encodeDefaults = true
+                    @OptIn(ExperimentalSerializationApi::class)
+                    explicitNulls = false
+                },
+            )
+        }
         engine {
             addHandler { request ->
 

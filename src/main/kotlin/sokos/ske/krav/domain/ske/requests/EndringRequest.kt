@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class EndreHovedStolRequest(
-    val nyHovedstol: HovedstolBeloep,
+    val hovedstol: HovedstolBeloep,
 )
 
 @Serializable

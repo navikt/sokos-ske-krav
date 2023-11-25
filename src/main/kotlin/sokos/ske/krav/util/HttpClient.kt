@@ -9,8 +9,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner
 import java.net.ProxySelector
-
-
+@OptIn(ExperimentalSerializationApi::class)
 val httpClient = HttpClient(Apache) {
     expectSuccess = false
 
@@ -20,13 +19,14 @@ val httpClient = HttpClient(Apache) {
     }
 
     install(ContentNegotiation) {
-        json(Json {
-            prettyPrint = true
-            ignoreUnknownKeys = true
-            encodeDefaults = true
-            @OptIn(ExperimentalSerializationApi::class)
-            explicitNulls = false
-        })
+        json(
+            Json {
+                prettyPrint = true
+                ignoreUnknownKeys = true
+                encodeDefaults = true
+                explicitNulls = false
+            },
+        )
     }
 
     engine {

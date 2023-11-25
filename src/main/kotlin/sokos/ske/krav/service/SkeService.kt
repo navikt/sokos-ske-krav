@@ -84,35 +84,29 @@ class SkeService(
             }
 
             var kravident = databaseService.hentSkeKravident(it.saksNummer)
-            val request: String
+
             if (kravident.isEmpty() && !it.erNyttKrav()) handleHvaFGjorViNaa(it, file)
 
             val response = when {
                 it.erStopp() -> {
-                    request = toJson(lagStoppKravRequest(kravident))
-                    skeClient.stoppKrav(request)
+                    skeClient.stoppKrav(lagStoppKravRequest(kravident))
                 }
 
                 it.erEndring() -> {
-                    val endreRenter = toJson(lagEndreRenteRequest(it))
-                    val endreHovedstol = toJson(lagEndreHovedStolRequest(it))
-
                     // TODO: her returnerer vi bare endreHovedstol request
-                    skeClient.endreRenter(endreRenter, kravident)
-                    skeClient.endreHovedstol(endreHovedstol, kravident)
+                    skeClient.endreRenter(lagEndreRenteRequest(it), kravident)
+                    skeClient.endreHovedstol(lagEndreHovedStolRequest(it), kravident)
                 }
 
                 it.erNyttKrav() -> {
-                    request =
-                        toJson(
-                            lagOpprettKravRequest(
-                                it.copy(
-                                    saksNummer = databaseService.lagreNyKobling(it.saksNummer),
-                                    gjelderID = substfnr,
-                                ),
+                    skeClient.opprettKrav(
+                        lagOpprettKravRequest(
+                            it.copy(
+                                saksNummer = databaseService.lagreNyKobling(it.saksNummer),
+                                gjelderID = substfnr,
                             ),
-                        )
-                    skeClient.opprettKrav(request)
+                        ),
+                    )
                 }
 
                 else -> throw IllegalArgumentException("SkeService: Feil linjetype/linjetype kan ikke identifiseres")
