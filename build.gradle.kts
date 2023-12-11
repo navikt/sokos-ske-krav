@@ -36,7 +36,7 @@ val mockFtpServerVersion = "3.1.0"
 // Logging
 val janinoVersion = "3.1.10"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.4.11"
+val logbackVersion = "1.4.12"
 val logstashVersion = "7.4"
 
 dependencies {
