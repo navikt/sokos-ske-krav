@@ -39,7 +39,7 @@ class PostgresDataSource(private val postgresConfig: PropertiesConfig.PostgresCo
 
     private fun hikariConfig() = HikariConfig().apply {
         minimumIdle = 1
-        maxLifetime = 26000
+        maxLifetime = 30000
         maximumPoolSize = 4
         connectionTimeout = 300000
         isAutoCommit = false
