@@ -41,7 +41,7 @@ class PostgresDataSource(private val postgresConfig: PropertiesConfig.PostgresCo
         minimumIdle = 1
         maxLifetime = 30000
         maximumPoolSize = 4
-        connectionTimeout = 300000
+        connectionTimeout = 30000
         isAutoCommit = false
         idleTimeout = 60000
         //connectionTestQuery = "SELECT * FROM ${dbConfig.testTable} LIMIT 1"
