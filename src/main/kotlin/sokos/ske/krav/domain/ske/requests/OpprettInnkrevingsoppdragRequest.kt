@@ -28,6 +28,7 @@ data class RenteBeloep(
     val valuta: Valuta = Valuta.NOK,
     val beloep: Long,
     val renterIlagtDato: LocalDate,
+    val rentetype: String = "STRAFFERENTE"
 )
 
 @Serializable

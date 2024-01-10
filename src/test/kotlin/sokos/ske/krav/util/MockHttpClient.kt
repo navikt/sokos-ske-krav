@@ -13,22 +13,25 @@ import kotlinx.serialization.json.Json
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 
 class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: List<String> = listOf("23", "54", "87")) {
+    //language=json
     private val opprettResponse = """{"kravidentifikator": "$kravident"}"""
 
+    //language=json
     private val mottattResponse =
         """{
-        |"kravidentifikator": "$kravident"
+        | "kravidentifikator": "$kravident"
         |"oppdragsgiversKravidentifikator": "$kravident"
         |"mottaksstatus": "${MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value}"
         |"statusOppdatert": "2023-10-04T04:47:08.482Z"
         }
         """.trimMargin()
 
+    //language=json
     private val valideringsfeilResponse =
         """{
-        |"valideringsfeil": [{
-            |"error": "feil",
-            |"message": "melding"
+        | "valideringsfeil": [{
+        |    "error": "feil",
+        |    "message": "melding"
             }]
         }
         """.trimMargin()

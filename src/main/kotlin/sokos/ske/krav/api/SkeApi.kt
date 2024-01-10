@@ -68,9 +68,10 @@ fun Routing.skeApi(
                 val response = skeService.sendNyeFtpFilerTilSkatt()
                 logger.info { "APIKrav sendt, returnerer reponse" }
                 call.respond(HttpStatusCode.OK, "$response")
-                logger.info { "APIKrav sendt, oppdaterer mottaksstatus" }
+                logger.info { "APIKrav sendt" }
+/*                logger.info { "APIKrav sendt, oppdaterer mottaksstatus" }
                 skeService.hentOgOppdaterMottaksStatus()
-                logger.info { "APIKrav sendt, har oppdatert mottaksstatus" }
+                logger.info { "APIKrav sendt, har oppdatert mottaksstatus" }*/
             } catch (e: Exception) {
                 call.respond(
                     HttpStatusCode.InternalServerError,
