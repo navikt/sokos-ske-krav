@@ -13,18 +13,20 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
-import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.domain.ske.requests.AvskrivingRequest
-import sokos.ske.krav.domain.ske.requests.EndreHovedStolRequest
-import sokos.ske.krav.domain.ske.requests.EndreRenterRequest
+import sokos.ske.krav.domain.ske.requests.NyHovedStolRequest
+import sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
+import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
+import sokos.ske.krav.domain.ske.requests.NyOppdragsgiversReferanseRequest
 import sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.util.httpClient
 import java.util.UUID
 
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
-private const val ENDRE_RENTER = "innkrevingsoppdrag/%s/renter?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
-private const val ENDRE_HOVESTOL = "innkrevingsoppdrag/%s/hovedstol?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
+private const val ENDRE_RENTER = "innkrevingsoppdrag/%s/renter?kravidentifikatortype=%s"
+private const val ENDRE_HOVESTOL = "innkrevingsoppdrag/%s/hovedstol?kravidentifikatortype=%s"
+private const val ENDRE_REFERANSENUMMER = "innkrevingsoppdrag/%s/oppdragsgiversreferanse?kravidentifikatortype=%s"
 private const val STOPP_KRAV = "innkrevingsoppdrag/avskriving"
 private const val MOTTAKSSTATUS =
     "innkrevingsoppdrag/%s/mottaksstatus?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
@@ -38,8 +40,10 @@ class SkeClient(
     private val client: HttpClient = httpClient,
 ) {
 
-    suspend fun endreRenter(request: EndreRenterRequest, kravid: String): HttpResponse = doPut(String.format(ENDRE_RENTER, kravid), request, kravid)
-    suspend fun endreHovedstol(request: EndreHovedStolRequest, kravid: String): HttpResponse = doPut(String.format(ENDRE_HOVESTOL, kravid), request, kravid)
+    suspend fun endreRenter(request: EndreRenteBeloepRequest, kravid: String, kravidentifikatortype: Kravidentifikatortype): HttpResponse = doPut(String.format(ENDRE_RENTER, kravid, kravidentifikatortype.value), request, kravid)
+    suspend fun endreHovedstol(request: NyHovedStolRequest, kravid: String, kravidentifikatortype: Kravidentifikatortype): HttpResponse = doPut(String.format(ENDRE_HOVESTOL, kravid, kravidentifikatortype.value), request, kravid)
+    suspend fun endreOppdragsGiversReferanse(request: NyOppdragsgiversReferanseRequest, kravid: String, kravidentifikatortype: Kravidentifikatortype) = doPut(String.format(ENDRE_REFERANSENUMMER, kravid, kravidentifikatortype.value), request, kravid)
+
     suspend fun opprettKrav(request: OpprettInnkrevingsoppdragRequest): HttpResponse = doPost(OPPRETT_KRAV, request) //  suspend fun stoppKrav(body: String): HttpResponse = doPost(STOPP_KRAV, body)
     suspend fun stoppKrav(request: AvskrivingRequest): HttpResponse = doPost(STOPP_KRAV, request)
     suspend fun hentMottaksStatus(kravid: String) = doGet(String.format(MOTTAKSSTATUS, kravid))

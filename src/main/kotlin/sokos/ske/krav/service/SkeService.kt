@@ -9,6 +9,7 @@ import kotlinx.serialization.SerializationException
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.domain.nav.KravLinje
+import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
@@ -19,11 +20,13 @@ import sokos.ske.krav.util.erEndring
 import sokos.ske.krav.util.erNyttKrav
 import sokos.ske.krav.util.erStopp
 import sokos.ske.krav.util.getFnrListe
-import sokos.ske.krav.util.lagEndreHovedStolRequest
+import sokos.ske.krav.util.lagNyHovedStolRequest
 import sokos.ske.krav.util.lagEndreRenteRequest
+import sokos.ske.krav.util.lagNyOppdragsgiversReferanseRequest
 import sokos.ske.krav.util.lagOpprettKravRequest
 import sokos.ske.krav.util.lagStoppKravRequest
 import java.util.concurrent.atomic.AtomicInteger
+
 
 const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRE_KRAV = "ENDRE_KRAV"
@@ -56,7 +59,7 @@ class SkeService(
 
         files.forEach { file -> ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
 
-        return responses.map { it.map { it.second } }.flatten()
+        return responses.map { it.map { response ->  response.second } }.flatten()
     }
 
     private suspend fun sendAlleLinjer(
@@ -75,28 +78,65 @@ class SkeService(
                 fnrIter1.next()
             }
 
+            //Her bruker vi det NYE saksnummeret til å finne kravident.... men vi må vel bruke det GAMLE?
             var kravident = databaseService.hentSkeKravident(it.saksNummer)
+            var kravidentType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
 
-            if (kravident.isEmpty() && !it.erNyttKrav()) handleHvaFGjorViNaa(it, file)
+
+            if (kravident.isEmpty() && !it.erNyttKrav()) {
+
+                //Endringer og stopp har gammel saksref
+                kravident = databaseService.hentSkeKravident(it.referanseNummerGammelSak)
+                //Hvis det er blankt så har ikke originalkravet gått gjennom vårt system. Bruker gammel ref og håper at det er originalref
+                if(kravident.isEmpty()) kravident = it.referanseNummerGammelSak
+
+                kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
+            }
 
             val response = when {
                 it.erStopp() -> {
-                    skeClient.stoppKrav(lagStoppKravRequest(kravident))
+                    println("STOPP! Kravident = $kravident, kravidentType = ${kravidentType.value}")
+                    val stoppresponse = skeClient.stoppKrav(lagStoppKravRequest(kravident, kravidentType))
+                    println("STOPPRESPONSE: ${stoppresponse.bodyAsText()}")
+                    if(!stoppresponse.status.isSuccess()) {
+                        // FILEN MÅ FØLGES OPP MANUELT...
+                        // LAGRES PÅ FILOMRÅDE...
+
+                        println("FEIL FRA SKATT! FANT IKKE ORIGINALSAKSREF! MÅ LAGRE PÅ FILOMRÅDE")
+                        handleHvaFGjorViNaa(it, file)
+                    }
+                        stoppresponse
                 }
 
                 it.erEndring() -> {
-                    // TODO: her returnerer vi bare endreHovedstol request
-                    skeClient.endreRenter(lagEndreRenteRequest(it), kravident)
-                    skeClient.endreHovedstol(lagEndreHovedStolRequest(it), kravident)
+                    val referanseResponse = skeClient.endreOppdragsGiversReferanse(lagNyOppdragsgiversReferanseRequest(it), kravident, kravidentType)
+                    println("REFERANSERESPONSE: ${referanseResponse.bodyAsText()}")
+
+                    if(!referanseResponse.status.isSuccess())  {
+                        // FILEN MÅ FØLGES OPP MANUELT...
+                        // LAGRES PÅ FILOMRÅDE...
+
+                        println("FEIL FRA SKATT! FANT IKKE ORIGINALSAKSREF! MÅ LAGRE PÅ FILOMRÅDE")
+                        handleHvaFGjorViNaa(it, file)
+                    }
+                     //dersom referanseresponse ikke er success kan vi returne tidlig og ikke gjøre dette
+                    val renteresponse = skeClient.endreRenter(lagEndreRenteRequest(it), kravident, kravidentType)
+                    println("RENTERESPONSE: ${renteresponse.bodyAsText()}")
+
+                    val hovedstolResponse = skeClient.endreHovedstol(lagNyHovedStolRequest(it), kravident, kravidentType)
+                    println("HOVEDSTOLRESPONSE: ${hovedstolResponse.bodyAsText()}")
+
+                    //lagre transaksjonsIDene
+                    referanseResponse
                 }
 
                 it.erNyttKrav() -> {
                     skeClient.opprettKrav(
                         lagOpprettKravRequest(
                             it.copy(
-                                saksNummer = databaseService.lagreNyKobling(it.saksNummer),
                                 gjelderID = substfnr,
                             ),
+                            databaseService.lagreNyKobling(it.saksNummer)
                         ),
                     )
                 }
@@ -132,6 +172,7 @@ class SkeService(
         logger.error {
             """
                         SAKSNUMMER: ${krav.saksNummer}
+                        GAMMELT SAKSNUMMER: ${krav.referanseNummerGammelSak}
                         Hva F* gjør vi nå, dette skulle ikke skje
                         linjenr: ${krav.linjeNummer}: ${file.content[krav.linjeNummer]}
                     """

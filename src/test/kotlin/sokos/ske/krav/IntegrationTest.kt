@@ -157,17 +157,19 @@ internal class IntegrationTest : FunSpec({
     }
 })
 
-private fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseService>() {
+fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseService>() {
     every { hentSkeKravident(any<String>()) } answers {
         ds.connection.useAndHandleErrors { con ->
             con.hentSkeKravIdent(firstArg<String>())
         }
     }
+
     every { lagreNyKobling(any<String>()) } answers {
         ds.connection.useAndHandleErrors { con ->
             con.lagreNyKobling(firstArg<String>())
         }
     }
+
 
     every {
         lagreNyttKrav(

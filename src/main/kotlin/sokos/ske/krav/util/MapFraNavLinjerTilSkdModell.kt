@@ -3,9 +3,11 @@ package sokos.ske.krav.util
 import kotlinx.datetime.toKotlinLocalDate
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.AvskrivingRequest
-import sokos.ske.krav.domain.ske.requests.EndreHovedStolRequest
-import sokos.ske.krav.domain.ske.requests.EndreRenterRequest
+import sokos.ske.krav.domain.ske.requests.NyHovedStolRequest
+import sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
 import sokos.ske.krav.domain.ske.requests.HovedstolBeloep
+import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
+import sokos.ske.krav.domain.ske.requests.NyOppdragsgiversReferanseRequest
 import sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.domain.ske.requests.RenteBeloep
 import sokos.ske.krav.domain.ske.requests.Skyldner
@@ -17,13 +19,14 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
 
-fun lagOpprettKravRequest(krav: KravLinje): OpprettInnkrevingsoppdragRequest {
+fun lagOpprettKravRequest(krav: KravLinje, uuid: String): OpprettInnkrevingsoppdragRequest {
     val kravFremtidigYtelse = krav.fremtidigYtelse.roundToLong()
     val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
     val tilleggsinformasjonNav = TilleggsinformasjonNav(
         tilbakeKrevingsPeriode = TilbakeKrevingsPeriode(LocalDate.parse(krav.periodeFOM, dtf).toKotlinLocalDate(), LocalDate.parse(krav.periodeTOM, dtf).toKotlinLocalDate()),
         ytelserForAvregning = YtelseForAvregningBeloep(beloep = kravFremtidigYtelse).takeIf { kravFremtidigYtelse > 0L },
     )
+
 
     val beloepRente = krav.belopRente.roundToLong()
     val stonadstypekode = StoenadstypeKodeNAV.fromString(krav.stonadsKode)
@@ -42,13 +45,13 @@ fun lagOpprettKravRequest(krav: KravLinje): OpprettInnkrevingsoppdragRequest {
             ),
         ).takeIf { beloepRente > 0L },
         oppdragsgiversReferanse = krav.saksNummer,
-        oppdragsgiversKravIdentifikator = krav.saksNummer,
+        oppdragsgiversKravIdentifikator = uuid,
         fastsettelsesDato = krav.vedtakDato.toKotlinLocalDate(),
         tilleggsInformasjon = tilleggsinformasjonNav,
     )
 }
 
-fun lagEndreRenteRequest(krav: KravLinje): EndreRenterRequest = EndreRenterRequest(
+fun lagEndreRenteRequest(krav: KravLinje): EndreRenteBeloepRequest = EndreRenteBeloepRequest(
     listOf(
         RenteBeloep(
             beloep = krav.belopRente.roundToLong(),
@@ -57,9 +60,10 @@ fun lagEndreRenteRequest(krav: KravLinje): EndreRenterRequest = EndreRenterReque
     ),
 )
 
-fun lagEndreHovedStolRequest(krav: KravLinje): EndreHovedStolRequest = EndreHovedStolRequest(HovedstolBeloep(beloep = krav.belop.roundToLong()))
+fun lagNyHovedStolRequest(krav: KravLinje): NyHovedStolRequest = NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.roundToLong()))
 
-fun lagStoppKravRequest(nyref: String) = AvskrivingRequest(kravidentifikator = nyref)
+fun lagNyOppdragsgiversReferanseRequest(krav: KravLinje) = NyOppdragsgiversReferanseRequest(krav.saksNummer)
+fun lagStoppKravRequest(nyref: String, kravidentifikatortype: Kravidentifikatortype) = AvskrivingRequest(kravidentifikatortype.value, kravidentifikator = nyref)
 fun KravLinje.erNyttKrav() = (!this.erEndring() && !this.erStopp())
 fun KravLinje.erEndring() = (referanseNummerGammelSak.isNotEmpty() && !erStopp())
 fun KravLinje.erStopp() = (belop.roundToLong() == 0L)

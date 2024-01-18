@@ -1,5 +1,6 @@
 package sokos.ske.krav.util
 
+import io.kotest.assertions.any
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -15,6 +16,9 @@ import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: List<String> = listOf("23", "54", "87")) {
     //language=json
     private val opprettResponse = """{"kravidentifikator": "$kravident"}"""
+
+    //language=json
+    val endringResponse = """{"transaksjonsid":  "5432"}""".trimMargin()
 
     //language=json
     private val mottattResponse =
@@ -56,7 +60,10 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
                     "/innkrevingsoppdrag/1234/mottaksstatus" -> {
                         respond(mottattResponse, statusCode, responseHeaders)
                     }
-                    "/innkrevingsoppdrag//mottaksstatus" -> { // hva f gjør vi nå
+                    "/innkrevingsoppdrag/OB040000592759/mottaksstatus" -> {
+                        respond(mottattResponse, statusCode, responseHeaders)
+                    }
+                    "/innkrevingsoppdrag/OB040000479803/mottaksstatus" -> {
                         respond(mottattResponse, statusCode, responseHeaders)
                     }
 
@@ -65,18 +72,15 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
                     }
 
                     "/innkrevingsoppdrag/1234/renter" -> {
-                        respond("", statusCode, responseHeaders)
+                        respond(endringResponse, statusCode, responseHeaders)
                     }
 
-                    "/innkrevingsoppdrag//renter" -> { // hva f fjør vi nå
-                        respond("", statusCode, responseHeaders)
-                    }
-
-                    "/innkrevingsoppdrag//hovedstol" -> { // hva f fjør vi nå
-                        respond("", statusCode, responseHeaders)
-                    }
                     "/innkrevingsoppdrag/1234/hovedstol" -> {
-                        respond("", statusCode, responseHeaders)
+                        respond(endringResponse, statusCode, responseHeaders)
+                    }
+
+                    "/innkrevingsoppdrag/1234/oppdragsgiversreferanse"-> {
+                        respond(endringResponse, statusCode, responseHeaders)
                     }
 
                     "/innkrevingsoppdrag/avskriving" -> {
