@@ -32,10 +32,14 @@ fun lagOpprettKravRequest(krav: KravLinje, uuid: String): OpprettInnkrevingsoppd
     val stonadstypekode = StoenadstypeKodeNAV.fromString(krav.stonadsKode)
     val hjemmelkodePak = HjemmelkodePak.valueOf(krav.hjemmelKode)
     val kravtype = NAVKravtypeMapping.getKravtype(stonadstypekode, hjemmelkodePak)
+    val skyldner =
+        if (krav.gjelderID.startsWith("00"))
+            Skyldner(Skyldner.IdentifikatorType.ORGANISASJON, krav.gjelderID.substring(2, krav.gjelderID.length))
+        else Skyldner (Skyldner.IdentifikatorType.PERSON, krav.gjelderID)
 
     return OpprettInnkrevingsoppdragRequest(
         kravtype = kravtype,
-        skyldner = Skyldner(Skyldner.IdentifikatorType.PERSON, krav.gjelderID),
+        skyldner = skyldner,
         hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.roundToLong()),
         renteBeloep =
         listOf(

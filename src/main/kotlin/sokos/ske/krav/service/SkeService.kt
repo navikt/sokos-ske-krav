@@ -95,9 +95,7 @@ class SkeService(
 
             val response = when {
                 it.erStopp() -> {
-                    println("STOPP! Kravident = $kravident, kravidentType = ${kravidentType.value}")
                     val stoppresponse = skeClient.stoppKrav(lagStoppKravRequest(kravident, kravidentType))
-                    println("STOPPRESPONSE: ${stoppresponse.bodyAsText()}")
                     if(!stoppresponse.status.isSuccess()) {
                         // FILEN MÅ FØLGES OPP MANUELT...
                         // LAGRES PÅ FILOMRÅDE...
@@ -110,7 +108,6 @@ class SkeService(
 
                 it.erEndring() -> {
                     val referanseResponse = skeClient.endreOppdragsGiversReferanse(lagNyOppdragsgiversReferanseRequest(it), kravident, kravidentType)
-                    println("REFERANSERESPONSE: ${referanseResponse.bodyAsText()}")
 
                     if(!referanseResponse.status.isSuccess())  {
                         // FILEN MÅ FØLGES OPP MANUELT...
@@ -121,10 +118,8 @@ class SkeService(
                     }
                      //dersom referanseresponse ikke er success kan vi returne tidlig og ikke gjøre dette
                     val renteresponse = skeClient.endreRenter(lagEndreRenteRequest(it), kravident, kravidentType)
-                    println("RENTERESPONSE: ${renteresponse.bodyAsText()}")
 
                     val hovedstolResponse = skeClient.endreHovedstol(lagNyHovedStolRequest(it), kravident, kravidentType)
-                    println("HOVEDSTOLRESPONSE: ${hovedstolResponse.bodyAsText()}")
 
                     //lagre transaksjonsIDene
                     referanseResponse
@@ -134,7 +129,7 @@ class SkeService(
                     skeClient.opprettKrav(
                         lagOpprettKravRequest(
                             it.copy(
-                                gjelderID = substfnr,
+                                gjelderID = if(it.gjelderID.startsWith("00")) it.gjelderID else substfnr,
                             ),
                             databaseService.lagreNyKobling(it.saksNummer)
                         ),

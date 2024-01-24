@@ -2,6 +2,7 @@ package sokos.ske.krav.util
 
 import sokos.ske.krav.domain.nav.KravLinje
 import java.lang.IllegalArgumentException
+import kotlin.math.roundToLong
 
 sealed class ValidationResult {
     data class Success(val kravLinjer: List<KravLinje>) : ValidationResult()
@@ -18,6 +19,7 @@ object FileValidator {
         val errorMessages = mutableListOf<String>()
 
         // TODO: Flytt dette et annet sted
+        // Feilede linjer skal lagres på feilfil. Resten av linjene skal sendes inn
         detailLines.forEach {
             try {
                 val stonadstypekode = StoenadstypeKodeNAV.fromString(it.stonadsKode)
@@ -33,7 +35,7 @@ object FileValidator {
         }
 
         val invalidNumberOfLines = lastLine.numTransactionLines != detailLines.size
-        val invalidSum = detailLines.sumOf { it.belop + it.belopRente } != lastLine.sumAllTransactionLines
+        val invalidSum = detailLines.sumOf { it.belop + it.belopRente }.roundToLong() != lastLine.sumAllTransactionLines.roundToLong()
         val invalidTransferDate = firstLine.transferDate != lastLine.transferDate
 
         if (invalidNumberOfLines) errorMessages.add("Antall krav stemmer ikke med antallet i siste linje! Antall krav:${detailLines.size}, Antall i siste linje: ${lastLine.numTransactionLines} ")
