@@ -18,30 +18,15 @@ object FileValidator {
 
         val errorMessages = mutableListOf<String>()
 
-        // TODO: Flytt dette et annet sted
-        // Feilede linjer skal lagres på feilfil. Resten av linjene skal sendes inn
-        detailLines.forEach {
-            try {
-                val stonadstypekode = StoenadstypeKodeNAV.fromString(it.stonadsKode)
-                val hjemmelkodePak = HjemmelkodePak.valueOf(it.hjemmelKode)
-                NAVKravtypeMapping.getKravtype(stonadstypekode, hjemmelkodePak)
-            } catch (e: NotImplementedError) {
-                println(it)
-                errorMessages.add(e.message.toString())
-            } catch (e: IllegalArgumentException) {
-                println(it)
-                errorMessages.add(e.message.toString())
-            }
-        }
-
         val invalidNumberOfLines = lastLine.numTransactionLines != detailLines.size
-        val invalidSum = detailLines.sumOf { it.belop + it.belopRente }.roundToLong() != lastLine.sumAllTransactionLines.roundToLong()
+        val invalidSum = detailLines.sumOf { it.belop + it.belopRente } != lastLine.sumAllTransactionLines
         val invalidTransferDate = firstLine.transferDate != lastLine.transferDate
 
         if (invalidNumberOfLines) errorMessages.add("Antall krav stemmer ikke med antallet i siste linje! Antall krav:${detailLines.size}, Antall i siste linje: ${lastLine.numTransactionLines} ")
-        if (invalidSum) errorMessages.add("Sum alle linjer stemmer ikke med sum i siste linje! Sum alle linjer: ${detailLines.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAllTransactionLines}")
+        if (invalidSum) errorMessages.add("Sum alle linjer stemmer ikke med sum i siste linje! Sum alle linjer: ${detailLines.sumOf { it.belop.roundToLong() + it.belopRente.roundToLong()}}, Sum siste linje: ${lastLine.sumAllTransactionLines}")
         if (invalidTransferDate) errorMessages.add("Dato sendt er avvikende mellom første og siste linje fra OS! Dato første linje: ${firstLine.transferDate}, Dato siste linje: ${lastLine.transferDate}")
 
+        println(errorMessages)
         if (errorMessages.isNotEmpty()) return ValidationResult.Error(errorMessages)
 
         return ValidationResult.Success(detailLines)
