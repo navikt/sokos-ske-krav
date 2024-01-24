@@ -27,7 +27,6 @@ fun lagOpprettKravRequest(krav: KravLinje, uuid: String): OpprettInnkrevingsoppd
         ytelserForAvregning = YtelseForAvregningBeloep(beloep = kravFremtidigYtelse).takeIf { kravFremtidigYtelse > 0L },
     )
 
-
     val beloepRente = krav.belopRente.roundToLong()
     val stonadstypekode = StoenadstypeKodeNAV.fromString(krav.stonadsKode)
     val hjemmelkodePak = HjemmelkodePak.valueOf(krav.hjemmelKode)
