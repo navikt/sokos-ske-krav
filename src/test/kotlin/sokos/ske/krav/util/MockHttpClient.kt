@@ -20,14 +20,14 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
     //language=json
     val endringResponse = """{"transaksjonsid":  "5432"}""".trimMargin()
 
-    //language=json
-    private val mottattResponse =
-        """{
-        | "kravidentifikator": "$kravident"
-        |"oppdragsgiversKravidentifikator": "$kravident"
-        |"mottaksstatus": "${MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value}"
-        |"statusOppdatert": "2023-10-04T04:47:08.482Z"
-        }
+
+    private fun mottattResponse(kravid: String ="1234"): String =
+       """{
+            | "kravidentifikator": "$kravid"
+            |"oppdragsgiversKravidentifikator": "$kravid"
+            |"mottaksstatus": "${MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value}"
+            |"statusOppdatert": "2023-10-04T04:47:08.482Z"
+            }
         """.trimMargin()
 
     //language=json
@@ -58,13 +58,13 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
 
                 when (request.url.encodedPath) {
                     "/innkrevingsoppdrag/1234/mottaksstatus" -> {
-                        respond(mottattResponse, statusCode, responseHeaders)
+                        respond(mottattResponse("1234"), statusCode, responseHeaders)
                     }
                     "/innkrevingsoppdrag/OB040000592759/mottaksstatus" -> {
-                        respond(mottattResponse, statusCode, responseHeaders)
+                        respond(mottattResponse("OB040000592759"), statusCode, responseHeaders)
                     }
                     "/innkrevingsoppdrag/OB040000479803/mottaksstatus" -> {
-                        respond(mottattResponse, statusCode, responseHeaders)
+                        respond(mottattResponse("OB040000479803"), statusCode, responseHeaders)
                     }
 
                     "/innkrevingsoppdrag" -> {
@@ -74,12 +74,21 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
                     "/innkrevingsoppdrag/1234/renter" -> {
                         respond(endringResponse, statusCode, responseHeaders)
                     }
+                    "/innkrevingsoppdrag/OB040000592759/renter" -> {
+                        respond(endringResponse, statusCode, responseHeaders)
+                    }
 
                     "/innkrevingsoppdrag/1234/hovedstol" -> {
                         respond(endringResponse, statusCode, responseHeaders)
                     }
+                    "/innkrevingsoppdrag/OB040000592759/hovedstol" -> {
+                        respond(endringResponse, statusCode, responseHeaders)
+                    }
 
                     "/innkrevingsoppdrag/1234/oppdragsgiversreferanse"-> {
+                        respond(endringResponse, statusCode, responseHeaders)
+                    }
+                    "/innkrevingsoppdrag/OB040000592759/oppdragsgiversreferanse"-> {
                         respond(endringResponse, statusCode, responseHeaders)
                     }
 

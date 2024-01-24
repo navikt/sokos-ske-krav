@@ -35,7 +35,7 @@ class DatabaseService(
         skeKravident: String,
         kravLinje: KravLinje,
         kravtype: String,
-        responseStatus: HttpStatusCode
+        responseStatus: String
     ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
             con.lagreNyttKrav(skeKravident, kravLinje, kravtype, responseStatus)

@@ -46,7 +46,7 @@ object Repository {
         kravidentSKE: String,
         kravLinje: KravLinje,
         kravtype: String,
-        responseStatus: HttpStatusCode
+        responseStatus: String
     ) {
         val now = LocalDateTime.now()
         prepareStatement(
@@ -95,14 +95,7 @@ object Repository {
             param(kravLinje.fremtidigYtelse.toBigDecimal()),
             param(kravLinje.utbetalDato),
             param(kravLinje.fagsystemId),
-            param(
-                when {
-                    responseStatus.isSuccess() -> KRAV_SENDT
-                    responseStatus == HttpStatusCode.Conflict -> KONFLIKT_409 //bytte ut med httpstatuscode beskrivelse, eller value?
-                    responseStatus == HttpStatusCode.UnprocessableEntity -> VALIDERINGSFEIL_422 //bytte ut med httpstatuscode beskrivelse, eller value?
-                    else -> "UKJENT_${responseStatus.value}" //Bare bruke httpstatuscode?
-                }
-            ),
+            param(responseStatus),
             param(now),
             param(now),
             param(kravtype)

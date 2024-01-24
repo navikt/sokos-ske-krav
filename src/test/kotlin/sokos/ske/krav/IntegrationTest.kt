@@ -72,7 +72,8 @@ internal class IntegrationTest : FunSpec({
         kravdata.filter { it.kravtype == ENDRE_KRAV }.size shouldBe 4
         kravdata.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
         kravdata.filter { it.kravtype == NYTT_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 97
-        kravdata.filter { it.kravtype == ENDRE_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 4
+        kravdata.filter { it.kravtype == ENDRE_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 3
+        kravdata.filter { it.kravtype == ENDRE_KRAV && it.saksnummerSKE != "1234" }.size shouldBe 1
 
         httpClient.close()
         fakeFtpService.close()
@@ -86,13 +87,14 @@ internal class IntegrationTest : FunSpec({
         val mockkKravService = mockKravService(ds)
         val skeService = SkeService(skeClient, mockkKravService, mockk<FtpService>())
 
+        // Skal ENDRINGER av krav få nye statuser? åssen funker det?
         skeService.hentOgOppdaterMottaksStatus()
 
         val kravdata = ds.connection.use {
             it.hentAlleKravData()
         }
 
-        kravdata.filter { it.status == MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value }.size shouldBe 101
+        kravdata.filter { it.status == MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value }.size shouldBe 103
 
         httpClient.close()
     }
@@ -176,7 +178,7 @@ fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseServi
             any<String>(),
             any<KravLinje>(),
             any<String>(),
-            any<HttpStatusCode>(),
+            any<String>(),
         )
     } answers {
         ds.connection.useAndHandleErrors { con ->
@@ -184,7 +186,7 @@ fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseServi
                 arg<String>(0),
                 arg<KravLinje>(1),
                 arg<String>(2),
-                arg<HttpStatusCode>(3),
+                arg<String>(3),
             )
         }
     }

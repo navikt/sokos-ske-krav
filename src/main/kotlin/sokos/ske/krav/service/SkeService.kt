@@ -8,6 +8,9 @@ import io.ktor.http.isSuccess
 import kotlinx.serialization.SerializationException
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
+import sokos.ske.krav.database.KONFLIKT_409
+import sokos.ske.krav.database.KRAV_SENDT
+import sokos.ske.krav.database.VALIDERINGSFEIL_422
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
@@ -52,25 +55,69 @@ class SkeService(
 
         val responses = files.map { file ->
             logger.info { "Antall linjer i ${file.name}: ${file.kravLinjer.size} (incl. start/stop)" }
-
-            val svar: List<Pair<KravLinje, HttpResponse>> = sendAlleLinjer(file, fnrIter, fnrListe)
-            svar
+            sendKrav(file, fnrIter, fnrListe)
         }
 
         files.forEach { file -> ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
 
-        return responses.map { it.map { response ->  response.second } }.flatten()
+        return responses.flatten()
     }
 
-    private suspend fun sendAlleLinjer(
-        file: FtpFil,
-        fnrIter: ListIterator<String>,
-        fnrListe: List<String>,
-    ): List<Pair<KravLinje, HttpResponse>> {
-        var fnrIter1 = fnrIter
-        return file.kravLinjer.map {
-            antallKravLest.increment()
+    private suspend fun sendStoppKrav(kravident: String, kravidentType: Kravidentifikatortype, linje: KravLinje, file: FtpFil): List<HttpResponse>{
+        val stoppresponse = skeClient.stoppKrav(lagStoppKravRequest(kravident, kravidentType))
 
+        if(!stoppresponse.status.isSuccess()) {
+            // FILEN MÅ FØLGES OPP MANUELT...
+            // LAGRES PÅ FILOMRÅDE...
+
+            println("FEIL FRA SKATT! FANT IKKE ORIGINALSAKSREF! MÅ LAGRE PÅ FILOMRÅDE")
+            handleHvaFGjorViNaa(linje, file)
+        }
+        return listOf(stoppresponse)
+    }
+
+    private suspend fun sendEndreKrav(kravident: String, kravidentType: Kravidentifikatortype, linje: KravLinje, file: FtpFil): List<HttpResponse>{
+
+        val referanseResponse = skeClient.endreOppdragsGiversReferanse(lagNyOppdragsgiversReferanseRequest(linje), kravident, kravidentType)
+
+        if(!referanseResponse.status.isSuccess())  {
+            // FILEN MÅ FØLGES OPP MANUELT...
+            // LAGRES PÅ FILOMRÅDE...
+
+            println("FEIL FRA SKATT! FANT IKKE ORIGINALSAKSREF! MÅ LAGRE LINJA PÅ FILOMRÅDE")
+            handleHvaFGjorViNaa(linje, file)
+            return listOf(referanseResponse)
+        }
+        val renteresponse = skeClient.endreRenter(lagEndreRenteRequest(linje), kravident, kravidentType)
+        val hovedstolResponse = skeClient.endreHovedstol(lagNyHovedStolRequest(linje), kravident, kravidentType)
+
+        //her må vi lagre transaksjonsIDene
+
+        return listOf(renteresponse, hovedstolResponse, renteresponse)
+
+    }
+    private suspend fun sendNyeKrav(linje: KravLinje, substfnr: String): List<HttpResponse>{
+      val response =  skeClient.opprettKrav(
+            lagOpprettKravRequest(
+                linje.copy(
+                    gjelderID = if(linje.gjelderID.startsWith("00")) linje.gjelderID else substfnr,
+                ),
+                databaseService.lagreNyKobling(linje.saksNummer)
+            ),
+        )
+        return listOf(response)
+    }
+
+
+    private suspend fun sendKrav(file: FtpFil, fnrIter: ListIterator<String>, fnrListe: List<String>,) : List<HttpResponse>{
+        var fnrIter1 = fnrIter
+
+        //Klønete pga endring av krav
+        val allResponses = mutableListOf<HttpResponse>()
+
+        //bruker foreach for å ha litt bedre oversikt, for tror det må endres siden endring av krav gjør det så teit
+        file.kravLinjer.forEach {
+            antallKravLest.increment()
             val substfnr = if (fnrIter1.hasNext()) {
                 fnrIter1.next()
             } else {
@@ -78,90 +125,82 @@ class SkeService(
                 fnrIter1.next()
             }
 
-            //Her bruker vi det NYE saksnummeret til å finne kravident.... men vi må vel bruke det GAMLE?
-            var kravident = databaseService.hentSkeKravident(it.saksNummer)
+            var kravident = databaseService.hentSkeKravident(it.referanseNummerGammelSak)
             var kravidentType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
 
-
             if (kravident.isEmpty() && !it.erNyttKrav()) {
-
-                //Endringer og stopp har gammel saksref
-                kravident = databaseService.hentSkeKravident(it.referanseNummerGammelSak)
-                //Hvis det er blankt så har ikke originalkravet gått gjennom vårt system. Bruker gammel ref og håper at det er originalref
-                if(kravident.isEmpty()) kravident = it.referanseNummerGammelSak
-
+                //Her må vi bruke tabell for å finne det eldste saksnummeret vi har
+                kravident = it.referanseNummerGammelSak
                 kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
             }
 
-            val response = when {
+            when {
                 it.erStopp() -> {
-                    val stoppresponse = skeClient.stoppKrav(lagStoppKravRequest(kravident, kravidentType))
-                    if(!stoppresponse.status.isSuccess()) {
-                        // FILEN MÅ FØLGES OPP MANUELT...
-                        // LAGRES PÅ FILOMRÅDE...
-
-                        println("FEIL FRA SKATT! FANT IKKE ORIGINALSAKSREF! MÅ LAGRE PÅ FILOMRÅDE")
-                        handleHvaFGjorViNaa(it, file)
-                    }
-                        stoppresponse
+                    val responses = sendStoppKrav(kravident, kravidentType, it, file)
+                    allResponses.addAll(responses)
                 }
-
                 it.erEndring() -> {
-                    val referanseResponse = skeClient.endreOppdragsGiversReferanse(lagNyOppdragsgiversReferanseRequest(it), kravident, kravidentType)
-
-                    if(!referanseResponse.status.isSuccess())  {
-                        // FILEN MÅ FØLGES OPP MANUELT...
-                        // LAGRES PÅ FILOMRÅDE...
-
-                        println("FEIL FRA SKATT! FANT IKKE ORIGINALSAKSREF! MÅ LAGRE PÅ FILOMRÅDE")
-                        handleHvaFGjorViNaa(it, file)
-                    }
-                     //dersom referanseresponse ikke er success kan vi returne tidlig og ikke gjøre dette
-                    val renteresponse = skeClient.endreRenter(lagEndreRenteRequest(it), kravident, kravidentType)
-
-                    val hovedstolResponse = skeClient.endreHovedstol(lagNyHovedStolRequest(it), kravident, kravidentType)
-
-                    //lagre transaksjonsIDene
-                    referanseResponse
+                    val responses = sendEndreKrav(kravident, kravidentType,it, file)
+                    allResponses.addAll(responses)
                 }
-
                 it.erNyttKrav() -> {
-                    skeClient.opprettKrav(
-                        lagOpprettKravRequest(
-                            it.copy(
-                                gjelderID = if(it.gjelderID.startsWith("00")) it.gjelderID else substfnr,
-                            ),
-                            databaseService.lagreNyKobling(it.saksNummer)
-                        ),
-                    )
+                    val response = sendNyeKrav(it, substfnr)
+                    allResponses.addAll(response)
                 }
-
-                else -> throw IllegalArgumentException("SkeService: Feil linjetype/linjetype kan ikke identifiseres")
             }
 
-            if (response.status.isSuccess() || response.status.value in (HttpStatusCode.Conflict.value until HttpStatusCode.UnprocessableEntity.value)) {
-                antallKravSendt.increment()
-                typeKravSendt(it.stonadsKode).increment()
-                if (it.erNyttKrav()) {
-                    kravident = response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
-                }
+            lagreSendtKravIDatabase(allResponses, it, kravident)
 
-                databaseService.lagreNyttKrav(
-                    kravident,
-                    it,
-                    when {
-                        it.erStopp() -> STOPP_KRAV
-                        it.erEndring() -> ENDRE_KRAV
-                        else -> NYTT_KRAV
-                    },
-                    response.status,
-                )
-            } else {
-                logger.error("FAILED REQUEST: ${it.saksNummer}, ERROR: ${response.bodyAsText()}")
-            }
-            it to response
         }
+        return allResponses
+
     }
+
+    private suspend fun lagreSendtKravIDatabase(allResponses: List<HttpResponse>, krav: KravLinje, kravident: String){
+        var kravidentSomSkalLagres = kravident
+
+        //Endring av krav gjør dette veldig klønete siden vi da har 3 responses. Må finne en bedre løsning
+        val errors = allResponses.filter { resp ->
+            !resp.status.isSuccess()  &&  resp.status.value !in (HttpStatusCode.Conflict.value until HttpStatusCode.UnprocessableEntity.value)
+        }
+        if(errors.isEmpty()){
+            antallKravSendt.increment()
+            typeKravSendt(krav.stonadsKode).increment()
+            if (krav.erNyttKrav()) {
+                kravidentSomSkalLagres = allResponses[0].body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
+            }
+
+            //dette er også pga endring av krav og er ikke noe bra for det bruker any
+            val statusString =
+                if(allResponses.filter { resp -> resp.status.isSuccess() }.size == allResponses.size) KRAV_SENDT
+                else if (allResponses.any { resp -> resp.status.value == HttpStatusCode.Conflict.value }) KONFLIKT_409
+                else if(allResponses.any { resp -> resp.status.value == HttpStatusCode.UnprocessableEntity.value }) VALIDERINGSFEIL_422
+                else "UKJENT STATUS: ${allResponses.map { resp -> resp.status.value }}"
+
+            println("STATUS STRING: $statusString")
+
+            databaseService.lagreNyttKrav(
+                kravidentSomSkalLagres,
+                krav,
+                when {
+                    krav.erStopp() -> STOPP_KRAV
+                    krav.erEndring() -> ENDRE_KRAV
+                    else -> NYTT_KRAV
+                },
+                statusString
+            )
+        } else{
+            // FEIL I LINJE, må lagres i feilfil
+            println("/////////////////")
+            println("FEIL FRA SKATT PÅ LINJE ${krav.linjeNummer}: ${allResponses.map { resp -> resp.status.value }} ")
+            println(krav)
+            println("/////////////////")
+
+        }
+
+    }
+
+
 
     private fun handleHvaFGjorViNaa(krav: KravLinje, file: FtpFil) {
         logger.error {

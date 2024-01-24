@@ -88,7 +88,7 @@ internal class RepositoryTest : FunSpec({
                 "skeID-001",
                 krav1NyttSaksNummer,
                 "NYTT_KRAV",
-                HttpStatusCode.OK
+                HttpStatusCode.OK.value.toString()
             )
         }
         val hentetKobling = datasource.connection.use { con ->
