@@ -25,6 +25,8 @@ val natpryceVersion = "1.6.10.0"
 val kotlinxSerializationVersion = "1.6.0"
 val kotlinxDatetimeVersion = "0.4.1"
 val prometheusVersion = "1.11.5"
+val simpleXmlVersion = "2.7.1"
+
 // Test
 val kotestVersion = "5.8.0"
 val kotestTestContainerExtensionVersion = "2.0.2"
@@ -74,6 +76,9 @@ dependencies {
 
     // Flyway
     implementation("org.flywaydb:flyway-core:$flywayVersion")
+
+    //XML
+    implementation("org.simpleframework:simple-xml:$simpleXmlVersion")
 
     // metrics
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")

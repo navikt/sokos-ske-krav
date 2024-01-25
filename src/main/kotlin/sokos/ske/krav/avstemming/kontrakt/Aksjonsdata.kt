@@ -1,10 +1,6 @@
-package sokos.ske.krav.kontrakt
+package sokos.ske.krav.avstemming.kontrakt
 
-import javax.xml.bind.annotation.XmlAccessType
-import javax.xml.bind.annotation.XmlAccessorType
-import javax.xml.bind.annotation.XmlElement
-import javax.xml.bind.annotation.XmlSchemaType
-import javax.xml.bind.annotation.XmlType
+import javax.xml.bind.annotation.*
 
 /**
  * Enhver avstemming må initieres og avsluttes med en 110-record, på det formatet som er beskrevet her

@@ -1,11 +1,11 @@
 
-package sokos.ske.krav.kontrakt;
+package sokos.ske.krav.avstemming.kontrakt;
 
-import java.math.BigDecimal;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
+import java.math.BigDecimal;
 
 
 /**

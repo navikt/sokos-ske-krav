@@ -1,7 +1,6 @@
 target/
 build/
 out/
-.gradle
 .idea
 .run
 *.iws

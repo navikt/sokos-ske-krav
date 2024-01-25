@@ -1,11 +1,7 @@
 
-package sokos.ske.krav.kontrakt;
+package sokos.ske.krav.avstemming.kontrakt;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 
 
 /**
@@ -53,7 +49,7 @@ import javax.xml.bind.annotation.XmlType;
     "avleverendeAvstemmingId",
     "brukerId"
 })
-public class Aksjonsdata {
+public class AksjonsdataJava {
 
     @XmlElement(required = true)
     @XmlSchemaType(name = "string")

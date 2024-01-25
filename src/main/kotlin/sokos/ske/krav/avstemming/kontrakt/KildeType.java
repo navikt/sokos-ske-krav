@@ -1,47 +1,47 @@
 
-package sokos.ske.krav.kontrakt;
+package sokos.ske.krav.avstemming.kontrakt;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for Fortegn.
+ * <p>Java class for KildeType.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="Fortegn">
+ * &lt;simpleType name="KildeType">
  *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
- *     &lt;enumeration value="T"/>
- *     &lt;enumeration value="F"/>
+ *     &lt;enumeration value="AVLEV"/>
+ *     &lt;enumeration value="MOTT"/>
  *   &lt;/restriction>
  * &lt;/simpleType>
  * </pre>
  * 
  */
-@XmlType(name = "Fortegn", namespace = "http://nav.no/virksomhet/tjenester/avstemming/meldinger/v1")
+@XmlType(name = "KildeType", namespace = "http://nav.no/virksomhet/tjenester/avstemming/meldinger/v1")
 @XmlEnum
-public enum Fortegn {
+public enum KildeType {
 
 
     /**
-     * Tillegg
+     * Avleverende komponent
      * 
      */
-    T,
+    AVLEV,
 
     /**
-     * Fradrag
+     * Mottakende komponent
      * 
      */
-    F;
+    MOTT;
 
     public String value() {
         return name();
     }
 
-    public static Fortegn fromValue(String v) {
+    public static KildeType fromValue(String v) {
         return valueOf(v);
     }
 
