@@ -1,11 +1,12 @@
 package sokos.ske.krav.domain.nav
 
+import java.math.BigDecimal
 import java.time.LocalDate
 
 data class KravLinje(
     val linjeNummer: Int,
     val saksNummer: String,
-    val belop: Double,
+    val belop: BigDecimal,
     val vedtakDato: LocalDate,
     val gjelderID: String,
     val periodeFOM: String,
@@ -17,8 +18,8 @@ data class KravLinje(
     val enhetBehandlende: String,
     val hjemmelKode: String,
     val arsakKode: String,
-    val belopRente: Double,
-    val fremtidigYtelse: Double,
+    val belopRente: BigDecimal,
+    val fremtidigYtelse: BigDecimal,
     val utbetalDato: String?,
     val fagsystemId: String?,
 )
@@ -32,5 +33,5 @@ data class LastLine(
     val transferDate: String,
     val sender: String,
     val numTransactionLines: Int,
-    val sumAllTransactionLines: Double,
+    val sumAllTransactionLines: BigDecimal,
 )

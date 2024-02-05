@@ -26,6 +26,7 @@ import sokos.ske.krav.util.FilParser.SisteLinjeFeltPosisjoner.ANTALL_LINJER_POS
 import sokos.ske.krav.util.FilParser.SisteLinjeFeltPosisjoner.OVERFORINGS_DATO_POS
 import sokos.ske.krav.util.FilParser.SisteLinjeFeltPosisjoner.SENDER_POS
 import sokos.ske.krav.util.FilParser.SisteLinjeFeltPosisjoner.SUM_ALLE_LINJER_POS
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -46,13 +47,13 @@ class FilParser(val content: List<String>) {
             transferDate = OVERFORINGS_DATO_POS.parseString(linje),
             sender = SENDER_POS.parseString(linje),
             numTransactionLines = ANTALL_LINJER_POS.parseInt(linje),
-            sumAllTransactionLines = SUM_ALLE_LINJER_POS.parseDouble(linje),
+            sumAllTransactionLines = SUM_ALLE_LINJER_POS.parseBigDecimal(linje),
         )
 
     private fun kravLinjeParser(linje: String) = KravLinje(
         linjeNummer = LINJE_NUMMER_POS.parseInt(linje),
         saksNummer = SAKS_NUMMER_POS.parseString(linje),
-        BELOP_POS.parseDouble(linje),
+        BELOP_POS.parseBigDecimal(linje),
         VEDTAK_DATO_POS.parseDate(linje),
         GJELDER_ID_POS.parseString(linje),
         PERIODE_FOM_POS.parseString(linje),
@@ -64,8 +65,8 @@ class FilParser(val content: List<String>) {
         ENHET_BEHANDLENDE_POS.parseString(linje),
         HJEMMEL_KODE_POS.parseString(linje),
         ARSAK_KODE_POS.parseString(linje),
-        BELOP_RENTE_POS.parseDouble(linje),
-        FREMTIDIG_YTELSE_POS.parseDouble(linje),
+        BELOP_RENTE_POS.parseBigDecimal(linje),
+        FREMTIDIG_YTELSE_POS.parseBigDecimal(linje),
         UTBETAL_DATO_POS.parseString(linje),
         FAGSYSTEM_ID_POS.parseString(linje),
     )
@@ -115,7 +116,13 @@ class FilParser(val content: List<String>) {
             else if (end > line.length) line.substring(start).trim()
             else line.substring(start, end).trim()
         }
+        fun parseBigDecimal(line: String): BigDecimal {
+            val amount = parseString(line)
+            val integer = amount.dropLast(2)
+            val dec = amount.drop(amount.length - 2)
 
+            return "$integer.$dec".toBigDecimal()
+        }
         fun parseDouble(line: String): Double {
             val amount = parseString(line)
             val integer = amount.dropLast(2)

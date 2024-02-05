@@ -23,7 +23,7 @@ object FileValidator {
         val invalidTransferDate = firstLine.transferDate != lastLine.transferDate
 
         if (invalidNumberOfLines) errorMessages.add("Antall krav stemmer ikke med antallet i siste linje! Antall krav:${detailLines.size}, Antall i siste linje: ${lastLine.numTransactionLines} ")
-        if (invalidSum) errorMessages.add("Sum alle linjer stemmer ikke med sum i siste linje! Sum alle linjer: ${detailLines.sumOf { it.belop.roundToLong() + it.belopRente.roundToLong()}}, Sum siste linje: ${lastLine.sumAllTransactionLines}")
+        if (invalidSum) errorMessages.add("Sum alle linjer stemmer ikke med sum i siste linje! Sum alle linjer: ${detailLines.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAllTransactionLines}")
         if (invalidTransferDate) errorMessages.add("Dato sendt er avvikende mellom første og siste linje fra OS! Dato første linje: ${firstLine.transferDate}, Dato siste linje: ${lastLine.transferDate}")
 
         println(errorMessages)

@@ -20,14 +20,14 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
 
 fun lagOpprettKravRequest(krav: KravLinje, uuid: String): OpprettInnkrevingsoppdragRequest {
-    val kravFremtidigYtelse = krav.fremtidigYtelse.roundToLong()
+    val kravFremtidigYtelse = krav.fremtidigYtelse.toDouble().roundToLong()
     val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
     val tilleggsinformasjonNav = TilleggsinformasjonNav(
         tilbakeKrevingsPeriode = TilbakeKrevingsPeriode(LocalDate.parse(krav.periodeFOM, dtf).toKotlinLocalDate(), LocalDate.parse(krav.periodeTOM, dtf).toKotlinLocalDate()),
         ytelserForAvregning = YtelseForAvregningBeloep(beloep = kravFremtidigYtelse).takeIf { kravFremtidigYtelse > 0L },
     )
 
-    val beloepRente = krav.belopRente.roundToLong()
+    val beloepRente = krav.belopRente.toDouble().roundToLong()
     val stonadstypekode = StoenadstypeKodeNAV.fromString(krav.stonadsKode)
     val hjemmelkodePak = HjemmelkodePak.valueOf(krav.hjemmelKode)
     val kravtype = NAVKravtypeMapping.getKravtype(stonadstypekode, hjemmelkodePak)
@@ -39,7 +39,7 @@ fun lagOpprettKravRequest(krav: KravLinje, uuid: String): OpprettInnkrevingsoppd
     return OpprettInnkrevingsoppdragRequest(
         kravtype = kravtype,
         skyldner = skyldner,
-        hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.roundToLong()),
+        hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.toDouble().roundToLong()),
         renteBeloep =
         listOf(
             RenteBeloep(
@@ -57,16 +57,16 @@ fun lagOpprettKravRequest(krav: KravLinje, uuid: String): OpprettInnkrevingsoppd
 fun lagEndreRenteRequest(krav: KravLinje): EndreRenteBeloepRequest = EndreRenteBeloepRequest(
     listOf(
         RenteBeloep(
-            beloep = krav.belopRente.roundToLong(),
+            beloep = krav.belopRente.toDouble().roundToLong(),
             renterIlagtDato = krav.vedtakDato.toKotlinLocalDate(),
         ),
     ),
 )
 
-fun lagNyHovedStolRequest(krav: KravLinje): NyHovedStolRequest = NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.roundToLong()))
+fun lagNyHovedStolRequest(krav: KravLinje): NyHovedStolRequest = NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.toDouble().roundToLong()))
 
 fun lagNyOppdragsgiversReferanseRequest(krav: KravLinje) = NyOppdragsgiversReferanseRequest(krav.saksNummer)
 fun lagStoppKravRequest(nyref: String, kravidentifikatortype: Kravidentifikatortype) = AvskrivingRequest(kravidentifikatortype.value, kravidentifikator = nyref)
 fun KravLinje.erNyttKrav() = (!this.erEndring() && !this.erStopp())
 fun KravLinje.erEndring() = (referanseNummerGammelSak.isNotEmpty() && !erStopp())
-fun KravLinje.erStopp() = (belop.roundToLong() == 0L)
+fun KravLinje.erStopp() = (belop.toDouble().roundToLong() == 0L)
