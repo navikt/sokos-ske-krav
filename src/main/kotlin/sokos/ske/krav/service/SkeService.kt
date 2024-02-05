@@ -13,6 +13,7 @@ import sokos.ske.krav.database.KRAV_SENDT
 import sokos.ske.krav.database.VALIDERINGSFEIL_422
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
+import sokos.ske.krav.domain.ske.responses.AvstemmingResponse
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
@@ -81,16 +82,9 @@ class SkeService(
 
     private suspend fun sendEndreKrav(kravident: String, kravidentType: Kravidentifikatortype, linje: KravLinje, file: FtpFil): List<HttpResponse>{
 
-        val referanseResponse = skeClient.endreOppdragsGiversReferanse(lagNyOppdragsgiversReferanseRequest(linje), kravident, kravidentType)
+        //Skatt bruker ikke nytt saksref til noe så da sender vi det ikke (men venter på endelig avklaring fra skatt)
+        //skeClient.endreOppdragsGiversReferanse(lagNyOppdragsgiversReferanseRequest(linje), kravident, kravidentType)
 
-        if(!referanseResponse.status.isSuccess())  {
-            // FILEN MÅ FØLGES OPP MANUELT...
-            // LAGRES PÅ FILOMRÅDE...
-
-            println("FEIL FRA SKATT! FANT IKKE ORIGINALSAKSREF! MÅ LAGRE LINJA PÅ FILOMRÅDE")
-            handleHvaFGjorViNaa(linje, file)
-            return listOf(referanseResponse)
-        }
         val renteresponse = skeClient.endreRenter(lagEndreRenteRequest(linje), kravident, kravidentType)
         val hovedstolResponse = skeClient.endreHovedstol(lagNyHovedStolRequest(linje), kravident, kravidentType)
 
@@ -153,23 +147,47 @@ class SkeService(
             var kravidentType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
 
             if (kravident.isEmpty() && !it.erNyttKrav()) {
-                //Her må vi bruke tabell for å finne det eldste saksnummeret vi har
-                kravident = it.referanseNummerGammelSak
-                kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
+
+                try {
+                    val response = skeClient.hentSkeKravident(it.referanseNummerGammelSak)
+
+                    println("RESPONSE FRA KALL: ${response.bodyAsText()}")
+                    kravident = response.body<AvstemmingResponse>().kravidentifikator
+                    println("FANT KRAVIDENT FRA AVSTEMMING: $kravident")
+                }    catch (e: Exception){
+                    println("FEIL I KALL!")
+                }
+                if(kravident.isEmpty()){
+                    kravident = it.referanseNummerGammelSak
+                    kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
+                }
             }
 
             when {
                 it.erStopp() -> {
-                    val responses = sendStoppKrav(kravident, kravidentType, it, file)
-                    allResponses.addAll(responses)
+                    val response = sendStoppKrav(kravident, kravidentType, it, file).first()
+                    if(!response.status.isSuccess()) {
+                        println("FEIL i innsending av STOPP PÅ LINJE ${it.linjeNummer}: ${response.status} ${response.bodyAsText()}")
+                        println(it)
+                    }
+                    allResponses.add(response)
                 }
                 it.erEndring() -> {
                     val responses = sendEndreKrav(kravident, kravidentType,it, file)
+                    responses.filter { resp -> !resp.status.isSuccess() }.forEach{ resp ->
+                        println("FEIL I INNSENDING AV ENDRING  PÅ LINJE ${it.linjeNummer}: ${resp.status} ${resp.bodyAsText()}")
+                        println(it)
+                    }
                     allResponses.addAll(responses)
                 }
                 it.erNyttKrav() -> {
-                    val response = sendNyeKrav(it, substfnr)
-                    allResponses.addAll(response)
+                    val response = sendNyeKrav(it, substfnr).first()
+
+                    if(!response.status.isSuccess()) {
+                        println("FEIL i innsending av NYTT PÅ LINJE ${it.linjeNummer}: ${response.status}  ${response.bodyAsText()}")
+                        println(it)
+                    } else  kravident = response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
+                    allResponses.add(response)
                 }
             }
 
@@ -213,10 +231,7 @@ class SkeService(
             )
         } else{
             // FEIL I LINJE, må lagres i feilfil
-            println("/////////////////")
-            println("FEIL FRA SKATT PÅ LINJE ${krav.linjeNummer}: ${allResponses.map { resp -> resp.status.value }} ")
-            println(krav)
-            println("/////////////////")
+
 
         }
 

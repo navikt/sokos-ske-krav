@@ -66,7 +66,12 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
                     "/innkrevingsoppdrag/OB040000479803/mottaksstatus" -> {
                         respond(mottattResponse("OB040000479803"), statusCode, responseHeaders)
                     }
-
+                    "/innkrevingsoppdrag/OB040000592759/avstemming" -> {
+                        respond(opprettResponse, statusCode, responseHeaders)
+                    }
+                    "/innkrevingsoppdrag/OB040000479803/avstemming" -> {
+                        respond(opprettResponse, statusCode, responseHeaders)
+                    }
                     "/innkrevingsoppdrag" -> {
                         respond(opprettResponse, statusCode, responseHeaders)
                     }

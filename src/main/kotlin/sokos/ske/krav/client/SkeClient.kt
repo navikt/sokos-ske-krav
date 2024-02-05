@@ -32,6 +32,7 @@ private const val MOTTAKSSTATUS =
     "innkrevingsoppdrag/%s/mottaksstatus?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
 private const val VALIDERINGSFEIL =
     "innkrevingsoppdrag/%s/valideringsfeil?kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR"
+private const val HENT_SKE_KRAVIDENT  =  "innkrevingsoppdrag/%s/avstemming?kravidentifikatortype=OPPDRAGSGIVERS_KRAVIDENTIFIKATOR"
 private const val KLIENT_ID = "NAV/0.1"
 
 class SkeClient(
@@ -48,15 +49,18 @@ class SkeClient(
     suspend fun stoppKrav(request: AvskrivingRequest): HttpResponse = doPost(STOPP_KRAV, request)
     suspend fun hentMottaksStatus(kravid: String) = doGet(String.format(MOTTAKSSTATUS, kravid))
     suspend fun hentValideringsfeil(kravid: String) = doGet(String.format(VALIDERINGSFEIL, kravid))
+    suspend fun hentSkeKravident(referanse: String) = doGet(String.format(HENT_SKE_KRAVIDENT, referanse))
 
     private suspend inline fun <reified T> doPost(path: String, request: T): HttpResponse = client.post(
         buildRequest(path).apply {
+            contentType(ContentType.Application.Json)
             setBody(request)
         },
     )
 
     private suspend inline fun<reified T> doPut(path: String, request: T, kravidentifikator: String): HttpResponse = client.put(
         buildRequest(path).apply {
+            contentType(ContentType.Application.Json)
             headers.append("kravidentifikator", kravidentifikator)
             setBody(request)
         },
@@ -68,7 +72,6 @@ class SkeClient(
         val token = tokenProvider.hentAccessToken()
         return HttpRequestBuilder().apply {
             url("$skeEndpoint$path")
-            contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
             headers {
                 append("Klientid", KLIENT_ID)
