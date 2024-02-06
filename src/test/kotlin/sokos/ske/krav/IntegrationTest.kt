@@ -56,7 +56,7 @@ internal class IntegrationTest : FunSpec({
         val mockkKravService = mockKravService(ds)
 
         val fakeFtpService = FakeFtpService()
-        val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt"))
+        val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("AltOkFil.txt"))
 
         val skeService = SkeService(skeClient, mockkKravService, ftpService)
 

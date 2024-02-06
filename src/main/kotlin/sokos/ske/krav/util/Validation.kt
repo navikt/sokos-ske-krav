@@ -7,7 +7,23 @@ sealed class ValidationResult {
     data class Success(val kravLinjer: List<KravLinje>) : ValidationResult()
     data class Error(val messages: List<String>) : ValidationResult()
 }
-
+object LineValidator{
+   fun validateLine(krav: KravLinje, filNavn: String): Boolean{
+        try {
+          KravTypeMappingFraNAVTilSKE.getKravtype(krav)
+          return true
+        }catch (e: NotImplementedError){
+            val errorMessage = "FEIL I FIL $filNavn PÅ LINJE ${krav.linjeNummer}: ${e.message}"
+            println(errorMessage)
+            return false
+        }
+        catch (e: Exception){
+          val errorMessage = "FEIL I FIL $filNavn PÅ LINJE ${krav.linjeNummer}: ${e.message}"
+          println(errorMessage)
+          return false
+        }
+    }
+}
 object FileValidator {
     fun validateFiles(content: List<String>): ValidationResult {
         val parser = FilParser(content)

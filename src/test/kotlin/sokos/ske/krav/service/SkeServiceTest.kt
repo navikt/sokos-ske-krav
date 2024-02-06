@@ -19,7 +19,7 @@ internal class SkeServiceTest : FunSpec({
             every { hentSkeKravident(any<String>()) } returns "1234"
         }
         val fakeFtpService = FakeFtpService()
-        val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt"))
+        val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("AltOkFil.txt"))
 
         val httpClient = MockHttpClient().getClient()
         val client = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
@@ -38,7 +38,7 @@ internal class SkeServiceTest : FunSpec({
             every { hentSkeKravident(any<String>()) } returns "1234"
         }
         val fakeFtpService = FakeFtpService()
-        val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt"))
+        val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("AltOkFil.txt"))
 
         val httpClient = MockHttpClient().getClient(HttpStatusCode.BadRequest)
         val client = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)

@@ -25,7 +25,7 @@ class FakeFtpService(private val client: FTPClient = FTPClient()) {
 
 	fun setupMocks(
 		directory: Directories = Directories.INBOUND,
-		fileNames: List<String> = listOf("fil1.txt", "fil2.txt")
+		fileNames: List<String> = listOf("AltOkFil.txt", "AltOkFil2.txt")
 	): FtpService {
 
 		val config = connect(directory, fileNames)
@@ -69,7 +69,7 @@ class FakeFtpService(private val client: FTPClient = FTPClient()) {
 
 	private fun connect(
 		directory: Directories = Directories.INBOUND,
-		fileNames: List<String> = listOf("fil1.txt", "fil2.txt")
+		fileNames: List<String> = listOf("AltOkFil.txt", "AltOkFil2.txt")
 	): PropertiesConfig.FtpConfig {
 		fakeFtpServer.serverControlPort = 0
 		fakeFtpServer.addUserAccount(UserAccount("username", "password", "/"))

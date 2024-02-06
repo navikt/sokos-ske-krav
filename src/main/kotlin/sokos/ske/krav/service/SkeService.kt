@@ -20,9 +20,7 @@ import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics.antallKravLest
 import sokos.ske.krav.metrics.Metrics.antallKravSendt
 import sokos.ske.krav.metrics.Metrics.typeKravSendt
-import sokos.ske.krav.util.HjemmelkodePak
-import sokos.ske.krav.util.NAVKravtypeMapping
-import sokos.ske.krav.util.StoenadstypeKodeNAV
+import sokos.ske.krav.util.LineValidator
 import sokos.ske.krav.util.erEndring
 import sokos.ske.krav.util.erNyttKrav
 import sokos.ske.krav.util.erStopp
@@ -104,22 +102,6 @@ class SkeService(
         return listOf(response)
     }
 
-    private fun validerLinje(krav: KravLinje): Boolean{
-        return try {
-            val stonadstypekode = StoenadstypeKodeNAV.fromString(krav.stonadsKode)
-            val hjemmelkodePak = HjemmelkodePak.valueOf(krav.hjemmelKode)
-            NAVKravtypeMapping.getKravtype(stonadstypekode, hjemmelkodePak)
-            true
-        } catch (e: NotImplementedError) {
-            //lagre i feilfil
-            println("FEIL I KRAV PÅ LINJE ${krav.linjeNummer}: ${e.message}")
-            false
-        } catch (e: IllegalArgumentException) {
-            //lagre i feilfil
-            println("FEIL I KRAV PÅ LINJE ${krav.linjeNummer}: ${e.message}")
-            false
-        }
-    }
 
     private suspend fun sendKrav(file: FtpFil, fnrIter: ListIterator<String>, fnrListe: List<String>) : List<HttpResponse>{
         var fnrIter1 = fnrIter
@@ -127,7 +109,7 @@ class SkeService(
         //Klønete pga endring av krav
         val allResponses = mutableListOf<HttpResponse>()
 
-        val linjer = file.kravLinjer.filter { validerLinje(it) }
+        val linjer = file.kravLinjer.filter { LineValidator.validateLine(it, file.name) }
         println("${linjer.size} LINJER")
 
         //bruker foreach for å ha litt bedre oversikt, for tror det må endres siden endring av krav gjør det så teit

@@ -3,11 +3,12 @@ package sokos.ske.krav.domain.ske.requests
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import sokos.ske.krav.util.KravTypeMappingFraNAVTilSKE
 
 @Serializable
 @SerialName("opprettInnkrevingsoppdrag")
 data class OpprettInnkrevingsoppdragRequest(
-    val kravtype: sokos.ske.krav.util.Kravtype,
+    val kravtype: KravTypeMappingFraNAVTilSKE,
     val skyldner: Skyldner,
     val hovedstol: HovedstolBeloep,
     val renteBeloep: List<RenteBeloep>?,

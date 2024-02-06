@@ -28,9 +28,7 @@ fun lagOpprettKravRequest(krav: KravLinje, uuid: String): OpprettInnkrevingsoppd
     )
 
     val beloepRente = krav.belopRente.toDouble().roundToLong()
-    val stonadstypekode = StoenadstypeKodeNAV.fromString(krav.stonadsKode)
-    val hjemmelkodePak = HjemmelkodePak.valueOf(krav.hjemmelKode)
-    val kravtype = NAVKravtypeMapping.getKravtype(stonadstypekode, hjemmelkodePak)
+    val kravtype =  KravTypeMappingFraNAVTilSKE.getKravtype(krav)
     val skyldner =
         if (krav.gjelderID.startsWith("00"))
             Skyldner(Skyldner.IdentifikatorType.ORGANISASJON, krav.gjelderID.substring(2, krav.gjelderID.length))

@@ -10,7 +10,7 @@ import java.io.File
 import java.net.URI
 
 internal class ParserTest : FunSpec({
-    val liste = readFileFromFS("fil1.txt".asResource())
+    val liste = readFileFromFS("AltOkFil.txt".asResource())
     val parser = FilParser(liste)
 
     test("lesInnStartLinjeTilclass") {

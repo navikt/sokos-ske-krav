@@ -10,7 +10,7 @@ internal class FtpServiceTest : FunSpec({
 	test("OK filer skal ikke flyttes") {
 		val fakeFtpService = FakeFtpService()
 		val ftpService =
-			fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil1.txt", "fil2.txt", "test.NAVI"))
+			fakeFtpService.setupMocks(Directories.INBOUND, listOf("AltOkFil.txt", "AltOkFil2.txt", "test.NAVI"))
 
 		val successFiles = ftpService.getValidatedFiles()
 		successFiles.size shouldBe 3
@@ -18,8 +18,8 @@ internal class FtpServiceTest : FunSpec({
 		val successFilesInDir = ftpService.listFiles(Directories.INBOUND)
 		successFilesInDir.size shouldBe 3
 		successFilesInDir shouldContain "test.NAVI"
-		successFilesInDir shouldContain "fil1.txt"
-		successFilesInDir shouldContain "fil2.txt"
+		successFilesInDir shouldContain "AltOkFil.txt"
+		successFilesInDir shouldContain "AltOkFil2.txt"
 
 
 		fakeFtpService.close()
@@ -28,13 +28,13 @@ internal class FtpServiceTest : FunSpec({
   test("Filer som feiler validering skal flyttes til Directories.FAILED") {
 	val fakeFtpService = FakeFtpService()
 	val ftpService =
-	  fakeFtpService.setupMocks(Directories.INBOUND, listOf("fil3.txt"))
+	  fakeFtpService.setupMocks(Directories.INBOUND, listOf("FilMedFeilIKontrollLinje.txt"))
 	
 	ftpService.getValidatedFiles().size shouldBe 0
 
 	val failedFilesInDir = ftpService.listFiles(Directories.FAILED)
 	failedFilesInDir.size shouldBe 1
-	failedFilesInDir[0] shouldBe "fil3.txt"
+	failedFilesInDir[0] shouldBe "FilMedFeilIKontrollLinje.txt"
 
 	fakeFtpService.close()
   }
