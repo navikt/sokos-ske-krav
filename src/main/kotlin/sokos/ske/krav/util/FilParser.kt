@@ -104,7 +104,7 @@ class FilParser(val content: List<String>) {
         private val logger = KotlinLogging.logger {}
         fun parseString(line: String): String {
             if (start > end) {
-                logger.error { "Feil i fil! Startposisjon $start er større enn sluttposisjon $end" }
+                logger.error("Feil i fil! Startposisjon $start er større enn sluttposisjon $end")
                 return ""
             }
             return if (start > line.length) ""

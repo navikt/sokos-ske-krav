@@ -24,7 +24,6 @@ data class FtpFil(
     val kravLinjer: List<KravLinje>
 )
 
-private val validationLogger = KotlinLogging.logger { "validationLogger" }
 class FtpService(
     private val config: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConfig(),
     val jsch: JSch = JSch()
@@ -76,12 +75,11 @@ class FtpService(
         if (files.isEmpty()) return emptyList()
 
         files.map { entry ->
-            when (val result: ValidationResult = FileValidator.validateFiles(entry.value)) {
+            when (val result: ValidationResult = FileValidator.validateFile(entry.value, entry.key)) {
                 is ValidationResult.Success -> {
                     successFiles.add(FtpFil(entry.key, entry.value, result.kravLinjer))
                 }
                 is ValidationResult.Error -> {
-                    validationLogger.warn { "Feil i validering av fil ${entry.key}: ${result.messages}" }
                     moveFile(entry.key, directory, Directories.FAILED)
                 }
             }
@@ -97,7 +95,7 @@ class FtpService(
         try {
             get(fileName, outputStream)
         } catch (e: SftpException) {
-            logger.error { "Feil i henting av fil $fileName: ${e.message}" }
+            logger.error("Feil i henting av fil $fileName: ${e.message}")
         }
 
         return String(outputStream.toByteArray()).split("\r?\n|\r".toRegex()).filter { it.isNotEmpty() }
@@ -110,7 +108,7 @@ class FtpService(
         try {
             rename(oldpath, newpath)
         } catch (e: SftpException) {
-            logger.error { "Feil i flytting av fil fra $oldpath til $newpath: ${e.message}" }
+            logger.error("Feil i flytting av fil fra $oldpath til $newpath: ${e.message}")
         }
     }
 
@@ -119,7 +117,7 @@ class FtpService(
         try {
             put(content.toByteArray().inputStream(), path)
         } catch (e: SftpException) {
-            logger.error { "Feil i opprettelse av fil $path: ${e.message}" }
+            logger.error("Feil i opprettelse av fil $path: ${e.message}")
         }
 
     }

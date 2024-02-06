@@ -44,7 +44,7 @@ fun Routing.skeApi(
 
         get("error") {
             for (i in 0..1000) {
-                logger.error { "Nå er'e feil igjen, Error: $i" }
+                logger.error("Nå er'e feil igjen, Error: $i" )
             }
             call.respond("Nå er det 1000 errors i loggen")
         }
@@ -52,7 +52,7 @@ fun Routing.skeApi(
         get("warn") {
 
             for (i in 0..1000) {
-                logger.warn { "Nå er'e feil igjen, Warning: $i" }
+                logger.warn("Nå er'e feil igjen, Warning: $i")
             }
             call.respond("Nå er det 1000 errors i loggen")
         }
@@ -63,12 +63,12 @@ fun Routing.skeApi(
 
 
         get("test") {
-            logger.info { "API kaller test" }
+            logger.info("API kaller test")
             try {
                 val response = skeService.sendNyeFtpFilerTilSkatt()
-                logger.info { "APIKrav sendt, returnerer reponse" }
+                logger.info("APIKrav sendt, returnerer reponse")
                 call.respond(HttpStatusCode.OK, "$response")
-                logger.info { "APIKrav sendt" }
+                logger.info("APIKrav sendt" )
 /*                logger.info { "APIKrav sendt, oppdaterer mottaksstatus" }
                 skeService.hentOgOppdaterMottaksStatus()
                 logger.info { "APIKrav sendt, har oppdatert mottaksstatus" }*/
@@ -82,12 +82,12 @@ fun Routing.skeApi(
         }
         get("status") {
             println("kaller mottaksstatus")
-            logger.info { "APIlogger:  Status Start" }
+            logger.info("APIlogger:  Status Start")
             try {
                 call.respond(skeService.hentOgOppdaterMottaksStatus())
-                logger.info { "APILogger Status ferdig" }
+                logger.info("APILogger Status ferdig")
             } catch (e: Exception) {
-                logger.error { " APILogger: Status feilet" }
+                logger.error("APILogger: Status feilet")
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "APISorry feilet: ${e.message}, \n" +
@@ -102,7 +102,7 @@ fun Routing.skeApi(
                 if (a.isEmpty()) call.respond("ingen valideringsfeil funnet")
                 else call.respond(a)
             } catch (e: Exception) {
-                logger.error { "APIlogger: validering feilet" }
+                logger.error("APIlogger: validering feilet")
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "Sorry validering feilet: ${e.message}, \n" +

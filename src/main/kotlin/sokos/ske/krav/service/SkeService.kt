@@ -41,21 +41,21 @@ class SkeService(
     private val databaseService: DatabaseService = DatabaseService(),
     private val ftpService: FtpService = FtpService(),
 ) {
-    private val logger = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger{}
 
     fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
     fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles()
 
     suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
-        logger.info { "Starter skeService SendNyeFtpFilertilSkatt." }
+        logger.info("Starter skeService SendNyeFtpFilertilSkatt.")
         val files = ftpService.getValidatedFiles()
-        logger.info { "Antall filer i kjøring ${files.size}" }
+        logger.info("Antall filer i kjøring ${files.size}")
 
         val fnrListe = getFnrListe()
         val fnrIter = fnrListe.listIterator()
 
         val responses = files.map { file ->
-            logger.info { "Antall linjer i ${file.name}: ${file.kravLinjer.size} (incl. start/stop)" }
+            logger.info("Antall linjer i ${file.name}: ${file.kravLinjer.size} (incl. start/stop)")
             sendKrav(file, fnrIter, fnrListe)
         }
 
@@ -221,7 +221,7 @@ class SkeService(
 
 
     private fun handleHvaFGjorViNaa(krav: KravLinje, file: FtpFil) {
-        logger.error {
+        logger.error(
             """
                         SAKSNUMMER: ${krav.saksNummer}
                         GAMMELT SAKSNUMMER: ${krav.referanseNummerGammelSak}
@@ -230,7 +230,7 @@ class SkeService(
                     """
             // hva faen gjør vi nå??
             // Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
-        }
+        )
     }
 
     suspend fun hentOgOppdaterMottaksStatus(): List<String> {
@@ -246,11 +246,11 @@ class SkeService(
                     databaseService.oppdaterStatus(mottaksstatus)
                 } catch (e: SerializationException) {
                     feil.incrementAndGet()
-                    logger.error { "Feil i dekoding av MottaksStatusResponse: ${e.message}" }
+                    logger.error("Feil i dekoding av MottaksStatusResponse: ${e.message}")
                     throw e
                 } catch (e: IllegalArgumentException) {
                     feil.incrementAndGet()
-                    logger.error { "Response er ikke på forventet format for MottaksStatusResponse : ${e.message}" }
+                    logger.error("Response er ikke på forventet format for MottaksStatusResponse : ${e.message}" )
                     throw e
                 }
             }
@@ -273,7 +273,7 @@ class SkeService(
                 "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
             }
         }
-        if (resultat.isNotEmpty()) logger.info { "HENTVALIDERINGSFEIL: Det er hentet valideringsfeil for ${resultat.size} krav" }
+        if (resultat.isNotEmpty()) logger.info("HENTVALIDERINGSFEIL: Det er hentet valideringsfeil for ${resultat.size} krav")
 
         return resultat
     }

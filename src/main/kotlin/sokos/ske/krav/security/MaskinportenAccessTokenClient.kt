@@ -70,10 +70,10 @@ class MaskinportenAccessTokenClient(
         return try {
             response.body()
         } catch (ex: NoTransformationFoundException) {
-            logger.error { "Kunne ikke lese accessToken, se sikker log for meldingen som string" }
+            logger.error("Kunne ikke lese accessToken, se sikker log for meldingen som string" )
             val feilmelding = response.bodyAsText()
             println(feilmelding)
-            secureLogger.error { "Feil fra tokenprovider, Token: $jwt, Feilmelding: $feilmelding" }
+            secureLogger.error("Feil fra tokenprovider, Token: $jwt, Feilmelding: $feilmelding" )
             throw ex
         }
     }

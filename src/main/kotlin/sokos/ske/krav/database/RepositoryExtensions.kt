@@ -26,7 +26,7 @@ object RepositoryExtensions {
                 return block(this)
             }
         } catch (ex: SQLException) {
-            logger.error { ex.message }
+            logger.error(ex.message)
             throw ex
         }
     }
@@ -53,7 +53,7 @@ object RepositoryExtensions {
         }
 
         if (null !is T && columnValue == null) {
-            logger.error { "Påkrevet kolonne '$columnLabel' er null" }
+            logger.error("Påkrevet kolonne '$columnLabel' er null" )
             throw SQLException("Påkrevet kolonne '$columnLabel' er null") // TODO Feilhåndtering
         }
 

@@ -24,7 +24,21 @@ import sokos.ske.krav.util.KravTypeMappingFraNAVTilSKE
 object Metrics {
     val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
+    fun feilIFilValidering(filnavn: String, feilmelding: String): Counter = Counter.builder("filvalidering.feil")
+        .description("Feil i validering av fil")
+        .tag("Feilmelding", feilmelding)
+        .tag("Fil", filnavn)
+        .register(registry)
+
+    fun feilILinjeValidering(filnavn: String, linjeNummer: String, feilmelding: String): Counter = Counter.builder("linjevalidering.feil")
+        .description("Feil i validering av fil")
+        .tag("Feilmelding", feilmelding)
+        .tag("Fil", filnavn)
+        .tag("Linjenummer", linjeNummer)
+        .register(registry)
+
     fun typeKravSendt(kode: String): Counter = Counter.builder("krav.type")
+        .description("Antall krav sendt til endepunkt, per kravtype")
         .tag("Kravtype", kode)
         .register(registry)
 
