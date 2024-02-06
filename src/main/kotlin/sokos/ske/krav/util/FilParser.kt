@@ -78,11 +78,6 @@ class FilParser(val content: List<String>) {
         val SUM_ALLE_LINJER_POS = LinjeFeltPosisjon(start = 35, end = 50)
     }
 
-    private object ForsteLinjeFeltPosisjoner {
-        val OVERFORINGS_DATO_POS = LinjeFeltPosisjon(start = 4, end = 18)
-        val SENDER_POS = LinjeFeltPosisjon(start = 18, end = 27)
-    }
-
     private object KravLinjeFeltPosisjoner {
         val LINJE_TYPE_POS = LinjeFeltPosisjon(start = 0, end = 4)
         val LINJE_NUMMER_POS = LinjeFeltPosisjon(start = 4, end = 11)
@@ -123,13 +118,7 @@ class FilParser(val content: List<String>) {
 
             return "$integer.$dec".toBigDecimal()
         }
-        fun parseDouble(line: String): Double {
-            val amount = parseString(line)
-            val integer = amount.dropLast(2)
-            val dec = amount.drop(amount.length - 2)
 
-            return "$integer.$dec".toDouble()
-        }
 
         fun parseInt(line: String): Int = parseString(line).toInt()
         fun parseDate(line: String): LocalDate {

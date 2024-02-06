@@ -9,7 +9,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
@@ -41,24 +40,28 @@ class SkeClient(
     private val client: HttpClient = httpClient,
 ) {
 
-    suspend fun endreRenter(request: EndreRenteBeloepRequest, kravid: String, kravidentifikatortype: Kravidentifikatortype): HttpResponse = doPut(String.format(ENDRE_RENTER, kravid, kravidentifikatortype.value), request, kravid)
-    suspend fun endreHovedstol(request: NyHovedStolRequest, kravid: String, kravidentifikatortype: Kravidentifikatortype): HttpResponse = doPut(String.format(ENDRE_HOVESTOL, kravid, kravidentifikatortype.value), request, kravid)
-    suspend fun endreOppdragsGiversReferanse(request: NyOppdragsgiversReferanseRequest, kravid: String, kravidentifikatortype: Kravidentifikatortype) = doPut(String.format(ENDRE_REFERANSENUMMER, kravid, kravidentifikatortype.value), request, kravid)
+    suspend fun endreRenter(request: EndreRenteBeloepRequest, kravid: String, kravidentifikatortype: Kravidentifikatortype)
+    = doPut(String.format(ENDRE_RENTER, kravid, kravidentifikatortype.value), request, kravid)
+    suspend fun endreHovedstol(request: NyHovedStolRequest, kravid: String, kravidentifikatortype: Kravidentifikatortype)
+    = doPut(String.format(ENDRE_HOVESTOL, kravid, kravidentifikatortype.value), request, kravid)
+    suspend fun endreOppdragsGiversReferanse(request: NyOppdragsgiversReferanseRequest, kravid: String, kravidentifikatortype: Kravidentifikatortype)
+    = doPut(String.format(ENDRE_REFERANSENUMMER, kravid, kravidentifikatortype.value), request, kravid)
 
-    suspend fun opprettKrav(request: OpprettInnkrevingsoppdragRequest): HttpResponse = doPost(OPPRETT_KRAV, request) //  suspend fun stoppKrav(body: String): HttpResponse = doPost(STOPP_KRAV, body)
-    suspend fun stoppKrav(request: AvskrivingRequest): HttpResponse = doPost(STOPP_KRAV, request)
+    suspend fun opprettKrav(request: OpprettInnkrevingsoppdragRequest) = doPost(OPPRETT_KRAV, request)
+    suspend fun stoppKrav(request: AvskrivingRequest) = doPost(STOPP_KRAV, request)
     suspend fun hentMottaksStatus(kravid: String) = doGet(String.format(MOTTAKSSTATUS, kravid))
     suspend fun hentValideringsfeil(kravid: String) = doGet(String.format(VALIDERINGSFEIL, kravid))
     suspend fun hentSkeKravident(referanse: String) = doGet(String.format(HENT_SKE_KRAVIDENT, referanse))
 
-    private suspend inline fun <reified T> doPost(path: String, request: T): HttpResponse = client.post(
+    private suspend inline fun <reified T> doPost(path: String, request: T)= client.post(
         buildRequest(path).apply {
             contentType(ContentType.Application.Json)
             setBody(request)
         },
     )
 
-    private suspend inline fun<reified T> doPut(path: String, request: T, kravidentifikator: String): HttpResponse = client.put(
+    private suspend inline fun<reified T> doPut(path: String, request: T, kravidentifikator: String)
+    = client.put(
         buildRequest(path).apply {
             contentType(ContentType.Application.Json)
             headers.append("kravidentifikator", kravidentifikator)
@@ -66,7 +69,7 @@ class SkeClient(
         },
     )
 
-    private suspend fun doGet(path: String): HttpResponse = client.get(buildRequest(path))
+    private suspend fun doGet(path: String) = client.get(buildRequest(path))
 
     private suspend fun buildRequest(path: String): HttpRequestBuilder {
         val token = tokenProvider.hentAccessToken()

@@ -4,7 +4,6 @@ import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.testcontainers.toDataSource
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
@@ -158,7 +157,7 @@ internal class IntegrationTest : FunSpec({
     }
 })
 
-fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseService>() {
+fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseService> {
     every { hentSkeKravident(any<String>()) } answers {
         ds.connection.useAndHandleErrors { con ->
             con.hentSkeKravIdent(firstArg<String>())

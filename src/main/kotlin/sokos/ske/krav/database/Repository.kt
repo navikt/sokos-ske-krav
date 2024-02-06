@@ -1,7 +1,5 @@
 package sokos.ske.krav.database
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.isSuccess
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
 import sokos.ske.krav.database.RepositoryExtensions.toKobling

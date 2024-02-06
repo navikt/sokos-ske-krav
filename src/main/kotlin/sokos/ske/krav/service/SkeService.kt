@@ -29,7 +29,6 @@ import sokos.ske.krav.util.erStopp
 import sokos.ske.krav.util.getFnrListe
 import sokos.ske.krav.util.lagNyHovedStolRequest
 import sokos.ske.krav.util.lagEndreRenteRequest
-import sokos.ske.krav.util.lagNyOppdragsgiversReferanseRequest
 import sokos.ske.krav.util.lagOpprettKravRequest
 import sokos.ske.krav.util.lagStoppKravRequest
 import java.util.concurrent.atomic.AtomicInteger
@@ -80,7 +79,7 @@ class SkeService(
         return listOf(stoppresponse)
     }
 
-    private suspend fun sendEndreKrav(kravident: String, kravidentType: Kravidentifikatortype, linje: KravLinje, file: FtpFil): List<HttpResponse>{
+    private suspend fun sendEndreKrav(kravident: String, kravidentType: Kravidentifikatortype, linje: KravLinje): List<HttpResponse>{
 
         //Skatt bruker ikke nytt saksref til noe så da sender vi det ikke (men venter på endelig avklaring fra skatt)
         //skeClient.endreOppdragsGiversReferanse(lagNyOppdragsgiversReferanseRequest(linje), kravident, kravidentType)
@@ -122,7 +121,7 @@ class SkeService(
         }
     }
 
-    private suspend fun sendKrav(file: FtpFil, fnrIter: ListIterator<String>, fnrListe: List<String>,) : List<HttpResponse>{
+    private suspend fun sendKrav(file: FtpFil, fnrIter: ListIterator<String>, fnrListe: List<String>) : List<HttpResponse>{
         var fnrIter1 = fnrIter
 
         //Klønete pga endring av krav
@@ -173,7 +172,7 @@ class SkeService(
                     allResponses.add(response)
                 }
                 it.erEndring() -> {
-                    val responses = sendEndreKrav(kravident, kravidentType,it, file)
+                    val responses = sendEndreKrav(kravident, kravidentType,it)
                     responses.filter { resp -> !resp.status.isSuccess() }.forEach{ resp ->
                         println("FEIL I INNSENDING AV ENDRING  PÅ LINJE ${it.linjeNummer}: ${resp.status} ${resp.bodyAsText()}")
                         println(it)

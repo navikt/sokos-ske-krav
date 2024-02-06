@@ -1,6 +1,5 @@
 package sokos.ske.krav.service
 
-import io.ktor.http.HttpStatusCode
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
 import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort

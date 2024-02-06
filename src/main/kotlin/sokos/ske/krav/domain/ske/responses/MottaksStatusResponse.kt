@@ -17,7 +17,7 @@ data class MottaksStatusResponse(
 		RESKONTROFOERT("RESKONTROFOERT");
 
 		companion object {
-			private val map = MottaksStatus.values().associateBy { it.value }
+			private val map = MottaksStatus.entries.associateBy { it.value }
 			infix fun from(value: String) = map[value]
 		}
 	}
