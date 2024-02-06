@@ -21,11 +21,11 @@ const val VALIDERINGSFEIL_422 = "VALIDERINGSFEIL_422"
 
 object Repository {
 
-    fun Connection.hentAlleKravData(): List<KravTable> {
+    fun Connection.getAlleKrav(): List<KravTable> {
         return prepareStatement("""select * from krav""").executeQuery().toKrav()
     }
 
-    fun Connection.hentAlleKravSomIkkeErReskotrofort(): List<KravTable> {
+    fun Connection.getAlleKravSomIkkeErReskotrofort(): List<KravTable> {
         return prepareStatement("""select * from krav where status <> ? and status <> ?""")
             .withParameters(
                 param(MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value),
@@ -33,14 +33,14 @@ object Repository {
             ).executeQuery().toKrav()
     }
 
-    fun Connection.hentAlleKravMedValideringsfeil(): List<KravTable> {
+    fun Connection.getAlleKravMedValideringsfeil(): List<KravTable> {
         return prepareStatement("""select * from krav where status = ?""")
             .withParameters(
                 param(MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value)
             ).executeQuery().toKrav()
     }
 
-    fun Connection.lagreNyttKrav(
+    fun Connection.insertNewKrav(
         kravidentSKE: String,
         kravLinje: KravLinje,
         kravtype: String,
@@ -101,7 +101,7 @@ object Repository {
         commit()
     }
 
-    fun Connection.hentSkeKravIdent(navref: String): String {
+    fun Connection.getSkeKravIdent(navref: String): String {
         val rs = prepareStatement(
             """
             select id, kravidentifikator_ske from krav
@@ -115,7 +115,7 @@ object Repository {
         else ""
     }
 
-    fun Connection.lagreNyKobling(ref: String): String {
+    fun Connection.insertNewKobling(ref: String): String {
         val nyref = UUID.randomUUID().toString()
         prepareStatement(
             """
@@ -149,7 +149,7 @@ object Repository {
         else ""
     }
 
-    fun Connection.hentAlleKoblinger(): List<KoblingTable> {
+    fun Connection.getAlleKoblinger(): List<KoblingTable> {
         return prepareStatement(
             """
             select * from kobling
@@ -157,7 +157,7 @@ object Repository {
         ).executeQuery().toKobling()
     }
 
-    fun Connection.oppdaterStatus(mottakStatus: MottaksStatusResponse) {
+    fun Connection.updateStatus(mottakStatus: MottaksStatusResponse) {
         prepareStatement(
             """
             update krav 
@@ -172,7 +172,7 @@ object Repository {
         commit()
     }
 
-    fun Connection.lagreValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, kravidSKE: String) {
+    fun Connection.saveValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, kravidSKE: String) {
         valideringsFeilResponse.valideringsfeil.forEach {
             prepareStatement(
                 """

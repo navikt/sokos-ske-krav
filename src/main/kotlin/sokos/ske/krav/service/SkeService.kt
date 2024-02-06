@@ -17,18 +17,18 @@ import sokos.ske.krav.domain.ske.responses.AvstemmingResponse
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
-import sokos.ske.krav.metrics.Metrics.antallKravLest
-import sokos.ske.krav.metrics.Metrics.antallKravSendt
-import sokos.ske.krav.metrics.Metrics.typeKravSendt
+import sokos.ske.krav.metrics.Metrics.numerOfKravRead
+import sokos.ske.krav.metrics.Metrics.numerOfKravSent
+import sokos.ske.krav.metrics.Metrics.typeKravSent
 import sokos.ske.krav.util.LineValidator
-import sokos.ske.krav.util.erEndring
-import sokos.ske.krav.util.erNyttKrav
-import sokos.ske.krav.util.erStopp
+import sokos.ske.krav.util.isEndring
+import sokos.ske.krav.util.isNyttKrav
+import sokos.ske.krav.util.isStopp
 import sokos.ske.krav.util.getFnrListe
-import sokos.ske.krav.util.lagNyHovedStolRequest
-import sokos.ske.krav.util.lagEndreRenteRequest
-import sokos.ske.krav.util.lagOpprettKravRequest
-import sokos.ske.krav.util.lagStoppKravRequest
+import sokos.ske.krav.util.makeNyHovedStolRequest
+import sokos.ske.krav.util.makeEndreRenteRequest
+import sokos.ske.krav.util.makeOpprettKravRequest
+import sokos.ske.krav.util.makeStoppKravRequest
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -46,7 +46,7 @@ class SkeService(
     fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
     fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles()
 
-    suspend fun sendNyeFtpFilerTilSkatt(): List<HttpResponse> {
+    suspend fun sendNewFilesToSKE(): List<HttpResponse> {
         logger.info("Starter skeService SendNyeFtpFilertilSkatt.")
         val files = ftpService.getValidatedFiles()
         logger.info("Antall filer i kjøring ${files.size}")
@@ -65,7 +65,7 @@ class SkeService(
     }
 
     private suspend fun sendStoppKrav(kravident: String, kravidentType: Kravidentifikatortype, linje: KravLinje, file: FtpFil): List<HttpResponse>{
-        val stoppresponse = skeClient.stoppKrav(lagStoppKravRequest(kravident, kravidentType))
+        val stoppresponse = skeClient.stoppKrav(makeStoppKravRequest(kravident, kravidentType))
 
         if(!stoppresponse.status.isSuccess()) {
             // FILEN MÅ FØLGES OPP MANUELT...
@@ -82,21 +82,21 @@ class SkeService(
         //Skatt bruker ikke nytt saksref til noe så da sender vi det ikke (men venter på endelig avklaring fra skatt)
         //skeClient.endreOppdragsGiversReferanse(lagNyOppdragsgiversReferanseRequest(linje), kravident, kravidentType)
 
-        val renteresponse = skeClient.endreRenter(lagEndreRenteRequest(linje), kravident, kravidentType)
-        val hovedstolResponse = skeClient.endreHovedstol(lagNyHovedStolRequest(linje), kravident, kravidentType)
+        val renteresponse = skeClient.endreRenter(makeEndreRenteRequest(linje), kravident, kravidentType)
+        val hovedstolResponse = skeClient.endreHovedstol(makeNyHovedStolRequest(linje), kravident, kravidentType)
 
         //her må vi lagre transaksjonsIDene
 
         return listOf(renteresponse, hovedstolResponse, renteresponse)
 
     }
-    private suspend fun sendNyeKrav(linje: KravLinje, substfnr: String): List<HttpResponse>{
+    private suspend fun sendOpprettKrav(linje: KravLinje, substfnr: String): List<HttpResponse>{
       val response =  skeClient.opprettKrav(
-            lagOpprettKravRequest(
+            makeOpprettKravRequest(
                 linje.copy(
                     gjelderID = if(linje.gjelderID.startsWith("00")) linje.gjelderID else substfnr,
                 ),
-                databaseService.lagreNyKobling(linje.saksNummer)
+                databaseService.insertNewKobling(linje.saksNummer)
             ),
         )
         return listOf(response)
@@ -114,7 +114,7 @@ class SkeService(
 
         //bruker foreach for å ha litt bedre oversikt, for tror det må endres siden endring av krav gjør det så teit
         linjer.forEach {
-            antallKravLest.increment()
+            numerOfKravRead.increment()
 
 
             val substfnr = if (fnrIter1.hasNext()) {
@@ -124,13 +124,13 @@ class SkeService(
                 fnrIter1.next()
             }
 
-            var kravident = databaseService.hentSkeKravident(it.referanseNummerGammelSak)
+            var kravident = databaseService.getSkeKravident(it.referanseNummerGammelSak)
             var kravidentType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
 
-            if (kravident.isEmpty() && !it.erNyttKrav()) {
+            if (kravident.isEmpty() && !it.isNyttKrav()) {
 
                 try {
-                    val response = skeClient.hentSkeKravident(it.referanseNummerGammelSak)
+                    val response = skeClient.getSkeKravident(it.referanseNummerGammelSak)
 
                     println("RESPONSE FRA KALL: ${response.bodyAsText()}")
                     kravident = response.body<AvstemmingResponse>().kravidentifikator
@@ -145,7 +145,7 @@ class SkeService(
             }
 
             when {
-                it.erStopp() -> {
+                it.isStopp() -> {
                     val response = sendStoppKrav(kravident, kravidentType, it, file).first()
                     if(!response.status.isSuccess()) {
                         println("FEIL i innsending av STOPP PÅ LINJE ${it.linjeNummer}: ${response.status} ${response.bodyAsText()}")
@@ -153,7 +153,7 @@ class SkeService(
                     }
                     allResponses.add(response)
                 }
-                it.erEndring() -> {
+                it.isEndring() -> {
                     val responses = sendEndreKrav(kravident, kravidentType,it)
                     responses.filter { resp -> !resp.status.isSuccess() }.forEach{ resp ->
                         println("FEIL I INNSENDING AV ENDRING  PÅ LINJE ${it.linjeNummer}: ${resp.status} ${resp.bodyAsText()}")
@@ -161,8 +161,8 @@ class SkeService(
                     }
                     allResponses.addAll(responses)
                 }
-                it.erNyttKrav() -> {
-                    val response = sendNyeKrav(it, substfnr).first()
+                it.isNyttKrav() -> {
+                    val response = sendOpprettKrav(it, substfnr).first()
 
                     if(!response.status.isSuccess()) {
                         println("FEIL i innsending av NYTT PÅ LINJE ${it.linjeNummer}: ${response.status}  ${response.bodyAsText()}")
@@ -172,25 +172,25 @@ class SkeService(
                 }
             }
 
-            lagreSendtKravIDatabase(allResponses, it, kravident)
+            saveSentKravToDatabase(allResponses, it, kravident)
 
         }
         return allResponses
 
     }
 
-    private suspend fun lagreSendtKravIDatabase(allResponses: List<HttpResponse>, krav: KravLinje, kravident: String){
-        var kravidentSomSkalLagres = kravident
+    private suspend fun saveSentKravToDatabase(allResponses: List<HttpResponse>, krav: KravLinje, kravident: String){
+        var kravidentToBeSaved = kravident
 
         //Endring av krav gjør dette veldig klønete siden vi da har 3 responses. Må finne en bedre løsning
         val errors = allResponses.filter { resp ->
             !resp.status.isSuccess()  &&  resp.status.value !in (HttpStatusCode.Conflict.value until HttpStatusCode.UnprocessableEntity.value)
         }
         if(errors.isEmpty()){
-            antallKravSendt.increment()
-            typeKravSendt(krav.stonadsKode).increment()
-            if (krav.erNyttKrav()) {
-                kravidentSomSkalLagres = allResponses[0].body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
+            numerOfKravSent.increment()
+            typeKravSent(krav.stonadsKode).increment()
+            if (krav.isNyttKrav()) {
+                kravidentToBeSaved = allResponses[0].body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
             }
 
             //dette er også pga endring av krav og er ikke noe bra for det bruker any
@@ -200,12 +200,12 @@ class SkeService(
                 else if(allResponses.any { resp -> resp.status.value == HttpStatusCode.UnprocessableEntity.value }) VALIDERINGSFEIL_422
                 else "UKJENT STATUS: ${allResponses.map { resp -> resp.status.value }}"
 
-            databaseService.lagreNyttKrav(
-                kravidentSomSkalLagres,
+            databaseService.insertNewKrav(
+                kravidentToBeSaved,
                 krav,
                 when {
-                    krav.erStopp() -> STOPP_KRAV
-                    krav.erEndring() -> ENDRE_KRAV
+                    krav.isStopp() -> STOPP_KRAV
+                    krav.isEndring() -> ENDRE_KRAV
                     else -> NYTT_KRAV
                 },
                 statusString
@@ -236,14 +236,14 @@ class SkeService(
     suspend fun hentOgOppdaterMottaksStatus(): List<String> {
         val antall = AtomicInteger()
         val feil = AtomicInteger()
-        val result = databaseService.hentAlleKravSomIkkeErReskotrofort().map {
+        val result = databaseService.getAlleKravSomIkkeErReskotrofort().map {
             antall.incrementAndGet()
 
-            val response = skeClient.hentMottaksStatus(it.saksnummerSKE)
+            val response = skeClient.getMottaksStatus(it.saksnummerSKE)
             if (response.status.isSuccess()) {
                 try {
                     val mottaksstatus = response.body<MottaksStatusResponse>()
-                    databaseService.oppdaterStatus(mottaksstatus)
+                    databaseService.updateStatus(mottaksstatus)
                 } catch (e: SerializationException) {
                     feil.incrementAndGet()
                     logger.error("Feil i dekoding av MottaksStatusResponse: ${e.message}")
@@ -262,12 +262,12 @@ class SkeService(
     }
 
     suspend fun hentValideringsfeil(): List<String> {
-        val resultat = databaseService.hentAlleKravMedValideringsfeil().map {
-            val response = skeClient.hentValideringsfeil(it.saksnummerSKE)
+        val resultat = databaseService.getAlleKravMedValideringsfeil().map {
+            val response = skeClient.getValideringsfeil(it.saksnummerSKE)
 
             if (response.status.isSuccess()) {
                 val valideringsfeilResponse = response.body<ValideringsFeilResponse>()
-                databaseService.lagreValideringsfeil(valideringsfeilResponse, it.saksnummerSKE)
+                databaseService.saveValideringsfeil(valideringsfeilResponse, it.saksnummerSKE)
                 "Status OK: ${response.bodyAsText()}"
             } else {
                 "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"

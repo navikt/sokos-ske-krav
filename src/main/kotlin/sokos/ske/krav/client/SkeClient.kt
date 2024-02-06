@@ -49,9 +49,9 @@ class SkeClient(
 
     suspend fun opprettKrav(request: OpprettInnkrevingsoppdragRequest) = doPost(OPPRETT_KRAV, request)
     suspend fun stoppKrav(request: AvskrivingRequest) = doPost(STOPP_KRAV, request)
-    suspend fun hentMottaksStatus(kravid: String) = doGet(String.format(MOTTAKSSTATUS, kravid))
-    suspend fun hentValideringsfeil(kravid: String) = doGet(String.format(VALIDERINGSFEIL, kravid))
-    suspend fun hentSkeKravident(referanse: String) = doGet(String.format(HENT_SKE_KRAVIDENT, referanse))
+    suspend fun getMottaksStatus(kravid: String) = doGet(String.format(MOTTAKSSTATUS, kravid))
+    suspend fun getValideringsfeil(kravid: String) = doGet(String.format(VALIDERINGSFEIL, kravid))
+    suspend fun getSkeKravident(referanse: String) = doGet(String.format(HENT_SKE_KRAVIDENT, referanse))
 
     private suspend inline fun <reified T> doPost(path: String, request: T)= client.post(
         buildRequest(path).apply {

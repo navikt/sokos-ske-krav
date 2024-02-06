@@ -24,14 +24,14 @@ data class KravLinje(
     val fagsystemId: String?,
 )
 
-data class FirstLine(
-    val transferDate: String,
-    val sender: String
+data class KontrollLinjeHeader(
+    val transaksjonDato: String,
+    val avsender: String
 )
 
-data class LastLine(
-    val transferDate: String,
-    val sender: String,
-    val numTransactionLines: Int,
-    val sumAllTransactionLines: BigDecimal,
+data class KontrollLinjeFooter(
+    val transaksjonDato: String,
+    val avsender: String,
+    val antallTransaksjoner: Int,
+    val sumAlleTransaksjoner: BigDecimal,
 )

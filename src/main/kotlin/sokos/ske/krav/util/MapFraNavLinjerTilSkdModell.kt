@@ -19,7 +19,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
 
-fun lagOpprettKravRequest(krav: KravLinje, uuid: String): OpprettInnkrevingsoppdragRequest {
+fun makeOpprettKravRequest(krav: KravLinje, uuid: String): OpprettInnkrevingsoppdragRequest {
     val kravFremtidigYtelse = krav.fremtidigYtelse.toDouble().roundToLong()
     val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
     val tilleggsinformasjonNav = TilleggsinformasjonNav(
@@ -28,7 +28,7 @@ fun lagOpprettKravRequest(krav: KravLinje, uuid: String): OpprettInnkrevingsoppd
     )
 
     val beloepRente = krav.belopRente.toDouble().roundToLong()
-    val kravtype =  KravTypeMappingFraNAVTilSKE.getKravtype(krav)
+    val kravtype =  KravtypeMappingFromNAVToSKE.getKravtype(krav)
     val skyldner =
         if (krav.gjelderID.startsWith("00"))
             Skyldner(Skyldner.IdentifikatorType.ORGANISASJON, krav.gjelderID.substring(2, krav.gjelderID.length))
@@ -52,7 +52,7 @@ fun lagOpprettKravRequest(krav: KravLinje, uuid: String): OpprettInnkrevingsoppd
     )
 }
 
-fun lagEndreRenteRequest(krav: KravLinje): EndreRenteBeloepRequest = EndreRenteBeloepRequest(
+fun makeEndreRenteRequest(krav: KravLinje): EndreRenteBeloepRequest = EndreRenteBeloepRequest(
     listOf(
         RenteBeloep(
             beloep = krav.belopRente.toDouble().roundToLong(),
@@ -61,10 +61,10 @@ fun lagEndreRenteRequest(krav: KravLinje): EndreRenteBeloepRequest = EndreRenteB
     ),
 )
 
-fun lagNyHovedStolRequest(krav: KravLinje): NyHovedStolRequest = NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.toDouble().roundToLong()))
+fun makeNyHovedStolRequest(krav: KravLinje): NyHovedStolRequest = NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.toDouble().roundToLong()))
 
 fun lagNyOppdragsgiversReferanseRequest(krav: KravLinje) = NyOppdragsgiversReferanseRequest(krav.saksNummer)
-fun lagStoppKravRequest(nyref: String, kravidentifikatortype: Kravidentifikatortype) = AvskrivingRequest(kravidentifikatortype.value, kravidentifikator = nyref)
-fun KravLinje.erNyttKrav() = (!this.erEndring() && !this.erStopp())
-fun KravLinje.erEndring() = (referanseNummerGammelSak.isNotEmpty() && !erStopp())
-fun KravLinje.erStopp() = (belop.toDouble().roundToLong() == 0L)
+fun makeStoppKravRequest(nyref: String, kravidentifikatortype: Kravidentifikatortype) = AvskrivingRequest(kravidentifikatortype.value, kravidentifikator = nyref)
+fun KravLinje.isNyttKrav() = (!this.isEndring() && !this.isStopp())
+fun KravLinje.isEndring() = (referanseNummerGammelSak.isNotEmpty() && !isStopp())
+fun KravLinje.isStopp() = (belop.toDouble().roundToLong() == 0L)

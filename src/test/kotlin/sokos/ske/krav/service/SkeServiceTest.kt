@@ -16,7 +16,7 @@ internal class SkeServiceTest : FunSpec({
     test("Test OK filer") {
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
         val mockkKravService = mockk<DatabaseService>(relaxed = true){
-            every { hentSkeKravident(any<String>()) } returns "1234"
+            every { getSkeKravident(any<String>()) } returns "1234"
         }
         val fakeFtpService = FakeFtpService()
         val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("AltOkFil.txt"))
@@ -25,7 +25,7 @@ internal class SkeServiceTest : FunSpec({
         val client = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
         val service = SkeService(client, mockkKravService, ftpService)
 
-        val responses = service.sendNyeFtpFilerTilSkatt()
+        val responses = service.sendNewFilesToSKE()
         responses.map { it.status shouldBeIn listOf(HttpStatusCode.OK, HttpStatusCode.Created) }
 
         fakeFtpService.close()
@@ -35,7 +35,7 @@ internal class SkeServiceTest : FunSpec({
     test("Test feilede filer") {
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
         val mockkKravService = mockk<DatabaseService>(relaxed = true){
-            every { hentSkeKravident(any<String>()) } returns "1234"
+            every { getSkeKravident(any<String>()) } returns "1234"
         }
         val fakeFtpService = FakeFtpService()
         val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("AltOkFil.txt"))
@@ -44,7 +44,7 @@ internal class SkeServiceTest : FunSpec({
         val client = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
         val service = SkeService(client, mockkKravService, ftpService)
 
-        val responses = service.sendNyeFtpFilerTilSkatt()
+        val responses = service.sendNewFilesToSKE()
         responses.map { it.status shouldNotBeIn listOf(HttpStatusCode.OK, HttpStatusCode.Created) }
 
         fakeFtpService.close()

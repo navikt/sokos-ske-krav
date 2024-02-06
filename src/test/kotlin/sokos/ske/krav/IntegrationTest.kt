@@ -7,14 +7,14 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.database.Repository.hentAlleKravData
-import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
-import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
-import sokos.ske.krav.database.Repository.hentSkeKravIdent
-import sokos.ske.krav.database.Repository.lagreNyKobling
-import sokos.ske.krav.database.Repository.lagreNyttKrav
-import sokos.ske.krav.database.Repository.lagreValideringsfeil
-import sokos.ske.krav.database.Repository.oppdaterStatus
+import sokos.ske.krav.database.Repository.getAlleKrav
+import sokos.ske.krav.database.Repository.getAlleKravMedValideringsfeil
+import sokos.ske.krav.database.Repository.getAlleKravSomIkkeErReskotrofort
+import sokos.ske.krav.database.Repository.getSkeKravIdent
+import sokos.ske.krav.database.Repository.insertNewKobling
+import sokos.ske.krav.database.Repository.insertNewKrav
+import sokos.ske.krav.database.Repository.saveValideringsfeil
+import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
@@ -60,10 +60,10 @@ internal class IntegrationTest : FunSpec({
 
         val skeService = SkeService(skeClient, mockkKravService, ftpService)
 
-        skeService.sendNyeFtpFilerTilSkatt()
+        skeService.sendNewFilesToSKE()
 
         val kravdata = ds.connection.use {
-            it.hentAlleKravData()
+            it.getAlleKrav()
         }
         kravdata.size shouldBe 103
 
@@ -89,7 +89,7 @@ internal class IntegrationTest : FunSpec({
         skeService.hentOgOppdaterMottaksStatus()
 
         val kravdata = ds.connection.use {
-            it.hentAlleKravData()
+            it.getAlleKrav()
         }
 
         kravdata.filter { it.status == MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value }.size shouldBe 103
@@ -158,21 +158,21 @@ internal class IntegrationTest : FunSpec({
 })
 
 fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseService> {
-    every { hentSkeKravident(any<String>()) } answers {
+    every { getSkeKravident(any<String>()) } answers {
         ds.connection.useAndHandleErrors { con ->
-            con.hentSkeKravIdent(firstArg<String>())
+            con.getSkeKravIdent(firstArg<String>())
         }
     }
 
-    every { lagreNyKobling(any<String>()) } answers {
+    every { insertNewKobling(any<String>()) } answers {
         ds.connection.useAndHandleErrors { con ->
-            con.lagreNyKobling(firstArg<String>())
+            con.insertNewKobling(firstArg<String>())
         }
     }
 
 
     every {
-        lagreNyttKrav(
+        insertNewKrav(
             any<String>(),
             any<KravLinje>(),
             any<String>(),
@@ -180,7 +180,7 @@ fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseServi
         )
     } answers {
         ds.connection.useAndHandleErrors { con ->
-            con.lagreNyttKrav(
+            con.insertNewKrav(
                 arg<String>(0),
                 arg<KravLinje>(1),
                 arg<String>(2),
@@ -188,25 +188,25 @@ fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseServi
             )
         }
     }
-    every { hentAlleKravMedValideringsfeil() } answers {
+    every { getAlleKravMedValideringsfeil() } answers {
         ds.connection.useAndHandleErrors { con ->
-            con.hentAlleKravMedValideringsfeil()
+            con.getAlleKravMedValideringsfeil()
         }
     }
-    every { lagreValideringsfeil(any<ValideringsFeilResponse>(), any<String>()) } answers {
+    every { saveValideringsfeil(any<ValideringsFeilResponse>(), any<String>()) } answers {
         ds.connection.useAndHandleErrors { con ->
-            con.lagreValideringsfeil(firstArg<ValideringsFeilResponse>(), secondArg<String>())
+            con.saveValideringsfeil(firstArg<ValideringsFeilResponse>(), secondArg<String>())
         }
     }
 
-    every { hentAlleKravSomIkkeErReskotrofort() } answers {
+    every { getAlleKravSomIkkeErReskotrofort() } answers {
         ds.connection.useAndHandleErrors { con ->
-            con.hentAlleKravSomIkkeErReskotrofort()
+            con.getAlleKravSomIkkeErReskotrofort()
         }
     }
-    every { oppdaterStatus(any<MottaksStatusResponse>()) } answers {
+    every { updateStatus(any<MottaksStatusResponse>()) } answers {
         ds.connection.useAndHandleErrors { con ->
-            con.oppdaterStatus(firstArg<MottaksStatusResponse>())
+            con.updateStatus(firstArg<MottaksStatusResponse>())
         }
     }
 }

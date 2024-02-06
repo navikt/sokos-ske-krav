@@ -65,7 +65,7 @@ fun Routing.skeApi(
         get("test") {
             logger.info("API kaller test")
             try {
-                val response = skeService.sendNyeFtpFilerTilSkatt()
+                val response = skeService.sendNewFilesToSKE()
                 logger.info("APIKrav sendt, returnerer reponse")
                 call.respond(HttpStatusCode.OK, "$response")
                 logger.info("APIKrav sendt" )

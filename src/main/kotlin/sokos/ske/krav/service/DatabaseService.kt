@@ -1,13 +1,13 @@
 package sokos.ske.krav.service
 
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.database.Repository.hentAlleKravMedValideringsfeil
-import sokos.ske.krav.database.Repository.hentAlleKravSomIkkeErReskotrofort
-import sokos.ske.krav.database.Repository.hentSkeKravIdent
-import sokos.ske.krav.database.Repository.lagreNyKobling
-import sokos.ske.krav.database.Repository.lagreNyttKrav
-import sokos.ske.krav.database.Repository.lagreValideringsfeil
-import sokos.ske.krav.database.Repository.oppdaterStatus
+import sokos.ske.krav.database.Repository.getAlleKravMedValideringsfeil
+import sokos.ske.krav.database.Repository.getAlleKravSomIkkeErReskotrofort
+import sokos.ske.krav.database.Repository.getSkeKravIdent
+import sokos.ske.krav.database.Repository.insertNewKobling
+import sokos.ske.krav.database.Repository.insertNewKrav
+import sokos.ske.krav.database.Repository.saveValideringsfeil
+import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
@@ -18,50 +18,50 @@ class DatabaseService(
     private val postgresDataSource: PostgresDataSource = PostgresDataSource()
 ) {
 
-    fun hentSkeKravident(navref: String): String {
+    fun getSkeKravident(navref: String): String {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.hentSkeKravIdent(navref)
+            return con.getSkeKravIdent(navref)
         }
     }
 
-    fun lagreNyKobling(saksnummerNav: String): String {
+    fun insertNewKobling(saksnummerNav: String): String {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.lagreNyKobling(saksnummerNav)
+            return con.insertNewKobling(saksnummerNav)
         }
     }
 
-    fun lagreNyttKrav(
+    fun insertNewKrav(
         skeKravident: String,
         kravLinje: KravLinje,
         kravtype: String,
         responseStatus: String
     ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.lagreNyttKrav(skeKravident, kravLinje, kravtype, responseStatus)
+            con.insertNewKrav(skeKravident, kravLinje, kravtype, responseStatus)
         }
     }
 
-    fun hentAlleKravMedValideringsfeil(): List<KravTable> {
+    fun getAlleKravMedValideringsfeil(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.hentAlleKravMedValideringsfeil()
+            return con.getAlleKravMedValideringsfeil()
         }
     }
 
-    fun lagreValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, saksnummerSKE: String) {
+    fun saveValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, saksnummerSKE: String) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.lagreValideringsfeil(valideringsFeilResponse, saksnummerSKE)
+            con.saveValideringsfeil(valideringsFeilResponse, saksnummerSKE)
         }
     }
 
-    fun hentAlleKravSomIkkeErReskotrofort(): List<KravTable> {
+    fun getAlleKravSomIkkeErReskotrofort(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.hentAlleKravSomIkkeErReskotrofort()
+            return con.getAlleKravSomIkkeErReskotrofort()
         }
     }
 
-    fun oppdaterStatus(mottakStatus: MottaksStatusResponse) {
+    fun updateStatus(mottakStatus: MottaksStatusResponse) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.oppdaterStatus(mottakStatus)
+            con.updateStatus(mottakStatus)
         }
     }
 }

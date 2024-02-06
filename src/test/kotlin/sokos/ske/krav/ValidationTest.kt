@@ -2,7 +2,7 @@ package sokos.ske.krav
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import sokos.ske.krav.util.FilParser
+import sokos.ske.krav.util.FileParser
 import sokos.ske.krav.util.FileValidator
 import sokos.ske.krav.util.LineValidator
 import sokos.ske.krav.util.ValidationResult
@@ -25,15 +25,15 @@ internal class ValidationTest: FunSpec({
 
   test("Validering av linje skal returnere true når validering er ok") {
 	val liste = readFileFromFS("AltOkFil.txt".asResource())
-	FilParser(liste).parseKravLinjer().map { LineValidator.validateLine(it, "AltOkFil.txt")}.size shouldBe liste.size - 2
+	FileParser(liste).parseKravLinjer().map { LineValidator.validateLine(it, "AltOkFil.txt")}.size shouldBe liste.size - 2
   }
 
   test("Validering av linje skal returnere false når validering ikke er OK") {
 	val liste = readFileFromFS("FilMedFeilKravKode.txt".asResource())
-	FilParser(liste).parseKravLinjer().filter { !LineValidator.validateLine(it, "FilMedFeilKravKode.txt") }.size shouldBe 1
+	FileParser(liste).parseKravLinjer().filter { !LineValidator.validateLine(it, "FilMedFeilKravKode.txt") }.size shouldBe 1
   }
   test("Validering av linje skal returnere true når validering er OK") {
 	val liste = readFileFromFS("AltOkFil.txt".asResource())
-	FilParser(liste).parseKravLinjer().filter { LineValidator.validateLine(it, "AltOkFil.txt") }.size shouldBe liste.size - 2
+	FileParser(liste).parseKravLinjer().filter { LineValidator.validateLine(it, "AltOkFil.txt") }.size shouldBe liste.size - 2
   }
 })

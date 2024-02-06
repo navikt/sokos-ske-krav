@@ -18,26 +18,26 @@ import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.exporter.common.TextFormat
-import sokos.ske.krav.util.KravTypeMappingFraNAVTilSKE
+import sokos.ske.krav.util.KravtypeMappingFromNAVToSKE
 
 
 object Metrics {
     val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
-    fun feilIFilValidering(filnavn: String, feilmelding: String): Counter = Counter.builder("filvalidering.feil")
+    fun errorInFileValidation(filnavn: String, feilmelding: String): Counter = Counter.builder("filvalidering.feil")
         .description("Feil i validering av fil")
         .tag("Feilmelding", feilmelding)
         .tag("Fil", filnavn)
         .register(registry)
 
-    fun feilILinjeValidering(filnavn: String, linjeNummer: String, feilmelding: String): Counter = Counter.builder("linjevalidering.feil")
+    fun errorInLineValidation(filnavn: String, linjeNummer: String, feilmelding: String): Counter = Counter.builder("linjevalidering.feil")
         .description("Feil i validering av fil")
         .tag("Feilmelding", feilmelding)
         .tag("Fil", filnavn)
         .tag("Linjenummer", linjeNummer)
         .register(registry)
 
-    fun typeKravSendt(kode: String): Counter = Counter.builder("krav.type")
+    fun typeKravSent(kode: String): Counter = Counter.builder("krav.type")
         .description("Antall krav sendt til endepunkt, per kravtype")
         .tag("Kravtype", kode)
         .register(registry)
@@ -50,15 +50,15 @@ object Metrics {
         .description("App state ready changed to false.")
         .register(registry)
 
-    val antallKravSendt: Counter = Counter.builder("krav.sendt")
+    val numerOfKravSent: Counter = Counter.builder("krav.sendt")
         .description("antall krav sendt til endepunkt")
         .register(registry)
 
-    val antallKravLest: Counter = Counter.builder("krav.lest")
+    val numerOfKravRead: Counter = Counter.builder("krav.lest")
         .description("antall krav Lest fra fil")
         .register(registry)
 
-    val apiKallTimer: (String, KravTypeMappingFraNAVTilSKE) -> Timer = { url, kravtype ->
+    val apiKallTimer: (String, KravtypeMappingFromNAVToSKE) -> Timer = { url, kravtype ->
         Timer.builder("api.kall")
             .description("Api call timer")
             .tags(
