@@ -24,6 +24,7 @@ data class FtpFil(
     val kravLinjer: List<KravLinje>
 )
 
+private val validationLogger = KotlinLogging.logger { "validationLogger" }
 class FtpService(
     private val config: PropertiesConfig.FtpConfig = PropertiesConfig.FtpConfig(),
     val jsch: JSch = JSch()
@@ -79,9 +80,8 @@ class FtpService(
                 is ValidationResult.Success -> {
                     successFiles.add(FtpFil(entry.key, entry.value, result.kravLinjer))
                 }
-
                 is ValidationResult.Error -> {
-                    println("Feil i validering: ${result.message}")
+                    validationLogger.warn { "Feil i validering av fil ${entry.key}: ${result.messages}" }
                     moveFile(entry.key, directory, Directories.FAILED)
                 }
             }

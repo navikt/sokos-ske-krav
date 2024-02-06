@@ -3,6 +3,9 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
     </appender>
+    <appender name="secureLog" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
@@ -17,6 +20,12 @@
         <appender-ref ref="CONSOLE"/>
     </root>
 
-    <logger name="sokos.ske.krav" level="ERROR"/>
+    <logger name="sokos.ske.krav" level="INFO"/>
+    <logger name="secureLogger" level="INFO" additivity="false">
+        <appender-ref ref="${LOG_APPENDER:-secureLog}"/>
+    </logger>
+    <logger name="validationLogger" level="WARN" additivity="false">
+        <appender-ref ref="${LOG_APPENDER:-secureLog}"/>
+    </logger>
 
 </configuration>
