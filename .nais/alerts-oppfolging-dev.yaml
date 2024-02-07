@@ -1,0 +1,78 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: sokos-ske-krav
+  namespace: okonomi
+  labels:
+    team: okonomi
+spec:
+  groups:
+    - name: sokos-ske-krav-oppfolging-alerts
+      rules:
+        - alert: Feil i validering av fil
+          expr: sokos_ske_krav_filvalidering_feil_created{app="sokos-ske-krav"}
+          for: 2m
+          annotations:
+            action: "Sjekk error loggene i sokos-ske-krav"
+            summary: "Feil i validering av fil {{ $labels.fileName }}: {{ $labels.message }}"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_ske_krav_oppfolging_type: sokos-ske-krav
+            alert_type: custom
+        - alert: Feil i validering av linje
+          expr: sum(increase(sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}[2m]))  > 1
+          for: 2m
+          annotations:
+            action: "Sjekk error loggene i sokos-ske-krav"
+            summary: "Feil i validering av fil {{ $labels.fileName }} på linje {{ $labels.linjenummer }}: {{ $labels.message }}"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_ske_krav_oppfolging_type: sokos-ske-krav
+            alert_type: custom
+---
+
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: sokos-ske-krav-slack
+  namespace: okonomi
+  labels:
+    alertmanagerConfig: sokos-ske-krav-slack
+spec:
+  receivers:
+    - name: sokos-ske-krav-receiver
+      slackConfigs:
+        - apiURL:
+            key: apiUrl
+            name: slack-webhook
+          channel: '#team-mob-oppfølging'
+          iconEmoji: ':alert:'
+          username: 'Alert dev-fss'
+          sendResolved: true
+          httpConfig:
+            proxyURL: http://webproxy.nais:8088
+          title: |-
+            [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
+          text: >-
+            {{ range .Alerts }}
+            {{ if or .Annotations.summary .Annotations.message }}
+            {{ or .Annotations.summary .Annotations.message }}
+            {{ println " " }}
+            {{- end }}
+            {{- if .Annotations.action }}
+            • *action*: {{ .Annotations.action }} {{ println " " }}
+            {{- end }}
+            {{ end }}
+  route:
+    groupBy:
+      - alertname
+    matchers:
+      - name: "sokos_ske_krav_oppfolging_type"
+        matchType: "="
+        value: "sokos-ske-krav"
+    groupInterval: 10s
+    groupWait: 5s
+    receiver: sokos-ske-krav-receiver
+    repeatInterval: 2m
