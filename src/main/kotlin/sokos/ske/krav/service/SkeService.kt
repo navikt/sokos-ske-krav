@@ -17,9 +17,7 @@ import sokos.ske.krav.domain.ske.responses.AvstemmingResponse
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
-import sokos.ske.krav.metrics.Metrics.numerOfKravRead
-import sokos.ske.krav.metrics.Metrics.numerOfKravSent
-import sokos.ske.krav.metrics.Metrics.typeKravSent
+import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.LineValidator
 import sokos.ske.krav.util.isEndring
 import sokos.ske.krav.util.isNyttKrav
@@ -114,7 +112,7 @@ class SkeService(
 
         //bruker foreach for å ha litt bedre oversikt, for tror det må endres siden endring av krav gjør det så teit
         linjer.forEach {
-            numerOfKravRead.increment()
+            Metrics.numberOfKravRead.inc()
 
 
             val substfnr = if (fnrIter1.hasNext()) {
@@ -187,8 +185,8 @@ class SkeService(
             !resp.status.isSuccess()  &&  resp.status.value !in (HttpStatusCode.Conflict.value until HttpStatusCode.UnprocessableEntity.value)
         }
         if(errors.isEmpty()){
-            numerOfKravSent.increment()
-            typeKravSent(krav.stonadsKode).increment()
+            Metrics.numberOfKravSent.inc()
+            Metrics.typeKravSent.labels(krav.stonadsKode).inc()
             if (krav.isNyttKrav()) {
                 kravidentToBeSaved = allResponses[0].body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
             }

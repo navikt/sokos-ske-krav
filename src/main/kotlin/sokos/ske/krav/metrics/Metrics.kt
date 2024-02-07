@@ -1,90 +1,59 @@
 package sokos.ske.krav.metrics
 
-import io.ktor.http.ContentType
-import io.ktor.server.application.Application
-import io.ktor.server.application.call
-import io.ktor.server.application.install
-import io.ktor.server.metrics.micrometer.MicrometerMetrics
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.get
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
-import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.Timer
-import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
-import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
-import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
-import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
-import io.prometheus.client.exporter.common.TextFormat
-import sokos.ske.krav.util.KravtypeMappingFromNAVToSKE
+import io.prometheus.client.Counter
 
 
 object Metrics {
-    val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+  val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+  private const val NAMESPACE = "sokos_ske_krav"
 
-    fun errorInFileValidation(filnavn: String, feilmelding: String): Counter = Counter.builder("filvalidering.feil")
-        .description("Feil i validering av fil")
-        .tag("Feilmelding", feilmelding)
-        .tag("Fil", filnavn)
-        .register(registry)
+  val numberOfKravRead: Counter = Counter.build()
+	.namespace(NAMESPACE)
+	.name("krav_lest")
+	.help("antall krav Lest fra fil")
+	.register(registry.prometheusRegistry)
 
-    fun errorInLineValidation(filnavn: String, linjeNummer: String, feilmelding: String): Counter = Counter.builder("linjevalidering.feil")
-        .description("Feil i validering av fil")
-        .tag("Feilmelding", feilmelding)
-        .tag("Fil", filnavn)
-        .tag("Linjenummer", linjeNummer)
-        .register(registry)
+  val numberOfKravSent: Counter = Counter.build()
+	.namespace(NAMESPACE)
+	.name("krav_sendt")
+	.help("antall krav sendt til endepunkt")
+	.register(registry.prometheusRegistry)
 
-    fun typeKravSent(kode: String): Counter = Counter.builder("krav.type")
-        .description("Antall krav sendt til endepunkt, per kravtype")
-        .tag("Kravtype", kode)
-        .register(registry)
+  val typeKravSent: Counter = Counter.build()
+	.namespace(NAMESPACE)
+	.name("type_krav_sendt")
+	.help("type krav sendt til endepunkt")
+	.labelNames("kravtype")
+	.register(registry.prometheusRegistry)
 
-    val appStateRunningFalse: Counter = Counter.builder("app.state.running.false")
-        .description("App state running changed to false.")
-        .register(registry)
+  val fileValidationError: Counter = Counter.build()
+	.namespace(NAMESPACE)
+	.name("filvalidering_feil")
+	.help("feil i validering av fil")
+	.labelNames("fileName", "message")
+	.register(registry.prometheusRegistry)
 
-    val appStateReadyFalse: Counter = Counter.builder("app.state.ready.false")
-        .description("App state ready changed to false.")
-        .register(registry)
+  val lineValidationError: Counter = Counter.build()
+	.namespace(NAMESPACE)
+	.name("linjevalidering_feil")
+	.help("feil i validering av linje")
+	.labelNames("fileName", "linjenummer", "message")
+	.register(registry.prometheusRegistry)
 
-    val numerOfKravSent: Counter = Counter.builder("krav.sendt")
-        .description("antall krav sendt til endepunkt")
-        .register(registry)
 
-    val numerOfKravRead: Counter = Counter.builder("krav.lest")
-        .description("antall krav Lest fra fil")
-        .register(registry)
+  val appStateRunningFalse: Counter = Counter.build()
+	.namespace(NAMESPACE)
+	.name("app_state_running_false")
+	.help("app state running changed to false")
+	.register(registry.prometheusRegistry)
 
-    val apiKallTimer: (String, KravtypeMappingFromNAVToSKE) -> Timer = { url, kravtype ->
-        Timer.builder("api.kall")
-            .description("Api call timer")
-            .tags(
-                "url",
-                url,
-                "stonadstype",
-                kravtype.name,
-            ).register(registry)
-    }
-}
+  val appStateReadyFalse: Counter = Counter.build()
+	.namespace(NAMESPACE)
+	.name("app_state_ready_false")
+	.help("app state ready changed to false")
+	.register(registry.prometheusRegistry)
 
-fun Application.installMetrics() {
-    install(MicrometerMetrics) {
-        registry = Metrics.registry
-        meterBinders = listOf(
-            JvmMemoryMetrics(),
-            JvmGcMetrics(),
-            JvmThreadMetrics(),
-            ProcessorMetrics(),
-        )
-    }
-    routing {
-        route("internal/metrics") {
-            get {
-                call.respondText(ContentType.parse(TextFormat.CONTENT_TYPE_004)) { Metrics.registry.scrape() }
-            }
-        }
-    }
+
 }

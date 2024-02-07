@@ -2,8 +2,7 @@ package sokos.ske.krav.util
 
 import mu.KotlinLogging
 import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.metrics.Metrics.errorInFileValidation
-import sokos.ske.krav.metrics.Metrics.errorInLineValidation
+import sokos.ske.krav.metrics.Metrics
 
 private val secureLogger = KotlinLogging.logger ("secureLogger" )
 
@@ -16,14 +15,10 @@ object LineValidator{
        return try {
           KravtypeMappingFromNAVToSKE.getKravtype(krav)
           true
-        } catch (e: NotImplementedError){ 
-          errorInLineValidation(filNavn, krav.linjeNummer.toString(), e.message.toString()).increment()
+        } catch (e: NotImplementedError){
+          Metrics.lineValidationError.labels(filNavn, krav.linjeNummer.toString(), e.message).inc()
           secureLogger.warn( "FEIL I FIL $filNavn PÅ LINJE ${krav.linjeNummer}: ${e.message}")
-           false
-        } catch (e: Exception){
-          errorInLineValidation(filNavn, krav.linjeNummer.toString(), e.message.toString()).increment()
-          secureLogger.warn( "FEIL I FIL $filNavn PÅ LINJE ${krav.linjeNummer}: ${e.message}")
-           false
+          false
         }
     }
 }
@@ -46,7 +41,7 @@ object FileValidator{
 
 
         if (errorMessages.isNotEmpty()){
-          errorInFileValidation(fileName, errorMessages.toString()).increment()
+          Metrics.fileValidationError.labels(fileName, errorMessages.toString()).inc()
           secureLogger.warn ("Feil i validering av fil $fileName: $errorMessages" )
           return ValidationResult.Error(errorMessages)
         }
