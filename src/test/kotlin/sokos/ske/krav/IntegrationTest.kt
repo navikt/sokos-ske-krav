@@ -22,7 +22,8 @@ import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.Directories
-import sokos.ske.krav.service.ENDRE_KRAV
+import sokos.ske.krav.service.ENDRE_HOVEDSTOL
+import sokos.ske.krav.service.ENDRE_RENTER
 import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
@@ -68,10 +69,10 @@ internal class IntegrationTest : FunSpec({
         kravdata.size shouldBe 105
 
         kravdata.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
-        kravdata.filter { it.kravtype == ENDRE_KRAV }.size shouldBe 6
+        kravdata.filter { it.kravtype == ENDRE_RENTER }.size shouldBe 3
+        kravdata.filter { it.kravtype == ENDRE_HOVEDSTOL }.size shouldBe 3
         kravdata.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
         kravdata.filter { it.kravtype == NYTT_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 97
-        kravdata.filter { it.kravtype == ENDRE_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 4
 
         httpClient.close()
         fakeFtpService.close()

@@ -14,7 +14,6 @@ import sokos.ske.krav.database.KRAV_SENDT
 import sokos.ske.krav.database.VALIDERINGSFEIL_422
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
-import sokos.ske.krav.domain.ske.responses.AvstemmingResponse
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
@@ -32,7 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger
 
 
 const val NYTT_KRAV = "NYTT_KRAV"
-const val ENDRE_KRAV = "ENDRE_KRAV"
+const val ENDRE_RENTER = "ENDRE_RENTER"
+const val ENDRE_HOVEDSTOL= "ENDRE_HOVEDSTOL"
 const val STOPP_KRAV = "STOPP_KRAV"
 
 class SkeService(
@@ -72,10 +72,11 @@ class SkeService(
             logger.info("FEIL FRA SKATT! FANT IKKE ORIGINALSAKSREF! MÅ GJØRE NOE")
             handleHvaFGjorViNaa(linje, file)
         }
+
         return stoppresponse
     }
 
-    private suspend fun sendEndreKrav(kravident: String, kravidentType: Kravidentifikatortype, linje: KravLinje): List<HttpResponse>{
+    private suspend fun sendEndreKrav(kravident: String, kravidentType: Kravidentifikatortype, linje: KravLinje): Map<String, HttpResponse>{
 
         //Skatt bruker ikke nytt saksref til noe så da sender vi det ikke (men venter på endelig avklaring fra skatt)
         //skeClient.endreOppdragsGiversReferanse(lagNyOppdragsgiversReferanseRequest(linje), kravident, kravidentType)
@@ -83,7 +84,8 @@ class SkeService(
         val renteresponse = skeClient.endreRenter(makeEndreRenteRequest(linje), kravident, kravidentType)
         val hovedstolResponse = skeClient.endreHovedstol(makeNyHovedStolRequest(linje), kravident, kravidentType)
 
-        return listOf(renteresponse, hovedstolResponse)
+        val responseMap = mapOf(ENDRE_RENTER to renteresponse, ENDRE_HOVEDSTOL to hovedstolResponse)
+        return responseMap
 
     }
     private suspend fun sendOpprettKrav(linje: KravLinje, substfnr: String): HttpResponse{
@@ -112,7 +114,7 @@ class SkeService(
         linjer.forEach {
             Metrics.numberOfKravRead.inc()
 
-            val responses = mutableListOf<HttpResponse>()
+            val responsesMap = mutableMapOf<String, HttpResponse>()
 
             val substfnr = if (fnrIter1.hasNext()) {
                 fnrIter1.next()
@@ -130,7 +132,6 @@ class SkeService(
                 kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
             }
 
-            println("bruker kravident $kravident")
             when {
                 it.isStopp() -> {
                     val response = sendStoppKrav(kravident, kravidentType, it, file)
@@ -138,15 +139,19 @@ class SkeService(
                         logger.info("FEIL i innsending av STOPP PÅ LINJE ${it.linjeNummer}: ${response.status} ${response.bodyAsText()}")
                         logger.info("$it")
                     }
-                    responses.add(response)
+                    responsesMap[STOPP_KRAV] = response
+
                 }
                 it.isEndring() -> {
                     val endreResponses = sendEndreKrav(kravident, kravidentType,it)
-                    endreResponses.filter { resp -> !resp.status.isSuccess() }.forEach{ resp ->
-                        logger.info("FEIL I INNSENDING AV ENDRING  PÅ LINJE ${it.linjeNummer}: ${resp.status} ${resp.bodyAsText()}")
+
+                    endreResponses.entries.filter { entry ->  !entry.value.status.isSuccess()} .forEach {
+                            entry ->
+                        logger.info("FEIL I INNSENDING AV ENDRING  PÅ LINJE ${it.linjeNummer}: ${entry.value.status} ${entry.value.bodyAsText()}")
                         logger.info("$it")
                     }
-                    responses.addAll(endreResponses)
+
+                    responsesMap.putAll(endreResponses)
                 }
                 it.isNyttKrav() -> {
                     val response = sendOpprettKrav(it, substfnr)
@@ -155,14 +160,14 @@ class SkeService(
                         logger.info("FEIL i innsending av NYTT PÅ LINJE ${it.linjeNummer}: ${response.status}  ${response.bodyAsText()}")
                         logger.info("$it")
                     } else  kravident = response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
-                    responses.add(response)
+                    responsesMap[NYTT_KRAV] = response
                 }
             }
 
-            saveSentKravToDatabase(responses, it, kravident)
+            saveSentKravToDatabase(responsesMap, it, kravident)
 
-            allResponses.addAll(responses)
-            responses.clear()
+            allResponses.addAll(responsesMap.values)
+            responsesMap.clear()
         }
 
         val errors = allResponses.filter { resp ->
@@ -175,29 +180,29 @@ class SkeService(
 
     }
 
-    private suspend fun saveSentKravToDatabase(allResponses: List<HttpResponse>, krav: KravLinje, kravident: String){
+    private suspend fun saveSentKravToDatabase(allResponses: Map<String, HttpResponse>, krav: KravLinje, kravident: String){
         var kravidentToBeSaved = kravident
 
 
 
 
         allResponses.forEach {
-            response ->
+            entry ->
 
             Metrics.numberOfKravSent.inc()
             Metrics.typeKravSent.labels(krav.stonadsKode).inc()
 
             val statusString =
-                if(allResponses.filter { resp -> resp.status.isSuccess() }.size == allResponses.size) KRAV_SENDT
-                else if(response.status.isSuccess()) FEIL_MED_ENDRING
-                else if(response.status.value == HttpStatusCode.Conflict.value) KONFLIKT_409
-                else if(response.status.value == HttpStatusCode.UnprocessableEntity.value) VALIDERINGSFEIL_422
-                else if(response.status.value == HttpStatusCode.NotFound.value) "SKE HAR IKKE REFNR"
-                else "UKJENT STATUS: ${allResponses.map { resp -> resp.status.value }}"
+                if(allResponses.filter { resp -> resp.value.status.isSuccess() }.size == allResponses.size) KRAV_SENDT
+                else if(entry.value.status.isSuccess()) FEIL_MED_ENDRING
+                else if(entry.value.status.value == HttpStatusCode.Conflict.value) KONFLIKT_409
+                else if(entry.value.status.value == HttpStatusCode.UnprocessableEntity.value) VALIDERINGSFEIL_422
+                else if(entry.value.status.value == HttpStatusCode.NotFound.value) "SKE HAR IKKE REFNR"
+                else "UKJENT STATUS: ${allResponses.map { resp -> resp.value.status.value }}"
 
 
             if (krav.isNyttKrav()) {
-                kravidentToBeSaved = response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
+                kravidentToBeSaved = entry.value.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
             }else{
                if(kravidentToBeSaved==krav.referanseNummerGammelSak){
                    kravidentToBeSaved=""
@@ -207,11 +212,7 @@ class SkeService(
             databaseService.insertNewKrav(
                 kravidentToBeSaved,
                 krav,
-                when {
-                    krav.isStopp() -> STOPP_KRAV
-                    krav.isEndring() -> ENDRE_KRAV
-                    else -> NYTT_KRAV
-                },
+                entry.key,
                 statusString
             )
         }
