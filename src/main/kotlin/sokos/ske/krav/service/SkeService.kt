@@ -182,11 +182,9 @@ class SkeService(
 
         allResponses.forEach {
             response ->
+
             Metrics.numberOfKravSent.inc()
             Metrics.typeKravSent.labels(krav.stonadsKode).inc()
-            if (krav.isNyttKrav()) {
-                kravidentToBeSaved = response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
-            }
 
             val statusString =
                 if(allResponses.filter { resp -> resp.status.isSuccess() }.size == allResponses.size) KRAV_SENDT
@@ -195,6 +193,15 @@ class SkeService(
                 else if(response.status.value == HttpStatusCode.UnprocessableEntity.value) VALIDERINGSFEIL_422
                 else if(response.status.value == HttpStatusCode.NotFound.value) "SKE HAR IKKE REFNR"
                 else "UKJENT STATUS: ${allResponses.map { resp -> resp.status.value }}"
+
+
+            if (krav.isNyttKrav()) {
+                kravidentToBeSaved = response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
+            }else{
+               if(kravidentToBeSaved==krav.referanseNummerGammelSak){
+                   kravidentToBeSaved=""
+               }
+            }
 
             databaseService.insertNewKrav(
                 kravidentToBeSaved,
