@@ -4,14 +4,17 @@ import io.kotest.core.spec.style.FunSpec
 import org.simpleframework.xml.Serializer
 import org.simpleframework.xml.core.Persister
 import sokos.ske.krav.avstemming.kontrakt.Avstemmingsdata
+import kotlin.reflect.KClass
+import kotlin.reflect.cast
+import kotlin.reflect.full.createInstance
 
 internal class xmlParserTest: FunSpec( {
 
     test("tester parsing") {
             val xmlToParse = avstemminsData()
-            val serializer: Serializer = Persister()
+            val serializer = Persister()
             val dataFetch = serializer.read(Avstemmingsdata::class.java, xmlToParse)
-        println(dataFetch.total.totalBelop)
+        println(dataFetch.total?.totalBelop)
         println(xmlToParse)
 //            assertEquals(dataFetch.size, 8)
 //            assertEquals(dataFetch.REC.first().name, "SELLER4_MOBILEPHONE")
