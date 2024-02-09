@@ -126,16 +126,8 @@ class SkeService(
             var kravidentType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
 
             if (kravident.isEmpty() && !it.isNyttKrav()) {
-                val response = skeClient.getSkeKravident(it.referanseNummerGammelSak)
-                if(response.status.isSuccess()){
-                    logger.info("RESPONSE FRA KALL: ${response.bodyAsText()}")
-                    kravident = response.body<AvstemmingResponse>().kravidentifikator
-                    logger.info("FANT KRAVIDENT FRA AVSTEMMING: $kravident")
-                } else{
-                    logger.info("FIKK 404 :( Response:  ${response.bodyAsText()}")
-                    kravident = it.referanseNummerGammelSak
-                    kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
-                }
+                kravident = it.referanseNummerGammelSak
+                kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
             }
 
             when {
@@ -201,6 +193,7 @@ class SkeService(
                 else if(response.status.isSuccess()) FEIL_MED_ENDRING
                 else if(response.status.value == HttpStatusCode.Conflict.value) KONFLIKT_409
                 else if(response.status.value == HttpStatusCode.UnprocessableEntity.value) VALIDERINGSFEIL_422
+                else if(response.status.value == HttpStatusCode.NotFound.value) "SKE HAR IKKE REFNR"
                 else "UKJENT STATUS: ${allResponses.map { resp -> resp.status.value }}"
 
             databaseService.insertNewKrav(
