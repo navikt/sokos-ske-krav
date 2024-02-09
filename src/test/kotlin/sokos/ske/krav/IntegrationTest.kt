@@ -71,7 +71,7 @@ internal class IntegrationTest : FunSpec({
         kravdata.filter { it.kravtype == ENDRE_KRAV }.size shouldBe 6
         kravdata.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
         kravdata.filter { it.kravtype == NYTT_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 97
-        kravdata.filter { it.kravtype == ENDRE_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 6
+        kravdata.filter { it.kravtype == ENDRE_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 4
 
         httpClient.close()
         fakeFtpService.close()
