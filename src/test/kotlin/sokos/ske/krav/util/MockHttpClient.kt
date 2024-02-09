@@ -77,19 +77,24 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
                     }
 
                     "/innkrevingsoppdrag/1234/renter" -> {
-                        respond(endringResponse, statusCode, responseHeaders)
+                        respond(endringResponse, HttpStatusCode.Conflict, responseHeaders)
                     }
                     "/innkrevingsoppdrag/OB040000592759/renter" -> {
                         respond(endringResponse, statusCode, responseHeaders)
                     }
+                    "/innkrevingsoppdrag/OB040000479803/renter" -> {
+                        respond(endringResponse, HttpStatusCode.Conflict, responseHeaders)
+                    }
 
                     "/innkrevingsoppdrag/1234/hovedstol" -> {
-                        respond(endringResponse, statusCode, responseHeaders)
+                        respond(endringResponse, HttpStatusCode.OK, responseHeaders)
                     }
                     "/innkrevingsoppdrag/OB040000592759/hovedstol" -> {
                         respond(endringResponse, statusCode, responseHeaders)
                     }
-
+                    "/innkrevingsoppdrag/OB040000479803/hovedstol" -> {
+                        respond(endringResponse, HttpStatusCode.OK, responseHeaders)
+                    }
                     "/innkrevingsoppdrag/1234/oppdragsgiversreferanse"-> {
                         respond(endringResponse, statusCode, responseHeaders)
                     }

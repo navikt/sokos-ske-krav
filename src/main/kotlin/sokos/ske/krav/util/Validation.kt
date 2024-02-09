@@ -42,7 +42,7 @@ object FileValidator{
 
         if (errorMessages.isNotEmpty()){
           Metrics.fileValidationError.labels(fileName, errorMessages.toString()).inc()
-          secureLogger.warn ("Feil i validering av fil $fileName: $errorMessages" )
+          secureLogger.info ("Feil i validering av fil $fileName: $errorMessages" )
           return ValidationResult.Error(errorMessages)
         }
 

@@ -26,7 +26,7 @@ internal class SkeServiceTest : FunSpec({
         val service = SkeService(client, mockkKravService, ftpService)
 
         val responses = service.sendNewFilesToSKE()
-        responses.map { it.status shouldBeIn listOf(HttpStatusCode.OK, HttpStatusCode.Created) }
+        responses.map { it.status shouldBeIn listOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.Conflict) }
 
         fakeFtpService.close()
         httpClient.close()

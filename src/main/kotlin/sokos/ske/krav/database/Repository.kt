@@ -16,6 +16,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 const val KRAV_SENDT = "KRAV_SENDT"
+const val FEIL_MED_ENDRING = "FEIL MED DEN ANDRE ENDRINGEN"
 const val KONFLIKT_409 = "KONFLIKT_409"
 const val VALIDERINGSFEIL_422 = "VALIDERINGSFEIL_422"
 

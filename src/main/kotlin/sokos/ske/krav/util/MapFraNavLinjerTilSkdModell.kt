@@ -19,6 +19,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
 
+
 fun makeOpprettKravRequest(krav: KravLinje, uuid: String): OpprettInnkrevingsoppdragRequest {
     val kravFremtidigYtelse = krav.fremtidigYtelse.toDouble().roundToLong()
     val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
@@ -61,10 +62,12 @@ fun makeEndreRenteRequest(krav: KravLinje): EndreRenteBeloepRequest = EndreRente
     ),
 )
 
-fun makeNyHovedStolRequest(krav: KravLinje): NyHovedStolRequest = NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.toDouble().roundToLong()))
+fun makeNyHovedStolRequest(krav: KravLinje): NyHovedStolRequest =
+    NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.toDouble().roundToLong()))
 
 fun lagNyOppdragsgiversReferanseRequest(krav: KravLinje) = NyOppdragsgiversReferanseRequest(krav.saksNummer)
-fun makeStoppKravRequest(nyref: String, kravidentifikatortype: Kravidentifikatortype) = AvskrivingRequest(kravidentifikatortype.value, kravidentifikator = nyref)
+fun makeStoppKravRequest(nyref: String, kravidentifikatortype: Kravidentifikatortype)
+= AvskrivingRequest(kravidentifikatortype.value, kravidentifikator = nyref)
 fun KravLinje.isNyttKrav() = (!this.isEndring() && !this.isStopp())
 fun KravLinje.isEndring() = (referanseNummerGammelSak.isNotEmpty() && !isStopp())
 fun KravLinje.isStopp() = (belop.toDouble().roundToLong() == 0L)
