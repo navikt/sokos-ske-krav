@@ -34,7 +34,7 @@ object Repository {
             ).executeQuery().toKrav()
     }
 
-    fun Connection.getAlleKravMedValideringsfeil(): List<KravTable> {
+    fun Connection.getAllValidationErrors(): List<KravTable> {
         return prepareStatement("""select * from krav where status = ?""")
             .withParameters(
                 param(MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value)

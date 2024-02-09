@@ -69,7 +69,7 @@ class SkeService(
         if(!stoppresponse.status.isSuccess()) {
             // FILEN MÅ FØLGES OPP MANUELT...
 
-            println("FEIL FRA SKATT! FANT IKKE ORIGINALSAKSREF! MÅ GJØRE NOE")
+            logger.info("FEIL FRA SKATT! FANT IKKE ORIGINALSAKSREF! MÅ GJØRE NOE")
             handleHvaFGjorViNaa(linje, file)
         }
         return stoppresponse
@@ -106,7 +106,7 @@ class SkeService(
         val allResponses = mutableListOf<HttpResponse>()
 
         val linjer = file.kravLinjer.filter { LineValidator.validateLine(it, file.name) }
-        println("${linjer.size} LINJER")
+        logger.info("${linjer.size} LINJER")
 
         //bruker foreach for å ha litt bedre oversikt, for tror det må endres siden endring av krav gjør det så teit
         linjer.forEach {
@@ -128,11 +128,11 @@ class SkeService(
             if (kravident.isEmpty() && !it.isNyttKrav()) {
                 val response = skeClient.getSkeKravident(it.referanseNummerGammelSak)
                 if(response.status.isSuccess()){
-                    println("RESPONSE FRA KALL: ${response.bodyAsText()}")
+                    logger.info("RESPONSE FRA KALL: ${response.bodyAsText()}")
                     kravident = response.body<AvstemmingResponse>().kravidentifikator
-                    println("FANT KRAVIDENT FRA AVSTEMMING: $kravident")
+                    logger.info("FANT KRAVIDENT FRA AVSTEMMING: $kravident")
                 } else{
-                    println("FIKK 404 :( Response:  ${response.bodyAsText()}")
+                    logger.info("FIKK 404 :( Response:  ${response.bodyAsText()}")
                     kravident = it.referanseNummerGammelSak
                     kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
                 }
@@ -142,16 +142,16 @@ class SkeService(
                 it.isStopp() -> {
                     val response = sendStoppKrav(kravident, kravidentType, it, file)
                     if(!response.status.isSuccess()) {
-                        println("FEIL i innsending av STOPP PÅ LINJE ${it.linjeNummer}: ${response.status} ${response.bodyAsText()}")
-                        println(it)
+                        logger.info("FEIL i innsending av STOPP PÅ LINJE ${it.linjeNummer}: ${response.status} ${response.bodyAsText()}")
+                        logger.info("$it")
                     }
                     responses.add(response)
                 }
                 it.isEndring() -> {
                     val endreResponses = sendEndreKrav(kravident, kravidentType,it)
                     endreResponses.filter { resp -> !resp.status.isSuccess() }.forEach{ resp ->
-                        println("FEIL I INNSENDING AV ENDRING  PÅ LINJE ${it.linjeNummer}: ${resp.status} ${resp.bodyAsText()}")
-                        println(it)
+                        logger.info("FEIL I INNSENDING AV ENDRING  PÅ LINJE ${it.linjeNummer}: ${resp.status} ${resp.bodyAsText()}")
+                        logger.info("$it")
                     }
                     responses.addAll(endreResponses)
                 }
@@ -159,8 +159,8 @@ class SkeService(
                     val response = sendOpprettKrav(it, substfnr)
 
                     if(!response.status.isSuccess()) {
-                        println("FEIL i innsending av NYTT PÅ LINJE ${it.linjeNummer}: ${response.status}  ${response.bodyAsText()}")
-                        println(it)
+                        logger.info("FEIL i innsending av NYTT PÅ LINJE ${it.linjeNummer}: ${response.status}  ${response.bodyAsText()}")
+                        logger.info("$it")
                     } else  kravident = response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
                     responses.add(response)
                 }

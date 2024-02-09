@@ -8,7 +8,7 @@ import io.mockk.every
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.Repository.getAlleKrav
-import sokos.ske.krav.database.Repository.getAlleKravMedValideringsfeil
+import sokos.ske.krav.database.Repository.getAllValidationErrors
 import sokos.ske.krav.database.Repository.getAlleKravSomIkkeErReskotrofort
 import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.insertNewKobling
@@ -190,7 +190,7 @@ fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseServi
     }
     every { getAlleKravMedValideringsfeil() } answers {
         ds.connection.useAndHandleErrors { con ->
-            con.getAlleKravMedValideringsfeil()
+            con.getAllValidationErrors()
         }
     }
     every { saveValideringsfeil(any<ValideringsFeilResponse>(), any<String>()) } answers {

@@ -1,7 +1,7 @@
 package sokos.ske.krav.service
 
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.database.Repository.getAlleKravMedValideringsfeil
+import sokos.ske.krav.database.Repository.getAllValidationErrors
 import sokos.ske.krav.database.Repository.getAlleKravSomIkkeErReskotrofort
 import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.insertNewKobling
@@ -43,7 +43,7 @@ class DatabaseService(
 
     fun getAlleKravMedValideringsfeil(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.getAlleKravMedValideringsfeil()
+            return con.getAllValidationErrors()
         }
     }
 
