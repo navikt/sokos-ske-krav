@@ -26,6 +26,8 @@ val kotlinxSerializationVersion = "1.6.0"
 val kotlinxDatetimeVersion = "0.4.1"
 val prometheusVersion = "1.11.5"
 val simpleXmlVersion = "2.7.1"
+val ibm_mq_version = "9.2.5.0"
+
 
 // Test
 val kotestVersion = "5.8.0"
@@ -70,6 +72,9 @@ dependencies {
 
     // FTP
     implementation("com.github.mwiede:jsch:$jschVersion")
+
+    //MQ
+    implementation("com.ibm.mq:com.ibm.mq.allclient:$ibm_mq_version")
 
     // Config
     implementation("com.natpryce:konfig:$natpryceVersion")

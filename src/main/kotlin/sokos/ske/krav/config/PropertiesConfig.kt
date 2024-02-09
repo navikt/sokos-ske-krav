@@ -1,13 +1,8 @@
 package sokos.ske.krav.config
 
-import com.natpryce.konfig.ConfigurationMap
-import com.natpryce.konfig.ConfigurationProperties
-import com.natpryce.konfig.EnvironmentVariables
-import com.natpryce.konfig.Key
-import com.natpryce.konfig.overriding
-import com.natpryce.konfig.stringType
+import com.natpryce.konfig.*
 import com.nimbusds.jose.jwk.RSAKey
-import io.ktor.client.call.body
+import io.ktor.client.call.*
 import io.ktor.client.request.get
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
@@ -77,6 +72,16 @@ object PropertiesConfig {
 		val scopes: String = get("MASKINPORTEN_SCOPES"),
 	) : JwtConfig(authorityEndpoint)
 
+	data class MqConfig(
+		val oppdragQueue: String = get("MQ_TIL_OPPDRAG"),
+		val oppdragBoq: String = get("MQ_TIL_OPPDRAG_BOQ"),
+		val host: String = get("MQ_HOST"),
+		val port: String = get("MQ_PORT"),
+		val qmgr: String = get("MQ_QUEMANAGER"),
+		val channel: String = get("MQ_CHANNEL"),
+		val username: String = get("MQ_USERNAME"),
+		val password: String = get("MQ_PASSWORD")
+	)
 
 	@Serializable
 	data class OpenIdConfiguration(
