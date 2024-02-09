@@ -65,13 +65,13 @@ internal class IntegrationTest : FunSpec({
         val kravdata = ds.connection.use {
             it.getAlleKrav()
         }
-        kravdata.size shouldBe 103
+        kravdata.size shouldBe 105
 
         kravdata.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
-        kravdata.filter { it.kravtype == ENDRE_KRAV }.size shouldBe 4
+        kravdata.filter { it.kravtype == ENDRE_KRAV }.size shouldBe 6
         kravdata.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
         kravdata.filter { it.kravtype == NYTT_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 97
-        kravdata.filter { it.kravtype == ENDRE_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 4
+        kravdata.filter { it.kravtype == ENDRE_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 6
 
         httpClient.close()
         fakeFtpService.close()
@@ -92,7 +92,7 @@ internal class IntegrationTest : FunSpec({
             it.getAlleKrav()
         }
 
-        kravdata.filter { it.status == MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value }.size shouldBe 103
+        kravdata.filter { it.status == MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value }.size shouldBe 105
 
         httpClient.close()
     }
