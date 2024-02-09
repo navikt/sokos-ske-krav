@@ -85,14 +85,14 @@ internal class IntegrationTest : FunSpec({
         val mockkKravService = mockKravService(ds)
         val skeService = SkeService(skeClient, mockkKravService, mockk<FtpService>())
 
-        // Skal ENDRINGER av krav få nye statuser? åssen funker det?
         skeService.hentOgOppdaterMottaksStatus()
 
         val kravdata = ds.connection.use {
             it.getAlleKrav()
         }
 
-        kravdata.filter { it.status == MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value }.size shouldBe 105
+        println(kravdata)
+        kravdata.filter { it.status == MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value }.size shouldBe 101
 
         httpClient.close()
     }

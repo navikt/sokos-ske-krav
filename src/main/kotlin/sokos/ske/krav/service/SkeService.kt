@@ -107,7 +107,7 @@ class SkeService(
 
         val linjer = file.kravLinjer.filter { LineValidator.validateLine(it, file.name) }
         logger.info("${linjer.size} LINJER")
-
+        println("${linjer.size} LINJER")
         //bruker foreach for å ha litt bedre oversikt, for tror det må endres siden endring av krav gjør det så teit
         linjer.forEach {
             Metrics.numberOfKravRead.inc()
@@ -130,6 +130,7 @@ class SkeService(
                 kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
             }
 
+            println("bruker kravident $kravident")
             when {
                 it.isStopp() -> {
                     val response = sendStoppKrav(kravident, kravidentType, it, file)
