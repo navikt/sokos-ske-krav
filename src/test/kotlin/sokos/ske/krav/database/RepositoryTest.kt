@@ -3,12 +3,13 @@ package sokos.ske.krav.database
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.testcontainers.toDataSource
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
 import sokos.ske.krav.database.Repository.getAlleKoblinger
 import sokos.ske.krav.database.Repository.getAlleKrav
 import sokos.ske.krav.database.Repository.koblesakRef
 import sokos.ske.krav.database.Repository.insertNewKobling
 import sokos.ske.krav.database.Repository.insertNewKrav
+import sokos.ske.krav.service.KRAV_SENDT
+import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.util.FileParser
 import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.util.isEndring
@@ -17,7 +18,7 @@ import sokos.ske.krav.util.isNyttKrav
 internal class RepositoryTest : FunSpec({
 
     val testContainer = TestContainer("RepositoryTest")
-    val container = testContainer.getContainer(listOf("insertData.sql"), reusable = false, loadFlyway = true)
+    val container = testContainer.getContainer(listOf("NyeKrav.sql"), reusable = false, loadFlyway = true)
 
     val datasource = container.toDataSource {
         maximumPoolSize = 8
@@ -87,8 +88,8 @@ internal class RepositoryTest : FunSpec({
             con.insertNewKrav(
                 "skeID-001",
                 krav1NyttSaksNummer,
-                "NYTT_KRAV",
-                HttpStatusCode.OK.value.toString()
+                NYTT_KRAV,
+                KRAV_SENDT
             )
         }
         val hentetKobling = datasource.connection.use { con ->

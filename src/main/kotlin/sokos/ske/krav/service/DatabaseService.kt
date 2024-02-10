@@ -6,9 +6,11 @@ import sokos.ske.krav.database.Repository.getAlleKravSomIkkeErReskotrofort
 import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.insertNewKobling
 import sokos.ske.krav.database.Repository.insertNewKrav
+import sokos.ske.krav.database.Repository.saveFeilmelding
 import sokos.ske.krav.database.Repository.saveValideringsfeil
 import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
+import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
@@ -50,6 +52,12 @@ class DatabaseService(
     fun saveValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, saksnummerSKE: String) {
         postgresDataSource.connection.useAndHandleErrors { con ->
             con.saveValideringsfeil(valideringsFeilResponse, saksnummerSKE)
+        }
+    }
+
+    fun saveFeilmelding(feilMelding: FeilmeldingTable){
+        postgresDataSource.connection.useAndHandleErrors { con ->
+            con.saveFeilmelding(feilMelding)
         }
     }
 

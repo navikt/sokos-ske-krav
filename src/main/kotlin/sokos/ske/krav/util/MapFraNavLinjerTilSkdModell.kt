@@ -62,7 +62,7 @@ fun makeEndreRenteRequest(krav: KravLinje): EndreRenteBeloepRequest = EndreRente
     ),
 )
 
-fun makeNyHovedStolRequest(krav: KravLinje): NyHovedStolRequest =
+fun makeEndreHovedstolRequest(krav: KravLinje): NyHovedStolRequest =
     NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.toDouble().roundToLong()))
 
 fun lagNyOppdragsgiversReferanseRequest(krav: KravLinje) = NyOppdragsgiversReferanseRequest(krav.saksNummer)
