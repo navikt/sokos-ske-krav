@@ -12,11 +12,11 @@ import javax.xml.bind.annotation.XmlType
   name = "Totaldata", namespace = "http://nav.no/virksomhet/tjenester/avstemming/meldinger/v1", propOrder = ["totalAntall", "totalBelop", "fortegn"
   ]
 )
-class Totaldata {
+data class Totaldata (
 
-  var totalAntall: Int = 0
-  var totalBelop: BigDecimal? = null
+  var totalAntall: Int = 0,
+  var totalBelop: BigDecimal? = null,
   
   @XmlSchemaType(name = "string")
   var fortegn: Fortegn? = null
-}
+)

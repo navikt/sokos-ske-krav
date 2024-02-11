@@ -13,23 +13,23 @@ import javax.xml.bind.annotation.XmlType
     "tekstMelding", "tidspunkt"
   ]
 )
-class Detaljdata {
+data class Detaljdata (
 
   @field:Element(name = "detaljType", required = false)
   @XmlSchemaType(name = "string")
-  var detaljType: DetaljType? = null
+  var detaljType: DetaljType? = null,
 
   @field:Element(name = "offnr", required = false)
-  var offnr: String = "hei"
+  var offnr: String? = null,
 
   @field:Element(name = "avleverendeTransaksjonNokkel", required = false)
-  var avleverendeTransaksjonNokkel: String? = null
+  var avleverendeTransaksjonNokkel: String? = null,
 
   @field:Element(name = "alvorlighetsgrad", required = false)
-  var alvorlighetsgrad: String? = null
+  var alvorlighetsgrad: String? = null,
   @field:Element(name = "tekstMelding", required = false)
-  var tekstMelding: String? = null
+  var tekstMelding: String? = null,
 
   @field:Element(name = "tidspunkt", required = false)
-  var tidspunkt: String? = null
-}
+  var tidspunkt: String? = null,
+)

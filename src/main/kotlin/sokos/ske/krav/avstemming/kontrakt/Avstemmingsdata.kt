@@ -11,21 +11,21 @@ import javax.xml.bind.annotation.XmlType
   name = "Avstemmingsdata", namespace = "http://nav.no/virksomhet/tjenester/avstemming/meldinger/v1", propOrder = ["aksjon", "total", "periode", "grunnlag", "detalj"
   ]
 )
-class Avstemmingsdata {
+data class Avstemmingsdata (
 
   @field:Element(name = "aksjon", required = false)
-  var aksjon: Aksjonsdata? = null
+  var aksjon: Aksjonsdata? = null,
 
   @field:Element(name = "total", required = false)
-  var total: Totaldata? = null
+  var total: Totaldata? = null,
 
   @field:Element(name = "periode", required = false)
-  var periode: Periodedata? = null
+  var periode: Periodedata? = null,
 
   @field:Element(name = "grunnlag", required = false)
-  var grunnlag: Grunnlagsdata? = null
+  var grunnlag: Grunnlagsdata? = null,
 
-  @field:ElementList(name = "detalj", required = true)
+  @field:ElementList(name = "detalj", required = false)
   var detalj: List<Detaljdata>? = null
 
-}
+)

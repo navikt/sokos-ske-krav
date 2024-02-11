@@ -7,7 +7,6 @@ import javax.xml.bind.annotation.XmlType
 @XmlType(name = "Fortegn", namespace = "http://nav.no/virksomhet/tjenester/avstemming/meldinger/v1")
 @XmlEnum
 enum class Fortegn {
-  
   T,
   F;
 

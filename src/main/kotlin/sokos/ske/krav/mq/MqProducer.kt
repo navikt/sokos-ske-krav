@@ -25,7 +25,6 @@ class MqProducer(
     }
 
     private fun connect() {
-        //TODO connect attempts metric?
         logger.info("Connecting to MQ queue ${config.oppdragQueue}")
         val connection = config.connect()
         session = connection.createSession(Session.SESSION_TRANSACTED)
@@ -41,7 +40,6 @@ class MqProducer(
         try {
             if (!connected) connect()
             messageProducer.send(session.createTextMessage(message))
-            //Metrics.FailedOrderCounter.inc()
         } catch (ex: Exception) {
             logger.error("Kunne ikke legge melding på BOQ. Se secure log for fnummer")
             secureLogger.error { "Kunne ikke legge melding: $message på BOQ" }

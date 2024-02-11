@@ -11,11 +11,11 @@ import javax.xml.bind.annotation.XmlType
   name = "Periodedata", namespace = "http://nav.no/virksomhet/tjenester/avstemming/meldinger/v1", propOrder = ["datoAvstemtFom", "datoAvstemtTom"
   ]
 )
-class Periodedata {
+data class Periodedata (
 
   @XmlElement(required = true)
-  var datoAvstemtFom: String? = null
+  var datoAvstemtFom: String? = null,
 
   @XmlElement(required = true)
   var datoAvstemtTom: String? = null
-}
+)
