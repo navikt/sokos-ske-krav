@@ -19,6 +19,7 @@ import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.*
 import java.time.LocalDateTime
+import java.util.UUID
 import kotlin.collections.set
 
 
@@ -84,27 +85,27 @@ class SkeService(
 		kravident = it.referanseNummerGammelSak
 		kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
 	  }
-
+	  val corrID = UUID.randomUUID().toString()
 	  when {
 		it.isStopp() -> {
-		  val response = sendStoppKrav(kravident, kravidentType, it)
+		  val response = sendStoppKrav(kravident, kravidentType, it, corrID)
 		  responsesMap[STOPP_KRAV] = response
 		}
 
 		it.isEndring() -> {
-		  val endreResponses = sendEndreKrav(kravident, kravidentType, it)
+		  val endreResponses = sendEndreKrav(kravident, kravidentType, it, corrID)
 		  responsesMap.putAll(endreResponses)
 		}
 
 		it.isNyttKrav() -> {
-		  val response = sendOpprettKrav(it, substfnr)
+		  val response = sendOpprettKrav(it, substfnr,corrID)
 		  if (response.status.isSuccess()) kravident = response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
 
 		  responsesMap[NYTT_KRAV] = response
 		}
 	  }
 
-	  databaseService.saveSentKravToDatabase(responsesMap, it, kravident)
+	  databaseService.saveSentKravToDatabase(responsesMap, it, kravident, corrID)
 
 	  allResponses.addAll(responsesMap.values)
 
@@ -114,17 +115,14 @@ class SkeService(
 	if (errors.isNotEmpty()) {
 	  //ALARM
 	}
-
-
-
 	return allResponses
 
   }
 
 
-  private suspend fun sendStoppKrav(kravident: String, kravidentType: Kravidentifikatortype, krav: KravLinje): HttpResponse {
+  private suspend fun sendStoppKrav(kravident: String, kravidentType: Kravidentifikatortype, krav: KravLinje, corrID: String): HttpResponse {
 	val request = makeStoppKravRequest(kravident, kravidentType)
-	val response = skeClient.stoppKrav(request)
+	val response = skeClient.stoppKrav(request, corrID)
       
 	if (!response.status.isSuccess()) {
 	  databaseService.saveErrorMessageToDatabase(Json.encodeToString(request), response, krav, kravident)
@@ -133,12 +131,12 @@ class SkeService(
 	return response
   }
 
-  private suspend fun sendEndreKrav(kravident: String, kravidentType: Kravidentifikatortype, krav: KravLinje): Map<String, HttpResponse> {
+  private suspend fun sendEndreKrav(kravident: String, kravidentType: Kravidentifikatortype, krav: KravLinje, corrID: String): Map<String, HttpResponse> {
 
 	//skeClient.endreOppdragsGiversReferanse(lagNyOppdragsgiversReferanseRequest(linje), kravident, kravidentType)
 
 	val endreRenterRequest = makeEndreRenteRequest(krav)
-	val renteresponse = skeClient.endreRenter(endreRenterRequest, kravident, kravidentType)
+	val renteresponse = skeClient.endreRenter(endreRenterRequest, kravident, kravidentType, corrID)
 
 	if (!renteresponse.status.isSuccess()) {
 	  logger.info("FEIL I INNSENDING AV ENDRING AV RENTER PÅ LINJE ${krav.linjeNummer}: ${renteresponse.status} ${renteresponse.bodyAsText()}")
@@ -146,7 +144,7 @@ class SkeService(
 	}
 
 	val endreHovedstolRequest = makeEndreHovedstolRequest(krav)
-	val hovedstolResponse = skeClient.endreHovedstol(endreHovedstolRequest, kravident, kravidentType)
+	val hovedstolResponse = skeClient.endreHovedstol(endreHovedstolRequest, kravident, kravidentType, corrID)
 
 	if (!hovedstolResponse.status.isSuccess()) {
 	  logger.info("FEIL I INNSENDING AV ENDRING AV HOVEDSTOL PÅ LINJE ${krav.linjeNummer}: ${hovedstolResponse.status} ${hovedstolResponse.bodyAsText()}")
@@ -159,9 +157,10 @@ class SkeService(
   }
 
 
-  private suspend fun sendOpprettKrav(krav: KravLinje, substfnr: String): HttpResponse {
-	val opprettKravRequest = makeOpprettKravRequest(krav.copy(gjelderID = if (krav.gjelderID.startsWith("00")) krav.gjelderID else substfnr), databaseService.insertNewKobling(krav.saksNummer))
-	val response = skeClient.opprettKrav(opprettKravRequest)
+  private suspend fun sendOpprettKrav(krav: KravLinje, substfnr: String,  corrID: String): HttpResponse {
+	val opprettKravRequest = makeOpprettKravRequest(krav.copy(gjelderID =
+	if (krav.gjelderID.startsWith("00")) krav.gjelderID else substfnr), databaseService.insertNewKobling(krav.saksNummer, corrID))
+	val response = skeClient.opprettKrav(opprettKravRequest, corrID)
 
 	if (!response.status.isSuccess()) {
 	  logger.info("FEIL i innsending av NYTT PÅ LINJE ${krav.linjeNummer}: ${response.status}  ${response.bodyAsText()}")

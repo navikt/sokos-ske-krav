@@ -14,6 +14,7 @@ import sokos.ske.krav.util.FileParser
 import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.util.isEndring
 import sokos.ske.krav.util.isNyttKrav
+import java.util.UUID
 
 internal class RepositoryTest : FunSpec({
 
@@ -78,7 +79,7 @@ internal class RepositoryTest : FunSpec({
         krav2.isEndring() shouldBe true
 
         val kobling1 = datasource.connection.use { con ->
-            con.insertNewKobling(krav1.saksNummer)
+            con.insertNewKobling(krav1.saksNummer, UUID.randomUUID().toString())
         }
 
         val krav1NyttSaksNummer = krav1.copy(saksNummer = kobling1)
@@ -87,6 +88,7 @@ internal class RepositoryTest : FunSpec({
         datasource.connection.use { con ->
             con.insertNewKrav(
                 "skeID-001",
+                UUID.randomUUID().toString(),
                 krav1NyttSaksNummer,
                 NYTT_KRAV,
                 Status.KRAV_SENDT.value

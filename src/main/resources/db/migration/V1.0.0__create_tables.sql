@@ -22,6 +22,7 @@ create table "krav"
     fagsystemId              varchar(30) null,
     status                   text,
     kravtype                 text,
+    corr_id                  text,
     dato_sendt               timestamp,
     dato_siste_status        timestamp
 );

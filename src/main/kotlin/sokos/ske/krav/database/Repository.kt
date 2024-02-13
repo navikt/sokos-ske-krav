@@ -47,6 +47,7 @@ object Repository {
 
     fun Connection.insertNewKrav(
         kravidentSKE: String,
+        corrID: String,
         kravLinje: KravLinje,
         kravtype: String,
         responseStatus: String
@@ -74,10 +75,11 @@ object Repository {
                 utbetalDato,
                 fagsystemId,
                 status, 
+                corr_id,
                 dato_sendt, 
                 dato_siste_status,
                 kravtype
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?)
             """.trimIndent()
         ).withParameters(
             param(kravLinje.saksNummer),
@@ -99,6 +101,7 @@ object Repository {
             param(kravLinje.utbetalDato),
             param(kravLinje.fagsystemId),
             param(responseStatus),
+            param(corrID),
             param(now),
             param(now),
             param(kravtype)
@@ -188,8 +191,8 @@ object Repository {
     }
 
     //skal bort
-    fun Connection.insertNewKobling(ref: String): String {
-        val nyref = UUID.randomUUID().toString()
+    fun Connection.insertNewKobling(ref: String, nyRef: String): String {
+
         prepareStatement(
             """
             insert into kobling (
@@ -200,12 +203,12 @@ object Repository {
         """.trimIndent()
         ).withParameters(
             param(ref),
-            param(nyref),
+            param(nyRef),
             param(LocalDateTime.now())
         ).execute()
         commit()
 
-        return nyref
+        return nyRef
     }
 
     fun Connection.koblesakRef(filref: String): String {

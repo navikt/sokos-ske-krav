@@ -167,15 +167,16 @@ fun mockKravService(ds: HikariDataSource): DatabaseService =
         }
     }
 
-    every { insertNewKobling(any<String>()) } answers {
+    every { insertNewKobling(any<String>(), any<String>()) } answers {
         ds.connection.useAndHandleErrors { con ->
-            con.insertNewKobling(firstArg<String>())
+            con.insertNewKobling(firstArg<String>(), secondArg<String>())
         }
     }
 
 
     every {
         insertNewKrav(
+            any<String>(),
             any<String>(),
             any<KravLinje>(),
             any<String>(),
@@ -185,9 +186,10 @@ fun mockKravService(ds: HikariDataSource): DatabaseService =
         ds.connection.useAndHandleErrors { con ->
             con.insertNewKrav(
                 arg<String>(0),
-                arg<KravLinje>(1),
-                arg<String>(2),
+                arg<String>(1),
+                arg<KravLinje>(2),
                 arg<String>(3),
+                arg<String>(4),
             )
         }
     }
@@ -213,8 +215,8 @@ fun mockKravService(ds: HikariDataSource): DatabaseService =
         }
     }
 
-        coEvery { saveSentKravToDatabase(any<Map<String, HttpResponse>>(), any<KravLinje>(), any<String>() ) }  answers{
-            insertNewKrav(arg(2), arg(1), arg<Map<String,HttpResponse>>(0).keys.first(), "STATUS")
+        coEvery { saveSentKravToDatabase(any<Map<String, HttpResponse>>(), any<KravLinje>(), any<String>(), any<String>() ) }  answers{
+            insertNewKrav(arg(2), arg(3), arg(1), arg<Map<String,HttpResponse>>(0).keys.first(), "STATUS")
         }
         coEvery { saveErrorMessageToDatabase(any<String>(), any<HttpResponse>(), any<KravLinje>(), any<String>() ) } answers {
             val feilmelding = FeilmeldingTable(

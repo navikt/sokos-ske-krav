@@ -36,20 +36,21 @@ class DatabaseService(
         }
     }
 
-    fun insertNewKobling(saksnummerNav: String): String {
+    fun insertNewKobling(saksnummerNav: String, corrID: String): String {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.insertNewKobling(saksnummerNav)
+            return con.insertNewKobling(saksnummerNav, corrID)
         }
     }
 
     fun insertNewKrav(
         skeKravident: String,
+        corrID: String,
         kravLinje: KravLinje,
         kravtype: String,
         responseStatus: String
     ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.insertNewKrav(skeKravident, kravLinje, kravtype, responseStatus)
+            con.insertNewKrav(skeKravident, corrID,  kravLinje, kravtype, responseStatus)
         }
     }
 
@@ -83,7 +84,7 @@ class DatabaseService(
 
     }
 
-    suspend fun saveSentKravToDatabase(responses: Map<String, HttpResponse>, krav: KravLinje, kravident: String) {
+    suspend fun saveSentKravToDatabase(responses: Map<String, HttpResponse>, krav: KravLinje, kravident: String, corrID: String) {
         var kravidentToBeSaved = kravident
         responses.forEach { entry ->
 
@@ -96,6 +97,7 @@ class DatabaseService(
 
             insertNewKrav(
                 kravidentToBeSaved,
+                corrID,
                 krav,
                 entry.key,
                 statusString
@@ -103,7 +105,11 @@ class DatabaseService(
         }
 
     }
-
+    private fun hentKravIDForKravLinje(){
+        """
+            select id from krav where 
+        """.trimIndent()
+    }
     suspend fun saveErrorMessageToDatabase(request: String, response: HttpResponse, krav: KravLinje, kravident: String) {
         if (response.status.isSuccess()) return
         val kravidentSke = if (kravident == krav.saksNummer || kravident == krav.referanseNummerGammelSak) "" else kravident
