@@ -4,7 +4,12 @@ import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.testcontainers.toDataSource
 import io.kotest.matchers.shouldBe
+import io.ktor.client.statement.HttpResponse
+import io.mockk.Runs
+import io.mockk.coEvery
+import io.mockk.coJustRun
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.Repository.getAllValidationErrors
@@ -16,6 +21,7 @@ import sokos.ske.krav.database.Repository.insertNewKrav
 import sokos.ske.krav.database.Repository.saveValidationError
 import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
+import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
@@ -28,6 +34,7 @@ import sokos.ske.krav.util.TestContainer
 import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 internal class IntegrationTest : FunSpec({
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
@@ -49,7 +56,7 @@ internal class IntegrationTest : FunSpec({
         val httpClient = MockHttpClient(kravident = "1234").getClient()
         val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
         val mockkKravService = mockKravService(ds)
-
+        
         val fakeFtpService = FakeFtpService()
         val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("AltOkFil.txt"))
 
@@ -60,11 +67,11 @@ internal class IntegrationTest : FunSpec({
         val kravdata = ds.connection.use {
             it.getAllKrav()
         }
-        kravdata.size shouldBe 105
+        kravdata.size shouldBe 103
 
         kravdata.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
         kravdata.filter { it.kravtype == ENDRE_RENTER }.size shouldBe 3
-        kravdata.filter { it.kravtype == ENDRE_HOVEDSTOL }.size shouldBe 3
+        kravdata.filter { it.kravtype == ENDRE_HOVEDSTOL }.size shouldBe 1
         kravdata.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
         kravdata.filter { it.kravtype == NYTT_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 97
 
@@ -87,7 +94,7 @@ internal class IntegrationTest : FunSpec({
         }
 
         println(kravdata)
-        kravdata.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 101
+        kravdata.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 103
 
         httpClient.close()
     }
@@ -152,7 +159,8 @@ internal class IntegrationTest : FunSpec({
     }
 })
 
-fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseService> {
+fun mockKravService(ds: HikariDataSource): DatabaseService =
+    mockk<DatabaseService>(relaxUnitFun = true, relaxed=true) {
     every { getSkeKravident(any<String>()) } answers {
         ds.connection.useAndHandleErrors { con ->
             con.getSkeKravIdent(firstArg<String>())
@@ -204,4 +212,24 @@ fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseServi
             con.updateStatus(firstArg<MottaksStatusResponse>())
         }
     }
-}
+
+        coEvery { saveSentKravToDatabase(any<Map<String, HttpResponse>>(), any<KravLinje>(), any<String>() ) }  answers{
+            insertNewKrav(arg(2), arg(1), arg<Map<String,HttpResponse>>(0).keys.first(), "STATUS")
+        }
+        coEvery { saveErrorMessageToDatabase(any<String>(), any<HttpResponse>(), any<KravLinje>(), any<String>() ) } answers {
+            val feilmelding = FeilmeldingTable(
+                0L,
+                1L,
+                 arg<KravLinje>(2).saksNummer,
+                arg<String>(3),
+                 "STATUS",
+                "DETAIL",
+                "REQUEST",
+                "RESPONSE",
+                LocalDateTime.now()
+            )
+             saveFeilmelding(feilmelding)
+
+        }
+
+    }

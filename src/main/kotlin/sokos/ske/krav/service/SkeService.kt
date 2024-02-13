@@ -19,7 +19,6 @@ import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.*
 import java.time.LocalDateTime
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.set
 
 
@@ -57,7 +56,10 @@ class SkeService(
 	return responses.flatten()
   }
 
-
+  sealed class RequestResult {
+	data class Success(val response: HttpResponse, val krav: KravLinje) : RequestResult()
+	data class Error(val request: String, val response: HttpResponse, val krav: KravLinje, val kravID: Long) : RequestResult()
+  }
   private suspend fun sendKrav(file: FtpFil, fnrIter: ListIterator<String>, fnrListe: List<String>): List<HttpResponse> {
 	var fnrIter1 = fnrIter
 
@@ -102,7 +104,7 @@ class SkeService(
 		}
 	  }
 
-	  saveSentKravToDatabase(responsesMap, it, kravident)
+	  databaseService.saveSentKravToDatabase(responsesMap, it, kravident)
 
 	  allResponses.addAll(responsesMap.values)
 
@@ -119,71 +121,13 @@ class SkeService(
 
   }
 
-  private suspend fun saveErrorMessageToDatabase(request: String, response: HttpResponse, krav: KravLinje, kravident: String) {
-	if (response.status.isSuccess()) return
-	val kravidentSke = if (kravident == krav.saksNummer || kravident == krav.referanseNummerGammelSak) "" else kravident
-
-	val feilResponse = response.body<FeilResponse>()
-
-	if (feilResponse.status == 404) {
-	  handleHvaFGjorViNaa(krav)
-	}
-	val feilmelding = FeilmeldingTable(
-	  0L,
-	  0L,
-	  krav.saksNummer,
-	  kravidentSke,
-	  feilResponse.status.toString(),
-	  feilResponse.detail,
-	  request,
-	  response.bodyAsText(),
-	  LocalDateTime.now()
-	)
-
-	databaseService.saveFeilmelding(feilmelding)
-  }
-
-  private suspend fun determineStatus(allResponses: Map<String, HttpResponse>, response: HttpResponse): String {
-    return if (allResponses.filter { resp -> resp.value.status.isSuccess() }.size == allResponses.size) Status.KRAV_SENDT.value
-	  else if (response.status.isSuccess()) Status.FEIL_MED_ENDRING.value
-	  else {
-		val feilResponse = response.body<FeilResponse>()
-		if (feilResponse.status == 404 && feilResponse.type.contains("innkrevingsoppdrag-eksisterer-ikke")) Status.FANT_IKKE_SAKSREF.value
-		else if (feilResponse.status == 409 && feilResponse.detail.contains("reskontroført")) Status.IKKE_RESKONTROFORT.value
-		else "UKJENT STATUS: ${allResponses.map { resp -> "${resp.value.status.value}: ${ resp.value.body<FeilResponse>().type}" }}"
-	  }
-
-  }
-
-  private suspend fun saveSentKravToDatabase(allResponses: Map<String, HttpResponse>, krav: KravLinje, kravident: String) {
-	var kravidentToBeSaved = kravident
-
-	allResponses.forEach { entry ->
-
-	  Metrics.numberOfKravSent.inc()
-	  Metrics.typeKravSent.labels(krav.stonadsKode).inc()
-
-	  val statusString = determineStatus(allResponses, entry.value)
-
-	  if (!krav.isNyttKrav() && kravidentToBeSaved == krav.referanseNummerGammelSak) kravidentToBeSaved = ""
-
-	  databaseService.insertNewKrav(
-		kravidentToBeSaved,
-		krav,
-		entry.key,
-		statusString
-	  )
-	}
-
-  }
-
 
   private suspend fun sendStoppKrav(kravident: String, kravidentType: Kravidentifikatortype, krav: KravLinje): HttpResponse {
 	val request = makeStoppKravRequest(kravident, kravidentType)
 	val response = skeClient.stoppKrav(request)
       
 	if (!response.status.isSuccess()) {
-	  saveErrorMessageToDatabase(Json.encodeToString(request), response, krav, kravident)
+	  databaseService.saveErrorMessageToDatabase(Json.encodeToString(request), response, krav, kravident)
 	}
 
 	return response
@@ -198,7 +142,7 @@ class SkeService(
 
 	if (!renteresponse.status.isSuccess()) {
 	  logger.info("FEIL I INNSENDING AV ENDRING AV RENTER PÅ LINJE ${krav.linjeNummer}: ${renteresponse.status} ${renteresponse.bodyAsText()}")
-	  saveErrorMessageToDatabase(Json.encodeToString(endreRenterRequest), renteresponse, krav, kravident)
+	  databaseService.saveErrorMessageToDatabase(Json.encodeToString(endreRenterRequest), renteresponse, krav, kravident)
 	}
 
 	val endreHovedstolRequest = makeEndreHovedstolRequest(krav)
@@ -206,7 +150,7 @@ class SkeService(
 
 	if (!hovedstolResponse.status.isSuccess()) {
 	  logger.info("FEIL I INNSENDING AV ENDRING AV HOVEDSTOL PÅ LINJE ${krav.linjeNummer}: ${hovedstolResponse.status} ${hovedstolResponse.bodyAsText()}")
-	  saveErrorMessageToDatabase(Json.encodeToString(endreHovedstolRequest), hovedstolResponse, krav, kravident)
+	  databaseService.saveErrorMessageToDatabase(Json.encodeToString(endreHovedstolRequest), hovedstolResponse, krav, kravident)
 	}
 
 	val responseMap = mapOf(ENDRE_RENTER to renteresponse, ENDRE_HOVEDSTOL to hovedstolResponse)
@@ -221,7 +165,7 @@ class SkeService(
 
 	if (!response.status.isSuccess()) {
 	  logger.info("FEIL i innsending av NYTT PÅ LINJE ${krav.linjeNummer}: ${response.status}  ${response.bodyAsText()}")
-	  saveErrorMessageToDatabase(Json.encodeToString(opprettKravRequest), response, krav, "")
+	  databaseService.saveErrorMessageToDatabase(Json.encodeToString(opprettKravRequest), response, krav, "")
 	}
 	return response
   }

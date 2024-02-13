@@ -52,7 +52,7 @@ object Repository {
         responseStatus: String
     ) {
         val now = LocalDateTime.now()
-        prepareStatement(
+       val resultSet = prepareStatement(
             """
                 insert into krav (
                 saksnummer_nav, 
@@ -104,6 +104,7 @@ object Repository {
             param(kravtype)
         ).execute()
         commit()
+
     }
 
     fun Connection.getSkeKravIdent(navref: String): String {

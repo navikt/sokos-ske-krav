@@ -125,6 +125,12 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
 			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000592759"), statusCode, responseHeaders)
 		  }
 
+		  "/innkrevingsoppdrag/OB040000595755/renter" -> {
+			if (statusCode.isSuccess()) respond(endringResponse, statusCode, responseHeaders)
+			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000595755"), statusCode, responseHeaders)
+		  }
+
+
 		  "/innkrevingsoppdrag/1234/hovedstol" -> {
 			if (statusCode.isSuccess()) respond(endringResponse, statusCode, responseHeaders)
 			else respond(innkrevingsOppdragEksistererIkkeResponse(), statusCode, responseHeaders)
@@ -133,6 +139,11 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
 		  "/innkrevingsoppdrag/OB040000592759/hovedstol" -> {
 			if (statusCode.isSuccess()) respond(endringResponse, statusCode, responseHeaders)
 			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000592759"), statusCode, responseHeaders)
+		  }
+
+		  "/innkrevingsoppdrag/OB040000595755/hovedstol" -> {
+			if (statusCode.isSuccess()) respond(endringResponse, statusCode, responseHeaders)
+			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000595755"), statusCode, responseHeaders)
 		  }
 
 		  "/innkrevingsoppdrag/1234/oppdragsgiversreferanse" -> {
