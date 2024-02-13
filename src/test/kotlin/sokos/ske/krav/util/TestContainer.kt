@@ -25,9 +25,11 @@ class TestContainer(private val name: String = "testContainer") {
 		}
 
 		if (loadFlyway) {
+		  val fwscripts = copyFlywayScripts()
+
 			copyFlywayScripts().forEach { script ->
 				try {
-					ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), script)
+					ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), "V1.0.0__create_tables.sql")
 				} catch (e: ScriptLoadException) {
 					println("Vent på at filene er kopiert og kjør testen på nytt. EXCEPTION: ${e.message}")
 				}
@@ -56,7 +58,8 @@ class TestContainer(private val name: String = "testContainer") {
 	private fun copyFlywayScripts(path: String = "src/main/resources/db/migration"): List<String> {
 		val files =
 			getFlyWayScripts(path).map {
-				val new = File("src/test/resources/${it.name}")
+			  println("FLYWAY FILE: $it.name")
+			  val new = File("src/test/resources/${it.name}")
 				new.writeText("")
 				val file = it.copyTo(new, true)
 				file
