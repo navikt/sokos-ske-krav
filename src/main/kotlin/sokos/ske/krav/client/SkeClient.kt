@@ -50,9 +50,9 @@ class SkeClient(
     suspend fun opprettKrav(request: OpprettInnkrevingsoppdragRequest) = doPost(OPPRETT_KRAV, request)
     suspend fun stoppKrav(request: AvskrivingRequest) = doPost(STOPP_KRAV, request)
 
-    suspend fun getMottaksStatus(kravid: String, kravidentifikatortype: Kravidentifikatortype) = doGet(String.format(MOTTAKSSTATUS, kravid, kravidentifikatortype))
+    suspend fun getMottaksStatus(kravid: String, kravidentifikatortype: Kravidentifikatortype) = doGet(String.format(MOTTAKSSTATUS, kravid, kravidentifikatortype.value))
 
-    suspend fun getValideringsfeil(kravid: String, kravidentifikatortype: Kravidentifikatortype) = doGet(String.format(VALIDERINGSFEIL, kravid, kravidentifikatortype))
+    suspend fun getValideringsfeil(kravid: String, kravidentifikatortype: Kravidentifikatortype) = doGet(String.format(VALIDERINGSFEIL, kravid, kravidentifikatortype.value))
     
     suspend fun getSkeKravident(referanse: String) = doGet(String.format(HENT_SKE_KRAVIDENT, referanse))
 
