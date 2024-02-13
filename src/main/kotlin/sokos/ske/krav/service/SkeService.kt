@@ -242,27 +242,48 @@ class SkeService(
   }
 
   suspend fun hentOgOppdaterMottaksStatus(): List<String> {
-	val antall = AtomicInteger()
-	val feil = AtomicInteger()
-	val result = databaseService.hentAlleKravSomIkkeErReskotrofort().map {
-	  antall.incrementAndGet()
 
-	  val response = skeClient.getMottaksStatus(it.saksnummerSKE)
+	var antall = 0
+	var feil = 0
+
+	println("STARTER MOTTAKSSTATUS ${LocalDateTime.now()}")
+	val krav =  databaseService.hentAlleKravSomIkkeErReskotrofort()
+
+	println("SKAL OPPDATERE FOR ${krav.size} KRAV ${LocalDateTime.now()}")
+	val result = krav.map {
+
+
+
+	  var kravidentType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
+	  var kravident = it.saksnummerSKE
+
+	  if (it.saksnummerSKE.isEmpty()) {
+		kravident = it.referanseNummerGammelSak
+		kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
+	  }
+	  antall++
+	  println(" HENTER MOTTAKSSTATUS FRA SKATT ${LocalDateTime.now()}")
+
+	  val response = skeClient.getMottaksStatus(kravident, kravidentType)
+
+
+	  println(" HENTET MOTTAKSSTATUS ${LocalDateTime.now()}")
 	  if (response.status.isSuccess()) {
 		try {
 		  val mottaksstatus = response.body<MottaksStatusResponse>()
 		  databaseService.updateStatus(mottaksstatus)
+		  println("OPPDATERTE STATUS ${LocalDateTime.now()}")
 		} catch (e: SerializationException) {
-		  feil.incrementAndGet()
+		  feil++
 		  logger.error("Feil i dekoding av MottaksStatusResponse: ${e.message}")
 		  throw e
 		} catch (e: IllegalArgumentException) {
-		  feil.incrementAndGet()
+		  feil++
 		  logger.error("Response er ikke på forventet format for MottaksStatusResponse : ${e.message}")
 		  throw e
 		}
 	  }
-
+	  println("GÅR TIL NESTE ${LocalDateTime.now()}")
 	  "Status ok: ${response.status.value}, ${response.bodyAsText()}"
 	}
 
@@ -270,8 +291,16 @@ class SkeService(
   }
 
   suspend fun hentValideringsfeil(): List<String> {
-	val resultat = databaseService.getAlleKravMedValideringsfeil().map {
-	  val response = skeClient.getValideringsfeil(it.saksnummerSKE)
+	val krav   = databaseService.getAlleKravMedValideringsfeil()
+	val resultat = krav.map {
+	  var kravidentType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
+	  var kravident = it.saksnummerSKE
+
+	  if (it.saksnummerSKE.isEmpty()) {
+		kravident = it.referanseNummerGammelSak
+		kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
+	  }
+	  val response = skeClient.getValideringsfeil(kravident, kravidentType)
 
 	  if (response.status.isSuccess()) {
 		val valideringsfeilResponse = response.body<ValideringsFeilResponse>()

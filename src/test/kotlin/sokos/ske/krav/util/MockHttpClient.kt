@@ -95,6 +95,11 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
 			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000479803"), statusCode, responseHeaders)
 		  }
 
+		  "/innkrevingsoppdrag/OB040000592759/mottaksstatus" -> {
+			if (statusCode.isSuccess()) respond(mottattResponse("OB040000592759"), statusCode, responseHeaders)
+			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000592759"), statusCode, responseHeaders)
+		  }
+
 		  "/innkrevingsoppdrag/OB040000592759/avstemming" -> {
 			if (statusCode.isSuccess()) respond(opprettResponse, statusCode, responseHeaders)
 			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000592759"), statusCode, responseHeaders)
