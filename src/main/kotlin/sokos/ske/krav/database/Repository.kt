@@ -9,6 +9,7 @@ import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
+import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import java.sql.Connection
@@ -17,19 +18,20 @@ import java.time.LocalDateTime
 import java.util.*
 
 object Repository {
-    fun Connection.getAlleKrav(): List<KravTable> {
+    fun Connection.getAllKrav(): List<KravTable> {
         return prepareStatement("""select * from krav""").executeQuery().toKrav()
     }
 
-    fun Connection.getAlleKravSomIkkeErReskotrofort(): List<KravTable> {
-        return prepareStatement("""select * from krav where status <> ? and status <> ?""")
+    fun Connection.getAllKravForStatusCheck(): List<KravTable> {
+        return prepareStatement("""select * from krav where status not in (?, ?, ?)""")
             .withParameters(
-                param(MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value),
-                param(MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value)
+                param(Status.RESKONTROFOERT.value),
+                param(Status.VALIDERINGSFEIL.value),
+                param(Status.KRAV_IKKE_SENDT.value),
             ).executeQuery().toKrav()
     }
 
-    fun Connection.hentAlleKravSomSkalAvstemmes(): List<KravTable> {
+    fun Connection.getAllKravForReconciliation(): List<KravTable> {
         return prepareStatement("""select * from krav where HVA SKAL VI AVSTEMME PÅ ?""")  //TODO KRITERIER FOR UTPLUKK
             .withParameters(
                 param("FELT FOR UTPLUKK????")  //TODO AS ABOVE
@@ -39,7 +41,7 @@ object Repository {
     fun Connection.getAllValidationErrors(): List<KravTable> {
         return prepareStatement("""select * from krav where status = ?""")
             .withParameters(
-                param(MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value)
+                param(Status.VALIDERINGSFEIL.value)
             ).executeQuery().toKrav()
     }
 
@@ -118,6 +120,73 @@ object Repository {
         else ""
     }
 
+
+    fun Connection.updateStatus(mottakStatus: MottaksStatusResponse) {
+        prepareStatement(
+            """
+            update krav 
+            set status = ?, dato_siste_status = ?
+            where kravidentifikator_ske = ?
+        """.trimIndent()
+        ).withParameters(
+            param(mottakStatus.mottaksStatus),
+            param(LocalDateTime.now()),
+            param(mottakStatus.kravidentifikator)
+        ).execute()
+        commit()
+    }
+
+    fun Connection.saveValidationError(valideringsFeilResponse: ValideringsFeilResponse, kravidSKE: String) {
+        valideringsFeilResponse.valideringsfeil.forEach {
+            prepareStatement(
+                """
+                insert into validering (
+                    kravidentifikator_ske,
+                    error,
+                    melding,
+                    dato
+                ) 
+                values (?, ?, ?, ?)
+            """.trimIndent()
+            ).withParameters(
+                param(kravidSKE),
+                param(it.error),
+                param(it.message),
+                param(LocalDate.now())
+            ).execute()
+        }
+        commit()
+    }
+
+    fun Connection.saveErrorMessage(feilmelding: FeilmeldingTable) {
+        prepareStatement(
+            """
+                insert into feilmelding (
+                kravid,
+                    saksnummer,
+                    kravidentifikator_ske,
+                    error,
+				    melding,
+					navRequest,
+                    skeResponse,
+					dato
+                ) 
+                values (?, ?, ?, ?, ?, ?, ?, ?)
+            """.trimIndent()
+        ).withParameters(
+            param(feilmelding.kravId),
+            param(feilmelding.saksnummer),
+            param(feilmelding.kravidentifikatorSKE),
+            param(feilmelding.error),
+            param(feilmelding.melding),
+            param(feilmelding.navRequest),
+            param(feilmelding.skeResponse),
+            param(LocalDate.now())
+        ).execute()
+        commit()
+    }
+
+    //skal bort
     fun Connection.insertNewKobling(ref: String): String {
         val nyref = UUID.randomUUID().toString()
         prepareStatement(
@@ -160,66 +229,5 @@ object Repository {
         ).executeQuery().toKobling()
     }
 
-    fun Connection.updateStatus(mottakStatus: MottaksStatusResponse) {
-        prepareStatement(
-            """
-            update krav 
-            set status = ?, dato_siste_status = ?
-            where kravidentifikator_ske = ?
-        """.trimIndent()
-        ).withParameters(
-            param(mottakStatus.mottaksStatus),
-            param(LocalDateTime.now()),
-            param(mottakStatus.kravidentifikator)
-        ).execute()
-        commit()
-    }
-
-    fun Connection.saveValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, kravidSKE: String) {
-        valideringsFeilResponse.valideringsfeil.forEach {
-            prepareStatement(
-                """
-                insert into validering (
-                    kravidentifikator_ske,
-                    error,
-                    melding,
-                    dato
-                ) 
-                values (?, ?, ?, ?)
-            """.trimIndent()
-            ).withParameters(
-                param(kravidSKE),
-                param(it.error),
-                param(it.message),
-                param(LocalDate.now())
-            ).execute()
-        }
-        commit()
-    }
-
-    fun Connection.saveFeilmelding(feilmelding: FeilmeldingTable) {
-        prepareStatement(
-            """
-                insert into feilmelding (
-                    saksnummer,
-                    kravidentifikator_ske,
-                    error,
-				    melding,
-					navRequest,
-                    skeResponse,
-					dato
-                ) 
-                values (?, ?, ?, ?, ?, ?, ?)
-            """.trimIndent()
-        ).withParameters(
-            param(feilmelding.saksnummer),
-            param(feilmelding.kravidentifikatorSKE),
-            param(feilmelding.error),
-            param(feilmelding.melding),
-            param(feilmelding.navRequest),
-            param(feilmelding.skeResponse),
-            param(LocalDate.now())
-        ).execute()
-        commit()
-    }
 }
+

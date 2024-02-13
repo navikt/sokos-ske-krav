@@ -11,7 +11,7 @@ import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
+import sokos.ske.krav.database.models.Status
 
 class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: List<String> = listOf("23", "54", "87")) {
   //language=json
@@ -51,7 +51,7 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
        {
              "kravidentifikator": "$kravid"
             "oppdragsgiversKravidentifikator": "$kravid"
-            "mottaksstatus": "${MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value}"
+            "mottaksstatus": "${Status.RESKONTROFOERT.value}"
             "statusOppdatert": "2023-10-04T04:47:08.482Z"
             }
         """.trimIndent()

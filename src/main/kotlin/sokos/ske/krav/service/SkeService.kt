@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.FeilmeldingTable
+import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
 import sokos.ske.krav.domain.ske.responses.FeilResponse
@@ -27,10 +28,6 @@ const val ENDRE_RENTER = "ENDRE_RENTER"
 const val ENDRE_HOVEDSTOL = "ENDRE_HOVEDSTOL"
 const val STOPP_KRAV = "STOPP_KRAV"
 
-const val KRAV_SENDT = "KRAV_SENDT"
-const val FEIL_MED_ENDRING = "FEIL MED DEN ANDRE ENDRINGEN"
-const val FANT_IKKE_SAKSREF = "SKE FANT IKKE SAKSREF"
-const val IKKE_RESKONTROFORT = "KRAV ER IKKE RESKONTROFØRT"
 
 class SkeService(
   private val skeClient: SkeClient,
@@ -147,13 +144,13 @@ class SkeService(
   }
 
   private suspend fun determineStatus(allResponses: Map<String, HttpResponse>, response: HttpResponse): String {
-    return if (allResponses.filter { resp -> resp.value.status.isSuccess() }.size == allResponses.size) KRAV_SENDT
-	  else if (response.status.isSuccess()) FEIL_MED_ENDRING
+    return if (allResponses.filter { resp -> resp.value.status.isSuccess() }.size == allResponses.size) Status.KRAV_SENDT.value
+	  else if (response.status.isSuccess()) Status.FEIL_MED_ENDRING.value
 	  else {
 		val feilResponse = response.body<FeilResponse>()
-		if (feilResponse.status == 404 && feilResponse.type.contains("innkrevingsoppdrag-eksisterer-ikke")) FANT_IKKE_SAKSREF
-		else if (feilResponse.status == 409 && feilResponse.detail.contains("reskontroført")) IKKE_RESKONTROFORT
-		else "UKJENT STATUS: ${allResponses.map { resp -> resp.value.status.value }}"
+		if (feilResponse.status == 404 && feilResponse.type.contains("innkrevingsoppdrag-eksisterer-ikke")) Status.FANT_IKKE_SAKSREF.value
+		else if (feilResponse.status == 409 && feilResponse.detail.contains("reskontroført")) Status.IKKE_RESKONTROFORT.value
+		else "UKJENT STATUS: ${allResponses.map { resp -> "${resp.value.status.value}: ${ resp.value.body<FeilResponse>().type}" }}"
 	  }
 
   }
@@ -292,6 +289,8 @@ class SkeService(
 
   suspend fun hentValideringsfeil(): List<String> {
 	val krav   = databaseService.getAlleKravMedValideringsfeil()
+
+
 	val resultat = krav.map {
 	  var kravidentType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
 	  var kravident = it.saksnummerSKE

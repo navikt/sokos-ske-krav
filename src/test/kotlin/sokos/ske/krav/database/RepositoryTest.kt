@@ -4,11 +4,11 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.testcontainers.toDataSource
 import io.kotest.matchers.shouldBe
 import sokos.ske.krav.database.Repository.getAlleKoblinger
-import sokos.ske.krav.database.Repository.getAlleKrav
+import sokos.ske.krav.database.Repository.getAllKrav
 import sokos.ske.krav.database.Repository.koblesakRef
 import sokos.ske.krav.database.Repository.insertNewKobling
 import sokos.ske.krav.database.Repository.insertNewKrav
-import sokos.ske.krav.service.KRAV_SENDT
+import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.util.FileParser
 import sokos.ske.krav.util.TestContainer
@@ -32,7 +32,7 @@ internal class RepositoryTest : FunSpec({
     test("Test hent kravdata") {
 
         val kravData = datasource.connection.use { con ->
-            con.getAlleKrav()
+            con.getAllKrav()
         }
 
         kravData.size shouldBe 2
@@ -49,7 +49,7 @@ internal class RepositoryTest : FunSpec({
     test("Tester kobling") {
 
         val kravData = datasource.connection.use { con ->
-            con.getAlleKrav()
+            con.getAllKrav()
         }
         val koblinger = datasource.connection.use { con ->
             con.getAlleKoblinger()
@@ -89,7 +89,7 @@ internal class RepositoryTest : FunSpec({
                 "skeID-001",
                 krav1NyttSaksNummer,
                 NYTT_KRAV,
-                KRAV_SENDT
+                Status.KRAV_SENDT.value
             )
         }
         val hentetKobling = datasource.connection.use { con ->

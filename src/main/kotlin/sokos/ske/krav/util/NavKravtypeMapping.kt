@@ -26,7 +26,12 @@ enum class KravtypeMappingFromNAVToSKE(val stonadsKode: String, val hjemmelkode:
     TILBAKEKREVING_UFOERETRYGD                      ("PE UT", "T"),
     TILBAKEKREVING_UFOERETRYGD_ETTEROPPGJOER        ("PE UT", "EU"),
     TILBAKEKREVING_AVTALEFESTET_PENSJON             ("PE XP", "T"),
-    TILBAKEKREVING_SUPPLERENDE_STOENAD              ("SU UF", "T")
+    TILBAKEKREVING_SUPPLERENDE_STOENAD              ("SU UF", "T") ,
+  TILBAKEKREVING_OPPLAERINGSPENGER                  ("BS OP", "T") ,
+  TILBAKEKREVING_UTDANNINGSSTOENAD                  ("EF UT","T"),
+  TILBAKEKREVING_KONTANTSTOETTE                     ("KS KS", "T"),
+  TILBAKEKREVING_FAMILIEPLEIER_PENSJON              ("PE FP", "T"),
+  TILBAKEKREVING_GAMMEL_YRKESSKADE                  ("PE GY", "T") ,
     ;
 
 

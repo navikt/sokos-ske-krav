@@ -2,13 +2,13 @@ package sokos.ske.krav.service
 
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.getAllValidationErrors
-import sokos.ske.krav.database.Repository.getAlleKravSomIkkeErReskotrofort
+import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
 import sokos.ske.krav.database.Repository.getSkeKravIdent
-import sokos.ske.krav.database.Repository.hentAlleKravSomSkalAvstemmes
+import sokos.ske.krav.database.Repository.getAllKravForReconciliation
 import sokos.ske.krav.database.Repository.insertNewKobling
 import sokos.ske.krav.database.Repository.insertNewKrav
-import sokos.ske.krav.database.Repository.saveFeilmelding
-import sokos.ske.krav.database.Repository.saveValideringsfeil
+import sokos.ske.krav.database.Repository.saveErrorMessage
+import sokos.ske.krav.database.Repository.saveValidationError
 import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.database.models.FeilmeldingTable
@@ -52,25 +52,25 @@ class DatabaseService(
 
     fun saveValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, saksnummerSKE: String) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.saveValideringsfeil(valideringsFeilResponse, saksnummerSKE)
+            con.saveValidationError(valideringsFeilResponse, saksnummerSKE)
         }
     }
 
     fun saveFeilmelding(feilMelding: FeilmeldingTable){
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.saveFeilmelding(feilMelding)
+            con.saveErrorMessage(feilMelding)
         }
     }
 
     fun hentAlleKravSomIkkeErReskotrofort(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.getAlleKravSomIkkeErReskotrofort()
+            return con.getAllKravForStatusCheck()
         }
     }
 
     fun hentAlleKravSomSkalAvstemmes(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.hentAlleKravSomSkalAvstemmes()
+            return con.getAllKravForReconciliation()
         }
     }
 

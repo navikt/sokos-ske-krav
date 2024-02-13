@@ -64,6 +64,8 @@ object RepositoryExtensions {
         fun addToPreparedStatement(statement: PreparedStatement, index: Int)
     }
 
+    fun param(value: Long) =
+        Parameter { statement: PreparedStatement, index: Int -> statement.setLong(index, value) }
     fun param(value: String?) =
         Parameter { statement: PreparedStatement, index: Int -> statement.setString(index, value) }
 

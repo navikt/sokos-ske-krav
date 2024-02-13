@@ -8,15 +8,16 @@ import io.mockk.every
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.Repository.getAllValidationErrors
-import sokos.ske.krav.database.Repository.getAlleKrav
-import sokos.ske.krav.database.Repository.getAlleKravSomIkkeErReskotrofort
+import sokos.ske.krav.database.Repository.getAllKrav
+import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
 import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.insertNewKobling
 import sokos.ske.krav.database.Repository.insertNewKrav
-import sokos.ske.krav.database.Repository.saveValideringsfeil
+import sokos.ske.krav.database.Repository.saveValidationError
 import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.domain.nav.KravLinje
+import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
@@ -57,7 +58,7 @@ internal class IntegrationTest : FunSpec({
         skeService.sendNewFilesToSKE()
 
         val kravdata = ds.connection.use {
-            it.getAlleKrav()
+            it.getAllKrav()
         }
         kravdata.size shouldBe 105
 
@@ -82,11 +83,11 @@ internal class IntegrationTest : FunSpec({
         skeService.hentOgOppdaterMottaksStatus()
 
         val kravdata = ds.connection.use {
-            it.getAlleKrav()
+            it.getAllKrav()
         }
 
         println(kravdata)
-        kravdata.filter { it.status == MottaksStatusResponse.MottaksStatus.RESKONTROFOERT.value }.size shouldBe 101
+        kravdata.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 101
 
         httpClient.close()
     }
@@ -114,7 +115,7 @@ internal class IntegrationTest : FunSpec({
                 update krav
                 set 
                 kravidentifikator_ske = $id,
-                status = '${MottaksStatusResponse.MottaksStatus.VALIDERINGSFEIL.value}'
+                status = '${Status.VALIDERINGSFEIL.value}'
                 where id = $id;
                     """.trimIndent(),
                 ).executeUpdate()
@@ -189,13 +190,13 @@ fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseServi
     }
     every { saveValideringsfeil(any<ValideringsFeilResponse>(), any<String>()) } answers {
         ds.connection.useAndHandleErrors { con ->
-            con.saveValideringsfeil(firstArg<ValideringsFeilResponse>(), secondArg<String>())
+            con.saveValidationError(firstArg<ValideringsFeilResponse>(), secondArg<String>())
         }
     }
 
     every { hentAlleKravSomIkkeErReskotrofort() } answers {
         ds.connection.useAndHandleErrors { con ->
-            con.getAlleKravSomIkkeErReskotrofort()
+            con.getAllKravForStatusCheck()
         }
     }
     every { updateStatus(any<MottaksStatusResponse>()) } answers {
