@@ -81,7 +81,6 @@ internal class RepositoryTest : FunSpec({
         val kobling1 = datasource.connection.use { con ->
             con.insertNewKobling(krav1.saksNummer, UUID.randomUUID().toString())
         }
-
         val krav1NyttSaksNummer = krav1.copy(saksNummer = kobling1)
 
         println(krav1NyttSaksNummer.toString())
