@@ -4,6 +4,7 @@ import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.getAllValidationErrors
 import sokos.ske.krav.database.Repository.getAlleKravSomIkkeErReskotrofort
 import sokos.ske.krav.database.Repository.getSkeKravIdent
+import sokos.ske.krav.database.Repository.hentAlleKravSomSkalAvstemmes
 import sokos.ske.krav.database.Repository.insertNewKobling
 import sokos.ske.krav.database.Repository.insertNewKrav
 import sokos.ske.krav.database.Repository.saveFeilmelding
@@ -61,9 +62,15 @@ class DatabaseService(
         }
     }
 
-    fun getAlleKravSomIkkeErReskotrofort(): List<KravTable> {
+    fun hentAlleKravSomIkkeErReskotrofort(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
             return con.getAlleKravSomIkkeErReskotrofort()
+        }
+    }
+
+    fun hentAlleKravSomSkalAvstemmes(): List<KravTable> {
+        postgresDataSource.connection.useAndHandleErrors { con ->
+            return con.hentAlleKravSomSkalAvstemmes()
         }
     }
 

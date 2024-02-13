@@ -6,7 +6,12 @@ import java.io.StringWriter
 import java.math.BigDecimal
 
 
-    fun lagAvstemingsdata(aksjon: Aksjonsdata, total: Totaldata, periode: Periodedata, grunnlag: Grunnlagsdata): String {
+    fun lagAvstemingsdata(
+        aksjon: Aksjonsdata,
+        total: Totaldata? = null,
+        periode: Periodedata? = null,
+        grunnlag: Grunnlagsdata? = null
+    ): String {
         val avstemmingsdata = Avstemmingsdata(
             aksjon = aksjon,
             total = total,
@@ -20,17 +25,22 @@ import java.math.BigDecimal
         val serializer = Persister()
         var stringWriter = StringWriter()
         serializer.write(data, stringWriter)
-        return stringWriter.buffer.replace(regex = Regex("&lt;"), "<").replace(regex = Regex("&gt;"), ">").toString()
+        return stringWriter.buffer.replace(regex = Regex("&lt;"), "<").replace(regex = Regex("&gt;"), ">")
     }
 
-    fun aksjon(avstemmingTom: String) =
+    fun aksjon(avstemmingTom: String, type: AksjonType) =
         Aksjonsdata(
-            aksjonType = AksjonType.START,
+            aksjonType = type,
             kildeType = KildeType.MOTT,
             avstemmingType = AvstemmingType.GRSN,
-            avleverendeKomponentKode = "WHO KNOWS",
-            mottakendeKomponentKode = "SOMEONE ELSE",
-            tidspunktAvstemmingTom = avstemmingTom
+            avleverendeKomponentKode = "OS",
+            mottakendeKomponentKode = "OSS",
+            underkomponentKode = "WHO_KNOWS",
+            nokkelFom = "TJA_FRA",
+            nokkelTom = "TJA_TIL",
+            tidspunktAvstemmingTom = avstemmingTom,
+            avleverendeAvstemmingId = "ENELLERANNENUNIKSAK",
+            brukerId = "TJA_ID"
         )
 
     fun total(antall: Int, belop: BigDecimal) =
@@ -48,9 +58,9 @@ import java.math.BigDecimal
 
     fun grunnlag(
         godkjentAntall: Int, godkjentBelop: BigDecimal,
-        varselAntall: Int = 0, varselBelop: BigDecimal? = null,
-        avvistAntall: Int = 0, avvistBelop: BigDecimal? = null,
-        manglerAntall: Int = 0, manglerBelop: BigDecimal? = null
+        varselAntall: Int = 0, varselBelop: BigDecimal = BigDecimal(0),
+        avvistAntall: Int = 0, avvistBelop: BigDecimal = BigDecimal(0),
+        manglerAntall: Int = 0, manglerBelop: BigDecimal = BigDecimal(0)
     ) =
         Grunnlagsdata(
             godkjentAntall = godkjentAntall,

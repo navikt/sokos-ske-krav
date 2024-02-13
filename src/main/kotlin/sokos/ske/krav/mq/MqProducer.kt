@@ -41,8 +41,8 @@ class MqProducer(
             if (!connected) connect()
             messageProducer.send(session.createTextMessage(message))
         } catch (ex: Exception) {
-            logger.error("Kunne ikke legge melding på BOQ. Se secure log for fnummer")
-            secureLogger.error { "Kunne ikke legge melding: $message på BOQ" }
+            logger.error("Kunne ikke legge melding på ${config.oppdragBoq}. Se secure log for fnummer")
+            secureLogger.error { "Kunne ikke legge melding: $message på ${config.oppdragBoq}" }
             connected = false
             throw ex
         }

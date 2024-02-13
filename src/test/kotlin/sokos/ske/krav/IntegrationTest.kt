@@ -7,8 +7,8 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.database.Repository.getAlleKrav
 import sokos.ske.krav.database.Repository.getAllValidationErrors
+import sokos.ske.krav.database.Repository.getAlleKrav
 import sokos.ske.krav.database.Repository.getAlleKravSomIkkeErReskotrofort
 import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.insertNewKobling
@@ -20,14 +20,7 @@ import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
-import sokos.ske.krav.service.DatabaseService
-import sokos.ske.krav.service.Directories
-import sokos.ske.krav.service.ENDRE_HOVEDSTOL
-import sokos.ske.krav.service.ENDRE_RENTER
-import sokos.ske.krav.service.FtpService
-import sokos.ske.krav.service.NYTT_KRAV
-import sokos.ske.krav.service.STOPP_KRAV
-import sokos.ske.krav.service.SkeService
+import sokos.ske.krav.service.*
 import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.util.TestContainer
@@ -200,7 +193,7 @@ fun mockKravService(ds: HikariDataSource): DatabaseService = mockk<DatabaseServi
         }
     }
 
-    every { getAlleKravSomIkkeErReskotrofort() } answers {
+    every { hentAlleKravSomIkkeErReskotrofort() } answers {
         ds.connection.useAndHandleErrors { con ->
             con.getAlleKravSomIkkeErReskotrofort()
         }

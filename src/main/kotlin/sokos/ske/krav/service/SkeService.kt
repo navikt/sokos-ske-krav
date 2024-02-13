@@ -1,9 +1,8 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.call.body
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.isSuccess
+import io.ktor.client.call.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -17,17 +16,10 @@ import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
-import sokos.ske.krav.util.LineValidator
-import sokos.ske.krav.util.isEndring
-import sokos.ske.krav.util.isNyttKrav
-import sokos.ske.krav.util.isStopp
-import sokos.ske.krav.util.getFnrListe
-import sokos.ske.krav.util.makeEndreHovedstolRequest
-import sokos.ske.krav.util.makeEndreRenteRequest
-import sokos.ske.krav.util.makeOpprettKravRequest
-import sokos.ske.krav.util.makeStoppKravRequest
+import sokos.ske.krav.util.*
 import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.collections.set
 
 
 const val NYTT_KRAV = "NYTT_KRAV"
@@ -252,7 +244,7 @@ class SkeService(
   suspend fun hentOgOppdaterMottaksStatus(): List<String> {
 	val antall = AtomicInteger()
 	val feil = AtomicInteger()
-	val result = databaseService.getAlleKravSomIkkeErReskotrofort().map {
+	val result = databaseService.hentAlleKravSomIkkeErReskotrofort().map {
 	  antall.incrementAndGet()
 
 	  val response = skeClient.getMottaksStatus(it.saksnummerSKE)
