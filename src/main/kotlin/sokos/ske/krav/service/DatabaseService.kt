@@ -111,9 +111,8 @@ class DatabaseService(
         }
 
     }
-    suspend fun saveErrorMessageToDatabase(request: String, response: HttpResponse, krav: KravLinje, kravident: String) {
-        if (response.status.isSuccess()) return
-        val kravidentSke = if (kravident == krav.saksNummer || kravident == krav.referanseNummerGammelSak) "" else kravident
+    suspend fun saveErrorMessageToDatabase(request: String, response: HttpResponse, krav: KravLinje, kravIdentifikator: String, corrID: String) {
+        val kravIdentifikatorSke = if (kravIdentifikator == krav.saksNummer || kravIdentifikator == krav.referanseNummerGammelSak) "" else kravIdentifikator
 
         val feilResponse = response.body<FeilResponse>()
 
@@ -122,9 +121,9 @@ class DatabaseService(
         }
         val feilmelding = FeilmeldingTable(
             0L,
-            0L,
+            getKravIdFromCorrId(corrID),
             krav.saksNummer,
-            kravidentSke,
+            kravIdentifikatorSke,
             feilResponse.status.toString(),
             feilResponse.detail,
             request,

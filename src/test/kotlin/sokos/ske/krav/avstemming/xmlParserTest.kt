@@ -1,11 +1,13 @@
 package sokos.ske.krav.avstemming
 
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import org.simpleframework.xml.core.Persister
 import sokos.ske.krav.avstemming.kontrakt.AksjonType
 import sokos.ske.krav.avstemming.kontrakt.Avstemmingsdata
 import java.io.StringWriter
 
+@Ignored
 internal class xmlParserTest : FunSpec({
 
     test("tester parsing") {

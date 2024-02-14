@@ -3,6 +3,7 @@ package sokos.ske.krav.service
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.datetime.Clock
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -114,13 +115,14 @@ class SkeService(
 
             databaseService.saveSentKravToDatabase(responsesMap, it, kravIdentifikator, corrID)
 
-
+            allResponses.addAll(responsesMap.values)
         }
 
-        val errors = allResponses.filter { !it.response.status.isSuccess() }
-        if (errors.isNotEmpty()) {
-            //ALARM
-        }
+        allResponses.filter { !it.response.status.isSuccess() }
+            .forEach(){
+                databaseService.saveErrorMessageToDatabase(it.request, it.response, it.krav, it.kravIdentifikator, it.corrId)
+            }
+
         return emptyList()  //TODO TJA HVA DA
     }
 
@@ -213,14 +215,16 @@ class SkeService(
     }
 
     suspend fun hentOgOppdaterMottaksStatus(): List<String> {
-
         var antall = 0
         var feil = 0
 
-        println("STARTER MOTTAKSSTATUS ${LocalDateTime.now()}")
+        val start = Clock.System.now()
         val krav = databaseService.hentAlleKravSomIkkeErReskotrofort()
 
-        println("SKAL OPPDATERE FOR ${krav.size} KRAV ${LocalDateTime.now()}")
+        var tidSiste = Clock.System.now()
+        var tidHentAlleKrav = (tidSiste-start).inWholeSeconds
+        var tidHentMottakstatus = 0L
+        var tidOppdaterstatus = 0L
         val result = krav.map {
 
 
@@ -232,17 +236,17 @@ class SkeService(
                 kravIdentifikatorType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
             }
             antall++
-            println(" HENTER MOTTAKSSTATUS FRA SKATT ${LocalDateTime.now()}")
-
             val response = skeClient.getMottaksStatus(kravIdentifikator, kravIdentifikatorType)
 
+            tidHentMottakstatus += (Clock.System.now() - tidSiste).inWholeMilliseconds
+            tidSiste = Clock.System.now()
 
-            println(" HENTET MOTTAKSSTATUS ${LocalDateTime.now()}")
             if (response.status.isSuccess()) {
                 try {
                     val mottaksstatus = response.body<MottaksStatusResponse>()
                     databaseService.updateStatus(mottaksstatus)
-                    println("OPPDATERTE STATUS ${LocalDateTime.now()}")
+                    tidOppdaterstatus += (Clock.System.now() - tidSiste).inWholeMilliseconds
+                    tidSiste = Clock.System.now()
                 } catch (e: SerializationException) {
                     feil++
                     logger.error("Feil i dekoding av MottaksStatusResponse: ${e.message}")
@@ -253,9 +257,11 @@ class SkeService(
                     throw e
                 }
             }
-            println("GÅR TIL NESTE ${LocalDateTime.now()}")
             "Status ok: ${response.status.value}, ${response.bodyAsText()}"
         }
+        println("tid for hele greia: ${(Clock.System.now() - start).inWholeMilliseconds}")
+        println("Totalt tid for Henting av MOTTAKSTATUS: ${tidHentMottakstatus}")
+        println("Totalt tid for Oppdatering av MOTTAKSTATUS: ${tidOppdaterstatus}")
 
         return result + "Antall behandlet  $antall, Antall feilet: $feil"
     }

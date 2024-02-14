@@ -215,7 +215,7 @@ fun mockKravService(ds: HikariDataSource): DatabaseService =
         coEvery { saveSentKravToDatabase(any<Map<String, SkeService.RequestResult>>(), any<KravLinje>(), any<String>(), any<String>() ) }  answers{
             insertNewKrav(arg(2), arg(3), arg(1), arg<Map<String,SkeService.RequestResult>>(0).keys.first(), "STATUS")
         }
-        coEvery { saveErrorMessageToDatabase(any<String>(), any<HttpResponse>(), any<KravLinje>(), any<String>() ) } answers {
+        coEvery { saveErrorMessageToDatabase(any<String>(), any<HttpResponse>(), any<KravLinje>(), any<String>(), any<String>() ) } answers {
             val feilmelding = FeilmeldingTable(
                 0L,
                 1L,
