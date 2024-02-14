@@ -8,14 +8,13 @@ import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.database.models.Status
+import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import java.sql.Connection
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
 
 object Repository {
     fun Connection.getAllKrav(): List<KravTable> {
@@ -123,6 +122,21 @@ object Repository {
             rs.getColumn("kravidentifikator_ske")
         else ""
     }
+
+    fun Connection.getKravIdfromCorrId(corrID: String): Long {
+        val rs = prepareStatement(
+            """
+            select id from krav
+            where corr_id = ? order by id desc limit 1
+        """.trimIndent()
+        ).withParameters(
+            param(corrID)
+        ).executeQuery()
+        return if (rs.next())
+            rs.getColumn("id")
+        else 0
+    }
+
 
 
     fun Connection.updateStatus(mottakStatus: MottaksStatusResponse) {

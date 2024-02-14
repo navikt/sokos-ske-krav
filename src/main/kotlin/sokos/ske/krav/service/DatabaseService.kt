@@ -1,14 +1,14 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.call.body
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.isSuccess
+import io.ktor.client.call.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.database.Repository.getAllValidationErrors
-import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
-import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.getAllKravForReconciliation
+import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
+import sokos.ske.krav.database.Repository.getAllValidationErrors
+import sokos.ske.krav.database.Repository.getKravIdfromCorrId
+import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.insertNewKobling
 import sokos.ske.krav.database.Repository.insertNewKrav
 import sokos.ske.krav.database.Repository.saveErrorMessage
@@ -33,6 +33,12 @@ class DatabaseService(
     fun getSkeKravident(navref: String): String {
         postgresDataSource.connection.useAndHandleErrors { con ->
             return con.getSkeKravIdent(navref)
+        }
+    }
+
+    fun getKravIdFromCorrId(corrID: String): Long {
+        postgresDataSource.connection.useAndHandleErrors { con ->
+            return con.getKravIdfromCorrId(corrID)
         }
     }
 
@@ -104,11 +110,6 @@ class DatabaseService(
             )
         }
 
-    }
-    private fun hentKravIDForKravLinje(){
-        """
-            select id from krav where 
-        """.trimIndent()
     }
     suspend fun saveErrorMessageToDatabase(request: String, response: HttpResponse, krav: KravLinje, kravident: String) {
         if (response.status.isSuccess()) return
