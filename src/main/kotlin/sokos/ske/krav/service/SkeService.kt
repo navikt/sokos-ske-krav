@@ -8,18 +8,15 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.database.models.FeilmeldingTable
-import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
-import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.*
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 import kotlin.collections.set
 
 
@@ -30,230 +27,263 @@ const val STOPP_KRAV = "STOPP_KRAV"
 
 
 class SkeService(
-  private val skeClient: SkeClient,
-  private val databaseService: DatabaseService = DatabaseService(),
-  private val ftpService: FtpService = FtpService(),
+    private val skeClient: SkeClient,
+    private val databaseService: DatabaseService = DatabaseService(),
+    private val ftpService: FtpService = FtpService(),
 ) {
-  private val logger = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger {}
 
-  fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
-  fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles()
+    fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
+    fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles()
 
-  suspend fun sendNewFilesToSKE(): List<HttpResponse> {
-	val files = ftpService.getValidatedFiles()
-	logger.info("*******************${LocalDateTime.now()}*******************")
-	logger.info("Starter innsending av ${files.size} filer")
-	val fnrListe = getFnrListe()
-	val fnrIter = fnrListe.listIterator()
+    suspend fun sendNewFilesToSKE(): List<HttpResponse> {
+        val files = ftpService.getValidatedFiles()
+        logger.info("*******************${LocalDateTime.now()}*******************")
+        logger.info("Starter innsending av ${files.size} filer")
+        val fnrListe = getFnrListe()
+        val fnrIter = fnrListe.listIterator()
 
-	val responses = files.map { file ->
-	  logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size - 2}")
-	  sendKrav(file, fnrIter, fnrListe)
-	}
+        val responses = files.map { file ->
+            logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size - 2}")
+            sendKrav(file, fnrIter, fnrListe)
+        }
 
-	files.forEach { file -> ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
+        files.forEach { file -> ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
 
-	logger.info("*******************KJØRING FERDIG*******************")
-	return responses.flatten()
-  }
+        logger.info("*******************KJØRING FERDIG*******************")
+        return responses.flatten()
+    }
 
-  sealed class RequestResult {
-	data class Success(val response: HttpResponse, val krav: KravLinje) : RequestResult()
-	data class Error(val request: String, val response: HttpResponse, val krav: KravLinje, val kravID: Long) : RequestResult()
-  }
-  private suspend fun sendKrav(file: FtpFil, fnrIter: ListIterator<String>, fnrListe: List<String>): List<HttpResponse> {
-	var fnrIter1 = fnrIter
+    data class RequestResult(
+        val response: HttpResponse,
+        val krav: KravLinje,
+        val request: String,
+        val kravIdentifikator: String,
+        val corrId: String
+    )
 
-	val linjer = file.kravLinjer.filter { LineValidator.validateLine(it, file.name) }
-	val allResponses = mutableListOf<HttpResponse>()
+    private suspend fun sendKrav(
+        file: FtpFil,
+        fnrIter: ListIterator<String>,
+        fnrListe: List<String>
+    ): List<HttpResponse> {
+        var fnrIter1 = fnrIter
 
-	linjer.forEach {
-	  Metrics.numberOfKravRead.inc()
-	  val responsesMap = mutableMapOf<String, HttpResponse>()
-
-	  val substfnr = if (fnrIter1.hasNext()) {
-		fnrIter1.next()
-	  } else {
-		fnrIter1 = fnrListe.listIterator(0)
-		fnrIter1.next()
-	  }
-	  
-	  var kravident = databaseService.getSkeKravident(it.referanseNummerGammelSak)
-	  var kravidentType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
-
-	  if (kravident.isEmpty() && !it.isNyttKrav()) {
-		kravident = it.referanseNummerGammelSak
-		kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
-	  }
-	  val corrID = UUID.randomUUID().toString()
-	  when {
-		it.isStopp() -> {
-		  val response = sendStoppKrav(kravident, kravidentType, it, corrID)
-		  responsesMap[STOPP_KRAV] = response
-		}
-
-		it.isEndring() -> {
-		  val endreResponses = sendEndreKrav(kravident, kravidentType, it, corrID)
-		  responsesMap.putAll(endreResponses)
-		}
-
-		it.isNyttKrav() -> {
-		  val response = sendOpprettKrav(it, substfnr,corrID)
-		  if (response.status.isSuccess()) kravident = response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
-
-		  responsesMap[NYTT_KRAV] = response
-		}
-	  }
-
-	  databaseService.saveSentKravToDatabase(responsesMap, it, kravident, corrID)
-
-	  allResponses.addAll(responsesMap.values)
-
-	}
-
-	val errors = allResponses.filter { !it.status.isSuccess() }
-	if (errors.isNotEmpty()) {
-	  //ALARM
-	}
-	return allResponses
-
-  }
+        val linjer = file.kravLinjer.filter { LineValidator.validateLine(it, file.name) }
+        val allResponses = mutableListOf<RequestResult>()
 
 
-  private suspend fun sendStoppKrav(kravident: String, kravidentType: Kravidentifikatortype, krav: KravLinje, corrID: String): HttpResponse {
-	val request = makeStoppKravRequest(kravident, kravidentType)
-	val response = skeClient.stoppKrav(request, corrID)
-      
-	if (!response.status.isSuccess()) {
-	  databaseService.saveErrorMessageToDatabase(Json.encodeToString(request), response, krav, kravident)
-	}
+        linjer.forEach {
+            Metrics.numberOfKravRead.inc()
+            val responsesMap = mutableMapOf<String, RequestResult>()
 
-	return response
-  }
+            val substfnr = if (fnrIter1.hasNext()) {
+                fnrIter1.next()
+            } else {
+                fnrIter1 = fnrListe.listIterator(0)
+                fnrIter1.next()
+            }
 
-  private suspend fun sendEndreKrav(kravident: String, kravidentType: Kravidentifikatortype, krav: KravLinje, corrID: String): Map<String, HttpResponse> {
+            var kravIdentifikator = databaseService.getSkeKravident(it.referanseNummerGammelSak)
+            var kravIdentifikatorType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
 
-	//skeClient.endreOppdragsGiversReferanse(lagNyOppdragsgiversReferanseRequest(linje), kravident, kravidentType)
+            if (kravIdentifikator.isEmpty() && !it.isNyttKrav()) {
+                kravIdentifikator = it.referanseNummerGammelSak
+                kravIdentifikatorType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
+            }
+            val corrID = UUID.randomUUID().toString()
+            when {
+                it.isStopp() -> {
+                    val response = sendStoppKrav(kravIdentifikator, kravIdentifikatorType, it, corrID)
+                    responsesMap[STOPP_KRAV] = response
+                }
 
-	val endreRenterRequest = makeEndreRenteRequest(krav)
-	val renteresponse = skeClient.endreRenter(endreRenterRequest, kravident, kravidentType, corrID)
+                it.isEndring() -> {
+                    val endreResponses = sendEndreKrav(kravIdentifikator, kravIdentifikatorType, it, corrID)
+                    responsesMap.putAll(endreResponses)
+                }
 
-	if (!renteresponse.status.isSuccess()) {
-	  logger.info("FEIL I INNSENDING AV ENDRING AV RENTER PÅ LINJE ${krav.linjeNummer}: ${renteresponse.status} ${renteresponse.bodyAsText()}")
-	  databaseService.saveErrorMessageToDatabase(Json.encodeToString(endreRenterRequest), renteresponse, krav, kravident)
-	}
+                it.isNyttKrav() -> {
+                    val response = sendOpprettKrav(it, substfnr, corrID)
+                    if (response.response.status.isSuccess()) kravIdentifikator =
+                        response.response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
 
-	val endreHovedstolRequest = makeEndreHovedstolRequest(krav)
-	val hovedstolResponse = skeClient.endreHovedstol(endreHovedstolRequest, kravident, kravidentType, corrID)
+                    responsesMap[NYTT_KRAV] = response
+                }
+            }
 
-	if (!hovedstolResponse.status.isSuccess()) {
-	  logger.info("FEIL I INNSENDING AV ENDRING AV HOVEDSTOL PÅ LINJE ${krav.linjeNummer}: ${hovedstolResponse.status} ${hovedstolResponse.bodyAsText()}")
-	  databaseService.saveErrorMessageToDatabase(Json.encodeToString(endreHovedstolRequest), hovedstolResponse, krav, kravident)
-	}
-
-	val responseMap = mapOf(ENDRE_RENTER to renteresponse, ENDRE_HOVEDSTOL to hovedstolResponse)
-	return responseMap
-
-  }
+            databaseService.saveSentKravToDatabase(responsesMap, it, kravIdentifikator, corrID)
 
 
-  private suspend fun sendOpprettKrav(krav: KravLinje, substfnr: String,  corrID: String): HttpResponse {
-	val opprettKravRequest = makeOpprettKravRequest(krav.copy(gjelderID =
-	if (krav.gjelderID.startsWith("00")) krav.gjelderID else substfnr), databaseService.insertNewKobling(krav.saksNummer, corrID))
-	val response = skeClient.opprettKrav(opprettKravRequest, corrID)
+        }
 
-	if (!response.status.isSuccess()) {
-	  logger.info("FEIL i innsending av NYTT PÅ LINJE ${krav.linjeNummer}: ${response.status}  ${response.bodyAsText()}")
-	  databaseService.saveErrorMessageToDatabase(Json.encodeToString(opprettKravRequest), response, krav, "")
-	}
-	return response
-  }
+        val errors = allResponses.filter { !it.response.status.isSuccess() }
+        if (errors.isNotEmpty()) {
+            //ALARM
+        }
+        return emptyList()  //TODO TJA HVA DA
+    }
 
-  private fun handleHvaFGjorViNaa(krav: KravLinje) {
-	logger.error(
-	  """
+
+    private suspend fun sendStoppKrav(
+        kravIdentifikator: String,
+        kravIdentifikatorType: Kravidentifikatortype,
+        krav: KravLinje,
+        corrID: String
+    ): RequestResult {
+        val request = makeStoppKravRequest(kravIdentifikator, kravIdentifikatorType)
+        val response = skeClient.stoppKrav(request, corrID)
+
+        val requestResult = RequestResult(
+            response = response,
+            request = Json.encodeToString(request),
+            krav = krav,
+            kravIdentifikator = kravIdentifikator,
+            corrId = corrID
+        )
+
+        return requestResult
+    }
+
+    private suspend fun sendEndreKrav(
+        kravIdentifikator: String,
+        kravIdentifikatorType: Kravidentifikatortype,
+        krav: KravLinje,
+        corrID: String
+    ): Map<String, RequestResult> {
+
+        //skeClient.endreOppdragsGiversReferanse(lagNyOppdragsgiversReferanseRequest(linje), kravIdentifikator, kravIdentifikatorType)
+
+        val endreRenterRequest = makeEndreRenteRequest(krav)
+        val endreRenterResponse = skeClient.endreRenter(endreRenterRequest, kravIdentifikator, kravIdentifikatorType, corrID)
+
+        val requestResultEndreRente = RequestResult(
+            response = endreRenterResponse,
+            request = Json.encodeToString(endreRenterRequest),
+            krav = krav,
+            kravIdentifikator = "",
+            corrId = corrID
+        )
+
+        val endreHovedstolRequest = makeEndreHovedstolRequest(krav)
+        val endreHovedstolResponse = skeClient.endreHovedstol(endreHovedstolRequest, kravIdentifikator, kravIdentifikatorType, corrID)
+
+        val requestResultEndreHovedstol = RequestResult(
+            response = endreHovedstolResponse,
+            request = Json.encodeToString(endreHovedstolRequest),
+            krav = krav,
+            kravIdentifikator = "",
+            corrId = corrID
+        )
+
+        val responseMap = mapOf(ENDRE_RENTER to requestResultEndreRente, ENDRE_HOVEDSTOL to requestResultEndreHovedstol)
+        return responseMap
+    }
+
+    private suspend fun sendOpprettKrav(krav: KravLinje, substfnr: String, corrID: String): RequestResult {
+        val opprettKravRequest = makeOpprettKravRequest(
+            krav.copy(
+                gjelderID =
+                if (krav.gjelderID.startsWith("00")) krav.gjelderID else substfnr
+            ), databaseService.insertNewKobling(krav.saksNummer, corrID)
+        )
+        val response = skeClient.opprettKrav(opprettKravRequest, corrID)
+
+        val requestResult = RequestResult(
+            response = response,
+            request = Json.encodeToString(opprettKravRequest),
+            krav = krav,
+            kravIdentifikator = "",
+            corrId = corrID
+        )
+
+        return requestResult
+    }
+
+    private fun handleHvaFGjorViNaa(krav: KravLinje) {
+        logger.error(
+            """
                         SAKSNUMMER: ${krav.saksNummer}
                         GAMMELT SAKSNUMMER: ${krav.referanseNummerGammelSak}
                         Hva F* gjør vi nå, dette skulle ikke skje
                     """
-	  // hva faen gjør vi nå??
-	  // Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
-	)
-  }
+            // hva faen gjør vi nå??
+            // Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
+        )
+    }
 
-  suspend fun hentOgOppdaterMottaksStatus(): List<String> {
+    suspend fun hentOgOppdaterMottaksStatus(): List<String> {
 
-	var antall = 0
-	var feil = 0
+        var antall = 0
+        var feil = 0
 
-	println("STARTER MOTTAKSSTATUS ${LocalDateTime.now()}")
-	val krav =  databaseService.hentAlleKravSomIkkeErReskotrofort()
+        println("STARTER MOTTAKSSTATUS ${LocalDateTime.now()}")
+        val krav = databaseService.hentAlleKravSomIkkeErReskotrofort()
 
-	println("SKAL OPPDATERE FOR ${krav.size} KRAV ${LocalDateTime.now()}")
-	val result = krav.map {
-
-
-
-	  var kravidentType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
-	  var kravident = it.saksnummerSKE
-
-	  if (it.saksnummerSKE.isEmpty()) {
-		kravident = it.referanseNummerGammelSak
-		kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
-	  }
-	  antall++
-	  println(" HENTER MOTTAKSSTATUS FRA SKATT ${LocalDateTime.now()}")
-
-	  val response = skeClient.getMottaksStatus(kravident, kravidentType)
+        println("SKAL OPPDATERE FOR ${krav.size} KRAV ${LocalDateTime.now()}")
+        val result = krav.map {
 
 
-	  println(" HENTET MOTTAKSSTATUS ${LocalDateTime.now()}")
-	  if (response.status.isSuccess()) {
-		try {
-		  val mottaksstatus = response.body<MottaksStatusResponse>()
-		  databaseService.updateStatus(mottaksstatus)
-		  println("OPPDATERTE STATUS ${LocalDateTime.now()}")
-		} catch (e: SerializationException) {
-		  feil++
-		  logger.error("Feil i dekoding av MottaksStatusResponse: ${e.message}")
-		  throw e
-		} catch (e: IllegalArgumentException) {
-		  feil++
-		  logger.error("Response er ikke på forventet format for MottaksStatusResponse : ${e.message}")
-		  throw e
-		}
-	  }
-	  println("GÅR TIL NESTE ${LocalDateTime.now()}")
-	  "Status ok: ${response.status.value}, ${response.bodyAsText()}"
-	}
+            var kravIdentifikatorType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
+            var kravIdentifikator = it.saksnummerSKE
 
-	return result + "Antall behandlet  $antall, Antall feilet: $feil"
-  }
+            if (it.saksnummerSKE.isEmpty()) {
+                kravIdentifikator = it.referanseNummerGammelSak
+                kravIdentifikatorType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
+            }
+            antall++
+            println(" HENTER MOTTAKSSTATUS FRA SKATT ${LocalDateTime.now()}")
 
-  suspend fun hentValideringsfeil(): List<String> {
-	val krav   = databaseService.getAlleKravMedValideringsfeil()
+            val response = skeClient.getMottaksStatus(kravIdentifikator, kravIdentifikatorType)
 
 
-	val resultat = krav.map {
-	  var kravidentType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
-	  var kravident = it.saksnummerSKE
+            println(" HENTET MOTTAKSSTATUS ${LocalDateTime.now()}")
+            if (response.status.isSuccess()) {
+                try {
+                    val mottaksstatus = response.body<MottaksStatusResponse>()
+                    databaseService.updateStatus(mottaksstatus)
+                    println("OPPDATERTE STATUS ${LocalDateTime.now()}")
+                } catch (e: SerializationException) {
+                    feil++
+                    logger.error("Feil i dekoding av MottaksStatusResponse: ${e.message}")
+                    throw e
+                } catch (e: IllegalArgumentException) {
+                    feil++
+                    logger.error("Response er ikke på forventet format for MottaksStatusResponse : ${e.message}")
+                    throw e
+                }
+            }
+            println("GÅR TIL NESTE ${LocalDateTime.now()}")
+            "Status ok: ${response.status.value}, ${response.bodyAsText()}"
+        }
 
-	  if (it.saksnummerSKE.isEmpty()) {
-		kravident = it.referanseNummerGammelSak
-		kravidentType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
-	  }
-	  val response = skeClient.getValideringsfeil(kravident, kravidentType)
+        return result + "Antall behandlet  $antall, Antall feilet: $feil"
+    }
 
-	  if (response.status.isSuccess()) {
-		val valideringsfeilResponse = response.body<ValideringsFeilResponse>()
-		databaseService.saveValideringsfeil(valideringsfeilResponse, it.saksnummerSKE)
-		"Status OK: ${response.bodyAsText()}"
-	  } else {
-		"Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
-	  }
-	}
-	if (resultat.isNotEmpty()) logger.info("HENTVALIDERINGSFEIL: Det er hentet valideringsfeil for ${resultat.size} krav")
+    suspend fun hentValideringsfeil(): List<String> {
+        val krav = databaseService.getAlleKravMedValideringsfeil()
 
-	return resultat
-  }
+
+        val resultat = krav.map {
+            var kravIdentifikatorType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
+            var kravIdentifikator = it.saksnummerSKE
+
+            if (it.saksnummerSKE.isEmpty()) {
+                kravIdentifikator = it.referanseNummerGammelSak
+                kravIdentifikatorType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
+            }
+            val response = skeClient.getValideringsfeil(kravIdentifikator, kravIdentifikatorType)
+
+            if (response.status.isSuccess()) {
+                val valideringsfeilResponse = response.body<ValideringsFeilResponse>()
+                databaseService.saveValideringsfeil(valideringsfeilResponse, it.saksnummerSKE)
+                "Status OK: ${response.bodyAsText()}"
+            } else {
+                "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
+            }
+        }
+        if (resultat.isNotEmpty()) logger.info("HENTVALIDERINGSFEIL: Det er hentet valideringsfeil for ${resultat.size} krav")
+
+        return resultat
+    }
 }

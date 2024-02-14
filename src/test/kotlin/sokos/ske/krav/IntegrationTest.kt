@@ -4,17 +4,14 @@ import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.testcontainers.toDataSource
 import io.kotest.matchers.shouldBe
-import io.ktor.client.statement.HttpResponse
-import io.mockk.Runs
+import io.ktor.client.statement.*
 import io.mockk.coEvery
-import io.mockk.coJustRun
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.database.Repository.getAllValidationErrors
 import sokos.ske.krav.database.Repository.getAllKrav
 import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
+import sokos.ske.krav.database.Repository.getAllValidationErrors
 import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.insertNewKobling
 import sokos.ske.krav.database.Repository.insertNewKrav
@@ -22,8 +19,8 @@ import sokos.ske.krav.database.Repository.saveValidationError
 import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.database.models.FeilmeldingTable
-import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.database.models.Status
+import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
@@ -215,8 +212,8 @@ fun mockKravService(ds: HikariDataSource): DatabaseService =
         }
     }
 
-        coEvery { saveSentKravToDatabase(any<Map<String, HttpResponse>>(), any<KravLinje>(), any<String>(), any<String>() ) }  answers{
-            insertNewKrav(arg(2), arg(3), arg(1), arg<Map<String,HttpResponse>>(0).keys.first(), "STATUS")
+        coEvery { saveSentKravToDatabase(any<Map<String, SkeService.RequestResult>>(), any<KravLinje>(), any<String>(), any<String>() ) }  answers{
+            insertNewKrav(arg(2), arg(3), arg(1), arg<Map<String,SkeService.RequestResult>>(0).keys.first(), "STATUS")
         }
         coEvery { saveErrorMessageToDatabase(any<String>(), any<HttpResponse>(), any<KravLinje>(), any<String>() ) } answers {
             val feilmelding = FeilmeldingTable(

@@ -78,26 +78,26 @@ class DatabaseService(
         }
     }
 
-    private suspend fun determineStatus(responses: Map<String, HttpResponse>, response: HttpResponse): String {
-        return if (responses.filter { resp -> resp.value.status.isSuccess() }.size == responses.size) Status.KRAV_SENDT.value
+    private suspend fun determineStatus(responses: Map<String, SkeService.RequestResult>, response: HttpResponse): String {
+        return if (responses.filter { resp -> resp.value.response.status.isSuccess() }.size == responses.size) Status.KRAV_SENDT.value
         else if (response.status.isSuccess()) Status.FEIL_MED_ENDRING.value
         else {
             val feilResponse = response.body<FeilResponse>()
             if (feilResponse.status == 404 && feilResponse.type.contains("innkrevingsoppdrag-eksisterer-ikke")) Status.FANT_IKKE_SAKSREF.value
             else if (feilResponse.status == 409 && feilResponse.detail.contains("reskontroført")) Status.IKKE_RESKONTROFORT.value
-            else "UKJENT STATUS: ${responses.map { resp -> "${resp.value.status.value}: ${ resp.value.body<FeilResponse>().type}" }}"
+            else "UKJENT STATUS: ${responses.map { resp -> "${resp.value.response.status.value}: ${ resp.value.response.body<FeilResponse>().type}" }}"
         }
 
     }
 
-    suspend fun saveSentKravToDatabase(responses: Map<String, HttpResponse>, krav: KravLinje, kravident: String, corrID: String) {
+    suspend fun saveSentKravToDatabase(responses: Map<String, SkeService.RequestResult>, krav: KravLinje, kravident: String, corrID: String) {
         var kravidentToBeSaved = kravident
         responses.forEach { entry ->
 
             Metrics.numberOfKravSent.inc()
             Metrics.typeKravSent.labels(krav.stonadsKode).inc()
 
-            val statusString = determineStatus(responses, entry.value)
+            val statusString = determineStatus(responses, entry.value.response)
 
             if (!krav.isNyttKrav() && kravidentToBeSaved == krav.referanseNummerGammelSak) kravidentToBeSaved = ""
 
