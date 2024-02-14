@@ -222,7 +222,7 @@ class SkeService(
         val krav = databaseService.hentAlleKravSomIkkeErReskotrofort()
 
         var tidSiste = Clock.System.now()
-        var tidHentAlleKrav = (tidSiste-start).inWholeSeconds
+        var tidHentAlleKrav = (tidSiste-start).inWholeMilliseconds
         var tidHentMottakstatus = 0L
         var tidOppdaterstatus = 0L
         val result = krav.map {
@@ -259,7 +259,9 @@ class SkeService(
             }
             "Status ok: ${response.status.value}, ${response.bodyAsText()}"
         }
+        println("Antall krav hele greia: Antall behandlet  $antall, Antall feilet: $feil")
         println("tid for hele greia: ${(Clock.System.now() - start).inWholeMilliseconds}")
+        println("Tid for å hente alle krav: ${tidHentAlleKrav}")
         println("Totalt tid for Henting av MOTTAKSTATUS: ${tidHentMottakstatus}")
         println("Totalt tid for Oppdatering av MOTTAKSTATUS: ${tidOppdaterstatus}")
 
