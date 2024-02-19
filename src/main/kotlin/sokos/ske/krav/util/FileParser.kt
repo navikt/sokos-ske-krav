@@ -1,9 +1,9 @@
 package sokos.ske.krav.util
 
 import mu.KotlinLogging
+import sokos.ske.krav.domain.nav.KontrollLinjeFooter
 import sokos.ske.krav.domain.nav.KontrollLinjeHeader
 import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.domain.nav.KontrollLinjeFooter
 import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.ARSAK_KODE_POS
 import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.BELOP_POS
 import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.BELOP_RENTE_POS
@@ -29,6 +29,7 @@ import sokos.ske.krav.util.FileParser.SisteLinjeFeltPosisjoner.SUM_ALLE_LINJER_P
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 class FileParser(val content: List<String>) {
 
@@ -69,6 +70,7 @@ class FileParser(val content: List<String>) {
         FREMTIDIG_YTELSE_POS.parseBigDecimal(linje),
         UTBETAL_DATO_POS.parseString(linje),
         FAGSYSTEM_ID_POS.parseString(linje),
+        UUID.randomUUID().toString()
     )
 
     private object SisteLinjeFeltPosisjoner {

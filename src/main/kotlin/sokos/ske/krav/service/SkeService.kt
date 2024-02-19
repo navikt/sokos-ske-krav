@@ -121,7 +121,7 @@ class SkeService(
                 }
             }
 
-            databaseService.updateSentKravToDatabase(responsesMap, it, kravIdentifikator, corrID)
+            databaseService.updateSentKravToDatabase(responsesMap, it, kravIdentifikator)
 
             allResponses.addAll(responsesMap.values)
         }
@@ -175,15 +175,17 @@ class SkeService(
             corrId = corrID
         )
 
+        val corrIdHovedStol = UUID.randomUUID().toString()
         val endreHovedstolRequest = makeEndreHovedstolRequest(krav)
-        val endreHovedstolResponse = skeClient.endreHovedstol(endreHovedstolRequest, kravIdentifikator, kravIdentifikatorType, corrID)
+        val endreHovedstolResponse =
+            skeClient.endreHovedstol(endreHovedstolRequest, kravIdentifikator, kravIdentifikatorType, corrIdHovedStol)
 
         val requestResultEndreHovedstol = RequestResult(
             response = endreHovedstolResponse,
             request = Json.encodeToString(endreHovedstolRequest),
             krav = krav,
             kravIdentifikator = "",
-            corrId = corrID
+            corrId = corrIdHovedStol
         )
 
         val responseMap = mapOf(ENDRE_RENTER to requestResultEndreRente, ENDRE_HOVEDSTOL to requestResultEndreHovedstol)

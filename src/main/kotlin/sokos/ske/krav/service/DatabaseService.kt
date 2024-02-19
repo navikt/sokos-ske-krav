@@ -64,12 +64,11 @@ class DatabaseService(
     fun updateSendtKrav(
         skeKravident: String,
         corrID: String,
-        kravLinje: KravLinje,
         kravtype: String,
         responseStatus: String
     ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.updateSendtKrav(skeKravident, corrID,  kravLinje, kravtype, responseStatus)
+            con.updateSendtKrav(skeKravident, corrID, kravtype, responseStatus)
         }
     }
     fun saveAllNewKrav(
@@ -110,7 +109,7 @@ class DatabaseService(
 
     }
 
-    suspend fun updateSentKravToDatabase(responses: Map<String, SkeService.RequestResult>, krav: KravLinje, kravident: String, corrID: String) {
+    suspend fun updateSentKravToDatabase(responses: Map<String, SkeService.RequestResult>, krav: KravLinje, kravident: String) {
         var kravidentToBeSaved = kravident
         responses.forEach { entry ->
 
@@ -123,8 +122,7 @@ class DatabaseService(
 
             updateSendtKrav(
                 kravidentToBeSaved,
-                corrID,
-                krav,
+                entry.value.corrId,
                 entry.key,
                 statusString
             )

@@ -22,6 +22,7 @@ import java.sql.Connection
 import java.sql.Date
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 
 object Repository {
     fun Connection.getAllKrav(): List<KravTable> {
@@ -54,36 +55,25 @@ object Repository {
     fun Connection.updateSendtKrav(
         kravidentSKE: String,
         corrID: String,
-        kravLinje: KravLinje,
         kravtype: String,
         responseStatus: String
     ) {
-        val resultSet = prepareStatement(
+        prepareStatement(
             """
                 update krav 
                     set kravidentifikator_ske = ?, 
-                    corr_id = ?,
                     dato_sendt = NOW(), 
                     dato_siste_status = NOW(),
                     status = ?,
                     kravtype = ?
                 where 
-                    gjelderid = ? and
-                    saksnummer_nav = ? and
-                    transaksjondato = ? and 
-                    referansenummergammelsak = ? and
-                    vedtakdato = ?
+                    corr_id = ?
             """.trimIndent()
         ).withParameters(
             param(kravidentSKE),
-            param(corrID),
             param(responseStatus),
             param(kravtype),
-            param(kravLinje.gjelderID),
-            param(kravLinje.saksNummer),
-            param(kravLinje.transaksjonDato),
-            param(kravLinje.referanseNummerGammelSak),
-            param(kravLinje.vedtakDato),
+            param(corrID),
         ).execute()
         commit()
     }
@@ -180,9 +170,10 @@ object Repository {
                 fagsystemId,
                 status, 
                 dato_siste_status,
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,${Status.KRAV_IKKE_SENDT.value},NOW())
-            """.trimIndent()
-        )
+                corr_id
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,${Status.KRAV_IKKE_SENDT.value},NOW(), ?)
+            """.trimIndent() )
+
         kravListe.forEach() {
             val type: String = when {
                 it.isStopp() -> STOPP_KRAV
@@ -207,6 +198,7 @@ object Repository {
             prepStmt.setString(16, it.utbetalDato)
             prepStmt.setString(17, it.fagsystemId)
             prepStmt.setString(18, type)
+            prepStmt.setString(19, it.corrId)
             prepStmt.addBatch()
             if (it.isEndring()){
                 prepStmt.setString(1, it.saksNummer)
@@ -227,6 +219,7 @@ object Repository {
                 prepStmt.setString(16, it.utbetalDato)
                 prepStmt.setString(17, it.fagsystemId)
                 prepStmt.setString(18, ENDRE_RENTER)
+                prepStmt.setString(19, UUID.randomUUID().toString())
                 prepStmt.addBatch()
             }
         }

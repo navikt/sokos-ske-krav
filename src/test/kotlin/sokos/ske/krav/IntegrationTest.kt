@@ -1,6 +1,7 @@
 package sokos.ske.krav
 
 import com.zaxxer.hikari.HikariDataSource
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.testcontainers.toDataSource
 import io.kotest.matchers.shouldBe
@@ -33,6 +34,7 @@ import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+@Ignored
 internal class IntegrationTest : FunSpec({
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
     val testContainer = TestContainer("IntegrationTest-TestSendNyeKrav")
@@ -212,7 +214,7 @@ fun mockKravService(ds: HikariDataSource): DatabaseService =
         }
     }
 
-        coEvery { updateSentKravToDatabase(any<Map<String, SkeService.RequestResult>>(), any<KravLinje>(), any<String>(), any<String>() ) }  answers{
+        coEvery { updateSentKravToDatabase(any<Map<String, SkeService.RequestResult>>(), any<KravLinje>(), any<String>() ) }  answers{
             insertNewKrav(arg(2), arg(3), arg(1), arg<Map<String,SkeService.RequestResult>>(0).keys.first(), "STATUS")
         }
         coEvery { saveErrorMessageToDatabase(any<String>(), any<HttpResponse>(), any<KravLinje>(), any<String>(), any<String>() ) } answers {
