@@ -37,6 +37,11 @@ class SkeService(
     fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
     fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles()
 
+    suspend fun handleNewKrav() {
+        sendNewFilesToSKE()
+        hentOgOppdaterMottaksStatus()
+    }
+
     suspend fun sendNewFilesToSKE(): List<HttpResponse> {
         val files = ftpService.getValidatedFiles()
         logger.info("*******************${LocalDateTime.now()}*******************")
@@ -71,6 +76,9 @@ class SkeService(
         var fnrIter1 = fnrIter
 
         val linjer = file.kravLinjer.filter { LineValidator.validateLine(it, file.name) }
+
+        databaseService.saveAllNewKrav(linjer)
+
         val allResponses = mutableListOf<RequestResult>()
 
 
@@ -113,7 +121,7 @@ class SkeService(
                 }
             }
 
-            databaseService.saveSentKravToDatabase(responsesMap, it, kravIdentifikator, corrID)
+            databaseService.updateSentKravToDatabase(responsesMap, it, kravIdentifikator, corrID)
 
             allResponses.addAll(responsesMap.values)
         }
@@ -226,7 +234,6 @@ class SkeService(
         var tidHentMottakstatus = 0L
         var tidOppdaterstatus = 0L
         val result = krav.map {
-
 
             var kravIdentifikatorType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
             var kravIdentifikator = it.saksnummerSKE

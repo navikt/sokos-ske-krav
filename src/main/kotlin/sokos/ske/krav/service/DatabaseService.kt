@@ -9,10 +9,12 @@ import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
 import sokos.ske.krav.database.Repository.getAllValidationErrors
 import sokos.ske.krav.database.Repository.getKravIdfromCorrId
 import sokos.ske.krav.database.Repository.getSkeKravIdent
+import sokos.ske.krav.database.Repository.insertAllNewKrav
 import sokos.ske.krav.database.Repository.insertNewKobling
 import sokos.ske.krav.database.Repository.insertNewKrav
 import sokos.ske.krav.database.Repository.saveErrorMessage
 import sokos.ske.krav.database.Repository.saveValidationError
+import sokos.ske.krav.database.Repository.updateSendtKrav
 import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.database.models.FeilmeldingTable
@@ -59,6 +61,24 @@ class DatabaseService(
             con.insertNewKrav(skeKravident, corrID,  kravLinje, kravtype, responseStatus)
         }
     }
+    fun updateSendtKrav(
+        skeKravident: String,
+        corrID: String,
+        kravLinje: KravLinje,
+        kravtype: String,
+        responseStatus: String
+    ) {
+        postgresDataSource.connection.useAndHandleErrors { con ->
+            con.updateSendtKrav(skeKravident, corrID,  kravLinje, kravtype, responseStatus)
+        }
+    }
+    fun saveAllNewKrav(
+        kravLinjer: List<KravLinje>,
+    ) {
+        postgresDataSource.connection.useAndHandleErrors { con ->
+            con.insertAllNewKrav(kravLinjer)
+        }
+    }
 
     fun getAlleKravMedValideringsfeil(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
@@ -90,7 +110,7 @@ class DatabaseService(
 
     }
 
-    suspend fun saveSentKravToDatabase(responses: Map<String, SkeService.RequestResult>, krav: KravLinje, kravident: String, corrID: String) {
+    suspend fun updateSentKravToDatabase(responses: Map<String, SkeService.RequestResult>, krav: KravLinje, kravident: String, corrID: String) {
         var kravidentToBeSaved = kravident
         responses.forEach { entry ->
 
@@ -101,7 +121,7 @@ class DatabaseService(
 
             if (!krav.isNyttKrav() && kravidentToBeSaved == krav.referanseNummerGammelSak) kravidentToBeSaved = ""
 
-            insertNewKrav(
+            updateSendtKrav(
                 kravidentToBeSaved,
                 corrID,
                 krav,

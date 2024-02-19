@@ -12,7 +12,14 @@ import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
+import sokos.ske.krav.service.ENDRE_HOVEDSTOL
+import sokos.ske.krav.service.ENDRE_RENTER
+import sokos.ske.krav.service.NYTT_KRAV
+import sokos.ske.krav.service.STOPP_KRAV
+import sokos.ske.krav.util.isEndring
+import sokos.ske.krav.util.isStopp
 import java.sql.Connection
+import java.sql.Date
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -44,6 +51,43 @@ object Repository {
             ).executeQuery().toKrav()
     }
 
+    fun Connection.updateSendtKrav(
+        kravidentSKE: String,
+        corrID: String,
+        kravLinje: KravLinje,
+        kravtype: String,
+        responseStatus: String
+    ) {
+        val resultSet = prepareStatement(
+            """
+                update krav 
+                    set kravidentifikator_ske = ?, 
+                    corr_id = ?,
+                    dato_sendt = NOW(), 
+                    dato_siste_status = NOW(),
+                    status = ?,
+                    kravtype = ?
+                where 
+                    gjelderid = ? and
+                    saksnummer_nav = ? and
+                    transaksjondato = ? and 
+                    referansenummergammelsak = ? and
+                    vedtakdato = ?
+            """.trimIndent()
+        ).withParameters(
+            param(kravidentSKE),
+            param(corrID),
+            param(responseStatus),
+            param(kravtype),
+            param(kravLinje.gjelderID),
+            param(kravLinje.saksNummer),
+            param(kravLinje.transaksjonDato),
+            param(kravLinje.referanseNummerGammelSak),
+            param(kravLinje.vedtakDato),
+        ).execute()
+        commit()
+    }
+
     fun Connection.insertNewKrav(
         kravidentSKE: String,
         corrID: String,
@@ -52,7 +96,7 @@ object Repository {
         responseStatus: String
     ) {
         val now = LocalDateTime.now()
-       val resultSet = prepareStatement(
+        val resultSet = prepareStatement(
             """
                 insert into krav (
                 saksnummer_nav, 
@@ -109,6 +153,87 @@ object Repository {
 
     }
 
+    fun Connection.insertAllNewKrav(
+        kravListe: List<KravLinje>,
+    ) {
+        val now = LocalDateTime.now()
+        val now2 = java.sql.Date.valueOf(LocalDate.now())
+        val prepStmt = prepareStatement(
+            """
+                insert into krav (
+                saksnummer_nav, 
+                belop,
+                vedtakDato,
+                gjelderId,
+                periodeFOM,
+                periodeTOM,
+                kravkode,
+                referanseNummerGammelSak,
+                transaksjonDato,
+                enhetBosted,
+                enhetBehandlende,
+                kodeHjemmel,
+                kodeArsak,
+                belopRente,
+                fremtidigYtelse,
+                utbetalDato,
+                fagsystemId,
+                status, 
+                dato_siste_status,
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,${Status.KRAV_IKKE_SENDT.value},NOW())
+            """.trimIndent()
+        )
+        kravListe.forEach() {
+            val type: String = when {
+                it.isStopp() -> STOPP_KRAV
+                it.isEndring() -> ENDRE_HOVEDSTOL
+                else -> NYTT_KRAV
+            }
+            prepStmt.setString(1, it.saksNummer)
+            prepStmt.setDouble(2, it.belop.toDouble())
+            prepStmt.setDate(3, Date.valueOf(it.vedtakDato))
+            prepStmt.setString(4, it.gjelderID)
+            prepStmt.setString(5, it.periodeFOM)
+            prepStmt.setString(6, it.periodeTOM)
+            prepStmt.setString(7, it.stonadsKode)
+            prepStmt.setString(8, it.referanseNummerGammelSak)
+            prepStmt.setString(9, it.transaksjonDato)
+            prepStmt.setString(10, it.enhetBosted)
+            prepStmt.setString(11, it.enhetBehandlende)
+            prepStmt.setString(12, it.hjemmelKode)
+            prepStmt.setString(13, it.arsakKode)
+            prepStmt.setDouble(14, it.belopRente.toDouble())
+            prepStmt.setString(15, it.fremtidigYtelse.toString())
+            prepStmt.setString(16, it.utbetalDato)
+            prepStmt.setString(17, it.fagsystemId)
+            prepStmt.setString(18, type)
+            prepStmt.addBatch()
+            if (it.isEndring()){
+                prepStmt.setString(1, it.saksNummer)
+                prepStmt.setDouble(2, it.belop.toDouble())
+                prepStmt.setDate(3, Date.valueOf(it.vedtakDato))
+                prepStmt.setString(4, it.gjelderID)
+                prepStmt.setString(5, it.periodeFOM)
+                prepStmt.setString(6, it.periodeTOM)
+                prepStmt.setString(7, it.stonadsKode)
+                prepStmt.setString(8, it.referanseNummerGammelSak)
+                prepStmt.setString(9, it.transaksjonDato)
+                prepStmt.setString(10, it.enhetBosted)
+                prepStmt.setString(11, it.enhetBehandlende)
+                prepStmt.setString(12, it.hjemmelKode)
+                prepStmt.setString(13, it.arsakKode)
+                prepStmt.setDouble(14, it.belopRente.toDouble())
+                prepStmt.setString(15, it.fremtidigYtelse.toString())
+                prepStmt.setString(16, it.utbetalDato)
+                prepStmt.setString(17, it.fagsystemId)
+                prepStmt.setString(18, ENDRE_RENTER)
+                prepStmt.addBatch()
+            }
+        }
+        prepStmt.executeBatch()
+        commit()
+    }
+
     fun Connection.getSkeKravIdent(navref: String): String {
         val rs = prepareStatement(
             """
@@ -136,7 +261,6 @@ object Repository {
             rs.getColumn("id")
         else 0
     }
-
 
 
     fun Connection.updateStatus(mottakStatus: MottaksStatusResponse) {
