@@ -38,8 +38,10 @@ class SkeService(
     fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles()
 
     suspend fun handleNewKrav() {
+        //TODO Sjekk om noen må resendes og evt resend
         sendNewFilesToSKE()
         hentOgOppdaterMottaksStatus()
+        //TODO Resend avviste pg ikke rekontroført
     }
 
     suspend fun sendNewFilesToSKE(): List<HttpResponse> {
@@ -82,6 +84,9 @@ class SkeService(
         val allResponses = mutableListOf<RequestResult>()
 
 
+
+
+
         linjer.forEach {
             Metrics.numberOfKravRead.inc()
             val responsesMap = mutableMapOf<String, RequestResult>()
@@ -100,20 +105,19 @@ class SkeService(
                 kravIdentifikator = it.referanseNummerGammelSak
                 kravIdentifikatorType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
             }
-            val corrID = UUID.randomUUID().toString()
             when {
                 it.isStopp() -> {
-                    val response = sendStoppKrav(kravIdentifikator, kravIdentifikatorType, it, corrID)
+                    val response = sendStoppKrav(kravIdentifikator, kravIdentifikatorType, it)
                     responsesMap[STOPP_KRAV] = response
                 }
 
                 it.isEndring() -> {
-                    val endreResponses = sendEndreKrav(kravIdentifikator, kravIdentifikatorType, it, corrID)
+                    val endreResponses = sendEndreKrav(kravIdentifikator, kravIdentifikatorType, it)
                     responsesMap.putAll(endreResponses)
                 }
 
                 it.isNyttKrav() -> {
-                    val response = sendOpprettKrav(it, substfnr, corrID)
+                    val response = sendOpprettKrav(it, substfnr)
                     if (response.response.status.isSuccess()) kravIdentifikator =
                         response.response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
 
@@ -138,18 +142,17 @@ class SkeService(
     private suspend fun sendStoppKrav(
         kravIdentifikator: String,
         kravIdentifikatorType: Kravidentifikatortype,
-        krav: KravLinje,
-        corrID: String
+        krav: KravLinje
     ): RequestResult {
         val request = makeStoppKravRequest(kravIdentifikator, kravIdentifikatorType)
-        val response = skeClient.stoppKrav(request, corrID)
+        val response = skeClient.stoppKrav(request, krav.corrId)
 
         val requestResult = RequestResult(
             response = response,
             request = Json.encodeToString(request),
             krav = krav,
             kravIdentifikator = kravIdentifikator,
-            corrId = corrID
+            corrId = krav.corrId
         )
 
         return requestResult
@@ -159,7 +162,6 @@ class SkeService(
         kravIdentifikator: String,
         kravIdentifikatorType: Kravidentifikatortype,
         krav: KravLinje,
-        corrID: String
     ): Map<String, RequestResult> {
 
 
@@ -173,14 +175,14 @@ class SkeService(
         }
 
         val endreRenterRequest = makeEndreRenteRequest(krav)
-        val endreRenterResponse = skeClient.endreRenter(endreRenterRequest, kravIdentifikator, kravIdentifikatorType, corrID)
+        val endreRenterResponse = skeClient.endreRenter(endreRenterRequest, kravIdentifikator, kravIdentifikatorType, krav.corrId)
 
         val requestResultEndreRente = RequestResult(
             response = endreRenterResponse,
             request = Json.encodeToString(endreRenterRequest),
             krav = krav,
             kravIdentifikator = "",
-            corrId = corrID
+            corrId = krav.corrId
         )
 
         val corrIdHovedStol = UUID.randomUUID().toString()
@@ -200,21 +202,21 @@ class SkeService(
         return responseMap
     }
 
-    private suspend fun sendOpprettKrav(krav: KravLinje, substfnr: String, corrID: String): RequestResult {
+    private suspend fun sendOpprettKrav(krav: KravLinje, substfnr: String): RequestResult {
         val opprettKravRequest = makeOpprettKravRequest(
             krav.copy(
                 gjelderID =
                 if (krav.gjelderID.startsWith("00")) krav.gjelderID else substfnr
-            ), databaseService.insertNewKobling(krav.saksNummer, corrID)
+            ), databaseService.insertNewKobling(krav.saksNummer, krav.corrId)
         )
-        val response = skeClient.opprettKrav(opprettKravRequest, corrID)
+        val response = skeClient.opprettKrav(opprettKravRequest, krav.corrId)
 
         val requestResult = RequestResult(
             response = response,
             request = Json.encodeToString(opprettKravRequest),
             krav = krav,
             kravIdentifikator = "",
-            corrId = corrID
+            corrId = krav.corrId
         )
 
         return requestResult
