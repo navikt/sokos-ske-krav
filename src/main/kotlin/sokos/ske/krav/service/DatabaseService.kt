@@ -61,14 +61,16 @@ class DatabaseService(
             con.insertNewKrav(skeKravident, corrID,  kravLinje, kravtype, responseStatus)
         }
     }
-    fun updateSendtKrav(
-        skeKravident: String,
+    private fun updateSendtKrav(
+        kravIdentifikatorSke: String,
         corrID: String,
         kravtype: String,
         responseStatus: String
     ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.updateSendtKrav(skeKravident, corrID, kravtype, responseStatus)
+            println("Updating krav med corrID $corrID, kravidentSKE $kravIdentifikatorSke, kravtype $kravtype, responsestatus $responseStatus")
+            if(kravtype == NYTT_KRAV)   con.updateSendtKrav(corrID, kravIdentifikatorSke, responseStatus)
+            else con.updateSendtKrav(corrID, responseStatus)
         }
     }
     fun saveAllNewKrav(

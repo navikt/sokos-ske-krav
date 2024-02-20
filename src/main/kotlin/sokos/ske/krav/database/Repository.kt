@@ -53,26 +53,44 @@ object Repository {
     }
 
     fun Connection.updateSendtKrav(
-        kravidentSKE: String,
         corrID: String,
-        kravtype: String,
         responseStatus: String
     ) {
         prepareStatement(
             """
                 update krav 
-                    set kravidentifikator_ske = ?, 
-                    dato_sendt = NOW(), 
+                    set dato_sendt = NOW(), 
                     dato_siste_status = NOW(),
-                    status = ?,
-                    kravtype = ?
+                    status = ?
                 where 
                     corr_id = ?
             """.trimIndent()
         ).withParameters(
-            param(kravidentSKE),
             param(responseStatus),
-            param(kravtype),
+            param(corrID),
+        ).execute()
+        commit()
+    }
+
+    fun Connection.updateSendtKrav(
+        corrID: String,
+        kravIdentifikatorSke: String,
+        responseStatus: String
+    ) {
+
+        prepareStatement(
+            """
+                update krav 
+                    set dato_sendt = NOW(), 
+                    dato_siste_status = NOW(),
+                    status = ?,
+                    kravidentifikator_ske = ?
+                where 
+                    corr_id = ?
+            """.trimIndent()
+        ).withParameters(
+            param(responseStatus),
+            param(kravIdentifikatorSke),
             param(corrID),
         ).execute()
         commit()
@@ -86,7 +104,7 @@ object Repository {
         responseStatus: String
     ) {
         val now = LocalDateTime.now()
-        val resultSet = prepareStatement(
+        prepareStatement(
             """
                 insert into krav (
                 saksnummer_nav, 
@@ -146,8 +164,6 @@ object Repository {
     fun Connection.insertAllNewKrav(
         kravListe: List<KravLinje>,
     ) {
-        val now = LocalDateTime.now()
-        val now2 = java.sql.Date.valueOf(LocalDate.now())
         val prepStmt = prepareStatement(
             """
                 insert into krav (
@@ -170,8 +186,9 @@ object Repository {
                 fagsystemId,
                 status, 
                 dato_siste_status,
-                corr_id
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,${Status.KRAV_IKKE_SENDT.value},NOW(), ?)
+                kravtype,
+                corr_id 
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'${Status.KRAV_IKKE_SENDT.value}',NOW(), ?, ?)
             """.trimIndent() )
 
         kravListe.forEach() {
@@ -180,6 +197,7 @@ object Repository {
                 it.isEndring() -> ENDRE_HOVEDSTOL
                 else -> NYTT_KRAV
             }
+            println(it)
             prepStmt.setString(1, it.saksNummer)
             prepStmt.setDouble(2, it.belop.toDouble())
             prepStmt.setDate(3, Date.valueOf(it.vedtakDato))
@@ -228,6 +246,7 @@ object Repository {
     }
 
     fun Connection.getSkeKravIdent(navref: String): String {
+        println(navref)
         val rs = prepareStatement(
             """
             select id, kravidentifikator_ske from krav
@@ -255,6 +274,7 @@ object Repository {
             rs.getColumn("id")
         else 0
     }
+
 
 
     fun Connection.updateStatus(mottakStatus: MottaksStatusResponse) {

@@ -50,7 +50,7 @@ class SkeService(
         val fnrIter = fnrListe.listIterator()
 
         val responses = files.map { file ->
-            logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size - 2}")
+            logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
             sendKrav(file, fnrIter, fnrListe)
         }
 
@@ -238,7 +238,7 @@ class SkeService(
 
         val start = Clock.System.now()
         val krav = databaseService.hentAlleKravSomIkkeErReskotrofort()
-
+        println("antall krav som ikke er reskontroført: ${krav.size}")
         var tidSiste = Clock.System.now()
         var tidHentAlleKrav = (tidSiste-start).inWholeMilliseconds
         var tidHentMottakstatus = 0L
@@ -273,6 +273,8 @@ class SkeService(
                     logger.error("Response er ikke på forventet format for MottaksStatusResponse : ${e.message}")
                     throw e
                 }
+            } else{
+                println(response.status)
             }
             "Status ok: ${response.status.value}, ${response.bodyAsText()}"
         }

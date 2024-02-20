@@ -38,9 +38,9 @@ object RepositoryExtensions {
         val columnValue = when (T::class) {
             Int::class -> getInt(columnLabel)
             Long::class -> getLong(columnLabel)
-            Char::class -> getString(columnLabel)?.get(0)
+            Char::class -> getString(columnLabel)?.get(0)  ?: ' '
             Double::class -> getDouble(columnLabel)
-            String::class -> getString(columnLabel)?.trim()
+            String::class -> getString(columnLabel)?.trim() ?: ""
             Boolean::class -> getBoolean(columnLabel)
             BigDecimal::class -> getBigDecimal(columnLabel)
             LocalDate::class -> getDate(columnLabel)?.toLocalDate()
@@ -52,7 +52,7 @@ object RepositoryExtensions {
             }
         }
 
-        if (null !is T && columnValue == null) {
+        if (null !is T  && columnValue == null) {
             logger.error("Påkrevet kolonne '$columnLabel' er null" )
             throw SQLException("Påkrevet kolonne '$columnLabel' er null") // TODO Feilhåndtering
         }
@@ -134,8 +134,8 @@ object RepositoryExtensions {
     fun ResultSet.toFeilmelding() = toList {
         FeilmeldingTable(
             feilmeldingId = getColumn("id"),
-            kravId = getColumn("kravId"),
-            saksnummer = getColumn("saksnummer_nav"),
+            kravId = getColumn("kravid"),
+            saksnummer = getColumn("saksnummer"),
             kravidentifikatorSKE = getColumn("kravidentifikator_ske"),
             error = getColumn("error"),
             melding = getColumn("melding"),

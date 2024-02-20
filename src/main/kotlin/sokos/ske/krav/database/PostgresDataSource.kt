@@ -10,14 +10,19 @@ import java.sql.Connection
 
 private val logger = KotlinLogging.logger { }
 
-class PostgresDataSource(private val postgresConfig: PropertiesConfig.PostgresConfig = PropertiesConfig.PostgresConfig()) {
+class PostgresDataSource {
+    private val postgresConfig: PropertiesConfig.PostgresConfig = PropertiesConfig.PostgresConfig()
     private val isLocal = PropertiesConfig.Configuration().profile == PropertiesConfig.Profile.LOCAL
-    private val dataSource: HikariDataSource
+    private var dataSource: HikariDataSource
     private val adminRole = "${postgresConfig.name}-admin"
     private val userRole = "${postgresConfig.name}-user"
     val connection: Connection get() = dataSource.connection.apply { autoCommit = false }
 
-    init {
+    constructor(dataSource: HikariDataSource) {
+        this.dataSource = dataSource
+    }
+
+    constructor(){
         if (!isLocal) {
             val role = adminRole
             logger.info("Flyway db opprettes med rolle $role")

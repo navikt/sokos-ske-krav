@@ -6,6 +6,7 @@ import org.testcontainers.ext.ScriptUtils.ScriptLoadException
 import org.testcontainers.jdbc.JdbcDatabaseDelegate
 import org.testcontainers.utility.DockerImageName
 import java.io.File
+import java.util.Locale
 
 class TestContainer(private val name: String = "testContainer") {
 	private val dockerImageName = "postgres:latest"
@@ -19,7 +20,13 @@ class TestContainer(private val name: String = "testContainer") {
 
 		//Må starte container før runInitScript
 		container.apply {
-			withCreateContainerCmdModifier { cmd -> cmd.withName(name) }
+			withCreateContainerCmdModifier { cmd -> cmd.withName(
+			  name.lowercase(Locale.getDefault())
+				.replace(' ', '-')
+				.replace('æ', 'e')
+				.replace('ø', 'o')
+				.replace('å', 'a')
+			) }
 			withReuse(reusable)
 			start()
 		}

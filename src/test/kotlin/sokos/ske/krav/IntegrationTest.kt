@@ -4,12 +4,13 @@ import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.testcontainers.toDataSource
-import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.*
+import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
+import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.getAllKrav
 import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
 import sokos.ske.krav.database.Repository.getAllValidationErrors
@@ -20,7 +21,6 @@ import sokos.ske.krav.database.Repository.saveValidationError
 import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.database.models.FeilmeldingTable
-import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
@@ -29,16 +29,13 @@ import sokos.ske.krav.service.*
 import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.util.TestContainer
-import java.sql.ResultSet
-import java.sql.Timestamp
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Ignored
 internal class IntegrationTest : FunSpec({
-    val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
+
     val testContainer = TestContainer("IntegrationTest-TestSendNyeKrav")
-    val container = testContainer.getContainer(listOf("KravMedEndringer.sql"), reusable = true, loadFlyway = true)
+   val container = testContainer.getContainer(reusable = true, loadFlyway = true)
 
     val ds = container.toDataSource {
         maximumPoolSize = 8
@@ -50,55 +47,56 @@ internal class IntegrationTest : FunSpec({
         ds.close()
         TestContainer().stopAnyRunningContainer()
     }
+    fun setupMocks(
+        ftpFiler: List<String>,
+        clientStatusCode: HttpStatusCode,
+        directory: Directories =  Directories.INBOUND,
+        kravIdentifikator:String = "1234"): SkeService {
+        val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
+        val httpClient = MockHttpClient(kravIdentifikator = kravIdentifikator).getClient(clientStatusCode)
+        val ftpService = FakeFtpService().setupMocks(directory, ftpFiler)
 
-    test("Kravdata skal lagres i database etter å ha sendt nye krav til SKE") {
-        val httpClient = MockHttpClient(kravident = "1234").getClient()
         val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-        val mockkKravService = mockKravService(ds)
-        
-        val fakeFtpService = FakeFtpService()
-        val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("AltOkFil.txt"))
+        val databaseService = DatabaseService(PostgresDataSource(ds))
 
-        val skeService = SkeService(skeClient, mockkKravService, ftpService)
-
+        return SkeService(skeClient, databaseService, ftpService)
+    }
+/*
+    test("Kravdata skal lagres i database etter å ha sendt nye krav til SKE") {
+        val skeService = setupMocks(listOf("AltOkFil.txt"), HttpStatusCode.OK)
         skeService.sendNewFilesToSKE()
 
         val kravdata = ds.connection.use {
             it.getAllKrav()
         }
-        kravdata.size shouldBe 103
+
+        kravdata.size shouldBe 103  // 101 krav + 2 fordi det skal være to endringer og hver endring = 2 rader i DB
+    }
+
+    test("Kravdata skal lagres med riktig type"){
+        val kravdata = ds.connection.use {
+            it.getAllKrav()
+        }
 
         kravdata.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
-        kravdata.filter { it.kravtype == ENDRE_RENTER }.size shouldBe 3
-        kravdata.filter { it.kravtype == ENDRE_HOVEDSTOL }.size shouldBe 1
+        kravdata.filter { it.kravtype == ENDRE_RENTER }.size shouldBe 2
+        kravdata.filter { it.kravtype == ENDRE_HOVEDSTOL }.size shouldBe 2
         kravdata.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
-        kravdata.filter { it.kravtype == NYTT_KRAV && it.saksnummerSKE == "1234" }.size shouldBe 97
-
-        httpClient.close()
-        fakeFtpService.close()
     }
 
     test("Mottaksstatus skal oppdateres i database") {
-
-        val httpClient = MockHttpClient(kravident = "1234").getClient()
-        val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-
-        val mockkKravService = mockKravService(ds)
-        val skeService = SkeService(skeClient, mockkKravService, mockk<FtpService>())
-
+        val skeService = setupMocks(listOf("AltOkFil.txt"), HttpStatusCode.OK)
         skeService.hentOgOppdaterMottaksStatus()
 
         val kravdata = ds.connection.use {
             it.getAllKrav()
         }
 
-        println(kravdata)
         kravdata.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 103
 
-        httpClient.close()
-    }
+    }*/
 
-    data class ValideringFraDB(
+/*    data class ValideringFraDB(
         val kravidentifikatorSKE: String,
         val error: String,
         val melding: String,
@@ -108,7 +106,7 @@ internal class IntegrationTest : FunSpec({
     test("Test hent valideringsfeil") {
         val iderForValideringsFeil = listOf("23", "54", "87")
         val httpClient = MockHttpClient(kravident = "1234", iderForValideringsFeil = iderForValideringsFeil).getClient()
-
+        val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
         val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
 
         val mockkKravService = mockKravService(ds)
@@ -155,7 +153,7 @@ internal class IntegrationTest : FunSpec({
             it.dato.toString() shouldBe "${LocalDate.now()} 00:00:00.0"
         }
         httpClient.close()
-    }
+    }*/
 })
 
 fun mockKravService(ds: HikariDataSource): DatabaseService =

@@ -13,21 +13,23 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.database.models.Status
 
-class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: List<String> = listOf("23", "54", "87")) {
+class MockHttpClient(kravIdentifikator: String = "1234", val iderForValideringsFeil: List<String> = listOf("23", "54", "87")) {
   //language=json
-  private val opprettResponse = """{"kravidentifikator": "$kravident"}"""
+  private val opprettResponse = """{"kravidentifikator": "$kravIdentifikator"}"""
+  //language=json
+  private val endreHovedstolResponse = """{"transaksjonsid": "791e5955-af86-42fe-b609-d4fc2754e35e"}"""
 
   //language=json
   private val endringResponse = """{"transaksjonsid":  "5432"}""".trimMargin()
 
-  private fun innkrevingsOppdragEksistererIkkeResponse(kravid: String = "1234"): String {
+  private fun innkrevingsOppdragEksistererIkkeResponse(kravIdentifikator: String = "1234"): String {
 	//language=json
 	return """      
         {
             "type":"tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-eksisterer-ikke",
             "title":"Innkrevingsoppdrag eksisterer ikke",
             "status":404,
-            "detail":"Innkrevingsoppdrag med oppdragsgiversKravidentifikator=$kravid eksisterer ikke",
+            "detail":"Innkrevingsoppdrag med oppdragsgiversKravidentifikator=$kravIdentifikator eksisterer ikke",
             "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/avskriving"
         }
         """.trimIndent()
@@ -45,12 +47,12 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
     """.trimIndent()
 
 
-  private fun mottattResponse(kravid: String = "1234"): String {
+  private fun mottattResponse(kravIdentifikator: String = "1234", oppdragsgiversKravIdentifikator: String="4321"): String {
 	//language=json
 	return """
        {
-             "kravidentifikator": "$kravid"
-            "oppdragsgiversKravidentifikator": "$kravid"
+            "kravidentifikator": "$kravIdentifikator"
+            "oppdragsgiversKravidentifikator": "$oppdragsgiversKravIdentifikator"
             "mottaksstatus": "${Status.RESKONTROFOERT.value}"
             "statusOppdatert": "2023-10-04T04:47:08.482Z"
             }
@@ -86,18 +88,18 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
 
 		when (request.url.encodedPath) {
 		  "/innkrevingsoppdrag/1234/mottaksstatus" -> {
-			if (statusCode.isSuccess()) respond(mottattResponse("1234"), statusCode, responseHeaders)
+			if (statusCode.isSuccess()) respond(mottattResponse("1234", "4321"), statusCode, responseHeaders)
 			else respond(innkrevingsOppdragEksistererIkkeResponse(), statusCode, responseHeaders)
 		  }
 
-		  "/innkrevingsoppdrag/OB040000479803/mottaksstatus" -> {
-			if (statusCode.isSuccess()) respond(mottattResponse("OB040000479803"), statusCode, responseHeaders)
-			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000479803"), statusCode, responseHeaders)
+		  "/innkrevingsoppdrag/OB040000592759/mottaksstatus" -> {
+			if (statusCode.isSuccess()) respond(mottattResponse("", "OB040000592759"), statusCode, responseHeaders)
+			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000592759"), statusCode, responseHeaders)
 		  }
 
-		  "/innkrevingsoppdrag/OB040000592759/mottaksstatus" -> {
-			if (statusCode.isSuccess()) respond(mottattResponse("OB040000592759"), statusCode, responseHeaders)
-			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000592759"), statusCode, responseHeaders)
+		  "/innkrevingsoppdrag/OB040000479803/mottaksstatus" -> {
+			if (statusCode.isSuccess()) respond(mottattResponse("", "OB040000479803"), statusCode, responseHeaders)
+			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000479803"), statusCode, responseHeaders)
 		  }
 
 		  "/innkrevingsoppdrag/OB040000592759/avstemming" -> {
@@ -119,6 +121,8 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
 			if (statusCode.isSuccess()) respond(endringResponse, statusCode, responseHeaders)
 			else respond(innkrevingsOppdragEksistererIkkeResponse(), statusCode, responseHeaders)
 		  }
+
+
 
 		  "/innkrevingsoppdrag/OB040000592759/renter" -> {
 			if (statusCode.isSuccess()) respond(endringResponse, statusCode, responseHeaders)
@@ -147,12 +151,16 @@ class MockHttpClient(kravident: String = "1234", val iderForValideringsFeil: Lis
 		  }
 
 		  "/innkrevingsoppdrag/1234/oppdragsgiversreferanse" -> {
-			if (statusCode.isSuccess()) respond(endringResponse, statusCode, responseHeaders)
+			if (statusCode.isSuccess()) respond(endreHovedstolResponse, statusCode, responseHeaders)
 			else respond(innkrevingsOppdragEksistererIkkeResponse(), statusCode, responseHeaders)
 		  }
 
 		  "/innkrevingsoppdrag/OB040000592759/oppdragsgiversreferanse" -> {
-			if (statusCode.isSuccess()) respond(endringResponse, statusCode, responseHeaders)
+			if (statusCode.isSuccess()) respond(endreHovedstolResponse, statusCode, responseHeaders)
+			else respond(innkrevingsOppdragEksistererIkkeResponse(), statusCode, responseHeaders)
+		  }
+		  "/innkrevingsoppdrag/OB040000595755/oppdragsgiversreferanse" ->{
+			if (statusCode.isSuccess()) respond(endreHovedstolResponse, statusCode, responseHeaders)
 			else respond(innkrevingsOppdragEksistererIkkeResponse(), statusCode, responseHeaders)
 		  }
 
