@@ -1,35 +1,17 @@
 package sokos.ske.krav
 
-import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.testcontainers.toDataSource
-import io.ktor.client.statement.*
-import io.ktor.http.HttpStatusCode
-import io.mockk.coEvery
-import io.mockk.every
+import io.ktor.http.*
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.database.Repository.getAllKrav
-import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
-import sokos.ske.krav.database.Repository.getAllValidationErrors
-import sokos.ske.krav.database.Repository.getSkeKravIdent
-import sokos.ske.krav.database.Repository.insertNewKobling
-import sokos.ske.krav.database.Repository.insertNewKrav
-import sokos.ske.krav.database.Repository.saveValidationError
-import sokos.ske.krav.database.Repository.updateStatus
-import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
-import sokos.ske.krav.database.models.FeilmeldingTable
-import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
-import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.*
 import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.util.TestContainer
-import java.time.LocalDateTime
 
 @Ignored
 internal class IntegrationTest : FunSpec({
@@ -58,8 +40,11 @@ internal class IntegrationTest : FunSpec({
 
         val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
         val databaseService = DatabaseService(PostgresDataSource(ds))
+        val endreKravService = EndreKravService(skeClient, databaseService)
+        val opprettKravService = OpprettKravService(skeClient, databaseService)
+        val stoppKravService = StoppKravService(skeClient, databaseService)
 
-        return SkeService(skeClient, databaseService, ftpService)
+        return SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, databaseService, ftpService)
     }
 /*
     test("Kravdata skal lagres i database etter å ha sendt nye krav til SKE") {
@@ -156,79 +141,3 @@ internal class IntegrationTest : FunSpec({
     }*/
 })
 
-fun mockKravService(ds: HikariDataSource): DatabaseService =
-    mockk<DatabaseService>(relaxUnitFun = true, relaxed=true) {
-    every { getSkeKravident(any<String>()) } answers {
-        ds.connection.useAndHandleErrors { con ->
-            con.getSkeKravIdent(firstArg<String>())
-        }
-    }
-
-    every { insertNewKobling(any<String>(), any<String>()) } answers {
-        ds.connection.useAndHandleErrors { con ->
-            con.insertNewKobling(firstArg<String>(), secondArg<String>())
-        }
-    }
-
-
-    every {
-        insertNewKrav(
-            any<String>(),
-            any<String>(),
-            any<KravLinje>(),
-            any<String>(),
-            any<String>(),
-        )
-    } answers {
-        ds.connection.useAndHandleErrors { con ->
-            con.insertNewKrav(
-                arg<String>(0),
-                arg<String>(1),
-                arg<KravLinje>(2),
-                arg<String>(3),
-                arg<String>(4),
-            )
-        }
-    }
-    every { getAlleKravMedValideringsfeil() } answers {
-        ds.connection.useAndHandleErrors { con ->
-            con.getAllValidationErrors()
-        }
-    }
-    every { saveValideringsfeil(any<ValideringsFeilResponse>(), any<String>()) } answers {
-        ds.connection.useAndHandleErrors { con ->
-            con.saveValidationError(firstArg<ValideringsFeilResponse>(), secondArg<String>())
-        }
-    }
-
-    every { hentAlleKravSomIkkeErReskotrofort() } answers {
-        ds.connection.useAndHandleErrors { con ->
-            con.getAllKravForStatusCheck()
-        }
-    }
-    every { updateStatus(any<MottaksStatusResponse>()) } answers {
-        ds.connection.useAndHandleErrors { con ->
-            con.updateStatus(firstArg<MottaksStatusResponse>())
-        }
-    }
-
-        coEvery { updateSentKravToDatabase(any<Map<String, SkeService.RequestResult>>(), any<KravLinje>(), any<String>() ) }  answers{
-            insertNewKrav(arg(2), arg(3), arg(1), arg<Map<String,SkeService.RequestResult>>(0).keys.first(), "STATUS")
-        }
-        coEvery { saveErrorMessageToDatabase(any<String>(), any<HttpResponse>(), any<KravLinje>(), any<String>(), any<String>() ) } answers {
-            val feilmelding = FeilmeldingTable(
-                0L,
-                1L,
-                 arg<KravLinje>(2).saksNummer,
-                arg<String>(3),
-                 "STATUS",
-                "DETAIL",
-                "REQUEST",
-                "RESPONSE",
-                LocalDateTime.now()
-            )
-             saveFeilmelding(feilmelding)
-
-        }
-
-    }

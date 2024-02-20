@@ -58,21 +58,31 @@ class DatabaseService(
         responseStatus: String
     ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.insertNewKrav(skeKravident, corrID,  kravLinje, kravtype, responseStatus)
+            con.insertNewKrav(skeKravident, corrID, kravLinje, kravtype, responseStatus)
         }
     }
+
     private fun updateSendtKrav(
         kravIdentifikatorSke: String,
         corrID: String,
-        kravtype: String,
         responseStatus: String
     ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            println("Updating krav med corrID $corrID, kravidentSKE $kravIdentifikatorSke, kravtype $kravtype, responsestatus $responseStatus")
-            if(kravtype == NYTT_KRAV)   con.updateSendtKrav(corrID, kravIdentifikatorSke, responseStatus)
-            else con.updateSendtKrav(corrID, responseStatus)
+            println("Updating krav med corrID $corrID, kravidentSKE $kravIdentifikatorSke, kravtype (BARE NYTT), responsestatus $responseStatus")
+            con.updateSendtKrav(corrID, kravIdentifikatorSke, responseStatus)
         }
     }
+
+    private fun updateSendtKrav(
+        corrID: String,
+        responseStatus: String
+    ) {
+        postgresDataSource.connection.useAndHandleErrors { con ->
+            println("Updating krav med corrID $corrID, kravidentSKE (NONE), responsestatus $responseStatus")
+            con.updateSendtKrav(corrID, responseStatus)
+        }
+    }
+
     fun saveAllNewKrav(
         kravLinjer: List<KravLinje>,
     ) {
@@ -93,46 +103,61 @@ class DatabaseService(
         }
     }
 
-    fun saveFeilmelding(feilMelding: FeilmeldingTable){
+    fun saveFeilmelding(feilMelding: FeilmeldingTable) {
         postgresDataSource.connection.useAndHandleErrors { con ->
             con.saveErrorMessage(feilMelding)
         }
     }
 
-    private suspend fun determineStatus(responses: Map<String, SkeService.RequestResult>, response: HttpResponse): String {
+    private suspend fun determineStatus(
+        responses: Map<String, SkeService.RequestResult>,
+        response: HttpResponse
+    ): String {
         return if (responses.filter { resp -> resp.value.response.status.isSuccess() }.size == responses.size) Status.KRAV_SENDT.value
         else if (response.status.isSuccess()) Status.FEIL_MED_ENDRING.value
         else {
             val feilResponse = response.body<FeilResponse>()
             if (feilResponse.status == 404 && feilResponse.type.contains("innkrevingsoppdrag-eksisterer-ikke")) Status.FANT_IKKE_SAKSREF.value
             else if (feilResponse.status == 409 && feilResponse.detail.contains("reskontroført")) Status.IKKE_RESKONTROFORT.value
-            else "UKJENT STATUS: ${responses.map { resp -> "${resp.value.response.status.value}: ${ resp.value.response.body<FeilResponse>().type}" }}"
+            else "UKJENT STATUS: ${responses.map { resp -> "${resp.value.response.status.value}: ${resp.value.response.body<FeilResponse>().type}" }}"
         }
 
     }
 
-    suspend fun updateSentKravToDatabase(responses: Map<String, SkeService.RequestResult>, krav: KravLinje, kravident: String) {
-        var kravidentToBeSaved = kravident
+    suspend fun updateSentKravToDatabase(
+        responses: Map<String, SkeService.RequestResult>,
+    ) {
         responses.forEach { entry ->
 
             Metrics.numberOfKravSent.inc()
-            Metrics.typeKravSent.labels(krav.stonadsKode).inc()
+            Metrics.typeKravSent.labels(entry.value.krav.stonadsKode).inc()
 
             val statusString = determineStatus(responses, entry.value.response)
 
-            if (!krav.isNyttKrav() && kravidentToBeSaved == krav.referanseNummerGammelSak) kravidentToBeSaved = ""
-
-            updateSendtKrav(
-                kravidentToBeSaved,
-                entry.value.corrId,
-                entry.key,
-                statusString
-            )
+            if (entry.value.krav.isNyttKrav())
+                updateSendtKrav(
+                    entry.value.kravIdentifikator,
+                    entry.value.corrId,
+                    statusString
+                )
+            else
+                updateSendtKrav(
+                    entry.value.corrId,
+                    statusString
+                )
         }
 
     }
-    suspend fun saveErrorMessageToDatabase(request: String, response: HttpResponse, krav: KravLinje, kravIdentifikator: String, corrID: String) {
-        val kravIdentifikatorSke = if (kravIdentifikator == krav.saksNummer || kravIdentifikator == krav.referanseNummerGammelSak) "" else kravIdentifikator
+
+    suspend fun saveErrorMessageToDatabase(
+        request: String,
+        response: HttpResponse,
+        krav: KravLinje,
+        kravIdentifikator: String,
+        corrID: String
+    ) {
+        val kravIdentifikatorSke =
+            if (kravIdentifikator == krav.saksNummer || kravIdentifikator == krav.referanseNummerGammelSak) "" else kravIdentifikator
 
         val feilResponse = response.body<FeilResponse>()
 

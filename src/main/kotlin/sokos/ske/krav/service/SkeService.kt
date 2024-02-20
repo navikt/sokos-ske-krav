@@ -5,20 +5,18 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.datetime.Clock
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
-import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
-import sokos.ske.krav.util.*
+import sokos.ske.krav.util.LineValidator
+import sokos.ske.krav.util.isEndring
+import sokos.ske.krav.util.isNyttKrav
+import sokos.ske.krav.util.isStopp
 import java.time.LocalDateTime
-import java.util.*
-import kotlin.collections.set
 
 
 const val NYTT_KRAV = "NYTT_KRAV"
@@ -29,6 +27,9 @@ const val STOPP_KRAV = "STOPP_KRAV"
 
 class SkeService(
     private val skeClient: SkeClient,
+    private val stoppKravService: StoppKravService,
+    private val endreKravService: EndreKravService,
+    private val opprettKravService: OpprettKravService,
     private val databaseService: DatabaseService = DatabaseService(),
     private val ftpService: FtpService = FtpService(),
 ) {
@@ -48,12 +49,10 @@ class SkeService(
         val files = ftpService.getValidatedFiles()
         logger.info("*******************${LocalDateTime.now()}*******************")
         logger.info("Starter innsending av ${files.size} filer")
-        val fnrListe = getFnrListe()
-        val fnrIter = fnrListe.listIterator()
 
         val responses = files.map { file ->
             logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
-            sendKrav(file, fnrIter, fnrListe)
+            sendKrav(file)
         }
 
         files.forEach { file -> ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
@@ -72,155 +71,43 @@ class SkeService(
 
     private suspend fun sendKrav(
         file: FtpFil,
-        fnrIter: ListIterator<String>,
-        fnrListe: List<String>
     ): List<HttpResponse> {
-        var fnrIter1 = fnrIter
 
         val linjer = file.kravLinjer.filter { LineValidator.validateLine(it, file.name) }
 
         databaseService.saveAllNewKrav(linjer)
 
+        val responsesMap = mutableMapOf<String, RequestResult>()
         val allResponses = mutableListOf<RequestResult>()
 
+        responsesMap.putAll(
+            stoppKravService.sendAllStopKrav(linjer.filter { it.isStopp() }))
+        responsesMap.putAll(
+            endreKravService.sendAllEndreKrav(linjer.filter { it.isEndring() }))
+        responsesMap.putAll(
+            opprettKravService.sendAllOpprettKrav(linjer.filter { it.isNyttKrav() }))
+
+        databaseService.updateSentKravToDatabase(responsesMap)
 
 
-
-
-        linjer.forEach {
-            Metrics.numberOfKravRead.inc()
-            val responsesMap = mutableMapOf<String, RequestResult>()
-
-            val substfnr = if (fnrIter1.hasNext()) {
-                fnrIter1.next()
-            } else {
-                fnrIter1 = fnrListe.listIterator(0)
-                fnrIter1.next()
-            }
-
-            var kravIdentifikator = databaseService.getSkeKravident(it.referanseNummerGammelSak)
-            var kravIdentifikatorType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
-
-            if (kravIdentifikator.isEmpty() && !it.isNyttKrav()) {
-                kravIdentifikator = it.referanseNummerGammelSak
-                kravIdentifikatorType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
-            }
-            when {
-                it.isStopp() -> {
-                    val response = sendStoppKrav(kravIdentifikator, kravIdentifikatorType, it)
-                    responsesMap[STOPP_KRAV] = response
-                }
-
-                it.isEndring() -> {
-                    val endreResponses = sendEndreKrav(kravIdentifikator, kravIdentifikatorType, it)
-                    responsesMap.putAll(endreResponses)
-                }
-
-                it.isNyttKrav() -> {
-                    val response = sendOpprettKrav(it, substfnr)
-                    if (response.response.status.isSuccess()) kravIdentifikator =
-                        response.response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
-
-                    responsesMap[NYTT_KRAV] = response
-                }
-            }
-
-            databaseService.updateSentKravToDatabase(responsesMap, it, kravIdentifikator)
+        Metrics.numberOfKravRead.inc()
 
             allResponses.addAll(responsesMap.values)
-        }
 
         allResponses.filter { !it.response.status.isSuccess() }
-            .forEach(){
-                databaseService.saveErrorMessageToDatabase(it.request, it.response, it.krav, it.kravIdentifikator, it.corrId)
+            .forEach() {
+                databaseService.saveErrorMessageToDatabase(
+                    it.request,
+                    it.response,
+                    it.krav,
+                    it.kravIdentifikator,
+                    it.corrId
+                )
             }
 
         return emptyList()  //TODO TJA HVA DA
     }
 
-
-    private suspend fun sendStoppKrav(
-        kravIdentifikator: String,
-        kravIdentifikatorType: Kravidentifikatortype,
-        krav: KravLinje
-    ): RequestResult {
-        val request = makeStoppKravRequest(kravIdentifikator, kravIdentifikatorType)
-        val response = skeClient.stoppKrav(request, krav.corrId)
-
-        val requestResult = RequestResult(
-            response = response,
-            request = Json.encodeToString(request),
-            krav = krav,
-            kravIdentifikator = kravIdentifikator,
-            corrId = krav.corrId
-        )
-
-        return requestResult
-    }
-
-    private suspend fun sendEndreKrav(
-        kravIdentifikator: String,
-        kravIdentifikatorType: Kravidentifikatortype,
-        krav: KravLinje,
-    ): Map<String, RequestResult> {
-
-
-        if (!krav.saksNummer.equals(krav.referanseNummerGammelSak)) {
-            skeClient.endreOppdragsGiversReferanse(
-                makeNyOppdragsgiversReferanseRequest(krav),
-                kravIdentifikator,
-                kravIdentifikatorType,
-                UUID.randomUUID().toString()
-            )
-        }
-
-        val endreRenterRequest = makeEndreRenteRequest(krav)
-        val endreRenterResponse = skeClient.endreRenter(endreRenterRequest, kravIdentifikator, kravIdentifikatorType, krav.corrId)
-
-        val requestResultEndreRente = RequestResult(
-            response = endreRenterResponse,
-            request = Json.encodeToString(endreRenterRequest),
-            krav = krav,
-            kravIdentifikator = "",
-            corrId = krav.corrId
-        )
-
-        val corrIdHovedStol = UUID.randomUUID().toString()
-        val endreHovedstolRequest = makeEndreHovedstolRequest(krav)
-        val endreHovedstolResponse =
-            skeClient.endreHovedstol(endreHovedstolRequest, kravIdentifikator, kravIdentifikatorType, corrIdHovedStol)
-
-        val requestResultEndreHovedstol = RequestResult(
-            response = endreHovedstolResponse,
-            request = Json.encodeToString(endreHovedstolRequest),
-            krav = krav,
-            kravIdentifikator = "",
-            corrId = corrIdHovedStol
-        )
-
-        val responseMap = mapOf(ENDRE_RENTER to requestResultEndreRente, ENDRE_HOVEDSTOL to requestResultEndreHovedstol)
-        return responseMap
-    }
-
-    private suspend fun sendOpprettKrav(krav: KravLinje, substfnr: String): RequestResult {
-        val opprettKravRequest = makeOpprettKravRequest(
-            krav.copy(
-                gjelderID =
-                if (krav.gjelderID.startsWith("00")) krav.gjelderID else substfnr
-            ), databaseService.insertNewKobling(krav.saksNummer, krav.corrId)
-        )
-        val response = skeClient.opprettKrav(opprettKravRequest, krav.corrId)
-
-        val requestResult = RequestResult(
-            response = response,
-            request = Json.encodeToString(opprettKravRequest),
-            krav = krav,
-            kravIdentifikator = "",
-            corrId = krav.corrId
-        )
-
-        return requestResult
-    }
 
     private fun handleHvaFGjorViNaa(krav: KravLinje) {
         logger.error(
@@ -231,6 +118,7 @@ class SkeService(
                     """
             // hva faen gjør vi nå??
             // Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
+            //og de ikke kjenner igjen refnummer vi sender inn
         )
     }
 
@@ -242,7 +130,7 @@ class SkeService(
         val krav = databaseService.hentAlleKravSomIkkeErReskotrofort()
         println("antall krav som ikke er reskontroført: ${krav.size}")
         var tidSiste = Clock.System.now()
-        var tidHentAlleKrav = (tidSiste-start).inWholeMilliseconds
+        var tidHentAlleKrav = (tidSiste - start).inWholeMilliseconds
         var tidHentMottakstatus = 0L
         var tidOppdaterstatus = 0L
         val result = krav.map {
@@ -275,7 +163,7 @@ class SkeService(
                     logger.error("Response er ikke på forventet format for MottaksStatusResponse : ${e.message}")
                     throw e
                 }
-            } else{
+            } else {
                 println(response.status)
             }
             "Status ok: ${response.status.value}, ${response.bodyAsText()}"

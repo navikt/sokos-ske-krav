@@ -32,6 +32,7 @@ create table "feilmelding"
 (
     id                    bigserial primary key,
     kravId                bigserial,
+    corr_id               text,
     saksnummer            text,
     kravidentifikator_ske text,
     error                 text,
