@@ -115,12 +115,14 @@ object Repository {
                     status = ?,
                     corr_id = ?
                 where 
-                    corr_id = ?
+                    corr_id = ? and
+                    kravtype = ?
             """.trimIndent()
         ).withParameters(
             param(responseStatus),
             param(saveCorrID),
             param(searchCorrID),
+            param(type)
         ).execute()
         commit()
     }

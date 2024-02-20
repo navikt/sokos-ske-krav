@@ -137,49 +137,43 @@ class DatabaseService(
     }
 
     suspend fun updateSentKravToDatabase(
-        responses:  List<Map<String, SkeService.RequestResult>>,
+        responses: List<Map<String, SkeService.RequestResult>>,
     ) {
         responses.forEach {
-            it.entries.forEach {
-            entry ->
-
+            it.entries.forEach { entry ->
                 val statusString = determineStatus(it, entry.value.response)
-                     if(entry.value.kravIdentifikator.isEmpty() ) println("HALLO NÅ SKAL DEN LAGRES???? ${entry.key}")
-
+                if (entry.value.kravIdentifikator.isEmpty()) println("HALLO NÅ SKAL DEN LAGRES???? ${entry.key}")
 
                 Metrics.numberOfKravSent.inc()
-            Metrics.typeKravSent.labels(entry.value.krav.stonadsKode).inc()
+                Metrics.typeKravSent.labels(entry.value.krav.stonadsKode).inc()
 
+                when {
+                    entry.value.krav.isNyttKrav() ->
+                        updateSendtKrav(
+                            entry.value.kravIdentifikator,
+                            entry.value.corrId,
+                            statusString
+                        )
 
+                    (entry.value.corrId == entry.value.krav.corrId) ->
+                        updateSendtKrav(
+                            entry.value.corrId,
+                            statusString
+                        )
 
-            if (entry.value.krav.isNyttKrav())
-                updateSendtKrav(
-                    entry.value.kravIdentifikator,
-                    entry.value.corrId,
-                    statusString
-                )
-            else
-            {   if(entry.value.corrId == entry.value.krav.corrId) {
-                updateSendtKrav(
-                    entry.value.corrId,
-                    statusString
-                )
-            }  else{
-                updateSendtKrav(
-                    entry.value.corrId,
-                    entry.value.krav.corrId,
-                    entry.key,
-                    statusString
-                )
+                    else ->
+                        updateSendtKrav(
+                            entry.value.corrId,
+                            entry.value.krav.corrId,
+                            entry.key,
+                            statusString
+                        )
+                }
+
             }
 
-            }
-
-        }  }
-
+        }
     }
-
-
 
     suspend fun saveErrorMessageToDatabase(
         request: String,
