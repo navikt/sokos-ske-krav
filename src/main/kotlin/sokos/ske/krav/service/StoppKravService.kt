@@ -13,12 +13,17 @@ class StoppKravService(
     private val databaseService: DatabaseService = DatabaseService()
 ) {
 
-    suspend fun sendAllStopKrav(kravList: List<KravLinje>) =
-        kravList.map {
+    suspend fun sendAllStopKrav(kravList: List<KravLinje>): List<Map<String, SkeService.RequestResult>> {
+       val result = kravList.map {
             val skeKravident = databaseService.getSkeKravident(it.referanseNummerGammelSak)
             val kravidentifikatorPair = createKravidentifikatorPair(it, skeKravident)
-            mapOf(STOPP_KRAV to sendStoppKrav(kravidentifikatorPair.first, kravidentifikatorPair.second, it))
-        }.flatMap { it.entries }.associate { it.key to it.value }
+         mapOf(STOPP_KRAV to sendStoppKrav(kravidentifikatorPair.first, kravidentifikatorPair.second, it))
+
+        }
+       return result
+
+    }
+
 
     suspend fun sendStoppKrav(
         kravIdentifikator: String,

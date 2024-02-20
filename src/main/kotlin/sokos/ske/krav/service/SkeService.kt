@@ -77,22 +77,26 @@ class SkeService(
 
         databaseService.saveAllNewKrav(linjer)
 
-        val responsesMap = mutableMapOf<String, RequestResult>()
+        val requestResults = mutableListOf<Map<String, RequestResult>>()
         val allResponses = mutableListOf<RequestResult>()
 
-        responsesMap.putAll(
+
+        requestResults.addAll(
             stoppKravService.sendAllStopKrav(linjer.filter { it.isStopp() }))
-        responsesMap.putAll(
+        requestResults.addAll(
             endreKravService.sendAllEndreKrav(linjer.filter { it.isEndring() }))
-        responsesMap.putAll(
+        requestResults.addAll(
             opprettKravService.sendAllOpprettKrav(linjer.filter { it.isNyttKrav() }))
 
-        databaseService.updateSentKravToDatabase(responsesMap)
+
+
+
+        databaseService.updateSentKravToDatabase(requestResults)
 
 
         Metrics.numberOfKravRead.inc()
 
-            allResponses.addAll(responsesMap.values)
+        allResponses.addAll(requestResults.flatMap { it.values })
 
         allResponses.filter { !it.response.status.isSuccess() }
             .forEach() {

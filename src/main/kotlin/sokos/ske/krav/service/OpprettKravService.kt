@@ -16,13 +16,13 @@ class OpprettKravService(
     private val databaseService: DatabaseService = DatabaseService()
 ) {
 
-    suspend fun sendAllOpprettKrav(kravList: List<KravLinje>): Map<String, SkeService.RequestResult> {
+    suspend fun sendAllOpprettKrav(kravList: List<KravLinje>): List<Map<String, SkeService.RequestResult>>  {
         val fnrListe = getFnrListe()
         val fnrIter = fnrListe.listIterator()
 
         return kravList.map {
             mapOf(NYTT_KRAV to sendOpprettKrav(it, getNewFnr(fnrListe, fnrIter)))
-        }.flatMap { it.entries }.associate { it.key to it.value }
+        }
     }
 
 

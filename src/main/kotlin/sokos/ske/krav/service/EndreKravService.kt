@@ -16,19 +16,23 @@ class EndreKravService(
     private val databaseService: DatabaseService = DatabaseService()
 ) {
 
-    suspend fun sendAllEndreKrav(kravList: List<KravLinje>) =
-        kravList.map {
-            val skeKravident = databaseService.getSkeKravident(it.referanseNummerGammelSak)
-            val kravidentifikatorPair = createKravidentifikatorPair(it, skeKravident)
-            sendEndreKrav(kravidentifikatorPair.first, kravidentifikatorPair.second, it)
-        }.flatMap { it.entries }.associate { it.key to it.value }
+    suspend fun sendAllEndreKrav(kravList: List<KravLinje>) :List<Map<String, SkeService.RequestResult>>
+    {
+        val resultList = kravList.map {
+                val skeKravident = databaseService.getSkeKravident(it.referanseNummerGammelSak)
+                val kravidentifikatorPair = createKravidentifikatorPair(it, skeKravident)
+                sendEndreKrav(kravidentifikatorPair.first, kravidentifikatorPair.second, it)
+            }.flatten()
+
+        return resultList
+    }
 
 
     suspend fun sendEndreKrav(
         kravIdentifikator: String,
         kravIdentifikatorType: Kravidentifikatortype,
         krav: KravLinje,
-    ): Map<String, SkeService.RequestResult> {
+    ): List<Map<String, SkeService.RequestResult>> {
 
 
         if (!krav.saksNummer.equals(krav.referanseNummerGammelSak)) {
@@ -63,9 +67,10 @@ class EndreKravService(
             kravIdentifikator = "",
             corrId = corrIdHovedStol
         )
+        val maps = listOf(mapOf(ENDRE_RENTER to requestResultEndreRente), mapOf( ENDRE_HOVEDSTOL to requestResultEndreHovedstol))
 
-        val responseMap = mapOf(ENDRE_RENTER to requestResultEndreRente, ENDRE_HOVEDSTOL to requestResultEndreHovedstol)
-        return responseMap
+
+        return maps
     }
 
 

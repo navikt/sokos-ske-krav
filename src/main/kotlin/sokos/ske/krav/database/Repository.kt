@@ -56,6 +56,7 @@ object Repository {
         corrID: String,
         responseStatus: String
     ) {
+        println("Oppdaterer endring av krav med corrID $corrID")
         prepareStatement(
             """
                 update krav 
@@ -72,11 +73,14 @@ object Repository {
         commit()
     }
 
+
+
     fun Connection.updateSendtKrav(
         corrID: String,
         kravIdentifikatorSke: String,
         responseStatus: String
     ) {
+        println("Oppdaterer nytt krav med corrID $corrID")
 
         prepareStatement(
             """
@@ -95,6 +99,32 @@ object Repository {
         ).execute()
         commit()
     }
+
+    fun Connection.updateSendtKrav(
+        saveCorrID: String,
+        searchCorrID:String,
+        type: String,
+        responseStatus: String
+    ) {
+        println("Oppdaterer endring av krav! setter corrid til ${saveCorrID} fra $searchCorrID")
+        prepareStatement(
+            """
+                update krav 
+                    set dato_sendt = NOW(), 
+                    dato_siste_status = NOW(),
+                    status = ?,
+                    corr_id = ?
+                where 
+                    corr_id = ?
+            """.trimIndent()
+        ).withParameters(
+            param(responseStatus),
+            param(saveCorrID),
+            param(searchCorrID),
+        ).execute()
+        commit()
+    }
+
 
     fun Connection.insertNewKrav(
         kravidentSKE: String,
@@ -197,7 +227,6 @@ object Repository {
                 it.isEndring() -> ENDRE_HOVEDSTOL
                 else -> NYTT_KRAV
             }
-            println(it)
             prepStmt.setString(1, it.saksNummer)
             prepStmt.setDouble(2, it.belop.toDouble())
             prepStmt.setDate(3, Date.valueOf(it.vedtakDato))
@@ -246,7 +275,6 @@ object Repository {
     }
 
     fun Connection.getSkeKravIdent(navref: String): String {
-        println(navref)
         val rs = prepareStatement(
             """
             select id, kravidentifikator_ske from krav

@@ -83,6 +83,18 @@ class DatabaseService(
         }
     }
 
+    private fun updateSendtKrav(
+        saveCorrID: String,
+        searchCorrID: String,
+        type: String,
+        responseStatus: String
+    ) {
+        postgresDataSource.connection.useAndHandleErrors { con ->
+
+            con.updateSendtKrav(saveCorrID, searchCorrID, type, responseStatus)
+        }
+    }
+
     fun saveAllNewKrav(
         kravLinjer: List<KravLinje>,
     ) {
@@ -125,14 +137,20 @@ class DatabaseService(
     }
 
     suspend fun updateSentKravToDatabase(
-        responses: Map<String, SkeService.RequestResult>,
+        responses:  List<Map<String, SkeService.RequestResult>>,
     ) {
-        responses.forEach { entry ->
+        responses.forEach {
+            it.entries.forEach {
+            entry ->
 
-            Metrics.numberOfKravSent.inc()
+                val statusString = determineStatus(it, entry.value.response)
+                     if(entry.value.kravIdentifikator.isEmpty() ) println("HALLO NÅ SKAL DEN LAGRES???? ${entry.key}")
+
+
+                Metrics.numberOfKravSent.inc()
             Metrics.typeKravSent.labels(entry.value.krav.stonadsKode).inc()
 
-            val statusString = determineStatus(responses, entry.value.response)
+
 
             if (entry.value.krav.isNyttKrav())
                 updateSendtKrav(
@@ -141,13 +159,27 @@ class DatabaseService(
                     statusString
                 )
             else
+            {   if(entry.value.corrId == entry.value.krav.corrId) {
                 updateSendtKrav(
                     entry.value.corrId,
                     statusString
                 )
-        }
+            }  else{
+                updateSendtKrav(
+                    entry.value.corrId,
+                    entry.value.krav.corrId,
+                    entry.key,
+                    statusString
+                )
+            }
+
+            }
+
+        }  }
 
     }
+
+
 
     suspend fun saveErrorMessageToDatabase(
         request: String,
