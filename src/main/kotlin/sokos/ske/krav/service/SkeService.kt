@@ -162,7 +162,7 @@ class SkeService(
         corrID: String
     ): Map<String, RequestResult> {
 
-        //skeClient.endreOppdragsGiversReferanse(lagNyOppdragsgiversReferanseRequest(linje), kravIdentifikator, kravIdentifikatorType)
+        skeClient.endreOppdragsGiversReferanse(makeNyOppdragsgiversReferanseRequest(krav), kravIdentifikator, kravIdentifikatorType)
 
         val endreRenterRequest = makeEndreRenteRequest(krav)
         val endreRenterResponse = skeClient.endreRenter(endreRenterRequest, kravIdentifikator, kravIdentifikatorType, corrID)

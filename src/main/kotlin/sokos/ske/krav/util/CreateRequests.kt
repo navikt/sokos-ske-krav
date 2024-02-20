@@ -2,19 +2,7 @@ package sokos.ske.krav.util
 
 import kotlinx.datetime.toKotlinLocalDate
 import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.domain.ske.requests.AvskrivingRequest
-import sokos.ske.krav.domain.ske.requests.NyHovedStolRequest
-import sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
-import sokos.ske.krav.domain.ske.requests.HovedstolBeloep
-import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
-import sokos.ske.krav.domain.ske.requests.NyOppdragsgiversReferanseRequest
-import sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
-import sokos.ske.krav.domain.ske.requests.RenteBeloep
-import sokos.ske.krav.domain.ske.requests.Skyldner
-import sokos.ske.krav.domain.ske.requests.TilbakeKrevingsPeriode
-import sokos.ske.krav.domain.ske.requests.TilleggsinformasjonNav
-import sokos.ske.krav.domain.ske.requests.Valuta
-import sokos.ske.krav.domain.ske.requests.YtelseForAvregningBeloep
+import sokos.ske.krav.domain.ske.requests.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
@@ -65,7 +53,7 @@ fun makeEndreRenteRequest(krav: KravLinje): EndreRenteBeloepRequest = EndreRente
 fun makeEndreHovedstolRequest(krav: KravLinje): NyHovedStolRequest =
     NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.toDouble().roundToLong()))
 
-fun lagNyOppdragsgiversReferanseRequest(krav: KravLinje) = NyOppdragsgiversReferanseRequest(krav.saksNummer)
+fun makeNyOppdragsgiversReferanseRequest(krav: KravLinje) = NyOppdragsgiversReferanseRequest(krav.saksNummer)
 fun makeStoppKravRequest(nyref: String, kravidentifikatortype: Kravidentifikatortype)
 = AvskrivingRequest(kravidentifikatortype.value, kravidentifikator = nyref)
 fun KravLinje.isNyttKrav() = (!this.isEndring() && !this.isStopp())
