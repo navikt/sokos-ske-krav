@@ -231,10 +231,11 @@ object Repository {
         val rs = prepareStatement(
             """
             select id, kravidentifikator_ske from krav
-            where saksnummer_nav = ? order by id desc limit 1
+            where saksnummer_nav = ? and krav.kravtype = ? order by id desc limit 1
         """.trimIndent()
         ).withParameters(
-            param(navref)
+            param(navref),
+            param(NYTT_KRAV)
         ).executeQuery()
         return if (rs.next())
             rs.getColumn("kravidentifikator_ske")
