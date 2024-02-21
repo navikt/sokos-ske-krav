@@ -20,7 +20,6 @@ import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.util.TestContainer
 
 
-@Ignored
 internal class SkeServiceTest : FunSpec({
 
 
@@ -87,7 +86,7 @@ internal class SkeServiceTest : FunSpec({
 
     test("Kravdata skal lagres i database etter å ha sendt nye krav til SKE") {
         val mocks: Pair<SkeService, HikariDataSource> =
-            setupMocks(listOf("FilMedOrgNr.txt"), HttpStatusCode.OK, this.testCase.name.testName)
+            setupMocks(listOf("FilMedBare10Linjer.txt"), HttpStatusCode.OK, this.testCase.name.testName)
         mocks.first.sendNewFilesToSKE()
 
         val rs = mocks.second.connection.prepareStatement(
@@ -100,7 +99,7 @@ internal class SkeServiceTest : FunSpec({
         val kravdata = rs.getInt("a")
 
 
-        kravdata shouldBe 8  // 101 krav + 2 fordi det skal være to endringer og hver endring = 2 rader i DB
+        kravdata shouldBe 10 
 
     }
     test("Kravdata skal lagres med type som beskriver hva slags krav det er") {
