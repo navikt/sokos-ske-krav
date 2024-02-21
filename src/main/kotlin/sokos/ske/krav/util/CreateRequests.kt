@@ -2,6 +2,7 @@ package sokos.ske.krav.util
 
 import kotlinx.datetime.toKotlinLocalDate
 import sokos.ske.krav.domain.nav.KravLinje
+import sokos.ske.krav.domain.nav.KravtypeMappingFromNAVToSKE
 import sokos.ske.krav.domain.ske.requests.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

@@ -2,6 +2,7 @@ package sokos.ske.krav.util
 
 import mu.KotlinLogging
 import sokos.ske.krav.domain.nav.KravLinje
+import sokos.ske.krav.domain.nav.KravtypeMappingFromNAVToSKE
 import sokos.ske.krav.metrics.Metrics
 
 private val secureLogger = KotlinLogging.logger ("secureLogger" )

@@ -3,7 +3,7 @@ package sokos.ske.krav.domain.ske.requests
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import sokos.ske.krav.util.KravtypeMappingFromNAVToSKE
+import sokos.ske.krav.domain.nav.KravtypeMappingFromNAVToSKE
 
 @Serializable
 @SerialName("opprettInnkrevingsoppdrag")
