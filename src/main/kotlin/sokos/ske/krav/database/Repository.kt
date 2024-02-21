@@ -20,7 +20,6 @@ import sokos.ske.krav.util.isEndring
 import sokos.ske.krav.util.isStopp
 import java.sql.Connection
 import java.sql.Date
-import java.sql.ResultSet
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -349,7 +348,7 @@ object Repository {
         prepareStatement(
             """
                 insert into feilmelding (
-                kravid,
+                    kravid,
                     saksnummer,
                     kravidentifikator_ske,
                     corr_id,
@@ -359,7 +358,7 @@ object Repository {
                     skeResponse,
 					dato
                 ) 
-                values (?, ?, ?, ?, ?, ?, ?, ?)
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
         ).withParameters(
             param(feilmelding.kravId),
@@ -418,14 +417,14 @@ object Repository {
         ).executeQuery().toKobling()
     }
 
-    fun Connection.getDivInfo(): ResultSet? {
+    fun Connection.getDivInfo(): String {
         return prepareStatement(
             """
                 select a.id as kravid, a.kravtype as kravt, a.corr_id as corrida,
-                  b.corrid as corridb, b.kravId as karvidB, b.navrequest as req
+                  b.corr_id as corridb, b.kravId as karvidB, b.navrequest as req
                   from krav a, feilmelding b
                   where a.id = b.kravid
-            """.trimIndent()).executeQuery()
+            """.trimIndent()).executeQuery().toString()
 
     }
 

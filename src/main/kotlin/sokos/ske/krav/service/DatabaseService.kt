@@ -27,7 +27,6 @@ import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.isNyttKrav
-import java.sql.ResultSet
 import java.time.LocalDateTime
 
 class DatabaseService(
@@ -225,10 +224,10 @@ class DatabaseService(
         }
     }
 
-    fun getDivInfo(): ResultSet? {
+    fun getDivInfo(): String? {
         postgresDataSource.connection.useAndHandleErrors {
             con ->
-            return con.getDivInfo()
+            return con.getDivInfo().also { println("RESULTAT: $it") }
         }
     }
 }
