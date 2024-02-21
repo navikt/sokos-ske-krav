@@ -19,9 +19,12 @@ class EndreKravService(
     suspend fun sendAllEndreKrav(kravList: List<KravLinje>) :List<Map<String, SkeService.RequestResult>>
     {
         val resultList = kravList.map {
-                val skeKravident = databaseService.getSkeKravident(it.referanseNummerGammelSak)
+            //hvis vi har to corrid ta bvare på den ekstra
+            ///ellers lag en ny UUID
+            val hovedstolCorrId = UUID.randomUUID().toString()
+            val skeKravident = databaseService.getSkeKravident(it.referanseNummerGammelSak)
                 val kravidentifikatorPair = createKravidentifikatorPair(it, skeKravident)
-                sendEndreKrav(kravidentifikatorPair.first, kravidentifikatorPair.second, it)
+                sendEndreKrav(kravidentifikatorPair.first, kravidentifikatorPair.second, it, hovedstolCorrId )
             }.flatten()
 
         return resultList
@@ -32,6 +35,7 @@ class EndreKravService(
         kravIdentifikator: String,
         kravIdentifikatorType: Kravidentifikatortype,
         krav: KravLinje,
+        hovedstolCorrId: String,
     ): List<Map<String, SkeService.RequestResult>> {
 
 
@@ -55,17 +59,16 @@ class EndreKravService(
             corrId = krav.corrId
         )
 
-        val corrIdHovedStol = UUID.randomUUID().toString()
         val endreHovedstolRequest = makeEndreHovedstolRequest(krav)
         val endreHovedstolResponse =
-            skeClient.endreHovedstol(endreHovedstolRequest, kravIdentifikator, kravIdentifikatorType, corrIdHovedStol)
+            skeClient.endreHovedstol(endreHovedstolRequest, kravIdentifikator, kravIdentifikatorType, hovedstolCorrId)
 
         val requestResultEndreHovedstol = SkeService.RequestResult(
             response = endreHovedstolResponse,
             request = Json.encodeToString(endreHovedstolRequest),
             krav = krav,
             kravIdentifikator = "",
-            corrId = corrIdHovedStol
+            corrId = hovedstolCorrId
         )
         val maps = listOf(mapOf(ENDRE_RENTER to requestResultEndreRente), mapOf( ENDRE_HOVEDSTOL to requestResultEndreHovedstol))
 
