@@ -44,8 +44,6 @@ class EndreKravService(
             )
         }
 
-        println("Endring Krav.corrid er: ${krav.corrId}")
-
         val endreRenterRequest = makeEndreRenteRequest(krav)
         val endreRenterResponse = skeClient.endreRenter(endreRenterRequest, kravIdentifikator, kravIdentifikatorType, krav.corrId)
 

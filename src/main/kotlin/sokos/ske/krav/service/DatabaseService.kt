@@ -26,7 +26,6 @@ import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
-import sokos.ske.krav.util.isEndring
 import sokos.ske.krav.util.isNyttKrav
 import java.time.LocalDateTime
 
@@ -70,7 +69,6 @@ class DatabaseService(
         responseStatus: String
     ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            println("Updating krav med corrID $corrID, kravidentSKE $kravIdentifikatorSke, kravtype (BARE NYTT), responsestatus $responseStatus")
             con.updateSendtKrav(corrID, kravIdentifikatorSke, responseStatus)
         }
     }
@@ -80,7 +78,6 @@ class DatabaseService(
         responseStatus: String
     ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            println("Updating krav med corrID $corrID, kravidentSKE (NONE), responsestatus $responseStatus")
             con.updateSendtKrav(corrID, responseStatus)
         }
     }
@@ -144,13 +141,10 @@ class DatabaseService(
         responses.forEach {
             it.entries.forEach { entry ->
                 val statusString = determineStatus(it, entry.value.response)
-                if (entry.value.kravIdentifikator.isEmpty()) println("HALLO NÅ SKAL DEN LAGRES???? ${entry.key}")
 
                 Metrics.numberOfKravSent.inc()
                 Metrics.typeKravSent.labels(entry.value.krav.stonadsKode).inc()
 
-                print("DETTE ER EN ")
-                if (entry.value.krav.isEndring()) println("ENDRING") else println("IKKE endring")
 
                 when {
                     entry.value.krav.isNyttKrav() ->
@@ -167,7 +161,6 @@ class DatabaseService(
                         )
 
                     else -> {
-                        println("SÅ OPPDATER DA FOR F*********")
                         updateSendtKrav(
                             entry.value.corrId,
                             entry.value.krav.corrId,
@@ -233,7 +226,7 @@ class DatabaseService(
     fun getDivInfo(): String? {
         postgresDataSource.connection.useAndHandleErrors {
             con ->
-            return con.getDivInfo().also { println("RESULTAT: $it") }
+            return con.getDivInfo()
         }
     }
 }

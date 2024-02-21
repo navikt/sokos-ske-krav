@@ -55,7 +55,6 @@ object Repository {
         corrID: String,
         responseStatus: String
     ) {
-        println("Oppdaterer endring av krav med corrID $corrID")
         prepareStatement(
             """
                 update krav 
@@ -103,7 +102,6 @@ object Repository {
         type: String,
         responseStatus: String
     ) {
-        println("Oppdaterer endring av krav! setter corrid til ${saveCorrID} fra $searchCorrID")
         prepareStatement(
             """
                 update krav 
