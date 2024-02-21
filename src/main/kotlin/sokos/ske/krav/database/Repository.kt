@@ -345,13 +345,14 @@ object Repository {
         commit()
     }
 
-    fun Connection.saveErrorMessage(feilmelding: FeilmeldingTable) {
+    fun Connection.saveErrorMessage(feilmelding: FeilmeldingTable, corrID: String) {
         prepareStatement(
             """
                 insert into feilmelding (
                 kravid,
                     saksnummer,
                     kravidentifikator_ske,
+                    corr_id,
                     error,
 				    melding,
 					navRequest,
@@ -363,6 +364,7 @@ object Repository {
         ).withParameters(
             param(feilmelding.kravId),
             param(feilmelding.saksnummer),
+            param(corrID),
             param(feilmelding.kravidentifikatorSKE),
             param(feilmelding.error),
             param(feilmelding.melding),
@@ -424,7 +426,7 @@ object Repository {
                   from krav a, feilmelding b
                   where a.id = b.kravid
             """.trimIndent()).executeQuery()
-        
+
     }
 
 }

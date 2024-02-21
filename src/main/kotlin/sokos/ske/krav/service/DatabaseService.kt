@@ -117,9 +117,9 @@ class DatabaseService(
         }
     }
 
-    fun saveFeilmelding(feilMelding: FeilmeldingTable) {
+    fun saveFeilmelding(feilMelding: FeilmeldingTable, corrID: String) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.saveErrorMessage(feilMelding)
+            con.saveErrorMessage(feilMelding, corrID)
         }
     }
 
@@ -204,7 +204,7 @@ class DatabaseService(
             LocalDateTime.now()
         )
 
-        saveFeilmelding(feilmelding)
+        saveFeilmelding(feilmelding, corrID)
     }
 
     fun hentAlleKravSomIkkeErReskotrofort(): List<KravTable> {
