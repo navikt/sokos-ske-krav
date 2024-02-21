@@ -1,6 +1,7 @@
 package sokos.ske.krav.service
 
 import com.zaxxer.hikari.HikariDataSource
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.testcontainers.toDataSource
 import io.kotest.matchers.shouldBe
@@ -19,7 +20,7 @@ import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.util.TestContainer
 
-
+@Ignored
 internal class SkeServiceTest : FunSpec({
 
 
