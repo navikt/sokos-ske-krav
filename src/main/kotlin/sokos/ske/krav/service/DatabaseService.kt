@@ -143,7 +143,7 @@ class DatabaseService(
                 val statusString = determineStatus(it, entry.value.response)
 
                 Metrics.numberOfKravSent.inc()
-                Metrics.typeKravSent.labels(entry.value.krav.stonadsKode).inc()
+                Metrics.typeKravSent.labels(entry.value.krav.kravKode).inc()
 
 
                 when {

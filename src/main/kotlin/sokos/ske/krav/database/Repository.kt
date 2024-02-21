@@ -167,7 +167,7 @@ object Repository {
             param(kravLinje.gjelderID),
             param(kravLinje.periodeFOM),
             param(kravLinje.periodeTOM),
-            param(kravLinje.stonadsKode),
+            param(kravLinje.kravKode),
             param(kravLinje.referanseNummerGammelSak),
             param(kravLinje.transaksjonDato),
             param(kravLinje.enhetBosted),
@@ -230,7 +230,7 @@ object Repository {
             prepStmt.setString(4, it.gjelderID)
             prepStmt.setString(5, it.periodeFOM)
             prepStmt.setString(6, it.periodeTOM)
-            prepStmt.setString(7, it.stonadsKode)
+            prepStmt.setString(7, it.kravKode)
             prepStmt.setString(8, it.referanseNummerGammelSak)
             prepStmt.setString(9, it.transaksjonDato)
             prepStmt.setString(10, it.enhetBosted)
@@ -251,7 +251,7 @@ object Repository {
                 prepStmt.setString(4, it.gjelderID)
                 prepStmt.setString(5, it.periodeFOM)
                 prepStmt.setString(6, it.periodeTOM)
-                prepStmt.setString(7, it.stonadsKode)
+                prepStmt.setString(7, it.kravKode)
                 prepStmt.setString(8, it.referanseNummerGammelSak)
                 prepStmt.setString(9, it.transaksjonDato)
                 prepStmt.setString(10, it.enhetBosted)

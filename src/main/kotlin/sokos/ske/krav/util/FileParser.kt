@@ -13,12 +13,12 @@ import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.FAGSYSTEM_ID_POS
 import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.FREMTIDIG_YTELSE_POS
 import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.GJELDER_ID_POS
 import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.HJEMMEL_KODE_POS
+import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.KRAV_KODE_POS
 import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.LINJE_NUMMER_POS
 import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.PERIODE_FOM_POS
 import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.PERIODE_TOM_POS
 import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.REFERANSE_GAMMEL_SAK_POS
 import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.SAKS_NUMMER_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.STONADS_KODE_POS
 import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.TRANSAKSJONS_DATO_POS
 import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.UTBETAL_DATO_POS
 import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.VEDTAK_DATO_POS
@@ -59,7 +59,7 @@ class FileParser(val content: List<String>) {
         GJELDER_ID_POS.parseString(linje),
         PERIODE_FOM_POS.parseString(linje),
         PERIODE_TOM_POS.parseString(linje),
-        STONADS_KODE_POS.parseString(linje),
+        KRAV_KODE_POS.parseString(linje),
         REFERANSE_GAMMEL_SAK_POS.parseString(linje),
         TRANSAKSJONS_DATO_POS.parseString(linje),
         ENHET_BOSTED_POS.parseString(linje),
@@ -89,7 +89,7 @@ class FileParser(val content: List<String>) {
         val GJELDER_ID_POS = Posisjon(start = 48, end = 59)
         val PERIODE_FOM_POS = Posisjon(start = 59, end = 67)
         val PERIODE_TOM_POS = Posisjon(start = 67, end = 75)
-        val STONADS_KODE_POS = Posisjon(start = 75, end = 83)
+        val KRAV_KODE_POS = Posisjon(start = 75, end = 83)
         val REFERANSE_GAMMEL_SAK_POS = Posisjon(start = 83, end = 101)
         val TRANSAKSJONS_DATO_POS = Posisjon(start = 101, end = 109)
         val ENHET_BOSTED_POS = Posisjon(start = 109, end = 113)

@@ -1,6 +1,6 @@
 package sokos.ske.krav.domain.nav
 
-enum class KravtypeMappingFromNAVToSKE(val stonadsKode: String, val hjemmelkode: String, val alternativHjemmelkode: String =""){
+enum class KravtypeMappingFromNAVToSKE(val kravKode: String, val hjemmelkode: String, val alternativHjemmelkode: String =""){
     TILBAKEKREVING_BARNETRYGD                       ("BA OR", "T"),
     TILBAKEKREVING_OMSORGSPENGER                    ("BS OM", "T"),
     TILBAKEKREVING_PLEIEPENGER_BARN                 ("BS PN", "T"),
@@ -38,9 +38,9 @@ enum class KravtypeMappingFromNAVToSKE(val stonadsKode: String, val hjemmelkode:
            krav: KravLinje
         ): KravtypeMappingFromNAVToSKE {
            return KravtypeMappingFromNAVToSKE.entries.firstOrNull {
-               krav.stonadsKode == it.stonadsKode  &&  (krav.hjemmelKode == it.hjemmelkode  || krav.hjemmelKode == it.alternativHjemmelkode) }
+               krav.kravKode == it.kravKode  &&  (krav.hjemmelKode == it.hjemmelkode  || krav.hjemmelKode == it.alternativHjemmelkode) }
                ?: throw NotImplementedError(
-               "Kombinasjonen stoenadstype=${krav.stonadsKode} og hjemmelkode=${krav.hjemmelKode} gir ingen kravtype.",
+               "Kombinasjonen kravkode=${krav.kravKode} og hjemmelkode=${krav.hjemmelKode} gir ingen kravtype.",
            )
 
         }

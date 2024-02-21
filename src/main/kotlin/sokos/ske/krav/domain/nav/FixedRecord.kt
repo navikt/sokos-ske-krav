@@ -11,7 +11,7 @@ data class KravLinje(
     val gjelderID: String,
     val periodeFOM: String,
     val periodeTOM: String,
-    val stonadsKode: String,
+    val kravKode: String,
     val referanseNummerGammelSak: String,
     val transaksjonDato: String,
     val enhetBosted: String,
