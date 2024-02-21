@@ -1,13 +1,10 @@
 package sokos.ske.krav.api
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
-import io.ktor.server.request.receiveText
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Routing
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.route
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import mu.KotlinLogging
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
@@ -44,7 +41,7 @@ fun Routing.skeApi(
 
         get("error") {
             for (i in 0..1000) {
-                logger.error("Nå er'e feil igjen, Error: $i" )
+                logger.error("Nå er'e feil igjen, Error: $i")
             }
             call.respond("Nå er det 1000 errors i loggen")
         }
@@ -61,6 +58,9 @@ fun Routing.skeApi(
             exitProcess(status = 10)
         }
 
+        get("ken") {
+            skeService.ken()
+        }
 
         get("test") {
             logger.info("API kaller test")
@@ -68,15 +68,15 @@ fun Routing.skeApi(
                 val response = skeService.sendNewFilesToSKE()
                 logger.info("APIKrav sendt, returnerer reponse")
                 call.respond(HttpStatusCode.OK, "$response")
-                logger.info("APIKrav sendt" )
-/*                logger.info { "APIKrav sendt, oppdaterer mottaksstatus" }
-                skeService.hentOgOppdaterMottaksStatus()
-                logger.info { "APIKrav sendt, har oppdatert mottaksstatus" }*/
+                logger.info("APIKrav sendt")
+                /*                logger.info { "APIKrav sendt, oppdaterer mottaksstatus" }
+                                skeService.hentOgOppdaterMottaksStatus()
+                                logger.info { "APIKrav sendt, har oppdatert mottaksstatus" }*/
             } catch (e: Exception) {
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "Sorry feilet: ${e.message}, \n" +
-                        "Stacktrace= ${e.stackTraceToString()}"
+                            "Stacktrace= ${e.stackTraceToString()}"
                 )
             }
         }
@@ -91,7 +91,7 @@ fun Routing.skeApi(
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "APISorry feilet: ${e.message}, \n" +
-                        "Stacktrace= ${e.stackTraceToString()}"
+                            "Stacktrace= ${e.stackTraceToString()}"
                 )
             }
         }
@@ -106,7 +106,7 @@ fun Routing.skeApi(
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "Sorry validering feilet: ${e.message}, \n" +
-                        "Stacktrace= ${e.stackTraceToString()}"
+                            "Stacktrace= ${e.stackTraceToString()}"
                 )
             }
         }

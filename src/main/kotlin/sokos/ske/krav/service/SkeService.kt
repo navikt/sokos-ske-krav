@@ -207,4 +207,8 @@ class SkeService(
 
         return resultat
     }
+
+    suspend fun ken() {
+        logger.info { "KEN HENTER FRA DB: ${databaseService.getDivInfo()}" }
+    }
 }

@@ -7,6 +7,7 @@ import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.getAllKravForReconciliation
 import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
 import sokos.ske.krav.database.Repository.getAllValidationErrors
+import sokos.ske.krav.database.Repository.getDivInfo
 import sokos.ske.krav.database.Repository.getKravIdfromCorrId
 import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.insertAllNewKrav
@@ -26,6 +27,7 @@ import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.isNyttKrav
+import java.sql.ResultSet
 import java.time.LocalDateTime
 
 class DatabaseService(
@@ -220,6 +222,13 @@ class DatabaseService(
     fun updateStatus(mottakStatus: MottaksStatusResponse) {
         postgresDataSource.connection.useAndHandleErrors { con ->
             con.updateStatus(mottakStatus)
+        }
+    }
+
+    fun getDivInfo(): ResultSet? {
+        postgresDataSource.connection.useAndHandleErrors {
+            con ->
+            return con.getDivInfo()
         }
     }
 }

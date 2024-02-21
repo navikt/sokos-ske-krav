@@ -20,6 +20,7 @@ import sokos.ske.krav.util.isEndring
 import sokos.ske.krav.util.isStopp
 import java.sql.Connection
 import java.sql.Date
+import java.sql.ResultSet
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -413,6 +414,17 @@ object Repository {
             select * from kobling
         """.trimIndent()
         ).executeQuery().toKobling()
+    }
+
+    fun Connection.getDivInfo(): ResultSet? {
+        return prepareStatement(
+            """
+                select a.id as kravid, a.kravtype as kravt, a.corr_id as corrida,
+                  b.corrid as corridb, b.kravId as karvidB, b.navrequest as req
+                  from krav a, feilmelding b
+                  where a.id = b.kravid
+            """.trimIndent()).executeQuery()
+        
     }
 
 }
