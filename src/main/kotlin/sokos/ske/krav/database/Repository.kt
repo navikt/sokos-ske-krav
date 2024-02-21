@@ -80,8 +80,6 @@ object Repository {
         kravIdentifikatorSke: String,
         responseStatus: String
     ) {
-        println("Oppdaterer nytt krav med corrID $corrID")
-
         prepareStatement(
             """
                 update krav 
@@ -363,8 +361,8 @@ object Repository {
         ).withParameters(
             param(feilmelding.kravId),
             param(feilmelding.saksnummer),
-            param(corrID),
             param(feilmelding.kravidentifikatorSKE),
+            param(corrID),
             param(feilmelding.error),
             param(feilmelding.melding),
             param(feilmelding.navRequest),

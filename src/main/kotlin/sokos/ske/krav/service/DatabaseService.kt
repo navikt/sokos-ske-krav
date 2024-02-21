@@ -26,6 +26,7 @@ import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
+import sokos.ske.krav.util.isEndring
 import sokos.ske.krav.util.isNyttKrav
 import java.time.LocalDateTime
 
@@ -148,6 +149,9 @@ class DatabaseService(
                 Metrics.numberOfKravSent.inc()
                 Metrics.typeKravSent.labels(entry.value.krav.stonadsKode).inc()
 
+                print("DETTE ER EN ")
+                if (entry.value.krav.isEndring()) println("ENDRING") else println("IKKE endring")
+
                 when {
                     entry.value.krav.isNyttKrav() ->
                         updateSendtKrav(
@@ -162,13 +166,15 @@ class DatabaseService(
                             statusString
                         )
 
-                    else ->
+                    else -> {
+                        println("SÅ OPPDATER DA FOR F*********")
                         updateSendtKrav(
                             entry.value.corrId,
                             entry.value.krav.corrId,
                             entry.key,
                             statusString
                         )
+                    }
                 }
 
             }
