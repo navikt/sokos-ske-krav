@@ -22,7 +22,6 @@ import java.sql.Connection
 import java.sql.Date
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
 
 object Repository {
     fun Connection.getAllKrav(): List<KravTable> {
@@ -266,7 +265,7 @@ object Repository {
                 prepStmt.setString(16, it.utbetalDato)
                 prepStmt.setString(17, it.fagsystemId)
                 prepStmt.setString(18, ENDRE_RENTER)
-                prepStmt.setString(19, UUID.randomUUID().toString())
+                prepStmt.setString(19, it.corrId)
                 prepStmt.addBatch()
             }
         }
