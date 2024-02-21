@@ -59,7 +59,7 @@ fun Routing.skeApi(
         }
 
         get("ken") {
-            skeService.ken()
+            skeService.resendIkkeReskontroførteKrav()
         }
 
         get("test") {

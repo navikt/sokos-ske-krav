@@ -1,7 +1,6 @@
 package sokos.ske.krav.service
 
 import com.zaxxer.hikari.HikariDataSource
-import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.testcontainers.toDataSource
 import io.kotest.matchers.shouldBe
@@ -12,6 +11,7 @@ import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.getAllKrav
 import sokos.ske.krav.database.RepositoryExtensions.toFeilmelding
+import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
@@ -129,59 +129,29 @@ internal class SkeServiceTest : FunSpec({
             it.getAllKrav()
         }
 
+        println("KRAVDATA SIZE: ${kravdata.size}")
+
+        println(kravdata.filter { it.status != Status.RESKONTROFOERT.value })
         kravdata.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 103
     }
 
     test("Når et krav feiler skal det lagres i feilmeldingtabell") {
         val dataSource = startContainer(this.testCase.name.testName)
         val skeService =
-            setupMocks(ftpFiler = listOf("FilMedOrgNr.txt"), HttpStatusCode.BadRequest, dataSource = dataSource)
+            setupMocks(ftpFiler = listOf("FilMedBare10Linjer.txt"), HttpStatusCode.NotFound, dataSource = dataSource)
         skeService.sendNewFilesToSKE()
 
         val feilmeldinger =
             dataSource.connection.prepareStatement("SELECT * FROM FEILMELDING").executeQuery().toFeilmelding()
 
-        feilmeldinger.size shouldBe 8
-        feilmeldinger.map { Json.decodeFromString<FeilResponse>(it.skeResponse).status == 409 }.size shouldBe 8
+        feilmeldinger.size shouldBe 10
+        feilmeldinger.map { Json.decodeFromString<FeilResponse>(it.skeResponse).status == 404 }.size shouldBe 10
+
+        val joinToString = feilmeldinger.joinToString("','") { it.corrId }.also(::println)
+        val kravMedFeil = dataSource.connection.prepareStatement("""select * from Krav where corr_id in ('$joinToString')""").executeQuery().toKrav()
+
+        kravMedFeil.size shouldBe 10
+
+        kravMedFeil.filter { it.status == Status.FANT_IKKE_SAKSREF.value }.size shouldBe 10
     }
-
-    /*
-
-        test("Test OK filer") {
-            val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
-            val mockkKravService = mockk<DatabaseService>(relaxed = true){
-                every { getSkeKravident(any<String>()) } returns "1234"
-            }
-            val fakeFtpService = FakeFtpService()
-            val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("AltOkFil.txt"))
-
-            val httpClient = MockHttpClient().getClient()
-            val client = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-            val service = SkeService(client, mockkKravService, ftpService)
-
-            val responses = service.sendNewFilesToSKE()
-            responses.map { it.status shouldBeIn listOf(HttpStatusCode.OK, HttpStatusCode.Created) }
-
-            fakeFtpService.close()
-            httpClient.close()
-        }
-
-        test("Test feilede filer") {
-            val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
-            val mockkKravService = mockk<DatabaseService>(relaxed = true){
-                every { getSkeKravident(any<String>()) } returns "1234"
-            }
-            val fakeFtpService = FakeFtpService()
-            val ftpService = fakeFtpService.setupMocks(Directories.INBOUND, listOf("AltOkFil.txt"))
-
-            val httpClient = MockHttpClient().getClient(HttpStatusCode.BadRequest)
-            val client = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-            val service = SkeService(client, mockkKravService, ftpService)
-
-            val responses = service.sendNewFilesToSKE()
-            responses.map { it.status shouldNotBeIn listOf(HttpStatusCode.OK, HttpStatusCode.Created) }
-
-            fakeFtpService.close()
-            httpClient.close()
-        }*/
 })

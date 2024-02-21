@@ -25,9 +25,10 @@ data class KravTable(
     val utbetalDato: String? = null,
     val fagsystemId: String? = null,
     val status: String,
+    val kravtype: String,
+    val corr_id: String,
     val datoSendt: LocalDateTime,
     val datoSisteStatus: LocalDateTime,
-    val kravtype: String,
 ){
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

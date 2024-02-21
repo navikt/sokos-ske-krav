@@ -7,12 +7,7 @@ import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import java.math.BigDecimal
-import java.sql.Connection
-import java.sql.Date
-import java.sql.PreparedStatement
-import java.sql.ResultSet
-import java.sql.SQLException
-import java.sql.Timestamp
+import java.sql.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -110,9 +105,10 @@ object RepositoryExtensions {
             utbetalDato = getColumn("utbetalDato"),
             fagsystemId = getColumn("fagsystemId"),
             status = getColumn("status"),
+            kravtype = getColumn("kravtype"),
+            corr_id = getColumn("corr_id"),
             datoSendt = getColumn("dato_sendt"),
             datoSisteStatus = getColumn("dato_siste_status"),
-            kravtype = getColumn("kravtype")
         )
     }
 
@@ -135,6 +131,7 @@ object RepositoryExtensions {
         FeilmeldingTable(
             feilmeldingId = getColumn("id"),
             kravId = getColumn("kravid"),
+            corrId = getColumn("corr_id"),
             saksnummer = getColumn("saksnummer"),
             kravidentifikatorSKE = getColumn("kravidentifikator_ske"),
             error = getColumn("error"),

@@ -8,7 +8,7 @@ class AvstemmingService(
   private val logger = KotlinLogging.logger {}
 
   private suspend fun avstemmKrav() {
-	  val krav = databaseService.hentAlleKravSomSkalAvstemmes()
+	  val krav = databaseService.hentKravSomSkalAvstemmes()
 	  val totaltAntall = krav.size;
 
 

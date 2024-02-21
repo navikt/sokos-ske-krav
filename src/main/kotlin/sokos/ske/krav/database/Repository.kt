@@ -36,8 +36,15 @@ object Repository {
                 param(Status.KRAV_IKKE_SENDT.value),
             ).executeQuery().toKrav()
     }
+    fun Connection.getAllKravForResending(): List<KravTable> {
+        return prepareStatement("""select * from krav where status in (?, ?)""")
+            .withParameters(
+                param(Status.KRAV_IKKE_SENDT.value),
+                param(Status.IKKE_RESKONTROFORT.value)
+            ).executeQuery().toKrav()
+    }
 
-    fun Connection.getAllKravForReconciliation(): List<KravTable> {
+    fun Connection.getKravForReconciliation(): List<KravTable> {
         return prepareStatement("""select * from krav where HVA SKAL VI AVSTEMME PÅ ?""")  //TODO KRITERIER FOR UTPLUKK
             .withParameters(
                 param("FELT FOR UTPLUKK????")  //TODO AS ABOVE
@@ -302,17 +309,17 @@ object Repository {
 
 
 
-    fun Connection.updateStatus(mottakStatus: MottaksStatusResponse) {
+    fun Connection.updateStatus(mottakStatus: MottaksStatusResponse, corrId: String) {
         prepareStatement(
             """
             update krav 
             set status = ?, dato_siste_status = ?
-            where kravidentifikator_ske = ?
+            where corr_id = ?
         """.trimIndent()
         ).withParameters(
             param(mottakStatus.mottaksStatus),
             param(LocalDateTime.now()),
-            param(mottakStatus.kravidentifikator)
+            param(corrId)
         ).execute()
         commit()
     }

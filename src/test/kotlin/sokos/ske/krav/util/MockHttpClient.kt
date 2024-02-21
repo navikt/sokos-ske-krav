@@ -1,14 +1,10 @@
 package sokos.ske.krav.util
 
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.headersOf
-import io.ktor.http.isSuccess
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.client.*
+import io.ktor.client.engine.mock.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.database.models.Status
@@ -102,6 +98,11 @@ class MockHttpClient(kravIdentifikator: String = "1234", val iderForValideringsF
 			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000479803"), statusCode, responseHeaders)
 		  }
 
+		  "/innkrevingsoppdrag/OB040000595755/mottaksstatus" -> {
+			if (statusCode.isSuccess()) respond(mottattResponse("", "OB040000595755"), statusCode, responseHeaders)
+			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000595755"), statusCode, responseHeaders)
+		  }
+
 		  "/innkrevingsoppdrag/OB040000592759/avstemming" -> {
 			if (statusCode.isSuccess()) respond(opprettResponse, statusCode, responseHeaders)
 			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000592759"), statusCode, responseHeaders)
@@ -114,7 +115,7 @@ class MockHttpClient(kravIdentifikator: String = "1234", val iderForValideringsF
 
 		  "/innkrevingsoppdrag" -> {
 			if (statusCode.isSuccess()) respond(opprettResponse, statusCode, responseHeaders)
-			else respond(innkrevingsOppdragHarUgyldigTilstandResponse, statusCode, responseHeaders)
+			else respond(innkrevingsOppdragEksistererIkkeResponse(), statusCode, responseHeaders)
 		  }
 
 		  "/innkrevingsoppdrag/1234/renter" -> {

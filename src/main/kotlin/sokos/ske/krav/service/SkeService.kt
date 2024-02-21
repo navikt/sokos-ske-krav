@@ -145,6 +145,8 @@ class SkeService(
             if (it.saksnummerSKE.isEmpty()) {
                 kravIdentifikator = it.referanseNummerGammelSak
                 kravIdentifikatorType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
+
+                println("is empty, Kravident satt: $kravIdentifikator")
             }
             antall++
             val response = skeClient.getMottaksStatus(kravIdentifikator, kravIdentifikatorType)
@@ -155,7 +157,7 @@ class SkeService(
             if (response.status.isSuccess()) {
                 try {
                     val mottaksstatus = response.body<MottaksStatusResponse>()
-                    databaseService.updateStatus(mottaksstatus)
+                    databaseService.updateStatus(mottaksstatus, it.corr_id)
                     tidOppdaterstatus += (Clock.System.now() - tidSiste).inWholeMilliseconds
                     tidSiste = Clock.System.now()
                 } catch (e: SerializationException) {
@@ -208,7 +210,11 @@ class SkeService(
         return resultat
     }
 
-    suspend fun ken() {
-        logger.info { "KEN HENTER FRA DB: ${databaseService.getDivInfo()}" }
+    suspend fun resendIkkeReskontroførteKrav() {
+        val kravSomSkalResendes = databaseService.hentKravSomSkalResendes()
+        println(kravSomSkalResendes.filter { it.kravtype == STOPP_KRAV }.size)
+        println(kravSomSkalResendes.filter { it.kravtype == ENDRE_RENTER }.size)
+        println(kravSomSkalResendes.filter { it.kravtype == ENDRE_HOVEDSTOL }.size)
+        println(kravSomSkalResendes.filter { it.kravtype == NYTT_KRAV }.size)
     }
 }

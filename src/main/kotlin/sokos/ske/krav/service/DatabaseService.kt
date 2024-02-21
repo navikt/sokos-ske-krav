@@ -4,10 +4,11 @@ import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.database.Repository.getAllKravForReconciliation
+import sokos.ske.krav.database.Repository.getAllKravForResending
 import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
 import sokos.ske.krav.database.Repository.getAllValidationErrors
 import sokos.ske.krav.database.Repository.getDivInfo
+import sokos.ske.krav.database.Repository.getKravForReconciliation
 import sokos.ske.krav.database.Repository.getKravIdfromCorrId
 import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.insertAllNewKrav
@@ -193,13 +194,14 @@ class DatabaseService(
         val feilmelding = FeilmeldingTable(
             0L,
             getKravIdFromCorrId(corrID),
+            corrID,
             krav.saksNummer,
             kravIdentifikatorSke,
             feilResponse.status.toString(),
             feilResponse.detail,
             request,
             response.bodyAsText(),
-            LocalDateTime.now()
+            LocalDateTime.now(),
         )
 
         saveFeilmelding(feilmelding, corrID)
@@ -211,15 +213,15 @@ class DatabaseService(
         }
     }
 
-    fun hentAlleKravSomSkalAvstemmes(): List<KravTable> {
+    fun hentKravSomSkalAvstemmes(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.getAllKravForReconciliation()
+            return con.getKravForReconciliation()
         }
     }
 
-    fun updateStatus(mottakStatus: MottaksStatusResponse) {
+    fun updateStatus(mottakStatus: MottaksStatusResponse, corrId: String) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.updateStatus(mottakStatus)
+            con.updateStatus(mottakStatus, corrId)
         }
     }
 
@@ -227,6 +229,12 @@ class DatabaseService(
         postgresDataSource.connection.useAndHandleErrors {
             con ->
             return con.getDivInfo()
+        }
+    }
+
+    fun hentKravSomSkalResendes(): List<KravTable> {
+        postgresDataSource.connection.useAndHandleErrors { con ->
+            return con.getAllKravForResending()
         }
     }
 }
