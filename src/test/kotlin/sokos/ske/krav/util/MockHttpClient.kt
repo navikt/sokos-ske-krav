@@ -9,15 +9,16 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
 
-object MockHttpClientUtils{
-  enum class EndepunktType(val url: String){
+object MockHttpClientUtils {
+  enum class EndepunktType(val url: String) {
 	MOTTAKSSTATUS("/mottaksstatus"),
-	OPPRETT( "/innkrevingsoppdrag" ),
-	ENDRE_RENTER(  "/renter"),
-	ENDRE_HOVEDSTOL(  "/hovedstol"),
-	AVSKRIVING(  "/avskriving"),
-	ENDRE_REF(  "/oppdragsgiversreferanse"),
+	OPPRETT("/innkrevingsoppdrag"),
+	ENDRE_RENTER("/renter"),
+	ENDRE_HOVEDSTOL("/hovedstol"),
+	AVSKRIVING("/avskriving"),
+	ENDRE_REFERANSE("/oppdragsgiversreferanse"),
   }
+
   data class MockRequestObj(
 	val response: String,
 	val urls: List<String>
@@ -33,13 +34,13 @@ object MockHttpClientUtils{
 	"/innkrevingsoppdrag/$baseUrl",
 	"/innkrevingsoppdrag$baseUrl",
 	baseUrl
-
   )
 
-  
-  fun mottaksStatusResponse(kravIdentifikator: String = "1234", status: String): String {
-	//language=json
-	return """
+  object Responses {
+
+	fun mottaksStatusResponse(kravIdentifikator: String = "1234", status: String): String {
+	  //language=json
+	  return """
        {
             "kravidentifikator": "$kravIdentifikator"
             "oppdragsgiversKravidentifikator": "4321"
@@ -47,14 +48,15 @@ object MockHttpClientUtils{
             "statusOppdatert": "2023-10-04T04:47:08.482Z"
             }
         """.trimIndent()
-  }
+	}
 
-  fun nyttKravResponse(kravIdentifikator: String) = """{"kravidentifikator": "$kravIdentifikator"}"""
-  fun endringResponse(transaksjonsId: String = "791e5955-af86-42fe-b609-d4fc2754e35e") = """{"transaksjonsid": "$transaksjonsId"}"""
-  
-  fun innkrevingsOppdragEksistererIkkeResponse(kravIdentifikator: String = "1234"): String {
-	//language=json
-	return """      
+	fun nyttKravResponse(kravIdentifikator: String) = """{"kravidentifikator": "$kravIdentifikator"}"""
+	fun endringResponse(transaksjonsId: String = "791e5955-af86-42fe-b609-d4fc2754e35e") = """{"transaksjonsid": "$transaksjonsId"}"""
+
+
+	fun innkrevingsOppdragEksistererIkkeResponse(kravIdentifikator: String = "1234") =
+	  //language=json
+	  """      
         {
             "type":"tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-eksisterer-ikke",
             "title":"Innkrevingsoppdrag eksisterer ikke",
@@ -63,9 +65,11 @@ object MockHttpClientUtils{
             "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/avskriving"
         }
         """.trimIndent()
-  }
-   //language=json
-  val innkrevingsOppdragHarUgyldigTilstandResponse = """
+
+
+	//language=json
+	fun innkrevingsOppdragHarUgyldigTilstandResponse() =
+	  """
         {
         "type":"tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-har-ugyldig-tilstand",
         "title":"Innkrevingsoppdrag har ugyldig tilstand",
@@ -75,19 +79,21 @@ object MockHttpClientUtils{
         }
     """.trimIndent()
 
-  //language=json
-  private val valideringsfeilResponse =
-	"""{
+
+	//language=json
+	fun valideringsfeilResponse(error: String, message: String) =
+	  """{
 	  "valideringsfeil": [{
-		  "error": "feil",
-		  "message": "melding"
+		  "error":   "$error",
+		  "message": "$message"
 			}]
 		}
         """.trimMargin()
-
+  }
 }
 
-class MockHttpClient(){
+
+class MockHttpClient() {
   private val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
   private val jsonConfig = Json {
 	prettyPrint = true
@@ -98,21 +104,14 @@ class MockHttpClient(){
   }
 
 
-  fun getClient(kall: List<MockHttpClientUtils.MockRequestObj>, statusCode: HttpStatusCode): HttpClient {
-
-	return	HttpClient(MockEngine) {
-	  install(ContentNegotiation) { json(jsonConfig) }
-
-	  engine {
-		addHandler { request ->
-		  val requrl = request.url.encodedPath
-
-		  val found = kall.singleOrNull() { it.urls.contains(requrl) }
-		  if (found != null) respond(found.response, statusCode, responseHeaders)
-		  else error("Ikke implementert: ${request.url.encodedPath}")
-		}
+  fun getClient(kall: List<MockHttpClientUtils.MockRequestObj>, statusCode: HttpStatusCode) = HttpClient(MockEngine) {
+	install(ContentNegotiation) { json(jsonConfig) }
+	engine {
+	  addHandler { request ->
+		val handler = kall.singleOrNull() { it.urls.contains(request.url.encodedPath) }
+		if (handler != null) respond(handler.response, statusCode, responseHeaders)
+		else error("Ikke implementert: ${request.url.encodedPath}")
 	  }
 	}
   }
-
 }

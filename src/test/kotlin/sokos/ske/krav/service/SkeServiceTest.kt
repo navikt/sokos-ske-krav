@@ -18,20 +18,14 @@ import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.MockHttpClient
-import sokos.ske.krav.util.MockHttpClientUtils
 import sokos.ske.krav.util.MockHttpClientUtils.MockRequestObj
 import sokos.ske.krav.util.MockHttpClientUtils.generateUrls
-import sokos.ske.krav.util.MockHttpClientUtils.nyttKravResponse
+import sokos.ske.krav.util.MockHttpClientUtils.Responses
 import sokos.ske.krav.util.MockHttpClientUtils.EndepunktType
-import sokos.ske.krav.util.MockHttpClientUtils.endringResponse
-import sokos.ske.krav.util.MockHttpClientUtils.innkrevingsOppdragEksistererIkkeResponse
-import sokos.ske.krav.util.MockHttpClientUtils.mottaksStatusResponse
 import sokos.ske.krav.util.TestContainer
 
 
 internal class SkeServiceTest : FunSpec({
-
-
     fun startContainer(containerName: String, initScripts: List<String>): HikariDataSource {
         return TestContainer(containerName)
             .getContainer(initScripts, reusable = false, loadFlyway = true)
@@ -43,9 +37,6 @@ internal class SkeServiceTest : FunSpec({
 
 
     }
-
-
-
 
     fun setUpMockHttpClient(
         endepunktTyper: List<MockRequestObj>,
@@ -62,8 +53,6 @@ internal class SkeServiceTest : FunSpec({
     ): Pair<SkeService, HikariDataSource> {
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
 
-
-      //  val httpClient = MockHttpClient(kravIdentifikator = kravIdentifikator).getMottaksStatusClient()
         val ftpService = FakeFtpService().setupMocks(directory, ftpFiler)
 
         val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
@@ -78,80 +67,67 @@ internal class SkeServiceTest : FunSpec({
 
 
     test("Kravdata skal lagres i database etter å ha sendt nye krav til SKE") {
-        val nyttKravKall = MockRequestObj(nyttKravResponse("1234"), listOf(EndepunktType.OPPRETT.url))
-        val avskrivKravKall = MockRequestObj("", generateUrls(EndepunktType.AVSKRIVING.url))
-        val endreRenterKall = MockRequestObj(endringResponse(), generateUrls(EndepunktType.ENDRE_RENTER.url))
-        val endreHovedstolKall = MockRequestObj(endringResponse(), generateUrls(EndepunktType.ENDRE_HOVEDSTOL.url))
-        val endreRefKall = MockRequestObj(endringResponse(), generateUrls(EndepunktType.ENDRE_REF.url))
+        val nyttKravKall        = MockRequestObj(Responses.nyttKravResponse("1234"), listOf(EndepunktType.OPPRETT.url))
+        val avskrivKravKall     = MockRequestObj("", generateUrls(EndepunktType.AVSKRIVING.url))
+        val endreRenterKall     = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_RENTER.url))
+        val endreHovedstolKall  = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_HOVEDSTOL.url))
+        val endreReferanseKall  = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_REFERANSE.url))
 
+        val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall), HttpStatusCode.OK)
+        val mocks: Pair<SkeService, HikariDataSource> = setupMocks(listOf("FilMedBare10Linjer.txt"), this.testCase.name.testName, httpClient)
 
-        val httpClient = setUpMockHttpClient(
-            listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreRefKall), HttpStatusCode.OK)
-        val mocks: Pair<SkeService, HikariDataSource> =
-            setupMocks(listOf("FilMedBare10Linjer.txt"), this.testCase.name.testName, httpClient)
         mocks.first.sendNewFilesToSKE()
 
-        val rs = mocks.second.connection.prepareStatement(
-            """
-		select count(*) as a from krav
-	  """.trimIndent()
-        )
-            .executeQuery()
+        val rs = mocks.second.connection.prepareStatement("""select count(*) as a from krav""".trimIndent()).executeQuery()
         rs.next()
         val kravdata = rs.getInt("a")
 
-
         kravdata shouldBe 10
-
     }
+
     test("Kravdata skal lagres med type som beskriver hva slags krav det er") {
-        val nyttKravKall = MockRequestObj(nyttKravResponse("1234"), listOf(EndepunktType.OPPRETT.url))
-        val avskrivKravKall = MockRequestObj("", generateUrls(EndepunktType.AVSKRIVING.url))
-        val endreRenterKall = MockRequestObj(endringResponse(), generateUrls(EndepunktType.ENDRE_RENTER.url))
-        val endreHovedstolKall = MockRequestObj(endringResponse(), generateUrls(EndepunktType.ENDRE_HOVEDSTOL.url))
-        val endreRefKall = MockRequestObj(endringResponse(), generateUrls(EndepunktType.ENDRE_REF.url))
+        val nyttKravKall        = MockRequestObj(Responses.nyttKravResponse("1234"), listOf(EndepunktType.OPPRETT.url))
+        val avskrivKravKall     = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.AVSKRIVING.url))
+        val endreRenterKall     = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_RENTER.url))
+        val endreHovedstolKall  = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_HOVEDSTOL.url))
+        val endreReferanseKall  = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_REFERANSE.url))
 
+        val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall), HttpStatusCode.OK)
+        val mocks: Pair<SkeService, HikariDataSource> = setupMocks(listOf("AltOkFil.txt"), this.testCase.name.testName, httpClient)
 
-        val httpClient = setUpMockHttpClient(
-            listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreRefKall), HttpStatusCode.OK)
-        val mocks: Pair<SkeService, HikariDataSource> =
-            setupMocks(listOf("AltOkFil.txt"), this.testCase.name.testName, httpClient)
         mocks.first.sendNewFilesToSKE()
-
-        val kravdata = mocks.second.connection.use {
-            it.getAllKrav()
-        }
+        val kravdata = mocks.second.connection.getAllKrav()
 
         kravdata.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
         kravdata.filter { it.kravtype == ENDRE_RENTER }.size shouldBe 2
         kravdata.filter { it.kravtype == ENDRE_HOVEDSTOL }.size shouldBe 2
         kravdata.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
-
     }
+
     test("Mottaksstatus skal oppdateres i database") {
-        val mottaksstatusKall = MockRequestObj(mottaksStatusResponse(status =  Status.RESKONTROFOERT.value),generateUrls(EndepunktType.MOTTAKSSTATUS.url))
+        val mottaksstatusKall = MockRequestObj(Responses.mottaksStatusResponse(status =  Status.RESKONTROFOERT.value), generateUrls(EndepunktType.MOTTAKSSTATUS.url))
+
         val httpClient = setUpMockHttpClient(listOf(mottaksstatusKall), HttpStatusCode.OK)
-
         val mocks: Pair<SkeService, HikariDataSource> = setupMocks(listOf("AltOkFil.txt"), this.testCase.name.testName, httpClient, listOf("NyeKrav.sql"))
-        mocks.first.hentOgOppdaterMottaksStatus()
 
+        mocks.first.hentOgOppdaterMottaksStatus()
         val kravdata = mocks.second.connection.getAllKrav()
         
         kravdata.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 2
     }
 
     test("Når et krav feiler skal det lagres i feilmeldingtabell") {
-        val nyttKravKall = MockRequestObj(innkrevingsOppdragEksistererIkkeResponse(), listOf(EndepunktType.OPPRETT.url))
-        val avskrivKravKall = MockRequestObj(innkrevingsOppdragEksistererIkkeResponse(), generateUrls(EndepunktType.AVSKRIVING.url))
-        val endreRenterKall = MockRequestObj(innkrevingsOppdragEksistererIkkeResponse(), generateUrls(EndepunktType.ENDRE_RENTER.url))
-        val endreHovedstolKall = MockRequestObj(innkrevingsOppdragEksistererIkkeResponse(), generateUrls(EndepunktType.ENDRE_HOVEDSTOL.url))
-        val endreRefKall = MockRequestObj(innkrevingsOppdragEksistererIkkeResponse(), generateUrls(EndepunktType.ENDRE_REF.url))
-        val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreRefKall), HttpStatusCode.NotFound)
-        val mocks: Pair<SkeService, HikariDataSource> = setupMocks(listOf("FilMedBare10Linjer.txt"),  this.testCase.name.testName, httpClient)
-        mocks.first.sendNewFilesToSKE()
+        val nyttKravKall        = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), listOf(EndepunktType.OPPRETT.url))
+        val avskrivKravKall     = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), generateUrls(EndepunktType.AVSKRIVING.url))
+        val endreRenterKall     = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), generateUrls(EndepunktType.ENDRE_RENTER.url))
+        val endreHovedstolKall  = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), generateUrls(EndepunktType.ENDRE_HOVEDSTOL.url))
+        val endreReferanseKall  = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), generateUrls(EndepunktType.ENDRE_REFERANSE.url))
 
-        val feilmeldinger =
-            mocks.second.connection.prepareStatement("SELECT * FROM FEILMELDING").executeQuery().toFeilmelding()
+        val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall), HttpStatusCode.NotFound)
+        val mocks: Pair<SkeService, HikariDataSource> = setupMocks(listOf("FilMedBare10Linjer.txt"),  this.testCase.name.testName, httpClient)
+
+        mocks.first.sendNewFilesToSKE()
+        val feilmeldinger = mocks.second.connection.prepareStatement("SELECT * FROM FEILMELDING").executeQuery().toFeilmelding()
 
         feilmeldinger.size shouldBe 10
         feilmeldinger.map { Json.decodeFromString<FeilResponse>(it.skeResponse).status == 404 }.size shouldBe 10
@@ -160,7 +136,6 @@ internal class SkeServiceTest : FunSpec({
         val kravMedFeil =  mocks.second.connection.prepareStatement("""select * from Krav where corr_id in ('$joinToString')""").executeQuery().toKrav()
 
         kravMedFeil.size shouldBe 10
-
         kravMedFeil.filter { it.status == Status.FANT_IKKE_SAKSREF.value }.size shouldBe 10
     }
 })
