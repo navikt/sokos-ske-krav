@@ -27,6 +27,8 @@ object PropertiesConfig {
 		"FTP_DIRECTORY" to "/",
 		"SKE_REST_URL" to "",
 
+	  	"POSTGRES_USERNAME" to "",
+	    "POSTGRES_PASSWORD" to "",
 		"POSTGRES_HOST" to "dev-pg.intern.nav.no",
 		"POSTGRES_PORT" to "5432",
 		"POSTGRES_NAME" to "sokos-skd-krav",
