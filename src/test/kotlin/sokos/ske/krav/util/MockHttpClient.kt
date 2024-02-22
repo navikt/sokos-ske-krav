@@ -103,6 +103,16 @@ class MockHttpClient(kravIdentifikator: String = "1234", val iderForValideringsF
 			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000595755"), statusCode, responseHeaders)
 		  }
 
+		  "/innkrevingsoppdrag/1111-skeUUID/mottaksstatus" -> {
+			if (statusCode.isSuccess()) respond(mottattResponse("1111-skeUUID", "1110-navsaksnummer"), statusCode, responseHeaders)
+			else respond(innkrevingsOppdragEksistererIkkeResponse("1111-skeUUID"), statusCode, responseHeaders)
+		  }
+
+		  "/innkrevingsoppdrag/2222-skeUUID/mottaksstatus" -> {
+			if (statusCode.isSuccess()) respond(mottattResponse("2222-skeUUID", "2220-navsaksnummer"), statusCode, responseHeaders)
+			else respond(innkrevingsOppdragEksistererIkkeResponse("2222-skeUUID"), statusCode, responseHeaders)
+		  }
+
 		  "/innkrevingsoppdrag/OB040000592759/avstemming" -> {
 			if (statusCode.isSuccess()) respond(opprettResponse, statusCode, responseHeaders)
 			else respond(innkrevingsOppdragEksistererIkkeResponse("OB040000592759"), statusCode, responseHeaders)
