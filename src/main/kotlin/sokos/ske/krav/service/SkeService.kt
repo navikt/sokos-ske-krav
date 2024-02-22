@@ -7,6 +7,7 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.SerializationException
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
+import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
@@ -210,11 +211,12 @@ class SkeService(
         return resultat
     }
 
-    suspend fun resendIkkeReskontroførteKrav() {
+    suspend fun resendIkkeReskontroførteKrav(): List<KravTable> {
         val kravSomSkalResendes = databaseService.hentKravSomSkalResendes()
         println(kravSomSkalResendes.filter { it.kravtype == STOPP_KRAV }.size)
         println(kravSomSkalResendes.filter { it.kravtype == ENDRE_RENTER }.size)
         println(kravSomSkalResendes.filter { it.kravtype == ENDRE_HOVEDSTOL }.size)
         println(kravSomSkalResendes.filter { it.kravtype == NYTT_KRAV }.size)
+        return kravSomSkalResendes
     }
 }

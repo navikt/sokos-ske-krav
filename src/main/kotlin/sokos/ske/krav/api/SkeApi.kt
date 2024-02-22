@@ -59,7 +59,17 @@ fun Routing.skeApi(
         }
 
         get("ken") {
-            skeService.resendIkkeReskontroførteKrav()
+            logger.info("API kall for henting av resending")
+            try {
+                skeService.resendIkkeReskontroførteKrav()
+                call.respond(HttpStatusCode.OK, "kjørt ok")
+            } catch (e: Exception) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    "Sorry feilet: ${e.message}, \n" +
+                            "Stacktrace= ${e.stackTraceToString()}"
+                )
+            }
         }
 
         get("test") {
