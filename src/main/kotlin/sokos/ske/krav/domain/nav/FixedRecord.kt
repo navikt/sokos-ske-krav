@@ -22,7 +22,6 @@ data class KravLinje(
     val fremtidigYtelse: BigDecimal,
     val utbetalDato: String?,
     val fagsystemId: String?,
-    val corrId: String
 )
 
 data class KontrollLinjeHeader(

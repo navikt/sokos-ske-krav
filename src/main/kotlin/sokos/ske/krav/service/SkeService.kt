@@ -14,9 +14,6 @@ import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.LineValidator
-import sokos.ske.krav.util.isEndring
-import sokos.ske.krav.util.isNyttKrav
-import sokos.ske.krav.util.isStopp
 import java.time.LocalDateTime
 
 
@@ -64,7 +61,7 @@ class SkeService(
 
     data class RequestResult(
         val response: HttpResponse,
-        val krav: KravLinje,
+        val krav: KravTable,
         val request: String,
         val kravIdentifikator: String,
         val corrId: String
@@ -77,23 +74,20 @@ class SkeService(
         val linjer = file.kravLinjer.filter { LineValidator.validateLine(it, file.name) }
 
         databaseService.saveAllNewKrav(linjer)
+        val kravLinjer = databaseService.hentAlleKravSomIkkeErSendt();
 
         val requestResults = mutableListOf<Map<String, RequestResult>>()
         val allResponses = mutableListOf<RequestResult>()
 
 
         requestResults.addAll(
-            stoppKravService.sendAllStopKrav(linjer.filter { it.isStopp() }))
+            stoppKravService.sendAllStopKrav(kravLinjer.filter { it.kravtype  == STOPP_KRAV }))
         requestResults.addAll(
-            endreKravService.sendAllEndreKrav(linjer.filter { it.isEndring() }))
+            endreKravService.sendAllEndreKrav(kravLinjer.filter { it.kravtype  == ENDRE_HOVEDSTOL || it.kravtype == ENDRE_RENTER }))
         requestResults.addAll(
-            opprettKravService.sendAllOpprettKrav(linjer.filter { it.isNyttKrav() }))
-
-
-
+            opprettKravService.sendAllOpprettKrav(kravLinjer.filter { it.kravtype == NYTT_KRAV }))
 
         databaseService.updateSentKravToDatabase(requestResults)
-
 
         Metrics.numberOfKravRead.inc()
 
@@ -213,10 +207,9 @@ class SkeService(
 
     suspend fun resendIkkeReskontroførteKrav(): List<KravTable> {
         val kravSomSkalResendes = databaseService.hentKravSomSkalResendes()
-        println(kravSomSkalResendes.filter { it.kravtype == STOPP_KRAV }.size)
-        println(kravSomSkalResendes.filter { it.kravtype == ENDRE_RENTER }.size)
-        println(kravSomSkalResendes.filter { it.kravtype == ENDRE_HOVEDSTOL }.size)
-        println(kravSomSkalResendes.filter { it.kravtype == NYTT_KRAV }.size)
+        stoppKravService.resendStoppKrav(kravSomSkalResendes.filter { it.kravtype == STOPP_KRAV })
+        endreKravService.resendEndreKrav(kravSomSkalResendes.filter { it.kravtype == ENDRE_RENTER || it.kravtype == ENDRE_HOVEDSTOL })
+        opprettKravService.resendOpprettKrav(kravSomSkalResendes.filter { it.kravtype == NYTT_KRAV })
         return kravSomSkalResendes
     }
 }

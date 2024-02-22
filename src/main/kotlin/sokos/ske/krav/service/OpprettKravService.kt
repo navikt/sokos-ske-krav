@@ -5,7 +5,7 @@ import io.ktor.http.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.domain.nav.KravLinje
+import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.util.getFnrListe
 import sokos.ske.krav.util.getNewFnr
@@ -16,7 +16,7 @@ class OpprettKravService(
     private val databaseService: DatabaseService = DatabaseService()
 ) {
 
-    suspend fun sendAllOpprettKrav(kravList: List<KravLinje>): List<Map<String, SkeService.RequestResult>>  {
+    suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<Map<String, SkeService.RequestResult>>  {
         val fnrListe = getFnrListe()
         val fnrIter = fnrListe.listIterator()
 
@@ -25,15 +25,19 @@ class OpprettKravService(
         }
     }
 
+    suspend fun resendOpprettKrav(kravTableList: List<KravTable>) {
 
-    suspend fun sendOpprettKrav(krav: KravLinje, substfnr: String): SkeService.RequestResult {
+    }
+
+
+    suspend fun sendOpprettKrav(krav: KravTable, substfnr: String): SkeService.RequestResult {
         val opprettKravRequest = makeOpprettKravRequest(
             krav.copy(
-                gjelderID =
-                if (krav.gjelderID.startsWith("00")) krav.gjelderID else substfnr
-            ), databaseService.insertNewKobling(krav.saksNummer, krav.corrId)
+                gjelderId =
+                if (krav.gjelderId.startsWith("00")) krav.gjelderId else substfnr
+            ), databaseService.insertNewKobling(krav.saksnummerNAV, krav.corr_id)
         )
-        val response = skeClient.opprettKrav(opprettKravRequest, krav.corrId)
+        val response = skeClient.opprettKrav(opprettKravRequest, krav.corr_id)
         val kravIdentifikator =
             if (response.status.isSuccess())
                 response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
@@ -45,7 +49,7 @@ class OpprettKravService(
             request = Json.encodeToString(opprettKravRequest),
             krav = krav,
             kravIdentifikator = kravIdentifikator,
-            corrId = krav.corrId
+            corrId = krav.corr_id
         )
 
         return requestResult

@@ -1,6 +1,7 @@
 package sokos.ske.krav.util
 
 import kotlinx.datetime.toKotlinLocalDate
+import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.nav.KravtypeMappingFromNAVToSKE
 import sokos.ske.krav.domain.ske.requests.*
@@ -9,19 +10,19 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
 
 
-fun makeOpprettKravRequest(krav: KravLinje, uuid: String) = OpprettInnkrevingsoppdragRequest(
+fun makeOpprettKravRequest(krav: KravTable, uuid: String) = OpprettInnkrevingsoppdragRequest(
     kravtype = KravtypeMappingFromNAVToSKE.getKravtype(krav),
     skyldner = createSkyldner(krav),
     hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.toDouble().roundToLong()),
     renteBeloep = createRenteBelop(krav).takeIf { it.first().beloep > 0L },
-    oppdragsgiversReferanse = krav.saksNummer,
+    oppdragsgiversReferanse = krav.saksnummerNAV,
     oppdragsgiversKravIdentifikator = uuid,
     fastsettelsesDato = krav.vedtakDato.toKotlinLocalDate(),
     tilleggsInformasjon = createTilleggsinformasjonNav(krav),
 )
 
 
-private fun createRenteBelop(krav: KravLinje): List<RenteBeloep> {
+private fun createRenteBelop(krav: KravTable): List<RenteBeloep> {
     val beloepRente = krav.belopRente.toDouble().roundToLong()
     return listOf(
         RenteBeloep(
@@ -31,14 +32,14 @@ private fun createRenteBelop(krav: KravLinje): List<RenteBeloep> {
     )
 }
 
-private fun createSkyldner(krav: KravLinje) = if (krav.gjelderID.startsWith("00")) Skyldner(
+private fun createSkyldner(krav: KravTable) = if (krav.gjelderId.startsWith("00")) Skyldner(
     Skyldner.IdentifikatorType.ORGANISASJON,
-    krav.gjelderID.substring(2, krav.gjelderID.length)
+    krav.gjelderId.substring(2, krav.gjelderId.length)
 )
-else Skyldner(Skyldner.IdentifikatorType.PERSON, krav.gjelderID)
+else Skyldner(Skyldner.IdentifikatorType.PERSON, krav.gjelderId)
 
 
-private fun createTilleggsinformasjonNav(krav: KravLinje): TilleggsinformasjonNav {
+private fun createTilleggsinformasjonNav(krav: KravTable): TilleggsinformasjonNav {
     val kravFremtidigYtelse = krav.fremtidigYtelse.toDouble().roundToLong()
     val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
     val tilleggsinformasjonNav = TilleggsinformasjonNav(
@@ -51,14 +52,14 @@ private fun createTilleggsinformasjonNav(krav: KravLinje): TilleggsinformasjonNa
     return tilleggsinformasjonNav
 }
 
-fun makeEndreRenteRequest(krav: KravLinje) = EndreRenteBeloepRequest(
+fun makeEndreRenteRequest(krav: KravTable) = EndreRenteBeloepRequest(
     createRenteBelop(krav)
 )
 
-fun makeEndreHovedstolRequest(krav: KravLinje): NyHovedStolRequest =
+fun makeEndreHovedstolRequest(krav: KravTable): NyHovedStolRequest =
     NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.toDouble().roundToLong()))
 
-fun makeNyOppdragsgiversReferanseRequest(krav: KravLinje) = NyOppdragsgiversReferanseRequest(krav.saksNummer)
+fun makeNyOppdragsgiversReferanseRequest(krav: KravTable) = NyOppdragsgiversReferanseRequest(krav.saksnummerNAV)
 fun makeStoppKravRequest(nyref: String, kravidentifikatortype: Kravidentifikatortype) =
     AvskrivingRequest(kravidentifikatortype.value, kravidentifikator = nyref)
 

@@ -6,6 +6,7 @@ import io.ktor.http.*
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.getAllKravForResending
 import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
+import sokos.ske.krav.database.Repository.getAllKravNotSent
 import sokos.ske.krav.database.Repository.getAllValidationErrors
 import sokos.ske.krav.database.Repository.getDivInfo
 import sokos.ske.krav.database.Repository.getKravForReconciliation
@@ -27,7 +28,6 @@ import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
-import sokos.ske.krav.util.isNyttKrav
 import java.time.LocalDateTime
 
 class DatabaseService(
@@ -144,18 +144,18 @@ class DatabaseService(
                 val statusString = determineStatus(it, entry.value.response)
 
                 Metrics.numberOfKravSent.inc()
-                Metrics.typeKravSent.labels(entry.value.krav.kravKode).inc()
+                Metrics.typeKravSent.labels(entry.value.krav.kravkode).inc()
 
 
                 when {
-                    entry.value.krav.isNyttKrav() ->
+                    entry.value.krav.kravtype== NYTT_KRAV ->
                         updateSendtKrav(
                             entry.value.kravIdentifikator,
                             entry.value.corrId,
                             statusString
                         )
 
-                    (entry.value.corrId == entry.value.krav.corrId) ->
+                    (entry.value.corrId == entry.value.krav.corr_id) ->
                         updateSendtKrav(
                             entry.value.corrId,
                             statusString
@@ -164,7 +164,7 @@ class DatabaseService(
                     else -> {
                         updateSendtKrav(
                             entry.value.corrId,
-                            entry.value.krav.corrId,
+                            entry.value.krav.corr_id,
                             entry.key,
                             statusString
                         )
@@ -179,12 +179,12 @@ class DatabaseService(
     suspend fun saveErrorMessageToDatabase(
         request: String,
         response: HttpResponse,
-        krav: KravLinje,
+        krav: KravTable,
         kravIdentifikator: String,
         corrID: String
     ) {
         val kravIdentifikatorSke =
-            if (kravIdentifikator == krav.saksNummer || kravIdentifikator == krav.referanseNummerGammelSak) "" else kravIdentifikator
+            if (kravIdentifikator == krav.saksnummerNAV || kravIdentifikator == krav.referanseNummerGammelSak) "" else kravIdentifikator
 
         val feilResponse = response.body<FeilResponse>()
 
@@ -195,7 +195,7 @@ class DatabaseService(
             0L,
             getKravIdFromCorrId(corrID),
             corrID,
-            krav.saksNummer,
+            krav.saksnummerSKE,
             kravIdentifikatorSke,
             feilResponse.status.toString(),
             feilResponse.detail,
@@ -235,6 +235,12 @@ class DatabaseService(
     fun hentKravSomSkalResendes(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
             return con.getAllKravForResending()
+        }
+    }
+
+    fun hentAlleKravSomIkkeErSendt(): List<KravTable> {
+        postgresDataSource.connection.useAndHandleErrors { con ->
+            return con.getAllKravNotSent()
         }
     }
 }

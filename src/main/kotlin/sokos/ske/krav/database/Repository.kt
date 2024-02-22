@@ -22,6 +22,7 @@ import java.sql.Connection
 import java.sql.Date
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 
 object Repository {
     fun Connection.getAllKrav(): List<KravTable> {
@@ -41,6 +42,12 @@ object Repository {
             .withParameters(
                 param(Status.KRAV_IKKE_SENDT.value),
                 param(Status.IKKE_RESKONTROFORT.value)
+            ).executeQuery().toKrav()
+    }
+    fun Connection.getAllKravNotSent(): List<KravTable> {
+        return prepareStatement("""select * from krav where status = ?""")
+            .withParameters(
+                param(Status.KRAV_IKKE_SENDT.value),
             ).executeQuery().toKrav()
     }
 
@@ -249,9 +256,9 @@ object Repository {
             prepStmt.setString(16, it.utbetalDato)
             prepStmt.setString(17, it.fagsystemId)
             prepStmt.setString(18, type)
-            prepStmt.setString(19, it.corrId)
+            prepStmt.setString(19, UUID.randomUUID().toString())
             prepStmt.addBatch()
-            if (it.isEndring()){
+            if (type.equals(ENDRE_HOVEDSTOL)){
                 prepStmt.setString(1, it.saksNummer)
                 prepStmt.setDouble(2, it.belop.toDouble())
                 prepStmt.setDate(3, Date.valueOf(it.vedtakDato))
@@ -270,7 +277,7 @@ object Repository {
                 prepStmt.setString(16, it.utbetalDato)
                 prepStmt.setString(17, it.fagsystemId)
                 prepStmt.setString(18, ENDRE_RENTER)
-                prepStmt.setString(19, it.corrId)
+                prepStmt.setString(19, UUID.randomUUID().toString())
                 prepStmt.addBatch()
             }
         }

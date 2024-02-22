@@ -1,5 +1,7 @@
 package sokos.ske.krav.domain.nav
 
+import sokos.ske.krav.database.models.KravTable
+
 enum class KravtypeMappingFromNAVToSKE(val kravKode: String, val hjemmelkode: String, val alternativHjemmelkode: String =""){
     TILBAKEKREVING_BARNETRYGD                       ("BA OR", "T"),
     TILBAKEKREVING_OMSORGSPENGER                    ("BS OM", "T"),
@@ -34,6 +36,16 @@ enum class KravtypeMappingFromNAVToSKE(val kravKode: String, val hjemmelkode: St
 
 
    companion object {
+        fun getKravtype(
+           krav: KravTable
+        ): KravtypeMappingFromNAVToSKE {
+           return KravtypeMappingFromNAVToSKE.entries.firstOrNull {
+               krav.kravkode == it.kravKode  &&  (krav.kodeHjemmel == it.hjemmelkode  || krav.kodeHjemmel == it.alternativHjemmelkode) }
+               ?: throw NotImplementedError(
+               "Kombinasjonen kravkode=${krav.kravkode} og hjemmelkode=${krav.kodeHjemmel} gir ingen kravtype.",
+           )
+
+        }
         fun getKravtype(
            krav: KravLinje
         ): KravtypeMappingFromNAVToSKE {

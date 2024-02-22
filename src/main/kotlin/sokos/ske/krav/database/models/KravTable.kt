@@ -27,7 +27,7 @@ data class KravTable(
     val status: String,
     val kravtype: String,
     val corr_id: String,
-    val datoSendt: LocalDateTime,
+    val datoSendt: LocalDateTime?,
     val datoSisteStatus: LocalDateTime,
 ){
     override fun equals(other: Any?): Boolean {
