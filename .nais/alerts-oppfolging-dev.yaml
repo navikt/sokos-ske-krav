@@ -10,7 +10,7 @@ spec:
     - name: sokos-ske-krav-oppfolging-alerts
       rules:
         - alert: Feil i validering av fil
-          expr: sum_over_time(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[1h]) > 1
+          expr: sum_over_time(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[1h]) > 0
           for: 2m
           annotations:
             action: "Sjekk error loggene i sokos-ske-krav"
@@ -21,7 +21,7 @@ spec:
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i validering av linje
-          expr: sum_over_time(sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}[1h]) > 1
+          expr: sum_over_time(sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}[1h]) > 0
           for: 2m
           annotations:
             action: "Sjekk error loggene i sokos-ske-krav"

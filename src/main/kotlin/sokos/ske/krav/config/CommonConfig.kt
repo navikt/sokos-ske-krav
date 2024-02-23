@@ -20,6 +20,7 @@ import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
+import io.micrometer.core.instrument.binder.system.UptimeMetrics
 import io.prometheus.client.exporter.common.TextFormat
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -52,6 +53,7 @@ fun Application.commonConfig() {
   install(MicrometerMetrics) {
 	registry = Metrics.registry
 	meterBinders = listOf(
+	  UptimeMetrics(),
 	  JvmMemoryMetrics(),
 	  JvmGcMetrics(),
 	  JvmThreadMetrics(),
