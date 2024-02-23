@@ -15,7 +15,7 @@ import java.io.ByteArrayOutputStream
 enum class Directories(val value: String) {
     OUTBOUND("/outbound"),
     INBOUND("/inbound"),
-    FAILED("/outbound/feilfiler")
+    FAILED("/inbound/feilfiler")
 }
 
 data class FtpFil(
@@ -121,6 +121,4 @@ class FtpService(
         }
 
     }
-
-
 }
