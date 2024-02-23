@@ -1,0 +1,12 @@
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.16.3
+    hooks:
+      - id: gitleaks
+  - repo: local
+    hooks:
+        - id: gradle-build
+          name: gradle-build
+          entry: ./gradlew build shadowJar --no-build-cache
+          language: script
+          pass_filenames: false
