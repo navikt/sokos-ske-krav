@@ -58,7 +58,7 @@ fun Routing.skeApi(
             exitProcess(status = 10)
         }
 
-        get("ken") {
+        get("resend") {
             logger.info("API kall for henting av resending")
             try {
                 skeService.resendIkkeReskontroførteKrav()

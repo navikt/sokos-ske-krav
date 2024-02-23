@@ -21,6 +21,10 @@ class StoppKravService(
 
     suspend fun resendStoppKrav(kravTableList: List<KravTable>) {
 
+        kravTableList.map {
+            val kravidentifikatorPair = createKravidentifikatorPair(it)
+            val stopResult = sendStoppKrav(kravidentifikatorPair.first, kravidentifikatorPair.second, it)
+        }
         // for hver kravTabellLinje
         //      kall sendkrav med it mappet til kravlinje
         //      Sjekk at resultatet er ok
