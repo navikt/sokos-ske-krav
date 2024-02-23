@@ -10,7 +10,7 @@ spec:
     - name: sokos-ske-krav-oppfolging-alerts
       rules:
         - alert: Feil i validering av fil
-          expr: sokos_ske_krav_filvalidering_feil_created{app="sokos-ske-krav"}
+          expr: sum_over_time(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[1h]) > 1
           for: 2m
           annotations:
             action: "Sjekk error loggene i sokos-ske-krav"
@@ -21,11 +21,11 @@ spec:
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i validering av linje
-          expr: sum(increase(sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}[2m]))  > 1
+          expr: sum_over_time(sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}[1h]) > 1
           for: 2m
           annotations:
             action: "Sjekk error loggene i sokos-ske-krav"
-            summary: "Feil i validering av fil {{ $labels.fileName }} på linje {{ $labels.linjenummer }}: {{ $labels.message }}"
+            summary: "Feil i validering av linje fra fil {{ $labels.fileName }} på linje {{ $labels.linjenummer }}: {{ $labels.message }}"
           labels:
             namespace: okonomi
             severity: danger
