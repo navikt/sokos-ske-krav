@@ -72,8 +72,8 @@ object Repository {
         prepareStatement(
             """
                 update krav 
-                    set dato_sendt = NOW(), 
-                    dato_siste_status = NOW(),
+                    set tidspunkt_sendt = NOW(), 
+                    tidspunkt_siste_status = NOW(),
                     status = ?
                 where 
                     corr_id = ?
@@ -95,8 +95,8 @@ object Repository {
         prepareStatement(
             """
                 update krav 
-                    set dato_sendt = NOW(), 
-                    dato_siste_status = NOW(),
+                    set tidspunkt_sendt = NOW(), 
+                    tidspunkt_siste_status = NOW(),
                     status = ?,
                     kravidentifikator_ske = ?
                 where 
@@ -119,8 +119,8 @@ object Repository {
         prepareStatement(
             """
                 update krav 
-                    set dato_sendt = NOW(), 
-                    dato_siste_status = NOW(),
+                    set tidspunkt_sendt = NOW(), 
+                    tidspunkt_siste_status = NOW(),
                     status = ?,
                     corr_id = ?
                 where 
@@ -168,10 +168,10 @@ object Repository {
                 fagsystemId,
                 status, 
                 corr_id,
-                dato_sendt, 
-                dato_siste_status,
-                kravtype
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?)
+                kravtype,
+                tidspunkt_siste_status,
+                tidspunkt_opprettet
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(), NOW())
             """.trimIndent()
         ).withParameters(
             param(kravLinje.saksNummer),
@@ -194,8 +194,6 @@ object Repository {
             param(kravLinje.fagsystemId),
             param(responseStatus),
             param(corrID),
-            param(now),
-            param(now),
             param(kravtype)
         ).execute()
         commit()
@@ -226,10 +224,11 @@ object Repository {
                 utbetalDato,
                 fagsystemId,
                 status, 
-                dato_siste_status,
+                tidspunkt_siste_status,
                 kravtype,
-                corr_id 
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'${Status.KRAV_IKKE_SENDT.value}',NOW(), ?, ?)
+                corr_id,
+                tidspunkt_opprettet 
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'${Status.KRAV_IKKE_SENDT.value}',NOW(), ?, ?, NOW())
             """.trimIndent() )
 
         kravListe.forEach() {
@@ -320,7 +319,7 @@ object Repository {
         prepareStatement(
             """
             update krav 
-            set status = ?, dato_siste_status = ?
+            set status = ?, tidspunkt_siste_status = ?
             where corr_id = ?
         """.trimIndent()
         ).withParameters(

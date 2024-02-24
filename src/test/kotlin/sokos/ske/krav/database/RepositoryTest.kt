@@ -3,18 +3,18 @@ package sokos.ske.krav.database
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.testcontainers.toDataSource
 import io.kotest.matchers.shouldBe
-import sokos.ske.krav.database.Repository.getAlleKoblinger
 import sokos.ske.krav.database.Repository.getAllKrav
-import sokos.ske.krav.database.Repository.koblesakRef
+import sokos.ske.krav.database.Repository.getAlleKoblinger
 import sokos.ske.krav.database.Repository.insertNewKobling
 import sokos.ske.krav.database.Repository.insertNewKrav
+import sokos.ske.krav.database.Repository.koblesakRef
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.util.FileParser
 import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.util.isEndring
 import sokos.ske.krav.util.isNyttKrav
-import java.util.UUID
+import java.util.*
 
 internal class RepositoryTest : FunSpec({
 
@@ -41,8 +41,8 @@ internal class RepositoryTest : FunSpec({
             val index = i + 1
             krav.saksnummerNAV shouldBe "${index}${index}${index}0-navsaksnummer"
             krav.saksnummerSKE shouldBe "$index$index$index$index-skeUUID"
-            krav.datoSendt.toString() shouldBe "2023-0$index-01T12:00"
-            krav.datoSisteStatus.toString() shouldBe "2023-0$index-01T13:00"
+            krav.tidspunktSendt.toString() shouldBe "2023-0$index-01T12:00"
+            krav.tidspunktSisteStatus.toString() shouldBe "2023-0$index-01T13:00"
         }
 
     }

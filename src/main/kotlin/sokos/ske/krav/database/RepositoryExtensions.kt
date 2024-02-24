@@ -107,8 +107,9 @@ object RepositoryExtensions {
             status = getColumn("status"),
             kravtype = getColumn("kravtype"),
             corr_id = getColumn("corr_id"),
-            datoSendt = getColumn("dato_sendt"),
-            datoSisteStatus = getColumn("dato_siste_status"),
+            tidspunktSendt = getColumn("tidspunkt_sendt"),
+            tidspunktSisteStatus = getColumn("tidspunkt_siste_status"),
+            tidspunktOpprettet = getColumn("tidspunkt_opprettet")
         )
     }
 

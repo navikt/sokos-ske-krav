@@ -23,8 +23,9 @@ create table "krav"
     status                   text,
     kravtype                 text,
     corr_id                  text,
-    dato_sendt               timestamp,
-    dato_siste_status        timestamp
+    tidspunkt_sendt          timestamp,
+    tidspunkt_siste_status   timestamp,
+    tidspunkt_opprettet     timestamp
 );
 
 drop table if exists feilmelding;
