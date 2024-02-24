@@ -14,6 +14,7 @@ import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.LineValidator
+import sokos.ske.krav.util.RequestResult
 import java.time.LocalDateTime
 
 
@@ -39,7 +40,11 @@ class SkeService(
     suspend fun handleNewKrav() {
         //TODO Sjekk om noen må resendes og evt resend
         sendNewFilesToSKE()
+
+        //sleep
         hentOgOppdaterMottaksStatus()
+
+        //resend
         //TODO Resend avviste pg ikke rekontroført
     }
 
@@ -59,13 +64,6 @@ class SkeService(
         return responses.flatten()
     }
 
-    data class RequestResult(
-        val response: HttpResponse,
-        val krav: KravTable,
-        val request: String,
-        val kravIdentifikator: String,
-        val corrId: String
-    )
 
     private suspend fun sendKrav(
         file: FtpFil,
@@ -100,7 +98,8 @@ class SkeService(
                     it.response,
                     it.krav,
                     it.kravIdentifikator,
-                    it.corrId
+                    it.corrId,
+                    file.name
                 )
             }
 

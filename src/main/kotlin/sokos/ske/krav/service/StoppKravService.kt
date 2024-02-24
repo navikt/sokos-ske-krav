@@ -1,11 +1,13 @@
 package sokos.ske.krav.service
 
+import io.ktor.http.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
+import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.createKravidentifikatorPair
+import sokos.ske.krav.util.defineStatus
 import sokos.ske.krav.util.makeStoppKravRequest
 
 class StoppKravService(
@@ -13,26 +15,30 @@ class StoppKravService(
     private val databaseService: DatabaseService = DatabaseService()
 ) {
 
-    suspend fun sendAllStopKrav(kravList: List<KravTable>) =
-        kravList.map {
-             val kravidentifikatorPair = createKravidentifikatorPair(it)
-          mapOf(STOPP_KRAV to sendStoppKrav(kravidentifikatorPair.first, kravidentifikatorPair.second, it))
-         }
-
-    suspend fun resendStoppKrav(kravTableList: List<KravTable>) {
-
-        kravTableList.map {
+    suspend fun sendAllStopKrav(kravList: List<KravTable>): List<Map<String, RequestResult>> {
+        var resultMap = kravList.map {
             val kravidentifikatorPair = createKravidentifikatorPair(it)
-            val stopResult = sendStoppKrav(kravidentifikatorPair.first, kravidentifikatorPair.second, it)
+            mapOf(STOPP_KRAV to sendStoppKrav(it))
         }
-        // for hver kravTabellLinje
-        //      kall sendkrav med it mappet til kravlinje
+        databaseService.updateSentKravToDatabase(resultMap)
+        return resultMap
+    }
+
+    suspend fun resendStoppKrav(kravList: List<KravTable>) {
+
+        kravList.map {
+            val stopResult = sendStoppKrav(it)
+            if (stopResult.response.status.isSuccess()) stopResult
+            else{
+
+            }
         //      Sjekk at resultatet er ok
         //      hvis resultat ikke ok
         //          finn ut hva som feilet og hva som må gjøres
         //          hvis den skal varsles lagre i varselliste
         //      lagre resultatet sammem med alle de andre
         // for hver slutt
+        }
 
         //Er det innslag i varselliste
         //      Send varsel
@@ -46,19 +52,19 @@ class StoppKravService(
 
 
     suspend fun sendStoppKrav(
-        kravIdentifikator: String,
-        kravIdentifikatorType: Kravidentifikatortype,
         krav: KravTable
-    ): SkeService.RequestResult {
-        val request = makeStoppKravRequest(kravIdentifikator, kravIdentifikatorType)
+    ): RequestResult {
+        val kravidentifikatorPair = createKravidentifikatorPair(krav)
+        val request = makeStoppKravRequest(kravidentifikatorPair.first, kravidentifikatorPair.second)
         val response = skeClient.stoppKrav(request, krav.corr_id)
 
-        val requestResult = SkeService.RequestResult(
+        val requestResult = RequestResult(
             response = response,
             request = Json.encodeToString(request),
             krav = krav,
-            kravIdentifikator = kravIdentifikator,
-            corrId = krav.corr_id
+            kravIdentifikator = kravidentifikatorPair.first,
+            corrId = krav.corr_id,
+            status = defineStatus(response)
         )
 
         return requestResult

@@ -49,7 +49,7 @@ enum class KravtypeMappingFromNAVToSKE(val kravKode: String, val hjemmelkode: St
         fun getKravtype(
            krav: KravLinje
         ): KravtypeMappingFromNAVToSKE {
-           return KravtypeMappingFromNAVToSKE.entries.firstOrNull {
+            return KravtypeMappingFromNAVToSKE.entries.firstOrNull {
                krav.kravKode == it.kravKode  &&  (krav.hjemmelKode == it.hjemmelkode  || krav.hjemmelKode == it.alternativHjemmelkode) }
                ?: throw NotImplementedError(
                "Kombinasjonen kravkode=${krav.kravKode} og hjemmelkode=${krav.hjemmelKode} gir ingen kravtype.",

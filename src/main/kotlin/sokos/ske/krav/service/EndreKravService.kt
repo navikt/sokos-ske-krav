@@ -5,10 +5,7 @@ import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
-import sokos.ske.krav.util.createKravidentifikatorPair
-import sokos.ske.krav.util.makeEndreHovedstolRequest
-import sokos.ske.krav.util.makeEndreRenteRequest
-import sokos.ske.krav.util.makeNyOppdragsgiversReferanseRequest
+import sokos.ske.krav.util.*
 import java.util.*
 
 class EndreKravService(
@@ -16,14 +13,19 @@ class EndreKravService(
     private val databaseService: DatabaseService = DatabaseService()
 ) {
 
-    suspend fun sendAllEndreKrav(kravList: List<KravTable>) :List<Map<String, SkeService.RequestResult>>
+    suspend fun sendAllEndreKrav(kravList: List<KravTable>) :List<Map<String, RequestResult>>
     {
         val resultList = kravList.map {
             //hvis vi har to corrid ta bvare på den ekstra
             ///ellers lag en ny UUID
             val hovedstolCorrId = UUID.randomUUID().toString()
+
+            //val endringsMap = kravList.groupBy{it.saksnummerSKE+it.saksnummerNAV}
+            val endringsMap = kravList.groupBy{it.saksnummerSKE+it.saksnummerNAV}
+
             val skeKravident = databaseService.getSkeKravident(it.referanseNummerGammelSak)
-                val kravidentifikatorPair = createKravidentifikatorPair(it)
+                val kravidentifikatorPair = createKravidentifikatorPair(it
+                )
                 sendEndreKrav(kravidentifikatorPair.first, kravidentifikatorPair.second, it, hovedstolCorrId )
             }.flatten()
 
@@ -41,7 +43,7 @@ class EndreKravService(
         kravIdentifikatorType: Kravidentifikatortype,
         krav: KravTable,
         hovedstolCorrId: String,
-    ): List<Map<String, SkeService.RequestResult>> {
+    ): List<Map<String, RequestResult>> {
 
 
         if (!krav.saksnummerNAV.equals(krav.referanseNummerGammelSak)) {
@@ -56,24 +58,26 @@ class EndreKravService(
         val endreRenterRequest = makeEndreRenteRequest(krav)
         val endreRenterResponse = skeClient.endreRenter(endreRenterRequest, kravIdentifikator, kravIdentifikatorType, krav.corr_id)
 
-        val requestResultEndreRente = SkeService.RequestResult(
+        val requestResultEndreRente = RequestResult(
             response = endreRenterResponse,
             request = Json.encodeToString(endreRenterRequest),
             krav = krav,
             kravIdentifikator = "",
-            corrId = krav.corr_id
+            corrId = krav.corr_id,
+            status = defineStatus(endreRenterResponse)
         )
 
         val endreHovedstolRequest = makeEndreHovedstolRequest(krav)
         val endreHovedstolResponse =
             skeClient.endreHovedstol(endreHovedstolRequest, kravIdentifikator, kravIdentifikatorType, hovedstolCorrId)
 
-        val requestResultEndreHovedstol = SkeService.RequestResult(
+        val requestResultEndreHovedstol = RequestResult(
             response = endreHovedstolResponse,
             request = Json.encodeToString(endreHovedstolRequest),
             krav = krav,
             kravIdentifikator = "",
-            corrId = hovedstolCorrId
+            corrId = hovedstolCorrId,
+            status = defineStatus(endreHovedstolResponse)
         )
         val maps = listOf(mapOf(ENDRE_RENTER to requestResultEndreRente), mapOf( ENDRE_HOVEDSTOL to requestResultEndreHovedstol))
 

@@ -28,6 +28,7 @@ import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
+import sokos.ske.krav.util.RequestResult
 import java.time.LocalDateTime
 
 class DatabaseService(
@@ -122,7 +123,7 @@ class DatabaseService(
     }
 
     private suspend fun determineStatus(
-        responses: Map<String, SkeService.RequestResult>,
+        responses: Map<String, RequestResult>,
         response: HttpResponse
     ): String {
         return if (responses.filter { resp -> resp.value.response.status.isSuccess() }.size == responses.size) Status.KRAV_SENDT.value
@@ -137,7 +138,7 @@ class DatabaseService(
     }
 
     suspend fun updateSentKravToDatabase(
-        responses: List<Map<String, SkeService.RequestResult>>,
+        responses: List<Map<String, RequestResult>>,
     ) {
         responses.forEach {
             it.entries.forEach { entry ->
@@ -181,7 +182,8 @@ class DatabaseService(
         response: HttpResponse,
         krav: KravTable,
         kravIdentifikator: String,
-        corrID: String
+        corrID: String,
+        fileName: String
     ) {
         val kravIdentifikatorSke =
             if (kravIdentifikator == krav.saksnummerNAV || kravIdentifikator == krav.referanseNummerGammelSak) "" else kravIdentifikator
