@@ -60,9 +60,10 @@ internal class SkeServiceTest : FunSpec({
         val databaseService = DatabaseService(PostgresDataSource(dataSource))
         val endreKravService = EndreKravService(skeClient, databaseService)
         val opprettKravService = OpprettKravService(skeClient, databaseService)
+        val alarmService = AlarmService()
         val stoppKravService = StoppKravService(skeClient, databaseService)
 
-        return Pair(SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, databaseService, ftpService), dataSource)
+        return Pair(SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, alarmService, databaseService, ftpService), dataSource)
     }
 
 

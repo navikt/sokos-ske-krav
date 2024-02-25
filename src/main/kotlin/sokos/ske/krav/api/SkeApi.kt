@@ -61,7 +61,7 @@ fun Routing.skeApi(
         get("resend") {
             logger.info("API kall for henting av resending")
             try {
-                skeService.resendIkkeReskontroførteKrav()
+                skeService.resendIkkeReskontroforteKrav()
                 call.respond(HttpStatusCode.OK, "kjørt ok")
             } catch (e: Exception) {
                 call.respond(

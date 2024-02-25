@@ -18,17 +18,15 @@ class OpprettKravService(
         val fnrListe = getFnrListe()
         val fnrIter = fnrListe.listIterator()
 
-        return kravList.map {
+        val responseList = kravList.map {
             mapOf(NYTT_KRAV to sendOpprettKrav(it, getNewFnr(fnrListe, fnrIter)))
         }
+        databaseService.updateSentKravToDatabase(responseList)
+
+        return responseList
     }
 
-    suspend fun resendOpprettKrav(kravTableList: List<KravTable>) {
-
-    }
-
-
-    suspend fun sendOpprettKrav(krav: KravTable, substfnr: String): RequestResult {
+    private suspend fun sendOpprettKrav(krav: KravTable, substfnr: String): RequestResult {
         val opprettKravRequest = makeOpprettKravRequest(
             krav.copy(
                 gjelderId =

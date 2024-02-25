@@ -9,10 +9,7 @@ import sokos.ske.krav.config.commonConfig
 import sokos.ske.krav.config.routingConfig
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
-import sokos.ske.krav.service.EndreKravService
-import sokos.ske.krav.service.OpprettKravService
-import sokos.ske.krav.service.SkeService
-import sokos.ske.krav.service.StoppKravService
+import sokos.ske.krav.service.*
 import sokos.ske.krav.util.httpClient
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
@@ -24,7 +21,8 @@ fun main() {
     val stoppKravService = StoppKravService(skeClient)
     val endreKravService = EndreKravService(skeClient)
     val opprettKravService = OpprettKravService(skeClient)
-    val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService)
+    val alarmService = AlarmService()
+    val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, alarmService)
 
     applicationState.ready = true
     HttpServer(applicationState, skeService).start()

@@ -3,11 +3,11 @@ package sokos.ske.krav.service
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
 import kotlinx.serialization.SerializationException
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
@@ -29,6 +29,7 @@ class SkeService(
     private val stoppKravService: StoppKravService,
     private val endreKravService: EndreKravService,
     private val opprettKravService: OpprettKravService,
+    private val alarmService: AlarmService,
     private val databaseService: DatabaseService = DatabaseService(),
     private val ftpService: FtpService = FtpService(),
 ) {
@@ -38,14 +39,15 @@ class SkeService(
     fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles()
 
     suspend fun handleNewKrav() {
-        //TODO Sjekk om noen må resendes og evt resend
+
+        hentOgOppdaterMottaksStatus()
+        resendIkkeReskontroforteKrav()
         sendNewFilesToSKE()
 
-        //sleep
+        delay(10_000)
         hentOgOppdaterMottaksStatus()
-
-        //resend
-        //TODO Resend avviste pg ikke rekontroført
+        val funkaIkke = resendIkkeReskontroforteKrav()
+        alarmService.handleFeil(funkaIkke)
     }
 
     suspend fun sendNewFilesToSKE(): List<HttpResponse> {
@@ -72,7 +74,7 @@ class SkeService(
         val linjer = file.kravLinjer.filter { LineValidator.validateLine(it, file.name) }
 
         databaseService.saveAllNewKrav(linjer)
-        val kravLinjer = databaseService.hentAlleKravSomIkkeErSendt();
+        val kravLinjer = databaseService.hentAlleKravSomIkkeErSendt()
 
         val requestResults = mutableListOf<Map<String, RequestResult>>()
         val allResponses = mutableListOf<RequestResult>()
@@ -128,7 +130,7 @@ class SkeService(
         val krav = databaseService.hentAlleKravSomIkkeErReskotrofort()
         println("antall krav som ikke er reskontroført: ${krav.size}")
         var tidSiste = Clock.System.now()
-        var tidHentAlleKrav = (tidSiste - start).inWholeMilliseconds
+        val tidHentAlleKrav = (tidSiste - start).inWholeMilliseconds
         var tidHentMottakstatus = 0L
         var tidOppdaterstatus = 0L
         val result = krav.map {
@@ -180,7 +182,6 @@ class SkeService(
     suspend fun hentValideringsfeil(): List<String> {
         val krav = databaseService.getAlleKravMedValideringsfeil()
 
-
         val resultat = krav.map {
             var kravIdentifikatorType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
             var kravIdentifikator = it.saksnummerSKE
@@ -204,11 +205,17 @@ class SkeService(
         return resultat
     }
 
-    suspend fun resendIkkeReskontroførteKrav(): List<KravTable> {
+    suspend fun resendIkkeReskontroforteKrav(): Map<String, RequestResult> {
         val kravSomSkalResendes = databaseService.hentKravSomSkalResendes()
-        stoppKravService.resendStoppKrav(kravSomSkalResendes.filter { it.kravtype == STOPP_KRAV })
-        endreKravService.resendEndreKrav(kravSomSkalResendes.filter { it.kravtype == ENDRE_RENTER || it.kravtype == ENDRE_HOVEDSTOL })
-        opprettKravService.resendOpprettKrav(kravSomSkalResendes.filter { it.kravtype == NYTT_KRAV })
-        return kravSomSkalResendes
+        val feilListe = mutableMapOf<String, RequestResult>()
+        val stoppKrav = stoppKravService.sendAllStopKrav(kravSomSkalResendes.filter { it.kravtype == STOPP_KRAV })
+        feilListe.putAll(stoppKrav.flatMap { it.entries }.associate { it.key to it.value })
+
+        val endreKrav = endreKravService.sendAllEndreKrav(kravSomSkalResendes.filter { it.kravtype == ENDRE_RENTER || it.kravtype == ENDRE_HOVEDSTOL })
+        feilListe.putAll(endreKrav.flatMap { it.entries }.associate { it.key to it.value })
+
+        val opprettKrav = opprettKravService.sendAllOpprettKrav(kravSomSkalResendes.filter { it.kravtype == NYTT_KRAV })
+        feilListe.putAll(opprettKrav.flatMap { it.entries }.associate { it.key to it.value })
+        return feilListe
     }
 }

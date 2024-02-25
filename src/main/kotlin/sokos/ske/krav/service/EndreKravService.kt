@@ -38,7 +38,7 @@ class EndreKravService(
     }
 
 
-    suspend fun sendEndreKrav(
+    private suspend fun sendEndreKrav(
         kravIdentifikator: String,
         kravIdentifikatorType: Kravidentifikatortype,
         krav: KravTable,

@@ -16,8 +16,7 @@ class StoppKravService(
 ) {
 
     suspend fun sendAllStopKrav(kravList: List<KravTable>): List<Map<String, RequestResult>> {
-        var resultMap = kravList.map {
-            val kravidentifikatorPair = createKravidentifikatorPair(it)
+        val resultMap = kravList.map {
             mapOf(STOPP_KRAV to sendStoppKrav(it))
         }
         databaseService.updateSentKravToDatabase(resultMap)
@@ -51,7 +50,7 @@ class StoppKravService(
     }
 
 
-    suspend fun sendStoppKrav(
+    private suspend fun sendStoppKrav(
         krav: KravTable
     ): RequestResult {
         val kravidentifikatorPair = createKravidentifikatorPair(krav)
