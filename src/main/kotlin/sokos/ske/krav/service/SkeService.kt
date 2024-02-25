@@ -8,6 +8,7 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.SerializationException
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
+import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
@@ -216,6 +217,6 @@ class SkeService(
 
         val opprettKrav = opprettKravService.sendAllOpprettKrav(kravSomSkalResendes.filter { it.kravtype == NYTT_KRAV })
         feilListe.putAll(opprettKrav.flatMap { it.entries }.associate { it.key to it.value })
-        return feilListe
+        return feilListe.filter { it.value.status != Status.KRAV_SENDT && it.value.status != Status.IKKE_RESKONTROFORT_RESEND  }
     }
 }

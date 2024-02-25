@@ -24,7 +24,7 @@ suspend fun defineStatus(response: HttpResponse):Status {
     when (response.status.value) {
         404 -> return Status.FANT_IKKE_SAKSREF
         409 -> if (content.type == KRAV_IKKE_RESKONTROFORT_RESEND)
-            return Status.IKKE_RESKONTROFORT
+            return Status.IKKE_RESKONTROFORT_RESEND
         else if (content.type == KRAV_ER_AVSKREVET || content.type == KRAV_ER_ALLEREDE_AVSKREVET)
             return Status.ER_AVSKREVET
 
