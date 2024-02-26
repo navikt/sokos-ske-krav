@@ -76,14 +76,11 @@ internal class SkeServiceTest : FunSpec({
         val endreHovedstolKall  = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_HOVEDSTOL.url))
         val endreReferanseKall  = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_REFERANSE.url))
 
-        println("mocker HTTPClient")
         val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall), HttpStatusCode.OK)
         val mocks: Pair<SkeService, HikariDataSource> = setupMocks(listOf("FilMedBare10Linjer.txt"), this.testCase.name.testName, httpClient)
 
-        println("Sender FIL")
         mocks.first.sendNewFilesToSKE()
 
-        println("HEnter fra db")
         val rs = mocks.second.connection.prepareStatement("""select count(*) as a from krav""".trimIndent()).executeQuery()
         rs.next()
         val kravdata = rs.getInt("a")
@@ -155,4 +152,34 @@ internal class SkeServiceTest : FunSpec({
         kravMedFeil.size shouldBe 10
         kravMedFeil.filter { it.status == Status.FANT_IKKE_SAKSREF.value }.size shouldBe 10
     }
+
+    test("Resending av krav ") {
+
+        val nyttKravKall        = MockRequestObj(Responses.innkrevingsOppdragEksistererFraFor(), listOf(EndepunktType.OPPRETT.url))
+        val avskrivKravKall     = MockRequestObj(Responses.innkrevingsOppdragHarUgyldigTilstandResponse(), generateUrls(EndepunktType.AVSKRIVING.url))
+
+        val endreRenterKall     = MockRequestObj(Responses.innkrevingsOppdragErIkkeReskontrofortResponse(), generateUrls(EndepunktType.ENDRE_RENTER.url))
+        val endreHovedstolKall  = MockRequestObj(Responses.innkrevingsOppdragErIkkeReskontrofortResponse(), generateUrls(EndepunktType.ENDRE_HOVEDSTOL.url))
+        val endreReferanseKall  = MockRequestObj(Responses.innkrevingsOppdragErIkkeReskontrofortResponse(), generateUrls(EndepunktType.ENDRE_REFERANSE.url))
+
+        val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall), HttpStatusCode.Conflict)
+
+        val mocks: Pair<SkeService, HikariDataSource> = setupMocks(emptyList(), this.testCase.name.testName, httpClient, initScripts =  listOf("KravSomSkalResendes.sql"))
+
+        val kravBefore = mocks.second.connection.prepareStatement("""select * from krav""").executeQuery().toKrav()
+        kravBefore.filter{it.status==Status.IKKE_RESKONTROFORT_RESEND.value}.size shouldBe 3
+        kravBefore.filter{it.status==Status.KRAV_IKKE_SENDT.value}.size shouldBe 1
+        kravBefore.filter{it.status==Status.KRAV_SENDT.value}.size shouldBe 1
+
+        mocks.first.resendIkkeReskontroforteKrav()
+
+        val kravAfter = mocks.second.connection.prepareStatement("""select * from krav""").executeQuery().toKrav()
+
+        kravAfter.filter{it.status==Status.IKKE_RESKONTROFORT_RESEND.value}.size shouldBe 2
+        kravAfter.filter{it.status==Status.KRAV_IKKE_SENDT.value}.size shouldBe 0
+        kravAfter.filter{it.status==Status.ANNEN_KONFLIKT.value}.size shouldBe 2
+        kravAfter.filter{it.status==Status.KRAV_SENDT.value}.size shouldBe 1
+
+    }
+
 })

@@ -21,15 +21,20 @@ data class RequestResult(
 suspend fun defineStatus(response: HttpResponse):Status {
     if (response.status.isSuccess()) return Status.KRAV_SENDT
     val content = response.body<FeilResponse>()
-    when (response.status.value) {
-        404 -> return Status.FANT_IKKE_SAKSREF
-        409 -> if (content.type == KRAV_IKKE_RESKONTROFORT_RESEND)
-            return Status.IKKE_RESKONTROFORT_RESEND
-        else if (content.type == KRAV_ER_AVSKREVET || content.type == KRAV_ER_ALLEREDE_AVSKREVET)
-            return Status.ER_AVSKREVET
 
-        422 -> return Status.VALIDERINGSFEIL
-        else -> return Status.UKJENT_FEIL
-    }
-    return Status.UKJENT_STATUS
+    return when (response.status.value) {
+            404 -> Status.FANT_IKKE_SAKSREF
+            409 -> {
+                if (content.type.contains(KRAV_IKKE_RESKONTROFORT_RESEND)) {
+                    return Status.IKKE_RESKONTROFORT_RESEND
+                }
+                else if (content.type.contains(KRAV_ER_AVSKREVET) || content.type.contains(KRAV_ER_ALLEREDE_AVSKREVET)) {
+                    Status.ER_AVSKREVET
+                }else {
+                    Status.ANNEN_KONFLIKT
+                }
+            }
+            422 -> Status.VALIDERINGSFEIL
+            else ->  Status.UKJENT_FEIL
+        }
 }

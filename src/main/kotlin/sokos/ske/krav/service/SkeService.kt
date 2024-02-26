@@ -209,6 +209,7 @@ class SkeService(
     suspend fun resendIkkeReskontroforteKrav(): Map<String, RequestResult> {
         val kravSomSkalResendes = databaseService.hentKravSomSkalResendes()
         val feilListe = mutableMapOf<String, RequestResult>()
+
         val stoppKrav = stoppKravService.sendAllStopKrav(kravSomSkalResendes.filter { it.kravtype == STOPP_KRAV })
         feilListe.putAll(stoppKrav.flatMap { it.entries }.associate { it.key to it.value })
 
@@ -217,6 +218,7 @@ class SkeService(
 
         val opprettKrav = opprettKravService.sendAllOpprettKrav(kravSomSkalResendes.filter { it.kravtype == NYTT_KRAV })
         feilListe.putAll(opprettKrav.flatMap { it.entries }.associate { it.key to it.value })
+
         return feilListe.filter { it.value.status != Status.KRAV_SENDT && it.value.status != Status.IKKE_RESKONTROFORT_RESEND  }
     }
 }

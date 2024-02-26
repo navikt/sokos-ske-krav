@@ -41,7 +41,7 @@ object Repository {
         return prepareStatement("""select * from krav where status in (?, ?)""")
             .withParameters(
                 param(Status.KRAV_IKKE_SENDT.value),
-                param(Status.IKKE_RESKONTROFORT.value)
+                param(Status.IKKE_RESKONTROFORT_RESEND.value)
             ).executeQuery().toKrav()
     }
     fun Connection.getAllKravNotSent(): List<KravTable> {

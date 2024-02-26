@@ -79,8 +79,20 @@ object MockHttpClientUtils {
         }
     """.trimIndent()
 
+	  //language=json
+	  fun innkrevingsOppdragErIkkeReskontrofortResponse() =
+		  """
+        {
+		"type":"tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-er-ikke-reskontrofoert",
+        "title":"Innkrevingsoppdraget er ikke reskontroført",
+        "status":409,
+        "detail":"Oppdrag med Kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR og Kravidentifikator=51dfc1fa-b241-4886-bb8f-a448e80c9b10 er ikke reskontroført og renter kan derfor ikke endres.",
+        "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/51dfc1fa-b241-4886-bb8f-a448e80c9b10/renter"
+        }
+    """.trimIndent()
 
-	//language=json
+
+	  //language=json
 	fun valideringsfeilResponse(error: String, message: String) =
 	  """{
 	  "valideringsfeil": [{
