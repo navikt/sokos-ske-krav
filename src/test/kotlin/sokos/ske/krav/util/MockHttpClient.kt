@@ -54,9 +54,21 @@ object MockHttpClientUtils {
 	fun endringResponse(transaksjonsId: String = "791e5955-af86-42fe-b609-d4fc2754e35e") = """{"transaksjonsid": "$transaksjonsId"}"""
 
 
-	fun innkrevingsOppdragEksistererIkkeResponse(kravIdentifikator: String = "1234") =
+	fun innkrevingsOppdragEksistererFraFor(kravIdentifikator: String = "1234") =
 	  //language=json
 	  """      
+        {
+            "type":"tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-eksisterer-fra-for",
+            "title":"Innkrevingsoppdrag eksisterer fra før",
+            "status":422,
+            "detail":"Innkrevingsoppdrag med oppdragsgiversKravidentifikator=$kravIdentifikator eksisterer fra før",
+            "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/avskriving"
+        }
+        """.trimIndent()
+
+	  fun innkrevingsOppdragEksistererIkkeResponse(kravIdentifikator: String = "1234") =
+		  //language=json
+		  """      
         {
             "type":"tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-eksisterer-ikke",
             "title":"Innkrevingsoppdrag eksisterer ikke",
@@ -67,7 +79,8 @@ object MockHttpClientUtils {
         """.trimIndent()
 
 
-	//language=json
+
+	  //language=json
 	fun innkrevingsOppdragHarUgyldigTilstandResponse() =
 	  """
         {

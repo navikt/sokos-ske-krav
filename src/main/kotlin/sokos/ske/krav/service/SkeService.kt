@@ -208,6 +208,7 @@ class SkeService(
 
     suspend fun resendIkkeReskontroforteKrav(): Map<String, RequestResult> {
         val kravSomSkalResendes = databaseService.hentKravSomSkalResendes()
+
         val feilListe = mutableMapOf<String, RequestResult>()
 
         val stoppKrav = stoppKravService.sendAllStopKrav(kravSomSkalResendes.filter { it.kravtype == STOPP_KRAV })

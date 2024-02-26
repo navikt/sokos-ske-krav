@@ -7,9 +7,9 @@ import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 
-const val KRAV_IKKE_RESKONTROFORT_RESEND = "tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-er-ikke-reskontrofoert"
-const val KRAV_ER_AVSKREVET = "tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-er-avskrevet"
-const val KRAV_ER_ALLEREDE_AVSKREVET = "tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-er-allerede-avskrevet"
+const val KRAV_IKKE_RESKONTROFORT_RESEND = "innkrevingsoppdrag-er-ikke-reskontrofoert"
+const val KRAV_ER_AVSKREVET = "innkrevingsoppdrag-er-avskrevet"
+const val KRAV_ER_ALLEREDE_AVSKREVET = "innkrevingsoppdrag-er-allerede-avskrevet"
 data class RequestResult(
     val response: HttpResponse,
     val krav: KravTable,
