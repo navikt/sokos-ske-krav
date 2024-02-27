@@ -10,7 +10,7 @@ spec:
     - name: sokos-ske-krav-oppfolging-alerts
       rules:
         - alert: Feil i validering av fil
-          expr: sum_over_time(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[1h]) > 0
+          expr: sum_over_time(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[5m]) > 0
           for: 2m
           annotations:
             action: "Sjekk error loggene i sokos-ske-krav"
@@ -42,7 +42,7 @@ metadata:
     alertmanagerConfig: sokos-ske-krav-slack
 spec:
   receivers:
-    - name: sokos-ske-krav-receiver
+    - name: sokos-ske-krav-oppfolging-receiver
       slackConfigs:
         - apiURL:
             key: apiUrl
@@ -74,5 +74,5 @@ spec:
         value: "sokos-ske-krav"
     groupInterval: 10s
     groupWait: 5s
-    receiver: sokos-ske-krav-receiver
+    receiver: sokos-ske-krav-oppfolging-receiver
     repeatInterval: 2m
