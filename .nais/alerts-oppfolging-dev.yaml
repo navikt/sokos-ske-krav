@@ -11,7 +11,6 @@ spec:
       rules:
         - alert: Feil i validering av fil
           expr: sum_over_time(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[1h]) > 0
-          for: 30s
           annotations:
             action: "Sjekk error loggene i sokos-ske-krav"
             summary: "Feil i validering av fil {{ $labels.fileName }}: {{ $labels.message }}"
@@ -22,7 +21,6 @@ spec:
             alert_type: custom
         - alert: Feil i validering av linje
           expr: sum_over_time(sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}[1h]) > 0
-          for: 30s
           annotations:
             action: "Sjekk error loggene i sokos-ske-krav"
             summary: "Feil i validering av linje fra fil {{ $labels.fileName }} på linje {{ $labels.linjenummer }}: {{ $labels.message }}"
