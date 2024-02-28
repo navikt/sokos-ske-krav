@@ -16,6 +16,7 @@ import sokos.ske.krav.database.Repository.insertNewKobling
 import sokos.ske.krav.database.Repository.insertNewKrav
 import sokos.ske.krav.database.Repository.saveErrorMessage
 import sokos.ske.krav.database.Repository.saveValidationError
+import sokos.ske.krav.database.Repository.setSkeKravIdentPaEndring
 import sokos.ske.krav.database.Repository.updateSendtKrav
 import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
@@ -119,8 +120,6 @@ class DatabaseService(
         }
     }
 
-
-
     suspend fun updateSentKravToDatabase(
         responses: List<Map<String, RequestResult>>,
     ) {
@@ -132,7 +131,7 @@ class DatabaseService(
 
 
                 when {
-                    entry.value.krav.kravtype== NYTT_KRAV ->
+                    entry.value.krav.kravtype == NYTT_KRAV ->
                         updateSendtKrav(
                             entry.value.kravIdentifikator,
                             entry.value.corrId,
@@ -211,8 +210,7 @@ class DatabaseService(
     }
 
     fun getDivInfo(): String? {
-        postgresDataSource.connection.useAndHandleErrors {
-            con ->
+        postgresDataSource.connection.useAndHandleErrors { con ->
             return con.getDivInfo()
         }
     }
@@ -226,6 +224,12 @@ class DatabaseService(
     fun hentAlleKravSomIkkeErSendt(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
             return con.getAllKravNotSent()
+        }
+    }
+
+    fun updateSkeKravidintifikator(navsaksnummer: String, skeKravidentifikator: String) {
+        postgresDataSource.connection.useAndHandleErrors {
+            con -> con.setSkeKravIdentPaEndring(navsaksnummer, skeKravidentifikator)
         }
     }
 }

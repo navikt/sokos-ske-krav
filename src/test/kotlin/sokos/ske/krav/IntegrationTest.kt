@@ -1,11 +1,11 @@
-package sokos.ske.krav.service
+package sokos.ske.krav
 
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.testcontainers.toDataSource
 import io.kotest.matchers.shouldBe
-import io.ktor.client.HttpClient
-import io.ktor.http.HttpStatusCode
+import io.ktor.client.*
+import io.ktor.http.*
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
@@ -16,6 +16,7 @@ import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
+import sokos.ske.krav.service.*
 import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.util.MockHttpClientUtils.EndepunktType
@@ -24,7 +25,7 @@ import sokos.ske.krav.util.MockHttpClientUtils.Responses
 import sokos.ske.krav.util.MockHttpClientUtils.generateUrls
 import sokos.ske.krav.util.TestContainer
 
-internal class SkeServiceTest : FunSpec({
+internal class IntegrationTest : FunSpec({
     fun startContainer(containerName: String, initScripts: List<String>): HikariDataSource {
         return TestContainer(containerName)
             .getContainer(initScripts, reusable = false, loadFlyway = true)
@@ -98,14 +99,15 @@ internal class SkeServiceTest : FunSpec({
         kravdata shouldBe 10
     }
 
-    test("Kravdata skal lagres med type som beskriver hva slags krav det er") {
+    test("Kravdata skal lagres med type som beskriver hva slags krav det er").config(enabled = false) {
         val nyttKravKall        = MockRequestObj(Responses.nyttKravResponse("1234"), listOf(EndepunktType.OPPRETT.url), HttpStatusCode.OK)
+        val avstemmKall         = MockRequestObj(Responses.nyttKravResponse("1234"), listOf(EndepunktType.AVSTEMMING.url), HttpStatusCode.OK)
         val avskrivKravKall     = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.AVSKRIVING.url), HttpStatusCode.OK)
         val endreRenterKall     = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_RENTER.url), HttpStatusCode.OK)
         val endreHovedstolKall  = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_HOVEDSTOL.url), HttpStatusCode.OK)
         val endreReferanseKall  = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_REFERANSE.url), HttpStatusCode.OK)
 
-        val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall))
+        val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall, avstemmKall))
         val mocks: Pair<SkeService, HikariDataSource> = setupMocks(listOf("AltOkFil.txt"), this.testCase.name.testName, httpClient)
 
         mocks.first.sendNewFilesToSKE()

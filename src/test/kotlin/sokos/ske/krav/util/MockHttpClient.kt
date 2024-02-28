@@ -1,13 +1,10 @@
 package sokos.ske.krav.util
 
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.headersOf
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.client.*
+import io.ktor.client.engine.mock.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
@@ -19,6 +16,7 @@ object MockHttpClientUtils {
 	ENDRE_RENTER("/renter"),
 	ENDRE_HOVEDSTOL("/hovedstol"),
 	AVSKRIVING("/avskriving"),
+	AVSTEMMING("/avstemming"),
 	ENDRE_REFERANSE("/oppdragsgiversreferanse"),
   }
 

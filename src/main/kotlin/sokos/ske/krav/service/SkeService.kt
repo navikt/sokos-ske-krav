@@ -12,10 +12,12 @@ import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
+import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.LineValidator
 import sokos.ske.krav.util.RequestResult
+import sokos.ske.krav.util.isNyttKrav
 import java.time.LocalDateTime
 
 
@@ -67,14 +69,14 @@ class SkeService(
         return responses.flatten()
     }
 
-
     private suspend fun sendKrav(
         file: FtpFil,
     ): List<HttpResponse> {
 
         val linjer = file.kravLinjer.filter { LineValidator.validateLine(it, file.name) }
 
-        databaseService.saveAllNewKrav(linjer)
+        lagreOgOppdaterAlleNyeKrav(linjer)
+
         val kravLinjer = databaseService.hentAlleKravSomIkkeErSendt()
 
         val requestResults = mutableListOf<Map<String, RequestResult>>()
@@ -220,6 +222,22 @@ class SkeService(
         val opprettKrav = opprettKravService.sendAllOpprettKrav(kravSomSkalResendes.filter { it.kravtype == NYTT_KRAV })
         feilListe.putAll(opprettKrav.flatMap { it.entries }.associate { it.key to it.value })
 
-        return feilListe.filter { it.value.status != Status.KRAV_SENDT && it.value.status != Status.IKKE_RESKONTROFORT_RESEND  }
+        return feilListe.filter { !Status.isOkStatus(it.value.status)}
+    }
+
+    suspend fun lagreOgOppdaterAlleNyeKrav(kravLinjer: List<KravLinje>) {
+        databaseService.saveAllNewKrav(kravLinjer)
+
+        kravLinjer.filter { !it.isNyttKrav() }.map {
+            val skeKravident = databaseService.getSkeKravident(it.referanseNummerGammelSak)
+            var skeKravidenLagres = skeKravident
+            if (skeKravident.isNullOrBlank()) {
+                val httpResponse = skeClient.getSkeKravident(it.referanseNummerGammelSak)
+                if (httpResponse.status.isSuccess()){
+                    skeKravidenLagres = httpResponse.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
+                }
+            }
+            if (!skeKravidenLagres.isNullOrBlank()) databaseService.updateSkeKravidintifikator(it.saksNummer, skeKravidenLagres)
+        }
     }
 }

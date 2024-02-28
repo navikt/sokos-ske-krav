@@ -24,5 +24,16 @@ enum class Status(val value: String) {
     companion object {
         private val map = Status.entries.associateBy { it.value }
         infix fun from(value: String) = map[value]
+
+        infix fun isOkStatus(status: Status): Boolean {
+            return when (status) {
+                KRAV_IKKE_SENDT -> true
+                KRAV_SENDT -> true
+                MOTTATT_UNDERBEHANDLING -> true
+                RESKONTROFOERT -> true
+                IKKE_RESKONTROFORT_RESEND -> true
+                else -> false
+            }
+        }
     }
 }

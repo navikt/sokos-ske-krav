@@ -299,6 +299,22 @@ object Repository {
         else ""
     }
 
+    fun Connection.setSkeKravIdentPaEndring(navSaksnr: String, skeKravident: String) {
+        prepareStatement(
+            """
+                update krav 
+                    set kravidentifikator_ske = ? 
+                where 
+                    saksnummer_nav = ? and
+                    kravtype <> NYTT_KRAV?
+            """.trimIndent()
+        ).withParameters(
+            param(skeKravident),
+            param(navSaksnr),
+        ).execute()
+        commit()
+    }
+
     fun Connection.getKravIdfromCorrId(corrID: String): Long {
         val rs = prepareStatement(
             """
