@@ -11,7 +11,7 @@ spec:
       rules:
         - alert: Feil i validering av fil
           expr: sum by (fileName, message) (sum_over_time(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[1h])) > 0
-          for: 30s
+          for: 2m
           annotations:
             action: "Sjekk error loggene i sokos-ske-krav"
             summary: "Feil i validering av fil {{ $labels.fileName }}: {{ $labels.message }}"
@@ -22,7 +22,7 @@ spec:
             alert_type: custom
         - alert: Feil i validering av linje
           expr: sum by (fileName, linjenummer, message) (sum_over_time(sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}[1h])) > 0
-          for: 30s
+          for: 2m
           annotations:
             action: "Sjekk error loggene i sokos-ske-krav"
             summary: "Feil i validering av linje fra fil {{ $labels.fileName }} på linje {{ $labels.linjenummer }}: {{ $labels.message }}"
@@ -50,7 +50,7 @@ spec:
           channel: '#team-mob-manuell-oppfolging'
           iconEmoji: ':alert:'
           username: 'Alert dev-fss'
-          sendResolved: true
+          sendResolved: false
           httpConfig:
             proxyURL: http://webproxy.nais:8088
           title: |-
@@ -75,4 +75,4 @@ spec:
     groupInterval: 10s
     groupWait: 5s
     receiver: sokos-ske-krav-oppfolging-receiver
-    repeatInterval: 2m
+    repeatInterval: 0s
