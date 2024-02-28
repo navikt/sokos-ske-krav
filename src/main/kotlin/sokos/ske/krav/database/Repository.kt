@@ -65,6 +65,47 @@ object Repository {
             ).executeQuery().toKrav()
     }
 
+    fun Connection.getSkeKravIdent(navref: String): String {
+        val rs = prepareStatement(
+            """
+            select id, kravidentifikator_ske from krav
+            where saksnummer_nav = ? and krav.kravtype = ? order by id desc limit 1
+        """.trimIndent()
+        ).withParameters(
+            param(navref),
+            param(NYTT_KRAV)
+        ).executeQuery()
+        return if (rs.next())
+            rs.getColumn("kravidentifikator_ske")
+        else ""
+    }
+
+    fun Connection.getKravIdfromCorrId(corrID: String): Long {
+        val rs = prepareStatement(
+            """
+            select id from krav
+            where corr_id = ? order by id desc limit 1
+        """.trimIndent()
+        ).withParameters(
+            param(corrID)
+        ).executeQuery()
+        return if (rs.next())
+            rs.getColumn("id")
+        else 0
+    }
+
+    fun Connection.getDivInfo(): String {
+        return prepareStatement(
+            """
+                select a.id as kravid, a.kravtype as kravt, a.corr_id as corrida,
+                  b.corr_id as corridb, b.kravId as karvidB, b.navrequest as req
+                  from krav a, feilmelding b
+                  where a.id = b.kravid
+            """.trimIndent()).executeQuery().toString()
+
+    }
+
+
     fun Connection.updateSendtKrav(
         corrID: String,
         responseStatus: String
@@ -136,7 +177,21 @@ object Repository {
         commit()
     }
 
-
+    fun Connection.updateStatus(mottakStatus: MottaksStatusResponse, corrId: String) {
+        prepareStatement(
+            """
+            update krav 
+            set status = ?, tidspunkt_siste_status = ?
+            where corr_id = ?
+        """.trimIndent()
+        ).withParameters(
+            param(mottakStatus.mottaksStatus),
+            param(LocalDateTime.now()),
+            param(corrId)
+        ).execute()
+        commit()
+    }
+    
     fun Connection.insertNewKrav(
         kravidentSKE: String,
         corrID: String,
@@ -284,21 +339,6 @@ object Repository {
         commit()
     }
 
-    fun Connection.getSkeKravIdent(navref: String): String {
-        val rs = prepareStatement(
-            """
-            select id, kravidentifikator_ske from krav
-            where saksnummer_nav = ? and krav.kravtype = ? order by id desc limit 1
-        """.trimIndent()
-        ).withParameters(
-            param(navref),
-            param(NYTT_KRAV)
-        ).executeQuery()
-        return if (rs.next())
-            rs.getColumn("kravidentifikator_ske")
-        else ""
-    }
-
     fun Connection.setSkeKravIdentPaEndring(navSaksnr: String, skeKravident: String) {
         prepareStatement(
             """
@@ -315,36 +355,7 @@ object Repository {
         commit()
     }
 
-    fun Connection.getKravIdfromCorrId(corrID: String): Long {
-        val rs = prepareStatement(
-            """
-            select id from krav
-            where corr_id = ? order by id desc limit 1
-        """.trimIndent()
-        ).withParameters(
-            param(corrID)
-        ).executeQuery()
-        return if (rs.next())
-            rs.getColumn("id")
-        else 0
-    }
 
-
-
-    fun Connection.updateStatus(mottakStatus: MottaksStatusResponse, corrId: String) {
-        prepareStatement(
-            """
-            update krav 
-            set status = ?, tidspunkt_siste_status = ?
-            where corr_id = ?
-        """.trimIndent()
-        ).withParameters(
-            param(mottakStatus.mottaksStatus),
-            param(LocalDateTime.now()),
-            param(corrId)
-        ).execute()
-        commit()
-    }
 
     fun Connection.saveValidationError(valideringsFeilResponse: ValideringsFeilResponse, kravidSKE: String) {
         valideringsFeilResponse.valideringsfeil.forEach {
@@ -419,6 +430,14 @@ object Repository {
         return nyRef
     }
 
+    fun Connection.getAlleKoblinger(): List<KoblingTable> {
+        return prepareStatement(
+            """
+            select * from kobling
+        """.trimIndent()
+        ).executeQuery().toKobling()
+    }
+
     fun Connection.koblesakRef(filref: String): String {
         val rs = prepareStatement(
             """
@@ -433,24 +452,6 @@ object Repository {
         else ""
     }
 
-    fun Connection.getAlleKoblinger(): List<KoblingTable> {
-        return prepareStatement(
-            """
-            select * from kobling
-        """.trimIndent()
-        ).executeQuery().toKobling()
-    }
-
-    fun Connection.getDivInfo(): String {
-        return prepareStatement(
-            """
-                select a.id as kravid, a.kravtype as kravt, a.corr_id as corrida,
-                  b.corr_id as corridb, b.kravId as karvidB, b.navrequest as req
-                  from krav a, feilmelding b
-                  where a.id = b.kravid
-            """.trimIndent()).executeQuery().toString()
-
-    }
 
 }
 
