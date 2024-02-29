@@ -2,73 +2,26 @@ package sokos.ske.krav
 
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.extensions.testcontainers.toDataSource
 import io.kotest.matchers.shouldBe
-import io.ktor.client.*
-import io.ktor.http.*
-import io.mockk.mockk
+import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.json.Json
-import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.getAllKrav
 import sokos.ske.krav.database.RepositoryExtensions.toFeilmelding
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.responses.FeilResponse
-import sokos.ske.krav.security.MaskinportenAccessTokenClient
-import sokos.ske.krav.service.*
-import sokos.ske.krav.util.FakeFtpService
-import sokos.ske.krav.util.MockHttpClient
+import sokos.ske.krav.service.ENDRE_HOVEDSTOL
+import sokos.ske.krav.service.ENDRE_RENTER
+import sokos.ske.krav.service.NYTT_KRAV
+import sokos.ske.krav.service.STOPP_KRAV
+import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.util.MockHttpClientUtils.EndepunktType
 import sokos.ske.krav.util.MockHttpClientUtils.MockRequestObj
 import sokos.ske.krav.util.MockHttpClientUtils.Responses
-import sokos.ske.krav.util.TestContainer
+import sokos.ske.krav.util.setUpMockHttpClient
+import sokos.ske.krav.util.setupMocks
 
 internal class IntegrationTest : FunSpec({
-    fun startContainer(containerName: String, initScripts: List<String>): HikariDataSource {
-        return TestContainer(containerName)
-            .getContainer(initScripts, reusable = false, loadFlyway = true)
-            .toDataSource {
-                maximumPoolSize = 8
-                minimumIdle = 4
-                isAutoCommit = false
-            }
-    }
-
-    fun setUpMockHttpClient(endepunktTyper: List<MockRequestObj>) = MockHttpClient().getClient(endepunktTyper)
-
-    fun setupMocks(
-        ftpFiler: List<String>,
-        containerName: String,
-        httpClient: HttpClient,
-        initScripts: List<String> = emptyList(),
-        directory: Directories = Directories.INBOUND,
-    ): Pair<SkeService, HikariDataSource> {
-        val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
-
-        val ftpService = FakeFtpService().setupMocks(directory, ftpFiler)
-
-        val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-        val dataSource = startContainer(containerName, initScripts)
-        val databaseService = DatabaseService(PostgresDataSource(dataSource))
-        val endreKravService = EndreKravService(skeClient, databaseService)
-        val opprettKravService = OpprettKravService(skeClient, databaseService)
-        val alarmService = AlarmService()
-        val stoppKravService = StoppKravService(skeClient, databaseService)
-
-        return Pair(
-            SkeService(
-                skeClient,
-                stoppKravService,
-                endreKravService,
-                opprettKravService,
-                alarmService,
-                databaseService,
-                ftpService,
-            ),
-            dataSource,
-        )
-    }
 
     test("Kravdata skal lagres i database etter å ha sendt nye krav til SKE") {
 

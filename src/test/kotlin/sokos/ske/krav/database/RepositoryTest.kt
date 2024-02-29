@@ -1,7 +1,6 @@
 package sokos.ske.krav.database
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.extensions.testcontainers.toDataSource
 import io.kotest.matchers.shouldBe
 import sokos.ske.krav.database.Repository.getAllKrav
 import sokos.ske.krav.database.Repository.getAlleKoblinger
@@ -11,25 +10,14 @@ import sokos.ske.krav.database.Repository.koblesakRef
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.util.FileParser
-import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.util.isEndring
 import sokos.ske.krav.util.isNyttKrav
-import java.util.*
+import sokos.ske.krav.util.startContainer
+import java.util.UUID
 
 internal class RepositoryTest : FunSpec({
 
-    val testContainer = TestContainer("RepositoryTest")
-    val container = testContainer.getContainer(listOf("NyeKrav.sql"), reusable = false, loadFlyway = true)
-
-    val datasource = container.toDataSource {
-        maximumPoolSize = 8
-        minimumIdle = 4
-        isAutoCommit = false
-    }
-    afterSpec {
-        TestContainer().stopAnyRunningContainer()
-    }
-
+    val datasource = startContainer("RepositoryTest", listOf("NyeKrav.sql"))
     test("Test hent kravdata") {
 
         val kravData = datasource.connection.use { con ->

@@ -14,8 +14,7 @@ class TestContainer(private val name: String = "testContainer") {
 
 	fun getContainer(
 		scripts: List<String> = emptyList(),
-		reusable: Boolean = false,
-		loadFlyway: Boolean = false
+		loadFlyway: Boolean = true
 	): PostgreSQLContainer<Nothing> {
 
 		//Må starte container før runInitScript
@@ -27,7 +26,7 @@ class TestContainer(private val name: String = "testContainer") {
 				.replace('ø', 'o')
 				.replace('å', 'a')
 			) }
-			withReuse(reusable)
+			withReuse(false)
 			start()
 		}
 
@@ -49,15 +48,6 @@ class TestContainer(private val name: String = "testContainer") {
 
 	}
 
-
-	fun stopAnyRunningContainer() {
-		val query = """echo $(docker rm $(docker kill $(docker ps -a -q --filter="ancestor=${dockerImageName}")))"""
-		val p = ProcessBuilder("/bin/bash", "-c", query).start()
-		p.waitFor()
-		val lines = p.inputReader(Charsets.UTF_8).readLines()
-		val id = lines.ifEmpty { listOf() }.first()
-		println("stopped running container with id $id")
-	}
 
 
 	private fun copyFlywayScripts(path: String = "src/main/resources/db/migration"): List<String> {

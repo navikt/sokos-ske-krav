@@ -106,5 +106,3 @@ class FakeFtpService(private val client: FTPClient = FTPClient()) {
 
 }
 
-fun String.asText(): String =
-	object {}.javaClass.classLoader.getResourceAsStream(this)!!.bufferedReader().use { it.readText() }

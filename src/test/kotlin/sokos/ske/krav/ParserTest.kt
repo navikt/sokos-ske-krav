@@ -6,8 +6,8 @@ import io.kotest.matchers.shouldBe
 import sokos.ske.krav.domain.nav.KontrollLinjeHeader
 import sokos.ske.krav.domain.nav.KontrollLinjeFooter
 import sokos.ske.krav.util.FileParser
-import java.io.File
-import java.net.URI
+import sokos.ske.krav.util.asResource
+import sokos.ske.krav.util.readFileFromFS
 
 internal class ParserTest : FunSpec({
     val liste = readFileFromFS("AltOkFil.txt".asResource())
@@ -37,10 +37,3 @@ internal class ParserTest : FunSpec({
     }
 })
 
-fun readFileFromFS(file: String): List<String> {
-    val pn = URI(file)
-    pn.normalize()
-    return File(URI(file)).readLines()
-}
-
-fun String.asResource(): String = object {}.javaClass.classLoader.getResource(this)!!.toString()

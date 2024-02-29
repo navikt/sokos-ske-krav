@@ -6,6 +6,8 @@ import sokos.ske.krav.util.FileParser
 import sokos.ske.krav.util.FileValidator
 import sokos.ske.krav.util.LineValidator
 import sokos.ske.krav.util.ValidationResult
+import sokos.ske.krav.util.asResource
+import sokos.ske.krav.util.readFileFromFS
 
 internal class ValidationTest: FunSpec({
 

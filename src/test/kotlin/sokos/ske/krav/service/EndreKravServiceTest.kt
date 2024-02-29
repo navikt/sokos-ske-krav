@@ -1,11 +1,9 @@
 package sokos.ske.krav.service
 
-import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.extensions.testcontainers.toDataSource
 import io.kotest.matchers.shouldBe
-import io.ktor.client.call.*
-import io.ktor.client.statement.*
+import io.ktor.client.call.body
+import io.ktor.client.statement.HttpResponse
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -13,7 +11,6 @@ import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.responses.FeilResponse
-import sokos.ske.krav.util.TestContainer
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -170,17 +167,4 @@ class EndreKravServiceTest : FunSpec({
 
     }
 })
-
-
-fun startContainer(containerName: String, initScripts: List<String>): HikariDataSource {
-    return TestContainer(containerName)
-        .getContainer(initScripts, reusable = false, loadFlyway = true)
-        .toDataSource {
-            maximumPoolSize = 8
-            minimumIdle = 4
-            isAutoCommit = false
-        }
-}
-
-
 
