@@ -51,13 +51,6 @@ object Repository {
             ).executeQuery().toKrav()
     }
 
-    fun Connection.getKravForReconciliation(): List<KravTable> {
-        return prepareStatement("""select * from krav where HVA SKAL VI AVSTEMME PÅ ?""")  //TODO KRITERIER FOR UTPLUKK
-            .withParameters(
-                param("FELT FOR UTPLUKK????")  //TODO AS ABOVE
-            ).executeQuery().toKrav()
-    }
-
     fun Connection.getAllValidationErrors(): List<KravTable> {
         return prepareStatement("""select * from krav where status = ?""")
             .withParameters(
@@ -93,18 +86,6 @@ object Repository {
             rs.getColumn("id")
         else 0
     }
-
-    fun Connection.getDivInfo(): String {
-        return prepareStatement(
-            """
-                select a.id as kravid, a.kravtype as kravt, a.corr_id as corrida,
-                  b.corr_id as corridb, b.kravId as karvidB, b.navrequest as req
-                  from krav a, feilmelding b
-                  where a.id = b.kravid
-            """.trimIndent()).executeQuery().toString()
-
-    }
-
 
     fun Connection.updateSendtKrav(
         corrID: String,
@@ -191,7 +172,7 @@ object Repository {
         ).execute()
         commit()
     }
-    
+
     fun Connection.insertNewKrav(
         kravidentSKE: String,
         corrID: String,
@@ -199,7 +180,6 @@ object Repository {
         kravtype: String,
         responseStatus: String
     ) {
-        val now = LocalDateTime.now()
         prepareStatement(
             """
                 insert into krav (

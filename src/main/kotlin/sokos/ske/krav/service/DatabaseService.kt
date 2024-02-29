@@ -7,13 +7,10 @@ import sokos.ske.krav.database.Repository.getAllKravForResending
 import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
 import sokos.ske.krav.database.Repository.getAllKravNotSent
 import sokos.ske.krav.database.Repository.getAllValidationErrors
-import sokos.ske.krav.database.Repository.getDivInfo
-import sokos.ske.krav.database.Repository.getKravForReconciliation
 import sokos.ske.krav.database.Repository.getKravIdfromCorrId
 import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.insertAllNewKrav
 import sokos.ske.krav.database.Repository.insertNewKobling
-import sokos.ske.krav.database.Repository.insertNewKrav
 import sokos.ske.krav.database.Repository.saveErrorMessage
 import sokos.ske.krav.database.Repository.saveValidationError
 import sokos.ske.krav.database.Repository.setSkeKravIdentPaEndring
@@ -49,18 +46,6 @@ class DatabaseService(
     fun insertNewKobling(saksnummerNav: String, corrID: String): String {
         postgresDataSource.connection.useAndHandleErrors { con ->
             return con.insertNewKobling(saksnummerNav, corrID)
-        }
-    }
-
-    fun insertNewKrav(
-        skeKravident: String,
-        corrID: String,
-        kravLinje: KravLinje,
-        kravtype: String,
-        responseStatus: String
-    ) {
-        postgresDataSource.connection.useAndHandleErrors { con ->
-            con.insertNewKrav(skeKravident, corrID, kravLinje, kravtype, responseStatus)
         }
     }
 
@@ -120,7 +105,7 @@ class DatabaseService(
         }
     }
 
-    suspend fun updateSentKravToDatabase(
+    fun updateSentKravToDatabase(
         responses: List<Map<String, RequestResult>>,
     ) {
         responses.forEach {
@@ -199,19 +184,13 @@ class DatabaseService(
 
     fun hentKravSomSkalAvstemmes(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.getKravForReconciliation()
+            return emptyList<KravTable>()
         }
     }
 
     fun updateStatus(mottakStatus: MottaksStatusResponse, corrId: String) {
         postgresDataSource.connection.useAndHandleErrors { con ->
             con.updateStatus(mottakStatus, corrId)
-        }
-    }
-
-    fun getDivInfo(): String? {
-        postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.getDivInfo()
         }
     }
 
