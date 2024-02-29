@@ -6,6 +6,7 @@ import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.justRun
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
@@ -22,7 +23,7 @@ class EndreKravServiceTest : FunSpec({
         val skeClientMock = mockk<SkeClient>()
         val databaseSericeMock = mockk<DatabaseService>()
         val endreKravService = EndreKravService(skeClientMock, databaseSericeMock)
-        //mockkStatic("sokos.ske.krav.util.RequestResultKt")
+        justRun { databaseSericeMock.updateSentKravToDatabase(any()) }
         val httpResponseMock404 = mockk<HttpResponse>() {
             every { status.value } returns 404
             coEvery { body<FeilResponse>() } returns FeilResponse("type", "title", 404, "detail", "instance")
@@ -49,7 +50,7 @@ class EndreKravServiceTest : FunSpec({
         val skeClientMock = mockk<SkeClient>()
         val databaseSericeMock = mockk<DatabaseService>()
         val endreKravService = EndreKravService(skeClientMock, databaseSericeMock)
-        //mockkStatic("sokos.ske.krav.util.RequestResultKt")
+        justRun { databaseSericeMock.updateSentKravToDatabase(any()) }
         val httpResponseMock409 = mockk<HttpResponse>() {
             every { status.value } returns 409
             coEvery { body<FeilResponse>() } returns FeilResponse("type", "title", 409, "detail", "instance")
@@ -76,7 +77,7 @@ class EndreKravServiceTest : FunSpec({
         val skeClientMock = mockk<SkeClient>()
         val databaseSericeMock = mockk<DatabaseService>()
         val endreKravService = EndreKravService(skeClientMock, databaseSericeMock)
-        //mockkStatic("sokos.ske.krav.util.RequestResultKt")
+        justRun { databaseSericeMock.updateSentKravToDatabase(any()) }
         val httpResponseMock409 = mockk<HttpResponse>() {
             every { status.value } returns 409
             coEvery { body<FeilResponse>() } returns FeilResponse("type", "title", 409, "detail", "instance")
@@ -103,6 +104,7 @@ class EndreKravServiceTest : FunSpec({
         val skeClientMock = mockk<SkeClient>()
         val databaseSericeMock = mockk<DatabaseService>()
         val endreKravService = EndreKravService(skeClientMock, databaseSericeMock)
+        justRun { databaseSericeMock.updateSentKravToDatabase(any()) }
 
         val httpResponseMock200 = mockk<HttpResponse>() {
             every { status.value } returns 200
