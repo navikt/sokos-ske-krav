@@ -22,7 +22,6 @@ import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.util.MockHttpClientUtils.EndepunktType
 import sokos.ske.krav.util.MockHttpClientUtils.MockRequestObj
 import sokos.ske.krav.util.MockHttpClientUtils.Responses
-import sokos.ske.krav.util.MockHttpClientUtils.generateUrls
 import sokos.ske.krav.util.TestContainer
 
 internal class IntegrationTest : FunSpec({
@@ -74,11 +73,11 @@ internal class IntegrationTest : FunSpec({
     test("Kravdata skal lagres i database etter å ha sendt nye krav til SKE") {
 
         println("Oppretter mockobjekter")
-        val nyttKravKall        = MockRequestObj(Responses.nyttKravResponse("1234"), listOf(EndepunktType.OPPRETT.url), HttpStatusCode.OK)
-        val avskrivKravKall     = MockRequestObj("", generateUrls(EndepunktType.AVSKRIVING.url), HttpStatusCode.OK)
-        val endreRenterKall     = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_RENTER.url), HttpStatusCode.OK)
-        val endreHovedstolKall  = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_HOVEDSTOL.url), HttpStatusCode.OK)
-        val endreReferanseKall  = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_REFERANSE.url), HttpStatusCode.OK)
+        val nyttKravKall        = MockRequestObj(Responses.nyttKravResponse("1234"), EndepunktType.OPPRETT, HttpStatusCode.OK)
+        val avskrivKravKall     = MockRequestObj("", EndepunktType.AVSKRIVING, HttpStatusCode.OK)
+        val endreRenterKall     = MockRequestObj(Responses.endringResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
+        val endreHovedstolKall  = MockRequestObj(Responses.endringResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
+        val endreReferanseKall  = MockRequestObj(Responses.endringResponse(), EndepunktType.ENDRE_REFERANSE, HttpStatusCode.OK)
 
         val httpClient =
             setUpMockHttpClient(
@@ -99,13 +98,13 @@ internal class IntegrationTest : FunSpec({
         kravdata shouldBe 10
     }
 
-    test("Kravdata skal lagres med type som beskriver hva slags krav det er").config(enabled = false) {
-        val nyttKravKall        = MockRequestObj(Responses.nyttKravResponse("1234"), listOf(EndepunktType.OPPRETT.url), HttpStatusCode.OK)
-        val avstemmKall         = MockRequestObj(Responses.nyttKravResponse("1234"), listOf(EndepunktType.AVSTEMMING.url), HttpStatusCode.OK)
-        val avskrivKravKall     = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.AVSKRIVING.url), HttpStatusCode.OK)
-        val endreRenterKall     = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_RENTER.url), HttpStatusCode.OK)
-        val endreHovedstolKall  = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_HOVEDSTOL.url), HttpStatusCode.OK)
-        val endreReferanseKall  = MockRequestObj(Responses.endringResponse(), generateUrls(EndepunktType.ENDRE_REFERANSE.url), HttpStatusCode.OK)
+    test("Kravdata skal lagres med type som beskriver hva slags krav det er"){
+        val nyttKravKall        = MockRequestObj(Responses.nyttKravResponse("1234"), EndepunktType.OPPRETT, HttpStatusCode.OK)
+        val avstemmKall         = MockRequestObj(Responses.nyttKravResponse("1234"), EndepunktType.AVSTEMMING, HttpStatusCode.OK)
+        val avskrivKravKall     = MockRequestObj(Responses.endringResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.OK)
+        val endreRenterKall     = MockRequestObj(Responses.endringResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
+        val endreHovedstolKall  = MockRequestObj(Responses.endringResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
+        val endreReferanseKall  = MockRequestObj(Responses.endringResponse(), EndepunktType.ENDRE_REFERANSE, HttpStatusCode.OK)
 
         val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall, avstemmKall))
         val mocks: Pair<SkeService, HikariDataSource> = setupMocks(listOf("AltOkFil.txt"), this.testCase.name.testName, httpClient)
@@ -133,7 +132,7 @@ internal class IntegrationTest : FunSpec({
     }
 
     test("Mottaksstatus skal oppdateres i database") {
-        val mottaksstatusKall = MockRequestObj(Responses.mottaksStatusResponse(status =  Status.RESKONTROFOERT.value), generateUrls(EndepunktType.MOTTAKSSTATUS.url), HttpStatusCode.OK)
+        val mottaksstatusKall = MockRequestObj(Responses.mottaksStatusResponse(status =  Status.RESKONTROFOERT.value), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
 
         val httpClient = setUpMockHttpClient(listOf(mottaksstatusKall))
         val mocks: Pair<SkeService, HikariDataSource> =
@@ -146,11 +145,11 @@ internal class IntegrationTest : FunSpec({
     }
 
     test("Når et krav feiler skal det lagres i feilmeldingtabell") {
-        val nyttKravKall        = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), listOf(EndepunktType.OPPRETT.url), HttpStatusCode.NotFound)
-        val avskrivKravKall     = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), generateUrls(EndepunktType.AVSKRIVING.url), HttpStatusCode.NotFound)
-        val endreRenterKall     = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), generateUrls(EndepunktType.ENDRE_RENTER.url), HttpStatusCode.NotFound)
-        val endreHovedstolKall  = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), generateUrls(EndepunktType.ENDRE_HOVEDSTOL.url), HttpStatusCode.NotFound)
-        val endreReferanseKall  = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), generateUrls(EndepunktType.ENDRE_REFERANSE.url), HttpStatusCode.NotFound)
+        val nyttKravKall        = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.OPPRETT, HttpStatusCode.NotFound)
+        val avskrivKravKall     = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.NotFound)
+        val endreRenterKall     = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.NotFound)
+        val endreHovedstolKall  = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.NotFound)
+        val endreReferanseKall  = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_REFERANSE, HttpStatusCode.NotFound)
 
         val httpClient =
             setUpMockHttpClient(
@@ -178,12 +177,12 @@ internal class IntegrationTest : FunSpec({
 
     test("Resending av krav ") {
 
-        val nyttKravKall        = MockRequestObj(Responses.innkrevingsOppdragEksistererFraFor(), listOf(EndepunktType.OPPRETT.url), HttpStatusCode.UnprocessableEntity)
-        val avskrivKravKall     = MockRequestObj(Responses.innkrevingsOppdragHarUgyldigTilstandResponse(), generateUrls(EndepunktType.AVSKRIVING.url), HttpStatusCode.Conflict)
+        val nyttKravKall        = MockRequestObj(Responses.innkrevingsOppdragEksistererFraFor(), EndepunktType.OPPRETT, HttpStatusCode.UnprocessableEntity)
+        val avskrivKravKall     = MockRequestObj(Responses.innkrevingsOppdragHarUgyldigTilstandResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.Conflict)
 
-        val endreRenterKall     = MockRequestObj(Responses.innkrevingsOppdragErIkkeReskontrofortResponse(), generateUrls(EndepunktType.ENDRE_RENTER.url), HttpStatusCode.Conflict)
-        val endreHovedstolKall  = MockRequestObj(Responses.innkrevingsOppdragErIkkeReskontrofortResponse(), generateUrls(EndepunktType.ENDRE_HOVEDSTOL.url), HttpStatusCode.Conflict)
-        val endreReferanseKall  = MockRequestObj(Responses.innkrevingsOppdragErIkkeReskontrofortResponse(), generateUrls(EndepunktType.ENDRE_REFERANSE.url), HttpStatusCode.Conflict)
+        val endreRenterKall     = MockRequestObj(Responses.innkrevingsOppdragErIkkeReskontrofortResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.Conflict)
+        val endreHovedstolKall  = MockRequestObj(Responses.innkrevingsOppdragErIkkeReskontrofortResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.Conflict)
+        val endreReferanseKall  = MockRequestObj(Responses.innkrevingsOppdragErIkkeReskontrofortResponse(), EndepunktType.ENDRE_REFERANSE, HttpStatusCode.Conflict)
 
         val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall))
 

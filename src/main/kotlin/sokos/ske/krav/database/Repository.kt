@@ -326,7 +326,7 @@ object Repository {
                     set kravidentifikator_ske = ? 
                 where 
                     saksnummer_nav = ? and
-                    kravtype <> NYTT_KRAV?
+                    kravtype <> 'NYTT_KRAV'
             """.trimIndent()
         ).withParameters(
             param(skeKravident),

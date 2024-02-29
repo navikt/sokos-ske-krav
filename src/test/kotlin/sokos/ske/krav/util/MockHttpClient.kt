@@ -22,22 +22,10 @@ object MockHttpClientUtils {
 
     data class MockRequestObj(
         val response: String,
-        val urls: List<String>,
+        val type: EndepunktType,
         val statusCode: HttpStatusCode,
     )
 
-    fun generateUrls(baseUrl: String) =
-        mutableListOf(
-            "/innkrevingsoppdrag/1234$baseUrl",
-            "/innkrevingsoppdrag/OB040000592759$baseUrl",
-            "/innkrevingsoppdrag/OB040000479803$baseUrl",
-            "/innkrevingsoppdrag/OB040000595755$baseUrl",
-            "/innkrevingsoppdrag/1111-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/2222-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/$baseUrl",
-            "/innkrevingsoppdrag$baseUrl",
-            baseUrl,
-        )
 
     object Responses {
         fun mottaksStatusResponse(
@@ -139,7 +127,9 @@ class MockHttpClient {
         install(ContentNegotiation) { json(jsonConfig) }
         engine {
             addHandler { request ->
-                val handler = kall.singleOrNull { it.urls.contains(request.url.encodedPath) }
+                val handler = kall.singleOrNull {
+
+                  generateUrls(it.type.url).contains(request.url.encodedPath) }
                 if (handler != null) {
                     respond(handler.response, handler.statusCode, responseHeaders)
                 } else {
@@ -148,4 +138,17 @@ class MockHttpClient {
             }
         }
     }
+
+  private fun generateUrls(baseUrl: String) =
+    listOf(
+      "/innkrevingsoppdrag/1234$baseUrl",
+      "/innkrevingsoppdrag/OB040000592759$baseUrl",
+      "/innkrevingsoppdrag/OB040000479803$baseUrl",
+      "/innkrevingsoppdrag/OB040000595755$baseUrl",
+      "/innkrevingsoppdrag/1111-skeUUID$baseUrl",
+      "/innkrevingsoppdrag/2222-skeUUID$baseUrl",
+      "/innkrevingsoppdrag/$baseUrl",
+      "/innkrevingsoppdrag$baseUrl",
+      baseUrl,
+    )
 }
