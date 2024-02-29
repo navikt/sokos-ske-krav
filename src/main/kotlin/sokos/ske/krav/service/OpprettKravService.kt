@@ -14,12 +14,15 @@ class OpprettKravService(
     private val databaseService: DatabaseService = DatabaseService()
 ) {
 
-    suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<Map<String, RequestResult>>  {
+    val byttut = true
+
+    suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<Map<String, RequestResult>> {
         val fnrListe = getFnrListe()
         val fnrIter = fnrListe.listIterator()
 
         val responseList = kravList.map {
-            mapOf(NYTT_KRAV to sendOpprettKrav(it, getNewFnr(fnrListe, fnrIter)))
+            if (byttut) mapOf(NYTT_KRAV to sendOpprettKrav(it, getNewFnr(fnrListe, fnrIter)))
+            else mapOf(NYTT_KRAV to sendOpprettKrav(it, ""))
         }
         databaseService.updateSentKravToDatabase(responseList)
 
@@ -27,12 +30,14 @@ class OpprettKravService(
     }
 
     private suspend fun sendOpprettKrav(krav: KravTable, substfnr: String): RequestResult {
-        val opprettKravRequest = makeOpprettKravRequest(
-            krav.copy(
-                gjelderId =
-                if (krav.gjelderId.startsWith("00")) krav.gjelderId else substfnr
-            ), databaseService.insertNewKobling(krav.saksnummerNAV, krav.corr_id)
-        )
+        val opprettKravRequest =
+            if (byttut) makeOpprettKravRequest(
+                krav.copy(
+                    gjelderId =
+                    if (krav.gjelderId.startsWith("00")) krav.gjelderId else substfnr
+                )
+            )
+            else makeOpprettKravRequest(krav)
         val response = skeClient.opprettKrav(opprettKravRequest, krav.corr_id)
 
         val kravIdentifikator =
