@@ -13,7 +13,7 @@ import kotlin.math.roundToLong
 fun makeOpprettKravRequest(krav: KravTable) = OpprettInnkrevingsoppdragRequest(
     kravtype = KravtypeMappingFromNAVToSKE.getKravtype(krav),
     skyldner = createSkyldner(krav),
-    hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.toDouble().roundToLong()),
+    hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.roundToLong()),
     renteBeloep = createRenteBelop(krav).takeIf { it.first().beloep > 0L },
     oppdragsgiversReferanse = krav.saksnummerNAV,
     oppdragsgiversKravIdentifikator = krav.corr_id,
@@ -22,7 +22,7 @@ fun makeOpprettKravRequest(krav: KravTable) = OpprettInnkrevingsoppdragRequest(
 )
 
 private fun createRenteBelop(krav: KravTable): List<RenteBeloep> {
-    val beloepRente = krav.belopRente.toDouble().roundToLong()
+    val beloepRente = krav.belopRente.roundToLong()
     return listOf(
         RenteBeloep(
             beloep = beloepRente,
@@ -39,7 +39,7 @@ else Skyldner(Skyldner.IdentifikatorType.PERSON, krav.gjelderId)
 
 
 private fun createTilleggsinformasjonNav(krav: KravTable): TilleggsinformasjonNav {
-    val kravFremtidigYtelse = krav.fremtidigYtelse.toDouble().roundToLong()
+    val kravFremtidigYtelse = krav.fremtidigYtelse.roundToLong()
     val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
     val tilleggsinformasjonNav = TilleggsinformasjonNav(
         tilbakeKrevingsPeriode = TilbakeKrevingsPeriode(
@@ -56,7 +56,7 @@ fun makeEndreRenteRequest(krav: KravTable) = EndreRenteBeloepRequest(
 )
 
 fun makeEndreHovedstolRequest(krav: KravTable): NyHovedStolRequest =
-    NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.toDouble().roundToLong()))
+    NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.roundToLong()))
 
 fun makeNyOppdragsgiversReferanseRequest(krav: KravTable) = NyOppdragsgiversReferanseRequest(krav.saksnummerNAV)
 fun makeStoppKravRequest(nyref: String, kravidentifikatortype: Kravidentifikatortype) =

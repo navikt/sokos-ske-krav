@@ -26,8 +26,9 @@ class EndreKravService(
                 sendEndreKrav(kravidentifikatorPair.first, kravidentifikatorPair.second, it)
             }
             getConformedResponses(response)
-        }
-        return resultList.flatten()
+        }.flatten()
+        databaseService.updateSentKravToDatabase(resultList)
+        return resultList
     }
 
     private fun getConformedResponses(inMapList: List<Map<String, RequestResult>>): List<Map<String, RequestResult>> {
