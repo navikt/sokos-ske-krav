@@ -10,17 +10,16 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
 
 
-fun makeOpprettKravRequest(krav: KravTable, uuid: String) = OpprettInnkrevingsoppdragRequest(
+fun makeOpprettKravRequest(krav: KravTable) = OpprettInnkrevingsoppdragRequest(
     kravtype = KravtypeMappingFromNAVToSKE.getKravtype(krav),
     skyldner = createSkyldner(krav),
     hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.toDouble().roundToLong()),
     renteBeloep = createRenteBelop(krav).takeIf { it.first().beloep > 0L },
     oppdragsgiversReferanse = krav.saksnummerNAV,
-    oppdragsgiversKravIdentifikator = uuid,
+    oppdragsgiversKravIdentifikator = krav.corr_id,
     fastsettelsesDato = krav.vedtakDato.toKotlinLocalDate(),
     tilleggsInformasjon = createTilleggsinformasjonNav(krav),
 )
-
 
 private fun createRenteBelop(krav: KravTable): List<RenteBeloep> {
     val beloepRente = krav.belopRente.toDouble().roundToLong()

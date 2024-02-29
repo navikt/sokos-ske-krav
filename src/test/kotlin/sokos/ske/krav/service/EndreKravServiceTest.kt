@@ -2,8 +2,8 @@ package sokos.ske.krav.service
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.client.call.body
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.call.*
+import io.ktor.client.statement.*
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -143,8 +143,6 @@ class EndreKravServiceTest : FunSpec({
         coEvery { skeClientMock.endreHovedstol(any(), "skeref423", any(), any()) } returns httpResponseMock409
         coEvery { skeClientMock.endreRenter(any(), "skeref523", any(), any()) } returns httpResponseMock404
         coEvery { skeClientMock.endreHovedstol(any(), "skeref523", any(), any()) } returns httpResponseMock422
-
-        val expectedNumber = kravListe.size
 
         val result = endreKravService.sendAllEndreKrav(kravListe).flatMap { it.entries.toList() }.map { it.value }
 

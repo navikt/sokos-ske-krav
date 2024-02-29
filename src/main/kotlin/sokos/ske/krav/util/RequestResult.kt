@@ -6,10 +6,8 @@ import io.ktor.http.*
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.responses.FeilResponse
+import sokos.ske.krav.util.ErrorTypeSke.*
 
-const val KRAV_IKKE_RESKONTROFORT_RESEND = "innkrevingsoppdrag-er-ikke-reskontrofoert"
-const val KRAV_ER_AVSKREVET = "innkrevingsoppdrag-er-avskrevet"
-const val KRAV_ER_ALLEREDE_AVSKREVET = "innkrevingsoppdrag-er-allerede-avskrevet"
 data class RequestResult(
     val response: HttpResponse,
     val krav: KravTable,
@@ -25,10 +23,12 @@ suspend fun defineStatus(response: HttpResponse):Status {
     return when (response.status.value) {
             404 -> Status.FANT_IKKE_SAKSREF
             409 -> {
-                if (content.type.contains(KRAV_IKKE_RESKONTROFORT_RESEND)) {
+                if (content.type.contains(KRAV_IKKE_RESKONTROFORT_RESEND.value)) {
                     return Status.IKKE_RESKONTROFORT_RESEND
                 }
-                else if (content.type.contains(KRAV_ER_AVSKREVET) || content.type.contains(KRAV_ER_ALLEREDE_AVSKREVET)) {
+                else if (content.type.contains(KRAV_ER_AVSKREVET.value) ||
+                    content.type.contains(KRAV_ER_ALLEREDE_AVSKREVET.value)
+                    ) {
                     Status.ER_AVSKREVET
                 }else {
                     Status.ANNEN_KONFLIKT

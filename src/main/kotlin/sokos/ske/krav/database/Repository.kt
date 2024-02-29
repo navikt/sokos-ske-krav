@@ -390,26 +390,6 @@ object Repository {
     }
 
     //skal bort
-    fun Connection.insertNewKobling(ref: String, nyRef: String): String {
-
-        prepareStatement(
-            """
-            insert into kobling (
-            saksref_fil,
-            saksref_uuid,
-            dato
-            ) values (?, ?, ?)
-        """.trimIndent()
-        ).withParameters(
-            param(ref),
-            param(nyRef),
-            param(LocalDateTime.now())
-        ).execute()
-        commit()
-
-        return nyRef
-    }
-
     fun Connection.getAlleKoblinger(): List<KoblingTable> {
         return prepareStatement(
             """

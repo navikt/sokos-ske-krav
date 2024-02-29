@@ -10,7 +10,6 @@ import sokos.ske.krav.database.Repository.getAllValidationErrors
 import sokos.ske.krav.database.Repository.getKravIdfromCorrId
 import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.insertAllNewKrav
-import sokos.ske.krav.database.Repository.insertNewKobling
 import sokos.ske.krav.database.Repository.saveErrorMessage
 import sokos.ske.krav.database.Repository.saveValidationError
 import sokos.ske.krav.database.Repository.setSkeKravIdentPaEndring
@@ -40,12 +39,6 @@ class DatabaseService(
     fun getKravIdFromCorrId(corrID: String): Long {
         postgresDataSource.connection.useAndHandleErrors { con ->
             return con.getKravIdfromCorrId(corrID)
-        }
-    }
-
-    fun insertNewKobling(saksnummerNav: String, corrID: String): String {
-        postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.insertNewKobling(saksnummerNav, corrID)
         }
     }
 
