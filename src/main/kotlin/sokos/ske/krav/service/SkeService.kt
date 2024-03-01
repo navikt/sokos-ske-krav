@@ -8,7 +8,7 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.SerializationException
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.database.models.Status
+import sokos.ske.krav.database.models.Status.Companion.isOkStatus
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
@@ -45,6 +45,7 @@ class SkeService(
 
         hentOgOppdaterMottaksStatus()
         resendIkkeReskontroforteKrav()
+
         sendNewFilesToSKE()
 
         delay(10_000)
@@ -222,7 +223,7 @@ class SkeService(
         val opprettKrav = opprettKravService.sendAllOpprettKrav(kravSomSkalResendes.filter { it.kravtype == NYTT_KRAV })
         feilListe.putAll(opprettKrav.flatMap { it.entries }.associate { it.key to it.value })
 
-        return feilListe.filter { !Status.isOkStatus(it.value.status)}
+        return feilListe.filter { !it.value.status.isOkStatus()}
     }
 
     suspend fun lagreOgOppdaterAlleNyeKrav(kravLinjer: List<KravLinje>) {
@@ -231,13 +232,13 @@ class SkeService(
         kravLinjer.filter { !it.isNyttKrav() }.map {
             val skeKravident = databaseService.getSkeKravident(it.referanseNummerGammelSak)
             var skeKravidenLagres = skeKravident
-            if (skeKravident.isNullOrBlank()) {
+            if (skeKravident.isBlank()) {
                 val httpResponse = skeClient.getSkeKravident(it.referanseNummerGammelSak)
                 if (httpResponse.status.isSuccess()){
                     skeKravidenLagres = httpResponse.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
                 }
             }
-            if (!skeKravidenLagres.isNullOrBlank()) databaseService.updateSkeKravidintifikator(it.saksNummer, skeKravidenLagres)
+            if (skeKravidenLagres.isNotBlank()) databaseService.updateSkeKravidintifikator(it.saksNummer, skeKravidenLagres)
         }
     }
 }

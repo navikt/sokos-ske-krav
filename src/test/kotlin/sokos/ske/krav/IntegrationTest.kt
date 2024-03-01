@@ -3,18 +3,14 @@ package sokos.ske.krav
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.database.Repository.getAllKrav
 import sokos.ske.krav.database.RepositoryExtensions.toFeilmelding
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.responses.FeilResponse
-import sokos.ske.krav.service.ENDRE_HOVEDSTOL
-import sokos.ske.krav.service.ENDRE_RENTER
-import sokos.ske.krav.service.NYTT_KRAV
-import sokos.ske.krav.service.STOPP_KRAV
-import sokos.ske.krav.service.SkeService
+import sokos.ske.krav.service.*
 import sokos.ske.krav.util.MockHttpClientUtils.EndepunktType
 import sokos.ske.krav.util.MockHttpClientUtils.MockRequestObj
 import sokos.ske.krav.util.MockHttpClientUtils.Responses
@@ -125,7 +121,7 @@ internal class IntegrationTest : FunSpec({
             ).executeQuery().toKrav()
 
         kravMedFeil.size shouldBe 10
-        kravMedFeil.filter { it.status == Status.FANT_IKKE_SAKSREF.value }.size shouldBe 10
+        kravMedFeil.filter { it.status == Status.FANT_IKKE_SAKSREF_404.value }.size shouldBe 10
     }
 
     test("Resending av krav ") {
@@ -153,8 +149,8 @@ internal class IntegrationTest : FunSpec({
         kravAfter.forEach { println(it.status) }
         kravAfter.filter { it.status == Status.IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 2
         kravAfter.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 0
-        kravAfter.filter { it.status == Status.ANNEN_KONFLIKT.value }.size shouldBe 1
-        kravAfter.filter { it.status == Status.VALIDERINGSFEIL.value }.size shouldBe 1
+        kravAfter.filter { it.status == Status.ANNEN_KONFLIKT_409.value }.size shouldBe 1
+        kravAfter.filter { it.status == Status.VALIDERINGSFEIL_422.value }.size shouldBe 1
         kravAfter.filter { it.status == Status.KRAV_SENDT.value }.size shouldBe 1
     }
 })
