@@ -2,32 +2,10 @@ package sokos.ske.krav.avstemming
 
 import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
-import org.simpleframework.xml.core.Persister
-import sokos.ske.krav.avstemming.kontrakt.AksjonType
-import sokos.ske.krav.avstemming.kontrakt.Avstemmingsdata
-import java.io.StringWriter
 
 @Ignored
 internal class xmlParserTest : FunSpec({
 
-    test("tester parsing") {
-        val xmlToParse1 = testData()
-        val serializer = Persister()
-        val avstemmindsData = serializer.read(Avstemmingsdata::class.java, xmlToParse1)
-        println(avstemmindsData.total?.totalBelop)
-        avstemmindsData.aksjon!!.aksjonType = AksjonType.START
-        var stw = StringWriter()
-        serializer.write(avstemmindsData, stw )
-//        println(stw.buffer.toString())
-        stw.buffer.delete(0, stw.buffer.length)
-        serializer.write(sokos.ske.krav.avstemming.testData(), stw)
-        println(stw.buffer.replace(regex = Regex("&lt;"), "<"))
-        println(stw.buffer.replace(regex = Regex("&gt;"), ">"))
-        val xmlHasBeenRead = stw.buffer.toString()
-        println(xmlHasBeenRead)
-
-
-    }
 
 })
 

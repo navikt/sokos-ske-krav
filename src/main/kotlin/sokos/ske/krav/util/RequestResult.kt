@@ -6,7 +6,12 @@ import io.ktor.http.*
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.responses.FeilResponse
-import sokos.ske.krav.util.ErrorTypeSke.*
+
+private const val KRAV_IKKE_RESKONTROFORT_RESEND = "innkrevingsoppdrag-er-ikke-reskontrofoert"
+private const val KRAV_ER_AVSKREVET = "innkrevingsoppdrag-er-avskrevet"
+private const val KRAV_ER_ALLEREDE_AVSKREVET = "innkrevingsoppdrag-er-allerede-avskrevet"
+private const val KRAV_EKSISTERER_IKKE = "innkrevingsoppdrag-eksisterer-ikke"
+
 
 data class RequestResult(
     val response: HttpResponse,
@@ -21,20 +26,20 @@ suspend fun defineStatus(response: HttpResponse):Status {
     val content = response.body<FeilResponse>()
 
     return when (response.status.value) {
-            404 -> Status.FANT_IKKE_SAKSREF
-            409 -> {
-                if (content.type.contains(KRAV_IKKE_RESKONTROFORT_RESEND.value)) {
-                    return Status.IKKE_RESKONTROFORT_RESEND
-                }
-                else if (content.type.contains(KRAV_ER_AVSKREVET.value) ||
-                    content.type.contains(KRAV_ER_ALLEREDE_AVSKREVET.value)
-                    ) {
-                    Status.ER_AVSKREVET
-                }else {
-                    Status.ANNEN_KONFLIKT
-                }
-            }
-            422 -> Status.VALIDERINGSFEIL
+            400 -> Status.UGYLDIG_FORESPORSEL_400
+            401 -> Status.FEIL_AUTENTISERING_401
+            403 -> Status.INGEN_TILGANG_403
+            404 -> if (content.type.contains(KRAV_EKSISTERER_IKKE)) Status.FANT_IKKE_SAKSREF_404
+                    else Status.ANNEN_IKKE_FUNNET_404
+            406 -> Status.FEIL_MEDIETYPE_406
+            409 -> if (content.type.contains(KRAV_IKKE_RESKONTROFORT_RESEND)) Status.IKKE_RESKONTROFORT_RESEND
+                    else if (content.type.contains(KRAV_ER_AVSKREVET) || content.type.contains(KRAV_ER_ALLEREDE_AVSKREVET))
+                    Status.KRAV_ER_AVSKREVET_409
+                    else Status.ANNEN_KONFLIKT_409
+            422 -> Status.VALIDERINGSFEIL_422
+            500 -> Status.INTERN_TJENERFEIL_500
+            503 -> Status.UTILGJENGELIG_TJENESTE_503
+
             else ->  Status.UKJENT_FEIL
         }
 }

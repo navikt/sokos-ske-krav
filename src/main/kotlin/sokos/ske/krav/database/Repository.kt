@@ -33,7 +33,7 @@ object Repository {
         return prepareStatement("""select * from krav where status not in (?, ?, ?)""")
             .withParameters(
                 param(Status.RESKONTROFOERT.value),
-                param(Status.VALIDERINGSFEIL.value),
+                param(Status.VALIDERINGSFEIL_422.value),
                 param(Status.KRAV_IKKE_SENDT.value),
             ).executeQuery().toKrav()
     }
@@ -54,7 +54,7 @@ object Repository {
     fun Connection.getAllValidationErrors(): List<KravTable> {
         return prepareStatement("""select * from krav where status = ?""")
             .withParameters(
-                param(Status.VALIDERINGSFEIL.value)
+                param(Status.VALIDERINGSFEIL_422.value)
             ).executeQuery().toKrav()
     }
 

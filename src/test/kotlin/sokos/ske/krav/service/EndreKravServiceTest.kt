@@ -42,7 +42,7 @@ class EndreKravServiceTest : FunSpec({
 
         val result = endreKravService.sendAllEndreKrav(kravListe).flatMap { it.entries.toList() }.map { it.value }
 
-        result.filter { it.status ==Status.FANT_IKKE_SAKSREF }.size shouldBe 2
+        result.filter { it.status ==Status.FANT_IKKE_SAKSREF_404 }.size shouldBe 2
     }
 
     test("hvis responsen er 409 og 422 skal det være 422") {
@@ -69,7 +69,7 @@ class EndreKravServiceTest : FunSpec({
 
         val result = endreKravService.sendAllEndreKrav(kravListe).flatMap { it.entries.toList() }.map { it.value }
 
-        result.filter { it.status ==Status.VALIDERINGSFEIL }.size shouldBe 2
+        result.filter { it.status ==Status.VALIDERINGSFEIL_422 }.size shouldBe 2
     }
 
     test("hvis responsen er 409 og 404 skal det være 404") {
@@ -96,7 +96,7 @@ class EndreKravServiceTest : FunSpec({
 
         val result = endreKravService.sendAllEndreKrav(kravListe).flatMap { it.entries.toList() }.map { it.value }
 
-        result.filter { it.status ==Status.FANT_IKKE_SAKSREF }.size shouldBe 2
+        result.filter { it.status ==Status.FANT_IKKE_SAKSREF_404 }.size shouldBe 2
     }
 
     test("sender 10 endringer 5 rente og 5 hovedstol skal gi 1 200, 2 404, 1 409 og 1 422") {
@@ -160,11 +160,13 @@ class EndreKravServiceTest : FunSpec({
 //        println("Ikke funnet: $ikkeFunnet")
 
         result.size shouldBe 10
-        result.filter { it.status ==Status.ANNEN_KONFLIKT }.size shouldBe 2
+        result.filter { it.status ==Status.ANNEN_KONFLIKT_409 }.size shouldBe 2
         result.filter { it.status ==Status.KRAV_SENDT }.size shouldBe 2
-        result.filter { it.status ==Status.VALIDERINGSFEIL }.size shouldBe 2
-        result.filter { it.status ==Status.FANT_IKKE_SAKSREF }.size shouldBe 4
+        result.filter { it.status ==Status.VALIDERINGSFEIL_422 }.size shouldBe 2
+        result.filter { it.status ==Status.FANT_IKKE_SAKSREF_404 }.size shouldBe 4
 
     }
+
+
 })
 
