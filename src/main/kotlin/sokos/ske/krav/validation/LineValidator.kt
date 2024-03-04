@@ -15,6 +15,7 @@ object LineValidator {
         val belopValid = validateBelop(krav.belop.toLong())
         val vedtakDatoValid = validateVedtaksdato(krav.vedtakDato)
         val kravtypeValid = validateKravtype(KravtypeMappingFromNAVToSKE.getKravtype(krav))
+        val refnrGammelValid = validateSaksnr(krav.referanseNummerGammelSak)
         val fomTomValid =
             validateFomBeforetom(
                 LocalDate.of(
@@ -41,10 +42,13 @@ object LineValidator {
         if (!kravtypeValid) {
             //TODO lagre feilinformasjon
         }
+        if (!refnrGammelValid) {
+            //TODO lagre feilinformasjon
+        }
         if (!fomTomValid) {
             //TODO lagre feilinformasjon
         }
-        return saksnrValid && belopValid && vedtakDatoValid && kravtypeValid && fomTomValid
+        return saksnrValid && belopValid && vedtakDatoValid && kravtypeValid && refnrGammelValid && fomTomValid
     }
 
     private fun validateBelop(belop: Long) = belop > 0
