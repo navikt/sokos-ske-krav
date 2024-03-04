@@ -1,6 +1,5 @@
 package sokos.ske.krav.service
 
-import io.ktor.http.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
@@ -22,33 +21,6 @@ class StoppKravService(
         databaseService.updateSentKravToDatabase(resultMap)
         return resultMap
     }
-
-    suspend fun resendStoppKrav(kravList: List<KravTable>) {
-
-        kravList.map {
-            val stopResult = sendStoppKrav(it)
-            if (stopResult.response.status.isSuccess()) stopResult
-            else{
-
-            }
-        //      Sjekk at resultatet er ok
-        //      hvis resultat ikke ok
-        //          finn ut hva som feilet og hva som må gjøres
-        //          hvis den skal varsles lagre i varselliste
-        //      lagre resultatet sammem med alle de andre
-        // for hver slutt
-        }
-
-        //Er det innslag i varselliste
-        //      Send varsel
-
-        //TODO Vurder om sjekk på og separering til varsel liste skal være felles for alle typer
-        //TODO Mao om den skal over i skeService metoden som kaller denne?
-        //TODO fordel: bare ett sted, Ulempe: vanskeligere dersom forskjellige regler.
-
-        //returner resultatene for lagring
-    }
-
 
     private suspend fun sendStoppKrav(
         krav: KravTable

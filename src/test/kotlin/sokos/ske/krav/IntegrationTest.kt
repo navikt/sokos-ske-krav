@@ -142,7 +142,7 @@ internal class IntegrationTest : FunSpec({
         kravBefore.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 1
         kravBefore.filter { it.status == Status.KRAV_SENDT.value }.size shouldBe 1
 
-        mocks.first.resendIkkeReskontroforteKrav()
+        mocks.first.resendAlleKravSomKanResendes()
 
         val kravAfter = mocks.second.connection.prepareStatement("""select * from krav""").executeQuery().toKrav()
 
