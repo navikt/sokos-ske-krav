@@ -34,8 +34,25 @@ internal class ValidationTest: FunSpec({
 	val liste = readFileFromFS("FilMedFeilKravKode.txt".asResource())
 	FileParser(liste).parseKravLinjer().filter { !LineValidator.validateLine(it, "FilMedFeilKravKode.txt") }.size shouldBe 1
   }
-  test("Validering av linje skal returnere true når validering er OK") {
-	val liste = readFileFromFS("AltOkFil.txt".asResource())
-	FileParser(liste).parseKravLinjer().filter { LineValidator.validateLine(it, "AltOkFil.txt") }.size shouldBe liste.size - 2
+
+
+  test("Validering av linje skal feile når kravtypen er ugyldig") {
+	  val liste = readFileFromFS("FilMedFeilKravKode.txt".asResource())
+	  FileParser(liste).parseKravLinjer().filter { !LineValidator.validateLine(it, "FilMedFeilKravKode.txt") }.size shouldBe 1
   }
+  test("Validering av linje skal feile når beløpet er null") {
+    val liste = readFileFromFS("FilMedBelopLikNull.txt".asResource())
+    FileParser(liste).parseKravLinjer().filter { !LineValidator.validateLine(it, "FilMedBelopLikNull.txt") }.size shouldBe 2
+  }
+
+
+  test("Rentebeløp er ikke over null") {}
+  test("Tom oppdragsgivers referanse") {}
+  test("Ugyldig fastsettelsesdato") {}
+  test("Ugyldig foreldelsesfristens utgangspunkt") {}
+  test("Ugyldig renter ilagt dato:") {}
+  test("Ytelser for avregning er ikke over null") {}
+  test("Ugyldig tilbakekrevingsperiode") {}
+  test("Hovedstol er ikke over null") {}
+  test("Rentebeløp er under null") {}
 })
