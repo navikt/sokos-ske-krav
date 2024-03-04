@@ -3,11 +3,11 @@ package sokos.ske.krav
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import sokos.ske.krav.util.FileParser
-import sokos.ske.krav.util.FileValidator
-import sokos.ske.krav.util.LineValidator
-import sokos.ske.krav.util.ValidationResult
 import sokos.ske.krav.util.asResource
 import sokos.ske.krav.util.readFileFromFS
+import sokos.ske.krav.validation.FileValidator
+import sokos.ske.krav.validation.LineValidator
+import sokos.ske.krav.validation.ValidationResult
 
 internal class ValidationTest: FunSpec({
 

@@ -15,9 +15,9 @@ import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
-import sokos.ske.krav.util.LineValidator
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.isNyttKrav
+import sokos.ske.krav.validation.LineValidator
 import java.time.LocalDateTime
 
 
