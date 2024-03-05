@@ -16,17 +16,20 @@ class EndreKravService(
 
     suspend fun sendAllEndreKrav(kravList: List<KravTable>): List<Map<String, RequestResult>> {
 
-        kravList.groupBy({ it.saksnummerSKE + it.referanseNummerGammelSak + it.belop.toString() })
+        kravList.groupBy { it.saksnummerSKE + it.referanseNummerGammelSak + it.belop.toString() }
 
         val endringsMap = kravList.groupBy { it.saksnummerSKE + it.saksnummerNAV }
 
         val resultList = endringsMap.map { entry ->
+
             val kravidentifikatorPair = createKravidentifikatorPair(entry.value.first())
             val response = entry.value.map {
                 sendEndreKrav(kravidentifikatorPair.first, kravidentifikatorPair.second, it)
             }
             getConformedResponses(response)
         }.flatten()
+
+        resultList.forEach { it.values.forEach { value ->  println(value.status) }}
         databaseService.updateSentKravToDatabase(resultList)
         return resultList
     }
