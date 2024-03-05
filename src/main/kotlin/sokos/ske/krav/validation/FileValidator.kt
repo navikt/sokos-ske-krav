@@ -1,28 +1,11 @@
-package sokos.ske.krav.util
+package sokos.ske.krav.validation
 
 import mu.KotlinLogging
-import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.domain.nav.KravtypeMappingFromNAVToSKE
 import sokos.ske.krav.metrics.Metrics
+import sokos.ske.krav.util.FileParser
 
 private val logger = KotlinLogging.logger{}
 
-sealed class ValidationResult {
-    data class Success(val kravLinjer: List<KravLinje>) : ValidationResult()
-    data class Error(val messages: List<String>) : ValidationResult()
-}
-object LineValidator{
-   fun validateLine(krav: KravLinje, filNavn: String): Boolean{
-       return try {
-          KravtypeMappingFromNAVToSKE.getKravtype(krav)
-          true
-        } catch (e: NotImplementedError){
-          Metrics.lineValidationError.labels(filNavn, krav.linjeNummer.toString(), e.message).inc()
-         logger.info( "Feil i $filNavn på linje ${krav.linjeNummer}: ${e.message}")
-          false
-        }
-    }
-}
 object FileValidator{
     fun validateFile(content: List<String>, fileName: String): ValidationResult {
         val parser = FileParser(content)

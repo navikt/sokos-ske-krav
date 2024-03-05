@@ -45,7 +45,7 @@ object Metrics {
 	.namespace(NAMESPACE)
 	.name("linjevalidering_feil")
 	.help("feil i validering av linje")
-	.labelNames("fileName", "linjenummer", "message")
+	.labelNames("fileName", "message")
 	.register(registry.prometheusRegistry)
 
 

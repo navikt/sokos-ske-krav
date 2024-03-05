@@ -2,12 +2,13 @@ package sokos.ske.krav
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import sokos.ske.krav.service.FtpFil
 import sokos.ske.krav.util.FileParser
-import sokos.ske.krav.util.FileValidator
-import sokos.ske.krav.util.LineValidator
-import sokos.ske.krav.util.ValidationResult
 import sokos.ske.krav.util.asResource
 import sokos.ske.krav.util.readFileFromFS
+import sokos.ske.krav.validation.FileValidator
+import sokos.ske.krav.validation.LineValidator
+import sokos.ske.krav.validation.ValidationResult
 
 internal class ValidationTest: FunSpec({
 
@@ -27,15 +28,72 @@ internal class ValidationTest: FunSpec({
 
   test("Validering av linje skal returnere true når validering er ok") {
 	val liste = readFileFromFS("AltOkFil.txt".asResource())
-	FileParser(liste).parseKravLinjer().map { LineValidator.validateLine(it, "AltOkFil.txt")}.size shouldBe liste.size - 2
+    val fil = FtpFil(
+        "hei.txt",
+        liste,
+        kravLinjer = FileParser(liste).parseKravLinjer()
+    )
+        LineValidator.getOkLines(fil).size shouldBe liste.size - 2
   }
 
-  test("Validering av linje skal returnere false når validering ikke er OK") {
+  test("Validering av linje skal feile når kravtypen er ugyldig") {
 	val liste = readFileFromFS("FilMedFeilKravKode.txt".asResource())
-	FileParser(liste).parseKravLinjer().filter { !LineValidator.validateLine(it, "FilMedFeilKravKode.txt") }.size shouldBe 1
+      val fil = FtpFil(
+          "hei.txt",
+          liste,
+          kravLinjer = FileParser(liste).parseKravLinjer()
+      )
+      LineValidator.getOkLines(fil).size shouldBe liste.size - 3
   }
-  test("Validering av linje skal returnere true når validering er OK") {
-	val liste = readFileFromFS("AltOkFil.txt".asResource())
-	FileParser(liste).parseKravLinjer().filter { LineValidator.validateLine(it, "AltOkFil.txt") }.size shouldBe liste.size - 2
+
+
+  test("Beløp kan ikke være 0 når det er nytt krav eller krav som skal endres") {
+    val liste = readFileFromFS("FilMedBelopLikNull.txt".asResource())
+      val fil = FtpFil(
+          "hei.txt",
+          liste,
+          kravLinjer = FileParser(liste).parseKravLinjer()
+      )
+      LineValidator.getOkLines(fil).size shouldBe 8
+  }
+
+    test("Saksnummer må være riktig formatert"){
+        val liste = readFileFromFS("FilMedFeilSaksnr.txt".asResource())
+        val fil = FtpFil(
+            "hei.txt",
+            liste,
+            kravLinjer = FileParser(liste).parseKravLinjer()
+        )
+        LineValidator.getOkLines(fil).size shouldBe 1
+    }
+
+    test("Refnummer gamme sak må være riktig formatert"){
+        val liste = readFileFromFS("FilMedFeilRefnrGmlSak.txt".asResource())
+        val fil = FtpFil(
+            "hei.txt",
+            liste,
+            kravLinjer = FileParser(liste).parseKravLinjer()
+        )
+        LineValidator.getOkLines(fil).size shouldBe 2
+    }
+
+    test("Vedtaksdato kan ikke være i fremtiden" ){
+        val liste = readFileFromFS("FilMedUgyldigVedtaksdato.txt".asResource())
+        val fil = FtpFil(
+            "hei.txt",
+            liste,
+            kravLinjer = FileParser(liste).parseKravLinjer()
+        )
+        LineValidator.getOkLines(fil).size shouldBe 3
+    }
+
+  test("Periode må være i fortid og fom må være før tom") {
+      val liste = readFileFromFS("FilMedFeilPeriode.txt".asResource())
+      val fil = FtpFil(
+          "hei.txt",
+          liste,
+          kravLinjer = FileParser(liste).parseKravLinjer()
+      )
+      LineValidator.getOkLines(fil).size shouldBe 2
   }
 })
