@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.nav.KravtypeMappingFromNAVToSKE
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 
 private val logger = KotlinLogging.logger {}
@@ -17,18 +18,7 @@ object LineValidator {
         val kravtypeValid = validateKravtype(KravtypeMappingFromNAVToSKE.getKravtype(krav))
         val refnrGammelValid = validateSaksnr(krav.referanseNummerGammelSak)
         val fomTomValid =
-            validateFomBeforetom(
-                LocalDate.of(
-                    krav.periodeFOM.substring(0, 3).toInt(),
-                    krav.periodeFOM.substring(4, 5).toInt(),
-                    krav.periodeFOM.substring(6, 7).toInt()
-                ),
-                LocalDate.of(
-                    krav.periodeTOM.substring(0, 3).toInt(),
-                    krav.periodeTOM.substring(4, 5).toInt(),
-                    krav.periodeTOM.substring(6, 7).toInt()
-                )
-            )
+            validateFomBeforetom(krav.periodeFOM, krav.periodeTOM)
 
         if (!saksnrValid) {
             //TODO lagre feilinformasjon
@@ -58,12 +48,18 @@ object LineValidator {
     //Må være mellom 1 og 40 tegn, og kun inneholde bokstaver (a-å, A-Å), tall og spesialtegnene - og /
     private fun validateSaksnr(navSaksnr: String) = navSaksnr.matches("^[a-zA-Z0-9-/]+$".toRegex())
 
-    private fun validateVedtaksdato(dato: LocalDate) = validateDatoIFortid(dato)
+    private fun validateVedtaksdato(dato: LocalDate) = validateDateInPast(dato)
 
-    private fun validateDatoIFortid(date: LocalDate) = !validateDatoIFremtid(date)
+    private fun validateDateInPast(date: LocalDate) = !validateDateInFuture(date)
 
-    private fun validateDatoIFremtid(date: LocalDate) = date.isAfter(LocalDate.now())
+    private fun validateDateInFuture(date: LocalDate) = date.isAfter(LocalDate.now())
 
-    private fun validateFomBeforetom(fom: LocalDate, tom: LocalDate) = fom.isBefore(tom)
-
+    private fun validateFomBeforetom(fom: String, tom: String) = try {
+        val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
+        val dateFrom = LocalDate.parse(fom, dtf)
+        val dateTo = LocalDate.parse(tom, dtf)
+        dateFrom.isBefore(dateTo)
+    } catch (e: Exception) {
+        false
+    }
 }
