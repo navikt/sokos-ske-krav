@@ -73,7 +73,7 @@ class SkeService(
         file: FtpFil,
     ): List<HttpResponse> {
 
-        val linjer = file.kravLinjer.filter { LineValidator.validateLine(it, file.name) }
+        val linjer = LineValidator.getOkLines(file)
 
         lagreOgOppdaterAlleNyeKrav(linjer)
 

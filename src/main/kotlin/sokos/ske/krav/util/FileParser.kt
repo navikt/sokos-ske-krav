@@ -29,6 +29,7 @@ import sokos.ske.krav.util.FileParser.SisteLinjeFeltPosisjoner.SUM_ALLE_LINJER_P
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 class FileParser(val content: List<String>) {
 
@@ -122,10 +123,15 @@ class FileParser(val content: List<String>) {
         }
 
         fun parseInt(line: String): Int = parseString(line).toInt()
+
         fun parseDate(line: String): LocalDate {
             val dateString = parseString(line)
             val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
-            return LocalDate.parse(dateString, dtf)
+            return try {
+                LocalDate.parse(dateString, dtf)
+            }catch (e: DateTimeParseException){
+                LocalDate.MAX
+            }
         }
     }
 }
