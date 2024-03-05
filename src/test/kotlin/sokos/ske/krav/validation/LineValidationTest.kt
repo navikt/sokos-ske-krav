@@ -1,4 +1,4 @@
-package sokos.ske.krav
+package sokos.ske.krav.validation
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -6,11 +6,8 @@ import sokos.ske.krav.service.FtpFil
 import sokos.ske.krav.util.FileParser
 import sokos.ske.krav.util.asResource
 import sokos.ske.krav.util.readFileFromFS
-import sokos.ske.krav.validation.FileValidator
-import sokos.ske.krav.validation.LineValidator
-import sokos.ske.krav.validation.ValidationResult
 
-internal class ValidationTest: FunSpec({
+internal class LineValidationTest: FunSpec({
 
   test("Når validering av fil er OK skal ValidationResult.Success returneres med kravlinjene"){
 	val liste = readFileFromFS("AltOkFil.txt".asResource())

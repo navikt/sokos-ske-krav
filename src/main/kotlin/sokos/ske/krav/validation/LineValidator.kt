@@ -69,7 +69,6 @@ object LineValidator {
 
     private fun validateKravtype(kravtypeSke: KravtypeMappingFromNAVToSKE?) = (kravtypeSke != null)
 
-    //Må være mellom 1 og 40 tegn, og kun inneholde bokstaver (a-å, A-Å), tall og spesialtegnene - og /
     private fun validateSaksnr(navSaksnr: String) = navSaksnr.matches("^[a-zA-Z0-9-/]+$".toRegex())
 
     private fun validateVedtaksdato(dato: LocalDate) = validateDateInPast(dato)
