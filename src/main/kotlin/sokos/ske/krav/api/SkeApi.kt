@@ -9,10 +9,12 @@ import mu.KotlinLogging
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.service.SkeService
+import sokos.ske.krav.service.StatusService
 import kotlin.system.exitProcess
 
 fun Routing.skeApi(
     skeService: SkeService,
+    statusService: StatusService
 ) {
     val logger = KotlinLogging.logger {}
 
@@ -94,7 +96,7 @@ fun Routing.skeApi(
             println("kaller mottaksstatus")
             logger.info("APIlogger:  Status Start")
             try {
-                call.respond(skeService.hentOgOppdaterMottaksStatus())
+                call.respond(statusService.hentOgOppdaterMottaksStatus())
                 logger.info("APILogger Status ferdig")
             } catch (e: Exception) {
                 logger.error("APILogger: Status feilet")
@@ -108,9 +110,7 @@ fun Routing.skeApi(
         get("validering") {
             logger.info("API kaller Valideringsfeil")
             try {
-                val a = skeService.hentValideringsfeil()
-                if (a.isEmpty()) call.respond("ingen valideringsfeil funnet")
-                else call.respond(a)
+                statusService.hentValideringsfeil()
             } catch (e: Exception) {
                 logger.error("APIlogger: validering feilet")
                 call.respond(

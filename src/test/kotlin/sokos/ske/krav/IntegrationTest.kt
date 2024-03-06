@@ -4,18 +4,23 @@ import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
+import io.mockk.mockk
 import kotlinx.serialization.json.Json
+import sokos.ske.krav.client.SkeClient
+import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.getAllKrav
 import sokos.ske.krav.database.RepositoryExtensions.toFeilmelding
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.responses.FeilResponse
+import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.*
 import sokos.ske.krav.util.MockHttpClientUtils.EndepunktType
 import sokos.ske.krav.util.MockHttpClientUtils.MockRequestObj
 import sokos.ske.krav.util.MockHttpClientUtils.Responses
 import sokos.ske.krav.util.setUpMockHttpClient
 import sokos.ske.krav.util.setupMocks
+import sokos.ske.krav.util.startContainer
 
 internal class IntegrationTest : FunSpec({
 
@@ -81,14 +86,18 @@ internal class IntegrationTest : FunSpec({
     }
 
     test("Mottaksstatus skal oppdateres i database") {
+        val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
         val mottaksstatusKall = MockRequestObj(Responses.mottaksStatusResponse(status =  Status.RESKONTROFOERT.value), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
-
         val httpClient = setUpMockHttpClient(listOf(mottaksstatusKall))
-        val mocks: Pair<SkeService, HikariDataSource> =
-            setupMocks(listOf("AltOkFil.txt"), this.testCase.name.testName, httpClient, listOf("NyeKrav.sql"))
 
-        mocks.first.hentOgOppdaterMottaksStatus()
-        val kravdata = mocks.second.connection.getAllKrav()
+        val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
+        val dataSource = startContainer(this.testCase.name.testName, listOf("NyeKrav.sql"))
+        val databaseService = DatabaseService(PostgresDataSource(dataSource))
+        val statusService = StatusService(skeClient, databaseService)
+
+
+        statusService.hentOgOppdaterMottaksStatus()
+        val kravdata = dataSource.connection.getAllKrav()
 
         kravdata.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 2
     }

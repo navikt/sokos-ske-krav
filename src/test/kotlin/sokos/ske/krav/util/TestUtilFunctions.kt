@@ -2,18 +2,12 @@ package sokos.ske.krav.util
 
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.extensions.testcontainers.toDataSource
-import io.ktor.client.HttpClient
+import io.ktor.client.*
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
-import sokos.ske.krav.service.AlarmService
-import sokos.ske.krav.service.DatabaseService
-import sokos.ske.krav.service.Directories
-import sokos.ske.krav.service.EndreKravService
-import sokos.ske.krav.service.OpprettKravService
-import sokos.ske.krav.service.SkeService
-import sokos.ske.krav.service.StoppKravService
+import sokos.ske.krav.service.*
 import java.io.File
 import java.net.URI
 
@@ -54,6 +48,7 @@ fun setupMocks(
   val databaseService = DatabaseService(PostgresDataSource(dataSource))
   val endreKravService = EndreKravService(skeClient, databaseService)
   val opprettKravService = OpprettKravService(skeClient, databaseService)
+  val statusService = StatusService(skeClient, databaseService)
   val alarmService = AlarmService()
   val stoppKravService = StoppKravService(skeClient, databaseService)
 
@@ -63,6 +58,7 @@ fun setupMocks(
       stoppKravService,
       endreKravService,
       opprettKravService,
+      statusService,
       alarmService,
       databaseService,
       ftpService,

@@ -21,16 +21,18 @@ fun main() {
     val stoppKravService = StoppKravService(skeClient)
     val endreKravService = EndreKravService(skeClient)
     val opprettKravService = OpprettKravService(skeClient)
+    val statusService = StatusService(skeClient)
     val alarmService = AlarmService()
-    val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, alarmService)
+    val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, alarmService)
 
     applicationState.ready = true
-    HttpServer(applicationState, skeService).start()
+    HttpServer(applicationState, skeService, statusService).start()
 }
 
 class HttpServer(
     private val applicationState: ApplicationState,
     private val skeService: SkeService,
+    private val statusService: StatusService,
     port: Int = 8080,
 ) {
     init {
@@ -41,7 +43,7 @@ class HttpServer(
     }
 
     private val embeddedServer = embeddedServer(Netty, port) {
-        applicationModule(applicationState, skeService)
+        applicationModule(applicationState, skeService, statusService)
     }
 
     fun start() {
@@ -63,7 +65,8 @@ class ApplicationState {
 private fun Application.applicationModule(
     applicationState: ApplicationState,
     skeService: SkeService,
+    statusService: StatusService
 ) {
     commonConfig()
-    routingConfig(applicationState, skeService)
+    routingConfig(applicationState, skeService, statusService)
 }

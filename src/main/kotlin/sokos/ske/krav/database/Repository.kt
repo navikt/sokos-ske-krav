@@ -389,7 +389,7 @@ object Repository {
         commit()
     }
 
-    //skal bort
+    //TODO skal bort
     fun Connection.getAlleKoblinger(): List<KoblingTable> {
         return prepareStatement(
             """
