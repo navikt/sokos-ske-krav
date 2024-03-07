@@ -166,7 +166,6 @@ object Repository {
         """.trimIndent()
         ).withParameters(
             param(mottakStatus),
-          //  param(LocalDateTime.now()),
             param(corrId)
         ).execute()
         commit()

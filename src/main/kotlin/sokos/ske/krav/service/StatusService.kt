@@ -1,7 +1,7 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.call.body
-import io.ktor.http.isSuccess
+import io.ktor.client.call.*
+import io.ktor.http.*
 import kotlinx.datetime.Clock
 import kotlinx.serialization.SerializationException
 import mu.KotlinLogging
@@ -55,14 +55,12 @@ class StatusService(
                 } catch (e: SerializationException) {
                     feil++
                     logger.error("Feil i dekoding av MottaksStatusResponse: ${e.message}")
-                    throw e
                 } catch (e: IllegalArgumentException) {
                     feil++
                     logger.error("Response er ikke på forventet format for MottaksStatusResponse : ${e.message}")
-                    throw e
                 }
             } else {
-                println(response.status)
+                logger.info { "Kall til mottaksstatus hos skatt feilet: ${response.status.value}, ${response.status.description}" }
             }
 
         }
@@ -95,8 +93,9 @@ class StatusService(
                 )
                 databaseService.saveFeilmelding(feilmeldingTable, kravTable.corr_id)
             }
-            return mapOf(kravTable to valideringsfeil)
+            mapOf(kravTable to valideringsfeil)
         }
+        logger.error { "Kall til henting av valideringsfeil hos SKE feilet: ${response.status.value}, ${response.status.description}" }
         return emptyMap()
     }
 
