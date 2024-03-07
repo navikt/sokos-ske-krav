@@ -20,17 +20,16 @@ import sokos.ske.krav.util.isStopp
 import java.sql.Connection
 import java.sql.Date
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
 object Repository {
 
 
     fun Connection.getAllKravForStatusCheck() =
-        prepareStatement("""select * from krav where status not in (?, ?, ?)""")
+        prepareStatement("""select * from krav where status in (?, ?)""")
             .withParameters(
-                param(Status.RESKONTROFOERT.value),
-                param(Status.VALIDERINGSFEIL_422.value),
-                param(Status.KRAV_IKKE_SENDT.value),
+                param(Status.KRAV_SENDT.value),
+                param(Status.MOTTATT_UNDERBEHANDLING.value),
             ).executeQuery().toKrav()
 
     fun Connection.getAllKravForResending() =
