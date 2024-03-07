@@ -18,6 +18,7 @@ fun makeOpprettKravRequest(krav: KravTable) = OpprettInnkrevingsoppdragRequest(
     oppdragsgiversReferanse = krav.saksnummerNAV,
     oppdragsgiversKravIdentifikator = krav.corr_id,
     fastsettelsesDato = krav.vedtakDato.toKotlinLocalDate(),
+    foreldelsesFristensUtgangspunkt = krav.utbetalDato.toKotlinLocalDate(),
     tilleggsInformasjon = createTilleggsinformasjonNav(krav),
 )
 

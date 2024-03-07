@@ -34,10 +34,10 @@ class StoppKravServiceTest : FunSpec({
      }
 
      val kravListe = listOf(
-      KravTable( 111, "skeref123", "navref123", 0.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "STOPP_KRAV", "cor123", LocalDateTime.now(),
+      KravTable( 111, "skeref123", "navref123", 0.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "STOPP_KRAV", "cor123", LocalDateTime.now(),
        LocalDateTime.now(),
        LocalDateTime.now()),
-      KravTable( 111, "skeref123", "navref123", 0.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "STOPP_KRAV", "cor124", LocalDateTime.now(),
+      KravTable( 111, "skeref123", "navref123", 0.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "STOPP_KRAV", "cor124", LocalDateTime.now(),
        LocalDateTime.now(),
        LocalDateTime.now()),
      )

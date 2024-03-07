@@ -2,12 +2,12 @@ package sokos.ske.krav.database
 
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
+import sokos.ske.krav.database.RepositoryExtensions.toFeilmelding
 import sokos.ske.krav.database.RepositoryExtensions.toKobling
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KoblingTable
-import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
@@ -25,38 +25,41 @@ import java.time.LocalDateTime
 import java.util.*
 
 object Repository {
-    fun Connection.getAllKrav(): List<KravTable> {
-        return prepareStatement("""select * from krav""").executeQuery().toKrav()
-    }
+    fun Connection.getAllKrav() =
+        prepareStatement("""select * from krav""").executeQuery().toKrav()
 
-    fun Connection.getAllKravForStatusCheck(): List<KravTable> {
-        return prepareStatement("""select * from krav where status not in (?, ?, ?)""")
+
+    fun Connection.getAllKravForStatusCheck() =
+        prepareStatement("""select * from krav where status not in (?, ?, ?)""")
             .withParameters(
                 param(Status.RESKONTROFOERT.value),
                 param(Status.VALIDERINGSFEIL_422.value),
                 param(Status.KRAV_IKKE_SENDT.value),
             ).executeQuery().toKrav()
-    }
-    fun Connection.getAllKravForResending(): List<KravTable> {
-        return prepareStatement("""select * from krav where status in (?, ?)""")
+
+    fun Connection.getAllKravForResending() =
+        prepareStatement("""select * from krav where status in (?, ?)""")
             .withParameters(
                 param(Status.KRAV_IKKE_SENDT.value),
                 param(Status.IKKE_RESKONTROFORT_RESEND.value)
             ).executeQuery().toKrav()
-    }
-    fun Connection.getAllKravNotSent(): List<KravTable> {
-        return prepareStatement("""select * from krav where status = ?""")
+
+    fun Connection.getAllKravNotSent() =
+        prepareStatement("""select * from krav where status = ?""")
             .withParameters(
                 param(Status.KRAV_IKKE_SENDT.value),
             ).executeQuery().toKrav()
-    }
 
-    fun Connection.getAllValidationErrors(): List<KravTable> {
-        return prepareStatement("""select * from krav where status = ?""")
+
+    fun Connection.getAllValidationErrors() =
+        prepareStatement("""select * from krav where status = ? or status = ?""")
             .withParameters(
+                param(Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value),
                 param(Status.VALIDERINGSFEIL_422.value)
             ).executeQuery().toKrav()
-    }
+
+    fun Connection.getAllFeilmeldinger() =
+        prepareStatement("""select * from feilmelding""").executeQuery().toFeilmelding()
 
     fun Connection.getSkeKravIdent(navref: String): String {
         val rs = prepareStatement(
@@ -206,7 +209,7 @@ object Repository {
                 kravtype,
                 tidspunkt_siste_status,
                 tidspunkt_opprettet
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(), NOW())
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,? ,?,?,?,?,NOW(), NOW())
             """.trimIndent()
         ).withParameters(
             param(kravLinje.saksNummer),
@@ -287,7 +290,7 @@ object Repository {
             prepStmt.setString(13, it.arsakKode)
             prepStmt.setDouble(14, it.belopRente.toDouble())
             prepStmt.setString(15, it.fremtidigYtelse.toString())
-            prepStmt.setString(16, it.utbetalDato)
+            prepStmt.setDate(16, Date.valueOf(it.utbetalDato))
             prepStmt.setString(17, it.fagsystemId)
             prepStmt.setString(18, type)
             prepStmt.setString(19, UUID.randomUUID().toString())
@@ -308,7 +311,7 @@ object Repository {
                 prepStmt.setString(13, it.arsakKode)
                 prepStmt.setDouble(14, it.belopRente.toDouble())
                 prepStmt.setString(15, it.fremtidigYtelse.toString())
-                prepStmt.setString(16, it.utbetalDato)
+                prepStmt.setDate(16, Date.valueOf(it.utbetalDato))
                 prepStmt.setString(17, it.fagsystemId)
                 prepStmt.setString(18, ENDRE_RENTER)
                 prepStmt.setString(19, UUID.randomUUID().toString())

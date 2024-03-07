@@ -20,8 +20,8 @@ data class KravLinje(
     val arsakKode: String,
     val belopRente: BigDecimal,
     val fremtidigYtelse: BigDecimal,
-    val utbetalDato: String?,
-    val fagsystemId: String?,
+    val utbetalDato: LocalDate,
+    val fagsystemId: String,
 )
 
 data class KontrollLinjeHeader(

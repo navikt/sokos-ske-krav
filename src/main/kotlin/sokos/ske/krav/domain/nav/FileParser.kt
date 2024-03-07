@@ -1,35 +1,31 @@
-package sokos.ske.krav.util
+package sokos.ske.krav.domain.nav
 
 import mu.KotlinLogging
-import sokos.ske.krav.domain.nav.KontrollLinjeFooter
-import sokos.ske.krav.domain.nav.KontrollLinjeHeader
-import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.ARSAK_KODE_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.BELOP_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.BELOP_RENTE_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.ENHET_BEHANDLENDE_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.ENHET_BOSTED_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.FAGSYSTEM_ID_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.FREMTIDIG_YTELSE_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.GJELDER_ID_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.HJEMMEL_KODE_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.KRAV_KODE_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.LINJE_NUMMER_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.PERIODE_FOM_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.PERIODE_TOM_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.REFERANSE_GAMMEL_SAK_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.SAKS_NUMMER_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.TRANSAKSJONS_DATO_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.UTBETAL_DATO_POS
-import sokos.ske.krav.util.FileParser.KravLinjeFeltPosisjoner.VEDTAK_DATO_POS
-import sokos.ske.krav.util.FileParser.SisteLinjeFeltPosisjoner.ANTALL_LINJER_POS
-import sokos.ske.krav.util.FileParser.SisteLinjeFeltPosisjoner.OVERFORINGS_DATO_POS
-import sokos.ske.krav.util.FileParser.SisteLinjeFeltPosisjoner.SENDER_POS
-import sokos.ske.krav.util.FileParser.SisteLinjeFeltPosisjoner.SUM_ALLE_LINJER_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.ARSAK_KODE_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.BELOP_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.BELOP_RENTE_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.ENHET_BEHANDLENDE_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.ENHET_BOSTED_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.FAGSYSTEM_ID_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.FREMTIDIG_YTELSE_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.GJELDER_ID_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.HJEMMEL_KODE_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.KRAV_KODE_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.LINJE_NUMMER_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.PERIODE_FOM_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.PERIODE_TOM_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.REFERANSE_GAMMEL_SAK_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.SAKS_NUMMER_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.TRANSAKSJONS_DATO_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.UTBETAL_DATO_POS
+import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.VEDTAK_DATO_POS
+import sokos.ske.krav.domain.nav.FileParser.SisteLinjeFeltPosisjoner.ANTALL_LINJER_POS
+import sokos.ske.krav.domain.nav.FileParser.SisteLinjeFeltPosisjoner.OVERFORINGS_DATO_POS
+import sokos.ske.krav.domain.nav.FileParser.SisteLinjeFeltPosisjoner.SENDER_POS
+import sokos.ske.krav.domain.nav.FileParser.SisteLinjeFeltPosisjoner.SUM_ALLE_LINJER_POS
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 
 class FileParser(val content: List<String>) {
 
@@ -68,7 +64,7 @@ class FileParser(val content: List<String>) {
         ARSAK_KODE_POS.parseString(linje),
         BELOP_RENTE_POS.parseBigDecimal(linje),
         FREMTIDIG_YTELSE_POS.parseBigDecimal(linje),
-        UTBETAL_DATO_POS.parseString(linje),
+        UTBETAL_DATO_POS.parseDate(linje),
         FAGSYSTEM_ID_POS.parseString(linje),
     )
 
@@ -124,14 +120,11 @@ class FileParser(val content: List<String>) {
 
         fun parseInt(line: String): Int = parseString(line).toInt()
 
-        fun parseDate(line: String): LocalDate {
-            val dateString = parseString(line)
-            val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
-            return try {
-                LocalDate.parse(dateString, dtf)
-            }catch (e: DateTimeParseException){
+        fun parseDate(line: String) = parseString(line).runCatching {
+                LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd"))
+            }.getOrElse {
                 LocalDate.MAX
             }
-        }
+
     }
 }

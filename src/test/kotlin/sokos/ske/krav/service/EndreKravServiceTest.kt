@@ -42,8 +42,8 @@ class EndreKravServiceTest : FunSpec({
 
 
         val kravListe = listOf(
-            KravTable( 111, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor123", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
-            KravTable( 112, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor124", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor123", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 112, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor124", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
         )
         val result = endreKravService.sendAllEndreKrav(kravListe).flatMap { it.entries.toList() }.map { it.value }
 
@@ -66,8 +66,8 @@ class EndreKravServiceTest : FunSpec({
         }
 
         val kravListe = listOf(
-            KravTable( 111, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor123", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
-            KravTable( 111, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor124", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor123", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor124", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
         )
         coEvery { skeClientMock.endreRenter(any(), any(), any(), any()) } returns httpResponseMock422
         coEvery { skeClientMock.endreHovedstol(any(), any(), any(), any()) } returns httpResponseMock409
@@ -93,8 +93,8 @@ class EndreKravServiceTest : FunSpec({
         }
 
         val kravListe = listOf(
-            KravTable( 111, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor123", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
-            KravTable( 111, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor124", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor123", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor124", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
         )
         coEvery { skeClientMock.endreRenter(any(), any(), any(), any()) } returns httpResponseMock404
         coEvery { skeClientMock.endreHovedstol(any(), any(), any(), any()) } returns httpResponseMock409
@@ -129,16 +129,16 @@ class EndreKravServiceTest : FunSpec({
         }
 
         val kravListe = listOf(
-            KravTable( 111, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor123", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
-            KravTable( 111, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor124", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
-            KravTable( 111, "skeref223", "navref223", 1002.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref223", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor223", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
-            KravTable( 111, "skeref223", "navref223", 1002.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref223", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor224", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
-            KravTable( 111, "skeref323", "navref323", 1003.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref323", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor323", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
-            KravTable( 111, "skeref323", "navref323", 1003.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref323", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor324", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
-            KravTable( 111, "skeref423", "navref423", 1004.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref423", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor423", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
-            KravTable( 111, "skeref423", "navref423", 1004.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref423", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor424", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
-            KravTable( 111, "skeref523", "navref523", 1005.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref523", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor523", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
-            KravTable( 111, "skeref523", "navref523", 1005.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref523", "20240105", "0408", "0408", "T", "", 0.0, 0.0, "", "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor524", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor123", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref123", "navref123", 1001.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref123", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor124", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref223", "navref223", 1002.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref223", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor223", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref223", "navref223", 1002.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref223", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor224", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref323", "navref323", 1003.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref323", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor323", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref323", "navref323", 1003.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref323", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor324", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref423", "navref423", 1004.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref423", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor423", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref423", "navref423", 1004.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref423", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor424", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref523", "navref523", 1005.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref523", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_RENTER", "cor523", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
+            KravTable( 111, "skeref523", "navref523", 1005.0, LocalDate.now(), "12345678901", "20230112","20233112", "KS KS", "navoldref523", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(), "","KRAV_IKKE_SENDT", "ENDRE_HOVEDSTOL", "cor524", LocalDateTime.now(),LocalDateTime.now(),LocalDateTime.now()),
         )
         coEvery { skeClientMock.endreRenter(any(), "skeref123", any(), any()) } returns httpResponseMock200
         coEvery { skeClientMock.endreHovedstol(any(), "skeref123", any(), any()) } returns httpResponseMock409

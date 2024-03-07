@@ -3,9 +3,9 @@ package sokos.ske.krav
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import sokos.ske.krav.domain.nav.KontrollLinjeHeader
+import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.domain.nav.KontrollLinjeFooter
-import sokos.ske.krav.util.FileParser
+import sokos.ske.krav.domain.nav.KontrollLinjeHeader
 import sokos.ske.krav.util.asResource
 import sokos.ske.krav.util.readFileFromFS
 

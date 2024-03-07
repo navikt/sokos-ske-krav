@@ -1,8 +1,8 @@
 package sokos.ske.krav.validation
 
 import mu.KotlinLogging
+import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.metrics.Metrics
-import sokos.ske.krav.util.FileParser
 
 private val logger = KotlinLogging.logger{}
 

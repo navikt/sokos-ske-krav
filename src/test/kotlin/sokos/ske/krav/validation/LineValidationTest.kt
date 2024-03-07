@@ -2,8 +2,8 @@ package sokos.ske.krav.validation
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.service.FtpFil
-import sokos.ske.krav.util.FileParser
 import sokos.ske.krav.util.asResource
 import sokos.ske.krav.util.readFileFromFS
 

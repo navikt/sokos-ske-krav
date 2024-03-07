@@ -3,6 +3,7 @@ package sokos.ske.krav.service
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import sokos.ske.krav.database.PostgresDataSource
+import sokos.ske.krav.database.Repository.getAllFeilmeldinger
 import sokos.ske.krav.database.Repository.getAllKravForResending
 import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
 import sokos.ske.krav.database.Repository.getAllKravNotSent
@@ -83,6 +84,12 @@ class DatabaseService(
     fun getAlleKravMedValideringsfeil(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
             return con.getAllValidationErrors()
+        }
+    }
+
+    fun getAllFeilmeldinger(): List<FeilmeldingTable> {
+        postgresDataSource.connection.useAndHandleErrors {con ->
+            return con.getAllFeilmeldinger()
         }
     }
 

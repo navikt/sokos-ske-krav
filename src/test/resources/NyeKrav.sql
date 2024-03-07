@@ -1,6 +1,6 @@
 INSERT INTO krav (kravidentifikator_ske, saksnummer_nav, belop, vedtakDato, gjelderId, periodeFOM, periodeTOM, kravkode, referanseNummerGammelSak, transaksjonDato, enhetBosted, enhetBehandlende, kodeHjemmel, kodeArsak, belopRente, fremtidigYtelse, utbetalDato, fagsystemId, status, kravtype, corr_id, tidspunkt_sendt, tidspunkt_siste_status, tidspunkt_opprettet)
-VALUES  ( '1111-skeUUID','1110-navsaksnummer', '123.00', '2023-05-24 00:00', '12345678901', '20220901', '20221031', 'PE AP','', '20230524', '4803', '4819','T','', '0.0', '0.0', '', '', 'KRAV_SENDT', 'NYTT_KRAV', 'CORR456', '2023-01-01 12:00:00', '2023-01-01 13:00:00', '2023-01-01 11:00:00'),
-         ( '2222-skeUUID','2220-navsaksnummer', '456.00', '2023-05-25 00:00', '12345678902', '20221101', '20221231', 'PE AP','', '20230525', '4803', '4819','T','', '0.0', '0.0', '', '', 'KRAV_SENDT', 'NYTT_KRAV', 'CORR789', '2023-02-01 12:00:00', '2023-02-01 13:00:00', '2023-01-01 11:00:00');
+VALUES  ( '1111-skeUUID','1110-navsaksnummer', '123.00', '2023-05-24 00:00', '12345678901', '20220901', '20221031', 'PE AP','', '20230524', '4803', '4819','T','', '0.0', '0.0', NOW(), '', 'KRAV_SENDT', 'NYTT_KRAV', 'CORR456', '2023-01-01 12:00:00', '2023-01-01 13:00:00', '2023-01-01 11:00:00'),
+         ( '2222-skeUUID','2220-navsaksnummer', '456.00', '2023-05-25 00:00', '12345678902', '20221101', '20221231', 'PE AP','', '20230525', '4803', '4819','T','', '0.0', '0.0', NOW(), '', 'KRAV_SENDT', 'NYTT_KRAV', 'CORR789', '2023-02-01 12:00:00', '2023-02-01 13:00:00', '2023-01-01 11:00:00');
 
 
 INSERT INTO kobling (saksref_fil, saksref_uuid, dato)

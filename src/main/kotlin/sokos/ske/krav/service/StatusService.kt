@@ -7,10 +7,15 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.SerializationException
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
+import sokos.ske.krav.database.models.FeilmeldingTable
+import sokos.ske.krav.database.models.KravTable
+import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
+import sokos.ske.krav.domain.ske.responses.ValideringsFeil
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.util.createKravidentifikatorPair
+import java.time.LocalDateTime
 
 
 class StatusService(
@@ -19,7 +24,7 @@ class StatusService(
 ) {
 
     private val logger = KotlinLogging.logger {}
-    suspend fun hentOgOppdaterMottaksStatus(): List<String> {
+    suspend fun hentOgOppdaterMottaksStatus() {
         var antall = 0
         var feil = 0
 
@@ -30,19 +35,12 @@ class StatusService(
         val tidHentAlleKrav = (tidSiste - start).inWholeMilliseconds
         var tidHentMottakstatus = 0L
         var tidOppdaterstatus = 0L
-        val result = krav.map {
 
-            var kravIdentifikatorType = Kravidentifikatortype.SKATTEETATENSKRAVIDENTIFIKATOR
-            var kravIdentifikator = it.saksnummerSKE
+        val feiltableList = krav.map {
 
-            if (it.saksnummerSKE.isEmpty()) {
-                kravIdentifikator = it.referanseNummerGammelSak
-                kravIdentifikatorType = Kravidentifikatortype.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
-
-                println("is empty, Kravident satt: $kravIdentifikator")
-            }
+            var kravIdentifikatorPair = createKravidentifikatorPair(it)
             antall++
-            val response = skeClient.getMottaksStatus(kravIdentifikator, kravIdentifikatorType)
+            val response = skeClient.getMottaksStatus(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
 
             tidHentMottakstatus += (Clock.System.now() - tidSiste).inWholeMilliseconds
             tidSiste = Clock.System.now()
@@ -53,6 +51,8 @@ class StatusService(
                     databaseService.updateStatus(mottaksstatus, it.corr_id)
                     tidOppdaterstatus += (Clock.System.now() - tidSiste).inWholeMilliseconds
                     tidSiste = Clock.System.now()
+                    if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value)
+                        hentOgLagreValideringsFeil(kravIdentifikatorPair, it)
                 } catch (e: SerializationException) {
                     feil++
                     logger.error("Feil i dekoding av MottaksStatusResponse: ${e.message}")
@@ -72,27 +72,35 @@ class StatusService(
         println("Tid for å hente alle krav: ${tidHentAlleKrav}")
         println("Totalt tid for Henting av MOTTAKSTATUS: ${tidHentMottakstatus}")
         println("Totalt tid for Oppdatering av MOTTAKSTATUS: ${tidOppdaterstatus}")
-
-        return result + "Antall behandlet  $antall, Antall feilet: $feil"
     }
 
-    suspend fun hentValideringsfeil() {
-        val krav = databaseService.getAlleKravMedValideringsfeil()
-
-        krav.forEach {
-            val kravidentifikatorPair = createKravidentifikatorPair(it)
-            val response = skeClient.getValideringsfeil(kravidentifikatorPair.first, kravidentifikatorPair.second)
-
-            if (response.status.isSuccess()) {
-                val valideringsfeilResponse = response.body<ValideringsFeilResponse>()
-                databaseService.saveValideringsfeil(valideringsfeilResponse, it.saksnummerSKE)
-                "Status OK: ${response.bodyAsText()}"
-            } else {
-                "Status FAILED: ${response.status.value}, ${response.bodyAsText()}"
+    private suspend fun hentOgLagreValideringsFeil(
+        kravIdentifikatorPair: Pair<String, Kravidentifikatortype>,
+        kravTable: KravTable
+    ): Map<KravTable, List<ValideringsFeil>> {
+        val response = skeClient.getValideringsfeil(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
+        if (response.status.isSuccess()) {
+            val valideringsfeil = response.body<ValideringsFeilResponse>().valideringsfeil
+            valideringsfeil.forEach {
+                val feilmeldingTable = FeilmeldingTable(
+                    0,
+                    kravTable.kravId,
+                    kravTable.corr_id,
+                    kravTable.saksnummerNAV,
+                    kravTable.saksnummerSKE,
+                    it.error,
+                    it.message,
+                    "",
+                    "",
+                    LocalDateTime.now()
+                )
+                databaseService.saveFeilmelding(feilmeldingTable, kravTable.corr_id)
             }
+            return mapOf(kravTable to valideringsfeil)
         }
-
+        return emptyMap()
     }
 
+    suspend fun hentValideringsfeil() = databaseService.getAllFeilmeldinger()
 
 }

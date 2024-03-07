@@ -18,12 +18,12 @@ create table "krav"
     kodeArsak                varchar(12),
     belopRente               decimal(12),
     fremtidigYtelse          varchar(11),
-    utbetalDato              text        null,
+    utbetalDato              timestamp null,
     fagsystemId              varchar(30) null,
     status                   text,
     kravtype                 text,
     corr_id                  text,
-    tidspunkt_sendt          timestamp,
+    tidspunkt_sendt          timestamp null,
     tidspunkt_siste_status   timestamp,
     tidspunkt_opprettet     timestamp
 );
@@ -50,14 +50,4 @@ create table "kobling"
     saksref_fil  varchar(40),
     saksref_uuid varchar(50),
     dato         timestamp
-);
-
-drop table if exists validering;
-create table "validering"
-(
-    id                    bigserial primary key,
-    kravidentifikator_ske varchar(40),
-    error                 varchar(50),
-    melding               varchar(250),
-    dato                  timestamp
 );
