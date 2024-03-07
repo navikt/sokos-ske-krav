@@ -1,8 +1,7 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.call.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.call.body
+import io.ktor.http.isSuccess
 import kotlinx.datetime.Clock
 import kotlinx.serialization.SerializationException
 import mu.KotlinLogging
@@ -36,9 +35,9 @@ class StatusService(
         var tidHentMottakstatus = 0L
         var tidOppdaterstatus = 0L
 
-        val feiltableList = krav.map {
+        krav.forEach {
 
-            var kravIdentifikatorPair = createKravidentifikatorPair(it)
+            val kravIdentifikatorPair = createKravidentifikatorPair(it)
             antall++
             val response = skeClient.getMottaksStatus(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
 
@@ -48,7 +47,7 @@ class StatusService(
             if (response.status.isSuccess()) {
                 try {
                     val mottaksstatus = response.body<MottaksStatusResponse>()
-                    databaseService.updateStatus(mottaksstatus, it.corr_id)
+                    databaseService.updateStatus(mottaksstatus.mottaksStatus, it.corr_id)
                     tidOppdaterstatus += (Clock.System.now() - tidSiste).inWholeMilliseconds
                     tidSiste = Clock.System.now()
                     if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value)
@@ -65,13 +64,13 @@ class StatusService(
             } else {
                 println(response.status)
             }
-            "Status ok: ${response.status.value}, ${response.bodyAsText()}"
+
         }
         println("Antall krav hele greia: Antall behandlet  $antall, Antall feilet: $feil")
         println("tid for hele greia: ${(Clock.System.now() - start).inWholeMilliseconds}")
-        println("Tid for å hente alle krav: ${tidHentAlleKrav}")
-        println("Totalt tid for Henting av MOTTAKSTATUS: ${tidHentMottakstatus}")
-        println("Totalt tid for Oppdatering av MOTTAKSTATUS: ${tidOppdaterstatus}")
+        println("Tid for å hente alle krav: $tidHentAlleKrav")
+        println("Totalt tid for Henting av MOTTAKSTATUS: $tidHentMottakstatus")
+        println("Totalt tid for Oppdatering av MOTTAKSTATUS: $tidOppdaterstatus")
     }
 
     private suspend fun hentOgLagreValideringsFeil(
@@ -101,6 +100,6 @@ class StatusService(
         return emptyMap()
     }
 
-    suspend fun hentValideringsfeil() = databaseService.getAllFeilmeldinger()
+   fun hentValideringsfeil() = databaseService.getAllFeilmeldinger()
 
 }

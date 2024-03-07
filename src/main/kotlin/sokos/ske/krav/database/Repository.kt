@@ -10,7 +10,6 @@ import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.service.ENDRE_HOVEDSTOL
 import sokos.ske.krav.service.ENDRE_RENTER
@@ -21,12 +20,9 @@ import sokos.ske.krav.util.isStopp
 import java.sql.Connection
 import java.sql.Date
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 object Repository {
-    fun Connection.getAllKrav() =
-        prepareStatement("""select * from krav""").executeQuery().toKrav()
 
 
     fun Connection.getAllKravForStatusCheck() =
@@ -161,16 +157,17 @@ object Repository {
         commit()
     }
 
-    fun Connection.updateStatus(mottakStatus: MottaksStatusResponse, corrId: String) {
+    fun Connection.updateStatus(mottakStatus: String, corrId: String) {
         prepareStatement(
             """
             update krav 
-            set status = ?, tidspunkt_siste_status = ?
+                set status = ?, 
+                tidspunkt_siste_status = NOW()
             where corr_id = ?
         """.trimIndent()
         ).withParameters(
-            param(mottakStatus.mottaksStatus),
-            param(LocalDateTime.now()),
+            param(mottakStatus),
+          //  param(LocalDateTime.now()),
             param(corrId)
         ).execute()
         commit()

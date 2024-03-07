@@ -7,10 +7,10 @@ import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 
-private const val KRAV_IKKE_RESKONTROFORT_RESEND = "innkrevingsoppdrag-er-ikke-reskontrofoert"
-private const val KRAV_ER_AVSKREVET = "innkrevingsoppdrag-er-avskrevet"
-private const val KRAV_ER_ALLEREDE_AVSKREVET = "innkrevingsoppdrag-er-allerede-avskrevet"
-private const val KRAV_EKSISTERER_IKKE = "innkrevingsoppdrag-eksisterer-ikke"
+const val KRAV_IKKE_RESKONTROFORT_RESEND = "innkrevingsoppdrag-er-ikke-reskontrofoert"
+const val KRAV_ER_AVSKREVET = "innkrevingsoppdrag-er-avskrevet"
+const val KRAV_ER_ALLEREDE_AVSKREVET = "innkrevingsoppdrag-er-allerede-avskrevet"
+const val KRAV_EKSISTERER_IKKE = "innkrevingsoppdrag-eksisterer-ikke"
 
 
 data class RequestResult(
@@ -21,6 +21,7 @@ data class RequestResult(
     val corrId: String,
     val status: Status
 )
+
 suspend fun defineStatus(response: HttpResponse):Status {
     if (response.status.isSuccess()) return Status.KRAV_SENDT
     val content = response.body<FeilResponse>()

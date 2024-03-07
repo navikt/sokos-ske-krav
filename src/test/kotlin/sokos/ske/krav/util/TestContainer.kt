@@ -25,6 +25,7 @@ class TestContainer(private val name: String = "testContainer") {
 				.replace('æ', 'e')
 				.replace('ø', 'o')
 				.replace('å', 'a')
+				.replace(',', '-')
 			) }
 			withReuse(false)
 			start()

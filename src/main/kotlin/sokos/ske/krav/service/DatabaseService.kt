@@ -21,7 +21,6 @@ import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.FeilResponse
-import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.RequestResult
@@ -188,7 +187,7 @@ class DatabaseService(
         }
     }
 
-    fun updateStatus(mottakStatus: MottaksStatusResponse, corrId: String) {
+    fun updateStatus(mottakStatus: String, corrId: String) {
         postgresDataSource.connection.useAndHandleErrors { con ->
             con.updateStatus(mottakStatus, corrId)
         }
