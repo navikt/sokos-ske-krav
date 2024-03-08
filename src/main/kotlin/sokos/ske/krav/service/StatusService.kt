@@ -11,7 +11,6 @@ import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
-import sokos.ske.krav.domain.ske.responses.ValideringsFeil
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.util.createKravidentifikatorPair
 import java.time.LocalDateTime
@@ -74,7 +73,7 @@ class StatusService(
     private suspend fun hentOgLagreValideringsFeil(
         kravIdentifikatorPair: Pair<String, Kravidentifikatortype>,
         kravTable: KravTable
-    ): Map<KravTable, List<ValideringsFeil>> {
+    ) {
         val response = skeClient.getValideringsfeil(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
         if (response.status.isSuccess()) {
             val valideringsfeil = response.body<ValideringsFeilResponse>().valideringsfeil
@@ -93,10 +92,8 @@ class StatusService(
                 )
                 databaseService.saveFeilmelding(feilmeldingTable, kravTable.corr_id)
             }
-            mapOf(kravTable to valideringsfeil)
         }
         logger.error { "Kall til henting av valideringsfeil hos SKE feilet: ${response.status.value}, ${response.status.description}" }
-        return emptyMap()
     }
 
    fun hentValideringsfeil() = databaseService.getAllFeilmeldinger()

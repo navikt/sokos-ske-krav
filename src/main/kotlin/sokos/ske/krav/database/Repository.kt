@@ -24,7 +24,6 @@ import java.util.*
 
 object Repository {
 
-
     fun Connection.getAllKravForStatusCheck() =
         prepareStatement("""select * from krav where status in (?, ?)""")
             .withParameters(

@@ -113,7 +113,6 @@ class DatabaseService(
                 Metrics.numberOfKravSent.inc()
                 Metrics.typeKravSent.labels(entry.value.krav.kravkode).inc()
 
-
                 when {
                     entry.value.krav.kravtype == NYTT_KRAV ->
                         updateSendtKrav(
