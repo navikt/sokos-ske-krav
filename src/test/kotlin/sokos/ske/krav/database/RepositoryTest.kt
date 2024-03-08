@@ -24,9 +24,9 @@ import java.time.LocalDate
 
 internal class RepositoryTest : FunSpec({
 
-    test("getAllKravForStatusCheck skal returnere krav som ikke har status RESKONTROFOERT eller VALIDERINGSFEIL_422 eller KRAV_IKKE_SENDT"){
+    test("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING"){
         startContainer(this.testCase.name.testName, listOf("KravSomSkalResendes.sql")).use { ds ->
-            ds.connection.getAllKravForStatusCheck().size shouldBe 4
+            ds.connection.getAllKravForStatusCheck().size shouldBe 2
         }
     }
     test("getAllKravForResending skal returnere krav som har status KRAV_IKKE_SENDT eller IKKE_RESKONTROFORT_RESEND"){
@@ -43,6 +43,9 @@ internal class RepositoryTest : FunSpec({
         startContainer(this.testCase.name.testName, listOf("KravSomSkalResendes.sql")).use { ds ->
             ds.connection.getAllValidationErrors().size shouldBe 1
         }
+    }
+
+    test("getAllFeilmeldinger skal returnere alle feilmeldinger ") {
     }
 
     test("getSkeKravIdent skal returnere kravidentifikator_ske basert på saksnummer_nav hvor kravtype er NYTT_KRAV"){
@@ -180,7 +183,11 @@ internal class RepositoryTest : FunSpec({
     }
 
 
-    test("saveValidationError skal lagre valideringsfeil"){}
+    test("saveValidationError skal lagre valideringsfeil"){
 
+    }
+    test("saveErrorMessage skal lagre feilmelding"){
+
+    }
 })
 
