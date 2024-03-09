@@ -41,6 +41,8 @@ class PostgresDataSource {
             postgresConfig.vaultMountPath,
             role
         )
+    fun close() = dataSource.close()
+
 
     private fun hikariConfig() = HikariConfig().apply {
         minimumIdle = 1

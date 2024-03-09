@@ -3,8 +3,8 @@ package sokos.ske.krav.util
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.extensions.testcontainers.toDataSource
 import io.ktor.client.*
-import io.ktor.client.call.body
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.call.*
+import io.ktor.client.statement.*
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -34,8 +34,8 @@ fun startContainer(containerName: String, initScripts: List<String>): HikariData
     return TestContainer(containerName)
         .getContainer(initScripts)
         .toDataSource {
-            maximumPoolSize = 8
-            minimumIdle = 4
+            maximumPoolSize = 10
+            minimumIdle = 1
             isAutoCommit = false
         }
 }

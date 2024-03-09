@@ -7,6 +7,7 @@ import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.commonConfig
 import sokos.ske.krav.config.routingConfig
+import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.*
@@ -27,6 +28,8 @@ fun main() {
 
     applicationState.ready = true
     HttpServer(applicationState, skeService, statusService).start()
+
+    PostgresDataSource().close()
 }
 
 class HttpServer(
