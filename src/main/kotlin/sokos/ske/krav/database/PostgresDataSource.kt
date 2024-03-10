@@ -47,7 +47,7 @@ class PostgresDataSource {
     private fun hikariConfig() = HikariConfig().apply {
         minimumIdle = 1
         maxLifetime = 30000
-        maximumPoolSize = 6
+        maximumPoolSize = 4
         connectionTimeout = 30000
         isAutoCommit = false
         idleTimeout = 10000
