@@ -204,7 +204,7 @@ class DatabaseService(
         }
     }
 
-    fun updateSkeKravidintifikator(navsaksnummer: String, skeKravidentifikator: String) {
+    fun updateSkeKravidentifikator(navsaksnummer: String, skeKravidentifikator: String) {
         postgresDataSource.connection.useAndHandleErrors {
             con -> con.setSkeKravIdentPaEndring(navsaksnummer, skeKravidentifikator)
         }

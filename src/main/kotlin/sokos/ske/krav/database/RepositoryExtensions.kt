@@ -3,11 +3,14 @@ package sokos.ske.krav.database
 import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.Parameter
 import sokos.ske.krav.database.models.FeilmeldingTable
-import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import java.math.BigDecimal
-import java.sql.*
+import java.sql.Connection
+import java.sql.Date
+import java.sql.PreparedStatement
+import java.sql.ResultSet
+import java.sql.SQLException
+import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -33,7 +36,7 @@ object RepositoryExtensions {
         val columnValue = when (T::class) {
             Int::class -> getInt(columnLabel)
             Long::class -> getLong(columnLabel)
-            Char::class -> getString(columnLabel)?.get(0)  ?: ' '
+            Char::class -> getString(columnLabel)?.get(0) ?: ' '
             Double::class -> getDouble(columnLabel)
             String::class -> getString(columnLabel)?.trim() ?: ""
             Boolean::class -> getBoolean(columnLabel)
@@ -47,8 +50,8 @@ object RepositoryExtensions {
             }
         }
 
-        if (null !is T  && columnValue == null) {
-            logger.error("Påkrevet kolonne '$columnLabel' er null" )
+        if (null !is T && columnValue == null) {
+            logger.error("Påkrevet kolonne '$columnLabel' er null")
             throw SQLException("Påkrevet kolonne '$columnLabel' er null") // TODO Feilhåndtering
         }
 
@@ -61,6 +64,7 @@ object RepositoryExtensions {
 
     fun param(value: Long) =
         Parameter { statement: PreparedStatement, index: Int -> statement.setLong(index, value) }
+
     fun param(value: String?) =
         Parameter { statement: PreparedStatement, index: Int -> statement.setString(index, value) }
 
@@ -110,21 +114,6 @@ object RepositoryExtensions {
             tidspunktSendt = getColumn("tidspunkt_sendt"),
             tidspunktSisteStatus = getColumn("tidspunkt_siste_status"),
             tidspunktOpprettet = getColumn("tidspunkt_opprettet")
-        )
-    }
-
-    fun ResultSet.toKobling() = toList {
-        KoblingTable(
-            id = getColumn("id"),
-            saksrefFraFil = getColumn("saksref_fil"),
-            saksrefUUID = getColumn("saksref_uuid"),
-            dato = getColumn("dato")
-        )
-    }
-
-    fun ResultSet.toOpprettInnkrevingsOppdragResponse() = toList {
-        OpprettInnkrevingsOppdragResponse(
-            kravidentifikator = getString("KRAVIDENTIFIKATOR")
         )
     }
 

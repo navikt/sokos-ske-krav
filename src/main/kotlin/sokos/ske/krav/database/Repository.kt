@@ -3,11 +3,9 @@ package sokos.ske.krav.database
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
 import sokos.ske.krav.database.RepositoryExtensions.toFeilmelding
-import sokos.ske.krav.database.RepositoryExtensions.toKobling
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.FeilmeldingTable
-import sokos.ske.krav.database.models.KoblingTable
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
@@ -43,7 +41,6 @@ object Repository {
             .withParameters(
                 param(Status.KRAV_IKKE_SENDT.value),
             ).executeQuery().toKrav()
-
 
     fun Connection.getAllValidationErrors() =
         prepareStatement("""select * from krav where status = ? or status = ?""")
@@ -104,8 +101,6 @@ object Repository {
         commit()
     }
 
-
-
     fun Connection.updateSendtKrav(
         corrID: String,
         kravIdentifikatorSke: String,
@@ -131,7 +126,7 @@ object Repository {
 
     fun Connection.updateSendtKrav(
         saveCorrID: String,
-        searchCorrID:String,
+        searchCorrID: String,
         type: String,
         responseStatus: String
     ) {
@@ -170,68 +165,6 @@ object Repository {
         commit()
     }
 
-    fun Connection.insertNewKrav(
-        kravidentSKE: String,
-        corrID: String,
-        kravLinje: KravLinje,
-        kravtype: String,
-        responseStatus: String
-    ) {
-        prepareStatement(
-            """
-                insert into krav (
-                saksnummer_nav, 
-                kravidentifikator_ske, 
-                belop,
-                vedtakDato,
-                gjelderId,
-                periodeFOM,
-                periodeTOM,
-                kravkode,
-                referanseNummerGammelSak,
-                transaksjonDato,
-                enhetBosted,
-                enhetBehandlende,
-                kodeHjemmel,
-                kodeArsak,
-                belopRente,
-                fremtidigYtelse,
-                utbetalDato,
-                fagsystemId,
-                status, 
-                corr_id,
-                kravtype,
-                tidspunkt_siste_status,
-                tidspunkt_opprettet
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,? ,?,?,?,?,NOW(), NOW())
-            """.trimIndent()
-        ).withParameters(
-            param(kravLinje.saksNummer),
-            param(kravidentSKE),
-            param(kravLinje.belop),
-            param(kravLinje.vedtakDato),
-            param(kravLinje.gjelderID),
-            param(kravLinje.periodeFOM),
-            param(kravLinje.periodeTOM),
-            param(kravLinje.kravKode),
-            param(kravLinje.referanseNummerGammelSak),
-            param(kravLinje.transaksjonDato),
-            param(kravLinje.enhetBosted),
-            param(kravLinje.enhetBehandlende),
-            param(kravLinje.hjemmelKode),
-            param(kravLinje.arsakKode),
-            param(kravLinje.belopRente),
-            param(kravLinje.fremtidigYtelse),
-            param(kravLinje.utbetalDato),
-            param(kravLinje.fagsystemId),
-            param(responseStatus),
-            param(corrID),
-            param(kravtype)
-        ).execute()
-        commit()
-
-    }
-
     fun Connection.insertAllNewKrav(
         kravListe: List<KravLinje>,
     ) {
@@ -261,7 +194,8 @@ object Repository {
                 corr_id,
                 tidspunkt_opprettet 
                 ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'${Status.KRAV_IKKE_SENDT.value}',NOW(), ?, ?, NOW())
-            """.trimIndent() )
+            """.trimIndent()
+        )
 
         kravListe.forEach() {
             val type: String = when {
@@ -289,7 +223,7 @@ object Repository {
             prepStmt.setString(18, type)
             prepStmt.setString(19, UUID.randomUUID().toString())
             prepStmt.addBatch()
-            if (type.equals(ENDRE_HOVEDSTOL)){
+            if (type == ENDRE_HOVEDSTOL) {
                 prepStmt.setString(1, it.saksNummer)
                 prepStmt.setDouble(2, it.belop.toDouble())
                 prepStmt.setDate(3, Date.valueOf(it.vedtakDato))
@@ -331,8 +265,6 @@ object Repository {
         ).execute()
         commit()
     }
-
-
 
     fun Connection.saveValidationError(valideringsFeilResponse: ValideringsFeilResponse, kravidSKE: String) {
         valideringsFeilResponse.valideringsfeil.forEach {
@@ -385,30 +317,6 @@ object Repository {
         ).execute()
         commit()
     }
-
-    //TODO skal bort
-    fun Connection.getAlleKoblinger(): List<KoblingTable> {
-        return prepareStatement(
-            """
-            select * from kobling
-        """.trimIndent()
-        ).executeQuery().toKobling()
-    }
-
-    fun Connection.koblesakRef(filref: String): String {
-        val rs = prepareStatement(
-            """
-            select distinct(saksref_uuid) from kobling
-            where saksref_fil = ?
-        """.trimIndent()
-        ).withParameters(
-            param(filref)
-        ).executeQuery()
-        return if (rs.next())
-            rs.getColumn("saksref_uuid")
-        else ""
-    }
-
 
 }
 

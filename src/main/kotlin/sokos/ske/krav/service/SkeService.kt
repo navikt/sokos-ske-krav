@@ -155,7 +155,7 @@ class SkeService(
                     skeKravidenLagres = httpResponse.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
                 }
             }
-            if (skeKravidenLagres.isNotBlank()) databaseService.updateSkeKravidintifikator(
+            if (skeKravidenLagres.isNotBlank()) databaseService.updateSkeKravidentifikator(
                 it.saksNummer,
                 skeKravidenLagres
             )

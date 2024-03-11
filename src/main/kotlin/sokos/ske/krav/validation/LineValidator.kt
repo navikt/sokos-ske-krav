@@ -15,12 +15,12 @@ private val logger = KotlinLogging.logger {}
 object LineValidator {
 
     fun getOkLines(file: FtpFil): List<KravLinje> {
-        val successFiles  = mutableListOf<KravLinje>()
+        val successLines  = mutableListOf<KravLinje>()
         val allErrorMessages = mutableListOf<String>()
         file.kravLinjer.map {
             when (val result: ValidationResult = validateLine(it)) {
                 is ValidationResult.Success -> {
-                    successFiles.add(it)
+                    successLines.add(it)
                 }
                 is ValidationResult.Error -> {
                     allErrorMessages.addAll(result.messages)
@@ -31,7 +31,7 @@ object LineValidator {
             Metrics.lineValidationError.labels(file.name, allErrorMessages.toString()).inc()
             logger.info ("Feil i validering av fil ${file.name}: $allErrorMessages" )
         }
-        return successFiles
+        return successLines
     }
 
     private fun validateLine(krav: KravLinje): ValidationResult {
