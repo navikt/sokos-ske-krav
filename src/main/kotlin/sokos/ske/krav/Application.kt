@@ -19,17 +19,19 @@ fun main() {
     val applicationState = ApplicationState()
     val tokenProvider = MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), httpClient)
     val skeClient = SkeClient(tokenProvider, PropertiesConfig.SKEConfig().skeRestUrl)
-    val stoppKravService = StoppKravService(skeClient)
-    val endreKravService = EndreKravService(skeClient)
-    val opprettKravService = OpprettKravService(skeClient)
-    val statusService = StatusService(skeClient)
+    val postgresDataSource = PostgresDataSource()
+    val databaseService = DatabaseService(postgresDataSource)
+    val stoppKravService = StoppKravService(skeClient, databaseService)
+    val endreKravService = EndreKravService(skeClient, databaseService)
+    val opprettKravService = OpprettKravService(skeClient, databaseService)
+    val statusService = StatusService(skeClient, databaseService)
     val alarmService = AlarmService()
-    val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, alarmService)
+    val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, alarmService, databaseService)
 
     applicationState.ready = true
     HttpServer(applicationState, skeService, statusService).start()
 
-    PostgresDataSource().close()
+    postgresDataSource.close()
 }
 
 class HttpServer(

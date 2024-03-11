@@ -27,7 +27,7 @@ import sokos.ske.krav.util.RequestResult
 import java.time.LocalDateTime
 
 class DatabaseService(
-    private val postgresDataSource: PostgresDataSource = PostgresDataSource()
+    private val postgresDataSource: PostgresDataSource
 ) {
 
     fun getSkeKravident(navref: String): String {

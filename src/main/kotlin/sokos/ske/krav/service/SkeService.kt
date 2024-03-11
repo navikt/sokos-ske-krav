@@ -29,7 +29,7 @@ class SkeService(
     private val opprettKravService: OpprettKravService,
     private val statusService: StatusService,
     private val alarmService: AlarmService,
-    private val databaseService: DatabaseService = DatabaseService(),
+    private val databaseService: DatabaseService,
     private val ftpService: FtpService = FtpService(),
 ) {
     private val logger = KotlinLogging.logger {}

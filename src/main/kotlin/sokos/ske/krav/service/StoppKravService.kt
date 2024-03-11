@@ -11,7 +11,7 @@ import sokos.ske.krav.util.makeStoppKravRequest
 
 class StoppKravService(
     private val skeClient: SkeClient,
-    private val databaseService: DatabaseService = DatabaseService()
+    private val databaseService: DatabaseService
 ) {
 
     suspend fun sendAllStopKrav(kravList: List<KravTable>): List<Map<String, RequestResult>> {

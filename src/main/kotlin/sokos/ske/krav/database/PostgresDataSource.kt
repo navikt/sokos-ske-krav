@@ -48,12 +48,13 @@ class PostgresDataSource {
         minimumIdle = 1
         maxLifetime = 30000
         maximumPoolSize = 4
-        connectionTimeout = 30000
+        connectionTimeout = 10000
         isAutoCommit = false
         idleTimeout = 10000
         //connectionTestQuery = "SELECT * FROM ${dbConfig.testTable} LIMIT 1"
         jdbcUrl = postgresConfig.jdbcUrl
         transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+        validate()
         if (isLocal) {
             username = postgresConfig.username
             password = postgresConfig.password

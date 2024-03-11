@@ -11,7 +11,7 @@ import sokos.ske.krav.util.*
 
 class OpprettKravService(
     private val skeClient: SkeClient,
-    private val databaseService: DatabaseService = DatabaseService()
+    private val databaseService: DatabaseService
 ) {
 
     val byttut = true

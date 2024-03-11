@@ -18,7 +18,7 @@ import java.time.LocalDateTime
 
 class StatusService(
     private val skeClient: SkeClient,
-    private val databaseService: DatabaseService = DatabaseService()
+    private val databaseService: DatabaseService
 ) {
 
     private val logger = KotlinLogging.logger {}
