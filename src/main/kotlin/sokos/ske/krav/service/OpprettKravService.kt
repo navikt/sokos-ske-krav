@@ -16,6 +16,8 @@ class OpprettKravService(
 
     val byttut = true
 
+    //TODO Fjerne bytte fnr funksjonalitet
+
     suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<Map<String, RequestResult>> {
         val fnrListe = getFnrListe()
         val fnrIter = fnrListe.listIterator()

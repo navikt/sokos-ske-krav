@@ -30,6 +30,7 @@ object LineValidator {
         if (allErrorMessages.isNotEmpty()) {
             Metrics.lineValidationError.labels(file.name, allErrorMessages.toString()).inc()
             logger.info ("Feil i validering av fil ${file.name}: $allErrorMessages" )
+            //TODO sende alarm til slack
         }
         return successLines
     }

@@ -90,8 +90,6 @@ class SkeService(
             opprettKravService.sendAllOpprettKrav(kravLinjer.filter { it.kravtype == NYTT_KRAV })
         )
 
-        databaseService.updateSentKravToDatabase(requestResults)
-
         Metrics.numberOfKravRead.inc()
 
         allResponses.addAll(requestResults.flatMap { it.values })
