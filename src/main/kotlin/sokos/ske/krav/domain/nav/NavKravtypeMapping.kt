@@ -30,8 +30,8 @@ enum class KravtypeMappingFromNAVToSKE(val kravKode: String, val hjemmelkode: St
     TILBAKEKREVING_OPPLAERINGSPENGER                ("BS OP", "T") ,
     TILBAKEKREVING_UTDANNINGSSTOENAD                ("EF UT", "T"),
     TILBAKEKREVING_KONTANTSTOETTE                   ("KS KS", "T"),
-    TILBAKEKREVING_FAMILIEPLEIER_PENSJON            ("PE FP", "T"),
-    TILBAKEKREVING_GAMMEL_YRKESSKADE                ("PE GY", "T"),
+    TILBAKEKREVING_TIDLIGERE_FAMILIEPLEIER_PENSJON  ("PE FP", "T"),
+    TILBAKEKREVING_GAMMEL_YRKESSKADEPENSJON         ("PE GY", "T"),
     ;
 
 

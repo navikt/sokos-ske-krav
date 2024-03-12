@@ -59,7 +59,7 @@ class StatusService(
                     logger.error("Response er ikke på forventet format for MottaksStatusResponse : ${e.message}")
                 }
             } else {
-                logger.info { "Kall til mottaksstatus hos skatt feilet: ${response.status.value}, ${response.status.description}" }
+                logger.error { "Kall til mottaksstatus hos skatt feilet: ${response.status.value}, ${response.status.description}" }
             }
 
         }
