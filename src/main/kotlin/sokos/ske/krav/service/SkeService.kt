@@ -28,7 +28,6 @@ class SkeService(
     private val endreKravService: EndreKravService,
     private val opprettKravService: OpprettKravService,
     private val statusService: StatusService,
-    private val alarmService: AlarmService,
     private val databaseService: DatabaseService,
     private val ftpService: FtpService = FtpService(),
 ) {
@@ -46,29 +45,32 @@ class SkeService(
 
         delay(10_000)
         statusService.hentOgOppdaterMottaksStatus()
-        val funkaIkke = resendIkkeReskontroforteKrav()
-        alarmService.handleFeil(funkaIkke)
+        resendIkkeReskontroforteKrav()
+
     }
 
-    suspend fun sendNewFilesToSKE(): List<HttpResponse> {
+    suspend fun sendNewFilesToSKE(): List<RequestResult> {
         val files = ftpService.getValidatedFiles()
         logger.info("*******************${LocalDateTime.now()}*******************")
         logger.info("Starter innsending av ${files.size} filer")
 
-        val responses = files.map { file ->
+        val results = files.map { file ->
             logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
-            sendKrav(file)
+            val result = sendKrav(file)
+            AlarmService.handleFeil(result, file)
+
+            result
         }
 
         files.forEach { file -> ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
 
         logger.info("*******************KJØRING FERDIG*******************")
-        return responses.flatten()
+        return results.flatten()
     }
 
     private suspend fun sendKrav(
         file: FtpFil,
-    ): List<HttpResponse> {
+    ): List<RequestResult> {
 
         val linjer = LineValidator.getOkLines(file)
 
@@ -106,7 +108,7 @@ class SkeService(
                 )
             }
 
-        return emptyList()  //TODO TJA HVA DA
+        return allResponses
     }
 
 

@@ -59,7 +59,6 @@ fun setupMocks(
     val endreKravService = EndreKravService(skeClient, databaseService)
     val opprettKravService = OpprettKravService(skeClient, databaseService)
     val statusService = StatusService(skeClient, databaseService)
-    val alarmService = AlarmService()
     val stoppKravService = StoppKravService(skeClient, databaseService)
 
     return Pair(
@@ -69,7 +68,6 @@ fun setupMocks(
             endreKravService,
             opprettKravService,
             statusService,
-            alarmService,
             databaseService,
             ftpService,
         ),

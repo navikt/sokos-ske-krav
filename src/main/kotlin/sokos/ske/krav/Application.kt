@@ -25,8 +25,7 @@ fun main() {
     val endreKravService = EndreKravService(skeClient, databaseService)
     val opprettKravService = OpprettKravService(skeClient, databaseService)
     val statusService = StatusService(skeClient, databaseService)
-    val alarmService = AlarmService()
-    val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, alarmService, databaseService)
+    val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, databaseService)
 
     applicationState.ready = true
     HttpServer(applicationState, skeService, statusService).start()
