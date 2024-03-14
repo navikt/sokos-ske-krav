@@ -77,7 +77,8 @@ fun Routing.skeApi(
         get("test") {
             logger.info("API kaller test")
             try {
-                val response = skeService.sendNewFilesToSKE()
+                //val response = skeService.sendNewFilesToSKE()
+                val response = skeService.handleNewKrav()
                 logger.info("APIKrav sendt, returnerer reponse")
                 call.respond(HttpStatusCode.OK, "$response")
                 logger.info("APIKrav sendt")
