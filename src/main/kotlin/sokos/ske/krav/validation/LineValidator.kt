@@ -44,6 +44,7 @@ object LineValidator {
         val refnrGammelSakValid = if (!krav.isNyttKrav()) validateSaksnr(krav.referanseNummerGammelSak) else true
         val fomTomValid =
             validatePeriode(krav.periodeFOM, krav.periodeTOM)
+        val utbetalingsDatoValid = validateUtbelaingsDato(krav.utbetalDato, krav.vedtakDato)
 
 
         if (!saksnrValid) {
@@ -60,6 +61,9 @@ object LineValidator {
         }
         if (!fomTomValid) {
             errorMessages.add("Periode(fom->tom) må være i fortid og FOM må være før TOM: (Fom: ${krav.periodeFOM} Tom: ${krav.periodeTOM} på linje ${krav.linjeNummer} ")
+        }
+        if (!utbetalingsDatoValid) {
+            errorMessages.add("Utbetalingsdato må være i fortid og må være før vedtaksdato: (Utbetalinngsdato: ${krav.utbetalDato} Vedtaksdato: ${krav.vedtakDato} på linje ${krav.linjeNummer} ")
         }
 
         if (errorMessages.isNotEmpty()){
@@ -78,13 +82,19 @@ object LineValidator {
 
     private fun validateDateInFuture(date: LocalDate) = date.isAfter(LocalDate.now())
 
+    private fun validateDateIsSame(dateA: LocalDate, dateB: LocalDate) = dateA.equals(dateB)
+
     private fun validatePeriode(fom: String, tom: String) = try {
         val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
         val dateFrom = LocalDate.parse(fom, dtf)
         val dateTo = LocalDate.parse(tom, dtf)
-        dateFrom.isBefore(dateTo) && dateTo.isBefore(LocalDate.now())
+        validateDateIsSame(dateFrom, dateTo) || (dateFrom.isBefore(dateTo) && dateTo.isBefore(LocalDate.now()))
     } catch (e: Exception) {
         false
     }
+
+    private fun validateUtbelaingsDato(utbetalingsDato: LocalDate, vedtaksDato: LocalDate) =
+        validateDateInFuture(utbetalingsDato) && utbetalingsDato.isBefore(vedtaksDato)
+
 
 }
