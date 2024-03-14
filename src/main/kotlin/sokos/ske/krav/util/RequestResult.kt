@@ -22,25 +22,27 @@ data class RequestResult(
     val status: Status
 )
 
-suspend fun defineStatus(response: HttpResponse):Status {
+suspend fun defineStatus(response: HttpResponse): Status {
     if (response.status.isSuccess()) return Status.KRAV_SENDT
     val content = response.body<FeilResponse>()
 
     return when (response.status.value) {
-            400 -> Status.UGYLDIG_FORESPORSEL_400
-            401 -> Status.FEIL_AUTENTISERING_401
-            403 -> Status.INGEN_TILGANG_403
-            404 -> if (content.type.contains(KRAV_EKSISTERER_IKKE)) Status.FANT_IKKE_SAKSREF_404
-                    else Status.ANNEN_IKKE_FUNNET_404
-            406 -> Status.FEIL_MEDIETYPE_406
-            409 -> if (content.type.contains(KRAV_IKKE_RESKONTROFORT_RESEND)) Status.IKKE_RESKONTROFORT_RESEND
-                    else if (content.type.contains(KRAV_ER_AVSKREVET) || content.type.contains(KRAV_ER_ALLEREDE_AVSKREVET))
-                    Status.KRAV_ER_AVSKREVET_409
-                    else Status.ANNEN_KONFLIKT_409
-            422 -> Status.VALIDERINGSFEIL_422
-            500 -> Status.INTERN_TJENERFEIL_500
-            503 -> Status.UTILGJENGELIG_TJENESTE_503
+        400 -> Status.UGYLDIG_FORESPORSEL_400
+        401 -> Status.FEIL_AUTENTISERING_401
+        403 -> Status.INGEN_TILGANG_403
+        404 -> if (content.type.contains(KRAV_EKSISTERER_IKKE)) Status.FANT_IKKE_SAKSREF_404
+        else Status.ANNEN_IKKE_FUNNET_404
 
-            else ->  Status.UKJENT_FEIL
-        }
+        406 -> Status.FEIL_MEDIETYPE_406
+        409 -> if (content.type.contains(KRAV_IKKE_RESKONTROFORT_RESEND)) Status.IKKE_RESKONTROFORT_RESEND
+        else if (content.type.contains(KRAV_ER_AVSKREVET) || content.type.contains(KRAV_ER_ALLEREDE_AVSKREVET))
+            Status.KRAV_ER_AVSKREVET_409
+        else Status.ANNEN_KONFLIKT_409
+
+        422 -> Status.VALIDERINGSFEIL_422
+        500 -> Status.INTERN_TJENERFEIL_500
+        503 -> Status.UTILGJENGELIG_TJENESTE_503
+
+        else -> Status.UKJENT_FEIL
+    }
 }

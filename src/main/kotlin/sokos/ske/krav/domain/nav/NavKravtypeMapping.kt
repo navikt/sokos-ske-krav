@@ -20,11 +20,15 @@ enum class KravtypeMappingFromNAVToSKE(val kravKode: String, val hjemmelkode: St
     TILBAKEKREVING_AVTALEFESTET_PENSJON_PRIVATSEKTOR("PE AF", "T"),
     TILBAKEKREVING_ALDERSPENSJON                    ("PE AP", "T"),
     TILBAKEKREVING_BARNEPENSJON                     ("PE BP", "T"),
-    TILBAKEKREVING_GJENLEVENDE_PENSJON              ("PE GP", "T", "TA"),
+    TILBAKEKREVING_GJENLEVENDE_PENSJON              ("PE GP", "T"),
+    TILBAKEKREVING_GJENLEVENDE_PENSJON_AVREGNING    ("PE GP", "TA"),
     TILBAKEKREVING_KRIGSPENSJON                     ("PE KP", "T"),
     TILBAKEKREVING_UFOEREPENSJON                    ("PE UP", "T"),
+    TILBAKEKREVING_UFOEREPENSJON_UTBETALT_TIL_FEIL_MOTTAKER ("PE UP", "C"),
     TILBAKEKREVING_UFOERETRYGD                      ("PE UT", "T"),
     TILBAKEKREVING_UFOERETRYGD_ETTEROPPGJOER        ("PE UT", "EU"),
+    TILBAKEKREVING_UFOERETRYGD_UTBETALT_TIL_FEIL_MOTTAKER ("PE UT", "C"),
+    ILBAKEKREVING_UFOERETRYGD_AVREGNING             ("PE UT", "TA"),
     TILBAKEKREVING_AVTALEFESTET_PENSJON             ("PE XP", "T"),
     TILBAKEKREVING_SUPPLERENDE_STOENAD              ("SU UF", "T") ,
     TILBAKEKREVING_OPPLAERINGSPENGER                ("BS OP", "T") ,
@@ -33,7 +37,6 @@ enum class KravtypeMappingFromNAVToSKE(val kravKode: String, val hjemmelkode: St
     TILBAKEKREVING_TIDLIGERE_FAMILIEPLEIER_PENSJON  ("PE FP", "T"),
     TILBAKEKREVING_GAMMEL_YRKESSKADEPENSJON         ("PE GY", "T"),
     ;
-
 
    companion object {
         fun getKravtype(
