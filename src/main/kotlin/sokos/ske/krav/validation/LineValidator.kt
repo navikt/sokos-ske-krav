@@ -10,10 +10,10 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 
-private val logger = KotlinLogging.logger {}
+
 
 object LineValidator {
-
+    private val logger = KotlinLogging.logger {}
     fun getOkLines(file: FtpFil): List<KravLinje> {
         val successLines  = mutableListOf<KravLinje>()
         val allErrorMessages = mutableListOf<String>()
@@ -30,7 +30,6 @@ object LineValidator {
         if (allErrorMessages.isNotEmpty()) {
             Metrics.lineValidationError.labels(file.name, allErrorMessages.toString()).inc()
             logger.info ("Feil i validering av fil ${file.name}: $allErrorMessages" )
-            //TODO sende alarm til slack
         }
         return successLines
     }
