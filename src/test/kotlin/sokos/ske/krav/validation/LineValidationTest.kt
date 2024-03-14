@@ -77,7 +77,7 @@ internal class LineValidationTest: FunSpec({
           liste,
           kravLinjer = FileParser(liste).parseKravLinjer()
       )
-      LineValidator.getOkLines(fil).size shouldBe 2
+      LineValidator.getOkLines(fil).size shouldBe 3
   }
 
     test("tester ny fil fra janneke"){

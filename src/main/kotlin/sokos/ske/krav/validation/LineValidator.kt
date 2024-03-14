@@ -44,7 +44,7 @@ object LineValidator {
         val refnrGammelSakValid = if (!krav.isNyttKrav()) validateSaksnr(krav.referanseNummerGammelSak) else true
         val fomTomValid =
             validatePeriode(krav.periodeFOM, krav.periodeTOM)
-        val utbetalingsDatoValid = validateUtbelaingsDato(krav.utbetalDato, krav.vedtakDato)
+        val utbetalingsDatoValid = validateUtbetalingsDato(krav.utbetalDato, krav.vedtakDato)
 
 
         if (!saksnrValid) {
@@ -93,8 +93,8 @@ object LineValidator {
         false
     }
 
-    private fun validateUtbelaingsDato(utbetalingsDato: LocalDate, vedtaksDato: LocalDate) =
-        validateDateInFuture(utbetalingsDato) && utbetalingsDato.isBefore(vedtaksDato)
+    private fun validateUtbetalingsDato(utbetalingsDato: LocalDate, vedtaksDato: LocalDate) = validateDateInPast(utbetalingsDato) && utbetalingsDato.isBefore(vedtaksDato)
+
 
 
 }
