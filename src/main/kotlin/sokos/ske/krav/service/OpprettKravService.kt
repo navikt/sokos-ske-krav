@@ -7,7 +7,9 @@ import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
-import sokos.ske.krav.util.*
+import sokos.ske.krav.util.RequestResult
+import sokos.ske.krav.util.defineStatus
+import sokos.ske.krav.util.makeOpprettKravRequest
 
 class OpprettKravService(
     private val skeClient: SkeClient,
@@ -16,30 +18,18 @@ class OpprettKravService(
 
     val byttut = true
 
-    //TODO Fjerne bytte fnr funksjonalitet
-
     suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<Map<String, RequestResult>> {
-        val fnrListe = getFnrListe()
-        val fnrIter = fnrListe.listIterator()
 
         val responseList = kravList.map {
-            if (byttut) mapOf(NYTT_KRAV to sendOpprettKrav(it, getNewFnr(fnrListe, fnrIter)))
-            else mapOf(NYTT_KRAV to sendOpprettKrav(it, ""))
+            mapOf(NYTT_KRAV to sendOpprettKrav(it))
         }
         databaseService.updateSentKravToDatabase(responseList)
 
         return responseList
     }
 
-    private suspend fun sendOpprettKrav(krav: KravTable, substfnr: String): RequestResult {
-        val opprettKravRequest =
-            if (byttut) makeOpprettKravRequest(
-                krav.copy(
-                    gjelderId =
-                    if (krav.gjelderId.startsWith("00")) krav.gjelderId else substfnr
-                )
-            )
-            else makeOpprettKravRequest(krav)
+    private suspend fun sendOpprettKrav(krav: KravTable): RequestResult {
+        val opprettKravRequest = makeOpprettKravRequest(krav)
         val response = skeClient.opprettKrav(opprettKravRequest, krav.corr_id)
 
         val kravIdentifikator =

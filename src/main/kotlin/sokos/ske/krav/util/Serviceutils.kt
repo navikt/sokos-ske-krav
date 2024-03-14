@@ -16,12 +16,3 @@ fun createKravidentifikatorPair(it: KravTable,): Pair<String, Kravidentifikatort
 }
 
 
-fun getNewFnr(fnrListe: List<String>, fnrIter: ListIterator<String>): String {
-    var iter = fnrIter
-    if (!iter.hasNext()) {
-        iter = fnrListe.listIterator(0)
-    }
-    return iter.next()
-}
-
-
