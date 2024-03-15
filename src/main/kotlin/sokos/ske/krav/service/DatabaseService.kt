@@ -7,12 +7,10 @@ import sokos.ske.krav.database.Repository.getAllFeilmeldinger
 import sokos.ske.krav.database.Repository.getAllKravForResending
 import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
 import sokos.ske.krav.database.Repository.getAllKravNotSent
-import sokos.ske.krav.database.Repository.getAllValidationErrors
 import sokos.ske.krav.database.Repository.getKravIdfromCorrId
 import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.insertAllNewKrav
 import sokos.ske.krav.database.Repository.saveErrorMessage
-import sokos.ske.krav.database.Repository.saveValidationError
 import sokos.ske.krav.database.Repository.setSkeKravIdentPaEndring
 import sokos.ske.krav.database.Repository.updateSendtKrav
 import sokos.ske.krav.database.Repository.updateStatus
@@ -21,7 +19,6 @@ import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.FeilResponse
-import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.RequestResult
 import java.time.LocalDateTime
@@ -36,7 +33,7 @@ class DatabaseService(
         }
     }
 
-    fun getKravIdFromCorrId(corrID: String): Long {
+    private fun getKravIdFromCorrId(corrID: String): Long {
         postgresDataSource.connection.useAndHandleErrors { con ->
             return con.getKravIdfromCorrId(corrID)
         }
@@ -80,23 +77,13 @@ class DatabaseService(
         }
     }
 
-    fun getAlleKravMedValideringsfeil(): List<KravTable> {
-        postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.getAllValidationErrors()
-        }
-    }
-
     fun getAllFeilmeldinger(): List<FeilmeldingTable> {
         postgresDataSource.connection.useAndHandleErrors {con ->
             return con.getAllFeilmeldinger()
         }
     }
 
-    fun saveValideringsfeil(valideringsFeilResponse: ValideringsFeilResponse, saksnummerSKE: String) {
-        postgresDataSource.connection.useAndHandleErrors { con ->
-            con.saveValidationError(valideringsFeilResponse, saksnummerSKE)
-        }
-    }
+
 
     fun saveFeilmelding(feilMelding: FeilmeldingTable, corrID: String) {
         postgresDataSource.connection.useAndHandleErrors { con ->
@@ -148,7 +135,6 @@ class DatabaseService(
         krav: KravTable,
         kravIdentifikator: String,
         corrID: String,
-        fileName: String
     ) {
         val kravIdentifikatorSke =
             if (kravIdentifikator == krav.saksnummerNAV || kravIdentifikator == krav.referanseNummerGammelSak) "" else kravIdentifikator

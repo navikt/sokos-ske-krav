@@ -8,7 +8,6 @@ import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.service.ENDRE_HOVEDSTOL
 import sokos.ske.krav.service.ENDRE_RENTER
 import sokos.ske.krav.service.NYTT_KRAV
@@ -266,27 +265,6 @@ object Repository {
         commit()
     }
 
-    fun Connection.saveValidationError(valideringsFeilResponse: ValideringsFeilResponse, kravidSKE: String) {
-        valideringsFeilResponse.valideringsfeil.forEach {
-            prepareStatement(
-                """
-                insert into validering (
-                    kravidentifikator_ske,
-                    error,
-                    melding,
-                    dato
-                ) 
-                values (?, ?, ?, ?)
-            """.trimIndent()
-            ).withParameters(
-                param(kravidSKE),
-                param(it.error),
-                param(it.message),
-                param(LocalDate.now())
-            ).execute()
-        }
-        commit()
-    }
 
     fun Connection.saveErrorMessage(feilmelding: FeilmeldingTable, corrID: String) {
         prepareStatement(

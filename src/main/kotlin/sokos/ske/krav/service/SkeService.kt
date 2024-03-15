@@ -1,7 +1,6 @@
 package sokos.ske.krav.service
 
 import io.ktor.client.call.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
@@ -103,26 +102,11 @@ class SkeService(
                     it.response,
                     it.krav,
                     it.kravIdentifikator,
-                    it.corrId,
-                    file.name
+                    it.corrId
                 )
             }
 
         return allResponses
-    }
-
-
-    private fun handleHvaFGjorViNaa(krav: KravLinje) {
-        logger.error(
-            """
-                        SAKSNUMMER: ${krav.saksNummer}
-                        GAMMELT SAKSNUMMER: ${krav.referanseNummerGammelSak}
-                        Hva F* gjør vi nå, dette skulle ikke skje
-                    """
-            // hva faen gjør vi nå??
-            // Dette skal bare skje dersom dette er en endring/stopp av et krav sendt før implementering av denne appen.
-            //og de ikke kjenner igjen refnummer vi sender inn
-        )
     }
 
     suspend fun resendIkkeReskontroforteKrav(): Map<String, RequestResult> {
