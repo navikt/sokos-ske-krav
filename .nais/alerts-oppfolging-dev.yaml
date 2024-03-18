@@ -58,7 +58,7 @@ spec:
         - apiURL:
             key: apiUrl
             name: slack-webhook
-          channel: '#team-mob-manuell-oppfolging'
+          channel: '#team-mob-oppfolging-dev'
           iconEmoji: ':alert:'
           username: 'Alert dev-fss'
           sendResolved: false
