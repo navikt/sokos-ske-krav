@@ -31,6 +31,17 @@ spec:
             severity: danger
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
+        - alert: Feil i innsending av krav
+          expr: sum by (fileName, message) (sokos_ske_krav_innsending_av_krav_feil_total{app="sokos-ske-krav"}) > 0
+          for: 5s
+          annotations:
+            action: "Sjekk database og logger for sokos-ske-krav"
+            summary: "Feil i innsending av linje fra fil {{ $labels.fileName }} : {{ $labels.message }}"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_ske_krav_oppfolging_type: sokos-ske-krav
+            alert_type: custom
 ---
 
 apiVersion: monitoring.coreos.com/v1alpha1
@@ -50,7 +61,7 @@ spec:
           channel: '#team-mob-manuell-oppfolging'
           iconEmoji: ':alert:'
           username: 'Alert dev-fss'
-          sendResolved: false
+          sendResolved: true
           httpConfig:
             proxyURL: http://webproxy.nais:8088
           title: |-
