@@ -21,11 +21,11 @@ spec:
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i validering av linje
-          expr: sum by (fileName, linjenummer, message) (sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}) > 0
+          expr: sum by (fileName, message) (sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}) > 0
           for: 5s
           annotations:
             action: "Sjekk error loggene i sokos-ske-krav"
-            summary: "Feil i validering av linje fra fil {{ $labels.fileName }} på linje {{ $labels.linjenummer }}: {{ $labels.message }}"
+            summary: "Feil i validering av linje fra fil {{ $labels.fileName }}: {{ $labels.message }}"
           labels:
             namespace: okonomi
             severity: danger
