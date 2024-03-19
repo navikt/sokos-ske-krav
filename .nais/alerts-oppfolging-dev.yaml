@@ -10,7 +10,7 @@ spec:
     - name: sokos-ske-krav-oppfolging-alerts
       rules:
         - alert: Feil i validering av fil
-          expr: sum by (fileName, message) (sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}) > 0
+          expr: sum(ceil(increase(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[5m]))) by (fileName, message) > 0
           for: 5s
           annotations:
             action: "Sjekk error loggene i sokos-ske-krav"
@@ -21,7 +21,7 @@ spec:
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i validering av linje
-          expr: sum by (fileName, message) (sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}) > 0
+          expr: sum(ceil(increase(sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}[5m]))) by (fileName, message) > 0
           for: 5s
           annotations:
             action: "Sjekk error loggene i sokos-ske-krav"
@@ -32,7 +32,7 @@ spec:
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i innsending av krav
-          expr: sum by (fileName, message) (sokos_ske_krav_innsending_av_krav_feil_total{app="sokos-ske-krav"}) > 0
+          expr:  sum by (fileName, message) (sokos_ske_krav_innsending_av_krav_feil_total{app="sokos-ske-krav"})[1m] > 0
           for: 5s
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
@@ -83,7 +83,7 @@ spec:
       - name: "sokos_ske_krav_oppfolging_type"
         matchType: "="
         value: "sokos-ske-krav"
-    groupInterval: 10m
+    groupInterval: 10s
     groupWait: 5s
     receiver: sokos-ske-krav-oppfolging-receiver
-    repeatInterval: 10m
+    repeatInterval: 5d
