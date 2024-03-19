@@ -83,7 +83,7 @@ spec:
       - name: "sokos_ske_krav_oppfolging_type"
         matchType: "="
         value: "sokos-ske-krav"
-    groupInterval: 10s
+    groupInterval: 10m
     groupWait: 5s
     receiver: sokos-ske-krav-oppfolging-receiver
-    repeatInterval: 1m
+    repeatInterval: 10m
