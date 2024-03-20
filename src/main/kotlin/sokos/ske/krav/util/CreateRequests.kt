@@ -16,7 +16,7 @@ fun makeOpprettKravRequest(krav: KravTable) = OpprettInnkrevingsoppdragRequest(
     hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.roundToLong()),
     renteBeloep = createRenteBelop(krav).takeIf { it.first().beloep > 0L },
     oppdragsgiversReferanse = krav.saksnummerNAV,
-    oppdragsgiversKravIdentifikator = krav.corr_id,   //TODO Skal settes til krav.saksnummerNav før vi gå i prod/eller før vi tester med endringer.(er slik for å kjøre samme fil flere ganger)
+    oppdragsgiversKravIdentifikator = krav.saksnummerNAV,   //TODO Her switcher vi når vi bytter ut refnr krav.corrid/krav.saksnummerNAV
     fastsettelsesDato = krav.vedtakDato.toKotlinLocalDate(),
     foreldelsesFristensUtgangspunkt = krav.utbetalDato.toKotlinLocalDate(),
     tilleggsInformasjon = createTilleggsinformasjonNav(krav),
