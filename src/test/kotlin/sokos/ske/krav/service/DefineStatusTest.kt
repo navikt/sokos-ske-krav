@@ -3,12 +3,7 @@ package sokos.ske.krav.service
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import sokos.ske.krav.database.models.Status
-import sokos.ske.krav.util.KRAV_EKSISTERER_IKKE
-import sokos.ske.krav.util.KRAV_ER_ALLEREDE_AVSKREVET
-import sokos.ske.krav.util.KRAV_ER_AVSKREVET
-import sokos.ske.krav.util.KRAV_IKKE_RESKONTROFORT_RESEND
-import sokos.ske.krav.util.defineStatus
-import sokos.ske.krav.util.mockFeilResponsCall
+import sokos.ske.krav.util.*
 
 internal class DefineStatusTest : FunSpec({
 
@@ -57,8 +52,8 @@ internal class DefineStatusTest : FunSpec({
     test("Når responsekode er 503 skal krav ha status Status.UTILGJENGELIG_TJENESTE_503") {
         defineStatus(mockFeilResponsCall(503)) shouldBe Status.UTILGJENGELIG_TJENESTE_503
     }
-    test("Når responsekode ikke gjenkjennes skal krav ha status Status.UKJENT_FEIL") {
-        defineStatus(mockFeilResponsCall(420)) shouldBe Status.UKJENT_FEIL
+    test("Når responsekode ikke gjenkjennes skal krav ha status Status.ANNEN_KLIENT_FEIL_400") {
+        defineStatus(mockFeilResponsCall(420)) shouldBe Status.ANNEN_KLIENT_FEIL_400
     }
 
 

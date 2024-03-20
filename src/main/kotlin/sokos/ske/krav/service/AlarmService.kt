@@ -1,8 +1,7 @@
 package sokos.ske.krav.service
 
 
-import io.ktor.http.isSuccess
-
+import io.ktor.http.*
 import sokos.ske.krav.metrics.Metrics.requestError
 import sokos.ske.krav.util.RequestResult
 
@@ -10,7 +9,6 @@ object AlarmService {
 
     fun handleFeil(liste: List<RequestResult>, file: FtpFil) {
         val unsuccessful = liste.filter { !it.response.status.isSuccess() }
-
 
         val endringer = unsuccessful.filter { it.krav.kravtype== ENDRE_RENTER || it.krav.kravtype == ENDRE_HOVEDSTOL }
         val stopp = unsuccessful.filter { it.krav.kravtype == STOPP_KRAV }

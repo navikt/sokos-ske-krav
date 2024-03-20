@@ -65,7 +65,7 @@ spec:
     - name: POSTGRES_PORT
       value: "5432"
     - name: POSTGRES_NAME
-      value: sokos-skd-krav
+      value: sokos-ske-krav
     - name: VAULT_MOUNTPATH
       value: postgresql/preprod-fss/
     - name: LOG_APPENDER
