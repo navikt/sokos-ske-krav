@@ -119,10 +119,9 @@ fun Routing.skeApi(
                 )
             }
         }
-
         get("allekrav"){
             val databaseService = DatabaseService(PostgresDataSource())
-            call.respond(databaseService.getAllFeilmeldinger())
+            call.respond(databaseService.getAllFeilmeldinger().toString())
         }
     }
 }
