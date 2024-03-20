@@ -6,10 +6,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import mu.KotlinLogging
-import sokos.ske.krav.service.Directories
-import sokos.ske.krav.service.FtpService
-import sokos.ske.krav.service.SkeService
-import sokos.ske.krav.service.StatusService
+import sokos.ske.krav.database.PostgresDataSource
+import sokos.ske.krav.service.*
 import kotlin.system.exitProcess
 
 fun Routing.skeApi(
@@ -120,6 +118,11 @@ fun Routing.skeApi(
                             "Stacktrace= ${e.stackTraceToString()}"
                 )
             }
+        }
+
+        get("allekrav"){
+            val databaseService = DatabaseService(PostgresDataSource())
+            call.respond(databaseService.getAllFeilmeldinger())
         }
     }
 }
