@@ -38,6 +38,7 @@ object Repository {
                 param(Status.INTERN_TJENERFEIL_500.value)
             ).executeQuery().toKrav()
 
+
     fun Connection.getAllKravNotSent() =
         prepareStatement("""select * from krav where status = ?""")
             .withParameters(
