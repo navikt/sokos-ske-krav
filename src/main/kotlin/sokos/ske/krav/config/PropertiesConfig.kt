@@ -31,7 +31,7 @@ object PropertiesConfig {
 	    "POSTGRES_PASSWORD" to "",
 		"POSTGRES_HOST" to "dev-pg.intern.nav.no",
 		"POSTGRES_PORT" to "5432",
-		"POSTGRES_NAME" to "sokos-skd-krav",
+		"POSTGRES_NAME" to "sokos-ske-krav",
 
 		"VAULT_MOUNTPATH" to "",
 	)
