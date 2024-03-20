@@ -29,10 +29,13 @@ object Repository {
             ).executeQuery().toKrav()
 
     fun Connection.getAllKravForResending() =
-        prepareStatement("""select * from krav where status in (?, ?)""")
+        prepareStatement("""select * from krav where status in (?, ?, ?, ?, ?)""")
             .withParameters(
                 param(Status.KRAV_IKKE_SENDT.value),
-                param(Status.IKKE_RESKONTROFORT_RESEND.value)
+                param(Status.IKKE_RESKONTROFORT_RESEND.value),
+                param(Status.ANNEN_SERVER_FEIL_500.value),
+                param(Status.UTILGJENGELIG_TJENESTE_503.value),
+                param(Status.INTERN_TJENERFEIL_500.value)
             ).executeQuery().toKrav()
 
     fun Connection.getAllKravNotSent() =
