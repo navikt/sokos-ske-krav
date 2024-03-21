@@ -26,9 +26,10 @@ fun main() {
     val opprettKravService = OpprettKravService(skeClient, databaseService)
     val statusService = StatusService(skeClient, databaseService)
     val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, databaseService)
+    val avstemmingService = AvstemmingService(databaseService)
 
     applicationState.ready = true
-    HttpServer(applicationState, skeService, statusService).start()
+    HttpServer(applicationState, skeService, statusService, avstemmingService).start()
 
     postgresDataSource.close()
 }
@@ -37,6 +38,7 @@ class HttpServer(
     private val applicationState: ApplicationState,
     private val skeService: SkeService,
     private val statusService: StatusService,
+    private val avstemmingService: AvstemmingService,
     port: Int = 8080,
 ) {
     init {
@@ -47,7 +49,7 @@ class HttpServer(
     }
 
     private val embeddedServer = embeddedServer(Netty, port) {
-        applicationModule(applicationState, skeService, statusService)
+        applicationModule(applicationState, skeService, statusService, avstemmingService)
     }
 
     fun start() {
@@ -69,8 +71,9 @@ class ApplicationState {
 private fun Application.applicationModule(
     applicationState: ApplicationState,
     skeService: SkeService,
-    statusService: StatusService
+    statusService: StatusService,
+    avstemmingService: AvstemmingService
 ) {
     commonConfig()
-    routingConfig(applicationState, skeService, statusService)
+    routingConfig(applicationState, skeService, statusService, avstemmingService)
 }

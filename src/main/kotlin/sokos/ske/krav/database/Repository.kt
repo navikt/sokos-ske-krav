@@ -55,6 +55,14 @@ object Repository {
     fun Connection.getAllFeilmeldinger() =
         prepareStatement("""select * from feilmelding""").executeQuery().toFeilmelding()
 
+    fun Connection.getAlleKravForAvstemming() =
+        prepareStatement("""select * from krav 
+            where status <> ?
+        """.trimIndent()
+        ).withParameters(
+            param(Status.RESKONTROFOERT.value)
+        ).executeQuery().toKrav()
+
     fun Connection.getSkeKravIdent(navref: String): String {
         val rs = prepareStatement(
             """

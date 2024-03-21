@@ -12,7 +12,8 @@ import kotlin.system.exitProcess
 
 fun Routing.skeApi(
     skeService: SkeService,
-    statusService: StatusService
+    statusService: StatusService,
+    avstemmingService: AvstemmingService
 ) {
     val logger = KotlinLogging.logger {}
 
@@ -122,6 +123,9 @@ fun Routing.skeApi(
         get("allekrav"){
             val databaseService = DatabaseService(PostgresDataSource())
             call.respond(databaseService.getAllFeilmeldinger().toString())
+        }
+        get("avstemming"){
+            call.respond(avstemmingService.hentAvstemmingsRapport())
         }
     }
 }
