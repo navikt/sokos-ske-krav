@@ -14,12 +14,13 @@ class AvstemmingService(
       println("Antall som skal avstemmes $totaltAntall")
   }
 
-    fun hentAvstemmingsRapport() {
+    fun hentAvstemmingsRapport():String {
         val dato = LocalDate.now()
 
         val header = hentheader();
         val body = hentBody(dato);
         val footer = hentFooter();
+        return "$header $body $footer"
 
     }
 
@@ -38,7 +39,7 @@ class AvstemmingService(
             "<meta charset=\"utf-8\" />\n" +
             "<title>Avstemmingsrapport</title>\n" +
             "</head>\n" +
-            "<body>" +
+            "<body><br> <H1>Avstemmingsrapport <br>" +
             "<table><th>" +
             "<td>Krav-Id</td>" +
             "<td>Vedtaks-Id</td>" +
