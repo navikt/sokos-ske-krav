@@ -40,15 +40,15 @@ class AvstemmingService(
             "<title>Avstemmingsrapport</title>\n" +
             "</head>\n" +
             "<body><br> <H1>Avstemmingsrapport </H1><br>" +
-            "<table><th>" +
-            "<td>Krav-Id</td>" +
-            "<td>Vedtaks-Id</td>" +
-            "<td>Fagsystem-Id</td>" +
-            "<td>Registrert</td>" +
-            "<td>Kravkode</td>" +
-            "<td>Hjemmelskode</td>" +
-            "<td>Status</td>" +
-            "<td>StatusDato</td></th>"
+            "<table border='1'><tr>" +
+            "<th>Krav-Id</th>" +
+            "<th>Vedtaks-Id</th>" +
+            "<th>Fagsystem-Id</th>" +
+            "<th>Registrert</th>" +
+            "<th>Kravkode</th>" +
+            "<th>Hjemmelskode</th>" +
+            "<th>Status</th>" +
+            "<th>StatusDato</th></tr>"
 
     private fun hentFooter() = "</table></body>\n" +
             "</html>"
