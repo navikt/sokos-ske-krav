@@ -61,7 +61,7 @@ class AvstemmingService(
 
     private fun hentFooter() = """
        </table>
-       <form action ="avstemmilng/fil" method="get">
+       <form action ="avstemming/fil" method="get">
        <p><input type="submit" value="Last ned .csv fil"></>
        </body>
        </html>
