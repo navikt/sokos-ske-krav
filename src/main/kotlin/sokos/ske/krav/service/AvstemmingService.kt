@@ -39,7 +39,7 @@ class AvstemmingService(
             "<meta charset=\"utf-8\" />\n" +
             "<title>Avstemmingsrapport</title>\n" +
             "</head>\n" +
-            "<body><br> <H1>Avstemmingsrapport <br>" +
+            "<body><br> <H1>Avstemmingsrapport </H1><br>" +
             "<table><th>" +
             "<td>Krav-Id</td>" +
             "<td>Vedtaks-Id</td>" +
