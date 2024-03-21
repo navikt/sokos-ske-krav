@@ -4,17 +4,17 @@ import mu.KotlinLogging
 import java.time.LocalDate
 
 class AvstemmingService(
-  private val databaseService: DatabaseService,
+    private val databaseService: DatabaseService,
 ) {
-  private val logger = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger {}
 
-  private suspend fun avstemmKrav() {
-	  val krav = databaseService.hentKravSomSkalAvstemmes()
-	  val totaltAntall = krav.size;
-      println("Antall som skal avstemmes $totaltAntall")
-  }
+    private suspend fun avstemmKrav() {
+        val krav = databaseService.hentKravSomSkalAvstemmes()
+        val totaltAntall = krav.size;
+        println("Antall som skal avstemmes $totaltAntall")
+    }
 
-    fun hentAvstemmingsRapport():String {
+    fun hentAvstemmingsRapport(): String {
         val dato = LocalDate.now()
 
         val header = hentheader();
@@ -33,20 +33,20 @@ class AvstemmingService(
     }
 
     private fun hentBody(dato: LocalDate) = databaseService.hentKravSomSkalAvstemmes().map {
-            "<tr><td>${it.kravId}</td>" +
-                    "<td>${it.saksnummerNAV}</td>" +
-                    "<td>${it.fagsystemId}</td>" +
-                    "<td>${it.tidspunktOpprettet}</td>" +
-                    "<td>${it.kravkode}</td>" +
-                    "<td>${it.kodeHjemmel}</td>" +
-                    "<td>${it.status}</td>" +
-                    "<td>${it.tidspunktSisteStatus}</td></tr>"
-        }.joinToString()
+        "<tr><td>${it.kravId}</td>" +
+                "<td>${it.saksnummerNAV}</td>" +
+                "<td>${it.fagsystemId}</td>" +
+                "<td>${it.tidspunktOpprettet}</td>" +
+                "<td>${it.kravkode}</td>" +
+                "<td>${it.kodeHjemmel}</td>" +
+                "<td>${it.status}</td>" +
+                "<td>${it.tidspunktSisteStatus}</td></tr>"
+    }.joinToString()
 
     private fun hentheader() = "<!doctype html><head>\n" +
-            """<meta charset=\"utf-8\" />\n" +
-            <title>Avstemmingsrapport</title>\n
-            </head>\n
+            """<meta charset=\"utf-8\" />
+            <title>Avstemmingsrapport</title>
+            </head>
             <body><H1>Avstemmingsrapport</H1>
             <table width="80%" border="2" cellpadding="10"><tr>
             <th>Krav-Id</th>
@@ -56,10 +56,16 @@ class AvstemmingService(
             <th>Kravkode</th>
             <th>Hjemmelskode</th>
             <th>Status</th>
-            <th>StatusDato</th></tr> """
+            <th>StatusDato</th></tr> 
+            """
 
-    private fun hentFooter() = "</table></body>\n" +
-            "</html>"
+    private fun hentFooter() = """
+       </table>
+       <form action ="krav/avstemmilng/fil" method="get">
+       <p><input type="submit" value="Last ned .csv fil"></>
+       </body>
+       </html>
+    """.trimIndent()
 
 
 }
