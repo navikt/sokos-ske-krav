@@ -2,6 +2,7 @@ package sokos.ske.krav.api
 
 import io.ktor.http.*
 import io.ktor.http.ContentType.Text.CSV
+import io.ktor.http.ContentType.Text.Html
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -126,7 +127,7 @@ fun Routing.skeApi(
             call.respond(databaseService.getAllFeilmeldinger().toString())
         }
         get("avstemming"){
-            call.respondText(avstemmingService.hentAvstemmingsRapport(), CSV)
+            call.respondText(avstemmingService.hentAvstemmingsRapport(), Html)
         }
         get("avstemming/fil"){
             call.respondText(avstemmingService.hentAvstemminsRapportSomFil(), CSV)
