@@ -57,7 +57,7 @@ object Repository {
 
     fun Connection.getAlleKravForAvstemming() =
         prepareStatement("""select * from krav 
-            where status <> ?
+            where status <> ? order by id
         """.trimIndent()
         ).withParameters(
             param(Status.RESKONTROFOERT.value)
