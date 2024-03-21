@@ -125,7 +125,7 @@ fun Routing.skeApi(
             call.respond(databaseService.getAllFeilmeldinger().toString())
         }
         get("avstemming"){
-            call.respond(avstemmingService.hentAvstemmingsRapport())
+            call.respondText(avstemmingService.hentAvstemmingsRapport(), ContentType.Text.Html)
         }
     }
 }
