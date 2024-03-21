@@ -24,6 +24,14 @@ class AvstemmingService(
 
     }
 
+    fun hentAvstemminsRapportSomFil(): String {
+        val header = "Krav-Id,Vedtaks-Id,Fagsystem-Id,Registrert,Kravkode,Hjemmelskode,Status,StatusDato\n"
+        val linjer = databaseService.hentKravSomSkalAvstemmes().map {
+            "${it.kravId},${it.saksnummerNAV},${it.tidspunktOpprettet},${it.kravkode},${it.kodeHjemmel},${it.status},${it.tidspunktSisteStatus}"
+        }.joinToString("\n")
+        return header + linjer
+    }
+
     private fun hentBody(dato: LocalDate) = databaseService.hentKravSomSkalAvstemmes().map {
             "<tr><td>${it.kravId}</td>" +
                     "<td>${it.saksnummerNAV}</td>" +
@@ -36,19 +44,19 @@ class AvstemmingService(
         }.joinToString()
 
     private fun hentheader() = "<!doctype html><head>\n" +
-            "<meta charset=\"utf-8\" />\n" +
-            "<title>Avstemmingsrapport</title>\n" +
-            "</head>\n" +
-            "<body><H1>Avstemmingsrapport</H1>" +
-            "<table width='80%' border='2' cellpadding='10'><tr>" +
-            "<th>Krav-Id</th>" +
-            "<th>Vedtaks-Id</th>" +
-            "<th>Fagsystem-Id</th>" +
-            "<th>Registrert</th>" +
-            "<th>Kravkode</th>" +
-            "<th>Hjemmelskode</th>" +
-            "<th>Status</th>" +
-            "<th>StatusDato</th></tr>"
+            """<meta charset=\"utf-8\" />\n" +
+            <title>Avstemmingsrapport</title>\n
+            </head>\n
+            <body><H1>Avstemmingsrapport</H1>
+            <table width="80%" border="2" cellpadding="10"><tr>
+            <th>Krav-Id</th>
+            <th>Vedtaks-Id</th>
+            <th>Fagsystem-Id</th>
+            <th>Registrert</th>
+            <th>Kravkode</th>
+            <th>Hjemmelskode</th>
+            <th>Status</th>
+            <th>StatusDato</th></tr> """
 
     private fun hentFooter() = "</table></body>\n" +
             "</html>"
