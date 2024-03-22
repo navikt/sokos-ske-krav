@@ -33,7 +33,7 @@ object MockHttpClientUtils {
     object Responses {
         fun mottaksStatusResponse(
             kravIdentifikator: String = "1234",
-            status: String,
+            status: String = "RESKONTROFOERT",
         ): String {
             //language=json
             return """
@@ -46,7 +46,7 @@ object MockHttpClientUtils {
                 """.trimIndent()
         }
 
-        fun nyttKravResponse(kravIdentifikator: String) = """{"kravidentifikator": "$kravIdentifikator"}"""
+        fun nyttKravResponse(kravIdentifikator: String = "1234") = """{"kravidentifikator": "$kravIdentifikator"}"""
 
         fun nyEndringResponse(transaksjonsId: String = "791e5955-af86-42fe-b609-d4fc2754e35e") = """{"transaksjonsid": "$transaksjonsId"}"""
 
@@ -124,6 +124,7 @@ class MockHttpClient {
             explicitNulls = false
         }
 
+    fun getEmptyClient() {}
     fun getClient(
         kall: List<MockHttpClientUtils.MockRequestObj>,
     ) = HttpClient(MockEngine) {
@@ -132,7 +133,8 @@ class MockHttpClient {
             addHandler { request ->
                 val handler = kall.singleOrNull {
 
-                  generateUrls(it.type.url).contains(request.url.encodedPath) }
+                    generateUrls(it.type.url).contains(request.url.encodedPath)
+                }
                 if (handler != null) {
                     respond(handler.response, handler.statusCode, responseHeaders)
                 } else {
@@ -142,16 +144,16 @@ class MockHttpClient {
         }
     }
 
-  private fun generateUrls(baseUrl: String) =
-    listOf(
-      "/innkrevingsoppdrag/1234$baseUrl",
-      "/innkrevingsoppdrag/OB040000592759$baseUrl",
-      "/innkrevingsoppdrag/OB040000479803$baseUrl",
-      "/innkrevingsoppdrag/OB040000595755$baseUrl",
-      "/innkrevingsoppdrag/1111-skeUUID$baseUrl",
-      "/innkrevingsoppdrag/2222-skeUUID$baseUrl",
-      "/innkrevingsoppdrag/$baseUrl",
-      "/innkrevingsoppdrag$baseUrl",
-      baseUrl,
-    )
+    private fun generateUrls(baseUrl: String) =
+        listOf(
+            "/innkrevingsoppdrag/1234$baseUrl",
+            "/innkrevingsoppdrag/OB040000592759$baseUrl",
+            "/innkrevingsoppdrag/OB040000479803$baseUrl",
+            "/innkrevingsoppdrag/OB040000595755$baseUrl",
+            "/innkrevingsoppdrag/1111-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/2222-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/$baseUrl",
+            "/innkrevingsoppdrag$baseUrl",
+            baseUrl,
+        )
 }
