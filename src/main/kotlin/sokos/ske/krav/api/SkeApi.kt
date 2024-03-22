@@ -134,8 +134,8 @@ fun Routing.skeApi(
         }
         get("avstemming/update/{kravid}") {
             val id = call.parameters["kravid"]
-            if (id.isNullOrBlank()) call.respondText(avstemmingService.hentAvstemmingsRapport())
-            else call.respondText(avstemmingService.oppdaterAvstemtKrav(id.toInt()))
+            if (id.isNullOrBlank()) call.respondText(avstemmingService.hentAvstemmingsRapport(), Html)
+            else call.respondText(avstemmingService.oppdaterAvstemtKrav(id.toInt()), Html)
         }
 
 

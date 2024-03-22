@@ -60,7 +60,7 @@ class AvstemmingService(
             <title>Åpne statuser</title>
             </head>
             <body><H1>Åpne statuser</H1>
-            <table width="80%" border="2" cellpadding="10"><tr>
+            <table width="100%" border="1" cellpadding="5"><tr>
             <th>Krav-Id</th>
             <th>Vedtaks-Id</th>
             <th>Fagsystem-Id</th>
