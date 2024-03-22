@@ -45,9 +45,9 @@ class AvstemmingService(
 
     private fun hentheader() = "<!doctype html><head>\n" +
             """<meta charset=\"utf-8\" />
-            <title>Avstemmingsrapport</title>
+            <title>Åpne statuser</title>
             </head>
-            <body><H1>Avstemmingsrapport</H1>
+            <body><H1>Åpne statuser</H1>
             <table width="80%" border="2" cellpadding="10"><tr>
             <th>Krav-Id</th>
             <th>Vedtaks-Id</th>
