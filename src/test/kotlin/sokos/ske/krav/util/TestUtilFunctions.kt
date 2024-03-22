@@ -42,6 +42,33 @@ fun startContainer(containerName: String, initScripts: List<String>): HikariData
 
 fun setUpMockHttpClient(endepunktTyper: List<MockHttpClientUtils.MockRequestObj>) = MockHttpClient().getClient(endepunktTyper)
 
+fun setupSkeServiceMock(
+    dataSource: HikariDataSource,
+    httpClient: HttpClient,
+    ftpFiler: List<String> = emptyList(),
+    directory: Directories = Directories.INBOUND,
+
+): SkeService {
+    val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
+
+    val ftpService = FakeFtpService().setupMocks(directory, ftpFiler)
+    val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
+    val databaseService = DatabaseService(PostgresDataSource(dataSource))
+    val endreKravService = EndreKravService(skeClient, databaseService)
+    val opprettKravService = OpprettKravService(skeClient, databaseService)
+    val statusService = StatusService(skeClient, databaseService)
+    val stoppKravService = StoppKravService(skeClient, databaseService)
+    return  SkeService(
+        skeClient,
+        stoppKravService,
+        endreKravService,
+        opprettKravService,
+        statusService,
+        databaseService,
+        ftpService,
+    )
+}
+
 fun setupMocks(
     ftpFiler: List<String>,
     containerName: String,
@@ -49,28 +76,12 @@ fun setupMocks(
     initScripts: List<String> = emptyList(),
     directory: Directories = Directories.INBOUND,
 ): Pair<SkeService, HikariDataSource> {
-    val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
 
-    val ftpService = FakeFtpService().setupMocks(directory, ftpFiler)
-
-    val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
     val dataSource = startContainer(containerName, initScripts)
-    val databaseService = DatabaseService(PostgresDataSource(dataSource))
-    val endreKravService = EndreKravService(skeClient, databaseService)
-    val opprettKravService = OpprettKravService(skeClient, databaseService)
-    val statusService = StatusService(skeClient, databaseService)
-    val stoppKravService = StoppKravService(skeClient, databaseService)
+    val skeServiceMock = setupSkeServiceMock(dataSource, httpClient, ftpFiler,  directory )
 
     return Pair(
-        SkeService(
-            skeClient,
-            stoppKravService,
-            endreKravService,
-            opprettKravService,
-            statusService,
-            databaseService,
-            ftpService,
-        ),
+        skeServiceMock,
         dataSource,
     )
 }

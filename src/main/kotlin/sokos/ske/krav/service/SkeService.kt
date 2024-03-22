@@ -38,13 +38,13 @@ class SkeService(
     suspend fun handleNewKrav() {
 
         statusService.hentOgOppdaterMottaksStatus()
-        resendIkkeReskontroforteKrav()
+        resendKrav()
 
         sendNewFilesToSKE()
 
         delay(10_000)
         statusService.hentOgOppdaterMottaksStatus()
-        resendIkkeReskontroforteKrav()
+        resendKrav()
 
     }
 
@@ -109,7 +109,7 @@ class SkeService(
         return allResponses
     }
 
-    suspend fun resendIkkeReskontroforteKrav(): Map<String, RequestResult> {
+    suspend fun resendKrav(): Map<String, RequestResult> {
         val kravSomSkalResendes = databaseService.hentKravSomSkalResendes()
 
         val feilListe = mutableMapOf<String, RequestResult>()

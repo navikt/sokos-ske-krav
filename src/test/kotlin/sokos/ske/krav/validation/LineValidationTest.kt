@@ -80,13 +80,4 @@ internal class LineValidationTest: FunSpec({
       LineValidator.getOkLines(fil).size shouldBe 3
   }
 
-    test("tester ny fil fra janneke"){
-        val liste = readFileFromFS("Testfil_med_nye_koder.txt".asResource())
-        val fil = FtpFil(
-            this.testCase.name.testName,
-            liste,
-            kravLinjer = FileParser(liste).parseKravLinjer()
-        )
-        println("Antall Kravlinjer som feil er : ${(fil.kravLinjer.size - LineValidator.getOkLines(fil).size)}")
-    }
 })

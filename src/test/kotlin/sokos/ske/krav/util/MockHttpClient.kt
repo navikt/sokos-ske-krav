@@ -48,7 +48,7 @@ object MockHttpClientUtils {
 
         fun nyttKravResponse(kravIdentifikator: String) = """{"kravidentifikator": "$kravIdentifikator"}"""
 
-        fun endringResponse(transaksjonsId: String = "791e5955-af86-42fe-b609-d4fc2754e35e") = """{"transaksjonsid": "$transaksjonsId"}"""
+        fun nyEndringResponse(transaksjonsId: String = "791e5955-af86-42fe-b609-d4fc2754e35e") = """{"transaksjonsid": "$transaksjonsId"}"""
 
         fun innkrevingsOppdragEksistererFraFor(kravIdentifikator: String = "1234") =
             //language=json

@@ -33,9 +33,10 @@ internal class RepositoryTest : FunSpec({
             ds.connection.getAllKravForStatusCheck().size shouldBe 2
         }
     }
-    test("getAllKravForResending skal returnere krav som har status KRAV_IKKE_SENDT eller IKKE_RESKONTROFORT_RESEND") {
+  //  test("getAllKravForResending skal returnere krav som har status KRAV_IKKE_SENDT eller IKKE_RESKONTROFORT_RESEND") {
+    test("getAllKravForResending skal returnere krav som har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500 ") {
         startContainer(this.testCase.name.testName, listOf("KravSomSkalResendes.sql")).use { ds ->
-            ds.connection.getAllKravForResending().size shouldBe 4
+            ds.connection.getAllKravForResending().size shouldBe 7
         }
     }
     test("getAllKravNotSent skal returnere krav som har status KRAV_IKKE_SENDT") {
