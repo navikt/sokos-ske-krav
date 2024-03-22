@@ -32,11 +32,7 @@ class SkeService(
 ) {
     private val logger = KotlinLogging.logger {}
 
-    fun testListFiles(directory: String): List<String> = ftpService.listAllFiles(directory)
-    fun testFtp(): List<FtpFil> = ftpService.getValidatedFiles()
-
     suspend fun handleNewKrav() {
-
         statusService.hentOgOppdaterMottaksStatus()
         resendKrav()
 
@@ -45,10 +41,9 @@ class SkeService(
         delay(10_000)
         statusService.hentOgOppdaterMottaksStatus()
         resendKrav()
-
     }
 
-    suspend fun sendNewFilesToSKE(): List<RequestResult> {
+    private suspend fun sendNewFilesToSKE(): List<RequestResult> {
         val files = ftpService.getValidatedFiles()
         logger.info("*******************${LocalDateTime.now()}*******************")
         logger.info("Starter innsending av ${files.size} filer")

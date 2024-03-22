@@ -10,16 +10,16 @@ internal class FtpServiceTest : FunSpec({
 	test("OK filer skal ikke flyttes") {
 		val fakeFtpService = FakeFtpService()
 		val ftpService =
-			fakeFtpService.setupMocks(Directories.INBOUND, listOf("AltOkFil.txt", "AltOkFil2.txt", "test.NAVI"))
+			fakeFtpService.setupMocks(Directories.INBOUND, listOf("AltOkFil.txt", "Fil-A.txt", "Fil-B.txt"))
 
 		val successFiles = ftpService.getValidatedFiles()
 		successFiles.size shouldBe 3
 
 		val successFilesInDir = ftpService.listFiles(Directories.INBOUND)
 		successFilesInDir.size shouldBe 3
-		successFilesInDir shouldContain "test.NAVI"
 		successFilesInDir shouldContain "AltOkFil.txt"
-		successFilesInDir shouldContain "AltOkFil2.txt"
+		successFilesInDir shouldContain "Fil-A.txt"
+		successFilesInDir shouldContain "Fil-B.txt"
 
 
 		fakeFtpService.close()

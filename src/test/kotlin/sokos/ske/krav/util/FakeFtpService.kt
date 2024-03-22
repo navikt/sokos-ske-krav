@@ -69,7 +69,7 @@ class FakeFtpService(private val client: FTPClient = FTPClient()) {
 
 	private fun connect(
 		directory: Directories = Directories.INBOUND,
-		fileNames: List<String> = listOf("AltOkFil.txt", "AltOkFil2.txt")
+		fileNames: List<String>
 	): PropertiesConfig.FtpConfig {
 		fakeFtpServer.serverControlPort = 0
 		fakeFtpServer.addUserAccount(UserAccount("username", "password", "/"))
