@@ -122,20 +122,20 @@ fun Routing.skeApi(
                 )
             }
         }
-        get("allekrav"){
+        get("allekrav") {
             val databaseService = DatabaseService(PostgresDataSource())
             call.respond(databaseService.getAllFeilmeldinger().toString())
         }
-        get("avstemming"){
+        get("avstemming") {
             call.respondText(avstemmingService.hentAvstemmingsRapport(), Html)
         }
-        get("avstemming/fil"){
+        get("avstemming/fil") {
             call.respondText(avstemmingService.hentAvstemminsRapportSomFil(), CSV)
         }
         get("avstemming/update/{kravid}") {
             val id = call.parameters["kravid"]
-            if (id.isNullOrBlank()) call.respondText(avstemmingService.hentAvstemmingsRapport(), Html)
-            else call.respondText(avstemmingService.oppdaterAvstemtKrav(id.toInt()), Html)
+            if (!id.isNullOrBlank()) avstemmingService.oppdaterAvstemtKrav(id.toInt())
+            call.respondRedirect("avstemming", permanent = true)
         }
 
 
