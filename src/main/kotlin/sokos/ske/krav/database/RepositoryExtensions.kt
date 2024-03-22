@@ -5,12 +5,7 @@ import sokos.ske.krav.database.RepositoryExtensions.Parameter
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
 import java.math.BigDecimal
-import java.sql.Connection
-import java.sql.Date
-import java.sql.PreparedStatement
-import java.sql.ResultSet
-import java.sql.SQLException
-import java.sql.Timestamp
+import java.sql.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -61,6 +56,9 @@ object RepositoryExtensions {
     fun interface Parameter {
         fun addToPreparedStatement(statement: PreparedStatement, index: Int)
     }
+
+    fun param(value: Int) =
+        Parameter { statement: PreparedStatement, index: Int -> statement.setInt(index, value) }
 
     fun param(value: Long) =
         Parameter { statement: PreparedStatement, index: Int -> statement.setLong(index, value) }

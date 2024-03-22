@@ -132,6 +132,12 @@ fun Routing.skeApi(
         get("avstemming/fil"){
             call.respondText(avstemmingService.hentAvstemminsRapportSomFil(), CSV)
         }
+        get("avstemming/update/{kravid}") {
+            val id = call.parameters["kravid"]
+            if (id.isNullOrBlank()) call.respondText(avstemmingService.hentAvstemmingsRapport())
+            else call.respondText(avstemmingService.oppdaterAvstemtKrav(id.toInt()))
+        }
+
 
     }
 }

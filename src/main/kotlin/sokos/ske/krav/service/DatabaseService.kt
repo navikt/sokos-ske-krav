@@ -13,6 +13,7 @@ import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.insertAllNewKrav
 import sokos.ske.krav.database.Repository.saveErrorMessage
 import sokos.ske.krav.database.Repository.setSkeKravIdentPaEndring
+import sokos.ske.krav.database.Repository.updateAvstemtKrav
 import sokos.ske.krav.database.Repository.updateSendtKrav
 import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
@@ -176,6 +177,12 @@ class DatabaseService(
     fun updateStatus(mottakStatus: String, corrId: String) {
         postgresDataSource.connection.useAndHandleErrors { con ->
             con.updateStatus(mottakStatus, corrId)
+        }
+    }
+
+    fun updateAvstemtKrav(kravId: Int) {
+        postgresDataSource.connection.useAndHandleErrors { con ->
+            con.updateAvstemtKrav(kravId)
         }
     }
 

@@ -32,19 +32,31 @@ class AvstemmingService(
         return header + linjer
     }
 
+    fun oppdaterAvstemtKrav(kravId: Int): String {
+        databaseService.updateAvstemtKrav(kravId)
+        return hentAvstemmingsRapport()
+    }
+
     private fun hentBody(dato: LocalDate) = databaseService.hentKravSomSkalAvstemmes().map {
-        "<tr><td>${it.kravId}</td>" +
-                "<td>${it.saksnummerNAV}</td>" +
-                "<td>${it.fagsystemId}</td>" +
-                "<td>${it.tidspunktOpprettet}</td>" +
-                "<td>${it.kravkode}</td>" +
-                "<td>${it.kodeHjemmel}</td>" +
-                "<td>${it.status}</td>" +
-                "<td>${it.tidspunktSisteStatus}</td></tr>"
+        """
+            <tr><td>${it.kravId}</td>
+            <td>${it.saksnummerNAV}</td>
+            <td>${it.fagsystemId}</td>
+            <td>${it.tidspunktOpprettet}</td>
+            <td>${it.kravkode}</td>
+            <td>${it.kodeHjemmel}</td>
+            <td>${it.status}</td>
+            <td>${it.tidspunktSisteStatus}</td>
+            <td><form action ="avstemming/update/${it.kravId}" method="get">
+                <p><input type="submit" value="Fjern fra liste"></p>
+                </form>
+            </td></tr>
+        """.trimIndent()
     }.joinToString()
 
-    private fun hentheader() = "<!doctype html><head>\n" +
-            """<meta charset=\"utf-8\" />
+    private fun hentheader() =
+        """
+            <!doctype html><head><meta charset="utf-8" />
             <title>Åpne statuser</title>
             </head>
             <body><H1>Åpne statuser</H1>
@@ -57,15 +69,17 @@ class AvstemmingService(
             <th>Hjemmelskode</th>
             <th>Status</th>
             <th>StatusDato</th></tr> 
-            """
+        """.trimIndent()
 
-    private fun hentFooter() = """
-       </table>
-       <form action ="avstemming/fil" method="get">
-       <p><input type="submit" value="Last ned .csv fil"></>
-       </body>
-       </html>
-    """.trimIndent()
+    private fun hentFooter() =
+        """
+           </table>
+           <form action ="avstemming/fil" method="get">
+           <p><input type="submit" value="Last ned .csv fil"></p>
+           </form>
+           </body>
+           </html>
+        """.trimIndent()
 
 
 }

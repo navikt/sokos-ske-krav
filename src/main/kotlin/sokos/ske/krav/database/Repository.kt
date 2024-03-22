@@ -57,10 +57,11 @@ object Repository {
 
     fun Connection.getAlleKravForAvstemming() =
         prepareStatement("""select * from krav 
-            where status <> ? order by id
+            where status not in ( ?, ? ) order by id
         """.trimIndent()
         ).withParameters(
-            param(Status.RESKONTROFOERT.value)
+            param(Status.RESKONTROFOERT.value),
+            param(Status.RAPPORTERT.value)
         ).executeQuery().toKrav()
 
     fun Connection.getSkeKravIdent(navref: String): String {
@@ -172,6 +173,21 @@ object Repository {
         ).withParameters(
             param(mottakStatus),
             param(corrId)
+        ).execute()
+        commit()
+    }
+
+    fun Connection.updateAvstemtKrav(kravId: Int) {
+        prepareStatement(
+            """
+                update krav 
+                set status = ?,
+                tidspunkt_siste_status = NOW()
+                where id = ?
+            """.trimIndent()
+        ).withParameters(
+            param(Status.RAPPORTERT.value),
+            param(kravId)
         ).execute()
         commit()
     }
