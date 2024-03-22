@@ -52,7 +52,7 @@ class AvstemmingService(
                 </form>
             </td></tr>
         """.trimIndent()
-    }.joinToString()
+    }.joinToString("")
 
     private fun hentheader() =
         """
