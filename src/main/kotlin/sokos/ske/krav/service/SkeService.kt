@@ -66,9 +66,9 @@ class SkeService(
         file: FtpFil,
     ): List<RequestResult> {
 
-        val linjer = LineValidator.getOkLines(file)
+        lagreOgOppdaterAlleNyeKrav(file.kravLinjer)
 
-        lagreOgOppdaterAlleNyeKrav(linjer)
+        LineValidator.validateNewLines(file, databaseService)
 
         val kravLinjer = databaseService.hentAlleKravSomIkkeErSendt()
 

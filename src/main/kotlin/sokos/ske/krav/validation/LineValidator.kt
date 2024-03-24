@@ -1,29 +1,35 @@
 package sokos.ske.krav.validation
 
 import mu.KotlinLogging
+import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.nav.KravtypeMappingFromNAVToSKE
 import sokos.ske.krav.metrics.Metrics
+import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.FtpFil
 import sokos.ske.krav.util.isNyttKrav
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 
-
-
 object LineValidator {
     private val logger = KotlinLogging.logger {}
-    fun getOkLines(file: FtpFil): List<KravLinje> {
-        val successLines  = mutableListOf<KravLinje>()
+    fun validateNewLines(file: FtpFil, dataSource: DatabaseService) {
+        val newLines = dataSource.hentAlleKravSomSkalValideres()
         val allErrorMessages = mutableListOf<String>()
         file.kravLinjer.map {
+            val corid = newLines.filter { kt -> it.saksNummer.equals(kt.saksnummerNAV) &&
+                    it.belop.equals(kt.belop) &&
+                    it.referanseNummerGammelSak.equals(kt.referanseNummerGammelSak) &&
+                    it.gjelderID.equals(kt.gjelderId)}.first().corr_id
+
             when (val result: ValidationResult = validateLine(it)) {
                 is ValidationResult.Success -> {
-                    successLines.add(it)
+                    dataSource.updateStatus(Status.KRAV_IKKE_SENDT.value,corid)
                 }
                 is ValidationResult.Error -> {
                     allErrorMessages.addAll(result.messages)
+                    dataSource.updateStatus(Status.VALIDERINGSFEIL_I_FIL.value, corid)
                 }
             }
         }
@@ -31,7 +37,6 @@ object LineValidator {
             Metrics.lineValidationError.labels(file.name, allErrorMessages.toString()).inc()
             logger.info ("Feil i validering av linjer i fil ${file.name}: $allErrorMessages" )
         }
-        return successLines
     }
 
     private fun validateLine(krav: KravLinje): ValidationResult {

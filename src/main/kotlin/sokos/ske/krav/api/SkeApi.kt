@@ -4,13 +4,14 @@ import io.ktor.http.*
 import io.ktor.http.ContentType.Text.CSV
 import io.ktor.http.ContentType.Text.Html
 import io.ktor.server.application.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import mu.KotlinLogging
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.service.*
-import kotlin.system.exitProcess
+import sokos.ske.krav.service.AvstemmingService
+import sokos.ske.krav.service.DatabaseService
+import sokos.ske.krav.service.SkeService
+import sokos.ske.krav.service.StatusService
 
 fun Routing.skeApi(
     skeService: SkeService,
@@ -20,46 +21,6 @@ fun Routing.skeApi(
     val logger = KotlinLogging.logger {}
 
     route("krav") {
-
-        get("listFiles/{directory}") {
-            val files = skeService.testListFiles(call.parameters["directory"].toString())
-            call.respond(HttpStatusCode.OK, files)
-        }
-
-        get("testftp") {
-            val files = skeService.testFtp()
-            call.respond(HttpStatusCode.OK, files.map { it.name })
-        }
-
-
-        post("lagFil/{filnavn}") {
-            val content: String = call.receiveText()
-            val fileName: String = call.parameters["filnavn"].toString()
-
-            val ftp = FtpService()
-            ftp.createFile(fileName, Directories.INBOUND, content)
-            call.respond(HttpStatusCode.OK)
-
-        }
-
-        get("error") {
-            for (i in 0..1000) {
-                logger.error("Nå er'e feil igjen, Error: $i")
-            }
-            call.respond("Nå er det 1000 errors i loggen")
-        }
-
-        get("warn") {
-
-            for (i in 0..1000) {
-                logger.warn("Nå er'e feil igjen, Warning: $i")
-            }
-            call.respond("Nå er det 1000 errors i loggen")
-        }
-
-        get("shutdown") {
-            exitProcess(status = 10)
-        }
 
         get("resend") {
             logger.info("API kall for henting av resending")
@@ -137,7 +98,5 @@ fun Routing.skeApi(
             if (!id.isNullOrBlank()) avstemmingService.oppdaterAvstemtKrav(id.toInt())
             call.respondRedirect("/krav/avstemming", permanent = true)
         }
-
-
     }
 }

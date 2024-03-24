@@ -6,8 +6,10 @@ import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.getAllFeilmeldinger
 import sokos.ske.krav.database.Repository.getAllKravForResending
 import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
+import sokos.ske.krav.database.Repository.getAllKravForValidering
 import sokos.ske.krav.database.Repository.getAllKravNotSent
 import sokos.ske.krav.database.Repository.getAlleKravForAvstemming
+import sokos.ske.krav.database.Repository.getFeillinjeForKravId
 import sokos.ske.krav.database.Repository.getKravIdfromCorrId
 import sokos.ske.krav.database.Repository.getSkeKravIdent
 import sokos.ske.krav.database.Repository.insertAllNewKrav
@@ -174,6 +176,12 @@ class DatabaseService(
         }
     }
 
+    fun hentFeillinjeForKravid(kravId: Int): List<FeilmeldingTable>{
+        postgresDataSource.connection.useAndHandleErrors {con ->
+            return con.getFeillinjeForKravId(kravId)
+        }
+    }
+
     fun updateStatus(mottakStatus: String, corrId: String) {
         postgresDataSource.connection.useAndHandleErrors { con ->
             con.updateStatus(mottakStatus, corrId)
@@ -189,6 +197,12 @@ class DatabaseService(
     fun hentKravSomSkalResendes(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
             return con.getAllKravForResending()
+        }
+    }
+
+    fun hentAlleKravSomSkalValideres(): List<KravTable> {
+        postgresDataSource.connection.useAndHandleErrors { con ->
+            return con.getAllKravForValidering()
         }
     }
 

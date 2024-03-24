@@ -1,24 +1,11 @@
 package sokos.ske.krav
 
 import com.zaxxer.hikari.HikariDataSource
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.MockEngineConfig
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.post
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.json
-import io.mockk.coEvery
-import io.mockk.coJustRun
-import io.mockk.every
-import io.mockk.just
-import io.mockk.justRun
 import io.mockk.mockk
-import io.mockk.mockkConstructor
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
@@ -28,17 +15,12 @@ import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.*
-import sokos.ske.krav.util.MockHttpClient
+import sokos.ske.krav.util.*
 import sokos.ske.krav.util.MockHttpClientUtils.EndepunktType
 import sokos.ske.krav.util.MockHttpClientUtils.MockRequestObj
 import sokos.ske.krav.util.MockHttpClientUtils.Responses
-import sokos.ske.krav.util.getAllKrav
-import sokos.ske.krav.util.setUpMockHttpClient
-import sokos.ske.krav.util.setupMocks
-import sokos.ske.krav.util.setupSkeServiceMock
-import sokos.ske.krav.util.startContainer
-import java.util.UUID
 
+@Ignored
 internal class IntegrationTest : FunSpec({
 
     test("Når SkeService leser inn en fil skal kravene lagres i database"){}

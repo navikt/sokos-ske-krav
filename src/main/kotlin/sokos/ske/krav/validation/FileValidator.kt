@@ -28,7 +28,7 @@ object FileValidator{
         if (errorMessages.isNotEmpty()){
           Metrics.fileValidationError.labels(fileName, errorMessages.toString()).inc()
           logger.info ("Feil i validering av fil $fileName: $errorMessages" )
-          return ValidationResult.Error(errorMessages)
+          return ValidationResult.Error(messages = errorMessages)
         }
 
         return ValidationResult.Success(kravLinjer)

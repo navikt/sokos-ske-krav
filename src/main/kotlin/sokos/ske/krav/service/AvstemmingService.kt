@@ -39,7 +39,7 @@ class AvstemmingService(
 
     private fun hentBody(dato: LocalDate) = databaseService.hentKravSomSkalAvstemmes().map {
         """
-            <tr><td>${it.kravId}</td>
+            <tr><td rowspan="2">${it.kravId}</td>
             <td>${it.saksnummerNAV}</td>
             <td>${it.fagsystemId}</td>
             <td>${it.tidspunktOpprettet}</td>
@@ -47,10 +47,11 @@ class AvstemmingService(
             <td>${it.kodeHjemmel}</td>
             <td>${it.status}</td>
             <td>${it.tidspunktSisteStatus}</td>
-            <td><form action ="avstemming/update/${it.kravId}" method="get">
-                <p><input type="submit" value="Fjern fra liste"></p>
+            <td rowspan="2"><form action ="avstemming/update/${it.kravId}" method="get">
+                <input type="submit" value="Fjern fra liste">
                 </form>
             </td></tr>
+            <tr> ${hentFeillinjeForKravid(it.kravId.toInt())} </tr><tr/>
         """.trimIndent()
     }.joinToString("")
 
@@ -68,7 +69,9 @@ class AvstemmingService(
             <th>Kravkode</th>
             <th>Hjemmelskode</th>
             <th>Status</th>
-            <th>StatusDato</th></tr> 
+            <th>StatusDato</th>
+            <th></th>
+            </tr> 
         """.trimIndent()
 
     private fun hentFooter() =
@@ -81,5 +84,20 @@ class AvstemmingService(
            </html>
         """.trimIndent()
 
+    private fun hentFeillinjeForKravid(kravid: Int):String {
+        val feilmeldinger = databaseService.hentFeillinjeForKravid(kravid)
+        if (feilmeldinger.isEmpty()) {
+            return """
+            <td colspan="2"/><td colspan="5"/>
+        """.trimIndent()
+        }
+        else {
+            return """
+                <td colspan="2">${feilmeldinger.first().error}</td>
+                <td colspan="5">${feilmeldinger.first().melding}</td>
+            """.trimIndent()
+        }
+
+    }
 
 }

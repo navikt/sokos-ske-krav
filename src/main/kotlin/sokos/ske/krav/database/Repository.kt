@@ -38,6 +38,11 @@ object Repository {
                 param(Status.INTERN_TJENERFEIL_500.value)
             ).executeQuery().toKrav()
 
+    fun Connection.getAllKravForValidering() =
+        prepareStatement("""select * from krav where status = ?""")
+            .withParameters(
+                param(Status.KRAV_INNLEST_FRA_FIL.value),
+            ).executeQuery().toKrav()
 
     fun Connection.getAllKravNotSent() =
         prepareStatement("""select * from krav where status = ?""")
@@ -54,6 +59,17 @@ object Repository {
 
     fun Connection.getAllFeilmeldinger() =
         prepareStatement("""select * from feilmelding""").executeQuery().toFeilmelding()
+
+    fun Connection.getFeillinjeForKravId(kravId: Int): List<FeilmeldingTable> {
+        return prepareStatement(
+            """
+                select * from feilmelding
+                where kravid = ?
+            """.trimIndent()
+        ).withParameters(
+            param(kravId)
+        ).executeQuery().toFeilmelding()
+    }
 
     fun Connection.getAlleKravForAvstemming() =
         prepareStatement("""select * from krav 
@@ -220,9 +236,8 @@ object Repository {
                 kravtype,
                 corr_id,
                 tidspunkt_opprettet 
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'${Status.KRAV_IKKE_SENDT.value}',NOW(), ?, ?, NOW())
-            """.trimIndent()
-        )
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'${Status.KRAV_INNLEST_FRA_FIL.value}',NOW(), ?, ?, NOW())
+            """.trimIndent())
 
         kravListe.forEach() {
             val type: String = when {
@@ -274,7 +289,9 @@ object Repository {
             }
         }
         prepStmt.executeBatch()
+        val rs = prepStmt.generatedKeys
         commit()
+        return
     }
 
     fun Connection.setSkeKravIdentPaEndring(navSaksnr: String, skeKravident: String) {
