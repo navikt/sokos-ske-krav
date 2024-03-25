@@ -22,6 +22,7 @@ data class KravLinje(
     val fremtidigYtelse: BigDecimal,
     val utbetalDato: LocalDate,
     val fagsystemId: String,
+    val status: String? = null
 )
 
 data class KontrollLinjeHeader(

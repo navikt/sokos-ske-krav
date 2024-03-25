@@ -1,6 +1,8 @@
 package sokos.ske.krav.validation
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.service.FtpFil
 import sokos.ske.krav.util.asResource
@@ -15,7 +17,7 @@ internal class LineValidationTest: FunSpec({
         liste,
         kravLinjer = FileParser(liste).parseKravLinjer()
     )
-//        LineValidator.validateNewLines(fil).size shouldBe liste.size - 2
+        LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe liste.size - 2
   }
 
   test("Validering av linje skal feile når kravtypen er ugyldig") {
@@ -25,7 +27,7 @@ internal class LineValidationTest: FunSpec({
           liste,
           kravLinjer = FileParser(liste).parseKravLinjer()
       )
-//      LineValidator.validateNewLines(fil).size shouldBe liste.size - 3
+      LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe liste.size - 3
   }
 
 
@@ -36,7 +38,7 @@ internal class LineValidationTest: FunSpec({
           liste,
           kravLinjer = FileParser(liste).parseKravLinjer()
       )
-//      LineValidator.validateNewLines(fil).size shouldBe 8
+      LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe 8
   }
 
     test("Saksnummer må være riktig formatert"){
@@ -46,7 +48,7 @@ internal class LineValidationTest: FunSpec({
             liste,
             kravLinjer = FileParser(liste).parseKravLinjer()
         )
-//        LineValidator.validateNewLines(fil).size shouldBe 1
+        LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe 1
     }
 
     test("Refnummer gamme sak må være riktig formatert"){
@@ -56,7 +58,7 @@ internal class LineValidationTest: FunSpec({
             liste,
             kravLinjer = FileParser(liste).parseKravLinjer()
         )
-//        LineValidator.validateNewLines(fil).size shouldBe 2
+        LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe 2
     }
 
     test("Vedtaksdato kan ikke være i fremtiden" ){
@@ -66,7 +68,7 @@ internal class LineValidationTest: FunSpec({
             liste,
             kravLinjer = FileParser(liste).parseKravLinjer()
         )
-//        LineValidator.validateNewLines(fil).size shouldBe 3
+        LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe 3
     }
 
   test("Periode må være i fortid og fom må være før tom") {
@@ -76,7 +78,7 @@ internal class LineValidationTest: FunSpec({
           liste,
           kravLinjer = FileParser(liste).parseKravLinjer()
       )
-//      LineValidator.validateNewLines(fil).size shouldBe 3
+      LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe 3
   }
 
 })

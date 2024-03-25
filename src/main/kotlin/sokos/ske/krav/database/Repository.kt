@@ -236,7 +236,7 @@ object Repository {
                 kravtype,
                 corr_id,
                 tidspunkt_opprettet 
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'${Status.KRAV_INNLEST_FRA_FIL.value}',NOW(), ?, ?, NOW())
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(), ?, ?, NOW())
             """.trimIndent())
 
         kravListe.forEach() {
@@ -262,8 +262,9 @@ object Repository {
             prepStmt.setString(15, it.fremtidigYtelse.toString())
             prepStmt.setDate(16, Date.valueOf(it.utbetalDato))
             prepStmt.setString(17, it.fagsystemId)
-            prepStmt.setString(18, type)
-            prepStmt.setString(19, UUID.randomUUID().toString())
+            prepStmt.setString(18, it.status ?: Status.KRAV_INNLEST_FRA_FIL.value)
+            prepStmt.setString(19, type)
+            prepStmt.setString(20, UUID.randomUUID().toString())
             prepStmt.addBatch()
             if (type == ENDRE_HOVEDSTOL) {
                 prepStmt.setString(1, it.saksNummer)
@@ -283,8 +284,9 @@ object Repository {
                 prepStmt.setString(15, it.fremtidigYtelse.toString())
                 prepStmt.setDate(16, Date.valueOf(it.utbetalDato))
                 prepStmt.setString(17, it.fagsystemId)
-                prepStmt.setString(18, ENDRE_RENTER)
-                prepStmt.setString(19, UUID.randomUUID().toString())
+                prepStmt.setString(18, it.status ?: Status.KRAV_INNLEST_FRA_FIL.value)
+                prepStmt.setString(19, ENDRE_RENTER)
+                prepStmt.setString(20, UUID.randomUUID().toString())
                 prepStmt.addBatch()
             }
         }
