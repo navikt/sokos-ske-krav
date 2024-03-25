@@ -8,18 +8,18 @@ class AvstemmingService(
 ) {
     private val logger = KotlinLogging.logger {}
 
-    private suspend fun avstemmKrav() {
+    private fun avstemmKrav() {
         val krav = databaseService.hentKravSomSkalAvstemmes()
-        val totaltAntall = krav.size;
+        val totaltAntall = krav.size
         println("Antall som skal avstemmes $totaltAntall")
     }
 
     fun hentAvstemmingsRapport(): String {
         val dato = LocalDate.now()
 
-        val header = hentheader();
-        val body = hentBody(dato);
-        val footer = hentFooter();
+        val header = hentheader()
+        val body = hentBody(dato)
+        val footer = hentFooter()
         return "$header $body $footer"
 
     }
@@ -88,13 +88,12 @@ class AvstemmingService(
         val feilmeldinger = databaseService.hentFeillinjeForKravid(kravid)
         if (feilmeldinger.isEmpty()) {
             return """
-            <td colspan="2"/><td colspan="5"/>
+            <td colspan="7"/>
         """.trimIndent()
         }
         else {
             return """
-                <td colspan="2">${feilmeldinger.first().error}</td>
-                <td colspan="5">${feilmeldinger.first().melding}</td>
+                <td colspan="7">"<b>Feilmelding: </b> ${feilmeldinger.first().melding}"</td>
             """.trimIndent()
         }
 
