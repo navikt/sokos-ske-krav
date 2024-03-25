@@ -1,7 +1,6 @@
 package sokos.ske.krav
 
 import com.zaxxer.hikari.HikariDataSource
-import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
@@ -20,7 +19,6 @@ import sokos.ske.krav.util.MockHttpClientUtils.EndepunktType
 import sokos.ske.krav.util.MockHttpClientUtils.MockRequestObj
 import sokos.ske.krav.util.MockHttpClientUtils.Responses
 
-@Ignored
 internal class IntegrationTest : FunSpec({
 
     test("Når SkeService leser inn en fil skal kravene lagres i database"){}
