@@ -32,8 +32,8 @@ class AvstemmingService(
         return header + linjer
     }
 
-    fun oppdaterAvstemtKrav(kravId: Int): String {
-        databaseService.updateAvstemtKrav(kravId)
+    fun oppdaterAvstemtKravTilRapportert(kravId: Int): String {
+        databaseService.updateRapportertValideringsfeil(kravId)
         return hentAvstemmingsRapport()
     }
 

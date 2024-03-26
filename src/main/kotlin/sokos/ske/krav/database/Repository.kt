@@ -77,7 +77,7 @@ object Repository {
         """.trimIndent()
         ).withParameters(
             param(Status.RESKONTROFOERT.value),
-            param(Status.RAPPORTERT.value)
+            param(Status.VALIDERINGFEIL_RAPPORTERT.value)
         ).executeQuery().toKrav()
 
     fun Connection.getSkeKravIdent(navref: String): String {
@@ -193,7 +193,7 @@ object Repository {
         commit()
     }
 
-    fun Connection.updateAvstemtKrav(kravId: Int) {
+    fun Connection.updateAvstemtKravTilRapportert(kravId: Int) {
         prepareStatement(
             """
                 update krav 
@@ -202,7 +202,7 @@ object Repository {
                 where id = ?
             """.trimIndent()
         ).withParameters(
-            param(Status.RAPPORTERT.value),
+            param(Status.VALIDERINGFEIL_RAPPORTERT.value),
             param(kravId)
         ).execute()
         commit()
