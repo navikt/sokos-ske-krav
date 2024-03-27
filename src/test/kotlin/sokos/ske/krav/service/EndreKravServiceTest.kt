@@ -64,4 +64,17 @@ internal class EndreKravServiceTest : FunSpec({
         result.filter { it.status == Status.ANNEN_IKKE_FUNNET_404 || it.status == Status.FANT_IKKE_SAKSREF_404 }.size shouldBe 2
     }
 
+    test("hvis responsen er 409 og 200 skal status settes til en 409 status") {
+
+        val skeClientMock = mockk<SkeClient>() {
+            coEvery { endreRenter(any<EndreRenteBeloepRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockFeilResponsCall(200)
+            coEvery { endreHovedstol(any<NyHovedStolRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockFeilResponsCall(409)
+        }
+
+        val result = EndreKravService(skeClientMock, databaseServiceMock).sendAllEndreKrav(kravListe).flatMap { it.entries.toList() }.map { it.value }
+        println(result)
+
+        result.filter { it.status == Status.ANNEN_KONFLIKT_409 || it.status == Status.KRAV_ER_AVSKREVET_409 }.size shouldBe 2
+    }
+
 })
