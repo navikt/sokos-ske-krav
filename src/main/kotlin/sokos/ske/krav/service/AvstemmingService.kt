@@ -107,7 +107,7 @@ class AvstemmingService(
             <!doctype html><head><meta charset="utf-8" />
             <title>Filer som feilet</title>
             </head>
-            <body><H1>Filer som har feilt i filvalidering</H1>
+            <body><H1>Filer som har feilet i filvalidering</H1>
             <table width="100%" border="1" cellpadding="5"><tr>
             <th align="left"    >Filnavn</th>
             </tr> 
