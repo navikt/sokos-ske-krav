@@ -84,7 +84,8 @@ object Repository {
         val rs = prepareStatement(
             """
             select id, kravidentifikator_ske from krav
-            where saksnummer_nav = ? and krav.kravtype = ? order by id desc limit 1
+            where saksnummer_nav = ? and krav.kravtype = ? and krav.kravidentifikator_ske is not null 
+            order by id desc limit 1
         """.trimIndent()
         ).withParameters(
             param(navref),

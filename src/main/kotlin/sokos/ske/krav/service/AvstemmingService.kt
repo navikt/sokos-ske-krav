@@ -1,25 +1,15 @@
 package sokos.ske.krav.service
 
-import mu.KotlinLogging
-import java.time.LocalDate
-
 class AvstemmingService(
     private val databaseService: DatabaseService,
     private val ftpService: FtpService = FtpService()
 ) {
-    private val logger = KotlinLogging.logger {}
 
-    private fun avstemmKrav() {
-        val krav = databaseService.hentKravSomSkalAvstemmes()
-        val totaltAntall = krav.size
-        println("Antall som skal avstemmes $totaltAntall")
-    }
 
     fun hentAvstemmingsRapport(): String {
-        val dato = LocalDate.now()
 
         val header = hentheader()
-        val body = hentBody(dato)
+        val body = hentBody()
         val footer = hentFooter()
         return "$header $body $footer"
 
@@ -38,7 +28,7 @@ class AvstemmingService(
         return hentAvstemmingsRapport()
     }
 
-    private fun hentBody(dato: LocalDate) = databaseService.hentKravSomSkalAvstemmes().map {
+    private fun hentBody() = databaseService.hentKravSomSkalAvstemmes().map {
         """
             <tr><td rowspan="2">${it.kravId}</td>
             <td>${it.saksnummerNAV}</td>
