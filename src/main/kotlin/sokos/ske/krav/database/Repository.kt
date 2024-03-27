@@ -292,9 +292,7 @@ object Repository {
             }
         }
         prepStmt.executeBatch()
-        val rs = prepStmt.generatedKeys
         commit()
-        return
     }
 
     fun Connection.setSkeKravIdentPaEndring(navSaksnr: String, skeKravident: String) {
