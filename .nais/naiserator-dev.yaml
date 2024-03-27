@@ -18,6 +18,13 @@ spec:
     requests:
       cpu: 500m
       memory: 512Mi
+  azure:
+    application:
+      enabled: true
+      allowAllUsers: true
+      claims:
+        extra:
+          - azp_name
   liveness:
     path: /internal/is_alive
     initialDelay: 10
