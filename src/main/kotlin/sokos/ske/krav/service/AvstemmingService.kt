@@ -105,7 +105,7 @@ class AvstemmingService(
         sb.append(
             """
             <!doctype html><head><meta charset="utf-8" />
-            <title>Åpne statuser</title>
+            <title>Filer som feilet</title>
             </head>
             <body><H1>Filer som har feilt i filvalidering</H1>
             <table width="100%" border="1" cellpadding="5"><tr>
