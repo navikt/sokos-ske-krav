@@ -98,5 +98,8 @@ fun Routing.skeApi(
             if (!id.isNullOrBlank()) avstemmingService.oppdaterAvstemtKravTilRapportert(id.toInt())
             call.respondRedirect("/krav/avstemming", permanent = true)
         }
+        get("avstemming/feilfiler") {
+            call.respondText(avstemmingService.visFeilFiler(), Html)
+        }
     }
 }

@@ -5,6 +5,7 @@ import java.time.LocalDate
 
 class AvstemmingService(
     private val databaseService: DatabaseService,
+    private val ftpService: FtpService = FtpService()
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -84,14 +85,13 @@ class AvstemmingService(
            </html>
         """.trimIndent()
 
-    private fun hentFeillinjeForKravid(kravid: Int):String {
+    private fun hentFeillinjeForKravid(kravid: Int): String {
         val feilmeldinger = databaseService.hentFeillinjeForKravid(kravid)
         if (feilmeldinger.isEmpty()) {
             return """
             <td colspan="7"/>
         """.trimIndent()
-        }
-        else {
+        } else {
             return """
                 <td colspan="7">"<b>Feilmelding: </b> ${feilmeldinger.first().melding}"</td>
             """.trimIndent()
@@ -99,4 +99,39 @@ class AvstemmingService(
 
     }
 
+    fun visFeilFiler(): String {
+        val sb: StringBuilder = StringBuilder()
+        val filer = ftpService.listAllFiles(Directories.FAILED.value)
+        sb.append(
+            """
+            <!doctype html><head><meta charset="utf-8" />
+            <title>Åpne statuser</title>
+            </head>
+            <body><H1>Filer som har feilt i filvalidering</H1>
+            <table width="100%" border="1" cellpadding="5"><tr>
+            <th align="left"    >Filnavn</th>
+            </tr> 
+        """.trimIndent()
+        )
+        filer.forEach {
+            if (!it.trim().equals(".") && !it.trim().equals("..")) {
+                sb.append(
+                    """
+                    <tr><td>$it</td</tr>
+            """.trimIndent()
+                )
+            }
+        }
+        sb.append(
+            """
+           </table>
+           </body>
+           </html>
+        """.trimIndent()
+        )
+        return sb.toString()
+    }
+
 }
+
+
