@@ -13,15 +13,15 @@ import kotlinx.serialization.json.Json
 
 
 object MockHttpClientUtils {
-  enum class EndepunktType(val url: String) {
-	MOTTAKSSTATUS("/mottaksstatus"),
-	OPPRETT("/innkrevingsoppdrag"),
-	ENDRE_RENTER("/renter"),
-	ENDRE_HOVEDSTOL("/hovedstol"),
-	AVSKRIVING("/avskriving"),
-	AVSTEMMING("/avstemming"),
-	ENDRE_REFERANSE("/oppdragsgiversreferanse"),
-  }
+    enum class EndepunktType(val url: String) {
+        MOTTAKSSTATUS("/mottaksstatus"),
+        OPPRETT("/innkrevingsoppdrag"),
+        ENDRE_RENTER("/renter"),
+        ENDRE_HOVEDSTOL("/hovedstol"),
+        AVSKRIVING("/avskriving"),
+        AVSTEMMING("/avstemming"),
+        ENDRE_REFERANSE("/oppdragsgiversreferanse"),
+    }
 
     data class MockRequestObj(
         val response: String,
@@ -152,6 +152,14 @@ class MockHttpClient {
             "/innkrevingsoppdrag/OB040000595755$baseUrl",
             "/innkrevingsoppdrag/1111-skeUUID$baseUrl",
             "/innkrevingsoppdrag/2222-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/3333-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/4444-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/5555-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/6666-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/7777-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/8888-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/9999-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/1010-skeUUID$baseUrl",
             "/innkrevingsoppdrag/$baseUrl",
             "/innkrevingsoppdrag$baseUrl",
             baseUrl,

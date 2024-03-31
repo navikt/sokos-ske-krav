@@ -182,8 +182,6 @@ internal class IntegrationTest : FunSpec({
         kravMedFeil.filter { it.status == Status.FANT_IKKE_SAKSREF_404.value }.size shouldBe 10
     }
 
-
-    //TODO: Fiks dette
     test("Hvis krav har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500 så skal kravet resendes") {
         val ds = startContainer(this.testCase.name.testName, listOf("KravSomSkalResendes.sql"))
 
@@ -200,21 +198,20 @@ internal class IntegrationTest : FunSpec({
         val endreRenterKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
         val endreHovedstolKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
         val endreReferanseKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_REFERANSE, HttpStatusCode.OK)
+        val mottaksstatusKall = MockRequestObj(Responses.mottaksStatusResponse(), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
 
-        val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall))
+        val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall, mottaksstatusKall))
 
         val skeService = setupSkeServiceMockWithMockEngine(ds, httpClient)
-    /*    val feilListe = skeService.resendKrav()
+        skeService.handleNewKrav()
 
-        ds.connection.getAllKrav().let { kravBefore ->
-            kravBefore.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 0
-            kravBefore.filter { it.status == Status.IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 0
-            kravBefore.filter { it.status == Status.ANNEN_SERVER_FEIL_500.value }.size shouldBe 0
-            kravBefore.filter { it.status == Status.UTILGJENGELIG_TJENESTE_503.value }.size shouldBe 0
-            kravBefore.filter { it.status == Status.INTERN_TJENERFEIL_500.value }.size shouldBe 0
+        ds.connection.getAllKrav().let { kravAfter ->
+            kravAfter.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 0
+            kravAfter.filter { it.status == Status.IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 0
+            kravAfter.filter { it.status == Status.ANNEN_SERVER_FEIL_500.value }.size shouldBe 0
+            kravAfter.filter { it.status == Status.UTILGJENGELIG_TJENESTE_503.value }.size shouldBe 0
+            kravAfter.filter { it.status == Status.INTERN_TJENERFEIL_500.value }.size shouldBe 0
         }
-
-        feilListe.size shouldBe 0*/
     }
 
 })
