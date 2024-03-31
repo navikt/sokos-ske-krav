@@ -1,8 +1,9 @@
-package sokos.ske.krav.service
+package sokos.ske.krav.service.unit
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
+import sokos.ske.krav.service.Directories
 import sokos.ske.krav.util.FakeFtpService
 
 internal class FtpServiceTest : FunSpec({

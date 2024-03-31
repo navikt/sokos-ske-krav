@@ -74,7 +74,7 @@ class SkeService(
 
 
         requestResults.addAll(
-            stoppKravService.sendAllStopKrav(kravLinjer.filter { it.kravtype == STOPP_KRAV })
+            stoppKravService.sendAllStoppKrav(kravLinjer.filter { it.kravtype == STOPP_KRAV })
         )
         requestResults.addAll(
             endreKravService.sendAllEndreKrav(kravLinjer.filter { it.kravtype == ENDRE_HOVEDSTOL || it.kravtype == ENDRE_RENTER })
@@ -106,7 +106,7 @@ class SkeService(
 
         val feilListe = mutableMapOf<String, RequestResult>()
 
-        val stoppKrav = stoppKravService.sendAllStopKrav(kravSomSkalResendes.filter { it.kravtype == STOPP_KRAV })
+        val stoppKrav = stoppKravService.sendAllStoppKrav(kravSomSkalResendes.filter { it.kravtype == STOPP_KRAV })
         feilListe.putAll(stoppKrav.flatMap { it.entries }.associate { it.key to it.value })
 
         val endreKrav =

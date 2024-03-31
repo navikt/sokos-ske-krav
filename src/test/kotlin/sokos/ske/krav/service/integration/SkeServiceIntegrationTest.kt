@@ -1,4 +1,4 @@
-package sokos.ske.krav
+package sokos.ske.krav.service.integration
 
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
@@ -43,7 +43,7 @@ import sokos.ske.krav.util.setupSkeServiceMock
 import sokos.ske.krav.util.setupSkeServiceMockWithMockEngine
 import sokos.ske.krav.util.startContainer
 
-internal class IntegrationTest : FunSpec({
+internal class SkeServiceIntegrationTest : FunSpec({
 
 
     test("Når SkeService leser inn en fil skal kravene lagres i database") {

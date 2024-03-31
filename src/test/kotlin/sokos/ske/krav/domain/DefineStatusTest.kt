@@ -1,4 +1,4 @@
-package sokos.ske.krav.service
+package sokos.ske.krav.domain
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe

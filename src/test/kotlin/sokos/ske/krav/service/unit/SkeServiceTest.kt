@@ -1,4 +1,4 @@
-package sokos.ske.krav.service
+package sokos.ske.krav.service.unit
 
 import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
@@ -8,6 +8,14 @@ import io.mockk.justRun
 import io.mockk.mockk
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
+import sokos.ske.krav.service.DatabaseService
+import sokos.ske.krav.service.ENDRE_HOVEDSTOL
+import sokos.ske.krav.service.ENDRE_RENTER
+import sokos.ske.krav.service.EndreKravService
+import sokos.ske.krav.service.NYTT_KRAV
+import sokos.ske.krav.service.OpprettKravService
+import sokos.ske.krav.service.STOPP_KRAV
+import sokos.ske.krav.service.StoppKravService
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.mockHttpResponse
 import sokos.ske.krav.util.setupSkeServiceMock
@@ -21,7 +29,7 @@ internal class SkeServiceTest : FunSpec({
 
     test("sendKrav skal returnere RequestResults fra opprett/endre/stopp service") {
         val stoppServiceMock = mockk<StoppKravService> {
-            coEvery { sendAllStopKrav(any()) } returns listOf(mapOf(STOPP_KRAV to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "STOPP_KRAV", "")))
+            coEvery { sendAllStoppKrav(any()) } returns listOf(mapOf(STOPP_KRAV to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "STOPP_KRAV", "")))
         }
 
         val endreServiceMock = mockk<EndreKravService> {
@@ -49,7 +57,7 @@ internal class SkeServiceTest : FunSpec({
 
     test("resendKrav skal returnere et map av kravtype og RequestResults fra opprett/endre/stopp service der det har gått galt") {
         val stoppServiceMock = mockk<StoppKravService> {
-            coEvery { sendAllStopKrav(any()) } returns listOf(mapOf(STOPP_KRAV to RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "STOPP_KRAV", "")))
+            coEvery { sendAllStoppKrav(any()) } returns listOf(mapOf(STOPP_KRAV to RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "STOPP_KRAV", "")))
         }
 
         val endreServiceMock = mockk<EndreKravService> {

@@ -13,7 +13,7 @@ class StoppKravService(
     private val databaseService: DatabaseService
 ) {
 
-    suspend fun sendAllStopKrav(kravList: List<KravTable>): List<Map<String, RequestResult>> {
+    suspend fun sendAllStoppKrav(kravList: List<KravTable>): List<Map<String, RequestResult>> {
         val resultMap = kravList.map {
             mapOf(STOPP_KRAV to sendStoppKrav(it))
         }

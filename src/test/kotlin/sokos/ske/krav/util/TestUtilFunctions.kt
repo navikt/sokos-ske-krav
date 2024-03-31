@@ -55,7 +55,7 @@ private val mockSkeClient = mockk<SkeClient> {
 }
 
 private val stoppServiceMock = mockk<StoppKravService> {
-    coEvery { sendAllStopKrav(any()) } returns emptyList()
+    coEvery { sendAllStoppKrav(any()) } returns emptyList()
 }
 
 private val endreServiceMock = mockk<EndreKravService> {

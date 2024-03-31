@@ -1,4 +1,4 @@
-package sokos.ske.krav
+package sokos.ske.krav.domain
 
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
