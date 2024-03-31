@@ -66,7 +66,6 @@ class SkeService(
         file: FtpFil,
     ): List<RequestResult> {
 
-
         lagreOgOppdaterAlleNyeKrav(LineValidator.validateNewLines(file))
 
         val kravLinjer = databaseService.hentAlleKravSomIkkeErSendt()
@@ -126,16 +125,16 @@ class SkeService(
 
         kravLinjer.filter { !it.isNyttKrav() }.map {
             val skeKravident = databaseService.getSkeKravident(it.referanseNummerGammelSak)
-            var skeKravidenLagres = skeKravident
-            if (skeKravident.isBlank()) {
+            var skeKravidentSomSkalLagres = skeKravident
+            if (skeKravident.isBlank()) {    //legge til blankt tilfelle i initscript
                 val httpResponse = skeClient.getSkeKravident(it.referanseNummerGammelSak)
                 if (httpResponse.status.isSuccess()) {
-                    skeKravidenLagres = httpResponse.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
+                    skeKravidentSomSkalLagres = httpResponse.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
                 }
             }
-            if (skeKravidenLagres.isNotBlank()) databaseService.updateSkeKravidentifikator(
+            if (skeKravidentSomSkalLagres.isNotBlank()) databaseService.updateSkeKravidentifikator(
                 it.saksNummer,
-                skeKravidenLagres
+                skeKravidentSomSkalLagres
             )
         }
     }

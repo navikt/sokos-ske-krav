@@ -3,80 +3,146 @@ package sokos.ske.krav
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.http.*
+import io.ktor.client.call.body
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpStatusCode
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.justRun
 import io.mockk.mockk
+import io.mockk.spyk
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
+import sokos.ske.krav.database.Repository.getSkeKravIdent
+import sokos.ske.krav.database.Repository.insertAllNewKrav
+import sokos.ske.krav.database.Repository.setSkeKravIdentPaEndring
 import sokos.ske.krav.database.RepositoryExtensions.toFeilmelding
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.models.Status
+import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.FeilResponse
+import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
-import sokos.ske.krav.service.*
-import sokos.ske.krav.util.*
+import sokos.ske.krav.service.DatabaseService
+import sokos.ske.krav.service.Directories
+import sokos.ske.krav.service.ENDRE_HOVEDSTOL
+import sokos.ske.krav.service.ENDRE_RENTER
+import sokos.ske.krav.service.NYTT_KRAV
+import sokos.ske.krav.service.STOPP_KRAV
+import sokos.ske.krav.service.SkeService
+import sokos.ske.krav.service.StatusService
+import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.MockHttpClientUtils.EndepunktType
 import sokos.ske.krav.util.MockHttpClientUtils.MockRequestObj
 import sokos.ske.krav.util.MockHttpClientUtils.Responses
+import sokos.ske.krav.util.getAllKrav
+import sokos.ske.krav.util.setUpMockHttpClient
+import sokos.ske.krav.util.setupMocksWithMockEngine
+import sokos.ske.krav.util.setupSkeServiceMock
+import sokos.ske.krav.util.setupSkeServiceMockWithMockEngine
+import sokos.ske.krav.util.startContainer
 
 internal class IntegrationTest : FunSpec({
 
-    test("Når SkeService leser inn en fil skal kravene lagres i database"){}
-    test("Etter at kravene lagres i database skal endringer og avskrivinger oppdateres med kravidentifikatorSKE fra database"){}
 
-    test("Kravdata skal lagres i database etter å ha sendt nye krav til SKE") {
-        val nyttKravKall        = MockRequestObj(Responses.nyttKravResponse(), EndepunktType.OPPRETT, HttpStatusCode.OK)
-        val avskrivKravKall     = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.OK)
-        val endreRenterKall     = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
-        val endreHovedstolKall  = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
-        val endreReferanseKall  = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_REFERANSE, HttpStatusCode.OK)
-        val mottaksstatusKall   = MockRequestObj(Responses.mottaksStatusResponse(), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
-             val httpClient =
-            setUpMockHttpClient(
-                listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall, mottaksstatusKall)
-            )
+    test("Når SkeService leser inn en fil skal kravene lagres i database") {
+        val dataSource = startContainer(this.testCase.name.testName, emptyList())
+        val ftpService = FakeFtpService().setupMocks(Directories.INBOUND, listOf("10NyeKrav.txt"))
 
-        //hvordan få dette til å ikke gjøre noe!!!!! sendNewFilesToSke må være public??
-        val mocks: Pair<SkeService, HikariDataSource> =
-            setupMocks(listOf("FilMedBare10Linjer.txt"), this.testCase.name.testName, httpClient)
+        val dsMock = mockk<DatabaseService> {
+            every { hentAlleKravSomIkkeErSendt() } returns emptyList()
+            every { saveAllNewKrav(any<List<KravLinje>>()) } answers { dataSource.connection.use { it.insertAllNewKrav(arg(0)) } }
+            every { getSkeKravident(any<String>()) } answers { dataSource.connection.use { it.getSkeKravIdent(arg(0)) } }
+            every { updateSkeKravidentifikator(any<String>(), any<String>()) } answers { dataSource.connection.use { it.setSkeKravIdentPaEndring(arg(0), arg(1)) } }
+        }
 
+        val skeService = setupSkeServiceMock(databaseService = dsMock, ftpService = ftpService)
+        val skeMock = spyk(skeService, recordPrivateCalls = true)
 
-        mocks.first.handleNewKrav()
+        justRun { skeMock["resendKrav"]() }
 
-        mocks.second.connection.getAllKrav().size shouldBe 10
+        skeMock.handleNewKrav()
+
+        val kravEtter = dataSource.connection.getAllKrav()
+        kravEtter.size shouldBe 10
     }
 
-    test("Kravdata skal lagres med type som beskriver hva slags krav det er"){
-        val nyttKravKall        = MockRequestObj(Responses.nyttKravResponse(), EndepunktType.OPPRETT, HttpStatusCode.OK)
-        val avstemmKall         = MockRequestObj(Responses.nyttKravResponse(), EndepunktType.AVSTEMMING, HttpStatusCode.OK)
-        val avskrivKravKall     = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.OK)
-        val endreRenterKall     = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
-        val endreHovedstolKall  = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
-        val endreReferanseKall  = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_REFERANSE, HttpStatusCode.OK)
-        val mottaksstatusKall   = MockRequestObj(Responses.mottaksStatusResponse(), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
+    test("Etter at kravene lagres i database skal endringer og avskrivinger oppdateres med kravidentifikatorSKE fra database") {
+        val dataSource = startContainer(this.testCase.name.testName, listOf("10NyeKrav.sql"))
+        val ftpService = FakeFtpService().setupMocks(Directories.INBOUND, listOf("TestEndringKravident.txt"))
 
-        val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall, avstemmKall, mottaksstatusKall))
-        val mocks: Pair<SkeService, HikariDataSource> = setupMocks(listOf("AltOkFil.txt"), this.testCase.name.testName, httpClient)
+        val skeClient = mockk<SkeClient> {
+            coEvery { getSkeKravident("8888-navsaksnr") } returns mockk<HttpResponse>() {
+                coEvery { body<OpprettInnkrevingsOppdragResponse>().kravidentifikator } returns "8888-skeUUID"
+            }
 
-        mocks.first.handleNewKrav()
-        val kravdata = mocks.second.connection.getAllKrav()
+            coEvery { getSkeKravident("2222-navsaksnr") } returns mockk<HttpResponse>() {
+                coEvery { body<OpprettInnkrevingsOppdragResponse>().kravidentifikator } returns "2222-skeUUID"
+            }
+        }
 
-        kravdata.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
-        kravdata.filter { it.kravtype == ENDRE_RENTER }.size shouldBe 2
-        kravdata.filter { it.kravtype == ENDRE_HOVEDSTOL }.size shouldBe 2
-        kravdata.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
+
+        val dsMock = mockk<DatabaseService> {
+            every { hentAlleKravSomIkkeErSendt() } returns emptyList()
+            every { saveAllNewKrav(any<List<KravLinje>>()) } answers { dataSource.connection.use { it.insertAllNewKrav(arg(0)) } }
+            every { getSkeKravident(any<String>()) } answers { dataSource.connection.use { it.getSkeKravIdent(arg(0)) } }
+            every { updateSkeKravidentifikator(any<String>(), any<String>()) } answers { dataSource.connection.use { it.setSkeKravIdentPaEndring(arg(0), arg(1)) } }
+        }
+        val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dsMock, ftpService = ftpService)
+        val skeMock = spyk(skeService, recordPrivateCalls = true)
+
+        justRun { skeMock["resendKrav"]() }
+
+        skeMock.handleNewKrav()
+
+        val kravEtter = dataSource.connection.getAllKrav()
+        kravEtter.find { it.saksnummerNAV == "2223-navsaksnr" }?.saksnummerSKE shouldBe "2222-skeUUID"
+        kravEtter.find { it.saksnummerNAV == "8889-navsaksnr" }?.saksnummerSKE shouldBe "8888-skeUUID"
+
     }
+
+    test("Kravdata skal lagres med type som beskriver hva slags krav det er") {
+        val dataSource = startContainer(this.testCase.name.testName, emptyList())
+        val ftpService = FakeFtpService().setupMocks(Directories.INBOUND, listOf("AltOkFil.txt"))
+
+        val dsMock = mockk<DatabaseService> {
+            every { hentAlleKravSomIkkeErSendt() } returns emptyList()
+            every { saveAllNewKrav(any<List<KravLinje>>()) } answers { dataSource.connection.use { it.insertAllNewKrav(arg(0)) } }
+            every { getSkeKravident(any<String>()) } answers { dataSource.connection.use { it.getSkeKravIdent(arg(0)) } }
+            every { updateSkeKravidentifikator(any<String>(), any<String>()) } answers { dataSource.connection.use { it.setSkeKravIdentPaEndring(arg(0), arg(1)) } }
+        }
+
+        val skeClient = mockk<SkeClient>() {
+            coEvery { getSkeKravident(any()) } returns mockk<HttpResponse> {
+                coEvery { body<OpprettInnkrevingsOppdragResponse>().kravidentifikator } returns "foo"
+                coEvery { status } returns HttpStatusCode.OK
+            }
+        }
+
+        val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dsMock, ftpService = ftpService)
+        val skeMock = spyk(skeService, recordPrivateCalls = true)
+
+        justRun { skeMock["resendKrav"]() }
+
+        skeMock.handleNewKrav()
+        val lagredeKrav = dataSource.connection.getAllKrav()
+        lagredeKrav.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
+        lagredeKrav.filter { it.kravtype == ENDRE_RENTER }.size shouldBe 2
+        lagredeKrav.filter { it.kravtype == ENDRE_HOVEDSTOL }.size shouldBe 2
+        lagredeKrav.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
+    }
+
 
     test("Mottaksstatus skal oppdateres i database") {
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
-        val mottaksstatusKall = MockRequestObj(Responses.mottaksStatusResponse(status =  Status.RESKONTROFOERT.value), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
+        val mottaksstatusKall = MockRequestObj(Responses.mottaksStatusResponse(status = Status.RESKONTROFOERT.value), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
         val httpClient = setUpMockHttpClient(listOf(mottaksstatusKall))
 
         val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
         val dataSource = startContainer(this.testCase.name.testName, listOf("NyeKrav.sql"))
         val databaseService = DatabaseService(PostgresDataSource(dataSource))
         val statusService = StatusService(skeClient, databaseService)
-
 
         statusService.hentOgOppdaterMottaksStatus()
         val kravdata = dataSource.connection.getAllKrav()
@@ -85,19 +151,19 @@ internal class IntegrationTest : FunSpec({
     }
 
     test("Når et krav feiler skal det lagres i feilmeldingtabell") {
-        val nyttKravKall        = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.OPPRETT, HttpStatusCode.NotFound)
-        val avskrivKravKall     = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.NotFound)
-        val endreRenterKall     = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.NotFound)
-        val endreHovedstolKall  = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.NotFound)
-        val endreReferanseKall  = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_REFERANSE, HttpStatusCode.NotFound)
-        val mottaksstatusKall   = MockRequestObj(Responses.mottaksStatusResponse(), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
+        val nyttKravKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.OPPRETT, HttpStatusCode.NotFound)
+        val avskrivKravKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.NotFound)
+        val endreRenterKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.NotFound)
+        val endreHovedstolKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.NotFound)
+        val endreReferanseKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_REFERANSE, HttpStatusCode.NotFound)
+        val mottaksstatusKall = MockRequestObj(Responses.mottaksStatusResponse(), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
 
         val httpClient =
             setUpMockHttpClient(
                 listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall, mottaksstatusKall),
             )
         val mocks: Pair<SkeService, HikariDataSource> =
-            setupMocks(listOf("FilMedBare10Linjer.txt"), this.testCase.name.testName, httpClient)
+            setupMocksWithMockEngine(listOf("10NyeKrav.txt"), this.testCase.name.testName, httpClient)
 
 
         mocks.first.handleNewKrav()
@@ -127,15 +193,15 @@ internal class IntegrationTest : FunSpec({
             kravBefore.filter { it.status == Status.INTERN_TJENERFEIL_500.value }.size shouldBe 1
         }
 
-        val nyttKravKall        = MockRequestObj(Responses.nyttKravResponse(), EndepunktType.OPPRETT, HttpStatusCode.OK)
-        val avskrivKravKall     = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.OK)
-        val endreRenterKall     = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
-        val endreHovedstolKall  = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
-        val endreReferanseKall  = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_REFERANSE, HttpStatusCode.OK)
+        val nyttKravKall = MockRequestObj(Responses.nyttKravResponse(), EndepunktType.OPPRETT, HttpStatusCode.OK)
+        val avskrivKravKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.OK)
+        val endreRenterKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
+        val endreHovedstolKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
+        val endreReferanseKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_REFERANSE, HttpStatusCode.OK)
 
         val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall))
 
-        val skeService = setupSkeServiceMock(ds, httpClient)
+        val skeService = setupSkeServiceMockWithMockEngine(ds, httpClient)
         val feilListe = skeService.resendKrav()
 
         ds.connection.getAllKrav().let { kravBefore ->

@@ -124,7 +124,7 @@ class MockHttpClient {
             explicitNulls = false
         }
 
-    fun getEmptyClient() {}
+
     fun getClient(
         kall: List<MockHttpClientUtils.MockRequestObj>,
     ) = HttpClient(MockEngine) {

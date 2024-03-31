@@ -146,7 +146,7 @@ internal class RepositoryTest : FunSpec({
     }
 
     test("insertAllNewKrav skal inserte alle kravlinjene") {
-        val liste = readFileFromFS("FilMedBare10Linjer.txt".asResource())
+        val liste = readFileFromFS("10NyeKrav.txt".asResource())
         val kravlinjer = FileParser(liste).parseKravLinjer()
         startContainer(this.testCase.name.testName, listOf("KravSomSkalResendes.sql")).use { ds ->
             val originalSize = ds.connection.getAllKrav().size
