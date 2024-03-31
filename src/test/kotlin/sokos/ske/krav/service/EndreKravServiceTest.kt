@@ -12,7 +12,7 @@ import sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
 import sokos.ske.krav.domain.ske.requests.NyHovedStolRequest
 import sokos.ske.krav.util.RequestResult
-import sokos.ske.krav.util.mockFeilResponsCall
+import sokos.ske.krav.util.mockHttpResponse
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -30,8 +30,8 @@ internal class EndreKravServiceTest : FunSpec({
     test("hvis responsen er 404 og 422 skal status settes til en 404 status") {
 
         val skeClientMock = mockk<SkeClient>() {
-            coEvery { endreRenter(any<EndreRenteBeloepRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockFeilResponsCall(422)
-            coEvery { endreHovedstol(any<NyHovedStolRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockFeilResponsCall(404)
+            coEvery { endreRenter(any<EndreRenteBeloepRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockHttpResponse(422)
+            coEvery { endreHovedstol(any<NyHovedStolRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockHttpResponse(404)
         }
 
         val result = EndreKravService(skeClientMock, databaseServiceMock).sendAllEndreKrav(kravListe).flatMap { it.entries.toList() }.map { it.value }
@@ -43,8 +43,8 @@ internal class EndreKravServiceTest : FunSpec({
     test("hvis responsen er 409 og 422 skal begge få status Status.VALIDERINGSFEIL_422") {
 
         val skeClientMock = mockk<SkeClient>() {
-            coEvery { endreRenter(any<EndreRenteBeloepRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockFeilResponsCall(422)
-            coEvery { endreHovedstol(any<NyHovedStolRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockFeilResponsCall(409)
+            coEvery { endreRenter(any<EndreRenteBeloepRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockHttpResponse(422)
+            coEvery { endreHovedstol(any<NyHovedStolRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockHttpResponse(409)
         }
 
         val result = EndreKravService(skeClientMock, databaseServiceMock).sendAllEndreKrav(kravListe).flatMap { it.entries.toList() }.map { it.value }
@@ -55,8 +55,8 @@ internal class EndreKravServiceTest : FunSpec({
     test("hvis responsen er 409 og 404 skal status settes til en 404 status") {
 
         val skeClientMock = mockk<SkeClient>() {
-            coEvery { endreRenter(any<EndreRenteBeloepRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockFeilResponsCall(404)
-            coEvery { endreHovedstol(any<NyHovedStolRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockFeilResponsCall(409)
+            coEvery { endreRenter(any<EndreRenteBeloepRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockHttpResponse(404)
+            coEvery { endreHovedstol(any<NyHovedStolRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockHttpResponse(409)
         }
 
         val result = EndreKravService(skeClientMock, databaseServiceMock).sendAllEndreKrav(kravListe).flatMap { it.entries.toList() }.map { it.value }
@@ -67,8 +67,8 @@ internal class EndreKravServiceTest : FunSpec({
     test("hvis responsen er 409 og 200 skal status settes til en 409 status") {
 
         val skeClientMock = mockk<SkeClient>() {
-            coEvery { endreRenter(any<EndreRenteBeloepRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockFeilResponsCall(200)
-            coEvery { endreHovedstol(any<NyHovedStolRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockFeilResponsCall(409)
+            coEvery { endreRenter(any<EndreRenteBeloepRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockHttpResponse(200)
+            coEvery { endreHovedstol(any<NyHovedStolRequest>(), any<String>(), any<Kravidentifikatortype>(), any<String>()) } returns mockHttpResponse(409)
         }
 
         val result = EndreKravService(skeClientMock, databaseServiceMock).sendAllEndreKrav(kravListe).flatMap { it.entries.toList() }.map { it.value }

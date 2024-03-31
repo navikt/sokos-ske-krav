@@ -8,15 +8,12 @@ import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.util.RequestResult
-import sokos.ske.krav.util.defineStatus
 import sokos.ske.krav.util.makeOpprettKravRequest
 
 class OpprettKravService(
     private val skeClient: SkeClient,
     private val databaseService: DatabaseService
 ) {
-
-    val byttut = true
 
     suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<Map<String, RequestResult>> {
 
@@ -43,7 +40,6 @@ class OpprettKravService(
             krav = krav,
             kravIdentifikator = kravIdentifikator,
             corrId = krav.corr_id,
-            status = defineStatus(response)
         )
 
         return requestResult

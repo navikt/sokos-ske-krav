@@ -43,12 +43,12 @@ class SkeService(
         resendKrav()
     }
 
-    private suspend fun sendNewFilesToSKE(): List<RequestResult> {
+    private suspend fun sendNewFilesToSKE(){
         val files = ftpService.getValidatedFiles()
         logger.info("*******************${LocalDateTime.now()}*******************")
         logger.info("Starter innsending av ${files.size} filer")
 
-        val results = files.map { file ->
+       files.map { file ->
             logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
             val result = sendKrav(file)
             AlarmService.handleFeil(result, file)
@@ -59,10 +59,9 @@ class SkeService(
         files.forEach { file -> ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
 
         logger.info("*******************KJØRING FERDIG*******************")
-        return results.flatten()
     }
 
-    private suspend fun sendKrav(
+   private suspend fun sendKrav(
         file: FtpFil,
     ): List<RequestResult> {
 
@@ -102,7 +101,7 @@ class SkeService(
         return allResponses
     }
 
-    suspend fun resendKrav(): Map<String, RequestResult> {
+  private suspend fun resendKrav(): Map<String, RequestResult> {
         val kravSomSkalResendes = databaseService.hentKravSomSkalResendes()
 
         val feilListe = mutableMapOf<String, RequestResult>()

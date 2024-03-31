@@ -8,11 +8,13 @@ import io.ktor.client.statement.HttpResponse
 import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.every
+import io.mockk.justRun
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.models.KravTable
+import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.DatabaseService
@@ -68,7 +70,13 @@ private val statusServiceMock = mockk<StatusService> {
     coJustRun { hentOgOppdaterMottaksStatus() }
 }
 
-private val ftpServiceMock = FakeFtpService().setupMocks(Directories.INBOUND, emptyList())
+private val ftpServiceMock = mockk<FtpService>()
+private val dataSourceMock = mockk<DatabaseService>{
+    every { hentAlleKravSomIkkeErSendt() } returns emptyList()
+    every { hentKravSomSkalResendes() } returns emptyList()
+    justRun { saveAllNewKrav(any<List<KravLinje>>()) }
+    every { getSkeKravident(any<String>()) } returns "foo"
+}
 
 fun setupSkeServiceMock(
     skeClient: SkeClient = mockSkeClient,
@@ -76,7 +84,7 @@ fun setupSkeServiceMock(
     endreService: EndreKravService = endreServiceMock,
     opprettService: OpprettKravService = opprettServiceMock,
     statusService: StatusService = statusServiceMock,
-    databaseService: DatabaseService,
+    databaseService: DatabaseService = dataSourceMock,
     ftpService: FtpService = ftpServiceMock
 ) = SkeService(
     skeClient, stoppService, endreService, opprettService, statusService, databaseService, ftpService
@@ -129,7 +137,7 @@ fun setupMocksWithMockEngine(
 }
 
 
-fun mockFeilResponsCall(code: Int, feilResponseType: String = "") = mockk<HttpResponse>() {
+fun mockHttpResponse(code: Int, feilResponseType: String = "") = mockk<HttpResponse>() {
     every { status.value } returns code
     coEvery { body<FeilResponse>().type } returns feilResponseType
 }

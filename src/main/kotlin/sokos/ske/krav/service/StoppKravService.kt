@@ -6,7 +6,6 @@ import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.createKravidentifikatorPair
-import sokos.ske.krav.util.defineStatus
 import sokos.ske.krav.util.makeStoppKravRequest
 
 class StoppKravService(
@@ -35,7 +34,6 @@ class StoppKravService(
             krav = krav,
             kravIdentifikator = kravidentifikatorPair.first,
             corrId = krav.corr_id,
-            status = defineStatus(response)
         )
 
         return requestResult

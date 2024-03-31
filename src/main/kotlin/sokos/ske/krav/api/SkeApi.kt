@@ -22,20 +22,6 @@ fun Routing.skeApi(
 
     route("krav") {
 
-        get("resend") {
-            logger.info("API kall for henting av resending")
-            try {
-                skeService.resendKrav()
-                call.respond(HttpStatusCode.OK, "kjørt ok")
-            } catch (e: Exception) {
-                call.respond(
-                    HttpStatusCode.InternalServerError,
-                    "Sorry feilet: ${e.message}, \n" +
-                            "Stacktrace= ${e.stackTraceToString()}"
-                )
-            }
-        }
-
         get("test") {
             logger.info("API kaller test")
             try {

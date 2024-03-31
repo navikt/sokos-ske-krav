@@ -16,8 +16,6 @@ class EndreKravService(
 
     suspend fun sendAllEndreKrav(kravList: List<KravTable>): List<Map<String, RequestResult>> {
 
-        kravList.groupBy { it.saksnummerSKE + it.referanseNummerGammelSak + it.belop.toString() }
-
         val endringsMap = kravList.groupBy { it.saksnummerSKE + it.saksnummerNAV }
 
         val resultList = endringsMap.map { entry ->
@@ -33,6 +31,8 @@ class EndreKravService(
         databaseService.updateSentKravToDatabase(resultList)
         return resultList
     }
+
+
 
     private fun getConformedResponses(inMapList: List<Map<String, RequestResult>>): List<Map<String, RequestResult>> {
 
@@ -78,7 +78,6 @@ class EndreKravService(
                 krav = krav,
                 kravIdentifikator = "",
                 corrId = krav.corr_id,
-                status = defineStatus(endreRenterResponse)
             )
 
             mapOf(ENDRE_RENTER to requestResultEndreRente)
@@ -94,7 +93,6 @@ class EndreKravService(
                 krav = krav,
                 kravIdentifikator = "",
                 corrId = krav.corr_id,
-                status = defineStatus(endreHovedstolResponse)
             )
 
             mapOf(ENDRE_HOVEDSTOL to requestResultEndreHovedstol)
