@@ -21,7 +21,7 @@ spec:
   azure:
     application:
       enabled: true
-      allowAllUsers: true
+      allowAllUsers: false
     sidecar:
       enabled: true
   liveness:
