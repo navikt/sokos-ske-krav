@@ -10,7 +10,11 @@ spec:
     - name: sokos-ske-krav-oppfolging-alerts
       rules:
         - alert: Feil i validering av fil
-          expr: sum(increase(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[5m])) by (fileName, message) > 0
+          expr: 'sum by(fileName, message) (
+                  (sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"} unless sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"} offset 5m)
+                  or
+                  (sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"} - sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"} offset 5m)
+                ) > 0'
           for: 2m
           annotations:
             action: "Sjekk error loggene i sokos-ske-krav"
@@ -21,7 +25,11 @@ spec:
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i validering av linje
-          expr: sum(increase(sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}[5m])) by (fileName, message) > 0
+          expr: 'sum by(fileName, message) (
+                  (sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"} unless sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"} offset 5m)
+                  or
+                  (sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"} - sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"} offset 5m)
+                ) > 0'
           for: 2m
           annotations:
             action: "Sjekk error loggene i sokos-ske-krav"
@@ -32,7 +40,11 @@ spec:
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i innsending av krav
-          expr: sum(increase(sokos_ske_krav_innsending_av_krav_feil_total{app="sokos-ske-krav"}[5m])) by (fileName, message)  > 0
+          expr: 'sum by(fileName, message) (
+                  (sokos_ske_krav_innsending_av_krav_feil_total{app="sokos-ske-krav"} unless sokos_ske_krav_innsending_av_krav_feil_total{app="sokos-ske-krav"} offset 5m)
+                  or
+                  (sokos_ske_krav_innsending_av_krav_feil_total{app="sokos-ske-krav"} - sokos_ske_krav_innsending_av_krav_feil_total{app="sokos-ske-krav"} offset 5m)
+                ) > 0'
           for: 2m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
@@ -61,7 +73,7 @@ spec:
           channel: '#team-mob-manuell-oppfolging'
           iconEmoji: ':alert:'
           username: 'Alert dev-fss'
-          sendResolved: true
+          sendResolved: false
           httpConfig:
             proxyURL: http://webproxy.nais:8088
           title: |-
@@ -86,4 +98,4 @@ spec:
     groupInterval: 10s
     groupWait: 5s
     receiver: sokos-ske-krav-oppfolging-receiver
-    repeatInterval: 2m
+    repeatInterval: 5d
