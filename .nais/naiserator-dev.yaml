@@ -22,8 +22,6 @@ spec:
     application:
       enabled: true
       allowAllUsers: false
-    sidecar:
-      enabled: true
   liveness:
     path: /internal/is_alive
     initialDelay: 10
