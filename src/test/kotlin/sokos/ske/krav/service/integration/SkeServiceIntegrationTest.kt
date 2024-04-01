@@ -140,14 +140,14 @@ internal class SkeServiceIntegrationTest : FunSpec({
         val httpClient = setUpMockHttpClient(listOf(mottaksstatusKall))
 
         val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-        val dataSource = startContainer(this.testCase.name.testName, listOf("NyeKrav.sql"))
+        val dataSource = startContainer(this.testCase.name.testName, listOf("10NyeKrav.sql"))
         val databaseService = DatabaseService(PostgresDataSource(dataSource))
         val statusService = StatusService(skeClient, databaseService)
 
         statusService.hentOgOppdaterMottaksStatus()
         val kravdata = dataSource.connection.getAllKrav()
 
-        kravdata.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 2
+        kravdata.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 10
     }
 
     test("Når et krav feiler skal det lagres i feilmeldingtabell") {
