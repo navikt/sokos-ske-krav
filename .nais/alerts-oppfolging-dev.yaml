@@ -73,7 +73,7 @@ spec:
           channel: '#team-mob-manuell-oppfolging'
           iconEmoji: ':alert:'
           username: 'Alert dev-fss'
-          sendResolved: false
+          sendResolved: true
           httpConfig:
             proxyURL: http://webproxy.nais:8088
           title: |-
@@ -98,4 +98,4 @@ spec:
     groupInterval: 10s
     groupWait: 5s
     receiver: sokos-ske-krav-oppfolging-receiver
-    repeatInterval: 5d
+    repeatInterval: 2m
