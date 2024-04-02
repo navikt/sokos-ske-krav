@@ -5,12 +5,14 @@ class AvstemmingService(
     private val ftpService: FtpService = FtpService()
 ) {
 
+    private val STATUS_FEIL = "STATUS_FEIL"
+    private val STATUS_RESEND = "STATUS_RESEND"
 
     fun hentAvstemmingsRapport(): String {
 
-        val header = hentheader()
-        val body = hentBody()
-        val footer = hentFooter()
+        val header = htmlHeader("Åpne statuser")
+        val body = statusTableHeader() + statusTable(STATUS_FEIL)
+        val footer = statusFooter(STATUS_FEIL)
         return "$header $body $footer"
 
     }
@@ -23,70 +25,16 @@ class AvstemmingService(
         return header + linjer
     }
 
+    fun hentKravSomSkalresendes() : String {
+        val header = htmlHeader("Krav som skal resendes")
+        val body = statusTableHeader() + statusTable(STATUS_RESEND)
+        val footer = statusFooter(STATUS_RESEND)
+        return "$header $body $footer"
+    }
+
     fun oppdaterAvstemtKravTilRapportert(kravId: Int): String {
         databaseService.updateRapportertValideringsfeil(kravId)
         return hentAvstemmingsRapport()
-    }
-
-    private fun hentBody() = databaseService.hentKravSomSkalAvstemmes().map {
-        """
-            <tr><td rowspan="2">${it.kravId}</td>
-            <td>${it.saksnummerNAV}</td>
-            <td>${it.fagsystemId}</td>
-            <td>${it.tidspunktOpprettet}</td>
-            <td>${it.kravkode}</td>
-            <td>${it.kodeHjemmel}</td>
-            <td>${it.status}</td>
-            <td>${it.tidspunktSisteStatus}</td>
-            <td rowspan="2"><form action ="avstemming/update/${it.kravId}" method="get">
-                <input type="submit" value="Fjern fra liste">
-                </form>
-            </td></tr>
-            <tr> ${hentFeillinjeForKravid(it.kravId.toInt())} </tr><tr/>
-        """.trimIndent()
-    }.joinToString("")
-
-    private fun hentheader() =
-        """
-            <!doctype html><head><meta charset="utf-8" />
-            <title>Åpne statuser</title>
-            </head>
-            <body><H1>Åpne statuser</H1>
-            <table width="100%" border="1" cellpadding="5"><tr>
-            <th>Krav-Id</th>
-            <th>Vedtaks-Id</th>
-            <th>Fagsystem-Id</th>
-            <th>Registrert</th>
-            <th>Kravkode</th>
-            <th>Hjemmelskode</th>
-            <th>Status</th>
-            <th>StatusDato</th>
-            <th></th>
-            </tr> 
-        """.trimIndent()
-
-    private fun hentFooter() =
-        """
-           </table>
-           <form action ="avstemming/fil" method="get">
-           <p><input type="submit" value="Last ned .csv fil"></p>
-           </form>
-           </body>
-           </html>
-        """.trimIndent()
-
-    private fun hentFeillinjeForKravid(kravid: Int): String {
-        val feilmeldinger = databaseService.hentFeillinjeForKravid(kravid)
-        if (feilmeldinger.isEmpty()) {
-            return """
-            <td colspan="7"/>
-        """.trimIndent()
-        } else {
-            return """
-                <td colspan="7">"<b>Feilmelding: </b> ${feilmeldinger.first().melding}"</td>
-            """.trimIndent()
-        }
-
     }
 
     fun visFeilFiler(): String {
@@ -122,6 +70,88 @@ class AvstemmingService(
         return sb.toString()
     }
 
+    private fun statusTable(type: String):String {
+        val kravListe =
+            if (STATUS_RESEND.equals(type)) databaseService.hentKravSomSkalResendes()
+            else databaseService.hentKravSomSkalAvstemmes()
+        if (kravListe.isEmpty()) return "<tr><td colspan=9><H2> Ingen krav i DB som har statustypen. </H2></td></tr>"
+        else return "<tr><td colspan=9><H2> Ingen krav i DB som har statustypen. </H2></td></tr>"
+        val result = kravListe.map {
+            val submit = """<form action ="avstemming/update/${it.kravId}" method="get">
+            <input type="submit" value="Fjern fra liste">
+            </form>"""
+
+            """
+            <tr><td rowspan="2">${it.kravId}</td>
+            <td>${it.saksnummerNAV}</td>
+            <td>${it.fagsystemId}</td>
+            <td>${it.tidspunktOpprettet}</td>
+            <td>${it.kravkode}</td>
+            <td>${it.kodeHjemmel}</td>
+            <td>${it.status}</td>
+            <td>${it.tidspunktSisteStatus}</td>
+            <td rowspan="2">
+            ${if (STATUS_FEIL.equals(type)) submit else "" }
+            </td></tr>
+            <tr> ${hentFeillinjeForKravid(it.kravId.toInt())} </tr><tr/>
+        """.trimIndent()
+        }.joinToString("")
+        return result
+    }
+
+    private fun htmlHeader(title: String) =
+        """
+            <!doctype html><head><meta charset="utf-8" />
+            <title>$title</title>
+            </head>
+            <body><H1>$title</H1>
+        """.trimIndent()
+
+    private fun statusTableHeader() =
+        """
+            <table border="1">
+            <tr>
+            <th>Krav-Id</th>
+            <th>Vedtaks-Id</th>
+            <th>Fagsystem-Id</th>
+            <th>Registrert</th>
+            <th>Kravkode</th>
+            <th>Hjemmelskode</th>
+            <th>Status</th>
+            <th>StatusDato</th>
+            <th></th>
+            </tr> 
+        """.trimIndent()
+
+    private fun statusFooter(type: String = STATUS_FEIL): String {
+        val submit ="""
+                       <form action ="status/fil" method="get">
+           <p><input type="submit" value="Last ned .csv fil"></p>
+           </form>
+
+        """.trimIndent()
+        val result = """
+           </table>
+           ${if (STATUS_FEIL.equals(type)) submit else ""}
+           </body>
+           </html>
+        """.trimIndent()
+        return result
+    }
+
+    private fun hentFeillinjeForKravid(kravid: Int): String {
+        val feilmeldinger = databaseService.hentFeillinjeForKravid(kravid)
+        if (feilmeldinger.isEmpty()) {
+            return """
+            <td colspan="7"/>
+        """.trimIndent()
+        } else {
+            return """
+                <td colspan="7">"<b>Feilmelding: </b> ${feilmeldinger.first().melding}"</td>
+            """.trimIndent()
+        }
+
+    }
 }
 
 
