@@ -32,7 +32,7 @@ drop table if exists feilmelding;
 create table "feilmelding"
 (
     id                    bigserial primary key,
-    kravId                bigserial,
+    kravId                bigint,
     corr_id               text,
     saksnummer            text,
     kravidentifikator_ske text,
@@ -43,11 +43,3 @@ create table "feilmelding"
     dato                  timestamp
 );
 
-drop table if exists kobling;
-create table "kobling"
-(
-    id           bigserial primary key,
-    saksref_fil  varchar(40),
-    saksref_uuid varchar(50),
-    dato         timestamp
-);

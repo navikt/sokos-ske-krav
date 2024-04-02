@@ -73,18 +73,18 @@ fun Routing.skeApi(
             val databaseService = DatabaseService(PostgresDataSource())
             call.respond(databaseService.getAllFeilmeldinger().toString())
         }
-        get("status") {
+        get("avstemming") {
             call.respondText(avstemmingService.hentAvstemmingsRapport(), Html)
         }
-        get("status/fil") {
+        get("avstemming/fil") {
             call.respondText(avstemmingService.hentAvstemminsRapportSomFil(), CSV)
         }
-        get("status/update/{kravid}") {
+        get("avstemming/update/{kravid}") {
             val id = call.parameters["kravid"]
             if (!id.isNullOrBlank()) avstemmingService.oppdaterAvstemtKravTilRapportert(id.toInt())
             call.respondRedirect("/krav/avstemming", permanent = true)
         }
-        get("status/feilfiler") {
+        get("avstemming/feilfiler") {
             call.respondText(avstemmingService.visFeilFiler(), Html)
         }
         get("resending") {

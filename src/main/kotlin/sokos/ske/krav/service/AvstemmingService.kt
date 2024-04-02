@@ -75,7 +75,7 @@ class AvstemmingService(
             if (STATUS_RESEND.equals(type)) databaseService.hentKravSomSkalResendes()
             else databaseService.hentKravSomSkalAvstemmes()
         if (kravListe.isEmpty()) return "<tr><td colspan=9><H2> Ingen krav i DB som har statustypen. </H2></td></tr>"
-        else return "<tr><td colspan=9><H2> Ingen krav i DB som har statustypen. </H2></td></tr>"
+        //else return "<tr><td colspan=9><H2> Ingen krav i DB som har statustypen. </H2></td></tr>"
         val result = kravListe.map {
             val submit = """<form action ="avstemming/update/${it.kravId}" method="get">
             <input type="submit" value="Fjern fra liste">
