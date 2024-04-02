@@ -11,8 +11,8 @@ import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
 import sokos.ske.krav.service.DatabaseService
-import sokos.ske.krav.service.ENDRE_HOVEDSTOL
-import sokos.ske.krav.service.ENDRE_RENTER
+import sokos.ske.krav.service.ENDRING_HOVEDSTOL
+import sokos.ske.krav.service.ENDRING_RENTE
 import sokos.ske.krav.service.EndreKravService
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.mockHttpResponse
@@ -33,9 +33,9 @@ internal class EndreKravServiceTest : FunSpec({
 
         every { endreKravMock["sendEndreKrav"](any<String>(), any<Kravidentifikatortype>(), any<KravTable>()) } returnsMany listOf(
             mapOf(
-                ENDRE_HOVEDSTOL to RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "", "")
+                ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "", "")
             ), mapOf(
-                ENDRE_RENTER to RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", "", ""),
+                ENDRING_RENTE to RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", "", ""),
             )
         )
 
@@ -53,9 +53,9 @@ internal class EndreKravServiceTest : FunSpec({
 
         every { endreKravMock["sendEndreKrav"](any<String>(), any<Kravidentifikatortype>(), any<KravTable>()) } returnsMany listOf(
             mapOf(
-                ENDRE_HOVEDSTOL to RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", "")
+                ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", "")
             ), mapOf(
-                ENDRE_RENTER to RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", "", ""),
+                ENDRING_RENTE to RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", "", ""),
             )
         )
 
@@ -68,9 +68,9 @@ internal class EndreKravServiceTest : FunSpec({
 
         every { endreKravMock["sendEndreKrav"](any<String>(), any<Kravidentifikatortype>(), any<KravTable>()) } returnsMany listOf(
             mapOf(
-                ENDRE_HOVEDSTOL to RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", "")
+                ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", "")
             ), mapOf(
-                ENDRE_RENTER to RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "", ""),
+                ENDRING_RENTE to RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "", ""),
             )
         )
 
@@ -82,9 +82,9 @@ internal class EndreKravServiceTest : FunSpec({
     test("hvis responsen er 409 og 200 skal status settes til en 409 status") {
         every { endreKravMock["sendEndreKrav"](any<String>(), any<Kravidentifikatortype>(), any<KravTable>()) } returnsMany listOf(
             mapOf(
-                ENDRE_HOVEDSTOL to RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", "")
+                ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", "")
             ), mapOf(
-                ENDRE_RENTER to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "", ""),
+                ENDRING_RENTE to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "", ""),
             )
         )
 

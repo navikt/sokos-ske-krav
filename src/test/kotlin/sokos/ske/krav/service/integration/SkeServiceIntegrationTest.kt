@@ -26,8 +26,8 @@ import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.Directories
-import sokos.ske.krav.service.ENDRE_HOVEDSTOL
-import sokos.ske.krav.service.ENDRE_RENTER
+import sokos.ske.krav.service.ENDRING_HOVEDSTOL
+import sokos.ske.krav.service.ENDRING_RENTE
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
 import sokos.ske.krav.service.SkeService
@@ -128,8 +128,8 @@ internal class SkeServiceIntegrationTest : FunSpec({
         skeMock.handleNewKrav()
         val lagredeKrav = dataSource.connection.getAllKrav()
         lagredeKrav.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
-        lagredeKrav.filter { it.kravtype == ENDRE_RENTER }.size shouldBe 2
-        lagredeKrav.filter { it.kravtype == ENDRE_HOVEDSTOL }.size shouldBe 2
+        lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.size shouldBe 2
+        lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.size shouldBe 2
         lagredeKrav.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
     }
 

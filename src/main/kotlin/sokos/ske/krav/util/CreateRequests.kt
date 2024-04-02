@@ -63,6 +63,6 @@ fun makeNyOppdragsgiversReferanseRequest(krav: KravTable) = NyOppdragsgiversRefe
 fun makeStoppKravRequest(nyref: String, kravidentifikatortype: Kravidentifikatortype) =
     AvskrivingRequest(kravidentifikatortype.value, kravidentifikator = nyref)
 
-fun KravLinje.isNyttKrav() = (!this.isEndring() && !this.isStopp())
+fun KravLinje.isOpprettKrav() = (!this.isEndring() && !this.isStopp())
 fun KravLinje.isEndring() = (referanseNummerGammelSak.isNotEmpty() && !isStopp())
 fun KravLinje.isStopp() = (belop.toDouble().roundToLong() == 0L)

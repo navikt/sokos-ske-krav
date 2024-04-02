@@ -6,7 +6,7 @@ import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.nav.KravtypeMappingFromNAVToSKE
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.FtpFil
-import sokos.ske.krav.util.isNyttKrav
+import sokos.ske.krav.util.isOpprettKrav
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -39,7 +39,7 @@ object LineValidator {
         val saksnrValid = validateSaksnr(krav.saksNummer)
         val vedtakDatoValid = validateVedtaksdato(krav.vedtakDato)
         val kravtypeValid = validateKravtype(KravtypeMappingFromNAVToSKE.getKravtype(krav))
-        val refnrGammelSakValid = if (!krav.isNyttKrav()) validateSaksnr(krav.referanseNummerGammelSak) else true
+        val refnrGammelSakValid = if (!krav.isOpprettKrav()) validateSaksnr(krav.referanseNummerGammelSak) else true
         val fomTomValid =
             validatePeriode(krav.periodeFOM, krav.periodeTOM)
         val utbetalingsDatoValid = validateUtbetalingsDato(krav.utbetalDato, krav.vedtakDato)

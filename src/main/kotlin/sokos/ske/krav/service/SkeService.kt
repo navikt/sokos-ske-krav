@@ -10,14 +10,14 @@ import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.RequestResult
-import sokos.ske.krav.util.isNyttKrav
+import sokos.ske.krav.util.isOpprettKrav
 import sokos.ske.krav.validation.LineValidator
 import java.time.LocalDateTime
 
 
 const val NYTT_KRAV = "NYTT_KRAV"
-const val ENDRE_RENTER = "ENDRE_RENTER"
-const val ENDRE_HOVEDSTOL = "ENDRE_HOVEDSTOL"
+const val ENDRING_RENTE = "ENDRING_RENTE"
+const val ENDRING_HOVEDSTOL = "ENDRING_HOVEDSTOL"
 const val STOPP_KRAV = "STOPP_KRAV"
 
 
@@ -43,12 +43,12 @@ class SkeService(
         resendKrav()
     }
 
-    private suspend fun sendNewFilesToSKE(){
+    private suspend fun sendNewFilesToSKE() {
         val files = ftpService.getValidatedFiles()
         logger.info("*******************${LocalDateTime.now()}*******************")
         logger.info("Starter innsending av ${files.size} filer")
 
-       files.map { file ->
+        files.map { file ->
             logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
             val result = sendKrav(file)
             AlarmService.handleFeil(result, file)
@@ -61,11 +61,13 @@ class SkeService(
         logger.info("*******************KJØRING FERDIG*******************")
     }
 
-   private suspend fun sendKrav(
+    private suspend fun sendKrav(
         file: FtpFil,
     ): List<RequestResult> {
 
-        lagreOgOppdaterAlleNyeKrav(LineValidator.validateNewLines(file))
+        val validatedLines = LineValidator.validateNewLines(file)
+        databaseService.saveAllNewKrav(validatedLines)
+        oppdaterAlleEndringerEllerStopp(validatedLines.filter { !it.isOpprettKrav() })
 
         val kravLinjer = databaseService.hentAlleKravSomIkkeErSendt()
 
@@ -77,7 +79,7 @@ class SkeService(
             stoppKravService.sendAllStoppKrav(kravLinjer.filter { it.kravtype == STOPP_KRAV })
         )
         requestResults.addAll(
-            endreKravService.sendAllEndreKrav(kravLinjer.filter { it.kravtype == ENDRE_HOVEDSTOL || it.kravtype == ENDRE_RENTER })
+            endreKravService.sendAllEndreKrav(kravLinjer.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE })
         )
         requestResults.addAll(
             opprettKravService.sendAllOpprettKrav(kravLinjer.filter { it.kravtype == NYTT_KRAV })
@@ -101,7 +103,7 @@ class SkeService(
         return allResponses
     }
 
-  private suspend fun resendKrav(): Map<String, RequestResult> {
+    private suspend fun resendKrav(): Map<String, RequestResult> {
         val kravSomSkalResendes = databaseService.hentKravSomSkalResendes()
 
         val feilListe = mutableMapOf<String, RequestResult>()
@@ -110,7 +112,7 @@ class SkeService(
         feilListe.putAll(stoppKrav.flatMap { it.entries }.associate { it.key to it.value })
 
         val endreKrav =
-            endreKravService.sendAllEndreKrav(kravSomSkalResendes.filter { it.kravtype == ENDRE_RENTER || it.kravtype == ENDRE_HOVEDSTOL })
+            endreKravService.sendAllEndreKrav(kravSomSkalResendes.filter { it.kravtype == ENDRING_RENTE || it.kravtype == ENDRING_HOVEDSTOL })
         feilListe.putAll(endreKrav.flatMap { it.entries }.associate { it.key to it.value })
 
         val opprettKrav = opprettKravService.sendAllOpprettKrav(kravSomSkalResendes.filter { it.kravtype == NYTT_KRAV })
@@ -119,13 +121,11 @@ class SkeService(
         return feilListe.filter { !it.value.status.isOkStatus() }
     }
 
-    private suspend fun lagreOgOppdaterAlleNyeKrav(kravLinjer: List<KravLinje>) {
-        databaseService.saveAllNewKrav(kravLinjer)
-
-        kravLinjer.filter { !it.isNyttKrav() }.map {
+    private suspend fun oppdaterAlleEndringerEllerStopp(kravLinjer: List<KravLinje>) =
+        kravLinjer.forEach {
             val skeKravident = databaseService.getSkeKravident(it.referanseNummerGammelSak)
             var skeKravidentSomSkalLagres = skeKravident
-            if (skeKravident.isBlank()) {    //legge til blankt tilfelle i initscript
+            if (skeKravident.isBlank()) {
                 val httpResponse = skeClient.getSkeKravident(it.referanseNummerGammelSak)
                 if (httpResponse.status.isSuccess()) {
                     skeKravidentSomSkalLagres = httpResponse.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
@@ -136,5 +136,5 @@ class SkeService(
                 skeKravidentSomSkalLagres
             )
         }
-    }
+
 }

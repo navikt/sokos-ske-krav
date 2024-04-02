@@ -67,7 +67,7 @@ class EndreKravService(
         krav: KravTable,
     ): Map<String, RequestResult> {
 
-        return if (krav.kravtype == ENDRE_RENTER) {
+        return if (krav.kravtype == ENDRING_RENTE) {
             val endreRenterRequest = makeEndreRenteRequest(krav)
             val endreRenterResponse =
                 skeClient.endreRenter(endreRenterRequest, kravIdentifikator, kravIdentifikatorType, krav.corr_id)
@@ -80,7 +80,7 @@ class EndreKravService(
                 corrId = krav.corr_id,
             )
 
-            mapOf(ENDRE_RENTER to requestResultEndreRente)
+            mapOf(ENDRING_RENTE to requestResultEndreRente)
 
         } else {
             val endreHovedstolRequest = makeEndreHovedstolRequest(krav)
@@ -95,7 +95,7 @@ class EndreKravService(
                 corrId = krav.corr_id,
             )
 
-            mapOf(ENDRE_HOVEDSTOL to requestResultEndreHovedstol)
+            mapOf(ENDRING_HOVEDSTOL to requestResultEndreHovedstol)
 
         }
     }

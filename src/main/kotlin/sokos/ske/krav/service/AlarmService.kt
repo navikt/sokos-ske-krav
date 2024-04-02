@@ -10,7 +10,7 @@ object AlarmService {
     fun handleFeil(liste: List<RequestResult>, file: FtpFil) {
         val unsuccessful = liste.filter { !it.response.status.isSuccess() }
 
-        val endringer = unsuccessful.filter { it.krav.kravtype== ENDRE_RENTER || it.krav.kravtype == ENDRE_HOVEDSTOL }
+        val endringer = unsuccessful.filter { it.krav.kravtype== ENDRING_RENTE || it.krav.kravtype == ENDRING_HOVEDSTOL }
         val stopp = unsuccessful.filter { it.krav.kravtype == STOPP_KRAV }
         val nye = unsuccessful.filter { it.krav.kravtype == NYTT_KRAV }
 

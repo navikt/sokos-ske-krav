@@ -8,8 +8,8 @@ import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.service.ENDRE_HOVEDSTOL
-import sokos.ske.krav.service.ENDRE_RENTER
+import sokos.ske.krav.service.ENDRING_HOVEDSTOL
+import sokos.ske.krav.service.ENDRING_RENTE
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
 import sokos.ske.krav.util.isEndring
@@ -243,7 +243,7 @@ object Repository {
         kravListe.forEach() {
             val type: String = when {
                 it.isStopp() -> STOPP_KRAV
-                it.isEndring() -> ENDRE_HOVEDSTOL
+                it.isEndring() -> ENDRING_HOVEDSTOL
                 else -> NYTT_KRAV
             }
             prepStmt.setString(1, it.saksNummer)
@@ -267,7 +267,7 @@ object Repository {
             prepStmt.setString(19, type)
             prepStmt.setString(20, UUID.randomUUID().toString())
             prepStmt.addBatch()
-            if (type == ENDRE_HOVEDSTOL) {
+            if (type == ENDRING_HOVEDSTOL) {
                 prepStmt.setString(1, it.saksNummer)
                 prepStmt.setDouble(2, it.belop.toDouble())
                 prepStmt.setDate(3, Date.valueOf(it.vedtakDato))
@@ -286,7 +286,7 @@ object Repository {
                 prepStmt.setDate(16, Date.valueOf(it.utbetalDato))
                 prepStmt.setString(17, it.fagsystemId)
                 prepStmt.setString(18, it.status ?: Status.KRAV_INNLEST_FRA_FIL.value)
-                prepStmt.setString(19, ENDRE_RENTER)
+                prepStmt.setString(19, ENDRING_RENTE)
                 prepStmt.setString(20, UUID.randomUUID().toString())
                 prepStmt.addBatch()
             }

@@ -9,8 +9,8 @@ import io.mockk.mockk
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.service.DatabaseService
-import sokos.ske.krav.service.ENDRE_HOVEDSTOL
-import sokos.ske.krav.service.ENDRE_RENTER
+import sokos.ske.krav.service.ENDRING_HOVEDSTOL
+import sokos.ske.krav.service.ENDRING_RENTE
 import sokos.ske.krav.service.EndreKravService
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.OpprettKravService
@@ -35,8 +35,8 @@ internal class SkeServiceTest : FunSpec({
         val endreServiceMock = mockk<EndreKravService> {
             coEvery { sendAllEndreKrav(any()) } returns listOf(
                 mapOf(
-                    ENDRE_RENTER to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_RENTER", ""),
-                    ENDRE_HOVEDSTOL to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_HOVEDSTOL", "")
+                    ENDRING_RENTE to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_RENTER", ""),
+                    ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_HOVEDSTOL", "")
                 )
             )
         }
@@ -63,8 +63,8 @@ internal class SkeServiceTest : FunSpec({
         val endreServiceMock = mockk<EndreKravService> {
             coEvery { sendAllEndreKrav(any()) } returns listOf(
                 mapOf(
-                    ENDRE_RENTER to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_RENTER", ""),
-                    ENDRE_HOVEDSTOL to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_HOVEDSTOL", "")
+                    ENDRING_RENTE to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_RENTER", ""),
+                    ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_HOVEDSTOL", "")
                 )
             )
         }
