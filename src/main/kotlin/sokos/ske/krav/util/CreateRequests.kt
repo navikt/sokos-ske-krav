@@ -56,7 +56,6 @@ fun makeEndreRenteRequest(krav: KravTable) = EndreRenteBeloepRequest(
 fun makeEndreHovedstolRequest(krav: KravTable): NyHovedStolRequest =
     NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.roundToLong()))
 
-fun makeNyOppdragsgiversReferanseRequest(krav: KravTable) = NyOppdragsgiversReferanseRequest(krav.saksnummerNAV)
 fun makeStoppKravRequest(kravidentifikator: String, kravidentifikatorType: KravidentifikatorType) =
     AvskrivingRequest(kravidentifikatorType.value, kravidentifikator)
 

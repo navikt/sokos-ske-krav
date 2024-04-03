@@ -5,7 +5,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.database.models.Status.Companion.isOkStatus
+import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.metrics.Metrics
@@ -34,13 +34,15 @@ class SkeService(
 
     suspend fun handleNewKrav() {
         statusService.hentOgOppdaterMottaksStatus()
-        resendKrav()
+        sendKrav(databaseService.getAllKravForResending())
+
 
         sendNewFilesToSKE()
 
         delay(10_000)
         statusService.hentOgOppdaterMottaksStatus()
-        resendKrav()
+        sendKrav(databaseService.getAllKravForResending())
+
     }
 
     private suspend fun sendNewFilesToSKE() {
@@ -50,7 +52,12 @@ class SkeService(
 
         files.map { file ->
             logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
-            val result = sendKrav(file)
+
+            val validatedLines = LineValidator.validateNewLines(file)
+            databaseService.saveAllNewKrav(validatedLines)
+            updateAllEndringerAndStopp(validatedLines.filter { !it.isOpprettKrav() })
+
+            val result = sendKrav(databaseService.getAllUnsentKrav())
             AlarmService.handleFeil(result, file)
 
             result
@@ -61,28 +68,19 @@ class SkeService(
         logger.info("*******************KJØRING FERDIG*******************")
     }
 
-    private suspend fun sendKrav(
-        file: FtpFil,
-    ): List<RequestResult> {
+    private suspend fun sendKrav(kravTableList: List<KravTable>): List<RequestResult> {
 
-        val validatedLines = LineValidator.validateNewLines(file)
-        databaseService.saveAllNewKrav(validatedLines)
-        updateAllEndringerAndStopp(validatedLines.filter { !it.isOpprettKrav() })
-
-        val kravLinjer = databaseService.getAllUnsentKrav()
-
-        val requestResults = mutableListOf<RequestResult>()
         val allResponses = mutableListOf<RequestResult>()
 
 
         allResponses.addAll(
-            stoppKravService.sendAllStoppKrav(kravLinjer.filter { it.kravtype == STOPP_KRAV })
+            stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV })
         )
         allResponses.addAll(
-            endreKravService.sendAllEndreKrav(kravLinjer.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE })
+            endreKravService.sendAllEndreKrav(kravTableList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE })
         )
         allResponses.addAll(
-            opprettKravService.sendAllOpprettKrav(kravLinjer.filter { it.kravtype == NYTT_KRAV })
+            opprettKravService.sendAllOpprettKrav(kravTableList.filter { it.kravtype == NYTT_KRAV })
         )
 
         Metrics.numberOfKravRead.inc()
@@ -99,25 +97,6 @@ class SkeService(
 
         return allResponses
     }
-
-    private suspend fun resendKrav(): List<RequestResult> {
-        val kravSomSkalResendes = databaseService.getAllKravForResending()
-
-        val feilListe = mutableListOf<RequestResult>()
-
-        val stoppKrav = stoppKravService.sendAllStoppKrav(kravSomSkalResendes.filter { it.kravtype == STOPP_KRAV })
-        feilListe.addAll(stoppKrav)
-
-        val endreKrav =
-            endreKravService.sendAllEndreKrav(kravSomSkalResendes.filter { it.kravtype == ENDRING_RENTE || it.kravtype == ENDRING_HOVEDSTOL })
-        feilListe.addAll(endreKrav)
-
-        val opprettKrav = opprettKravService.sendAllOpprettKrav(kravSomSkalResendes.filter { it.kravtype == NYTT_KRAV })
-        feilListe.addAll(opprettKrav)
-
-        return feilListe.filter { !it.status.isOkStatus() }
-    }
-
     private suspend fun updateAllEndringerAndStopp(kravLinjer: List<KravLinje>) =
         kravLinjer.forEach {
             val skeKravidentifikator = databaseService.getSkeKravidentifikator(it.referanseNummerGammelSak)

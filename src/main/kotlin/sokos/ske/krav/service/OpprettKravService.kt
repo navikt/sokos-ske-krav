@@ -17,7 +17,6 @@ class OpprettKravService(
 
     suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<RequestResult> {
 
-        println("Kravliste: ${kravList.size}")
         val responseList = kravList.map {
             sendOpprettKrav(it)
         }
@@ -27,7 +26,7 @@ class OpprettKravService(
     }
 
     private suspend fun sendOpprettKrav(krav: KravTable): RequestResult {
-        println("SendOpprett ${krav.saksnummerNAV}")
+
         val opprettKravRequest = makeOpprettKravRequest(krav)
         val response = skeClient.opprettKrav(opprettKravRequest, krav.corr_id)
 
@@ -43,7 +42,6 @@ class OpprettKravService(
             kravidentifikator = kravIdentifikator,
         )
 
-        println("requestResult $requestResult")
         return requestResult
     }
 
