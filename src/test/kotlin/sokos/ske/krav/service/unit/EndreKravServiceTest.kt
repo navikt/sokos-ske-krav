@@ -31,15 +31,18 @@ internal class EndreKravServiceTest : FunSpec({
 
     test("hvis responsen er 404 og 422 skal status settes til en 404 status") {
 
-        every { endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<KravTable>()) } returnsMany listOf(
-            mapOf(
-                ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "", "")
-            ), mapOf(
-                ENDRING_RENTE to RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", "", ""),
+        every {
+            endreKravMock["sendEndreKrav"](
+                any<String>(),
+                any<KravidentifikatorType>(),
+                any<KravTable>()
             )
+        } returnsMany listOf(
+            RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", ""),
+            RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", ""),
         )
 
-        val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock)).flatMap { it.entries.toList() }.map { it.value }
+        val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
 
         result.filter { it.status == Status.ANNEN_IKKE_FUNNET_404 || it.status == Status.FANT_IKKE_SAKSREF_404 }.size shouldBe 2
     }
@@ -51,44 +54,53 @@ internal class EndreKravServiceTest : FunSpec({
 
     test("hvis responsen er 409 og 422 skal begge få status Status.VALIDERINGSFEIL_422") {
 
-        every { endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<KravTable>()) } returnsMany listOf(
-            mapOf(
-                ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", "")
-            ), mapOf(
-                ENDRING_RENTE to RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", "", ""),
+        every {
+            endreKravMock["sendEndreKrav"](
+                any<String>(),
+                any<KravidentifikatorType>(),
+                any<KravTable>()
             )
+        } returnsMany listOf(
+            RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", ""),
+            RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", ""),
         )
 
-        val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock)).flatMap { it.entries.toList() }.map { it.value }
+        val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
 
         result.filter { it.status == Status.VALIDERINGSFEIL_422 }.size shouldBe 2
     }
 
     test("hvis responsen er 409 og 404 skal status settes til en 404 status") {
 
-        every { endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<KravTable>()) } returnsMany listOf(
-            mapOf(
-                ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", "")
-            ), mapOf(
-                ENDRING_RENTE to RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "", ""),
+        every {
+            endreKravMock["sendEndreKrav"](
+                any<String>(),
+                any<KravidentifikatorType>(),
+                any<KravTable>()
             )
+        } returnsMany listOf(
+            RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", ""),
+            RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", ""),
         )
 
-        val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock)).flatMap { it.entries.toList() }.map { it.value }
+        val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
 
         result.filter { it.status == Status.ANNEN_IKKE_FUNNET_404 || it.status == Status.FANT_IKKE_SAKSREF_404 }.size shouldBe 2
     }
 
     test("hvis responsen er 409 og 200 skal status settes til en 409 status") {
-        every { endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<KravTable>()) } returnsMany listOf(
-            mapOf(
-                ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", "")
-            ), mapOf(
-                ENDRING_RENTE to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "", ""),
+        every {
+            endreKravMock["sendEndreKrav"](
+                any<String>(),
+                any<KravidentifikatorType>(),
+                any<KravTable>()
             )
+        } returnsMany listOf(
+            RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", ""),
+            RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", ""),
         )
 
-        val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock)).flatMap { it.entries.toList() }.map { it.value }
+        val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
 
         result.filter { it.status == Status.ANNEN_KONFLIKT_409 || it.status == Status.KRAV_ER_AVSKREVET_409 }.size shouldBe 2
     }

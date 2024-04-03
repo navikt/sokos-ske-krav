@@ -18,7 +18,7 @@ data class RequestResult(
     val response: HttpResponse,
     val krav: KravTable,
     val request: String,
-    val kravIdentifikator: String,
+    val kravidentifikator: String,
     val status: Status = defineStatus(response)
 ){
     private companion object {

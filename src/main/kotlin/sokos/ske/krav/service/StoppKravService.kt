@@ -13,12 +13,12 @@ class StoppKravService(
     private val databaseService: DatabaseService
 ) {
 
-    suspend fun sendAllStoppKrav(kravList: List<KravTable>): List<Map<String, RequestResult>> {
-        val resultMap = kravList.map {
-            mapOf(STOPP_KRAV to sendStoppKrav(it))
+    suspend fun sendAllStoppKrav(kravList: List<KravTable>): List<RequestResult> {
+        val resultList = kravList.map {
+            sendStoppKrav(it)
         }
-        databaseService.updateSentKrav(resultMap)
-        return resultMap
+        databaseService.updateSentKrav(resultList)
+        return resultList
     }
 
     private suspend fun sendStoppKrav(
@@ -32,7 +32,7 @@ class StoppKravService(
             response = response,
             request = Json.encodeToString(request),
             krav = krav,
-            kravIdentifikator = kravidentifikatorPair.first,
+            kravidentifikator = kravidentifikatorPair.first,
         )
 
         return requestResult

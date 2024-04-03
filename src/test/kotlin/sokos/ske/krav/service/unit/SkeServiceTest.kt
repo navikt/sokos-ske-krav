@@ -29,23 +29,40 @@ internal class SkeServiceTest : FunSpec({
 
     test("sendKrav skal returnere RequestResults fra opprett/endre/stopp service") {
         val stoppServiceMock = mockk<StoppKravService> {
-            coEvery { sendAllStoppKrav(any()) } returns listOf(mapOf(STOPP_KRAV to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "STOPP_KRAV", "")))
-        }
-
-        val endreServiceMock = mockk<EndreKravService> {
-            coEvery { sendAllEndreKrav(any()) } returns listOf(
-                mapOf(
-                    ENDRING_RENTE to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_RENTER", ""),
-                    ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_HOVEDSTOL", "")
+            coEvery { sendAllStoppKrav(any()) } returns listOf(
+                RequestResult(
+                    mockHttpResponse(200),
+                    mockk<KravTable>(),
+                    "",
+                    "STOPP_KRAV"
                 )
             )
         }
 
-        val opprettServiceMock = mockk<OpprettKravService> {
-            coEvery { sendAllOpprettKrav(any()) } returns listOf(mapOf(NYTT_KRAV to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "NYTT_KRAV", "")))
+        val endreServiceMock = mockk<EndreKravService> {
+            coEvery { sendAllEndreKrav(any()) } returns listOf(
+                RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_RENTER"),
+                RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_HOVEDSTOL")
+            )
+
         }
 
-        val skeService = setupSkeServiceMock(stoppService = stoppServiceMock, endreService = endreServiceMock, opprettService = opprettServiceMock)
+        val opprettServiceMock = mockk<OpprettKravService> {
+            coEvery { sendAllOpprettKrav(any()) } returns (listOf(
+                RequestResult(
+                    mockHttpResponse(200),
+                    mockk<KravTable>(),
+                    "",
+                    "NYTT_KRAV"
+                )
+            ))
+        }
+
+        val skeService = setupSkeServiceMock(
+            stoppService = stoppServiceMock,
+            endreService = endreServiceMock,
+            opprettService = opprettServiceMock
+        )
 
         /*     val result = skeService.sendKrav(FtpFil("foo", emptyList(), emptyList()))
              result.size shouldBe 4
@@ -57,20 +74,33 @@ internal class SkeServiceTest : FunSpec({
 
     test("resendKrav skal returnere et map av kravtype og RequestResults fra opprett/endre/stopp service der det har gått galt") {
         val stoppServiceMock = mockk<StoppKravService> {
-            coEvery { sendAllStoppKrav(any()) } returns listOf(mapOf(STOPP_KRAV to RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "STOPP_KRAV", "")))
-        }
-
-        val endreServiceMock = mockk<EndreKravService> {
-            coEvery { sendAllEndreKrav(any()) } returns listOf(
-                mapOf(
-                    ENDRING_RENTE to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_RENTER", ""),
-                    ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_HOVEDSTOL", "")
+            coEvery { sendAllStoppKrav(any()) } returns listOf(
+                RequestResult(
+                    mockHttpResponse(404),
+                    mockk<KravTable>(),
+                    "",
+                    "STOPP_KRAV"
                 )
             )
         }
 
+        val endreServiceMock = mockk<EndreKravService> {
+            coEvery { sendAllEndreKrav(any()) } returns listOf(
+                RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_RENTER"),
+                RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_HOVEDSTOL")
+            )
+
+        }
+
         val opprettServiceMock = mockk<OpprettKravService> {
-            coEvery { sendAllOpprettKrav(any()) } returns listOf(mapOf(NYTT_KRAV to RequestResult(mockHttpResponse(500), mockk<KravTable>(), "", "NYTT_KRAV", "")))
+            coEvery { sendAllOpprettKrav(any()) } returns listOf(
+                RequestResult(
+                    mockHttpResponse(500),
+                    mockk<KravTable>(),
+                    "",
+                    "NYTT_KRAV"
+                )
+            )
         }
 
         val dataSourceMock = mockk<DatabaseService> {
@@ -80,7 +110,11 @@ internal class SkeServiceTest : FunSpec({
         }
 
 
-        val skeService = setupSkeServiceMock(stoppService = stoppServiceMock, endreService = endreServiceMock, opprettService = opprettServiceMock)
+        val skeService = setupSkeServiceMock(
+            stoppService = stoppServiceMock,
+            endreService = endreServiceMock,
+            opprettService = opprettServiceMock
+        )
 
         /*  val resultMap = skeService.resendKrav()
 

@@ -28,14 +28,14 @@ class StoppKravServiceTest : FunSpec({
 
 
         every { stoppKravMock["sendStoppKrav"](any<KravTable>()) } returnsMany listOf(
-            RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "123", ""),
-            RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "456", ""),
+            RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "123"),
+            RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "456"),
         )
-        val result = stoppKravMock.sendAllStoppKrav(listOf(kravTableMock, kravTableMock)).flatMap { it.values }
+        val result = stoppKravMock.sendAllStoppKrav(listOf(kravTableMock, kravTableMock))
 
         result.size shouldBe 2
-        result.filter { it.kravIdentifikator == "123" }.size shouldBe 1
-        result.filter { it.kravIdentifikator == "456" }.size shouldBe 1
+        result.filter { it.kravidentifikator == "123" }.size shouldBe 1
+        result.filter { it.kravidentifikator == "456" }.size shouldBe 1
     }
 
 })

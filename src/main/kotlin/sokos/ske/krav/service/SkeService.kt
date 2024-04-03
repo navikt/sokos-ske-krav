@@ -71,23 +71,21 @@ class SkeService(
 
         val kravLinjer = databaseService.getAllUnsentKrav()
 
-        val requestResults = mutableListOf<Map<String, RequestResult>>()
+        val requestResults = mutableListOf<RequestResult>()
         val allResponses = mutableListOf<RequestResult>()
 
 
-        requestResults.addAll(
+        allResponses.addAll(
             stoppKravService.sendAllStoppKrav(kravLinjer.filter { it.kravtype == STOPP_KRAV })
         )
-        requestResults.addAll(
+        allResponses.addAll(
             endreKravService.sendAllEndreKrav(kravLinjer.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE })
         )
-        requestResults.addAll(
+        allResponses.addAll(
             opprettKravService.sendAllOpprettKrav(kravLinjer.filter { it.kravtype == NYTT_KRAV })
         )
 
         Metrics.numberOfKravRead.inc()
-
-        allResponses.addAll(requestResults.flatMap { it.values })
 
         allResponses.filter { !it.response.status.isSuccess() }
             .forEach() {
@@ -95,29 +93,29 @@ class SkeService(
                     it.request,
                     it.response,
                     it.krav,
-                    it.kravIdentifikator,
+                    it.kravidentifikator,
                 )
             }
 
         return allResponses
     }
 
-    private suspend fun resendKrav(): Map<String, RequestResult> {
+    private suspend fun resendKrav(): List<RequestResult> {
         val kravSomSkalResendes = databaseService.getAllKravForResending()
 
-        val feilListe = mutableMapOf<String, RequestResult>()
+        val feilListe = mutableListOf<RequestResult>()
 
         val stoppKrav = stoppKravService.sendAllStoppKrav(kravSomSkalResendes.filter { it.kravtype == STOPP_KRAV })
-        feilListe.putAll(stoppKrav.flatMap { it.entries }.associate { it.key to it.value })
+        feilListe.addAll(stoppKrav)
 
         val endreKrav =
             endreKravService.sendAllEndreKrav(kravSomSkalResendes.filter { it.kravtype == ENDRING_RENTE || it.kravtype == ENDRING_HOVEDSTOL })
-        feilListe.putAll(endreKrav.flatMap { it.entries }.associate { it.key to it.value })
+        feilListe.addAll(endreKrav)
 
         val opprettKrav = opprettKravService.sendAllOpprettKrav(kravSomSkalResendes.filter { it.kravtype == NYTT_KRAV })
-        feilListe.putAll(opprettKrav.flatMap { it.entries }.associate { it.key to it.value })
+        feilListe.addAll(opprettKrav)
 
-        return feilListe.filter { !it.value.status.isOkStatus() }
+        return feilListe.filter { !it.status.isOkStatus() }
     }
 
     private suspend fun updateAllEndringerAndStopp(kravLinjer: List<KravLinje>) =

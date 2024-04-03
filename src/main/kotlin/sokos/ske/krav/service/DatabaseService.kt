@@ -83,26 +83,21 @@ class DatabaseService(
     }
 
     fun updateSentKrav(
-        responses: List<Map<String, RequestResult>>,
+        responses: List<RequestResult>,
     ) {
         responses.forEach {
-            it.entries.forEach { entry ->
+            Metrics.numberOfKravSent.inc()
+            Metrics.typeKravSent.labels(it.krav.kravkode).inc()
 
-                Metrics.numberOfKravSent.inc()
-                Metrics.typeKravSent.labels(entry.value.krav.kravkode).inc()
-
-                if (entry.value.krav.kravtype == NYTT_KRAV) updateSentKrav(
-                    entry.value.kravIdentifikator,
-                    entry.value.krav.corr_id,
-                    entry.value.status.value
-                )
-                else updateSentKrav(
-                    entry.value.krav.corr_id,
-                    entry.value.status.value
-                )
-
-            }
-
+            if (it.krav.kravtype == NYTT_KRAV) updateSentKrav(
+                it.kravidentifikator,
+                it.krav.corr_id,
+                it.status.value
+            )
+            else updateSentKrav(
+                it.krav.corr_id,
+                it.status.value
+            )
         }
     }
 

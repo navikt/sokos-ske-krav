@@ -200,13 +200,13 @@ internal class RepositoryTest : FunSpec({
         startContainer(this.testCase.name.testName, listOf("Feilmeldinger.sql")).use { ds ->
             ds.connection.use { con ->
                 con.getAllErrorMessages().size shouldBe 1
-                con.insertErrorMessage(feilmelding, "nyCorrID")
+                con.insertErrorMessage(feilmelding)
 
                 val feilmeldinger = con.getAllErrorMessages()
                 feilmeldinger.size shouldBe 2
                 feilmeldinger.filter { it.kravId == 1L }.size shouldBe 2
                 feilmeldinger.filter {it.corrId == "CORR456"}.size shouldBe 1
-                feilmeldinger.filter {it.corrId == "nyCorrID"}.size shouldBe 1
+                feilmeldinger.filter {it.corrId == "CORR856"}.size shouldBe 1
             }
         }
     }

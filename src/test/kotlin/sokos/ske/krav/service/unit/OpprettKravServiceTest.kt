@@ -14,7 +14,7 @@ import sokos.ske.krav.service.OpprettKravService
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.mockHttpResponse
 
-class OpprettKravServiceTest: FunSpec({
+class OpprettKravServiceTest : FunSpec({
 
     test("sendAllOpprettKrav skal returnere liste av innsendte nye krav") {
         val databaseServiceMock = mockk<DatabaseService>() {
@@ -24,20 +24,19 @@ class OpprettKravServiceTest: FunSpec({
             every { saksnummerSKE } returns "foo"
             every { saksnummerNAV } returns "bar"
         }
-        val opprettKravMock = spyk(OpprettKravService(mockk<SkeClient>(), databaseServiceMock), recordPrivateCalls = true)
+        val opprettKravMock =
+            spyk(OpprettKravService(mockk<SkeClient>(), databaseServiceMock), recordPrivateCalls = true)
 
-        every { opprettKravMock["sendAllOpprettKrav"](any<List<KravTable>>()) } returns listOf(
-            mapOf(
-                NYTT_KRAV to RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "123", "")
-            ),
-            mapOf(
-                NYTT_KRAV to RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "456", "")
-            )
-        )
-        val result = opprettKravMock.sendAllOpprettKrav(listOf(kravTableMock, kravTableMock)).flatMap { it.values }
+        every { opprettKravMock["sendAllOpprettKrav"](any<List<KravTable>>()) } returns
+                listOf(
+                    RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "123"),
+                    RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "456")
+                )
+
+        val result = opprettKravMock.sendAllOpprettKrav(listOf(kravTableMock, kravTableMock))
 
         result.size shouldBe 2
-        result.filter { it.kravIdentifikator == "123" }.size shouldBe 1
-        result.filter { it.kravIdentifikator == "456" }.size shouldBe 1
+        result.filter { it.kravidentifikator == "123" }.size shouldBe 1
+        result.filter { it.kravidentifikator == "456" }.size shouldBe 1
     }
 })

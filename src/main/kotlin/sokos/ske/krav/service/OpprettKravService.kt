@@ -15,10 +15,11 @@ class OpprettKravService(
     private val databaseService: DatabaseService
 ) {
 
-    suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<Map<String, RequestResult>> {
+    suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<RequestResult> {
 
+        println("Kravliste: ${kravList.size}")
         val responseList = kravList.map {
-            mapOf(NYTT_KRAV to sendOpprettKrav(it))
+            sendOpprettKrav(it)
         }
         databaseService.updateSentKrav(responseList)
 
@@ -26,6 +27,7 @@ class OpprettKravService(
     }
 
     private suspend fun sendOpprettKrav(krav: KravTable): RequestResult {
+        println("SendOpprett ${krav.saksnummerNAV}")
         val opprettKravRequest = makeOpprettKravRequest(krav)
         val response = skeClient.opprettKrav(opprettKravRequest, krav.corr_id)
 
@@ -38,9 +40,10 @@ class OpprettKravService(
             response = response,
             request = Json.encodeToString(opprettKravRequest),
             krav = krav,
-            kravIdentifikator = kravIdentifikator,
+            kravidentifikator = kravIdentifikator,
         )
 
+        println("requestResult $requestResult")
         return requestResult
     }
 

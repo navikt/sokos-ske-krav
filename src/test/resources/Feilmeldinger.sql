@@ -1,2 +1,2 @@
 insert into feilmelding (kravID, corr_id, saksnummer, kravidentifikator_ske, error, melding, navRequest, skeResponse, dato)
-values (1, 'CORR456', '1110-navsaksnummer', '1111-skeUUID', 422, 'feilmelding 422 1111', '{nav request}', '{ske response}', now() );
+values (1, 'CORR856', '1110-navsaksnummer', '1111-skeUUID', 422, 'feilmelding 422 1111', '{nav request}', '{ske response}', now() );
