@@ -120,10 +120,10 @@ class FileParser(val content: List<String>) {
 
         fun parseInt(line: String): Int = parseString(line).toInt()
 
-        fun parseDate(line: String) = parseString(line).runCatching {
+        fun parseDate(line: String): LocalDate = parseString(line).runCatching {
                 LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd"))
             }.getOrElse {
-                LocalDate.MAX
+                LocalDate.parse("21240101", DateTimeFormatter.ofPattern("yyyyMMdd"))
             }
 
     }
