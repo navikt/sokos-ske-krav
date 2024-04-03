@@ -9,7 +9,7 @@ import io.mockk.spyk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.Status
-import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
+import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import sokos.ske.krav.service.ENDRING_RENTE
@@ -20,7 +20,7 @@ import sokos.ske.krav.util.mockHttpResponse
 internal class EndreKravServiceTest : FunSpec({
 
     val databaseServiceMock = mockk<DatabaseService>() {
-        justRun { updateSentKravToDatabase(any()) }
+        justRun { updateSentKrav(any()) }
     }
 
     val endreKravMock = spyk(EndreKravService(mockk<SkeClient>(), databaseServiceMock), recordPrivateCalls = true)
@@ -31,7 +31,7 @@ internal class EndreKravServiceTest : FunSpec({
 
     test("hvis responsen er 404 og 422 skal status settes til en 404 status") {
 
-        every { endreKravMock["sendEndreKrav"](any<String>(), any<Kravidentifikatortype>(), any<KravTable>()) } returnsMany listOf(
+        every { endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<KravTable>()) } returnsMany listOf(
             mapOf(
                 ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "", "")
             ), mapOf(
@@ -51,7 +51,7 @@ internal class EndreKravServiceTest : FunSpec({
 
     test("hvis responsen er 409 og 422 skal begge få status Status.VALIDERINGSFEIL_422") {
 
-        every { endreKravMock["sendEndreKrav"](any<String>(), any<Kravidentifikatortype>(), any<KravTable>()) } returnsMany listOf(
+        every { endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<KravTable>()) } returnsMany listOf(
             mapOf(
                 ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", "")
             ), mapOf(
@@ -66,7 +66,7 @@ internal class EndreKravServiceTest : FunSpec({
 
     test("hvis responsen er 409 og 404 skal status settes til en 404 status") {
 
-        every { endreKravMock["sendEndreKrav"](any<String>(), any<Kravidentifikatortype>(), any<KravTable>()) } returnsMany listOf(
+        every { endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<KravTable>()) } returnsMany listOf(
             mapOf(
                 ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", "")
             ), mapOf(
@@ -80,7 +80,7 @@ internal class EndreKravServiceTest : FunSpec({
     }
 
     test("hvis responsen er 409 og 200 skal status settes til en 409 status") {
-        every { endreKravMock["sendEndreKrav"](any<String>(), any<Kravidentifikatortype>(), any<KravTable>()) } returnsMany listOf(
+        every { endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<KravTable>()) } returnsMany listOf(
             mapOf(
                 ENDRING_HOVEDSTOL to RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", "")
             ), mapOf(

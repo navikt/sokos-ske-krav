@@ -27,21 +27,21 @@ class SkeClient(
     suspend fun endreRenter(
         request: EndreRenteBeloepRequest,
         kravid: String,
-        kravidentifikatortype: Kravidentifikatortype,
+        kravidentifikatortype: KravidentifikatorType,
         corrID: String
     ) = doPut(String.format(ENDRE_RENTER, kravid, kravidentifikatortype.value), request, kravid, corrID)
 
     suspend fun endreHovedstol(
         request: NyHovedStolRequest,
         kravid: String,
-        kravidentifikatortype: Kravidentifikatortype,
+        kravidentifikatortype: KravidentifikatorType,
         corrID: String
     ) = doPut(String.format(ENDRE_HOVESTOL, kravid, kravidentifikatortype.value), request, kravid, corrID)
 
     suspend fun endreOppdragsGiversReferanse(
         request: NyOppdragsgiversReferanseRequest,
         kravid: String,
-        kravidentifikatortype: Kravidentifikatortype,
+        kravidentifikatortype: KravidentifikatorType,
         corrID: String
     ) = doPut(String.format(ENDRE_REFERANSENUMMER, kravid, kravidentifikatortype.value), request, kravid, corrID)
 
@@ -50,13 +50,13 @@ class SkeClient(
 
     suspend fun stoppKrav(request: AvskrivingRequest, corrID: String) = doPost(STOPP_KRAV, request, corrID)
 
-    suspend fun getMottaksStatus(kravid: String, kravidentifikatortype: Kravidentifikatortype) =
+    suspend fun getMottaksStatus(kravid: String, kravidentifikatortype: KravidentifikatorType) =
         doGet(String.format(MOTTAKSSTATUS, kravid, kravidentifikatortype.value), UUID.randomUUID().toString())
 
-    suspend fun getValideringsfeil(kravid: String, kravidentifikatortype: Kravidentifikatortype) =
+    suspend fun getValideringsfeil(kravid: String, kravidentifikatortype: KravidentifikatorType) =
         doGet(String.format(VALIDERINGSFEIL, kravid, kravidentifikatortype.value), UUID.randomUUID().toString())
 
-    suspend fun getSkeKravident(referanse: String) =
+    suspend fun getSkeKravidentifikator(referanse: String) =
         doGet(String.format(HENT_SKE_KRAVIDENT, referanse), UUID.randomUUID().toString())
 
     private suspend inline fun <reified T> doPost(path: String, request: T, corrID: String) = client.post(

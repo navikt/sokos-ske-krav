@@ -15,8 +15,8 @@ fun makeOpprettKravRequest(krav: KravTable) = OpprettInnkrevingsoppdragRequest(
     skyldner = createSkyldner(krav),
     hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.roundToLong()),
     renteBeloep = createRenteBelop(krav).takeIf { it.first().beloep > 0L },
-    oppdragsgiversReferanse = krav.saksnummerNAV,
-    oppdragsgiversKravIdentifikator = krav.saksnummerNAV,   //TODO Her switcher vi når vi bytter ut refnr krav.corrid/krav.saksnummerNAV
+    oppdragsgiversReferanse = krav.fagsystemId,
+    oppdragsgiversKravIdentifikator = krav.saksnummerNAV,
     fastsettelsesDato = krav.vedtakDato.toKotlinLocalDate(),
     foreldelsesFristensUtgangspunkt = krav.utbetalDato.toKotlinLocalDate(),
     tilleggsInformasjon = createTilleggsinformasjonNav(krav),
@@ -60,8 +60,8 @@ fun makeEndreHovedstolRequest(krav: KravTable): NyHovedStolRequest =
     NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.roundToLong()))
 
 fun makeNyOppdragsgiversReferanseRequest(krav: KravTable) = NyOppdragsgiversReferanseRequest(krav.saksnummerNAV)
-fun makeStoppKravRequest(nyref: String, kravidentifikatortype: Kravidentifikatortype) =
-    AvskrivingRequest(kravidentifikatortype.value, kravidentifikator = nyref)
+fun makeStoppKravRequest(kravidentifikator: String, kravidentifikatorType: KravidentifikatorType) =
+    AvskrivingRequest(kravidentifikatorType.value, kravidentifikator)
 
 fun KravLinje.isOpprettKrav() = (!this.isEndring() && !this.isStopp())
 fun KravLinje.isEndring() = (referanseNummerGammelSak.isNotEmpty() && !isStopp())

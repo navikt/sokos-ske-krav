@@ -67,9 +67,9 @@ class SkeService(
 
         val validatedLines = LineValidator.validateNewLines(file)
         databaseService.saveAllNewKrav(validatedLines)
-        oppdaterAlleEndringerEllerStopp(validatedLines.filter { !it.isOpprettKrav() })
+        updateAllEndringerAndStopp(validatedLines.filter { !it.isOpprettKrav() })
 
-        val kravLinjer = databaseService.hentAlleKravSomIkkeErSendt()
+        val kravLinjer = databaseService.getAllUnsentKrav()
 
         val requestResults = mutableListOf<Map<String, RequestResult>>()
         val allResponses = mutableListOf<RequestResult>()
@@ -91,7 +91,7 @@ class SkeService(
 
         allResponses.filter { !it.response.status.isSuccess() }
             .forEach() {
-                databaseService.saveErrorMessageToDatabase(
+                databaseService.saveErrorMessage(
                     it.request,
                     it.response,
                     it.krav,
@@ -104,7 +104,7 @@ class SkeService(
     }
 
     private suspend fun resendKrav(): Map<String, RequestResult> {
-        val kravSomSkalResendes = databaseService.hentKravSomSkalResendes()
+        val kravSomSkalResendes = databaseService.getAllKravForResending()
 
         val feilListe = mutableMapOf<String, RequestResult>()
 
@@ -121,19 +121,19 @@ class SkeService(
         return feilListe.filter { !it.value.status.isOkStatus() }
     }
 
-    private suspend fun oppdaterAlleEndringerEllerStopp(kravLinjer: List<KravLinje>) =
+    private suspend fun updateAllEndringerAndStopp(kravLinjer: List<KravLinje>) =
         kravLinjer.forEach {
-            val skeKravident = databaseService.getSkeKravident(it.referanseNummerGammelSak)
-            var skeKravidentSomSkalLagres = skeKravident
-            if (skeKravident.isBlank()) {
-                val httpResponse = skeClient.getSkeKravident(it.referanseNummerGammelSak)
+            val skeKravidentifikator = databaseService.getSkeKravidentifikator(it.referanseNummerGammelSak)
+            var skeKravidentifikatorSomSkalLagres = skeKravidentifikator
+            if (skeKravidentifikator.isBlank()) {
+                val httpResponse = skeClient.getSkeKravidentifikator(it.referanseNummerGammelSak)
                 if (httpResponse.status.isSuccess()) {
-                    skeKravidentSomSkalLagres = httpResponse.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
+                    skeKravidentifikatorSomSkalLagres = httpResponse.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
                 }
             }
-            if (skeKravidentSomSkalLagres.isNotBlank()) databaseService.updateSkeKravidentifikator(
+            if (skeKravidentifikatorSomSkalLagres.isNotBlank()) databaseService.updateEndringWithSkeKravIdentifikator(
                 it.saksNummer,
-                skeKravidentSomSkalLagres
+                skeKravidentifikatorSomSkalLagres
             )
         }
 

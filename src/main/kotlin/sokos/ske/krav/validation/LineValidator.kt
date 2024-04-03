@@ -80,13 +80,11 @@ object LineValidator {
 
     private fun validateDateInFuture(date: LocalDate) = date.isAfter(LocalDate.now())
 
-    private fun validateDateIsSame(dateA: LocalDate, dateB: LocalDate) = dateA.equals(dateB)
-
     private fun validatePeriode(fom: String, tom: String) = try {
         val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
         val dateFrom = LocalDate.parse(fom, dtf)
         val dateTo = LocalDate.parse(tom, dtf)
-        validateDateIsSame(dateFrom, dateTo) || (dateFrom.isBefore(dateTo) && dateTo.isBefore(LocalDate.now()))
+        (dateFrom == dateTo) || (dateFrom.isBefore(dateTo) && dateTo.isBefore(LocalDate.now()))
     } catch (e: Exception) {
         false
     }

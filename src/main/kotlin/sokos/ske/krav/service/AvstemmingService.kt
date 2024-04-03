@@ -19,7 +19,7 @@ class AvstemmingService(
 
     fun hentAvstemminsRapportSomFil(): String {
         val header = "Krav-Id,Vedtaks-Id,Fagsystem-Id,Registrert,Kravkode,Hjemmelskode,Status,StatusDato\n"
-        val linjer = databaseService.hentKravSomSkalAvstemmes().map {
+        val linjer = databaseService.getAllKravForAvstemming().map {
             "${it.kravId},${it.saksnummerNAV},${it.tidspunktOpprettet},${it.kravkode},${it.kodeHjemmel},${it.status},${it.tidspunktSisteStatus}"
         }.joinToString("\n")
         return header + linjer
@@ -33,7 +33,7 @@ class AvstemmingService(
     }
 
     fun oppdaterAvstemtKravTilRapportert(kravId: Int): String {
-        databaseService.updateRapportertValideringsfeil(kravId)
+        databaseService.updateStatusForAvstemtKravToReported(kravId)
         return hentAvstemmingsRapport()
     }
 
@@ -72,8 +72,8 @@ class AvstemmingService(
 
     private fun statusTable(type: String):String {
         val kravListe =
-            if (STATUS_RESEND.equals(type)) databaseService.hentKravSomSkalResendes()
-            else databaseService.hentKravSomSkalAvstemmes()
+            if (STATUS_RESEND.equals(type)) databaseService.getAllKravForResending()
+            else databaseService.getAllKravForAvstemming()
         if (kravListe.isEmpty()) return "<tr><td colspan=9><H2> Ingen krav i DB som har statustypen. </H2></td></tr>"
         //else return "<tr><td colspan=9><H2> Ingen krav i DB som har statustypen. </H2></td></tr>"
         val result = kravListe.map {
@@ -140,7 +140,7 @@ class AvstemmingService(
     }
 
     private fun hentFeillinjeForKravid(kravid: Int): String {
-        val feilmeldinger = databaseService.hentFeillinjeForKravid(kravid)
+        val feilmeldinger = databaseService.getErrorMessageForKravId(kravid)
         if (feilmeldinger.isEmpty()) {
             return """
             <td colspan="7"/>

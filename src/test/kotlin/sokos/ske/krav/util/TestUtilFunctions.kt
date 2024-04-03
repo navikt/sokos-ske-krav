@@ -51,7 +51,7 @@ fun startContainer(containerName: String, initScripts: List<String>): HikariData
 }
 
 private val mockSkeClient = mockk<SkeClient> {
-    coJustRun { getSkeKravident(any()) }
+    coJustRun { getSkeKravidentifikator(any()) }
 }
 
 private val stoppServiceMock = mockk<StoppKravService> {
@@ -72,10 +72,10 @@ private val statusServiceMock = mockk<StatusService> {
 
 private val ftpServiceMock = mockk<FtpService>()
 private val dataSourceMock = mockk<DatabaseService>{
-    every { hentAlleKravSomIkkeErSendt() } returns emptyList()
-    every { hentKravSomSkalResendes() } returns emptyList()
+    every { getAllUnsentKrav() } returns emptyList()
+    every { getAllKravForResending() } returns emptyList()
     justRun { saveAllNewKrav(any<List<KravLinje>>()) }
-    every { getSkeKravident(any<String>()) } returns "foo"
+    every { getSkeKravidentifikator(any<String>()) } returns "foo"
 }
 
 fun setupSkeServiceMock(

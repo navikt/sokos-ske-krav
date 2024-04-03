@@ -3,20 +3,19 @@ package sokos.ske.krav.service
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.database.Repository.getAllFeilmeldinger
+import sokos.ske.krav.database.Repository.getAllErrorMessages
 import sokos.ske.krav.database.Repository.getAllKravForResending
 import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
-import sokos.ske.krav.database.Repository.getAllKravForValidering
-import sokos.ske.krav.database.Repository.getAllKravNotSent
-import sokos.ske.krav.database.Repository.getAlleKravForAvstemming
-import sokos.ske.krav.database.Repository.getFeillinjeForKravId
-import sokos.ske.krav.database.Repository.getKravIdfromCorrId
-import sokos.ske.krav.database.Repository.getSkeKravIdent
+import sokos.ske.krav.database.Repository.getAllUnsentKrav
+import sokos.ske.krav.database.Repository.getAllKravForAvstemming
+import sokos.ske.krav.database.Repository.getErrorMessageForKravId
+import sokos.ske.krav.database.Repository.getKravTableIdFromCorrelationId
+import sokos.ske.krav.database.Repository.getSkeKravidentifikator
 import sokos.ske.krav.database.Repository.insertAllNewKrav
-import sokos.ske.krav.database.Repository.saveErrorMessage
-import sokos.ske.krav.database.Repository.setSkeKravIdentPaEndring
-import sokos.ske.krav.database.Repository.updateAvstemtKravTilRapportert
-import sokos.ske.krav.database.Repository.updateSendtKrav
+import sokos.ske.krav.database.Repository.insertErrorMessage
+import sokos.ske.krav.database.Repository.updateEndringWithSkeKravIdentifikator
+import sokos.ske.krav.database.Repository.updateStatusForAvstemtKravToReported
+import sokos.ske.krav.database.Repository.updateSentKrav
 import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.database.models.FeilmeldingTable
@@ -31,45 +30,45 @@ class DatabaseService(
     private val postgresDataSource: PostgresDataSource
 ) {
 
-    fun getSkeKravident(navref: String): String {
+    fun getSkeKravidentifikator(navref: String): String {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.getSkeKravIdent(navref)
+            return con.getSkeKravidentifikator(navref)
         }
     }
 
-    private fun getKravIdFromCorrId(corrID: String): Long {
+    private fun getKravTableIdFromCorrelationId(corrID: String): Long {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.getKravIdfromCorrId(corrID)
+            return con.getKravTableIdFromCorrelationId(corrID)
         }
     }
 
-    private fun updateSendtKrav(
-        kravIdentifikatorSke: String,
+    private fun updateSentKrav(
+        skeKravidentifikator: String,
         corrID: String,
         responseStatus: String
     ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.updateSendtKrav(corrID, kravIdentifikatorSke, responseStatus)
+            con.updateSentKrav(corrID, skeKravidentifikator, responseStatus)
         }
     }
 
-    private fun updateSendtKrav(
+    private fun updateSentKrav(
         corrID: String,
         responseStatus: String
     ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.updateSendtKrav(corrID, responseStatus)
+            con.updateSentKrav(corrID, responseStatus)
         }
     }
 
-    private fun updateSendtKrav(
+    private fun updateSentKrav(
         saveCorrID: String,
         searchCorrID: String,
         type: String,
         responseStatus: String
     ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.updateSendtKrav(saveCorrID, searchCorrID, type, responseStatus)
+            con.updateSentKrav(saveCorrID, searchCorrID, type, responseStatus)
         }
     }
 
@@ -81,21 +80,21 @@ class DatabaseService(
         }
     }
 
-    fun getAllFeilmeldinger(): List<FeilmeldingTable> {
+    fun getAllErrorMessages(): List<FeilmeldingTable> {
         postgresDataSource.connection.useAndHandleErrors {con ->
-            return con.getAllFeilmeldinger()
+            return con.getAllErrorMessages()
         }
     }
 
 
 
-    fun saveFeilmelding(feilMelding: FeilmeldingTable, corrID: String) {
+    fun saveErrorMessage(feilMelding: FeilmeldingTable, corrID: String) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.saveErrorMessage(feilMelding, corrID)
+            con.insertErrorMessage(feilMelding, corrID)
         }
     }
 
-    fun updateSentKravToDatabase(
+    fun updateSentKrav(
         responses: List<Map<String, RequestResult>>,
     ) {
         responses.forEach {
@@ -104,43 +103,30 @@ class DatabaseService(
                 Metrics.numberOfKravSent.inc()
                 Metrics.typeKravSent.labels(entry.value.krav.kravkode).inc()
 
-                when {
-                    entry.value.krav.kravtype == NYTT_KRAV ->
-                        updateSendtKrav(
+                if  (entry.value.krav.kravtype == NYTT_KRAV) updateSentKrav(
                             entry.value.kravIdentifikator,
                             entry.value.corrId,
                             entry.value.status.value
                         )
 
-                    (entry.value.corrId == entry.value.krav.corr_id) ->
-                        updateSendtKrav(
+                    else updateSentKrav(
                             entry.value.corrId,
                             entry.value.status.value
                         )
-
-                    else -> {
-                        updateSendtKrav(
-                            entry.value.corrId,
-                            entry.value.krav.corr_id,
-                            entry.key,
-                            entry.value.status.value
-                        )
-                    }
-                }
 
             }
 
         }
     }
 
-    suspend fun saveErrorMessageToDatabase(
+    suspend fun saveErrorMessage(
         request: String,
         response: HttpResponse,
         krav: KravTable,
         kravIdentifikator: String,
         corrID: String,
     ) {
-        val kravIdentifikatorSke =
+        val skeKravidentifikator =
             if (kravIdentifikator == krav.saksnummerNAV || kravIdentifikator == krav.referanseNummerGammelSak) "" else kravIdentifikator
 
         val feilResponse = response.body<FeilResponse>()
@@ -150,10 +136,10 @@ class DatabaseService(
         }
         val feilmelding = FeilmeldingTable(
             0L,
-            getKravIdFromCorrId(corrID),
+            getKravTableIdFromCorrelationId(corrID),
             corrID,
             krav.saksnummerSKE,
-            kravIdentifikatorSke,
+            skeKravidentifikator,
             feilResponse.status.toString(),
             feilResponse.detail,
             request,
@@ -161,24 +147,24 @@ class DatabaseService(
             LocalDateTime.now(),
         )
 
-        saveFeilmelding(feilmelding, corrID)
+        saveErrorMessage(feilmelding, corrID)
     }
 
-    fun hentAlleKravSomIkkeErReskotrofort(): List<KravTable> {
+    fun getAllKravForStatusCheck(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
             return con.getAllKravForStatusCheck()
         }
     }
 
-    fun hentKravSomSkalAvstemmes(): List<KravTable> {
+    fun getAllKravForAvstemming(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.getAlleKravForAvstemming()
+            return con.getAllKravForAvstemming()
         }
     }
 
-    fun hentFeillinjeForKravid(kravId: Int): List<FeilmeldingTable>{
+    fun getErrorMessageForKravId(kravId: Int): List<FeilmeldingTable>{
         postgresDataSource.connection.useAndHandleErrors {con ->
-            return con.getFeillinjeForKravId(kravId)
+            return con.getErrorMessageForKravId(kravId)
         }
     }
 
@@ -188,33 +174,27 @@ class DatabaseService(
         }
     }
 
-    fun updateRapportertValideringsfeil(kravId: Int) {
+    fun updateStatusForAvstemtKravToReported(kravId: Int) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.updateAvstemtKravTilRapportert(kravId)
+            con.updateStatusForAvstemtKravToReported(kravId)
         }
     }
 
-    fun hentKravSomSkalResendes(): List<KravTable> {
+    fun getAllKravForResending(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
             return con.getAllKravForResending()
         }
     }
 
-    fun hentAlleKravSomSkalValideres(): List<KravTable> {
+    fun getAllUnsentKrav(): List<KravTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.getAllKravForValidering()
+            return con.getAllUnsentKrav()
         }
     }
 
-    fun hentAlleKravSomIkkeErSendt(): List<KravTable> {
-        postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.getAllKravNotSent()
-        }
-    }
-
-    fun updateSkeKravidentifikator(navsaksnummer: String, skeKravidentifikator: String) {
+    fun updateEndringWithSkeKravIdentifikator(navsaksnummer: String, skeKravidentifikator: String) {
         postgresDataSource.connection.useAndHandleErrors {
-            con -> con.setSkeKravIdentPaEndring(navsaksnummer, skeKravidentifikator)
+            con -> con.updateEndringWithSkeKravIdentifikator(navsaksnummer, skeKravidentifikator)
         }
     }
 }

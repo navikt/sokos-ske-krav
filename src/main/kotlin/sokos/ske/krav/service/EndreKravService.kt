@@ -6,7 +6,7 @@ import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.Status
-import sokos.ske.krav.domain.ske.requests.Kravidentifikatortype
+import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
 import sokos.ske.krav.util.*
 
 class EndreKravService(
@@ -28,7 +28,7 @@ class EndreKravService(
         }.flatten()
 
         resultList.forEach { it.values.forEach { value ->  println(value.status) }}
-        databaseService.updateSentKravToDatabase(resultList)
+        databaseService.updateSentKrav(resultList)
         return resultList
     }
 
@@ -63,7 +63,7 @@ class EndreKravService(
 
     private suspend fun sendEndreKrav(
         kravIdentifikator: String,
-        kravIdentifikatorType: Kravidentifikatortype,
+        kravIdentifikatorType: KravidentifikatorType,
         krav: KravTable,
     ): Map<String, RequestResult> {
 

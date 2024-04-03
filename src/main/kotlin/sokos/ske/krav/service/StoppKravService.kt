@@ -17,7 +17,7 @@ class StoppKravService(
         val resultMap = kravList.map {
             mapOf(STOPP_KRAV to sendStoppKrav(it))
         }
-        databaseService.updateSentKravToDatabase(resultMap)
+        databaseService.updateSentKrav(resultMap)
         return resultMap
     }
 

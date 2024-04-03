@@ -74,9 +74,9 @@ internal class SkeServiceTest : FunSpec({
         }
 
         val dataSourceMock = mockk<DatabaseService> {
-            every { hentAlleKravSomIkkeErSendt() } returns emptyList()
+            every { getAllUnsentKrav() } returns emptyList()
             justRun { saveAllNewKrav(any<List<KravLinje>>()) }
-            every { getSkeKravident(any<String>()) } returns "foo"
+            every { getSkeKravidentifikator(any<String>()) } returns "foo"
         }
 
 

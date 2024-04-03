@@ -18,7 +18,7 @@ class StoppKravServiceTest : FunSpec({
 
     test("sendAllStoppKrav skal returnere liste av innsendte stopp av krav") {
         val databaseServiceMock = mockk<DatabaseService>() {
-            justRun { updateSentKravToDatabase(any()) }
+            justRun { updateSentKrav(any()) }
         }
         val kravTableMock = mockk<KravTable>() {
             every { saksnummerSKE } returns "foo"

@@ -38,13 +38,7 @@ object Repository {
                 param(Status.INTERN_TJENERFEIL_500.value)
             ).executeQuery().toKrav()
 
-    fun Connection.getAllKravForValidering() =
-        prepareStatement("""select * from krav where status = ?""")
-            .withParameters(
-                param(Status.KRAV_INNLEST_FRA_FIL.value),
-            ).executeQuery().toKrav()
-
-    fun Connection.getAllKravNotSent() =
+    fun Connection.getAllUnsentKrav() =
         prepareStatement("""select * from krav where status = ?""")
             .withParameters(
                 param(Status.KRAV_IKKE_SENDT.value),
@@ -57,10 +51,10 @@ object Repository {
                 param(Status.VALIDERINGSFEIL_422.value)
             ).executeQuery().toKrav()
 
-    fun Connection.getAllFeilmeldinger() =
+    fun Connection.getAllErrorMessages() =
         prepareStatement("""select * from feilmelding""").executeQuery().toFeilmelding()
 
-    fun Connection.getFeillinjeForKravId(kravId: Int): List<FeilmeldingTable> {
+    fun Connection.getErrorMessageForKravId(kravId: Int): List<FeilmeldingTable> {
         return prepareStatement(
             """
                 select * from feilmelding
@@ -71,7 +65,7 @@ object Repository {
         ).executeQuery().toFeilmelding()
     }
 
-    fun Connection.getAlleKravForAvstemming() =
+    fun Connection.getAllKravForAvstemming() =
         prepareStatement("""select * from krav 
             where status not in ( ?, ? ) order by id
         """.trimIndent()
@@ -80,7 +74,7 @@ object Repository {
             param(Status.VALIDERINGFEIL_RAPPORTERT.value)
         ).executeQuery().toKrav()
 
-    fun Connection.getSkeKravIdent(navref: String): String {
+    fun Connection.getSkeKravidentifikator(navref: String): String {
         val rs = prepareStatement(
             """
             select id, kravidentifikator_ske from krav
@@ -96,7 +90,7 @@ object Repository {
         else ""
     }
 
-    fun Connection.getKravIdfromCorrId(corrID: String): Long {
+    fun Connection.getKravTableIdFromCorrelationId(corrID: String): Long {
         val rs = prepareStatement(
             """
             select id from krav
@@ -110,7 +104,7 @@ object Repository {
         else 0
     }
 
-    fun Connection.updateSendtKrav(
+    fun Connection.updateSentKrav(
         corrID: String,
         responseStatus: String
     ) {
@@ -130,9 +124,9 @@ object Repository {
         commit()
     }
 
-    fun Connection.updateSendtKrav(
+    fun Connection.updateSentKrav(
         corrID: String,
-        kravIdentifikatorSke: String,
+        skeKravidentifikator: String,
         responseStatus: String
     ) {
         prepareStatement(
@@ -147,13 +141,13 @@ object Repository {
             """.trimIndent()
         ).withParameters(
             param(responseStatus),
-            param(kravIdentifikatorSke),
+            param(skeKravidentifikator),
             param(corrID),
         ).execute()
         commit()
     }
 
-    fun Connection.updateSendtKrav(
+    fun Connection.updateSentKrav(
         saveCorrID: String,
         searchCorrID: String,
         type: String,
@@ -194,7 +188,7 @@ object Repository {
         commit()
     }
 
-    fun Connection.updateAvstemtKravTilRapportert(kravId: Int) {
+    fun Connection.updateStatusForAvstemtKravToReported(kravId: Int) {
         prepareStatement(
             """
                 update krav 
@@ -295,7 +289,7 @@ object Repository {
         commit()
     }
 
-    fun Connection.setSkeKravIdentPaEndring(navSaksnr: String, skeKravident: String) {
+    fun Connection.updateEndringWithSkeKravIdentifikator(navSaksnr: String, skeKravident: String) {
         prepareStatement(
             """
                 update krav 
@@ -312,7 +306,7 @@ object Repository {
     }
 
 
-    fun Connection.saveErrorMessage(feilmelding: FeilmeldingTable, corrID: String) {
+    fun Connection.insertErrorMessage(feilmelding: FeilmeldingTable, corrID: String) {
         prepareStatement(
             """
                 insert into feilmelding (

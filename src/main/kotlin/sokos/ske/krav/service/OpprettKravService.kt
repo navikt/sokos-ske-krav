@@ -20,7 +20,7 @@ class OpprettKravService(
         val responseList = kravList.map {
             mapOf(NYTT_KRAV to sendOpprettKrav(it))
         }
-        databaseService.updateSentKravToDatabase(responseList)
+        databaseService.updateSentKrav(responseList)
 
         return responseList
     }

@@ -71,7 +71,7 @@ fun Routing.skeApi(
         }
         get("allekrav") {
             val databaseService = DatabaseService(PostgresDataSource())
-            call.respond(databaseService.getAllFeilmeldinger().toString())
+            call.respond(databaseService.getAllErrorMessages().toString())
         }
         get("avstemming") {
             call.respondText(avstemmingService.hentAvstemmingsRapport(), Html)

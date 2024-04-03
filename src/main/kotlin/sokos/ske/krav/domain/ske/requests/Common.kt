@@ -8,7 +8,7 @@ data class HovedstolBeloep(
     val beloep: Long
 )
 
-enum class Kravidentifikatortype(val value: String) {
+enum class KravidentifikatorType(val value: String) {
 	SKATTEETATENSKRAVIDENTIFIKATOR("SKATTEETATENS_KRAVIDENTIFIKATOR"),
     OPPDRAGSGIVERSKRAVIDENTIFIKATOR("OPPDRAGSGIVERS_KRAVIDENTIFIKATOR")
 }
