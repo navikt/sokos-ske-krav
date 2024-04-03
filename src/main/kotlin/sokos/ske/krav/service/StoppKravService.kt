@@ -33,7 +33,6 @@ class StoppKravService(
             request = Json.encodeToString(request),
             krav = krav,
             kravIdentifikator = kravidentifikatorPair.first,
-            corrId = krav.corr_id,
         )
 
         return requestResult

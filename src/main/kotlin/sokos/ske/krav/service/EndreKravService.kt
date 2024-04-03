@@ -35,13 +35,15 @@ class EndreKravService(
 
 
     private fun getConformedResponses(inMapList: List<Map<String, RequestResult>>): List<Map<String, RequestResult>> {
+        val endring1 = inMapList.first().values
+        val endring2 = inMapList.last().values
 
-        if (inMapList.first().values.first().status == inMapList.last().values.first().status) return inMapList
+        if (endring1.first().status == endring2.first().status) return inMapList
 
-        val firstKravStatus = inMapList.first().values.first().status
-        val secondKravStatus = inMapList.last().values.last().status
-        val firstHttpStatus = inMapList.first().values.first().response.status
-        val secondHttpStatus = inMapList.last().values.last().response.status
+        val firstKravStatus = endring1.first().status
+        val secondKravStatus = endring2.last().status
+        val firstHttpStatus = endring1.first().response.status
+        val secondHttpStatus = endring2.last().response.status
 
         val newStatus = when {
             firstHttpStatus.value == HttpStatusCode.NotFound.value -> firstKravStatus
@@ -55,29 +57,28 @@ class EndreKravService(
 
         return listOf(
             mapOf(
-                inMapList.first().keys.first() to inMapList.first().values.first().copy(status = newStatus),
-                inMapList.last().keys.last() to inMapList.last().values.last().copy(status = newStatus)
+                inMapList.first().keys.first() to endring1.first().copy(status = newStatus),
+                inMapList.last().keys.last() to endring2.last().copy(status = newStatus)
             )
         )
     }
 
     private suspend fun sendEndreKrav(
-        kravIdentifikator: String,
-        kravIdentifikatorType: KravidentifikatorType,
+        kravidentifikator: String,
+        kravidentifikatorType: KravidentifikatorType,
         krav: KravTable,
     ): Map<String, RequestResult> {
 
         return if (krav.kravtype == ENDRING_RENTE) {
             val endreRenterRequest = makeEndreRenteRequest(krav)
             val endreRenterResponse =
-                skeClient.endreRenter(endreRenterRequest, kravIdentifikator, kravIdentifikatorType, krav.corr_id)
+                skeClient.endreRenter(endreRenterRequest, kravidentifikator, kravidentifikatorType, krav.corr_id)
 
             val requestResultEndreRente = RequestResult(
                 response = endreRenterResponse,
                 request = Json.encodeToString(endreRenterRequest),
                 krav = krav,
                 kravIdentifikator = "",
-                corrId = krav.corr_id,
             )
 
             mapOf(ENDRING_RENTE to requestResultEndreRente)
@@ -85,14 +86,13 @@ class EndreKravService(
         } else {
             val endreHovedstolRequest = makeEndreHovedstolRequest(krav)
             val endreHovedstolResponse =
-                skeClient.endreHovedstol(endreHovedstolRequest, kravIdentifikator, kravIdentifikatorType, krav.corr_id)
+                skeClient.endreHovedstol(endreHovedstolRequest, kravidentifikator, kravidentifikatorType, krav.corr_id)
 
             val requestResultEndreHovedstol = RequestResult(
                 response = endreHovedstolResponse,
                 request = Json.encodeToString(endreHovedstolRequest),
                 krav = krav,
                 kravIdentifikator = "",
-                corrId = krav.corr_id,
             )
 
             mapOf(ENDRING_HOVEDSTOL to requestResultEndreHovedstol)

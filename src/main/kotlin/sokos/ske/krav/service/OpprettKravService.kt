@@ -39,7 +39,6 @@ class OpprettKravService(
             request = Json.encodeToString(opprettKravRequest),
             krav = krav,
             kravIdentifikator = kravIdentifikator,
-            corrId = krav.corr_id,
         )
 
         return requestResult

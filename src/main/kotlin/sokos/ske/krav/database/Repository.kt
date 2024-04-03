@@ -306,7 +306,7 @@ object Repository {
     }
 
 
-    fun Connection.insertErrorMessage(feilmelding: FeilmeldingTable, corrID: String) {
+    fun Connection.insertErrorMessage(feilmelding: FeilmeldingTable) {
         prepareStatement(
             """
                 insert into feilmelding (
@@ -326,7 +326,7 @@ object Repository {
             param(feilmelding.kravId),
             param(feilmelding.saksnummer),
             param(feilmelding.kravidentifikatorSKE),
-            param(corrID),
+            param(feilmelding.corrId),
             param(feilmelding.error),
             param(feilmelding.melding),
             param(feilmelding.navRequest),

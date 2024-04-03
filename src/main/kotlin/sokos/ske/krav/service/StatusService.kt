@@ -69,7 +69,7 @@ class StatusService(
                     "",
                     LocalDateTime.now()
                 )
-                databaseService.saveErrorMessage(feilmeldingTable, kravTable.corr_id)
+                databaseService.saveErrorMessage(feilmeldingTable)
             }
         } else {
             logger.error { "Kall til henting av valideringsfeil hos SKE feilet: ${response.status.value}, ${response.status.description}" }

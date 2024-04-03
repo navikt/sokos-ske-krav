@@ -22,21 +22,18 @@ fun makeOpprettKravRequest(krav: KravTable) = OpprettInnkrevingsoppdragRequest(
     tilleggsInformasjon = createTilleggsinformasjonNav(krav),
 )
 
-private fun createRenteBelop(krav: KravTable): List<RenteBeloep> {
-    val beloepRente = krav.belopRente.roundToLong()
-    return listOf(
-        RenteBeloep(
-            beloep = beloepRente,
-            renterIlagtDato = krav.vedtakDato.toKotlinLocalDate(),
-        ),
-    )
-}
-
-private fun createSkyldner(krav: KravTable) = if (krav.gjelderId.startsWith("00")) Skyldner(
-    Skyldner.IdentifikatorType.ORGANISASJON,
-    krav.gjelderId.substring(2, krav.gjelderId.length)
+private fun createRenteBelop(krav: KravTable): List<RenteBeloep> = listOf(
+    RenteBeloep(
+        beloep = krav.belopRente.roundToLong(),
+        renterIlagtDato = krav.vedtakDato.toKotlinLocalDate(),
+    ),
 )
-else Skyldner(Skyldner.IdentifikatorType.PERSON, krav.gjelderId)
+
+private fun createSkyldner(krav: KravTable) =
+    if (krav.gjelderId.startsWith("00")) Skyldner(
+        Skyldner.IdentifikatorType.ORGANISASJON,
+        krav.gjelderId.substring(2, krav.gjelderId.length))
+    else Skyldner(Skyldner.IdentifikatorType.PERSON, krav.gjelderId)
 
 
 private fun createTilleggsinformasjonNav(krav: KravTable): TilleggsinformasjonNav {
