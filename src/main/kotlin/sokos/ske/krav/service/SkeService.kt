@@ -36,13 +36,11 @@ class SkeService(
         statusService.hentOgOppdaterMottaksStatus()
         sendKrav(databaseService.getAllKravForResending())
 
-
         sendNewFilesToSKE()
 
         delay(10_000)
         statusService.hentOgOppdaterMottaksStatus()
         sendKrav(databaseService.getAllKravForResending())
-
     }
 
     private suspend fun sendNewFilesToSKE() {
@@ -50,7 +48,7 @@ class SkeService(
         logger.info("*******************${LocalDateTime.now()}*******************")
         logger.info("Starter innsending av ${files.size} filer")
 
-        files.map { file ->
+        files.forEach { file ->
             logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
 
             val validatedLines = LineValidator.validateNewLines(file)
@@ -60,7 +58,6 @@ class SkeService(
             val result = sendKrav(databaseService.getAllUnsentKrav())
             AlarmService.handleFeil(result, file)
 
-            result
         }
 
         files.forEach { file -> ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
@@ -97,6 +94,7 @@ class SkeService(
 
         return allResponses
     }
+
     private suspend fun updateAllEndringerAndStopp(kravLinjer: List<KravLinje>) =
         kravLinjer.forEach {
             val skeKravidentifikator = databaseService.getSkeKravidentifikator(it.referanseNummerGammelSak)
@@ -112,5 +110,4 @@ class SkeService(
                 skeKravidentifikatorSomSkalLagres
             )
         }
-
 }

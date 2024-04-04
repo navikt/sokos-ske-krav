@@ -8,7 +8,6 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
-import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.spyk
 import kotlinx.serialization.json.Json
@@ -52,6 +51,7 @@ internal class SkeServiceIntegrationTest : FunSpec({
 
         val dsMock = mockk<DatabaseService> {
             every { getAllUnsentKrav() } returns emptyList()
+            every { getAllKravForResending() } returns emptyList()
             every { saveAllNewKrav(any<List<KravLinje>>()) } answers { dataSource.connection.use { it.insertAllNewKrav(arg(0)) } }
             every { getSkeKravidentifikator(any<String>()) } answers { dataSource.connection.use { it.getSkeKravidentifikator(arg(0)) } }
             every { updateEndringWithSkeKravIdentifikator(any<String>(), any<String>()) } answers { dataSource.connection.use { it.updateEndringWithSkeKravIdentifikator(arg(0), arg(1)) } }
@@ -59,8 +59,6 @@ internal class SkeServiceIntegrationTest : FunSpec({
 
         val skeService = setupSkeServiceMock(databaseService = dsMock, ftpService = ftpService)
         val skeMock = spyk(skeService, recordPrivateCalls = true)
-
-        justRun { skeMock["resendKrav"]() }
 
         skeMock.handleNewKrav()
 
@@ -73,11 +71,11 @@ internal class SkeServiceIntegrationTest : FunSpec({
         val ftpService = FakeFtpService().setupMocks(Directories.INBOUND, listOf("TestEndringKravident.txt"))
 
         val skeClient = mockk<SkeClient> {
-            coEvery { getSkeKravidentifikator("8888-navsaksnr") } returns mockk<HttpResponse>() {
+            coEvery { getSkeKravidentifikator("8888-navsaksnr") } returns mockk<HttpResponse> {
                 coEvery { body<OpprettInnkrevingsOppdragResponse>().kravidentifikator } returns "8888-skeUUID"
             }
 
-            coEvery { getSkeKravidentifikator("2222-navsaksnr") } returns mockk<HttpResponse>() {
+            coEvery { getSkeKravidentifikator("2222-navsaksnr") } returns mockk<HttpResponse> {
                 coEvery { body<OpprettInnkrevingsOppdragResponse>().kravidentifikator } returns "2222-skeUUID"
             }
         }
@@ -85,14 +83,13 @@ internal class SkeServiceIntegrationTest : FunSpec({
 
         val dsMock = mockk<DatabaseService> {
             every { getAllUnsentKrav() } returns emptyList()
+            every { getAllKravForResending() } returns emptyList()
             every { saveAllNewKrav(any<List<KravLinje>>()) } answers { dataSource.connection.use { it.insertAllNewKrav(arg(0)) } }
             every { getSkeKravidentifikator(any<String>()) } answers { dataSource.connection.use { it.getSkeKravidentifikator(arg(0)) } }
             every { updateEndringWithSkeKravIdentifikator(any<String>(), any<String>()) } answers { dataSource.connection.use { it.updateEndringWithSkeKravIdentifikator(arg(0), arg(1)) } }
         }
         val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dsMock, ftpService = ftpService)
         val skeMock = spyk(skeService, recordPrivateCalls = true)
-
-        justRun { skeMock["resendKrav"]() }
 
         skeMock.handleNewKrav()
 
@@ -108,12 +105,13 @@ internal class SkeServiceIntegrationTest : FunSpec({
 
         val dsMock = mockk<DatabaseService> {
             every { getAllUnsentKrav() } returns emptyList()
+            every { getAllKravForResending() } returns emptyList()
             every { saveAllNewKrav(any<List<KravLinje>>()) } answers { dataSource.connection.use { it.insertAllNewKrav(arg(0)) } }
             every { getSkeKravidentifikator(any<String>()) } answers { dataSource.connection.use { it.getSkeKravidentifikator(arg(0)) } }
             every { updateEndringWithSkeKravIdentifikator(any<String>(), any<String>()) } answers { dataSource.connection.use { it.updateEndringWithSkeKravIdentifikator(arg(0), arg(1)) } }
         }
 
-        val skeClient = mockk<SkeClient>() {
+        val skeClient = mockk<SkeClient> {
             coEvery { getSkeKravidentifikator(any()) } returns mockk<HttpResponse> {
                 coEvery { body<OpprettInnkrevingsOppdragResponse>().kravidentifikator } returns "foo"
                 coEvery { status } returns HttpStatusCode.OK
@@ -123,7 +121,6 @@ internal class SkeServiceIntegrationTest : FunSpec({
         val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dsMock, ftpService = ftpService)
         val skeMock = spyk(skeService, recordPrivateCalls = true)
 
-        justRun { skeMock["resendKrav"]() }
 
         skeMock.handleNewKrav()
         val lagredeKrav = dataSource.connection.getAllKrav()
