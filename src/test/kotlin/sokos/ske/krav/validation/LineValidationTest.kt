@@ -1,6 +1,5 @@
 package sokos.ske.krav.validation
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import sokos.ske.krav.database.models.Status
@@ -28,12 +27,7 @@ internal class LineValidationTest: FunSpec({
           liste,
           kravLinjer = FileParser(liste).parseKravLinjer()
       )
-      shouldThrow<NotImplementedError> {
-          LineValidator.validateNewLines(fil)
-      }.apply {
-          message shouldBe "Kombinasjonen kravkode=FE IL og hjemmelkode=T gir ingen kravtype."
-      }
-      //LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe liste.size - 3
+      LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe liste.size - 3
   }
 
 

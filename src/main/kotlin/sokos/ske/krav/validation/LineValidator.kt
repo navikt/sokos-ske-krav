@@ -38,7 +38,7 @@ object LineValidator {
 
         val saksnrValid = validateSaksnr(krav.saksNummer)
         val vedtakDatoValid = validateVedtaksdato(krav.vedtakDato)
-        val kravtypeValid = validateKravtype(KravtypeMappingFromNAVToSKE.getKravtype(krav))
+        val kravtypeValid = validateKravtype(krav)
         val refnrGammelSakValid = if (!krav.isOpprettKrav()) validateSaksnr(krav.referanseNummerGammelSak) else true
         val fomTomValid =
             validatePeriode(krav.periodeFOM, krav.periodeTOM)
@@ -70,7 +70,12 @@ object LineValidator {
         return ValidationResult.Success(listOf(krav))
     }
 
-    private fun validateKravtype(kravtypeSke: KravtypeMappingFromNAVToSKE?) = (kravtypeSke != null)
+    private fun validateKravtype(krav: KravLinje): Boolean = try {
+        KravtypeMappingFromNAVToSKE.getKravtype(krav)
+        true
+    }catch (e: NotImplementedError){
+        false
+    }
 
     private fun validateSaksnr(navSaksnr: String) = navSaksnr.matches("^[a-zA-Z0-9-/]+$".toRegex())
 
