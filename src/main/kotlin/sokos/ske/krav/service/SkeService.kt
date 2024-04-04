@@ -52,6 +52,8 @@ class SkeService(
             logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
 
             val validatedLines = LineValidator.validateNewLines(file)
+            Metrics.numberOfKravRead.inc(validatedLines.size.toDouble())
+
             databaseService.saveAllNewKrav(validatedLines)
             updateAllEndringerAndStopp(validatedLines.filter { !it.isOpprettKrav() })
 
@@ -80,7 +82,7 @@ class SkeService(
             opprettKravService.sendAllOpprettKrav(kravTableList.filter { it.kravtype == NYTT_KRAV })
         )
 
-        Metrics.numberOfKravRead.inc()
+        Metrics.numberOfKravRead.inc(allResponses.filter { it.krav.kravtype != ENDRING_RENTE }.size.toDouble())
 
         allResponses.filter { !it.response.status.isSuccess() }
             .forEach() {

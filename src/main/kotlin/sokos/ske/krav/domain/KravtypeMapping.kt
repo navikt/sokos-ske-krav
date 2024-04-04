@@ -1,6 +1,7 @@
-package sokos.ske.krav.domain.nav
+package sokos.ske.krav.domain
 
 import sokos.ske.krav.database.models.KravTable
+import sokos.ske.krav.domain.nav.KravLinje
 
 enum class KravtypeMappingFromNAVToSKE(val kravKode: String, val hjemmelkode: String, val alternativHjemmelkode: String =""){
     TILBAKEKREVING_BARNETRYGD                               ("BA OR", "T"),
@@ -51,12 +52,12 @@ enum class KravtypeMappingFromNAVToSKE(val kravKode: String, val hjemmelkode: St
         }
         fun getKravtype(
            krav: KravLinje
-        ): KravtypeMappingFromNAVToSKE? {
+        ): KravtypeMappingFromNAVToSKE {
             return KravtypeMappingFromNAVToSKE.entries.firstOrNull {
                krav.kravKode == it.kravKode  &&  (krav.hjemmelKode == it.hjemmelkode  || krav.hjemmelKode == it.alternativHjemmelkode) }
-//               ?: throw NotImplementedError(
-//               "Kombinasjonen kravkode=${krav.kravKode} og hjemmelkode=${krav.hjemmelKode} gir ingen kravtype.",
-//           )
+               ?: throw NotImplementedError(
+               "Kombinasjonen kravkode=${krav.kravKode} og hjemmelkode=${krav.hjemmelKode} gir ingen kravtype.",
+           )
         }
     }
 }

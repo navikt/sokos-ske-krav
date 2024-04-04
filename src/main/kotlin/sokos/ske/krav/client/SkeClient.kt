@@ -11,7 +11,6 @@ import java.util.*
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
 private const val ENDRE_RENTER = "innkrevingsoppdrag/%s/renter?kravidentifikatortype=%s"
 private const val ENDRE_HOVESTOL = "innkrevingsoppdrag/%s/hovedstol?kravidentifikatortype=%s"
-private const val ENDRE_REFERANSENUMMER = "innkrevingsoppdrag/%s/oppdragsgiversreferanse?kravidentifikatortype=%s"
 private const val STOPP_KRAV = "innkrevingsoppdrag/avskriving"
 private const val MOTTAKSSTATUS = "innkrevingsoppdrag/%s/mottaksstatus?kravidentifikatortype=%s"
 private const val VALIDERINGSFEIL = "innkrevingsoppdrag/%s/valideringsfeil?kravidentifikatortype=%s"
@@ -37,13 +36,6 @@ class SkeClient(
         kravidentifikatorType: KravidentifikatorType,
         corrID: String
     ) = doPut(String.format(ENDRE_HOVESTOL, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
-
-    suspend fun endreOppdragsGiversReferanse(
-        request: NyOppdragsgiversReferanseRequest,
-        kravidentifikator: String,
-        kravidentifikatorType: KravidentifikatorType,
-        corrID: String
-    ) = doPut(String.format(ENDRE_REFERANSENUMMER, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
 
     suspend fun opprettKrav(request: OpprettInnkrevingsoppdragRequest, corrID: String) =
         doPost(OPPRETT_KRAV, request, corrID)
