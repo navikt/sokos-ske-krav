@@ -7,7 +7,10 @@ import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
-import sokos.ske.krav.util.*
+import sokos.ske.krav.util.RequestResult
+import sokos.ske.krav.util.createKravidentifikatorPair
+import sokos.ske.krav.util.makeEndreHovedstolRequest
+import sokos.ske.krav.util.makeEndreRenteRequest
 
 class EndreKravService(
     private val skeClient: SkeClient,

@@ -2,8 +2,8 @@ package sokos.ske.krav.validation
 
 import mu.KotlinLogging
 import sokos.ske.krav.domain.Status
-import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.Stonadstype
+import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.FtpFil
 import sokos.ske.krav.util.isOpprettKrav
