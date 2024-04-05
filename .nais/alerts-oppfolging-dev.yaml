@@ -10,7 +10,7 @@ spec:
     - name: sokos-ske-krav-oppfolging-alerts
       rules:
         - alert: Feil i validering av fil
-          expr: sum by (fileName, message) sum_over_time(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[10m])) > 0
+          expr: sum by (fileName, message) (sum_over_time(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[10m])) > 0
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
             summary: "Feil i validering av fil {{ $labels.fileName }}: {{ $labels.message }}"
