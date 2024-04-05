@@ -5,7 +5,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.database.models.Status
+import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
 import sokos.ske.krav.util.*
 

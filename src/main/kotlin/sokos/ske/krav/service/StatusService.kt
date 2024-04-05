@@ -7,7 +7,7 @@ import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.database.models.Status
+import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
 import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse

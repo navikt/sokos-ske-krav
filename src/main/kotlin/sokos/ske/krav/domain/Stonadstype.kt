@@ -3,7 +3,7 @@ package sokos.ske.krav.domain
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
 
-enum class KravtypeMappingFromNAVToSKE(val kravKode: String, val hjemmelkode: String, val alternativHjemmelkode: String =""){
+enum class Stonadstype(val kravKode: String, val hjemmelkode: String, val alternativHjemmelkode: String =""){
     TILBAKEKREVING_BARNETRYGD                               ("BA OR", "T"),
     TILBAKEKREVING_OMSORGSPENGER                            ("BS OM", "T"),
     TILBAKEKREVING_PLEIEPENGER_BARN                         ("BS PN", "T"),
@@ -40,20 +40,20 @@ enum class KravtypeMappingFromNAVToSKE(val kravKode: String, val hjemmelkode: St
     ;
 
    companion object {
-        fun getKravtype(
+        fun getStonadstype(
            krav: KravTable
-        ): KravtypeMappingFromNAVToSKE {
-           return KravtypeMappingFromNAVToSKE.entries.firstOrNull {
+        ): Stonadstype {
+           return Stonadstype.entries.firstOrNull {
                krav.kravkode == it.kravKode  &&  (krav.kodeHjemmel == it.hjemmelkode  || krav.kodeHjemmel == it.alternativHjemmelkode) }
                ?: throw NotImplementedError(
                "Kombinasjonen kravkode=${krav.kravkode} og hjemmelkode=${krav.kodeHjemmel} gir ingen kravtype.",
            )
 
         }
-        fun getKravtype(
+        fun getStonadstype(
            krav: KravLinje
-        ): KravtypeMappingFromNAVToSKE {
-            return KravtypeMappingFromNAVToSKE.entries.firstOrNull {
+        ): Stonadstype {
+            return Stonadstype.entries.firstOrNull {
                krav.kravKode == it.kravKode  &&  (krav.hjemmelKode == it.hjemmelkode  || krav.hjemmelKode == it.alternativHjemmelkode) }
                ?: throw NotImplementedError(
                "Kombinasjonen kravkode=${krav.kravKode} og hjemmelkode=${krav.hjemmelKode} gir ingen kravtype.",

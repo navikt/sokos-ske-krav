@@ -7,11 +7,9 @@ import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.OpprettKravService
-import sokos.ske.krav.util.KRAV_ER_AVSKREVET
 import sokos.ske.krav.util.MockHttpClientUtils
 import sokos.ske.krav.util.getAllKrav
 import sokos.ske.krav.util.setUpMockHttpClient

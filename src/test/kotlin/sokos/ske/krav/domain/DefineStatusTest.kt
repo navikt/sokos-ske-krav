@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.database.models.Status
 import sokos.ske.krav.util.*
 
 

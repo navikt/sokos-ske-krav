@@ -21,6 +21,12 @@ object Metrics {
         .help("antall krav sendt til endepunkt")
         .register(registry.prometheusRegistry)
 
+    val numberOfKravResent: Counter = Counter.build()
+        .namespace(NAMESPACE)
+        .name("krav_resendt")
+        .help("antall krav resendt")
+        .register(registry.prometheusRegistry)
+
     val typeKravSent: Counter = Counter.build()
         .namespace(NAMESPACE)
         .name("type_krav_sendt")

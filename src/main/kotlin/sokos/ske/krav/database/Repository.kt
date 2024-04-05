@@ -6,7 +6,7 @@ import sokos.ske.krav.database.RepositoryExtensions.toFeilmelding
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.FeilmeldingTable
-import sokos.ske.krav.database.models.Status
+import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import sokos.ske.krav.service.ENDRING_RENTE

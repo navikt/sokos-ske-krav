@@ -7,7 +7,7 @@ import sokos.ske.krav.metrics.Metrics
 
 
 object FileValidator{
-    private val logger = KotlinLogging.logger{}
+    private val logger = KotlinLogging.logger(this.javaClass.name)
     fun validateFile(content: List<String>, fileName: String): ValidationResult {
         val parser = FileParser(content)
         val firstLine = parser.parseKontrollLinjeHeader()

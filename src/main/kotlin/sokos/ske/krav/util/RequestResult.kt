@@ -5,7 +5,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.database.models.Status
+import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 
 const val KRAV_IKKE_RESKONTROFORT_RESEND = "innkrevingsoppdrag-er-ikke-reskontrofoert"

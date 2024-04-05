@@ -1,4 +1,4 @@
-package sokos.ske.krav.database.models
+package sokos.ske.krav.domain
 
 enum class Status(val value: String) {
     KRAV_INNLEST_FRA_FIL("KRAV_INNLEST_FRA_FIL"),
@@ -42,7 +42,6 @@ enum class Status(val value: String) {
 
     companion object {
         private val map = Status.entries.associateBy { it.value }
-        infix fun from(value: String) = map[value]
 
         fun Status.isOkStatus(): Boolean {
             return when (this) {
@@ -78,7 +77,7 @@ enum class Status(val value: String) {
                 ANNEN_KONFLIKT_409,
                 VALIDERINGSFEIL_422,
                 ANNEN_VALIDERINGSFEIL_422,
-                UKJENT_FEIL,    
+                UKJENT_FEIL,
                 UKJENT_STATUS -> true
                 else -> false
             }

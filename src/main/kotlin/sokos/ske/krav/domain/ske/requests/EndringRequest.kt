@@ -11,8 +11,3 @@ data class NyHovedStolRequest(
 data class EndreRenteBeloepRequest(
     val renter: List<RenteBeloep>,
 )
-
-@Serializable
-data class NyOppdragsgiversReferanseRequest(
-    val nyOppdragsgiversReferanse: String
-)

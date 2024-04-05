@@ -1,9 +1,9 @@
 package sokos.ske.krav.validation
 
 import mu.KotlinLogging
-import sokos.ske.krav.database.models.Status
+import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.domain.KravtypeMappingFromNAVToSKE
+import sokos.ske.krav.domain.Stonadstype
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.FtpFil
 import sokos.ske.krav.util.isOpprettKrav
@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter
 
 
 object LineValidator {
-    private val logger = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger(this.javaClass.name)
     fun validateNewLines(file: FtpFil): List<KravLinje> {
         val allErrorMessages = mutableListOf<String>()
         val returnLines = file.kravLinjer.map {
@@ -71,7 +71,7 @@ object LineValidator {
     }
 
     private fun validateKravtype(krav: KravLinje): Boolean = try {
-        KravtypeMappingFromNAVToSKE.getKravtype(krav)
+        Stonadstype.getStonadstype(krav)
         true
     }catch (e: NotImplementedError){
         false
@@ -95,7 +95,5 @@ object LineValidator {
     }
 
     private fun validateUtbetalingsDato(utbetalingsDato: LocalDate, vedtaksDato: LocalDate) = validateDateInPast(utbetalingsDato) && utbetalingsDato.isBefore(vedtaksDato)
-
-
 
 }

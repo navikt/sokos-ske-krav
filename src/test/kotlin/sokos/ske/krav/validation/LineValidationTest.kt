@@ -2,7 +2,7 @@ package sokos.ske.krav.validation
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import sokos.ske.krav.database.models.Status
+import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.service.FtpFil
 import sokos.ske.krav.util.asResource

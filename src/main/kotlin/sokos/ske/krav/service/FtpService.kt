@@ -29,7 +29,7 @@ class FtpService(
         addIdentity(config.privKey, config.keyPass)
         setKnownHosts(config.hostKey)
     }
-    private val logger = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger(this.javaClass.name)
 
     private val session = secureChannel.getSession(config.username, config.server, config.port).apply {
         setConfig("PreferredAuthentications", "publickey")
@@ -60,10 +60,6 @@ class FtpService(
     fun moveFile(fileName: String, from: Directories, to: Directories) {
         sftpChannel.moveFile(fileName, from, to)
     }
-
-    fun createFile(fileName: String, directory: Directories, content: String) =
-        sftpChannel.createFile(fileName, directory, content)
-
 
     fun getValidatedFiles(directory: Directories = Directories.INBOUND): List<FtpFil> {
         val successFiles = mutableListOf<FtpFil>()
@@ -106,15 +102,5 @@ class FtpService(
         } catch (e: SftpException) {
             logger.error("Feil i flytting av fil fra $oldpath til $newpath: ${e.message}")
         }
-    }
-
-    private fun ChannelSftp.createFile(fileName: String, directory: Directories, content: String) {
-        val path = "${directory.value}/$fileName"
-        try {
-            put(content.toByteArray().inputStream(), path)
-        } catch (e: SftpException) {
-            logger.error("Feil i opprettelse av fil $path: ${e.message}")
-        }
-
     }
 }

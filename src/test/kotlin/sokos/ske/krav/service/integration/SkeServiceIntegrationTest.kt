@@ -18,8 +18,9 @@ import sokos.ske.krav.database.Repository.insertAllNewKrav
 import sokos.ske.krav.database.Repository.updateEndringWithSkeKravIdentifikator
 import sokos.ske.krav.database.RepositoryExtensions.toFeilmelding
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
-import sokos.ske.krav.database.models.Status
+import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.nav.KravLinje
+import sokos.ske.krav.domain.ske.responses.AvstemmingResponse
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
@@ -113,7 +114,7 @@ internal class SkeServiceIntegrationTest : FunSpec({
 
         val skeClient = mockk<SkeClient> {
             coEvery { getSkeKravidentifikator(any()) } returns mockk<HttpResponse> {
-                coEvery { body<OpprettInnkrevingsOppdragResponse>().kravidentifikator } returns "foo"
+                coEvery { body<AvstemmingResponse>().kravidentifikator } returns "foo"
                 coEvery { status } returns HttpStatusCode.OK
             }
         }

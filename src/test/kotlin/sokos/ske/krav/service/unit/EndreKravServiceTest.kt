@@ -8,11 +8,9 @@ import io.mockk.mockk
 import io.mockk.spyk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.database.models.Status
+import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
 import sokos.ske.krav.service.DatabaseService
-import sokos.ske.krav.service.ENDRING_HOVEDSTOL
-import sokos.ske.krav.service.ENDRING_RENTE
 import sokos.ske.krav.service.EndreKravService
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.mockHttpResponse

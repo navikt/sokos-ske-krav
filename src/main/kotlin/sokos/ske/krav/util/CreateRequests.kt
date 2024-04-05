@@ -3,7 +3,7 @@ package sokos.ske.krav.util
 import kotlinx.datetime.toKotlinLocalDate
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.domain.KravtypeMappingFromNAVToSKE
+import sokos.ske.krav.domain.Stonadstype
 import sokos.ske.krav.domain.ske.requests.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -11,7 +11,7 @@ import kotlin.math.roundToLong
 
 
 fun makeOpprettKravRequest(krav: KravTable) = OpprettInnkrevingsoppdragRequest(
-    kravtype = KravtypeMappingFromNAVToSKE.getKravtype(krav),
+    stonadstype = Stonadstype.getStonadstype(krav),
     skyldner = createSkyldner(krav),
     hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.roundToLong()),
     renteBeloep = createRenteBelop(krav).takeIf { it.first().beloep > 0L },

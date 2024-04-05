@@ -7,7 +7,7 @@ import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
+import sokos.ske.krav.domain.ske.responses.AvstemmingResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.isOpprettKrav
@@ -30,17 +30,17 @@ class SkeService(
     private val databaseService: DatabaseService,
     private val ftpService: FtpService = FtpService(),
 ) {
-    private val logger = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger(this.javaClass.name)
 
     suspend fun handleNewKrav() {
         statusService.hentOgOppdaterMottaksStatus()
-        sendKrav(databaseService.getAllKravForResending())
+        Metrics.numberOfKravResent.inc(sendKrav(databaseService.getAllKravForResending()).size.toDouble())
 
         sendNewFilesToSKE()
 
         delay(10_000)
         statusService.hentOgOppdaterMottaksStatus()
-        sendKrav(databaseService.getAllKravForResending())
+        Metrics.numberOfKravResent.inc(sendKrav(databaseService.getAllKravForResending()).size.toDouble())
     }
 
     private suspend fun sendNewFilesToSKE() {
@@ -104,7 +104,7 @@ class SkeService(
             if (skeKravidentifikator.isBlank()) {
                 val httpResponse = skeClient.getSkeKravidentifikator(it.referanseNummerGammelSak)
                 if (httpResponse.status.isSuccess()) {
-                    skeKravidentifikatorSomSkalLagres = httpResponse.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
+                    skeKravidentifikatorSomSkalLagres = httpResponse.body<AvstemmingResponse>().kravidentifikator
                 }
             }
             if (skeKravidentifikatorSomSkalLagres.isNotBlank()) databaseService.updateEndringWithSkeKravIdentifikator(

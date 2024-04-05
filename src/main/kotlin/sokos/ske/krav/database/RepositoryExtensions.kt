@@ -66,19 +66,8 @@ object RepositoryExtensions {
     fun param(value: String?) =
         Parameter { statement: PreparedStatement, index: Int -> statement.setString(index, value) }
 
-    fun param(value: BigDecimal) =
-        Parameter { statement: PreparedStatement, index: Int -> statement.setBigDecimal(index, value) }
-
     fun param(value: LocalDate) =
         Parameter { statement: PreparedStatement, index: Int -> statement.setDate(index, Date.valueOf(value)) }
-
-    fun param(value: LocalDateTime) =
-        Parameter { statement: PreparedStatement, index: Int ->
-            statement.setTimestamp(
-                index,
-                Timestamp.valueOf(value)
-            )
-        }
 
     fun PreparedStatement.withParameters(vararg parameters: Parameter?) = apply {
         var index = 1
