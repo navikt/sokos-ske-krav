@@ -2,7 +2,7 @@ package sokos.ske.krav.validation
 
 import mu.KotlinLogging
 import sokos.ske.krav.domain.Status
-import sokos.ske.krav.domain.Stonadstype
+import sokos.ske.krav.domain.StonadsType
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.FtpFil
@@ -71,7 +71,7 @@ object LineValidator {
     }
 
     private fun validateKravtype(krav: KravLinje): Boolean = try {
-        Stonadstype.getStonadstype(krav)
+        StonadsType.getStonadstype(krav)
         true
     }catch (e: NotImplementedError){
         false

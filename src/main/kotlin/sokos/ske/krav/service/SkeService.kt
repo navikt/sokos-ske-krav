@@ -14,12 +14,10 @@ import sokos.ske.krav.util.isOpprettKrav
 import sokos.ske.krav.validation.LineValidator
 import java.time.LocalDateTime
 
-
 const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRING_RENTE = "ENDRING_RENTE"
 const val ENDRING_HOVEDSTOL = "ENDRING_HOVEDSTOL"
 const val STOPP_KRAV = "STOPP_KRAV"
-
 
 class SkeService(
     private val skeClient: SkeClient,
@@ -71,7 +69,6 @@ class SkeService(
 
         val allResponses = mutableListOf<RequestResult>()
 
-
         allResponses.addAll(
             stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV })
         )
@@ -81,8 +78,6 @@ class SkeService(
         allResponses.addAll(
             opprettKravService.sendAllOpprettKrav(kravTableList.filter { it.kravtype == NYTT_KRAV })
         )
-
-        Metrics.numberOfKravRead.inc(allResponses.filter { it.krav.kravtype != ENDRING_RENTE }.size.toDouble())
 
         allResponses.filter { !it.response.status.isSuccess() }
             .forEach() {

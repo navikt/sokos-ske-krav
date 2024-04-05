@@ -42,7 +42,6 @@ fun Routing.skeApi(
             }
         }
         get("status") {
-            println("kaller mottaksstatus")
             logger.info("APIlogger:  Status Start")
             try {
                 call.respond(statusService.hentOgOppdaterMottaksStatus())

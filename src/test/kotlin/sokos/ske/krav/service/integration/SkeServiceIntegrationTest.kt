@@ -170,7 +170,7 @@ internal class SkeServiceIntegrationTest : FunSpec({
         feilmeldinger.size shouldBe 10
         feilmeldinger.map { Json.decodeFromString<FeilResponse>(it.skeResponse).status == 404 }.size shouldBe 10
 
-        val joinToString = feilmeldinger.joinToString("','") { it.corrId }.also(::println)
+        val joinToString = feilmeldinger.joinToString("','") { it.corrId }
         val kravMedFeil =
             mocks.second.connection.prepareStatement(
                 """select * from Krav where corr_id in ('$joinToString')""",

@@ -1,5 +1,6 @@
 package sokos.ske.krav.util
 
+import mu.KotlinLogging
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.ext.ScriptUtils
 import org.testcontainers.ext.ScriptUtils.ScriptLoadException
@@ -11,6 +12,8 @@ import java.util.Locale
 class TestContainer(private val name: String = "testContainer") {
 	private val dockerImageName = "postgres:latest"
 	private val container = PostgreSQLContainer<Nothing>(DockerImageName.parse(dockerImageName))
+
+	private val logger = KotlinLogging.logger {  }
 
 	fun getContainer(
 		scripts: List<String> = emptyList(),
@@ -36,7 +39,7 @@ class TestContainer(private val name: String = "testContainer") {
 				try {
 					ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), script)
 				} catch (e: ScriptLoadException) {
-					println("Vent på at filene er kopiert og kjør testen på nytt. EXCEPTION: ${e.message}")
+					logger.info("Vent på at filene er kopiert og kjør testen på nytt. EXCEPTION: ${e.message}")
 				}
 			}
 		}
