@@ -17,7 +17,7 @@ repositories {
 val ktorVersion = "2.3.6"
 val hikaricpVersion = "5.1.0"
 val jschVersion = "0.2.12"
-val nimbusVersion = "9.37.1"
+val nimbusVersion = "9.37.2"
 val postgresqlVersion = "42.6.1"
 val flywayVersion = "9.16.1"
 val vaultVersion = "1.3.10"
