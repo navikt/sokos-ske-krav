@@ -2,6 +2,7 @@ package sokos.ske.krav.service
 
 
 import io.ktor.http.*
+import kotlinx.datetime.Clock
 import sokos.ske.krav.metrics.Metrics.requestError
 import sokos.ske.krav.util.RequestResult
 
@@ -15,15 +16,15 @@ object AlarmService {
         val nye = unsuccessful.filter { it.krav.kravtype == NYTT_KRAV }
 
         if(endringer.isNotEmpty()){
-            val message = "Feil i innsending av endring av krav i fil ${file.name}: ${endringer.map {"${it.krav.saksnummerNAV}:  ${it.status}" }}"
+            val message = "${Clock.System.now()}\nFeil i innsending av endring av krav i fil ${file.name}: ${endringer.map {"\n${it.krav.saksnummerNAV}:  ${it.status}" }}"
             requestError.labels(file.name, message).inc()
         }
         if(stopp.isNotEmpty()) {
-            val message = "Feil i innsending av stopp av krav i fil ${file.name}: ${stopp.map {"${it.krav.saksnummerNAV}:  ${it.status}" }}"
+            val message = "Clock.System.now()}\nFeil i innsending av stopp av krav i fil ${file.name}: ${stopp.map {"\n${it.krav.saksnummerNAV}:  ${it.status}" }}"
             requestError.labels(file.name, message).inc()
         }
         if(nye.isNotEmpty()){
-            val message = "Feil i innsending av nytt krav i fil ${file.name}: ${nye.map {"${it.krav.saksnummerNAV}:  ${it.status}" }}"
+            val message = "Clock.System.now()}\nFeil i innsending av nytt krav i fil ${file.name}: ${nye.map {"\n${it.krav.saksnummerNAV}:  ${it.status}" }}"
             requestError.labels(file.name, message).inc()
         }
 
