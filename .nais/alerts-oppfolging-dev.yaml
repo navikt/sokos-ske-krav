@@ -10,7 +10,7 @@ spec:
     - name: sokos-ske-krav-oppfolging-alerts
       rules:
         - alert: Feil i validering av fil
-          expr: count by (fileName, message) (rate(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[15m])) > 1
+          expr: count by (fileName, message) (rate(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[15m]))
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
             summary: "Feil i validering av fil {{ $labels.fileName }}: {{ $labels.message }}"
@@ -83,4 +83,4 @@ spec:
     groupInterval: 30s
     groupWait: 10s
     receiver: sokos-ske-krav-oppfolging-receiver
-    repeatInterval: 5m
+    repeatInterval: 10m
