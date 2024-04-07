@@ -83,4 +83,4 @@ spec:
     groupInterval: 30s
     groupWait: 10s
     receiver: sokos-ske-krav-oppfolging-receiver
-    repeatInterval: 15m
+    repeatInterval: 5m
