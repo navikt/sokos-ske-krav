@@ -2,11 +2,14 @@ package sokos.ske.krav.database
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import sokos.ske.krav.database.Repository.getAllErrorMessages
+import sokos.ske.krav.database.Repository.getAllKravForAvstemming
 import sokos.ske.krav.database.Repository.getAllKravForResending
 import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
 import sokos.ske.krav.database.Repository.getAllUnsentKrav
 import sokos.ske.krav.database.Repository.getAllValidationErrors
+import sokos.ske.krav.database.Repository.getErrorMessageForKravId
 import sokos.ske.krav.database.Repository.getKravTableIdFromCorrelationId
 import sokos.ske.krav.database.Repository.getSkeKravidentifikator
 import sokos.ske.krav.database.Repository.insertAllNewKrav
@@ -14,9 +17,15 @@ import sokos.ske.krav.database.Repository.insertErrorMessage
 import sokos.ske.krav.database.Repository.updateEndringWithSkeKravIdentifikator
 import sokos.ske.krav.database.Repository.updateSentKrav
 import sokos.ske.krav.database.Repository.updateStatus
+import sokos.ske.krav.database.Repository.updateStatusForAvstemtKravToReported
 import sokos.ske.krav.database.models.FeilmeldingTable
+import sokos.ske.krav.domain.Status
 
 import sokos.ske.krav.domain.nav.FileParser
+import sokos.ske.krav.service.ENDRING_HOVEDSTOL
+import sokos.ske.krav.service.ENDRING_RENTE
+import sokos.ske.krav.service.NYTT_KRAV
+import sokos.ske.krav.service.STOPP_KRAV
 
 import sokos.ske.krav.util.asResource
 import sokos.ske.krav.util.getAllKrav
@@ -28,12 +37,58 @@ import java.time.LocalDateTime
 
 internal class RepositoryTest : FunSpec({
 
+
+    test("getAllKravForAvstemming skal returnere alle krav som ikke har status RESKONTROFOERT eller VALIDERINGFEIL_RAPPORTERT") {
+        val dataSource = startContainer(this.testCase.name.testName, listOf("KravSomSkalAvstemmes.sql"))
+        val kravForAvstemming = dataSource.connection.getAllKravForAvstemming()
+        kravForAvstemming.size shouldBe 9
+    }
+
+    test("updateStatusForAvstemtKravToReported skal sette status til VALIDERINGFEIL_RAPPORTERT på krav med angitt kravid") {
+        val dataSource = startContainer(this.testCase.name.testName, listOf("KravSomSkalAvstemmes.sql"))
+        val kravForAvstemmingBeforeUpdate = dataSource.connection.getAllKravForAvstemming()
+
+        val firstKrav = kravForAvstemmingBeforeUpdate.first()
+        val lastKrav = kravForAvstemmingBeforeUpdate.last()
+        firstKrav.status shouldNotBe Status.VALIDERINGFEIL_RAPPORTERT.value
+        lastKrav.status shouldNotBe Status.VALIDERINGFEIL_RAPPORTERT.value
+
+        dataSource.connection.use { ds ->
+            ds.updateStatusForAvstemtKravToReported(firstKrav.kravId.toInt())
+            ds.updateStatusForAvstemtKravToReported(lastKrav.kravId.toInt())
+        }
+
+        val kravForAvstemmingAfterUpdate = dataSource.connection.getAllKravForAvstemming()
+        kravForAvstemmingAfterUpdate.size shouldBe kravForAvstemmingBeforeUpdate.size - 2
+        kravForAvstemmingAfterUpdate.filter { it.status == Status.VALIDERINGFEIL_RAPPORTERT.value }.size shouldBe 0
+
+        val alleKrav = dataSource.connection.getAllKrav()
+        val firstKravAfterUpdate = alleKrav.find { it.kravId == firstKrav.kravId }
+        val lastKravAfterUpdate = alleKrav.find { it.kravId == lastKrav.kravId }
+
+        firstKravAfterUpdate?.status shouldBe Status.VALIDERINGFEIL_RAPPORTERT.value
+        lastKravAfterUpdate?.status shouldBe Status.VALIDERINGFEIL_RAPPORTERT.value
+
+    }
+
+
+    test("getErrorMessageForKravId skal returnere en liste med feilmeldinger for angitt kravid") {
+        startContainer(this.testCase.name.testName, listOf("Feilmeldinger.sql")).use { ds ->
+            val feilmelding1 = ds.connection.getErrorMessageForKravId(1)
+            feilmelding1.size shouldBe 1
+            feilmelding1.first().corrId shouldBe "CORR856"
+            val feilmelding2 = ds.connection.getErrorMessageForKravId(2)
+            feilmelding2.size shouldBe 2
+            feilmelding2.filter { it.error == "404" }.size shouldBe 1
+            feilmelding2.filter { it.error == "422" }.size shouldBe 1
+        }
+    }
+
     test("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING") {
         startContainer(this.testCase.name.testName, listOf("KravSomSkalResendes.sql")).use { ds ->
             ds.connection.getAllKravForStatusCheck().size shouldBe 2
         }
     }
-  //  test("getAllKravForResending skal returnere krav som har status KRAV_IKKE_SENDT eller IKKE_RESKONTROFORT_RESEND") {
     test("getAllKravForResending skal returnere krav som har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500 ") {
         startContainer(this.testCase.name.testName, listOf("KravSomSkalResendes.sql")).use { ds ->
             ds.connection.getAllKravForResending().size shouldBe 7
@@ -52,7 +107,7 @@ internal class RepositoryTest : FunSpec({
 
     test("getAllFeilmeldinger skal returnere alle feilmeldinger ") {
         startContainer(this.testCase.name.testName, listOf("Feilmeldinger.sql")).use { ds ->
-            ds.connection.getAllErrorMessages().size shouldBe 1
+            ds.connection.getAllErrorMessages().size shouldBe 3
         }
     }
 
@@ -145,14 +200,18 @@ internal class RepositoryTest : FunSpec({
         }
     }
 
+    //endring for hovedstol er ikke med i test?
     test("insertAllNewKrav skal inserte alle kravlinjene") {
-        val liste = readFileFromFS("10NyeKrav.txt".asResource())
+        val liste = readFileFromFS("8NyeKrav1Endring1Stopp.txt".asResource())
         val kravlinjer = FileParser(liste).parseKravLinjer()
-        startContainer(this.testCase.name.testName, listOf("KravSomSkalResendes.sql")).use { ds ->
-            val originalSize = ds.connection.getAllKrav().size
+        startContainer(this.testCase.name.testName, emptyList()).use { ds ->
             ds.connection.insertAllNewKrav(kravlinjer)
-
-            ds.connection.getAllKrav().size shouldBe originalSize + kravlinjer.size
+            val lagredeKrav = ds.connection.getAllKrav()
+            lagredeKrav.size shouldBe kravlinjer.size + 1
+            lagredeKrav.filter { it.kravtype == NYTT_KRAV }.size shouldBe 8
+            lagredeKrav.filter { it.kravtype == STOPP_KRAV }.size shouldBe 1
+            lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.size shouldBe 1
+            lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.size shouldBe 1
         }
     }
 
@@ -199,14 +258,15 @@ internal class RepositoryTest : FunSpec({
 
         startContainer(this.testCase.name.testName, listOf("Feilmeldinger.sql")).use { ds ->
             ds.connection.use { con ->
-                con.getAllErrorMessages().size shouldBe 1
+                con.getAllErrorMessages().size shouldBe 3
                 con.insertErrorMessage(feilmelding)
 
                 val feilmeldinger = con.getAllErrorMessages()
-                feilmeldinger.size shouldBe 2
+                feilmeldinger.size shouldBe 4
                 feilmeldinger.filter { it.kravId == 1L }.size shouldBe 2
-                feilmeldinger.filter {it.corrId == "CORR456"}.size shouldBe 1
-                feilmeldinger.filter {it.corrId == "CORR856"}.size shouldBe 1
+                feilmeldinger.filter { it.corrId == "CORR456" }.size shouldBe 1
+                feilmeldinger.filter { it.corrId == "CORR856" }.size shouldBe 1
+                feilmeldinger.filter { it.corrId == "CORR658" }.size shouldBe 2
             }
         }
     }
