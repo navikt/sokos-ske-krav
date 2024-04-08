@@ -49,7 +49,7 @@ class SkeService(
         files.forEach { file ->
             logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
 
-            val validatedLines = LineValidator.validateNewLines(file)
+            val validatedLines = LineValidator().validateNewLines(file)
             Metrics.numberOfKravRead.inc(validatedLines.size.toDouble())
 
             databaseService.saveAllNewKrav(validatedLines)

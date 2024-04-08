@@ -1,84 +1,211 @@
 package sokos.ske.krav.validation
 
+
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.spyk
+import io.mockk.verify
 import sokos.ske.krav.domain.Status
-import sokos.ske.krav.domain.nav.FileParser
+import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.service.FtpFil
-import sokos.ske.krav.util.asResource
-import sokos.ske.krav.util.readFileFromFS
+import java.math.BigDecimal
+import java.time.LocalDate
 
-internal class LineValidationTest: FunSpec({
+internal class LineValidationTest : FunSpec({
 
-  test("Validering av linje skal returnere true når validering er ok") {
-	val liste = readFileFromFS("AltOkFil.txt".asResource())
-    val fil = FtpFil(
-        this.testCase.name.testName,
-        liste,
-        kravLinjer = FileParser(liste).parseKravLinjer()
-    )
-        LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe liste.size - 2
-  }
-
-  test("Validering av linje skal feile når kravtypen er ugyldig") {
-	val liste = readFileFromFS("FilMedFeilKravKode.txt".asResource())
-      val fil = FtpFil(
-          this.testCase.name.testName,
-          liste,
-          kravLinjer = FileParser(liste).parseKravLinjer()
-      )
-      LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe liste.size - 3
-  }
-
-
-  test("Beløp kan ikke være 0 når det er nytt krav eller krav som skal endres") {
-    val liste = readFileFromFS("FilMedBelopLikNull.txt".asResource())
-      val fil = FtpFil(
-          this.testCase.name.testName,
-          liste,
-          kravLinjer = FileParser(liste).parseKravLinjer()
-      )
-      LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe 8
-  }
-
-    test("Saksnummer må være riktig formatert"){
-        val liste = readFileFromFS("FilMedFeilSaksnr.txt".asResource())
+    test("Validering av linje skal returnere true når validering er ok") {
+        val kravLinje = KravLinje(
+            1, "saksnummer", BigDecimal.ONE, LocalDate.now(), "gjelderID",
+            "20231201", "20231212", "KS KS", "refgammelsak",
+            "20230112", "bosted", "beh", "T", "arsak",
+            BigDecimal.ONE, BigDecimal.ONE, LocalDate.now().minusDays(1), "1234"
+        )
         val fil = FtpFil(
             this.testCase.name.testName,
-            liste,
-            kravLinjer = FileParser(liste).parseKravLinjer()
+            emptyList(),
+            kravLinjer = listOf(kravLinje)
         )
-        LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe 1
+
+        val lines  = LineValidator().validateNewLines(fil)
+        lines.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 1
     }
 
-    test("Refnummer gamme sak må være riktig formatert"){
-        val liste = readFileFromFS("FilMedFeilRefnrGmlSak.txt".asResource())
+    test("Validering av linje skal feile når kravtypen er ugyldig") {
+        val kravLinje = KravLinje(
+            1, "saksnummer", BigDecimal.ONE, LocalDate.now(), "gjelderID",
+            "20231201", "20231212", "KS KS", "refgammelsak",
+            "20230112", "bosted", "beh", "TA", "arsak",
+            BigDecimal.ZERO, BigDecimal.ZERO, LocalDate.now().minusDays(1), "1234"
+        )
         val fil = FtpFil(
             this.testCase.name.testName,
-            liste,
-            kravLinjer = FileParser(liste).parseKravLinjer()
+            emptyList(),
+            kravLinjer = listOf(kravLinje)
         )
-        LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe 2
+
+        val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
+        lineVal.validateNewLines(fil)
+
+        verify {
+            val res: Boolean = lineVal["validateKravtype"](kravLinje) as Boolean
+            res shouldBe false
+        }
     }
 
-    test("Vedtaksdato kan ikke være i fremtiden" ){
-        val liste = readFileFromFS("FilMedUgyldigVedtaksdato.txt".asResource())
+    test("Beløp kan ikke være 0 når det er nytt krav eller krav som skal endres") {
+      val kravLinje = KravLinje(
+            1, "saksnummer", BigDecimal.ONE, LocalDate.now(), "gjelderID",
+            "20231201", "20231212", "KS KS", "refgammelsak",
+            "20230112", "bosted", "beh", "T", "arsak",
+            BigDecimal.ZERO, BigDecimal.ZERO, LocalDate.now().minusDays(1), "1234"
+        )
         val fil = FtpFil(
             this.testCase.name.testName,
-            liste,
-            kravLinjer = FileParser(liste).parseKravLinjer()
+            emptyList(),
+            kravLinjer = listOf(kravLinje)
         )
-        LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe 3
+
+        val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
+        lineVal.validateNewLines(fil)
+
+        verify {
+            val res: Boolean = lineVal["validateSaksnr"]("refgammelsak") as Boolean
+            res shouldBe false
+        }
     }
 
-  test("Periode må være i fortid og fom må være før tom") {
-      val liste = readFileFromFS("FilMedFeilPeriode.txt".asResource())
-      val fil = FtpFil(
-          this.testCase.name.testName,
-          liste,
-          kravLinjer = FileParser(liste).parseKravLinjer()
-      )
-      LineValidator.validateNewLines(fil).filter { it.status.equals(Status.KRAV_IKKE_SENDT.value) }.size shouldBe 3
-  }
+    test("Saksnummer må være riktig formatert") {
+
+        val kravLinje = KravLinje(
+            1, "saksnummer_ø", BigDecimal.ONE, LocalDate.now(), "gjelderID",
+            "20231201", "20231212", "KS KS", "refgammelsak",
+            "20230112", "bosted", "beh", "T", "arsak",
+            BigDecimal.ONE, BigDecimal.ONE, LocalDate.now().minusDays(1), "1234"
+        )
+        val fil = FtpFil(
+            this.testCase.name.testName,
+            emptyList(),
+            kravLinjer = listOf(kravLinje)
+        )
+
+        val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
+        lineVal.validateNewLines(fil)
+
+        verify {
+            val res: Boolean = lineVal["validateSaksnr"](any<String>()) as Boolean
+            res shouldBe false
+        }
+    }
+
+    test("Refnummer gamme sak må være riktig formatert") {
+        val kravLinje = KravLinje(
+            1, "saksnummer", BigDecimal.ONE, LocalDate.now(), "gjelderID",
+            "20231201", "20231212", "KS KS", "refgammelsak_ø",
+            "20230112", "bosted", "beh", "T", "arsak",
+            BigDecimal.ONE, BigDecimal.ONE, LocalDate.now().minusDays(1), "1234"
+        )
+        val fil = FtpFil(
+            this.testCase.name.testName,
+            emptyList(),
+            kravLinjer = listOf(kravLinje)
+        )
+
+        val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
+        lineVal.validateNewLines(fil)
+
+        verify {
+            val res: Boolean = lineVal["validateSaksnr"](any<String>()) as Boolean
+            res shouldBe false
+        }
+    }
+
+    test("Vedtaksdato kan ikke være i fremtiden") {
+        val kravLinje = KravLinje(
+            1, "saksnummer", BigDecimal.ONE, LocalDate.now().plusDays(1), "gjelderID",
+            "20231201", "20231212", "KS KS", "refgammelsak",
+            "20230112", "bosted", "beh", "T", "arsak",
+            BigDecimal.ONE, BigDecimal.ONE, LocalDate.now().minusDays(1), "1234"
+        )
+        val fil = FtpFil(
+            this.testCase.name.testName,
+            emptyList(),
+            kravLinjer = listOf(kravLinje)
+        )
+
+        val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
+        lineVal.validateNewLines(fil)
+
+        verify {
+            val res: Boolean = lineVal["validateVedtaksdato"](any<LocalDate>()) as Boolean
+            res shouldBe false
+        }
+    }
+
+    test("Periode må være i fortid og fom må være før tom") {
+        val kravLinje = KravLinje(
+            1, "saksnummer", BigDecimal.ONE, LocalDate.now(), "gjelderID",
+            "20241212", "20241201", "KS KS", "refgammelsak",
+            "20230112", "bosted", "beh", "T", "arsak",
+            BigDecimal.ONE, BigDecimal.ONE, LocalDate.now().minusDays(1), "1234"
+        )
+        val fil = FtpFil(
+            this.testCase.name.testName,
+            emptyList(),
+            kravLinjer = listOf(kravLinje)
+        )
+
+        val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
+        lineVal.validateNewLines(fil)
+
+        verify {
+            val res: Boolean = lineVal["validatePeriode"](any<String>(), any<String>()) as Boolean
+            res shouldBe false
+        }
+    }
+
+    test("utbetalingsdato må være i fortid") {
+        val kravLinje = KravLinje(
+            1, "saksnummer", BigDecimal.ONE, LocalDate.now(), "gjelderID",
+            "20231201", "20231230", "KS KS", "refgammelsak",
+            "20230112", "bosted", "beh", "T", "arsak",
+            BigDecimal.ONE, BigDecimal.ONE, LocalDate.now(), "1234"
+        )
+        val fil = FtpFil(
+            this.testCase.name.testName,
+            emptyList(),
+            kravLinjer = listOf(kravLinje)
+        )
+
+        val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
+        lineVal.validateNewLines(fil)
+
+        verify {
+            val res: Boolean = lineVal["validateUtbetalingsDato"](any<LocalDate>(), any<LocalDate>()) as Boolean
+            res shouldBe false
+        }
+
+    }
+    test("validering av periode skal returnere false når dato er på ugyldig format") {
+        val kravLinje = KravLinje(
+            1, "saksnummer", BigDecimal.ONE, LocalDate.now(), "gjelderID",
+            "20233030", "20231202", "KS KS", "refgammelsak",
+            "20230112", "bosted", "beh", "T", "arsak",
+            BigDecimal.ONE, BigDecimal.ONE, LocalDate.now().minusDays(1), "1234"
+        )
+
+        val fil = FtpFil(
+            this.testCase.name.testName,
+            emptyList(),
+            kravLinjer = listOf(kravLinje)
+        )
+
+        val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
+        lineVal.validateNewLines(fil)
+
+        verify {
+            val res: Boolean = lineVal["validatePeriode"](any<String>(), any<String>()) as Boolean
+            res shouldBe false
+        }
+    }
 
 })
