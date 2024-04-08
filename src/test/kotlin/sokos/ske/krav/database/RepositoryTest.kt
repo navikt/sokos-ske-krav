@@ -1,5 +1,6 @@
 package sokos.ske.krav.database
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -18,6 +19,9 @@ import sokos.ske.krav.database.Repository.updateEndringWithSkeKravIdentifikator
 import sokos.ske.krav.database.Repository.updateSentKrav
 import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.Repository.updateStatusForAvstemtKravToReported
+import sokos.ske.krav.database.RepositoryExtensions.getColumn
+import sokos.ske.krav.database.RepositoryExtensions.toFeilmelding
+import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.domain.Status
 
@@ -31,6 +35,7 @@ import sokos.ske.krav.util.asResource
 import sokos.ske.krav.util.getAllKrav
 import sokos.ske.krav.util.readFileFromFS
 import sokos.ske.krav.util.startContainer
+import java.sql.SQLException
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -267,6 +272,49 @@ internal class RepositoryTest : FunSpec({
                 feilmeldinger.filter { it.corrId == "CORR456" }.size shouldBe 1
                 feilmeldinger.filter { it.corrId == "CORR856" }.size shouldBe 1
                 feilmeldinger.filter { it.corrId == "CORR658" }.size shouldBe 2
+            }
+        }
+    }
+
+
+    test("getColumn skal kaste exception hvis den ikke kan parse datatypen") {
+        shouldThrow<SQLException> {
+            startContainer(this.testCase.name.testName, emptyList()).connection.use {
+                val rs = it.prepareStatement("""select * from feilmelding""").executeQuery()
+                rs.getColumn("any")
+            }
+        }
+    }
+
+    test("resultset getcolumn skal kaste exception hvis påkrevd column er null") {
+        shouldThrow<SQLException> {
+            startContainer(this.testCase.name.testName, emptyList()).connection.use {
+                it.prepareStatement(
+                    """
+                    insert into feilmelding ( kravID, corr_id, saksnummer, kravidentifikator_ske, error, melding, navRequest, skeResponse, dato)
+                    values  (1, 'CORR769', '3330-navsaksnummer', '3333-skeUUID', 422, 'feilmelding 422 3333', '{nav request 3}', '{ske response 3}',  null);
+                """.trimIndent()
+                ).execute()
+                val rs = it.prepareStatement("""select * from feilmelding""").executeQuery()
+                rs.toFeilmelding()
+            }
+        }
+    }
+
+    test("resultset getcolumn skal kaste exception hvis den ikke finner kolonne med det gitte navnet") {
+
+        shouldThrow<SQLException> {
+            startContainer(this.testCase.name.testName, emptyList()).connection.use {
+                val rs = it.prepareStatement("""select * from feilmelding""").executeQuery()
+                rs.getColumn("foo")
+            }
+        }
+    }
+
+    test("useAndHandleErrors skal kaste exception oppover") {
+        shouldThrow<SQLException> {
+            startContainer(this.testCase.name.testName, emptyList()).connection.useAndHandleErrors {
+                it.prepareStatement("""insert into foo values(1,2)""").execute()
             }
         }
     }
