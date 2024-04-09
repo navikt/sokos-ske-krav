@@ -53,14 +53,14 @@ class SkeService(
             Metrics.numberOfKravRead.inc(validatedLines.size.toDouble())
 
             databaseService.saveAllNewKrav(validatedLines)
+            ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
+
             updateAllEndringerAndStopp(validatedLines.filter { !it.isOpprettKrav() })
 
             val result = sendKrav(databaseService.getAllUnsentKrav())
             AlarmService.handleFeil(result, file)
 
         }
-
-        files.forEach { file -> ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND) }
 
         logger.info("*******************KJØRING FERDIG*******************")
     }
