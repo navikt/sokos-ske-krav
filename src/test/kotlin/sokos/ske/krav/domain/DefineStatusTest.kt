@@ -68,14 +68,27 @@ internal class DefineStatusTest : FunSpec({
         val requestResult = RequestResult(mockHttpResponse(500), mockk<KravTable>(), "", "")
         requestResult.status shouldBe Status.INTERN_TJENERFEIL_500
     }
+
     test("Når responsekode er 503 skal krav ha status Status.UTILGJENGELIG_TJENESTE_503") {
         val requestResult = RequestResult(mockHttpResponse(503), mockk<KravTable>(), "", "")
         requestResult.status shouldBe Status.UTILGJENGELIG_TJENESTE_503
     }
-    test("Når responsekode ikke gjenkjennes skal krav ha status Status.ANNEN_KLIENT_FEIL_400") {
+
+    test("Når responsekode er i 300-serien og ikke spesifikt dekket så skal krav ha status Status.REDIRECTION_FEIL_300"){
+        val requestResult = RequestResult(mockHttpResponse(301), mockk<KravTable>(), "", "")
+        requestResult.status shouldBe Status.REDIRECTION_FEIL_300
+    }
+    
+    test("Når responsekode er i 400-serien og ikke spesifikt dekket så skal krav ha status Status.ANNEN_KLIENT_FEIL_400") {
         val requestResult = RequestResult(mockHttpResponse(420), mockk<KravTable>(), "", "")
         requestResult.status shouldBe Status.ANNEN_KLIENT_FEIL_400
     }
+
+    test("Når responsekode er i 500-serien og ikke spesifikt dekket så skal krav ha status Status.ANNEN_SERVER_FEIL_500"){
+        val requestResult = RequestResult(mockHttpResponse(502), mockk<KravTable>(), "", "")
+        requestResult.status shouldBe Status.ANNEN_SERVER_FEIL_500
+    }
+
 
 
 }
