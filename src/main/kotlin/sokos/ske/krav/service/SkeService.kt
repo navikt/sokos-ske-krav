@@ -67,6 +67,8 @@ class SkeService(
 
     private suspend fun sendKrav(kravTableList: List<KravTable>): List<RequestResult> {
 
+        logger.info("sender ${kravTableList.size}")
+
         val allResponses = mutableListOf<RequestResult>()
 
         allResponses.addAll(
