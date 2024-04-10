@@ -10,7 +10,7 @@ spec:
     - name: sokos-ske-krav-oppfolging-alerts
       rules:
         - alert: Feil i validering av fil
-          expr: (rate(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[2m]) * 120) > 0
+          expr: rate(sokos_ske_krav_filvalidering_feil_created{app="sokos-ske-krav"}[2m])*120 > 0
           for: 2m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
@@ -21,7 +21,8 @@ spec:
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i validering av linje
-          expr: count by (fileName, message) (rate(sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}[30m]))
+          expr: rate(sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}[2m])*120 > 0
+          for: 2m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
             summary: "Feil i validering av linje fra fil {{ $labels.fileName }}: {{ $labels.message }}"
@@ -31,7 +32,8 @@ spec:
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i innsending av krav
-          expr:  count by (fileName, message) (rate(sokos_ske_krav_innsending_av_krav_feil_total{app="sokos-ske-krav"}[30m]))
+          expr:  rate(sokos_ske_krav_innsending_av_krav_feil_total{app="sokos-ske-krav"}[2m])*120 > 0
+          for: 2m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
             summary: "Feil i innsending av linje fra fil {{ $labels.fileName }} : {{ $labels.message }}"
@@ -59,7 +61,7 @@ spec:
           channel: '#team-mob-manuell-oppfolging'
           iconEmoji: ':alert:'
           username: 'Alert dev-fss'
-          sendResolved: false
+          sendResolved: true
           httpConfig:
             proxyURL: http://webproxy.nais:8088
           title: |-
@@ -84,4 +86,4 @@ spec:
     groupInterval: 30s
     groupWait: 10s
     receiver: sokos-ske-krav-oppfolging-receiver
-    repeatInterval: 10m
+    repeatInterval: 5m
