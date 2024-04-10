@@ -241,7 +241,7 @@ object Repository {
                 else -> NYTT_KRAV
             }
             prepStmt.setString(1, it.saksNummer)
-            prepStmt.setDouble(2, it.belop.toDouble())
+            prepStmt.setBigDecimal(2, it.belop)
             prepStmt.setDate(3, Date.valueOf(it.vedtakDato))
             prepStmt.setString(4, it.gjelderID)
             prepStmt.setString(5, it.periodeFOM)
@@ -263,7 +263,7 @@ object Repository {
             prepStmt.addBatch()
             if (type == ENDRING_HOVEDSTOL) {
                 prepStmt.setString(1, it.saksNummer)
-                prepStmt.setDouble(2, it.belop.toDouble())
+                prepStmt.setBigDecimal(2, it.belop)
                 prepStmt.setDate(3, Date.valueOf(it.vedtakDato))
                 prepStmt.setString(4, it.gjelderID)
                 prepStmt.setString(5, it.periodeFOM)
