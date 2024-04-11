@@ -22,8 +22,9 @@ import java.util.*
 object Repository {
 
     fun Connection.getAllKravForStatusCheck() =
-        prepareStatement("""select * from krav where status in (?, ?)""")
+        prepareStatement("""select * from krav where krav.kravtype = ? and status in (?, ?)""")
             .withParameters(
+                param(NYTT_KRAV),
                 param(Status.KRAV_SENDT.value),
                 param(Status.MOTTATT_UNDERBEHANDLING.value),
             ).executeQuery().toKrav()
@@ -79,14 +80,12 @@ object Repository {
             """
             select id, kravidentifikator_ske from krav
             where (saksnummer_nav = ? or referansenummergammelsak= ?) 
-            and (krav.kravtype = ? or krav.kravtype = ?) and krav.kravidentifikator_ske is not null 
+            and krav.kravidentifikator_ske is not null 
             order by id desc limit 1
         """.trimIndent()
         ).withParameters(
             param(navref),
             param(navref),
-            param(NYTT_KRAV),
-            param(ENDRING_HOVEDSTOL),
         ).executeQuery()
         return if (rs.next())
             rs.getColumn("kravidentifikator_ske")

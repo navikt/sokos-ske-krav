@@ -70,15 +70,14 @@ class SkeService(
         logger.info("sender ${kravTableList.size}")
 
         val allResponses = mutableListOf<RequestResult>()
-
         allResponses.addAll(
-            stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV })
+            opprettKravService.sendAllOpprettKrav(kravTableList.filter { it.kravtype == NYTT_KRAV })
         )
         allResponses.addAll(
             endreKravService.sendAllEndreKrav(kravTableList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE })
         )
         allResponses.addAll(
-            opprettKravService.sendAllOpprettKrav(kravTableList.filter { it.kravtype == NYTT_KRAV })
+            stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV })
         )
 
         allResponses.filter { !it.response.status.isSuccess() }
