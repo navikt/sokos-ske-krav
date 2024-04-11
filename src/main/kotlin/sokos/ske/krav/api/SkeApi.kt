@@ -6,6 +6,7 @@ import io.ktor.http.ContentType.Text.Html
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.datetime.Clock
 import mu.KotlinLogging
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.service.AvstemmingService
@@ -23,22 +24,14 @@ fun Routing.skeApi(
     route("krav") {
 
         get("test") {
-            logger.info("API kaller test")
+            logger.info("API : Kaller handleNewKrav")
             try {
-                //val response = skeService.sendNewFilesToSKE()
-                val response = skeService.handleNewKrav()
-                logger.info("APIKrav sendt, returnerer reponse")
-                call.respond(HttpStatusCode.OK, "$response")
-                logger.info("APIKrav sendt")
-                /*                logger.info { "APIKrav sendt, oppdaterer mottaksstatus" }
-                                skeService.hentOgOppdaterMottaksStatus()
-                                logger.info { "APIKrav sendt, har oppdatert mottaksstatus" }*/
+                call.respond(HttpStatusCode.OK, "Da er den i gang ${Clock.System.now()}")
+                skeService.handleNewKrav()
+                logger.info("API :  Krav sendt")
             } catch (e: Exception) {
-                call.respond(
-                    HttpStatusCode.InternalServerError,
-                    "Sorry feilet: ${e.message}, \n" +
-                            "Stacktrace= ${e.stackTraceToString()}"
-                )
+                logger.error("API : Sorry feilet: ${e.message}, \n" +
+                            "Stacktrace= ${e.stackTraceToString()}")
             }
         }
         get("status") {
