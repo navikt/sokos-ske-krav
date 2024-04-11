@@ -119,7 +119,7 @@ internal class RepositoryTest : FunSpec({
     test("getSkeKravIdent skal returnere kravidentifikator_ske basert på saksnummer_nav eller gammel referanse") {
         startContainer(this.testCase.name.testName, listOf("KravSomSkalResendes.sql")).use { ds ->
             ds.connection.getSkeKravidentifikator("2221-navsaksnummer") shouldBe ""
-            ds.connection.getSkeKravidentifikator("3330-navsaksnummer") shouldBe ""
+            ds.connection.getSkeKravidentifikator("33302-navsaksnummer") shouldBe ""
             ds.connection.getSkeKravidentifikator("4440-navsaksnummer") shouldBe "4444-skeUUID"
         }
     }
