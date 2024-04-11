@@ -78,13 +78,15 @@ object Repository {
         val rs = prepareStatement(
             """
             select id, kravidentifikator_ske from krav
-            where (saksnummer_nav = ? or referansenummergammelsak= ?) and krav.kravtype = ? and krav.kravidentifikator_ske is not null 
+            where (saksnummer_nav = ? or referansenummergammelsak= ?) 
+            and (krav.kravtype = ? or krav.kravtype = ?) and krav.kravidentifikator_ske is not null 
             order by id desc limit 1
         """.trimIndent()
         ).withParameters(
             param(navref),
             param(navref),
-            param(NYTT_KRAV)
+            param(NYTT_KRAV),
+            param(ENDRING_HOVEDSTOL),
         ).executeQuery()
         return if (rs.next())
             rs.getColumn("kravidentifikator_ske")
