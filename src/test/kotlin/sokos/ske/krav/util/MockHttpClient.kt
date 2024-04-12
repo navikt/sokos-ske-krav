@@ -21,6 +21,7 @@ object MockHttpClientUtils {
         AVSKRIVING("/avskriving"),
         AVSTEMMING("/avstemming"),
         ENDRE_REFERANSE("/oppdragsgiversreferanse"),
+        HENT_VALIDERINGSFEIL("/valideringsfeil"),
     }
 
     data class MockRequestObj(
@@ -150,6 +151,7 @@ class MockHttpClient {
             "/innkrevingsoppdrag/OB040000592759$baseUrl",
             "/innkrevingsoppdrag/OB040000479803$baseUrl",
             "/innkrevingsoppdrag/OB040000595755$baseUrl",
+            "/innkrevingsoppdrag/2220-navsaksnummer$baseUrl",
             "/innkrevingsoppdrag/1111-skeUUID$baseUrl",
             "/innkrevingsoppdrag/2222-skeUUID$baseUrl",
             "/innkrevingsoppdrag/3333-skeUUID$baseUrl",
