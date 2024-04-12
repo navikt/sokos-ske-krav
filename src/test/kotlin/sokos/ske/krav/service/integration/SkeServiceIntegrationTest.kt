@@ -184,7 +184,7 @@ internal class SkeServiceIntegrationTest : FunSpec({
         val ds = startContainer(this.testCase.name.testName, listOf("KravSomSkalResendes.sql"))
 
         ds.connection.getAllKrav().let { kravBefore ->
-            kravBefore.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 1
+            kravBefore.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 3
             kravBefore.filter { it.status == Status.IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 3
             kravBefore.filter { it.status == Status.ANNEN_SERVER_FEIL_500.value }.size shouldBe 1
             kravBefore.filter { it.status == Status.UTILGJENGELIG_TJENESTE_503.value }.size shouldBe 1

@@ -53,6 +53,7 @@ class SkeClient(
 
     private suspend inline fun <reified T> doPost(path: String, request: T, corrID: String) = client.post(
         buildHttpRequest(path, corrID).apply {
+            contentType(ContentType.Application.Json)
             setBody(request)
         },
     )
@@ -60,6 +61,7 @@ class SkeClient(
     private suspend inline fun <reified T> doPut(path: String, request: T, kravidentifikator: String, corrID: String) =
         client.put(
             buildHttpRequest(path, corrID).apply {
+                contentType(ContentType.Application.Json)
                 headers.append("kravidentifikator", kravidentifikator)
                 setBody(request)
             },
@@ -71,7 +73,6 @@ class SkeClient(
         val token = tokenProvider.hentAccessToken()
         return HttpRequestBuilder().apply {
             url("$skeEndpoint$path")
-            accept(ContentType.Application.Json)
             headers {
                 append("Klientid", KLIENT_ID)
                 append("Korrelasjonsid", corrID)

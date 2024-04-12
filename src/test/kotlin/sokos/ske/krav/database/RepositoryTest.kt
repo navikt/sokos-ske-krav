@@ -96,12 +96,12 @@ internal class RepositoryTest : FunSpec({
     }
     test("getAllKravForResending skal returnere krav som har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500 ") {
         startContainer(this.testCase.name.testName, listOf("KravSomSkalResendes.sql")).use { ds ->
-            ds.connection.getAllKravForResending().size shouldBe 7
+            ds.connection.getAllKravForResending().size shouldBe 9
         }
     }
     test("getAllKravNotSent skal returnere krav som har status KRAV_IKKE_SENDT") {
         startContainer(this.testCase.name.testName, listOf("KravSomSkalResendes.sql")).use { ds ->
-            ds.connection.getAllUnsentKrav().size shouldBe 1
+            ds.connection.getAllUnsentKrav().size shouldBe 3
         }
     }
     test("getAllValidationErrors skal returnere krav som har status VALIDERINGSFEIL_422") {
@@ -118,9 +118,11 @@ internal class RepositoryTest : FunSpec({
 
     test("getSkeKravIdent skal returnere kravidentifikator_ske basert på saksnummer_nav eller gammel referanse") {
         startContainer(this.testCase.name.testName, listOf("KravSomSkalResendes.sql")).use { ds ->
-            ds.connection.getSkeKravidentifikator("2221-navsaksnummer") shouldBe ""
-            ds.connection.getSkeKravidentifikator("33302-navsaksnummer") shouldBe ""
+            ds.connection.getSkeKravidentifikator("2220-navsaksnummer") shouldBe "1111-skeUUID"
+            ds.connection.getSkeKravidentifikator("3330-navsaksnummer") shouldBe "3333-skeUUID"
             ds.connection.getSkeKravidentifikator("4440-navsaksnummer") shouldBe "4444-skeUUID"
+            ds.connection.getSkeKravidentifikator("1111-navsaksnummer") shouldBe ""
+           
         }
     }
 
@@ -245,7 +247,7 @@ internal class RepositoryTest : FunSpec({
 
         ds.connection.use { con ->
             val originalEndreKrav = con.getAllKrav().first { it.saksnummerNAV == "2220-navsaksnummer" }
-            originalEndreKrav.saksnummerSKE shouldBe "2222-skeUUID"
+            originalEndreKrav.saksnummerSKE shouldBe "1111-skeUUID"
 
             con.updateEndringWithSkeKravIdentifikator("2220-navsaksnummer", "Ny_ske_saksnummer")
 
