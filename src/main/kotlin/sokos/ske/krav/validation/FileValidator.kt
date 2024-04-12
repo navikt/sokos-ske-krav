@@ -13,7 +13,6 @@ object FileValidator{
         val firstLine = parser.parseKontrollLinjeHeader()
         val lastLine = parser.parseKontrollLinjeFooter()
         val kravLinjer = parser.parseKravLinjer()
-        logger.info("*****3#########################*************FIleValidator" )
 
         val errorMessages = mutableListOf<String>()
 
