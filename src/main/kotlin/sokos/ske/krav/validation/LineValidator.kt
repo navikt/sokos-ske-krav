@@ -13,7 +13,7 @@ import java.time.format.DateTimeParseException
 
 
 class LineValidator {
-    private val logger = KotlinLogging.logger(this.javaClass.name)
+    private val logger = KotlinLogging.logger("secureLogger")
 
     fun validateNewLines(file: FtpFil): List<KravLinje> {
         val allErrorMessages = mutableListOf<String>()

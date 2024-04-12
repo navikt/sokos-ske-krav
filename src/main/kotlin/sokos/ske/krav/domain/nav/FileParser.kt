@@ -98,7 +98,7 @@ class FileParser(val content: List<String>) {
     }
 
     private data class Posisjon(val start: Int, val end: Int) {
-        private val logger = KotlinLogging.logger {}
+        private val logger = KotlinLogging.logger("secureLogger")
 
         fun parseString(line: String): String {
             if (start > end) {

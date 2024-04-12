@@ -20,7 +20,8 @@ class StatusService(
     private val databaseService: DatabaseService
 ) {
 
-    private val logger = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger("secureLogger")
+
     suspend fun hentOgOppdaterMottaksStatus() {
 
         val krav = databaseService.getAllKravForStatusCheck()

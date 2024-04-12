@@ -28,7 +28,7 @@ class SkeService(
     private val databaseService: DatabaseService,
     private val ftpService: FtpService = FtpService(),
 ) {
-    private val logger = KotlinLogging.logger(this.javaClass.name)
+    private val logger = KotlinLogging.logger("secureLogger")
 
     suspend fun handleNewKrav() {
         statusService.hentOgOppdaterMottaksStatus()

@@ -29,7 +29,7 @@ class FtpService(
         addIdentity(config.privKey, config.keyPass)
         setKnownHosts(config.hostKey)
     }
-    private val logger = KotlinLogging.logger(this.javaClass.name)
+    private val logger = KotlinLogging.logger("secureLogger")
 
     private val session = secureChannel.getSession(config.username, config.server, config.port).apply {
         setConfig("PreferredAuthentications", "publickey")

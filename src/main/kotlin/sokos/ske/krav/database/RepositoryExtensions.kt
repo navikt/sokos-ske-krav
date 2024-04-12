@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 
 object RepositoryExtensions {
 
-    val logger = KotlinLogging.logger(this.javaClass.name)
+    val logger = KotlinLogging.logger("secureLogger")
 
     inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R {
         try {

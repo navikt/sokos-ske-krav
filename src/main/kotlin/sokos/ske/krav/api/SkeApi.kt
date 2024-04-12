@@ -19,7 +19,7 @@ fun Routing.skeApi(
     statusService: StatusService,
     avstemmingService: AvstemmingService
 ) {
-    val logger = KotlinLogging.logger {}
+    val logger = KotlinLogging.logger ("secureLogger")
 
     route("krav") {
 

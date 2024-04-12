@@ -8,9 +8,8 @@ import org.flywaydb.core.Flyway
 import sokos.ske.krav.config.PropertiesConfig
 import java.sql.Connection
 
-private val logger = KotlinLogging.logger { }
-
 class PostgresDataSource {
+    private val logger = KotlinLogging.logger("secureLogger")
     private val postgresConfig: PropertiesConfig.PostgresConfig = PropertiesConfig.PostgresConfig()
     private val isLocal = PropertiesConfig.Configuration().profile == PropertiesConfig.Profile.LOCAL
     private var dataSource: HikariDataSource
