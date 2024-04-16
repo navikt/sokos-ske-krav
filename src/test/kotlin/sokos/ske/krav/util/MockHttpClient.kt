@@ -111,7 +111,17 @@ object MockHttpClientUtils {
             	}]
             }
             """.trimMargin()
+
+        //language=json
+        fun emptyValideringsfeilResponse() = """
+            {
+            "valideringsfeil": []
+            }
+            """.trimMargin()
+
     }
+
+
 }
 
 class MockHttpClient {
@@ -133,7 +143,6 @@ class MockHttpClient {
         engine {
             addHandler { request ->
                 val handler = kall.singleOrNull {
-
                     generateUrls(it.type.url).contains(request.url.encodedPath)
                 }
                 if (handler != null) {
