@@ -9,8 +9,8 @@ import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.createKravidentifikatorPair
-import sokos.ske.krav.util.makeEndreHovedstolRequest
-import sokos.ske.krav.util.makeEndreRenteRequest
+import sokos.ske.krav.util.createEndreHovedstolRequest
+import sokos.ske.krav.util.createEndreRenteRequest
 
 class EndreKravService(
     private val skeClient: SkeClient,
@@ -69,7 +69,7 @@ class EndreKravService(
     ): RequestResult {
 
         return if (krav.kravtype == ENDRING_RENTE) {
-            val endreRenterRequest = makeEndreRenteRequest(krav)
+            val endreRenterRequest = createEndreRenteRequest(krav)
             val endreRenterResponse =
                 skeClient.endreRenter(endreRenterRequest, kravidentifikator, kravidentifikatorType, krav.corr_id)
 
@@ -83,7 +83,7 @@ class EndreKravService(
             requestResultEndreRente
 
         } else {
-            val endreHovedstolRequest = makeEndreHovedstolRequest(krav)
+            val endreHovedstolRequest = createEndreHovedstolRequest(krav)
             val endreHovedstolResponse =
                 skeClient.endreHovedstol(endreHovedstolRequest, kravidentifikator, kravidentifikatorType, krav.corr_id)
 

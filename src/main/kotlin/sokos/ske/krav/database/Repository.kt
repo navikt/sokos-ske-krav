@@ -78,10 +78,10 @@ object Repository {
     fun Connection.getSkeKravidentifikator(navref: String): String {
         val rs = prepareStatement(
             """
-            select id, kravidentifikator_ske from krav
+            select min(tidspunkt_opprettet) as opprettet, kravidentifikator_ske from krav
             where (saksnummer_nav = ? or referanseNummerGammelSak = ?) 
-            and krav.kravidentifikator_ske is not null 
-            order by id limit 1
+            and (kravidentifikator_ske is not null && kravidentifikator_ske <> '') 
+            group by kravidentifikator_ske limit 1
         """.trimIndent()
         ).withParameters(
             param(navref),
@@ -92,11 +92,26 @@ object Repository {
         else ""
     }
 
+    fun Connection.getPreviousOldRef(navref: String): String {
+        val rs = prepareStatement(
+            """
+                select referansenummergammelsak from krav
+                where saksnummer_nav = ? and referansenummergammelsak <> saksnummer_nav
+                order by id limit 1
+            """.trimIndent()
+        ).withParameters(
+            param(navref),
+        ).executeQuery()
+        return if (rs.next())
+            rs.getColumn("referansenummergammelsak")
+        else navref
+    }
+
     fun Connection.getKravTableIdFromCorrelationId(corrID: String): Long {
         val rs = prepareStatement(
             """
             select id from krav
-            where corr_id = ? order by id desc limit 1
+            where corr_id = ? order by id limit 1
         """.trimIndent()
         ).withParameters(
             param(corrID)
@@ -338,5 +353,20 @@ object Repository {
         commit()
     }
 
+    fun Connection.insertValidationError(filnavn: String, kravlinje: KravLinje, feilmelding: String) {
+        prepareStatement(
+            """
+                insert into valideringsfeil (filnavn, linjenr, saksnr, kravlinje, feilmelding, dato_opprettet)
+                values (?, ?, ?, ?, ?, Now() )
+            """.trimIndent()
+        ).withParameters(
+            param(filnavn),
+            param(kravlinje.linjeNummer),
+            param(kravlinje.saksNummer),
+            param(kravlinje.toString()),
+            param(feilmelding)
+        ).execute()
+        commit()
+    }
 }
 

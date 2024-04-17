@@ -1,10 +1,12 @@
 package sokos.ske.krav.validation
 
+import io.ktor.client.statement.*
 import mu.KotlinLogging
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.StonadsType
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.metrics.Metrics
+import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.FtpFil
 import sokos.ske.krav.util.isOpprettKrav
 import java.time.LocalDate
@@ -15,7 +17,7 @@ import java.time.format.DateTimeParseException
 class LineValidator {
     private val logger = KotlinLogging.logger("secureLogger")
 
-    fun validateNewLines(file: FtpFil): List<KravLinje> {
+    fun validateNewLines(file: FtpFil, ds: DatabaseService ): List<KravLinje> {
         val allErrorMessages = mutableListOf<String>()
         val returnLines = file.kravLinjer.map {
             when (val result: ValidationResult = validateLine(it)) {
@@ -25,7 +27,8 @@ class LineValidator {
 
                 is ValidationResult.Error -> {
                     allErrorMessages.addAll(result.messages)
-                    it.copy(status = Status.VALIDERINGSFEIL_I_FIL.value)
+                    ds.saveValidationError(file.name, it, result.messages.joinToString())
+                    it.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
                 }
             }
         }
@@ -50,16 +53,16 @@ class LineValidator {
 
 
         if (!saksnrValid) {
-            errorMessages.add("Saksnummer er ikke riktiog formatert og/eller inneholder ugyldige tegn (${krav.saksNummer}) på linje ${krav.linjeNummer}")
+            errorMessages.add("Saksnummer er ikke riktig formatert og/eller inneholder ugyldige tegn (${krav.saksNummer}) på linje ${krav.linjeNummer}")
         }
         if (!vedtakDatoValid) {
             errorMessages.add("Vedtaksdato er kan ikke være i fremtiden. Dersom feltet i denne linjen viser +9999... er  datoen feil formatert : ${krav.vedtakDato} på linje ${krav.linjeNummer}")
         }
         if (!kravtypeValid) {
-            errorMessages.add("Kravtype finnes ikke definert for oversendig til skatt : (${krav.kravKode} sammen med (${krav.hjemmelKode}) på linje ${krav.linjeNummer} ")
+            errorMessages.add("Kravtype finnes ikke definert for oversending til skatt : (${krav.kravKode} sammen med (${krav.hjemmelKode}) på linje ${krav.linjeNummer} ")
         }
         if (!refnrGammelSakValid) {
-            errorMessages.add("Refnummer gammel sak er ikke riktiog formatert og/eller inneholder ugyldige tegn (${krav.referanseNummerGammelSak}) på linje ${krav.linjeNummer}\")")
+            errorMessages.add("Refnummer gammel sak er ikke riktig formatert og/eller inneholder ugyldige tegn (${krav.referanseNummerGammelSak}) på linje ${krav.linjeNummer}\")")
         }
         if (!fomTomValid) {
             errorMessages.add("Periode(fom->tom) må være i fortid og FOM må være før TOM: (Fom: ${krav.periodeFOM} Tom: ${krav.periodeTOM} på linje ${krav.linjeNummer} ")

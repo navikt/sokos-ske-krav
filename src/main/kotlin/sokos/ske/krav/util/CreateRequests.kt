@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
 
 
-fun makeOpprettKravRequest(krav: KravTable) = OpprettInnkrevingsoppdragRequest(
+fun createOpprettKravRequest(krav: KravTable) = OpprettInnkrevingsoppdragRequest(
     stonadstype = StonadsType.getStonadstype(krav),
     skyldner = createSkyldner(krav),
     hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.roundToLong()),
@@ -49,14 +49,14 @@ private fun createTilleggsinformasjonNav(krav: KravTable): TilleggsinformasjonNa
     return tilleggsinformasjonNav
 }
 
-fun makeEndreRenteRequest(krav: KravTable) = EndreRenteBeloepRequest(
+fun createEndreRenteRequest(krav: KravTable) = EndreRenteBeloepRequest(
     createRenteBelop(krav)
 )
 
-fun makeEndreHovedstolRequest(krav: KravTable): NyHovedStolRequest =
+fun createEndreHovedstolRequest(krav: KravTable): NyHovedStolRequest =
     NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.roundToLong()))
 
-fun makeStoppKravRequest(kravidentifikator: String, kravidentifikatorType: KravidentifikatorType) =
+fun createStoppKravRequest(kravidentifikator: String, kravidentifikatorType: KravidentifikatorType) =
     AvskrivingRequest(kravidentifikatorType.value, kravidentifikator)
 
 fun KravLinje.isOpprettKrav() = (!this.isEndring() && !this.isStopp())

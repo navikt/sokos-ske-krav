@@ -2,6 +2,7 @@ package sokos.ske.krav.service
 
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
+import io.ktor.server.html.*
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.getAllErrorMessages
 import sokos.ske.krav.database.Repository.getAllKravForAvstemming
@@ -11,8 +12,10 @@ import sokos.ske.krav.database.Repository.getAllUnsentKrav
 import sokos.ske.krav.database.Repository.getErrorMessageForKravId
 import sokos.ske.krav.database.Repository.getKravTableIdFromCorrelationId
 import sokos.ske.krav.database.Repository.getSkeKravidentifikator
+import sokos.ske.krav.database.Repository.getPreviousOldRef
 import sokos.ske.krav.database.Repository.insertAllNewKrav
 import sokos.ske.krav.database.Repository.insertErrorMessage
+import sokos.ske.krav.database.Repository.insertValidationError
 import sokos.ske.krav.database.Repository.updateEndringWithSkeKravIdentifikator
 import sokos.ske.krav.database.Repository.updateSentKrav
 import sokos.ske.krav.database.Repository.updateStatus
@@ -32,7 +35,13 @@ class DatabaseService(
 
     fun getSkeKravidentifikator(navref: String): String {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            return con.getSkeKravidentifikator(navref)
+            val kravId1 = con.getSkeKravidentifikator(navref)
+            if (!kravId1.isNullOrBlank()) return kravId1
+            else {
+                val kravid2 = con.getPreviousOldRef(navref)
+                if (!kravid2.isNullOrBlank())return con.getSkeKravidentifikator(kravid2)
+                else return ""
+            }
         }
     }
 
@@ -80,6 +89,11 @@ class DatabaseService(
         postgresDataSource.connection.useAndHandleErrors { con ->
             con.insertErrorMessage(feilMelding)
         }
+    }
+
+    fun saveValidationError(filnavn: String, kravlinje: KravLinje, feilmelding: String) {
+        postgresDataSource.connection.useAndHandleErrors { con ->
+        con.insertValidationError(filnavn, kravlinje, feilmelding)}
     }
 
     fun updateSentKrav(

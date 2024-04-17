@@ -6,7 +6,7 @@ import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.createKravidentifikatorPair
-import sokos.ske.krav.util.makeStoppKravRequest
+import sokos.ske.krav.util.createStoppKravRequest
 
 class StoppKravService(
     private val skeClient: SkeClient,
@@ -25,7 +25,7 @@ class StoppKravService(
         krav: KravTable
     ): RequestResult {
         val kravidentifikatorPair = createKravidentifikatorPair(krav)
-        val request = makeStoppKravRequest(kravidentifikatorPair.first, kravidentifikatorPair.second)
+        val request = createStoppKravRequest(kravidentifikatorPair.first, kravidentifikatorPair.second)
         val response = skeClient.stoppKrav(request, krav.corr_id)
 
         val requestResult = RequestResult(

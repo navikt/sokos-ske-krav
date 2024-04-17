@@ -8,7 +8,7 @@ import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.util.RequestResult
-import sokos.ske.krav.util.makeOpprettKravRequest
+import sokos.ske.krav.util.createOpprettKravRequest
 
 class OpprettKravService(
     private val skeClient: SkeClient,
@@ -27,7 +27,7 @@ class OpprettKravService(
 
     private suspend fun sendOpprettKrav(krav: KravTable): RequestResult {
 
-        val opprettKravRequest = makeOpprettKravRequest(krav)
+        val opprettKravRequest = createOpprettKravRequest(krav)
         val response = skeClient.opprettKrav(opprettKravRequest, krav.corr_id)
 
         val kravIdentifikator =
