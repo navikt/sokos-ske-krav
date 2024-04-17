@@ -43,3 +43,15 @@ create table "feilmelding"
     dato                  timestamp
 );
 
+drop table if exists valideringsfeil;
+create table "valideringsfeil"
+(
+    id                    bigserial primary key,
+    filnavn               text,
+    linjenr               int,
+    saksnr                text,
+    kravlinje             text,
+    feilmelding           text,
+    dato_opprettet        timestamp
+);
+

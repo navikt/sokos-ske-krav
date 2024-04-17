@@ -80,7 +80,7 @@ object Repository {
             """
             select min(tidspunkt_opprettet) as opprettet, kravidentifikator_ske from krav
             where (saksnummer_nav = ? or referanseNummerGammelSak = ?) 
-            and (kravidentifikator_ske is not null && kravidentifikator_ske <> '') 
+            and (kravidentifikator_ske is not null and kravidentifikator_ske <> '') 
             group by kravidentifikator_ske limit 1
         """.trimIndent()
         ).withParameters(
