@@ -5,32 +5,30 @@ class AvstemmingService(
     private val ftpService: FtpService = FtpService()
 ) {
 
-    private val STATUS_FEIL = "STATUS_FEIL"
-    private val STATUS_RESEND = "STATUS_RESEND"
+    private val statusFeil = "STATUS_FEIL"
+    private val statusResend = "STATUS_RESEND"
 
-    fun hentAvstemmingsRapport(): String {
-
-        val header = htmlHeader("Åpne statuser")
-        val body = statusTableHeader() + statusTable(STATUS_FEIL)
-        val footer = statusFooter(STATUS_FEIL)
-        return "$header $body $footer"
-
-    }
 
     fun hentAvstemminsRapportSomFil(): String {
         val header = "Krav-Id,Vedtaks-Id,Fagsystem-Id,Registrert,Kravkode,Hjemmelskode,Status,StatusDato\n"
-        val linjer = databaseService.getAllKravForAvstemming().map {
+        val linjer = databaseService.getAllKravForAvstemming().joinToString("\n") {
             "${it.kravId},${it.saksnummerNAV},${it.tidspunktOpprettet},${it.kravkode},${it.kodeHjemmel},${it.status},${it.tidspunktSisteStatus}"
-        }.joinToString("\n")
+        }
         return header + linjer
     }
 
-    fun hentKravSomSkalresendes() : String {
-        val header = htmlHeader("Krav som skal resendes")
-        val body = statusTableHeader() + statusTable(STATUS_RESEND)
-        val footer = statusFooter(STATUS_RESEND)
+
+    fun hentAvstemmingsRapport() = buildHtml("Åpne statuser", statusFeil)
+    fun hentKravSomSkalresendes() = buildHtml("Krav Som Skal Resendes", statusResend)
+
+
+    private fun buildHtml(title: String, status: String): String {
+        val header = htmlHeader(title)
+        val body = statusTableHeader + statusTable(status)
+        val footer = statusFooter(status)
         return "$header $body $footer"
     }
+
 
     fun oppdaterAvstemtKravTilRapportert(kravId: Int): String {
         databaseService.updateStatusForAvstemtKravToReported(kravId)
@@ -52,7 +50,7 @@ class AvstemmingService(
         """.trimIndent()
         )
         filer.forEach {
-            if (!it.trim().equals(".") && !it.trim().equals("..")) {
+            if (it.trim() != "." && it.trim() != "..") {
                 sb.append(
                     """
                     <tr><td>$it</td</tr>
@@ -70,19 +68,21 @@ class AvstemmingService(
         return sb.toString()
     }
 
-    private fun statusTable(type: String):String {
+    private fun statusTable(type: String): String {
         val kravListe =
-            if (STATUS_RESEND.equals(type)) databaseService.getAllKravForResending()
+            if (type == statusResend) databaseService.getAllKravForResending()
             else databaseService.getAllKravForAvstemming()
         if (kravListe.isEmpty()) return "<tr><td colspan=9><H2> Ingen krav i DB som har statustypen. </H2></td></tr>"
 
-        val result = kravListe.map {
-            val submit = """<form action ="avstemming/update/${it.kravId}" method="get">
+        return kravListe.joinToString("") {
+            val submit = if (type == statusFeil)
+                """<form action ="avstemming/update/${it.kravId}" method="get">
             <input type="submit" value="Fjern fra liste">
-            </form>"""
+            </form>""" else ""
 
             """
-            <tr><td rowspan="2">${it.kravId}</td>
+            <tr>
+            <td rowspan="2">${it.kravId}</td>
             <td>${it.saksnummerNAV}</td>
             <td>${it.fagsystemId}</td>
             <td>${it.tidspunktOpprettet}</td>
@@ -91,12 +91,11 @@ class AvstemmingService(
             <td>${it.status}</td>
             <td>${it.tidspunktSisteStatus}</td>
             <td rowspan="2">
-            ${if (STATUS_FEIL.equals(type)) submit else "" }
+            $submit
             </td></tr>
             <tr> ${hentFeillinjeForKravid(it.kravId.toInt())} </tr><tr/>
         """.trimIndent()
-        }.joinToString("")
-        return result
+        }
     }
 
     private fun htmlHeader(title: String) =
@@ -107,7 +106,7 @@ class AvstemmingService(
             <body><H1>$title</H1>
         """.trimIndent()
 
-    private fun statusTableHeader() =
+    private val statusTableHeader =
         """
             <table border="1">
             <tr>
@@ -123,32 +122,29 @@ class AvstemmingService(
             </tr> 
         """.trimIndent()
 
-    private fun statusFooter(type: String = STATUS_FEIL): String {
-        val submit ="""
-                       <form action ="status/fil" method="get">
+    private fun statusFooter(type: String = statusFeil): String {
+        val submit = if (type == statusFeil)
+            """<form action ="status/fil" method="get">
            <p><input type="submit" value="Last ned .csv fil"></p>
            </form>
-
         """.trimIndent()
-        val result = """
+        else ""
+
+        return """
            </table>
-           ${if (STATUS_FEIL.equals(type)) submit else ""}
+           $submit
            </body>
            </html>
         """.trimIndent()
-        return result
+
     }
 
     private fun hentFeillinjeForKravid(kravid: Int): String {
         val feilmeldinger = databaseService.getErrorMessageForKravId(kravid)
-        if (feilmeldinger.isEmpty()) {
-            return """
-            <td colspan="7"/>
-        """.trimIndent()
+        return if (feilmeldinger.isEmpty()) {
+            """<td colspan="7"/>""".trimIndent()
         } else {
-            return """
-                <td colspan="7">"<b>Feilmelding: </b> ${feilmeldinger.first().melding}"</td>
-            """.trimIndent()
+            """<td colspan="7">"<b>Feilmelding: </b> ${feilmeldinger.first().melding}"</td>""".trimIndent()
         }
 
     }
