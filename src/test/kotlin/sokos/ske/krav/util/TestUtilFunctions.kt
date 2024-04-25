@@ -44,7 +44,7 @@ fun startContainer(containerName: String, initScripts: List<String>): HikariData
     return TestContainer(containerName)
         .getContainer(initScripts)
         .toDataSource {
-            maximumPoolSize = 8
+            maximumPoolSize =100
             minimumIdle = 1
             isAutoCommit = false
         }

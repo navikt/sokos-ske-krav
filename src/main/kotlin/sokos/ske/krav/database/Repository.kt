@@ -219,6 +219,22 @@ object Repository {
         ).execute()
         commit()
     }
+    fun Connection.updateEndringWithSkeKravIdentifikator(navSaksnr: String, skeKravident: String) {
+        prepareStatement(
+            """
+                update krav 
+                    set kravidentifikator_ske = ? 
+                where 
+                    saksnummer_nav = ? and
+                    kravtype <> 'NYTT_KRAV'
+            """.trimIndent()
+        ).withParameters(
+            param(skeKravident),
+            param(navSaksnr),
+        ).execute()
+        commit()
+    }
+
 
     fun Connection.insertAllNewKrav(
         kravListe: List<KravLinje>,
@@ -306,21 +322,6 @@ object Repository {
         commit()
     }
 
-    fun Connection.updateEndringWithSkeKravIdentifikator(navSaksnr: String, skeKravident: String) {
-        prepareStatement(
-            """
-                update krav 
-                    set kravidentifikator_ske = ? 
-                where 
-                    saksnummer_nav = ? and
-                    kravtype <> 'NYTT_KRAV'
-            """.trimIndent()
-        ).withParameters(
-            param(skeKravident),
-            param(navSaksnr),
-        ).execute()
-        commit()
-    }
 
 
     fun Connection.insertErrorMessage(feilmelding: FeilmeldingTable) {
