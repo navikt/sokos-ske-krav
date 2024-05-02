@@ -2,7 +2,6 @@ package sokos.ske.krav.service
 
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
-import io.ktor.server.html.*
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.getAllErrorMessages
 import sokos.ske.krav.database.Repository.getAllKravForAvstemming
@@ -36,10 +35,10 @@ class DatabaseService(
     fun getSkeKravidentifikator(navref: String): String {
         postgresDataSource.connection.useAndHandleErrors { con ->
             val kravId1 = con.getSkeKravidentifikator(navref)
-            if (!kravId1.isNullOrBlank()) return kravId1
+            if (kravId1.isNotBlank()) return kravId1
             else {
                 val kravid2 = con.getPreviousOldRef(navref)
-                if (!kravid2.isNullOrBlank())return con.getSkeKravidentifikator(kravid2)
+                if (kravid2.isNotBlank())return con.getSkeKravidentifikator(kravid2)
                 else return ""
             }
         }

@@ -1,6 +1,5 @@
 package sokos.ske.krav.service.integration
 
-import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.body
@@ -30,7 +29,6 @@ import sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import sokos.ske.krav.service.ENDRING_RENTE
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
-import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
 import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.MockHttpClientUtils.EndepunktType
@@ -38,7 +36,6 @@ import sokos.ske.krav.util.MockHttpClientUtils.MockRequestObj
 import sokos.ske.krav.util.MockHttpClientUtils.Responses
 import sokos.ske.krav.util.getAllKrav
 import sokos.ske.krav.util.setUpMockHttpClient
-import sokos.ske.krav.util.setupMocksWithMockEngine
 import sokos.ske.krav.util.setupSkeServiceMock
 import sokos.ske.krav.util.setupSkeServiceMockWithMockEngine
 import sokos.ske.krav.util.startContainer
@@ -149,6 +146,8 @@ internal class SkeServiceIntegrationTest : FunSpec({
     }
 
     test("Når et krav feiler skal det lagres i feilmeldingtabell") {
+        val ds = startContainer(this.testCase.name.testName, emptyList())
+
         val nyttKravKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.OPPRETT, HttpStatusCode.NotFound)
         val avskrivKravKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.NotFound)
         val endreRenterKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.NotFound)
@@ -156,23 +155,18 @@ internal class SkeServiceIntegrationTest : FunSpec({
         val endreReferanseKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_REFERANSE, HttpStatusCode.NotFound)
         val mottaksstatusKall = MockRequestObj(Responses.mottaksStatusResponse(), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
 
-        val httpClient =
-            setUpMockHttpClient(
-                listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall, mottaksstatusKall),
-            )
-        val mocks: Pair<SkeService, HikariDataSource> =
-            setupMocksWithMockEngine(listOf("10NyeKrav.txt"), this.testCase.name.testName, httpClient)
+        val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall, mottaksstatusKall))
+        val skeService = setupSkeServiceMockWithMockEngine(ds, httpClient, listOf("10NyeKrav.txt"), Directories.INBOUND)
 
-
-        mocks.first.handleNewKrav()
-        val feilmeldinger = mocks.second.connection.prepareStatement("SELECT * FROM FEILMELDING").executeQuery().toFeilmelding()
+        skeService.handleNewKrav()
+        val feilmeldinger = ds.connection.prepareStatement("SELECT * FROM FEILMELDING").executeQuery().toFeilmelding()
 
         feilmeldinger.size shouldBe 10
         feilmeldinger.map { Json.decodeFromString<FeilResponse>(it.skeResponse).status == 404 }.size shouldBe 10
 
         val joinToString = feilmeldinger.joinToString("','") { it.corrId }
         val kravMedFeil =
-            mocks.second.connection.prepareStatement(
+            ds.connection.prepareStatement(
                 """select * from Krav where corr_id in ('$joinToString')""",
             ).executeQuery().toKrav()
 

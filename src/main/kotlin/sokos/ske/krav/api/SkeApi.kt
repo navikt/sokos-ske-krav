@@ -69,7 +69,7 @@ fun Routing.skeApi(
             call.respondText(avstemmingService.hentAvstemmingsRapport(), Html)
         }
         get("avstemming/fil") {
-            call.respondText(avstemmingService.hentAvstemminsRapportSomFil(), CSV)
+            call.respondText(avstemmingService.hentAvstemmingsRapportSomCSVFil(), CSV)
         }
         get("avstemming/update/{kravid}") {
             val id = call.parameters["kravid"]

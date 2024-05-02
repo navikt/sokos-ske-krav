@@ -105,4 +105,16 @@ class AvstemmingServiceTest : FunSpec({
 
     }
 
+    test("hentAvstemmingsRapportSomFil skal returnere avstemmingsrapporten på CSV format"){
+        val kravliste = listOf(kravData1, kravData2)
+        val dataSourceMock = mockk<DatabaseService> {
+            every { getAllKravForAvstemming() } returns kravliste
+        }
+
+        AvstemmingService(dataSourceMock, mockk<FtpService>()).hentAvstemmingsRapportSomCSVFil().run {
+             this shouldContain  "${kravData1.kravId},${kravData1.saksnummerNAV},${kravData1.tidspunktOpprettet},${kravData1.kravkode},${kravData1.kodeHjemmel},${kravData1.status},${kravData1.tidspunktSisteStatus}"
+             this shouldContain  "${kravData2.kravId},${kravData2.saksnummerNAV},${kravData2.tidspunktOpprettet},${kravData2.kravkode},${kravData2.kodeHjemmel},${kravData2.status},${kravData2.tidspunktSisteStatus}"
+        }
+    }
+
 })

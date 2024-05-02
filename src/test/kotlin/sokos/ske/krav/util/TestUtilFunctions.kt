@@ -119,23 +119,6 @@ fun setupSkeServiceMockWithMockEngine(
     )
 }
 
-fun setupMocksWithMockEngine(
-    ftpFiler: List<String>,
-    containerName: String,
-    httpClient: HttpClient,
-    initScripts: List<String> = emptyList(),
-    directory: Directories = Directories.INBOUND,
-): Pair<SkeService, HikariDataSource> {
-
-    val dataSource = startContainer(containerName, initScripts)
-    val skeServiceMock = setupSkeServiceMockWithMockEngine(dataSource, httpClient, ftpFiler, directory)
-
-    return Pair(
-        skeServiceMock,
-        dataSource,
-    )
-}
-
 
 fun mockHttpResponse(code: Int, feilResponseType: String = "") = mockk<HttpResponse>() {
     every { status.value } returns code

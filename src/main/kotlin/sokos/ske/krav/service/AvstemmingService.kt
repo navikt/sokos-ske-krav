@@ -9,7 +9,7 @@ class AvstemmingService(
     private val statusResend = "STATUS_RESEND"
 
 
-    fun hentAvstemminsRapportSomFil(): String {
+    fun hentAvstemmingsRapportSomCSVFil(): String {
         val header = "Krav-Id,Vedtaks-Id,Fagsystem-Id,Registrert,Kravkode,Hjemmelskode,Status,StatusDato\n"
         val linjer = databaseService.getAllKravForAvstemming().joinToString("\n") {
             "${it.kravId},${it.saksnummerNAV},${it.tidspunktOpprettet},${it.kravkode},${it.kodeHjemmel},${it.status},${it.tidspunktSisteStatus}"
@@ -37,7 +37,7 @@ class AvstemmingService(
 
     fun visFeilFiler(): String {
         val sb: StringBuilder = StringBuilder()
-        val filer = ftpService.listAllFiles(Directories.FAILED.value)
+        val filer = ftpService.listFiles(Directories.FAILED)
         sb.append(
             """
             <!doctype html><head><meta charset="utf-8" />
@@ -50,13 +50,12 @@ class AvstemmingService(
         """.trimIndent()
         )
         filer.forEach {
-            if (it.trim() != "." && it.trim() != "..") {
-                sb.append(
-                    """
+            sb.append(
+                """
                     <tr><td>$it</td</tr>
             """.trimIndent()
-                )
-            }
+            )
+
         }
         sb.append(
             """
