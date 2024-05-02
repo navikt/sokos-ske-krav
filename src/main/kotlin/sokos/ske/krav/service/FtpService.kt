@@ -48,7 +48,7 @@ class FtpService(
             sftpChannel = session.openChannel("sftp") as ChannelSftp
             sftpChannel.connect()
         } catch (e: JSchException) {
-            logger.error("Feil i FTP oppkobling: ${e.message}, $e")
+            logger.error("Feil i FTP oppkobling: ${e.message}")
         }
     }
 
