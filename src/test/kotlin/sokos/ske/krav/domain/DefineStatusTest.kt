@@ -88,7 +88,10 @@ internal class DefineStatusTest : FunSpec({
         val requestResult = RequestResult(mockHttpResponse(502), mockk<KravTable>(), "", "")
         requestResult.status shouldBe Status.ANNEN_SERVER_FEIL_500
     }
-
+    test("Når responsekode ikke er dekket så skal krav ha status Status.UKJENT_FEIL"){
+        val requestResult = RequestResult(mockHttpResponse(102), mockk<KravTable>(), "", "")
+        requestResult.status shouldBe Status.UKJENT_FEIL
+    }
 
 
 }
