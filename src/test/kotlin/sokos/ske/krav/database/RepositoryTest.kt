@@ -50,7 +50,7 @@ internal class RepositoryTest : FunSpec({
     val emptyDB = startContainer(UUID.randomUUID().toString(), emptyList())
 
     test("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING") {
-        kravSomSkalResendesDB.connection.getAllKravForStatusCheck().size shouldBe 2
+        kravSomSkalResendesDB.connection.getAllKravForStatusCheck().size shouldBe 5
 
     }
     test("getAllKravForResending skal returnere krav som har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500 ") {
@@ -58,16 +58,13 @@ internal class RepositoryTest : FunSpec({
     }
     test("getAllUnsentKrav skal returnere krav som har status KRAV_IKKE_SENDT") {
         kravSomSkalResendesDB.connection.getAllUnsentKrav().size shouldBe 3
-
     }
     test("getAllValidationErrors skal returnere krav som har status VALIDERINGSFEIL_422") {
         kravSomSkalResendesDB.connection.getAllValidationErrors().size shouldBe 1
-
     }
 
     test("getAllErrorMessages skal returnere alle feilmeldinger ") {
         feilmeldingerDB.connection.getAllErrorMessages().size shouldBe 3
-
     }
 
     test("getErrorMessageForKravId skal returnere en liste med feilmeldinger for angitt kravid") {
@@ -91,6 +88,7 @@ internal class RepositoryTest : FunSpec({
         kravSomSkalResendesDB.connection.getSkeKravidentifikator("3330-navsaksnummer") shouldBe "3333-skeUUID"
         kravSomSkalResendesDB.connection.getSkeKravidentifikator("4440-navsaksnummer") shouldBe "4444-skeUUID"
         kravSomSkalResendesDB.connection.getSkeKravidentifikator("1111-navsaksnummer") shouldBe ""
+        kravSomSkalResendesDB.connection.getSkeKravidentifikator("1113-navsaksnummer") shouldBe "1112-skeUUID"
 
     }
 
