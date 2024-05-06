@@ -162,6 +162,8 @@ class MockHttpClient {
             "/innkrevingsoppdrag/OB040000595755$baseUrl",
             "/innkrevingsoppdrag/2220-navsaksnummer$baseUrl",
             "/innkrevingsoppdrag/1111-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/1112-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/1113-skeUUID$baseUrl",
             "/innkrevingsoppdrag/2222-skeUUID$baseUrl",
             "/innkrevingsoppdrag/3333-skeUUID$baseUrl",
             "/innkrevingsoppdrag/4444-skeUUID$baseUrl",
