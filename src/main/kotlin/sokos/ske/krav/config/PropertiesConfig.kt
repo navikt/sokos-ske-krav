@@ -20,20 +20,6 @@ object PropertiesConfig {
 	)
 	private val localDevProperties = ConfigurationMap(
 		"APPLICATION_PROFILE" to Profile.LOCAL.toString(),
-		"SFTP_HOST_KEY_FILE_PATH" to "hostKey",
-		"SFTP_PRIVATE_KEY_FILE_PATH" to "privKey",
-		"FTP_SERVER" to "10.183.32.98",
-		"FTP_PORT" to "22",
-		"FTP_DIRECTORY" to "/",
-		"SKE_REST_URL" to "",
-
-	  	"POSTGRES_USERNAME" to "",
-	    "POSTGRES_PASSWORD" to "",
-		"POSTGRES_HOST" to "dev-pg.intern.nav.no",
-		"POSTGRES_PORT" to "5432",
-		"POSTGRES_NAME" to "sokos-ske-krav",
-
-		"VAULT_MOUNTPATH" to "",
 	)
 
 	private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
@@ -53,25 +39,27 @@ object PropertiesConfig {
 	}
 
 	operator fun get(key: String): String = config[Key(key, stringType)]
+	fun getOrEmpty(key: String): String = config.getOrElse(Key(key, stringType), "")
+
 	data class Configuration(
 		val naisAppName: String = get("NAIS_APP_NAME"),
 		val profile: Profile = Profile.valueOf(this["APPLICATION_PROFILE"]),
 	)
 
 	data class FtpConfig(
-		val server: String = get("FTP_SERVER"),
-		val username: String = get("SKE_SFTP_USERNAME"),
-		val keyPass: String = get("SKE_SFTP_PASSWORD"),
-		val privKey: String = get("SFTP_PRIVATE_KEY_FILE_PATH"),
-		val hostKey: String = get("SFTP_HOST_KEY_FILE_PATH"),
-		val port: Int = get("FTP_PORT").toInt()
+		val server: String = getOrEmpty("FTP_SERVER"),
+		val username: String = getOrEmpty("SKE_SFTP_USERNAME"),
+		val keyPass: String = getOrEmpty("SKE_SFTP_PASSWORD"),
+		val privKey: String = getOrEmpty("SFTP_PRIVATE_KEY_FILE_PATH"),
+		val hostKey: String = getOrEmpty("SFTP_HOST_KEY_FILE_PATH"),
+		val port: Int = getOrEmpty("FTP_PORT").toInt()
 	)
 
 	data class MaskinportenClientConfig(
-		val clientId: String = get("MASKINPORTEN_CLIENT_ID"),
-		val authorityEndpoint: String = get("MASKINPORTEN_WELL_KNOWN_URL"),
-		val rsaKey: RSAKey? = RSAKey.parse(get("MASKINPORTEN_CLIENT_JWK")),
-		val scopes: String = get("MASKINPORTEN_SCOPES"),
+		val clientId: String = getOrEmpty("MASKINPORTEN_CLIENT_ID"),
+		val authorityEndpoint: String = getOrEmpty("MASKINPORTEN_WELL_KNOWN_URL"),
+		val rsaKey: RSAKey? = RSAKey.parse(getOrEmpty("MASKINPORTEN_CLIENT_JWK")),
+		val scopes: String = getOrEmpty("MASKINPORTEN_SCOPES"),
 	) : JwtConfig(authorityEndpoint)
 
 	@Serializable
@@ -82,16 +70,16 @@ object PropertiesConfig {
 	)
 
 	data class SKEConfig(
-		val skeRestUrl: String = get("SKE_REST_URL")
+		val skeRestUrl: String = getOrEmpty("SKE_REST_URL")
 	)
 
 	data class PostgresConfig(
-		val host: String = get("POSTGRES_HOST"),
-		val port: String = get("POSTGRES_PORT"),
-		val name: String = get("POSTGRES_NAME"),
-		val username: String = if (Profile.valueOf(this["APPLICATION_PROFILE"]) == Profile.LOCAL) get("POSTGRES_USERNAME").trim() else "",
-		val password: String = if (Profile.valueOf(this["APPLICATION_PROFILE"]) == Profile.LOCAL) get("POSTGRES_PASSWORD").trim() else "",
-		val vaultMountPath: String = get("VAULT_MOUNTPATH"),
+		val host: String = getOrEmpty("POSTGRES_HOST"),
+		val port: String = getOrEmpty("POSTGRES_PORT"),
+		val name: String = getOrEmpty("POSTGRES_NAME"),
+		val username: String = if (Profile.valueOf(this["APPLICATION_PROFILE"]) == Profile.LOCAL) getOrEmpty("POSTGRES_USERNAME").trim() else "",
+		val password: String = if (Profile.valueOf(this["APPLICATION_PROFILE"]) == Profile.LOCAL) getOrEmpty("POSTGRES_PASSWORD").trim() else "",
+		val vaultMountPath: String = getOrEmpty("VAULT_MOUNTPATH"),
 	) {
 		val jdbcUrl: String = "jdbc:postgresql://$host:$port/$name"
 	}
