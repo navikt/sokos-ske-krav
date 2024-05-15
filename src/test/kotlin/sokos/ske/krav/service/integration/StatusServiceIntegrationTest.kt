@@ -62,7 +62,6 @@ internal class StatusServiceIntegrationTest : FunSpec ({
         errorMessages.size shouldBe 2
         errorMessages.filter { it.error == "420" }.size shouldBe 2
 
-        // hent og lagre bør splittes og response fra ske som valideringsfeil  sendes inn i "lagrevalideringsfeil"
     }
 
 
