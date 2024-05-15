@@ -10,7 +10,7 @@ spec:
     - name: sokos-ske-krav-oppfolging-alerts
       rules:
         - alert: Feil i validering av fil
-          expr: (rate(sokos_ske_krav_filvalidering_feil_created{app="sokos-ske-krav"}[3m]) * 180) >= 0
+          expr: sokos_ske_krav_filvalidering_feil_created{app="sokos-ske-krav"} >= 0
           for: 2m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
@@ -86,4 +86,4 @@ spec:
     groupInterval: 30s
     groupWait: 10s
     receiver: sokos-ske-krav-oppfolging-receiver
-    repeatInterval: 5m
+    repeatInterval: 30m
