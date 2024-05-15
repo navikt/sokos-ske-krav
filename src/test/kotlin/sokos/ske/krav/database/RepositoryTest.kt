@@ -94,6 +94,7 @@ internal class RepositoryTest : FunSpec({
 
     test("getPreviousOldRef skal returnere den tidligste referansenummergammelsak basert på saksnummer_nav") {
         kravSomSkalResendesDB.connection.getPreviousOldRef("2220-navsaksnummer") shouldBe "1110-navsaksnummer"
+        kravSomSkalResendesDB.connection.getPreviousOldRef("foo-navsaksnummer") shouldBe "foo-navsaksnummer"
     }
 
     test("getKravIdfromCorrId skal returnere krav_id basert på corr_id") {
