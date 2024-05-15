@@ -78,15 +78,3 @@ spec:
       value: /var/run/secrets/ske-sftp-private-key/ske-sftp-private-key
     - name: SFTP_HOST_KEY_FILE_PATH
       value: /var/run/secrets/ske-sftp-host-key/ske-sftp-host-key
-    - name: MQ_HOST
-      value: b27apvl219.preprod.local
-    - name: MQ_PORT
-      value: "1413"
-    - name: MQ_QUEMANAGER
-      value: MQLS01
-    - name: MQ_CHANNEL
-      value: DEV_SPK_MOTTAK
-    - name: MQ_TIL_OPPDRAG
-      value: DEV_SKE_AVSTEMMING.TIL_OPPDRAG
-    - name: MQ_TIL_OPPDRAG_BOQ
-      value: DEV_SKE_AVSTEMMING.TIL_OPPDRAG_BOQ

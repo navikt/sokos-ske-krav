@@ -3,7 +3,7 @@ package sokos.ske.krav.validation
 import mu.KotlinLogging
 import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.metrics.Metrics
-
+import java.util.UUID
 
 
 object FileValidator{
@@ -26,7 +26,9 @@ object FileValidator{
 
 
         if (errorMessages.isNotEmpty()){
-          Metrics.fileValidationError.labels(fileName, errorMessages.toString()).inc()
+
+        //  Metrics.fileValidationError.labels(fileName, errorMessages.toString()).inc()
+          Metrics.fileValidationError.labels( "$fileName${UUID.randomUUID()}", "$errorMessages${UUID.randomUUID()}").inc()
           logger.info("*****************Feil i validering av fil $fileName: $errorMessages" )
           return ValidationResult.Error(messages = errorMessages)
         }

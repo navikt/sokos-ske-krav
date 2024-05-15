@@ -31,18 +31,25 @@ class SkeService(
     private val logger = KotlinLogging.logger("secureLogger")
 
     suspend fun handleNewKrav() {
+        println("HENTER MOTTAKSSTATUS")
         statusService.hentOgOppdaterMottaksStatus()
+        println("HENTE KRAV FOR RESENDING")
         Metrics.numberOfKravResent.inc(sendKrav(databaseService.getAllKravForResending()).size.toDouble())
 
+        println("SENDE NYE")
         sendNewFilesToSKE()
 
         delay(10_000)
+        println("HENTER MOTTAKSSTATUS")
         statusService.hentOgOppdaterMottaksStatus()
+        println("HENTE KRAV FOR RESENDING")
         Metrics.numberOfKravResent.inc(sendKrav(databaseService.getAllKravForResending()).size.toDouble())
+        println("FERDIG")
     }
 
     private suspend fun sendNewFilesToSKE() {
         val files = ftpService.getValidatedFiles()
+        println("FILER: ${files.map { it.name }}")
         logger.info("*******************${LocalDateTime.now()}*******************")
         logger.info("Starter innsending av ${files.size} filer")
 
@@ -53,7 +60,7 @@ class SkeService(
             Metrics.numberOfKravRead.inc(validatedLines.size.toDouble())
 
             databaseService.saveAllNewKrav(validatedLines)
-            ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
+           // ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
 
             updateAllEndringerAndStopp(validatedLines.filter { !it.isOpprettKrav() })
 

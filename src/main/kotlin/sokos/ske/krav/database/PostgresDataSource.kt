@@ -35,7 +35,7 @@ class PostgresDataSource {
     }
 
     private fun dataSource(role: String = userRole) =
-        if (isLocal) HikariDataSource(hikariConfig()) else createHikariDataSourceWithVaultIntegration(
+        if ( PropertiesConfig.isLocal() ) HikariDataSource(hikariConfig()) else createHikariDataSourceWithVaultIntegration(
             hikariConfig(),
             postgresConfig.vaultMountPath,
             role
@@ -57,6 +57,7 @@ class PostgresDataSource {
         if (isLocal) {
             username = postgresConfig.username
             password = postgresConfig.password
+
         }
     }
 }

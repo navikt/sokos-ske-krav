@@ -12,7 +12,7 @@ kubectl config set-context --current --namespace=okonomi
 [[ "$(vault token lookup -format=json | jq '.data.display_name' -r; exit ${PIPESTATUS[0]})" =~ "nav.no" ]] &>/dev/null || vault login -method=oidc -no-print
 
 # Get AZURE system variables
-envValue=$(kubectl exec -it $(kubectl get pods | grep sokos-ske-krav | cut -f1 -d' ') -c sokos-ske-krav -- env | egrep "^MASKINPORTEN|^SKE_REST_URL|^SKE_SFTP_USERNAME|SKE_SFTP_PASSWORD" )
+envValue=$(kubectl exec -it $(kubectl get pods | grep sokos-ske-krav | cut -f1 -d' ') -c sokos-ske-krav -- env | egrep "^MASKINPORTEN|^SKE_REST_URL|^SKE_SFTP_USERNAME|SKE_SFTP_PASSWORD|FTP_PORT|FTP_DIRECTORY|POSTGRES_PORT|POSTGRES_NAME" )
 PRIVATE_KEY=$(vault read -field=privateKey kv/preprod/fss/sokos-ske-krav/okonomi/sftp)
 HOST_KEY=$(vault read -field=localDevHostKey kv/preprod/fss/sokos-ske-krav/okonomi/sftp)
 

@@ -20,6 +20,10 @@ object PropertiesConfig {
 	)
 	private val localDevProperties = ConfigurationMap(
 		"APPLICATION_PROFILE" to Profile.LOCAL.toString(),
+		"POSTGRES_HOST" to "dev-pg.intern.nav.no",
+		"SFTP_HOST_KEY_FILE_PATH" to "hostKey",
+		"SFTP_PRIVATE_KEY_FILE_PATH" to "privKey",
+		"FTP_SERVER" to "10.183.32.98",
 	)
 
 	private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
@@ -37,7 +41,7 @@ object PropertiesConfig {
 	enum class Profile {
 		LOCAL, DEV, PROD
 	}
-
+	fun isLocal() = Configuration().profile == Profile.LOCAL
 	operator fun get(key: String): String = config[Key(key, stringType)]
 	fun getOrEmpty(key: String): String = config.getOrElse(Key(key, stringType), "")
 
@@ -77,8 +81,8 @@ object PropertiesConfig {
 		val host: String = getOrEmpty("POSTGRES_HOST"),
 		val port: String = getOrEmpty("POSTGRES_PORT"),
 		val name: String = getOrEmpty("POSTGRES_NAME"),
-		val username: String = if (Profile.valueOf(this["APPLICATION_PROFILE"]) == Profile.LOCAL) getOrEmpty("POSTGRES_USERNAME").trim() else "",
-		val password: String = if (Profile.valueOf(this["APPLICATION_PROFILE"]) == Profile.LOCAL) getOrEmpty("POSTGRES_PASSWORD").trim() else "",
+		val username: String = getOrEmpty("POSTGRES_USERNAME").trim(),
+		val password: String = getOrEmpty("POSTGRES_PASSWORD").trim(),
 		val vaultMountPath: String = getOrEmpty("VAULT_MOUNTPATH"),
 	) {
 		val jdbcUrl: String = "jdbc:postgresql://$host:$port/$name"
