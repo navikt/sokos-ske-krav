@@ -10,18 +10,27 @@ kubectl config set-context --current --namespace=okonomi
 
 # Get database username and password secret from Vault
 [[ "$(vault token lookup -format=json | jq '.data.display_name' -r; exit ${PIPESTATUS[0]})" =~ "nav.no" ]] &>/dev/null || vault login -method=oidc -no-print
-PRIVATE_KEY=$(vault read -field=privateKey kv/preprod/fss/sokos-ske-krav/okonomi/sftp)
-HOST_KEY=$(vault read -field=localDevHostKey kv/preprod/fss/sokos-ske-krav/okonomi/sftp)
+
 # Get AZURE system variables
 envValue=$(kubectl exec -it $(kubectl get pods | grep sokos-ske-krav | cut -f1 -d' ') -c sokos-ske-krav -- env | egrep "^MASKINPORTEN|^SKE_REST_URL|^SKE_SFTP_USERNAME|SKE_SFTP_PASSWORD" )
+PRIVATE_KEY=$(vault read -field=privateKey kv/preprod/fss/sokos-ske-krav/okonomi/sftp)
+HOST_KEY=$(vault read -field=localDevHostKey kv/preprod/fss/sokos-ske-krav/okonomi/sftp)
 
-# Set AZURE as local environment variables
+POSTGRES_USER=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-ske-krav-user)
+#POSTGRES_ADMIN=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-ske-krav-admin)
+
+username=$(echo "$POSTGRES_USER" | awk -F 'username:' '{print $2}' | awk '{print $1}' | sed 's/]$//')
+password=$(echo "$POSTGRES_USER" | awk -F 'password:' '{print $2}' | awk '{print $1}' | sed 's/]$//')
 rm -f defaults.properties
 echo "$envValue" > defaults.properties
-echo "POSTGRES_USERNAME=" >> defaults.properties
-echo "POSTGRES_PASSWORD=" >> defaults.properties
-echo "MASKINPORTEN, SKE_REST_URL, FTP stored as defaults.properties"
+
+echo "POSTGRES_USERNAME=$username" >> defaults.properties
+echo "POSTGRES_PASSWORD=$password" >> defaults.properties
+
+
+
 rm -f privKey
 echo "$PRIVATE_KEY" > privKey
+
 rm -f hostKey
 echo "$HOST_KEY" > hostKey
