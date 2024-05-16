@@ -60,7 +60,7 @@ class SkeService(
             Metrics.numberOfKravRead.inc(validatedLines.size.toDouble())
 
             databaseService.saveAllNewKrav(validatedLines)
-           // ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
+            ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
 
             updateAllEndringerAndStopp(validatedLines.filter { !it.isOpprettKrav() })
 
