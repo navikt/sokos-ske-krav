@@ -17,15 +17,15 @@ object AlarmService {
 
         if(endringer.isNotEmpty()){
             val message = "${Clock.System.now()}\nFeil i innsending av endring av krav i fil ${file.name}: ${endringer.map {"\n${it.krav.saksnummerNAV}:  ${it.status}" }}"
-            requestError.labels(file.name, message).inc()
+            requestError.inc()
         }
         if(stopp.isNotEmpty()) {
             val message = "${Clock.System.now()}\nFeil i innsending av stopp av krav i fil ${file.name}: ${stopp.map {"\n${it.krav.saksnummerNAV}:  ${it.status}" }}"
-            requestError.labels(file.name, message).inc()
+            requestError.inc()
         }
         if(nye.isNotEmpty()){
             val message = "${Clock.System.now()}\nFeil i innsending av nytt krav i fil ${file.name}: ${nye.map {"\n${it.krav.saksnummerNAV}:  ${it.status}" }}"
-            requestError.labels(file.name, message).inc()
+            requestError.inc()
         }
 
     }

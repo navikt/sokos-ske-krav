@@ -4,6 +4,8 @@ import mu.KotlinLogging
 import sokos.ske.krav.database.RepositoryExtensions.Parameter
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
+import sokos.ske.krav.database.models.ValideringsfeilTable
+import sokos.ske.krav.domain.ske.responses.ValideringsFeil
 import java.math.BigDecimal
 import java.sql.*
 import java.time.LocalDate
@@ -100,7 +102,9 @@ object RepositoryExtensions {
             corr_id = getColumn("corr_id"),
             tidspunktSendt = getColumn("tidspunkt_sendt"),
             tidspunktSisteStatus = getColumn("tidspunkt_siste_status"),
-            tidspunktOpprettet = getColumn("tidspunkt_opprettet")
+            tidspunktOpprettet = getColumn("tidspunkt_opprettet"),
+            filNavn = getColumn("filnavn"),
+            linjenummer = getColumn("linjenummer")
         )
     }
 
@@ -116,6 +120,18 @@ object RepositoryExtensions {
             navRequest = getColumn("navRequest"),
             skeResponse = getColumn("skeResponse"),
             dato = getColumn("dato")
+        )
+    }
+
+    fun ResultSet.toValideringsfeil() = toList {
+        ValideringsfeilTable(
+            valideringsfeilId = getColumn("id"),
+            filnavn = getColumn("filnavn"),
+            linjenummer = getColumn("linjenummer"),
+            saksnummer = getColumn("saksnummer"),
+            kravLinje = getColumn("kravLinje"),
+            feilmelding = getColumn("feilMelding"),
+            datoOpprettet = getColumn("datoOpprettet")
         )
     }
 

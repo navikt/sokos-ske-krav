@@ -44,13 +44,14 @@ internal class SkeServiceIntegrationTest : FunSpec({
 
 
     test("Når SkeService leser inn en fil skal kravene lagres i database") {
+        val filnavn = "10NyeKrav.txt"
         val dataSource = startContainer(this.testCase.name.testName, emptyList())
-        val ftpService = FakeFtpService().setupMocks(Directories.INBOUND, listOf("10NyeKrav.txt"))
+        val ftpService = FakeFtpService().setupMocks(Directories.INBOUND, listOf(filnavn))
 
         val dsMock = mockk<DatabaseService> {
             every { getAllUnsentKrav() } returns emptyList()
             every { getAllKravForResending() } returns emptyList()
-            every { saveAllNewKrav(any<List<KravLinje>>()) } answers { dataSource.connection.use { it.insertAllNewKrav(arg(0)) } }
+            every { saveAllNewKrav(any<List<KravLinje>>(), filnavn) } answers { dataSource.connection.use { it.insertAllNewKrav(arg(0), filnavn) } }
             every { getSkeKravidentifikator(any<String>()) } answers { dataSource.connection.use { it.getSkeKravidentifikator(arg(0)) } }
             every { updateEndringWithSkeKravIdentifikator(any<String>(), any<String>()) } answers { dataSource.connection.use { it.updateEndringWithSkeKravIdentifikator(arg(0), arg(1)) } }
         }
@@ -65,6 +66,7 @@ internal class SkeServiceIntegrationTest : FunSpec({
     }
 
     test("Etter at kravene lagres i database skal endringer og avskrivinger oppdateres med kravidentifikatorSKE fra database") {
+        val filnavn = "TestEndringKravident.txt"
         val dataSource = startContainer(this.testCase.name.testName, listOf("10NyeKrav.sql"))
         val ftpService = FakeFtpService().setupMocks(Directories.INBOUND, listOf("TestEndringKravident.txt"))
 
@@ -82,7 +84,7 @@ internal class SkeServiceIntegrationTest : FunSpec({
         val dsMock = mockk<DatabaseService> {
             every { getAllUnsentKrav() } returns emptyList()
             every { getAllKravForResending() } returns emptyList()
-            every { saveAllNewKrav(any<List<KravLinje>>()) } answers { dataSource.connection.use { it.insertAllNewKrav(arg(0)) } }
+            every { saveAllNewKrav(any<List<KravLinje>>(), filnavn) } answers { dataSource.connection.use { it.insertAllNewKrav(arg(0), filnavn) } }
             every { getSkeKravidentifikator(any<String>()) } answers { dataSource.connection.use { it.getSkeKravidentifikator(arg(0)) } }
             every { updateEndringWithSkeKravIdentifikator(any<String>(), any<String>()) } answers { dataSource.connection.use { it.updateEndringWithSkeKravIdentifikator(arg(0), arg(1)) } }
         }
@@ -98,13 +100,14 @@ internal class SkeServiceIntegrationTest : FunSpec({
     }
 
     test("Kravdata skal lagres med type som beskriver hva slags krav det er") {
+        val filnavn = "AltOkFil.txt"
         val dataSource = startContainer(this.testCase.name.testName, emptyList())
-        val ftpService = FakeFtpService().setupMocks(Directories.INBOUND, listOf("AltOkFil.txt"))
+        val ftpService = FakeFtpService().setupMocks(Directories.INBOUND, listOf(filnavn))
 
         val dsMock = mockk<DatabaseService> {
             every { getAllUnsentKrav() } returns emptyList()
             every { getAllKravForResending() } returns emptyList()
-            every { saveAllNewKrav(any<List<KravLinje>>()) } answers { dataSource.connection.use { it.insertAllNewKrav(arg(0)) } }
+            every { saveAllNewKrav(any<List<KravLinje>>(), filnavn) } answers { dataSource.connection.use { it.insertAllNewKrav(arg(0), filnavn) } }
             every { getSkeKravidentifikator(any<String>()) } answers { dataSource.connection.use { it.getSkeKravidentifikator(arg(0)) } }
             every { updateEndringWithSkeKravIdentifikator(any<String>(), any<String>()) } answers { dataSource.connection.use { it.updateEndringWithSkeKravIdentifikator(arg(0), arg(1)) } }
         }

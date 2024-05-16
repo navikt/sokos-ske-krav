@@ -31,12 +31,12 @@ internal class OpprettKravServiceIntegrationTest : FunSpec({
         val opprettService = OpprettKravService(skeClient, DatabaseService(PostgresDataSource(dataSource)))
         val kravListe = listOf(
             KravTable(
-                111, "", "1111-navsaksnr", 111.0, LocalDate.now(), "12345678901", "20231201", "20231231", "KS KS",
+                111, "filnavn.txt", 1, "",  "1111-navsaksnr", 111.0, LocalDate.now(), "12345678901", "20231201", "20231231", "KS KS",
                 "", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(),
                 "", "KRAV_IKKE_SENDT", "NYTT_KRAV", "CORR111", LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now()
             ),
             KravTable(
-                222, "", "2222-navsaksnr", 222.0, LocalDate.now(), "12345678901", "20231201", "20231231", "KS KS",
+                222, "filnavn.txt", 1, "", "2222-navsaksnr", 222.0, LocalDate.now(), "12345678901", "20231201", "20231231", "KS KS",
                 "", "20240105", "0408", "0408", "T", "", 0.0, 0.0, LocalDate.now(),
                 "", "KRAV_IKKE_SENDT", "NYTT_KRAV", "CORR222", LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now()
             ),

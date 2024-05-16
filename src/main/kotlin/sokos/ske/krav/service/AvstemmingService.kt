@@ -1,5 +1,8 @@
 package sokos.ske.krav.service
 
+import sokos.ske.krav.database.models.KravTable
+import sokos.ske.krav.domain.Status
+
 class AvstemmingService(
     private val databaseService: DatabaseService,
     private val ftpService: FtpService = FtpService()
@@ -28,7 +31,6 @@ class AvstemmingService(
         val footer = statusFooter(status)
         return "$header $body $footer"
     }
-
 
     fun oppdaterAvstemtKravTilRapportert(kravId: Int): String {
         databaseService.updateStatusForAvstemtKravToReported(kravId)
@@ -90,9 +92,9 @@ class AvstemmingService(
             <td>${it.status}</td>
             <td>${it.tidspunktSisteStatus}</td>
             <td rowspan="2">
-            $submit
+            ${if (statusFeil == type) submit else "" }
             </td></tr>
-            <tr> ${hentFeillinjeForKravid(it.kravId.toInt())} </tr><tr/>
+            <tr> ${ hentFeillinjeForKrav(it) } </tr><tr/>
         """.trimIndent()
         }
     }
@@ -138,14 +140,21 @@ class AvstemmingService(
 
     }
 
-    private fun hentFeillinjeForKravid(kravid: Int): String {
-        val feilmeldinger = databaseService.getErrorMessageForKravId(kravid)
-        return if (feilmeldinger.isEmpty()) {
-            """<td colspan="7"/>""".trimIndent()
+    private fun hentFeillinjeForKrav(kravTable: KravTable): String {
+        val feilmelding = if (kravTable.status.equals(Status.VALIDERINGSFEIL_AV_LINJE_I_FIL)) {
+            databaseService.getValidationMessageForKrav(kravTable).takeIf { it.size > 0 }?.first().let { it!!.feilmelding }
         } else {
-            """<td colspan="7">"<b>Feilmelding: </b> ${feilmeldinger.first().melding}"</td>""".trimIndent()
+            databaseService.getErrorMessageForKravId(kravTable.kravId).takeIf { it.size > 0 }?.first().let { it!!.melding }
         }
-
+        if (feilmelding.isNullOrBlank()) {
+            return """
+            <td colspan="7"/>
+        """.trimIndent()
+        } else {
+            return """
+                <td colspan="7">"<b>Feilmelding: </b> ${feilmelding}"</td>
+            """.trimIndent()
+        }
     }
 }
 

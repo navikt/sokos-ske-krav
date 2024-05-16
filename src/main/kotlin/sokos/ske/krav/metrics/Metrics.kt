@@ -52,7 +52,6 @@ object Metrics {
         .namespace(NAMESPACE)
         .name("innsending_av_krav_feil")
         .help("feil i innsending av krav")
-        .labelNames("fileName", "message")
         .register(registry.prometheusRegistry)
 
     val appStateRunningFalse: Counter = Counter.build()

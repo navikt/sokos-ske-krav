@@ -2,6 +2,8 @@ drop table if exists krav;
 create table "krav"
 (
     id                       bigserial primary key,
+    filNavn                  Text,
+    linjenummer              int,
     kravidentifikator_ske    varchar(40),
     saksnummer_nav           varchar(40),
     belop                    decimal(12),

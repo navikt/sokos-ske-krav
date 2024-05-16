@@ -74,7 +74,7 @@ private val ftpServiceMock = mockk<FtpService>()
 private val dataSourceMock = mockk<DatabaseService>{
     every { getAllUnsentKrav() } returns emptyList()
     every { getAllKravForResending() } returns emptyList()
-    justRun { saveAllNewKrav(any<List<KravLinje>>()) }
+    justRun { saveAllNewKrav(any<List<KravLinje>>(), "filnavn.txt") }
     every { getSkeKravidentifikator(any<String>()) } returns "foo"
 }
 

@@ -59,7 +59,7 @@ class SkeService(
             val validatedLines = LineValidator().validateNewLines(file, databaseService)
             Metrics.numberOfKravRead.inc(validatedLines.size.toDouble())
 
-            databaseService.saveAllNewKrav(validatedLines)
+            databaseService.saveAllNewKrav(validatedLines, file.name)
             ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
 
             updateAllEndringerAndStopp(validatedLines.filter { !it.isOpprettKrav() })

@@ -10,8 +10,9 @@ import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
 import sokos.ske.krav.database.Repository.getAllUnsentKrav
 import sokos.ske.krav.database.Repository.getErrorMessageForKravId
 import sokos.ske.krav.database.Repository.getKravTableIdFromCorrelationId
-import sokos.ske.krav.database.Repository.getSkeKravidentifikator
 import sokos.ske.krav.database.Repository.getPreviousOldRef
+import sokos.ske.krav.database.Repository.getSkeKravidentifikator
+import sokos.ske.krav.database.Repository.getValidationMessageForKravId
 import sokos.ske.krav.database.Repository.insertAllNewKrav
 import sokos.ske.krav.database.Repository.insertErrorMessage
 import sokos.ske.krav.database.Repository.insertValidationError
@@ -22,6 +23,7 @@ import sokos.ske.krav.database.Repository.updateStatusForAvstemtKravToReported
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
+import sokos.ske.krav.database.models.ValideringsfeilTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.metrics.Metrics
@@ -71,9 +73,10 @@ class DatabaseService(
 
     fun saveAllNewKrav(
         kravLinjer: List<KravLinje>,
+        filnavn: String
     ) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.insertAllNewKrav(kravLinjer)
+            con.insertAllNewKrav(kravLinjer, filnavn)
         }
     }
 
@@ -92,8 +95,7 @@ class DatabaseService(
 
     fun saveValidationError(filnavn: String, kravlinje: KravLinje, feilmelding: String) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-            con.insertValidationError(filnavn, kravlinje, feilmelding)
-        }
+        con.insertValidationError(filnavn, kravlinje, feilmelding)}
     }
 
     fun updateSentKrav(
@@ -154,9 +156,15 @@ class DatabaseService(
         }
     }
 
-    fun getErrorMessageForKravId(kravId: Int): List<FeilmeldingTable> {
+    fun getErrorMessageForKravId(kravId: Long): List<FeilmeldingTable> {
         postgresDataSource.connection.useAndHandleErrors { con ->
             return con.getErrorMessageForKravId(kravId)
+        }
+    }
+
+    fun getValidationMessageForKrav(kravTable: KravTable): List<ValideringsfeilTable> {
+        postgresDataSource.connection.useAndHandleErrors { con ->
+            return con.getValidationMessageForKravId(kravTable)
         }
     }
 

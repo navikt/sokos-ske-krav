@@ -247,10 +247,11 @@ internal class RepositoryTest : FunSpec({
 
 
     test("insertAllNewKrav skal inserte alle kravlinjene") {
-        val liste = readFileFromFS("8NyeKrav1Endring1Stopp.txt".asResource())
+        val filnavn = "8NyeKrav1Endring1Stopp.txt"
+        val liste = readFileFromFS(filnavn.asResource())
         val kravlinjer = FileParser(liste).parseKravLinjer()
         startContainer(this.testCase.name.testName, emptyList()).use { ds ->
-            ds.connection.insertAllNewKrav(kravlinjer)
+            ds.connection.insertAllNewKrav(kravlinjer, filnavn)
             val lagredeKrav = ds.connection.getAllKrav()
             lagredeKrav.size shouldBe kravlinjer.size + 1
             lagredeKrav.filter { it.kravtype == NYTT_KRAV }.size shouldBe 8

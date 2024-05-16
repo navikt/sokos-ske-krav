@@ -4,16 +4,21 @@ import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
 import sokos.ske.krav.database.RepositoryExtensions.toFeilmelding
 import sokos.ske.krav.database.RepositoryExtensions.toKrav
+import sokos.ske.krav.database.RepositoryExtensions.toValideringsfeil
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.FeilmeldingTable
+import sokos.ske.krav.database.models.KravTable
+import sokos.ske.krav.database.models.ValideringsfeilTable
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.nav.KravLinje
+import sokos.ske.krav.domain.ske.responses.ValideringsFeil
 import sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import sokos.ske.krav.service.ENDRING_RENTE
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
 import sokos.ske.krav.util.isEndring
 import sokos.ske.krav.util.isStopp
+import java.math.BigInteger
 import java.sql.Connection
 import java.sql.Date
 import java.time.LocalDate
@@ -55,7 +60,7 @@ object Repository {
     fun Connection.getAllErrorMessages() =
         prepareStatement("""select * from feilmelding""").executeQuery().toFeilmelding()
 
-    fun Connection.getErrorMessageForKravId(kravId: Int): List<FeilmeldingTable> {
+    fun Connection.getErrorMessageForKravId(kravId: Long): List<FeilmeldingTable> {
         return prepareStatement(
             """
                 select * from feilmelding
@@ -64,6 +69,17 @@ object Repository {
         ).withParameters(
             param(kravId)
         ).executeQuery().toFeilmelding()
+    }
+    fun Connection.getValidationMessageForKravId(kravTable: KravTable): List<ValideringsfeilTable> {
+        return prepareStatement(
+            """
+                select * from valideringsfeil
+                where filNavn = ? and linjenummer = ?
+            """.trimIndent()
+        ).withParameters(
+            param(kravTable.filNavn),
+            param(kravTable.linjenummer),
+        ).executeQuery().toValideringsfeil()
     }
 
     fun Connection.getAllKravForAvstemming() =
@@ -238,11 +254,12 @@ object Repository {
 
     fun Connection.insertAllNewKrav(
         kravListe: List<KravLinje>,
+        filnavn: String,
     ) {
         val prepStmt = prepareStatement(
             """
                 insert into krav (
-                saksnummer_nav, 
+                saksnummer_nav,
                 belop,
                 vedtakDato,
                 gjelderId,
@@ -263,8 +280,10 @@ object Repository {
                 tidspunkt_siste_status,
                 kravtype,
                 corr_id,
-                tidspunkt_opprettet 
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(), ?, ?, NOW())
+                tidspunkt_opprettet, 
+                filNavn,
+                linjenummer
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(), ?, ?, NOW(), ?, ?)
             """.trimIndent())
 
         kravListe.forEach() {
@@ -293,6 +312,8 @@ object Repository {
             prepStmt.setString(18, it.status ?: Status.KRAV_INNLEST_FRA_FIL.value)
             prepStmt.setString(19, type)
             prepStmt.setString(20, UUID.randomUUID().toString())
+            prepStmt.setString(21, filnavn)
+            prepStmt.setInt(22, it.linjeNummer)
             prepStmt.addBatch()
             if (type == ENDRING_HOVEDSTOL) {
                 prepStmt.setString(1, it.saksNummer)
@@ -315,6 +336,8 @@ object Repository {
                 prepStmt.setString(18, it.status ?: Status.KRAV_INNLEST_FRA_FIL.value)
                 prepStmt.setString(19, ENDRING_RENTE)
                 prepStmt.setString(20, UUID.randomUUID().toString())
+                prepStmt.setString(21, filnavn)
+                prepStmt.setInt(22, it.linjeNummer)
                 prepStmt.addBatch()
             }
         }
