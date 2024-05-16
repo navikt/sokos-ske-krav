@@ -92,7 +92,8 @@ class DatabaseService(
 
     fun saveValidationError(filnavn: String, kravlinje: KravLinje, feilmelding: String) {
         postgresDataSource.connection.useAndHandleErrors { con ->
-        con.insertValidationError(filnavn, kravlinje, feilmelding)}
+            con.insertValidationError(filnavn, kravlinje, feilmelding)
+        }
     }
 
     fun updateSentKrav(
