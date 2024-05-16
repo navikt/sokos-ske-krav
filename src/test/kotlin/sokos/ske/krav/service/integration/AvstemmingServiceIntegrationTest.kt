@@ -36,7 +36,7 @@ internal class AvstemmingServiceIntegrationTest: FunSpec ({
         val dsMock = mockk<DatabaseService> {
             every { updateStatusForAvstemtKravToReported(any<Int>()) } answers { kravSomSkalAvstemmesDS.connection.updateStatusForAvstemtKravToReported(firstArg<Int>()) }
             every { getAllKravForAvstemming() } answers { kravSomSkalAvstemmesDS.connection.getAllKravForAvstemming() }
-            every { getErrorMessageForKravId(any<Int>()) } answers { kravSomSkalAvstemmesDS.connection.getErrorMessageForKravId(firstArg<Int>())}
+            every { getErrorMessageForKravId(any<Long>()) } answers { kravSomSkalAvstemmesDS.connection.getErrorMessageForKravId(firstArg<Long>())}
         }
         dsMock.getAllKravForAvstemming().size shouldBe 9
 

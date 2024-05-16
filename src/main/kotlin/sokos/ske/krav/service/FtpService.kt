@@ -58,7 +58,7 @@ class FtpService(
         sftpChannel.ls(directory.value).map { it.filename }.filter { it.contains(".txt") || it.contains("DAT") }
 
     fun moveFile(fileName: String, from: Directories, to: Directories) {
-        //sftpChannel.moveFile(fileName, from, to)
+        sftpChannel.moveFile(fileName, from, to)
     }
 
     fun getValidatedFiles(directory: Directories = Directories.INBOUND): List<FtpFil> {

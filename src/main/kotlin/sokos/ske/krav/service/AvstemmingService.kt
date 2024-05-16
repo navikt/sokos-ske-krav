@@ -142,10 +142,10 @@ class AvstemmingService(
 
     private fun hentFeillinjeForKrav(kravTable: KravTable): String {
         val feilmelding = if (kravTable.status.equals(Status.VALIDERINGSFEIL_AV_LINJE_I_FIL)) {
-            databaseService.getValidationMessageForKrav(kravTable).takeIf { it.size > 0 }?.first().let { it!!.feilmelding }
+            databaseService.getValidationMessageForKrav(kravTable).takeIf { it.size > 0 }?.first()?.feilmelding
         } else {
-            databaseService.getErrorMessageForKravId(kravTable.kravId).takeIf { it.size > 0 }?.first().let { it!!.melding }
-        }
+            databaseService.getErrorMessageForKravId(kravTable.kravId).takeIf { it.size > 0 }?.first()?.melding        }
+        println(feilmelding)
         if (feilmelding.isNullOrBlank()) {
             return """
             <td colspan="7"/>
