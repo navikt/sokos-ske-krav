@@ -123,7 +123,7 @@ class AvstemmingService(
 
     private fun statusFooter(type: String = statusFeil): String {
         val submit = if (type == statusFeil)
-            """<form action ="status/fil" method="get">
+            """<form action ="avstemming/fil" method="get">
            <p><input type="submit" value="Last ned .csv fil"></p>
            </form>
         """.trimIndent()
