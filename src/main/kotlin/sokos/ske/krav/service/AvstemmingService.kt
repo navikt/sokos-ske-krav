@@ -135,23 +135,21 @@ class AvstemmingService(
            </body>
            </html>
         """.trimIndent()
-
     }
 
     private fun hentFeillinjeForKrav(kravTable: KravTable): String {
-        val feilmelding = if (kravTable.status.equals(Status.VALIDERINGSFEIL_AV_LINJE_I_FIL)) {
-            databaseService.getValidationMessageForKrav(kravTable).takeIf { it.size > 0 }?.first()?.feilmelding
+        val feilmelding = if (kravTable.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value) {
+            databaseService.getValidationMessageForKrav(kravTable).takeIf { it.isNotEmpty() }?.first()?.feilmelding
         } else {
-            databaseService.getFeilmeldingForKravId(kravTable.kravId).takeIf { it.size > 0 }?.first()?.melding        }
-        println(feilmelding)
-        if (feilmelding.isNullOrBlank()) {
-            return """
-            <td colspan="7"/>
-        """.trimIndent()
-        } else {
-            return """
-                <td colspan="7">"<b>Feilmelding: </b> ${feilmelding}"</td>
+            databaseService.getFeilmeldingForKravId(kravTable.kravId).takeIf { it.isNotEmpty() }?.first()?.melding        }
+        return if (feilmelding.isNullOrBlank()) {
+            """
+                <td colspan="7"/>
             """.trimIndent()
+        } else {
+            """
+                    <td colspan="7">"<b>Feilmelding: </b> ${feilmelding}"</td>
+                """.trimIndent()
         }
     }
 }
