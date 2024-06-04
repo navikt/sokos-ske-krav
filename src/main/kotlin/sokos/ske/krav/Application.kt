@@ -6,6 +6,7 @@ import io.ktor.server.routing.routing
 import sokos.ske.krav.api.naisApi
 import sokos.ske.krav.api.skeApi
 import sokos.ske.krav.client.SkeClient
+import sokos.ske.krav.config.Configuration
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.commonConfig
 import sokos.ske.krav.database.PostgresDataSource
@@ -29,9 +30,10 @@ fun main() {
     val skeService =
         SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, databaseService)
     val avstemmingService = AvstemmingService(databaseService)
+    val configuration = Configuration()
 
     applicationState.ready = true
-    HttpServer(applicationState, skeService, statusService, avstemmingService).start()
+    HttpServer(applicationState, skeService, statusService, avstemmingService, configuration).start()
 
     postgresDataSource.close()
 }
@@ -41,6 +43,7 @@ class HttpServer(
     private val skeService: SkeService,
     private val statusService: StatusService,
     private val avstemmingService: AvstemmingService,
+    private val configuration: Configuration,
     port: Int = 8080,
 ) {
     init {
@@ -51,7 +54,7 @@ class HttpServer(
     }
 
     private val embeddedServer = embeddedServer(Netty, port) {
-        commonConfig()
+        commonConfig(configuration)
         routing {
             naisApi({ applicationState.ready }, { applicationState.running })
             skeApi(skeService, statusService, avstemmingService)
