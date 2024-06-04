@@ -1,7 +1,7 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.call.*
-import io.ktor.http.*
+import io.ktor.client.call.body
+import io.ktor.http.isSuccess
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
@@ -14,19 +14,15 @@ class OpprettKravService(
     private val skeClient: SkeClient,
     private val databaseService: DatabaseService
 ) {
-
     suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<RequestResult> {
-
         val responseList = kravList.map {
             sendOpprettKrav(it)
         }
         databaseService.updateSentKrav(responseList)
-
         return responseList
     }
 
     private suspend fun sendOpprettKrav(krav: KravTable): RequestResult {
-
         val opprettKravRequest = createOpprettKravRequest(krav)
         val response = skeClient.opprettKrav(opprettKravRequest, krav.corr_id)
 
@@ -35,14 +31,11 @@ class OpprettKravService(
                 response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
             else ""
 
-        val requestResult = RequestResult(
+        return RequestResult(
             response = response,
             request = Json.encodeToString(opprettKravRequest),
-            krav = krav,
+            kravTable = krav,
             kravidentifikator = kravIdentifikator,
         )
-
-        return requestResult
     }
-
 }

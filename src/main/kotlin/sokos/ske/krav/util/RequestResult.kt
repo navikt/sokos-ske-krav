@@ -1,8 +1,8 @@
 package sokos.ske.krav.util
 
-import io.ktor.client.call.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.call.body
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.runBlocking
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.Status
@@ -13,10 +13,9 @@ const val KRAV_ER_AVSKREVET = "innkrevingsoppdrag-er-avskrevet"
 const val KRAV_ER_ALLEREDE_AVSKREVET = "innkrevingsoppdrag-er-allerede-avskrevet"
 const val KRAV_EKSISTERER_IKKE = "innkrevingsoppdrag-eksisterer-ikke"
 
-
 data class RequestResult(
     val response: HttpResponse,
-    val krav: KravTable,
+    val kravTable: KravTable,
     val request: String,
     val kravidentifikator: String,
     val status: Status = defineStatus(response)
@@ -27,34 +26,30 @@ data class RequestResult(
             val content = runBlocking {   response.body<FeilResponse>()}
 
             return when (response.status.value) {
-                400 -> Status.UGYLDIG_FORESPORSEL_400
-                401 -> Status.FEIL_AUTENTISERING_401
-                403 -> Status.INGEN_TILGANG_403
+                400 -> Status.HTTP400_UGYLDIG_FORESPORSEL
+                401 -> Status.HTTP401_FEIL_AUTENTISERING
+                403 -> Status.HTTP403_INGEN_TILGANG
                 404 -> {
-                    if (content.type.contains(KRAV_EKSISTERER_IKKE)) Status.FANT_IKKE_SAKSREF_404
-                    else Status.ANNEN_IKKE_FUNNET_404
+                    if (content.type.contains(KRAV_EKSISTERER_IKKE)) Status.HTTP404_FANT_IKKE_SAKSREF
+                    else Status.HTTP404_ANNEN_IKKE_FUNNET
                 }
-
-                406 -> Status.FEIL_MEDIETYPE_406
+                406 -> Status.HTTP406_FEIL_MEDIETYPE
                 409 -> {
-                    if (content.type.contains(KRAV_IKKE_RESKONTROFORT_RESEND)) Status.IKKE_RESKONTROFORT_RESEND
+                    if (content.type.contains(KRAV_IKKE_RESKONTROFORT_RESEND)) Status.HTTP409_IKKE_RESKONTROFORT_RESEND
                     else if (content.type.contains(KRAV_ER_AVSKREVET) || content.type.contains(KRAV_ER_ALLEREDE_AVSKREVET))
-                        Status.KRAV_ER_AVSKREVET_409
-                    else Status.ANNEN_KONFLIKT_409
+                        Status.HTTP409_KRAV_ER_AVSKREVET
+                    else Status.HTTP409_ANNEN_KONFLIKT
                 }
-
-                422 -> Status.VALIDERINGSFEIL_422
-                500 -> Status.INTERN_TJENERFEIL_500
-                503 -> Status.UTILGJENGELIG_TJENESTE_503
-
-                in 300 ..399 -> Status.REDIRECTION_FEIL_300
-                in 400 ..499 -> Status.ANNEN_KLIENT_FEIL_400
-                in 500 ..599 -> Status.ANNEN_SERVER_FEIL_500
+                422 -> Status.HTTP422_VALIDERINGSFEIL
+                500 -> Status.HTTP500_INTERN_TJENERFEIL
+                503 -> Status.HTTP503_UTILGJENGELIG_TJENESTE
+                in 300 ..399 -> Status.HTTP300_REDIRECTION_FEIL
+                in 400 ..499 -> Status.HTTP400_ANNEN_KLIENT_FEIL
+                in 500 ..599 -> Status.HTTP500_ANNEN_SERVER_FEIL
 
                 else -> Status.UKJENT_FEIL
             }
         }
     }
-
 }
 

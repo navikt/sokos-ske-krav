@@ -37,7 +37,7 @@ class AvstemmingServiceTest : FunSpec({
     test("hentAvstemmingsRapport skal returnere en html med krav som har feilet") {
         val dataSourceMock = mockk<DatabaseService> {
             every { getAllKravForAvstemming() } returns listOf(kravData1, kravData2)
-            every { getErrorMessageForKravId(any<Long>()) } returns listOf(mockk<FeilmeldingTable> {
+            every { getFeilmeldingForKravId(any<Long>()) } returns listOf(mockk<FeilmeldingTable> {
                 every { melding } returns "feilmelding melding"
             })
         }
@@ -72,7 +72,7 @@ class AvstemmingServiceTest : FunSpec({
     test("hentKravSomSkalresendes skal returnere en html med krav som skal resendes") {
         val dataSourceMock = mockk<DatabaseService> {
             every { getAllKravForResending() } returns listOf(kravData1, kravData2)
-            every { getErrorMessageForKravId(any<Long>()) } returns listOf(mockk<FeilmeldingTable> {
+            every { getFeilmeldingForKravId(any<Long>()) } returns listOf(mockk<FeilmeldingTable> {
                 every { melding } returns "feilmelding melding"
             })
         }

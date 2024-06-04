@@ -3,8 +3,7 @@ package sokos.ske.krav.validation
 import mu.KotlinLogging
 import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.metrics.Metrics
-import java.util.UUID
-
+import java.util.*
 
 object FileValidator{
     private val logger = KotlinLogging.logger("secureLogger")
@@ -25,15 +24,13 @@ object FileValidator{
         if (invalidTransferDate) errorMessages.add("Dato sendt er avvikende mellom første og siste linje fra OS! Dato første linje: ${firstLine.transaksjonDato}, Dato siste linje: ${lastLine.transaksjonDato}")
 
 
-        if (errorMessages.isNotEmpty()){
-
-        //  Metrics.fileValidationError.labels(fileName, errorMessages.toString()).inc()
-          Metrics.fileValidationError.labels( "$fileName${UUID.randomUUID()}", "$errorMessages${UUID.randomUUID()}").inc()
-          logger.info("*****************Feil i validering av fil $fileName: $errorMessages" )
-          return ValidationResult.Error(messages = errorMessages)
+        return if (errorMessages.isNotEmpty()) {
+            Metrics.fileValidationError.labels("$fileName${UUID.randomUUID()}", "$errorMessages${UUID.randomUUID()}").inc()
+            logger.info("*****************Feil i validering av fil $fileName: $errorMessages")
+            return ValidationResult.Error(messages = errorMessages)
+        } else {
+            ValidationResult.Success(kravLinjer)
         }
-
-        return ValidationResult.Success(kravLinjer)
     }
 }
 

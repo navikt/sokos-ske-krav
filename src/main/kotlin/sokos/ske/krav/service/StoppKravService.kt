@@ -12,7 +12,6 @@ class StoppKravService(
     private val skeClient: SkeClient,
     private val databaseService: DatabaseService
 ) {
-
     suspend fun sendAllStoppKrav(kravList: List<KravTable>): List<RequestResult> {
         val resultList = kravList.map {
             sendStoppKrav(it)
@@ -28,13 +27,11 @@ class StoppKravService(
         val request = createStoppKravRequest(kravidentifikatorPair.first, kravidentifikatorPair.second)
         val response = skeClient.stoppKrav(request, krav.corr_id)
 
-        val requestResult = RequestResult(
+        return RequestResult(
             response = response,
             request = Json.encodeToString(request),
-            krav = krav,
+            kravTable = krav,
             kravidentifikator = kravidentifikatorPair.first,
         )
-
-        return requestResult
     }
 }

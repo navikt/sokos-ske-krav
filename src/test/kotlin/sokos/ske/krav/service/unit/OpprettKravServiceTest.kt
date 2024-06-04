@@ -9,7 +9,6 @@ import io.mockk.spyk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.service.DatabaseService
-import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.OpprettKravService
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.mockHttpResponse
@@ -21,7 +20,7 @@ class OpprettKravServiceTest : FunSpec({
             justRun { updateSentKrav(any()) }
         }
         val kravTableMock = mockk<KravTable>() {
-            every { saksnummerSKE } returns "foo"
+            every { kravidentifikatorSKE } returns "foo"
             every { saksnummerNAV } returns "bar"
         }
         val opprettKravMock =

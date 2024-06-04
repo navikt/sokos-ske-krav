@@ -49,7 +49,7 @@ internal class OpprettKravServiceIntegrationTest : FunSpec({
         val lagredeKrav = dataSource.connection.getAllKrav()
         lagredeKrav.size shouldBe 2
 
-        lagredeKrav.filter { it.saksnummerSKE == kravidentifikatorSKE }.size shouldBe 2
+        lagredeKrav.filter { it.kravidentifikatorSKE == kravidentifikatorSKE }.size shouldBe 2
         lagredeKrav.filter { it.saksnummerNAV == "1111-navsaksnr"}.size shouldBe 1
         lagredeKrav.filter { it.saksnummerNAV == "2222-navsaksnr"}.size shouldBe 1
     }

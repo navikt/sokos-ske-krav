@@ -55,10 +55,10 @@ internal class StatusServiceIntegrationTest : FunSpec ({
 
         val statusService = StatusService(skeClient, dbService)
 
-        dbService.getAllErrorMessages().size shouldBe 0
+        dbService.getAllFeilmeldinger().size shouldBe 0
         statusService.hentOgOppdaterMottaksStatus()
 
-        val errorMessages = dbService.getAllErrorMessages()
+        val errorMessages = dbService.getAllFeilmeldinger()
         errorMessages.size shouldBe 2
         errorMessages.filter { it.error == "420" }.size shouldBe 2
 

@@ -23,7 +23,7 @@ internal class EndreKravServiceTest : FunSpec({
 
     val endreKravMock = spyk(EndreKravService(mockk<SkeClient>(), databaseServiceMock), recordPrivateCalls = true)
     val kravTableMock = mockk<KravTable>() {
-        every { saksnummerSKE } returns "foo"
+        every { kravidentifikatorSKE } returns "foo"
         every { saksnummerNAV } returns "bar"
     }
 
@@ -43,7 +43,7 @@ internal class EndreKravServiceTest : FunSpec({
 
         val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
 
-        result.filter { it.status == Status.ANNEN_IKKE_FUNNET_404 || it.status == Status.FANT_IKKE_SAKSREF_404 }.size shouldBe 2
+        result.filter { it.status == Status.HTTP404_ANNEN_IKKE_FUNNET || it.status == Status.HTTP404_FANT_IKKE_SAKSREF }.size shouldBe 2
     }
 
 
@@ -62,7 +62,7 @@ internal class EndreKravServiceTest : FunSpec({
 
         val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
 
-        result.filter { it.status == Status.VALIDERINGSFEIL_422 }.size shouldBe 2
+        result.filter { it.status == Status.HTTP422_VALIDERINGSFEIL }.size shouldBe 2
     }
 
     test("Hvis første status er 409 og andre status er 404 skal status for begge settes til 404") {
@@ -80,7 +80,7 @@ internal class EndreKravServiceTest : FunSpec({
 
         val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
 
-        result.filter { it.status == Status.ANNEN_IKKE_FUNNET_404 || it.status == Status.FANT_IKKE_SAKSREF_404 }.size shouldBe 2
+        result.filter { it.status == Status.HTTP404_ANNEN_IKKE_FUNNET || it.status == Status.HTTP404_FANT_IKKE_SAKSREF }.size shouldBe 2
     }
 
     test("Hvis første status er 409 og andre status er 200 skal status for begge settes til 409") {
@@ -97,7 +97,7 @@ internal class EndreKravServiceTest : FunSpec({
 
         val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
 
-        result.filter { it.status == Status.ANNEN_KONFLIKT_409 || it.status == Status.KRAV_ER_AVSKREVET_409 }.size shouldBe 2
+        result.filter { it.status == Status.HTTP409_ANNEN_KONFLIKT || it.status == Status.HTTP409_KRAV_ER_AVSKREVET }.size shouldBe 2
     }
 
 
@@ -115,7 +115,7 @@ internal class EndreKravServiceTest : FunSpec({
 
         val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
 
-        result.filter { it.status == Status.VALIDERINGSFEIL_422 }.size shouldBe 2
+        result.filter { it.status == Status.HTTP422_VALIDERINGSFEIL }.size shouldBe 2
     }
 
 
@@ -127,8 +127,8 @@ internal class EndreKravServiceTest : FunSpec({
                 any<KravTable>()
             )
         } returnsMany listOf(
-            RequestResult(mockHttpResponse(102), mockk<KravTable>(), "", "", Status.KRAV_ER_AVSKREVET_409),
-            RequestResult(mockHttpResponse(102), mockk<KravTable>(), "", "", Status.ANNEN_SERVER_FEIL_500),
+            RequestResult(mockHttpResponse(102), mockk<KravTable>(), "", "", Status.HTTP409_KRAV_ER_AVSKREVET),
+            RequestResult(mockHttpResponse(102), mockk<KravTable>(), "", "", Status.HTTP500_ANNEN_SERVER_FEIL),
         )
 
         val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))

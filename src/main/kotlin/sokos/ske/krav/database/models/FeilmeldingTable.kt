@@ -13,6 +13,6 @@ data class FeilmeldingTable(
     val melding: String,
     val navRequest: String,
     val skeResponse: String,
-    val dato: LocalDateTime,
+    val datoOpprettet: LocalDateTime,
 )
 

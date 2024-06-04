@@ -1,7 +1,7 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.call.*
-import io.ktor.http.*
+import io.ktor.client.call.body
+import io.ktor.http.isSuccess
 import kotlinx.serialization.SerializationException
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
@@ -14,21 +14,17 @@ import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.util.createKravidentifikatorPair
 import java.time.LocalDateTime
 
-
 class StatusService(
     private val skeClient: SkeClient,
     private val databaseService: DatabaseService
 ) {
-
     private val logger = KotlinLogging.logger("secureLogger")
 
     suspend fun hentOgOppdaterMottaksStatus() {
-
         val krav = databaseService.getAllKravForStatusCheck()
         logger.info("antall krav som ikke er reskontroført: ${krav.size}")
 
         krav.forEach {
-
             val kravIdentifikatorPair = createKravidentifikatorPair(it)
             val response = skeClient.getMottaksStatus(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
 
@@ -46,7 +42,6 @@ class StatusService(
             } else {
                 logger.error { "Kall til mottaksstatus hos skatt feilet: ${response.status.value}, ${response.status.description}" }
             }
-
         }
     }
 
@@ -63,20 +58,18 @@ class StatusService(
                     kravTable.kravId,
                     kravTable.corr_id,
                     kravTable.saksnummerNAV,
-                    kravTable.saksnummerSKE,
+                    kravTable.kravidentifikatorSKE,
                     it.error,
                     it.message,
                     "",
                     "",
                     LocalDateTime.now()
                 )
-                databaseService.saveErrorMessage(feilmeldingTable)
+                databaseService.saveFeilmelding(feilmeldingTable)
             }
         } else {
             logger.error { "Kall til henting av valideringsfeil hos SKE feilet: ${response.status.value}, ${response.status.description}" }
         }
     }
-
-    fun hentValideringsfeil() = databaseService.getAllErrorMessages()
-
+    fun hentValideringsfeil() = databaseService.getAllFeilmeldinger()
 }

@@ -4,18 +4,18 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import sokos.ske.krav.database.Repository.getAllErrorMessages
+import sokos.ske.krav.database.Repository.getAllFeilmeldinger
 import sokos.ske.krav.database.Repository.getAllKravForAvstemming
 import sokos.ske.krav.database.Repository.getAllKravForResending
 import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
 import sokos.ske.krav.database.Repository.getAllUnsentKrav
 import sokos.ske.krav.database.Repository.getAllValidationErrors
-import sokos.ske.krav.database.Repository.getErrorMessageForKravId
+import sokos.ske.krav.database.Repository.getFeilmeldingForKravId
 import sokos.ske.krav.database.Repository.getKravTableIdFromCorrelationId
-import sokos.ske.krav.database.Repository.getPreviousOldRef
+import sokos.ske.krav.database.Repository.getPreviousReferansenummer
 import sokos.ske.krav.database.Repository.getSkeKravidentifikator
 import sokos.ske.krav.database.Repository.insertAllNewKrav
-import sokos.ske.krav.database.Repository.insertErrorMessage
+import sokos.ske.krav.database.Repository.insertFeilmelding
 import sokos.ske.krav.database.Repository.insertValidationError
 import sokos.ske.krav.database.Repository.updateEndringWithSkeKravIdentifikator
 import sokos.ske.krav.database.Repository.updateSentKrav
@@ -64,15 +64,15 @@ internal class RepositoryTest : FunSpec({
     }
 
     test("getAllErrorMessages skal returnere alle feilmeldinger ") {
-        feilmeldingerDB.connection.getAllErrorMessages().size shouldBe 3
+        feilmeldingerDB.connection.getAllFeilmeldinger().size shouldBe 3
     }
 
     test("getErrorMessageForKravId skal returnere en liste med feilmeldinger for angitt kravid") {
 
-        val feilmelding1 = feilmeldingerDB.connection.getErrorMessageForKravId(1)
+        val feilmelding1 = feilmeldingerDB.connection.getFeilmeldingForKravId(1)
         feilmelding1.size shouldBe 1
         feilmelding1.first().corrId shouldBe "CORR856"
-        val feilmelding2 = feilmeldingerDB.connection.getErrorMessageForKravId(2)
+        val feilmelding2 = feilmeldingerDB.connection.getFeilmeldingForKravId(2)
         feilmelding2.size shouldBe 2
         feilmelding2.filter { it.error == "404" }.size shouldBe 1
         feilmelding2.filter { it.error == "422" }.size shouldBe 1
@@ -93,8 +93,8 @@ internal class RepositoryTest : FunSpec({
     }
 
     test("getPreviousOldRef skal returnere den tidligste referansenummergammelsak basert på saksnummer_nav") {
-        kravSomSkalResendesDB.connection.getPreviousOldRef("2220-navsaksnummer") shouldBe "1110-navsaksnummer"
-        kravSomSkalResendesDB.connection.getPreviousOldRef("foo-navsaksnummer") shouldBe "foo-navsaksnummer"
+        kravSomSkalResendesDB.connection.getPreviousReferansenummer("2220-navsaksnummer") shouldBe "1110-navsaksnummer"
+        kravSomSkalResendesDB.connection.getPreviousReferansenummer("foo-navsaksnummer") shouldBe "foo-navsaksnummer"
     }
 
     test("getKravIdfromCorrId skal returnere krav_id basert på corr_id") {
@@ -133,7 +133,7 @@ internal class RepositoryTest : FunSpec({
         startContainer(UUID.randomUUID().toString(), listOf("KravSomSkalResendes.sql")).use { ds ->
             val originalKrav = ds.connection.getAllKrav().first { it.corr_id == "CORR83985902" }
             originalKrav.status shouldBe "RESKONTROFOERT"
-            originalKrav.saksnummerSKE shouldBe "6666-skeUUID"
+            originalKrav.kravidentifikatorSKE shouldBe "6666-skeUUID"
             originalKrav.tidspunktSendt!!.toString() shouldBe "2023-02-01T12:00"
             originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
@@ -141,7 +141,7 @@ internal class RepositoryTest : FunSpec({
 
             val updatedKrav = ds.connection.getAllKrav().first { it.corr_id == "CORR83985902" }
             updatedKrav.status shouldBe "TESTSTATUS"
-            updatedKrav.saksnummerSKE shouldBe "NykravidentSke"
+            updatedKrav.kravidentifikatorSKE shouldBe "NykravidentSke"
             updatedKrav.tidspunktSendt!!.toLocalDate() shouldBe LocalDate.now()
             updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
         }
@@ -215,32 +215,32 @@ internal class RepositoryTest : FunSpec({
 
         kravSomSkalResendesDB.connection.use { con ->
             val originalNyttKrav = con.getAllKrav().first { it.saksnummerNAV == "6660-navsaksnummer" }
-            originalNyttKrav.saksnummerSKE shouldBe "6666-skeUUID"
+            originalNyttKrav.kravidentifikatorSKE shouldBe "6666-skeUUID"
 
             con.updateEndringWithSkeKravIdentifikator("6660-navsaksnummer", "Ny_ske_saksnummer")
 
             val updatedNyttKrav = con.getAllKrav().first { it.saksnummerNAV == "6660-navsaksnummer" }
-            updatedNyttKrav.saksnummerSKE shouldBe "6666-skeUUID"
+            updatedNyttKrav.kravidentifikatorSKE shouldBe "6666-skeUUID"
         }
 
         kravSomSkalResendesDB.connection.use { con ->
             val originalStoppKrav = con.getAllKrav().first { it.saksnummerNAV == "3330-navsaksnummer" }
-            originalStoppKrav.saksnummerSKE shouldBe "3333-skeUUID"
+            originalStoppKrav.kravidentifikatorSKE shouldBe "3333-skeUUID"
 
             con.updateEndringWithSkeKravIdentifikator("3330-navsaksnummer", "Ny_ske_saksnummer")
 
             val updatedStoppKrav = con.getAllKrav().first { it.saksnummerNAV == "3330-navsaksnummer" }
-            updatedStoppKrav.saksnummerSKE shouldBe "Ny_ske_saksnummer"
+            updatedStoppKrav.kravidentifikatorSKE shouldBe "Ny_ske_saksnummer"
         }
 
         kravSomSkalResendesDB.connection.use { con ->
             val originalEndreKrav = con.getAllKrav().first { it.saksnummerNAV == "2220-navsaksnummer" }
-            originalEndreKrav.saksnummerSKE shouldBe "1111-skeUUID"
+            originalEndreKrav.kravidentifikatorSKE shouldBe "1111-skeUUID"
 
             con.updateEndringWithSkeKravIdentifikator("2220-navsaksnummer", "Ny_ske_saksnummer")
 
             val updatedEndreKrav = con.getAllKrav().first { it.saksnummerNAV == "3330-navsaksnummer" }
-            updatedEndreKrav.saksnummerSKE shouldBe "Ny_ske_saksnummer"
+            updatedEndreKrav.kravidentifikatorSKE shouldBe "Ny_ske_saksnummer"
         }
     }
 
@@ -269,10 +269,10 @@ internal class RepositoryTest : FunSpec({
 
         feilmeldingerDB.use { ds ->
             ds.connection.use { con ->
-                con.getAllErrorMessages().size shouldBe 3
-                con.insertErrorMessage(feilmelding)
+                con.getAllFeilmeldinger().size shouldBe 3
+                con.insertFeilmelding(feilmelding)
 
-                val feilmeldinger = con.getAllErrorMessages()
+                val feilmeldinger = con.getAllFeilmeldinger()
                 feilmeldinger.size shouldBe 4
                 feilmeldinger.filter { it.kravId == 1L }.size shouldBe 2
                 feilmeldinger.filter { it.corrId == "CORR456" }.size shouldBe 1

@@ -20,10 +20,8 @@ class AvstemmingService(
         return header + linjer
     }
 
-
     fun hentAvstemmingsRapport() = buildHtml("Åpne statuser", statusFeil)
     fun hentKravSomSkalresendes() = buildHtml("Krav Som Skal Resendes", statusResend)
-
 
     private fun buildHtml(title: String, status: String): String {
         val header = htmlHeader(title)
@@ -144,7 +142,7 @@ class AvstemmingService(
         val feilmelding = if (kravTable.status.equals(Status.VALIDERINGSFEIL_AV_LINJE_I_FIL)) {
             databaseService.getValidationMessageForKrav(kravTable).takeIf { it.size > 0 }?.first()?.feilmelding
         } else {
-            databaseService.getErrorMessageForKravId(kravTable.kravId).takeIf { it.size > 0 }?.first()?.melding        }
+            databaseService.getFeilmeldingForKravId(kravTable.kravId).takeIf { it.size > 0 }?.first()?.melding        }
         println(feilmelding)
         if (feilmelding.isNullOrBlank()) {
             return """

@@ -5,7 +5,6 @@ import sokos.ske.krav.database.RepositoryExtensions.Parameter
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.ValideringsfeilTable
-import sokos.ske.krav.domain.ske.responses.ValideringsFeil
 import java.math.BigDecimal
 import java.sql.*
 import java.time.LocalDate
@@ -43,13 +42,13 @@ object RepositoryExtensions {
 
             else -> {
                 logger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
-                throw SQLException("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}") // TODO Feilhåndtering
+                throw SQLException("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
             }
         }
 
         if (null !is T && columnValue == null) {
             logger.error("Påkrevet kolonne '$columnLabel' er null")
-            throw SQLException("Påkrevet kolonne '$columnLabel' er null") // TODO Feilhåndtering
+            throw SQLException("Påkrevet kolonne '$columnLabel' er null")
         }
 
         return transform(columnValue as T)
@@ -80,7 +79,7 @@ object RepositoryExtensions {
         KravTable(
             kravId = getColumn("id"),
             saksnummerNAV = getColumn("saksnummer_nav"),
-            saksnummerSKE = getColumn("kravidentifikator_ske"),
+            kravidentifikatorSKE = getColumn("kravidentifikator_ske"),
             belop = getColumn("belop"),
             vedtakDato = getColumn("vedtakDato"),
             gjelderId = getColumn("gjelderid"),
@@ -119,7 +118,7 @@ object RepositoryExtensions {
             melding = getColumn("melding"),
             navRequest = getColumn("navRequest"),
             skeResponse = getColumn("skeResponse"),
-            dato = getColumn("dato")
+            datoOpprettet = getColumn("dato")
         )
     }
 

@@ -1,7 +1,7 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.call.*
-import io.ktor.http.*
+import io.ktor.client.call.body
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
@@ -31,25 +31,17 @@ class SkeService(
     private val logger = KotlinLogging.logger("secureLogger")
 
     suspend fun handleNewKrav() {
-        println("HENTER MOTTAKSSTATUS")
         statusService.hentOgOppdaterMottaksStatus()
-        println("HENTE KRAV FOR RESENDING")
         Metrics.numberOfKravResent.inc(sendKrav(databaseService.getAllKravForResending()).size.toDouble())
 
-        println("SENDE NYE")
-        sendNewFilesToSKE()
+        sendNewFilesToSKE().also { delay(10_000) }
 
-        delay(10_000)
-        println("HENTER MOTTAKSSTATUS")
         statusService.hentOgOppdaterMottaksStatus()
-        println("HENTE KRAV FOR RESENDING")
         Metrics.numberOfKravResent.inc(sendKrav(databaseService.getAllKravForResending()).size.toDouble())
-        println("FERDIG")
     }
 
     private suspend fun sendNewFilesToSKE() {
         val files = ftpService.getValidatedFiles()
-        println("FILER: ${files.map { it.name }}")
         logger.info("*******************${LocalDateTime.now()}*******************")
         logger.info("Starter innsending av ${files.size} filer")
 
@@ -66,14 +58,11 @@ class SkeService(
 
             val result = sendKrav(databaseService.getAllUnsentKrav())
             AlarmService.handleFeil(result, file)
-
         }
-
         logger.info("*******************KJØRING FERDIG*******************")
     }
 
     private suspend fun sendKrav(kravTableList: List<KravTable>): List<RequestResult> {
-
         logger.info("sender ${kravTableList.size}")
 
         val allResponses = mutableListOf<RequestResult>()
@@ -92,7 +81,7 @@ class SkeService(
                 databaseService.saveErrorMessage(
                     it.request,
                     it.response,
-                    it.krav,
+                    it.kravTable,
                     it.kravidentifikator,
                 )
             }

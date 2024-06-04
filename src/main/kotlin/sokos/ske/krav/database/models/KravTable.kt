@@ -8,7 +8,7 @@ data class KravTable(
     val kravId: Long,
     val filNavn: String,
     val linjenummer: Int,
-    val saksnummerSKE: String,
+    val kravidentifikatorSKE: String,
     val saksnummerNAV: String,
     val belop: Double,
     val vedtakDato: LocalDate,

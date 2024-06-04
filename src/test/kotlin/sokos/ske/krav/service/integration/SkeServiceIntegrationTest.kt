@@ -94,8 +94,8 @@ internal class SkeServiceIntegrationTest : FunSpec({
         skeMock.handleNewKrav()
 
         val kravEtter = dataSource.connection.getAllKrav()
-        kravEtter.find { it.saksnummerNAV == "2223-navsaksnr" }?.saksnummerSKE shouldBe "2222-skeUUID"
-        kravEtter.find { it.saksnummerNAV == "8889-navsaksnr" }?.saksnummerSKE shouldBe "8888-skeUUID"
+        kravEtter.find { it.saksnummerNAV == "2223-navsaksnr" }?.kravidentifikatorSKE shouldBe "2222-skeUUID"
+        kravEtter.find { it.saksnummerNAV == "8889-navsaksnr" }?.kravidentifikatorSKE shouldBe "8888-skeUUID"
 
     }
 
@@ -174,7 +174,7 @@ internal class SkeServiceIntegrationTest : FunSpec({
             ).executeQuery().toKrav()
 
         kravMedFeil.size shouldBe 10
-        kravMedFeil.filter { it.status == Status.FANT_IKKE_SAKSREF_404.value }.size shouldBe 10
+        kravMedFeil.filter { it.status == Status.HTTP404_FANT_IKKE_SAKSREF.value }.size shouldBe 10
     }
 
     test("Hvis krav har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500 så skal kravet resendes") {
@@ -182,10 +182,10 @@ internal class SkeServiceIntegrationTest : FunSpec({
 
         ds.connection.getAllKrav().let { kravBefore ->
             kravBefore.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 3
-            kravBefore.filter { it.status == Status.IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 3
-            kravBefore.filter { it.status == Status.ANNEN_SERVER_FEIL_500.value }.size shouldBe 1
-            kravBefore.filter { it.status == Status.UTILGJENGELIG_TJENESTE_503.value }.size shouldBe 1
-            kravBefore.filter { it.status == Status.INTERN_TJENERFEIL_500.value }.size shouldBe 1
+            kravBefore.filter { it.status == Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 3
+            kravBefore.filter { it.status == Status.HTTP500_ANNEN_SERVER_FEIL.value }.size shouldBe 1
+            kravBefore.filter { it.status == Status.HTTP503_UTILGJENGELIG_TJENESTE.value }.size shouldBe 1
+            kravBefore.filter { it.status == Status.HTTP500_INTERN_TJENERFEIL.value }.size shouldBe 1
         }
 
         val nyttKravKall = MockRequestObj(Responses.nyttKravResponse(), EndepunktType.OPPRETT, HttpStatusCode.OK)
@@ -202,10 +202,10 @@ internal class SkeServiceIntegrationTest : FunSpec({
 
         ds.connection.getAllKrav().let { kravAfter ->
             kravAfter.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 0
-            kravAfter.filter { it.status == Status.IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 0
-            kravAfter.filter { it.status == Status.ANNEN_SERVER_FEIL_500.value }.size shouldBe 0
-            kravAfter.filter { it.status == Status.UTILGJENGELIG_TJENESTE_503.value }.size shouldBe 0
-            kravAfter.filter { it.status == Status.INTERN_TJENERFEIL_500.value }.size shouldBe 0
+            kravAfter.filter { it.status == Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 0
+            kravAfter.filter { it.status == Status.HTTP500_ANNEN_SERVER_FEIL.value }.size shouldBe 0
+            kravAfter.filter { it.status == Status.HTTP503_UTILGJENGELIG_TJENESTE.value }.size shouldBe 0
+            kravAfter.filter { it.status == Status.HTTP500_INTERN_TJENERFEIL.value }.size shouldBe 0
         }
     }
 

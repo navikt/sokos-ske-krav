@@ -53,7 +53,6 @@ class FtpService(
         }
     }
 
-
     fun listFiles(directory: Directories = Directories.INBOUND): List<String> =
         sftpChannel.ls(directory.value).map { it.filename }.filter { it.contains(".txt") || it.contains("DAT") }
 

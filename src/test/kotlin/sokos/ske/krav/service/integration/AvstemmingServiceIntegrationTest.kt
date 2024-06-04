@@ -5,16 +5,14 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.mockk.every
 import io.mockk.mockk
-import org.apache.commons.net.ftp.FTP
 import sokos.ske.krav.database.Repository.getAllKravForAvstemming
-import sokos.ske.krav.database.Repository.getErrorMessageForKravId
+import sokos.ske.krav.database.Repository.getFeilmeldingForKravId
 import sokos.ske.krav.database.Repository.updateStatusForAvstemtKravToReported
 import sokos.ske.krav.service.AvstemmingService
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.util.FakeFtpService
-import sokos.ske.krav.util.setupSkeServiceMock
 import sokos.ske.krav.util.startContainer
 
 internal class AvstemmingServiceIntegrationTest: FunSpec ({
@@ -36,7 +34,7 @@ internal class AvstemmingServiceIntegrationTest: FunSpec ({
         val dsMock = mockk<DatabaseService> {
             every { updateStatusForAvstemtKravToReported(any<Int>()) } answers { kravSomSkalAvstemmesDS.connection.updateStatusForAvstemtKravToReported(firstArg<Int>()) }
             every { getAllKravForAvstemming() } answers { kravSomSkalAvstemmesDS.connection.getAllKravForAvstemming() }
-            every { getErrorMessageForKravId(any<Long>()) } answers { kravSomSkalAvstemmesDS.connection.getErrorMessageForKravId(firstArg<Long>())}
+            every { getFeilmeldingForKravId(any<Long>()) } answers { kravSomSkalAvstemmesDS.connection.getFeilmeldingForKravId(firstArg<Long>())}
         }
         dsMock.getAllKravForAvstemming().size shouldBe 9
 

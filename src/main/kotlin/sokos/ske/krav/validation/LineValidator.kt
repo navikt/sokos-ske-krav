@@ -1,6 +1,5 @@
 package sokos.ske.krav.validation
 
-import io.ktor.client.statement.*
 import mu.KotlinLogging
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.StonadsType
@@ -12,7 +11,6 @@ import sokos.ske.krav.util.isOpprettKrav
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-
 
 class LineValidator {
     private val logger = KotlinLogging.logger("secureLogger")
@@ -40,17 +38,14 @@ class LineValidator {
     }
 
     private fun validateLine(krav: KravLinje): ValidationResult {
-
         val errorMessages = mutableListOf<String>()
 
         val saksnrValid = validateSaksnr(krav.saksNummer)
         val vedtakDatoValid = validateVedtaksdato(krav.vedtakDato)
         val kravtypeValid = validateKravtype(krav)
         val refnrGammelSakValid = if (!krav.isOpprettKrav()) validateSaksnr(krav.referanseNummerGammelSak) else true
-        val fomTomValid =
-            validatePeriode(krav.periodeFOM, krav.periodeTOM)
+        val fomTomValid = validatePeriode(krav.periodeFOM, krav.periodeTOM)
         val utbetalingsDatoValid = validateUtbetalingsDato(krav.utbetalDato, krav.vedtakDato)
-
 
         if (!saksnrValid) {
             errorMessages.add("Saksnummer er ikke riktig formatert og/eller inneholder ugyldige tegn (${krav.saksNummer}) på linje ${krav.linjeNummer}")
@@ -71,38 +66,30 @@ class LineValidator {
             errorMessages.add("Utbetalingsdato må være i fortid og må være før vedtaksdato: (Utbetalinngsdato: ${krav.utbetalDato} Vedtaksdato: ${krav.vedtakDato} på linje ${krav.linjeNummer} ")
         }
 
-        if (errorMessages.isNotEmpty()) {
-            return ValidationResult.Error(errorMessages)
+        return if (errorMessages.isNotEmpty()) {
+            ValidationResult.Error(errorMessages)
+        } else {
+            ValidationResult.Success(listOf(krav))
         }
-        return ValidationResult.Success(listOf(krav))
     }
 
+    private fun validateSaksnr(navSaksnr: String) = navSaksnr.matches("^[a-zA-Z0-9-/]+$".toRegex())
+    private fun validateVedtaksdato(date: LocalDate) = validateDateInPast(date)
+    private fun validateUtbetalingsDato(utbetalingsDato: LocalDate, vedtaksDato: LocalDate) = validateDateInPast(utbetalingsDato) && utbetalingsDato.isBefore(vedtaksDato)
     private fun validateKravtype(krav: KravLinje): Boolean = try {
         StonadsType.getStonadstype(krav)
         true
     } catch (e: NotImplementedError) {
         false
     }
-
-    private fun validateSaksnr(navSaksnr: String) = navSaksnr.matches("^[a-zA-Z0-9-/]+$".toRegex())
-
-    private fun validateVedtaksdato(dato: LocalDate) = validateDateInPast(dato)
-
-    private fun validateDateInPast(date: LocalDate) = !validateDateInFuture(date)
-
-    private fun validateDateInFuture(date: LocalDate) = date.isAfter(LocalDate.now())
-
     private fun validatePeriode(fom: String, tom: String) = try {
         val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
         val dateFrom = LocalDate.parse(fom, dtf)
         val dateTo = LocalDate.parse(tom, dtf)
-        (dateFrom == dateTo) || (dateFrom.isBefore(dateTo) && dateTo.isBefore(LocalDate.now()))
+        (dateFrom == dateTo || dateFrom.isBefore(dateTo)) && dateTo.isBefore(LocalDate.now())
     } catch (e: DateTimeParseException) {
         false
     }
 
-    private fun validateUtbetalingsDato(utbetalingsDato: LocalDate, vedtaksDato: LocalDate) = validateDateInPast(utbetalingsDato) && utbetalingsDato.isBefore(vedtaksDato)
-
+    private fun validateDateInPast(date: LocalDate) = !date.isAfter(LocalDate.now())
 }
-
-

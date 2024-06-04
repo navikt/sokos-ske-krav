@@ -21,7 +21,7 @@ class StoppKravServiceTest : FunSpec({
             justRun { updateSentKrav(any()) }
         }
         val kravTableMock = mockk<KravTable>() {
-            every { saksnummerSKE } returns "foo"
+            every { kravidentifikatorSKE } returns "foo"
             every { saksnummerNAV } returns "bar"
         }
         val stoppKravMock = spyk(StoppKravService(mockk<SkeClient>(), databaseServiceMock), recordPrivateCalls = true)

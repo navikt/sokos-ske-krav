@@ -10,9 +10,4 @@ data class MottaksStatusResponse(
 	@SerialName("mottaksstatus")
 	val mottaksStatus: String,
 	val statusOppdatert: String
-) {
-
-  override fun toString(): String {
-		return "MottaksstatusResponse(kravidentifikator='$kravidentifikator', mottaksstatus='$mottaksStatus', oppdragsgiversKravidentifikator=$oppdragsgiversKravidentifikator, statusOppdatert=$statusOppdatert)"
-	}
-}
+)

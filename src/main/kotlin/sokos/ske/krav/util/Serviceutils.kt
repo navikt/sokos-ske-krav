@@ -5,7 +5,7 @@ import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
 import sokos.ske.krav.service.NYTT_KRAV
 
 fun createKravidentifikatorPair(it: KravTable,): Pair<String, KravidentifikatorType> {
-    var kravIdentifikator = it.saksnummerSKE
+    var kravIdentifikator = it.kravidentifikatorSKE
     var kravIdentifikatorType = KravidentifikatorType.SKATTEETATENSKRAVIDENTIFIKATOR
 
     if (kravIdentifikator.isEmpty() && it.kravtype != NYTT_KRAV) {

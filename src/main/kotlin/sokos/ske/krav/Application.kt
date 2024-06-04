@@ -1,12 +1,13 @@
 package sokos.ske.krav
 
-import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.routing.routing
+import sokos.ske.krav.api.naisApi
+import sokos.ske.krav.api.skeApi
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.commonConfig
-import sokos.ske.krav.config.routingConfig
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
@@ -25,7 +26,8 @@ fun main() {
     val endreKravService = EndreKravService(skeClient, databaseService)
     val opprettKravService = OpprettKravService(skeClient, databaseService)
     val statusService = StatusService(skeClient, databaseService)
-    val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, databaseService)
+    val skeService =
+        SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, databaseService)
     val avstemmingService = AvstemmingService(databaseService)
 
     applicationState.ready = true
@@ -49,7 +51,11 @@ class HttpServer(
     }
 
     private val embeddedServer = embeddedServer(Netty, port) {
-        applicationModule(applicationState, skeService, statusService, avstemmingService)
+        commonConfig()
+        routing {
+            naisApi({ applicationState.ready }, { applicationState.running })
+            skeApi(skeService, statusService, avstemmingService)
+        }
     }
 
     fun start() {
@@ -68,12 +74,3 @@ class ApplicationState {
     }
 }
 
-private fun Application.applicationModule(
-    applicationState: ApplicationState,
-    skeService: SkeService,
-    statusService: StatusService,
-    avstemmingService: AvstemmingService
-) {
-    commonConfig()
-    routingConfig(applicationState, skeService, statusService, avstemmingService)
-}

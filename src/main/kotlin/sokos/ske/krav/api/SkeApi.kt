@@ -63,7 +63,7 @@ fun Routing.skeApi(
         }
         get("allekrav") {
             val databaseService = DatabaseService(PostgresDataSource())
-            call.respond(databaseService.getAllErrorMessages().toString())
+            call.respond(databaseService.getAllFeilmeldinger().toString())
         }
         get("avstemming") {
             call.respondText(avstemmingService.hentAvstemmingsRapport(), Html)
@@ -82,6 +82,5 @@ fun Routing.skeApi(
         get("resending") {
             call.respondText(avstemmingService.hentKravSomSkalresendes(), Html)
         }
-
     }
 }

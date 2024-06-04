@@ -19,7 +19,7 @@ class EndreKravService(
 
     suspend fun sendAllEndreKrav(kravList: List<KravTable>): List<RequestResult> {
 
-        val endringsMap = kravList.groupBy { it.saksnummerSKE + it.saksnummerNAV }
+        val endringsMap = kravList.groupBy { it.kravidentifikatorSKE + it.saksnummerNAV }
 
         val resultList = endringsMap.map { entry ->
             val kravidentifikatorPair = createKravidentifikatorPair(entry.value.first())
@@ -32,8 +32,6 @@ class EndreKravService(
         databaseService.updateSentKrav(resultList)
         return resultList
     }
-
-
 
     private fun getConformedResponses(requestresultList: List<RequestResult>): List<RequestResult> {
         val endring1 = requestresultList.first()
@@ -76,7 +74,7 @@ class EndreKravService(
             val requestResultEndreRente = RequestResult(
                 response = endreRenterResponse,
                 request = Json.encodeToString(endreRenterRequest),
-                krav = krav,
+                kravTable = krav,
                 kravidentifikator = "",
             )
 
@@ -90,12 +88,11 @@ class EndreKravService(
             val requestResultEndreHovedstol = RequestResult(
                 response = endreHovedstolResponse,
                 request = Json.encodeToString(endreHovedstolRequest),
-                krav = krav,
+                kravTable = krav,
                 kravidentifikator = "",
             )
 
             requestResultEndreHovedstol
-
         }
     }
 }

@@ -11,14 +11,12 @@ import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.ValideringsfeilTable
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.domain.ske.responses.ValideringsFeil
 import sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import sokos.ske.krav.service.ENDRING_RENTE
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
 import sokos.ske.krav.util.isEndring
 import sokos.ske.krav.util.isStopp
-import java.math.BigInteger
 import java.sql.Connection
 import java.sql.Date
 import java.time.LocalDate
@@ -38,10 +36,10 @@ object Repository {
         prepareStatement("""select * from krav where status in (?, ?, ?, ?, ?)""")
             .withParameters(
                 param(Status.KRAV_IKKE_SENDT.value),
-                param(Status.IKKE_RESKONTROFORT_RESEND.value),
-                param(Status.ANNEN_SERVER_FEIL_500.value),
-                param(Status.UTILGJENGELIG_TJENESTE_503.value),
-                param(Status.INTERN_TJENERFEIL_500.value)
+                param(Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value),
+                param(Status.HTTP500_ANNEN_SERVER_FEIL.value),
+                param(Status.HTTP503_UTILGJENGELIG_TJENESTE.value),
+                param(Status.HTTP500_INTERN_TJENERFEIL.value)
             ).executeQuery().toKrav()
 
     fun Connection.getAllUnsentKrav() =
@@ -54,13 +52,13 @@ object Repository {
         prepareStatement("""select * from krav where status = ? or status = ?""")
             .withParameters(
                 param(Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value),
-                param(Status.VALIDERINGSFEIL_422.value)
+                param(Status.HTTP422_VALIDERINGSFEIL.value)
             ).executeQuery().toKrav()
 
-    fun Connection.getAllErrorMessages() =
+    fun Connection.getAllFeilmeldinger() =
         prepareStatement("""select * from feilmelding""").executeQuery().toFeilmelding()
 
-    fun Connection.getErrorMessageForKravId(kravId: Long): List<FeilmeldingTable> {
+    fun Connection.getFeilmeldingForKravId(kravId: Long): List<FeilmeldingTable> {
         return prepareStatement(
             """
                 select * from feilmelding
@@ -108,7 +106,7 @@ object Repository {
         else ""
     }
 
-    fun Connection.getPreviousOldRef(navref: String): String {
+    fun Connection.getPreviousReferansenummer(navref: String): String {
         val rs = prepareStatement(
             """
                 select referansenummergammelsak from krav
@@ -242,11 +240,12 @@ object Repository {
                     set kravidentifikator_ske = ? 
                 where 
                     saksnummer_nav = ? and
-                    kravtype <> 'NYTT_KRAV'
+                    kravtype <> ?
             """.trimIndent()
         ).withParameters(
             param(skeKravident),
             param(navSaksnr),
+            param(NYTT_KRAV)
         ).execute()
         commit()
     }
@@ -347,7 +346,7 @@ object Repository {
 
 
 
-    fun Connection.insertErrorMessage(feilmelding: FeilmeldingTable) {
+    fun Connection.insertFeilmelding(feilmelding: FeilmeldingTable) {
         prepareStatement(
             """
                 insert into feilmelding (
