@@ -26,8 +26,8 @@ create table "krav"
     kravtype                 text,
     corr_id                  text,
     tidspunkt_sendt          timestamp null,
-    tidspunkt_siste_status   timestamp,
-    tidspunkt_opprettet     timestamp
+    tidspunkt_siste_status   timestamp NOT NULL DEFAULT NOW(),
+    tidspunkt_opprettet      timestamp NOT NULL DEFAULT NOW()
 );
 
 drop table if exists feilmelding;
@@ -42,7 +42,7 @@ create table "feilmelding"
     melding               text,
     navRequest            text,
     skeResponse           text,
-    dato                  timestamp
+    tidspunkt_opprettet   timestamp NOT NULL DEFAULT NOW()
 );
 
 drop table if exists valideringsfeil;
@@ -50,10 +50,10 @@ create table "valideringsfeil"
 (
     id                    bigserial primary key,
     filnavn               text,
-    linjenr               int,
-    saksnr                text,
+    linjenummer           int,
+    saksnummer            text,
     kravlinje             text,
     feilmelding           text,
-    dato_opprettet        timestamp
+    tidspunkt_opprettet   timestamp NOT NULL DEFAULT NOW()
 );
 

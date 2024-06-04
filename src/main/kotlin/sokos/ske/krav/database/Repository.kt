@@ -74,7 +74,7 @@ object Repository {
                 where filNavn = ? and linjenummer = ?
             """.trimIndent()
         ).withParameters(
-            param(kravTable.filNavn),
+            param(kravTable.filnavn),
             param(kravTable.linjenummer),
         ).executeQuery().toValideringsfeil()
     }
@@ -232,7 +232,7 @@ object Repository {
         ).execute()
         commit()
     }
-    fun Connection.updateEndringWithSkeKravIdentifikator(navSaksnr: String, skeKravident: String) {
+    fun Connection.updateEndringWithSkeKravIdentifikator(navSaksnummer: String, skeKravident: String) {
         prepareStatement(
             """
                 update krav 
@@ -243,7 +243,7 @@ object Repository {
             """.trimIndent()
         ).withParameters(
             param(skeKravident),
-            param(navSaksnr),
+            param(navSaksnummer),
             param(NYTT_KRAV)
         ).execute()
         commit()
@@ -275,13 +275,11 @@ object Repository {
                 utbetalDato,
                 fagsystemId,
                 status, 
-                tidspunkt_siste_status,
                 kravtype,
                 corr_id,
-                tidspunkt_opprettet, 
                 filNavn,
                 linjenummer
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(), ?, ?, NOW(), ?, ?)
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?, ?)
             """.trimIndent())
 
         kravListe.forEach() {
@@ -356,10 +354,9 @@ object Repository {
                     error,
 				    melding,
 					navRequest,
-                    skeResponse,
-					dato
+                    skeResponse
                 ) 
-                values (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                values (?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
         ).withParameters(
             param(feilmelding.kravId),
@@ -370,7 +367,6 @@ object Repository {
             param(feilmelding.melding),
             param(feilmelding.navRequest),
             param(feilmelding.skeResponse),
-            param(LocalDate.now())
         ).execute()
         commit()
     }
@@ -378,8 +374,8 @@ object Repository {
     fun Connection.insertValidationError(filnavn: String, kravlinje: KravLinje, feilmelding: String) {
         prepareStatement(
             """
-                insert into valideringsfeil (filnavn, linjenummer, saksnummer, kravlinje, feilmelding, datoOpprettet)
-                values (?, ?, ?, ?, ?, Now() )
+                insert into valideringsfeil (filnavn, linjenummer, saksnummer, kravlinje, feilmelding)
+                values (?, ?, ?, ?, ? )
             """.trimIndent()
         ).withParameters(
             param(filnavn),

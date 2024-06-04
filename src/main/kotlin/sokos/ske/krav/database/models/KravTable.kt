@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 data class KravTable(
     val kravId: Long,
-    val filNavn: String,
+    val filnavn: String,
     val linjenummer: Int,
     val kravidentifikatorSKE: String,
     val saksnummerNAV: String,

@@ -78,6 +78,8 @@ object RepositoryExtensions {
     fun ResultSet.toKrav() = toList {
         KravTable(
             kravId = getColumn("id"),
+            filnavn = getColumn("filnavn"),
+            linjenummer = getColumn<Int>("linjenummer"),
             saksnummerNAV = getColumn("saksnummer_nav"),
             kravidentifikatorSKE = getColumn("kravidentifikator_ske"),
             belop = getColumn("belop"),
@@ -102,8 +104,6 @@ object RepositoryExtensions {
             tidspunktSendt = getColumn("tidspunkt_sendt"),
             tidspunktSisteStatus = getColumn("tidspunkt_siste_status"),
             tidspunktOpprettet = getColumn("tidspunkt_opprettet"),
-            filNavn = getColumn("filnavn"),
-            linjenummer = getColumn("linjenummer")
         )
     }
 
@@ -118,7 +118,7 @@ object RepositoryExtensions {
             melding = getColumn("melding"),
             navRequest = getColumn("navRequest"),
             skeResponse = getColumn("skeResponse"),
-            datoOpprettet = getColumn("dato")
+            tidspunktOpprettet = getColumn("tidspunkt_opprettet")
         )
     }
 
@@ -130,7 +130,7 @@ object RepositoryExtensions {
             saksnummer = getColumn("saksnummer"),
             kravLinje = getColumn("kravLinje"),
             feilmelding = getColumn("feilMelding"),
-            datoOpprettet = getColumn("datoOpprettet")
+            tidspunktOpprettet = getColumn("tidspunkt_opprettet")
         )
     }
 

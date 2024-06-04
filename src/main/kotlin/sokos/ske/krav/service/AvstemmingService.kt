@@ -82,8 +82,8 @@ class AvstemmingService(
             """
             <tr>
             <td rowspan="2">${it.kravId}</td>
-            <td>${it.filNavn}</>
-            <td>${it.linjenummer}</>
+            <td>${it.filnavn}</td>
+            <td>${it.linjenummer}</td>
             <td>${it.saksnummerNAV}</td>
             <td>${it.fagsystemId}</td>
             <td>${it.tidspunktOpprettet}</td>
@@ -112,6 +112,8 @@ class AvstemmingService(
             <table border="1">
             <tr>
             <th>Krav-Id</th>
+            <th>Filnavn</th>
+            <th>Linje</th>
             <th>Vedtaks-Id</th>
             <th>Fagsystem-Id</th>
             <th>Registrert</th>

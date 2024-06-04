@@ -307,8 +307,8 @@ internal class RepositoryTest : FunSpec({
             ).executeQuery()
             savedErrorRs.next()
             savedErrorRs.getString("filnavn") shouldBe fileName
-            savedErrorRs.getString("linjenr") shouldBe linje.linjeNummer.toString()
-            savedErrorRs.getString("saksnr") shouldBe linje.saksNummer
+            savedErrorRs.getString("linjenummer") shouldBe linje.linjeNummer.toString()
+            savedErrorRs.getString("saksnummer") shouldBe linje.saksNummer
             savedErrorRs.getString("kravlinje") shouldBe linje.toString()
             savedErrorRs.getString("feilmelding") shouldBe feilMelding
 
@@ -329,8 +329,8 @@ internal class RepositoryTest : FunSpec({
             emptyDB.connection.use {
                 it.prepareStatement(
                     """
-                    insert into feilmelding ( kravID, corr_id, saksnummer, kravidentifikator_ske, error, melding, navRequest, skeResponse, dato)
-                    values  (1, 'CORR769', '3330-navsaksnummer', '3333-skeUUID', 422, 'feilmelding 422 3333', '{nav request 3}', '{ske response 3}',  null);
+                    insert into feilmelding ( kravID, corr_id, saksnummer, kravidentifikator_ske, error, melding, navRequest, skeResponse)
+                    values  (1, 'CORR769', '3330-navsaksnummer', '3333-skeUUID', 422, 'feilmelding 422 3333', '{nav request 3}', '{ske response 3}');
                 """.trimIndent()
                 ).execute()
                 val rs = it.prepareStatement("""select * from feilmelding""").executeQuery()

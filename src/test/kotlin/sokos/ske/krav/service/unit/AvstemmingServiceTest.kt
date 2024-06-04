@@ -15,6 +15,8 @@ import java.time.LocalDateTime
 class AvstemmingServiceTest : FunSpec({
     val kravData1 = mockk<KravTable> {
         every { saksnummerNAV } returns "saksnummer1"
+        every { filnavn } returns "FilA"
+        every { linjenummer } returns 10
         every { kravId } returns 1
         every { fagsystemId } returns "fagsystemId1"
         every { tidspunktOpprettet } returns LocalDateTime.now()
@@ -25,6 +27,8 @@ class AvstemmingServiceTest : FunSpec({
     }
     val kravData2 = mockk<KravTable> {
         every { saksnummerNAV } returns "saksnummer2"
+        every { filnavn } returns "FilB"
+        every { linjenummer } returns 20
         every { kravId } returns 2
         every { fagsystemId } returns "fagsystemId2"
         every { tidspunktOpprettet } returns LocalDateTime.now()
@@ -49,6 +53,8 @@ class AvstemmingServiceTest : FunSpec({
             this shouldContain "feilmelding melding"
 
             this shouldContain kravData1.kravId.toString()
+            this shouldContain kravData1.filnavn
+            this shouldContain kravData1.linjenummer.toString()
             this shouldContain kravData1.saksnummerNAV
             this shouldContain kravData1.fagsystemId
             this shouldContain kravData1.tidspunktOpprettet.toString()
@@ -58,6 +64,8 @@ class AvstemmingServiceTest : FunSpec({
             this shouldContain kravData1.tidspunktSisteStatus.toString()
 
             this shouldContain kravData2.kravId.toString()
+            this shouldContain kravData1.filnavn
+            this shouldContain kravData1.linjenummer.toString()
             this shouldContain kravData2.saksnummerNAV
             this shouldContain kravData2.fagsystemId
             this shouldContain kravData2.tidspunktOpprettet.toString()

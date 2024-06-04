@@ -1,6 +1,5 @@
 package sokos.ske.krav.database.models
 
-import sokos.ske.krav.domain.nav.KravLinje
 import java.time.LocalDateTime
 
 
@@ -11,6 +10,6 @@ data class ValideringsfeilTable(
     val saksnummer: String,
     val kravLinje: String,
     val feilmelding: String,
-    val datoOpprettet: LocalDateTime,
+    val tidspunktOpprettet: LocalDateTime,
 )
 

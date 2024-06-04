@@ -41,7 +41,7 @@ internal class LineValidatorIntegrationTest : FunSpec({
         rs.next() shouldBe true
 
         rs.getString("filnavn") shouldBe this.testCase.name.testName
-        rs.getString("saksnr") shouldBe kravLinje.saksNummer
+        rs.getString("saksnummer") shouldBe kravLinje.saksNummer
 
         rs.next() shouldBe false
 
