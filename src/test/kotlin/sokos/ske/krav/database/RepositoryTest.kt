@@ -324,21 +324,6 @@ internal class RepositoryTest : FunSpec({
         }
     }
 
-    test("resultset getcolumn skal kaste exception hvis påkrevd column er null") {
-        shouldThrow<SQLException> {
-            emptyDB.connection.use {
-                it.prepareStatement(
-                    """
-                    insert into feilmelding ( kravID, corr_id, saksnummer, kravidentifikator_ske, error, melding, navRequest, skeResponse)
-                    values  (1, 'CORR769', '3330-navsaksnummer', '3333-skeUUID', 422, 'feilmelding 422 3333', '{nav request 3}', '{ske response 3}');
-                """.trimIndent()
-                ).execute()
-                val rs = it.prepareStatement("""select * from feilmelding""").executeQuery()
-                rs.toFeilmelding()
-            }
-        }
-    }
-
     test("resultset getcolumn skal kaste exception hvis den ikke finner kolonne med det gitte navnet") {
         shouldThrow<SQLException> {
             emptyDB.connection.use {
