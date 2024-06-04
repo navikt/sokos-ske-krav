@@ -378,7 +378,7 @@ object Repository {
     fun Connection.insertValidationError(filnavn: String, kravlinje: KravLinje, feilmelding: String) {
         prepareStatement(
             """
-                insert into valideringsfeil (filnavn, linjenr, saksnr, kravlinje, feilmelding, dato_opprettet)
+                insert into valideringsfeil (filnavn, linjenummer, saksnummer, kravlinje, feilmelding, datoOpprettet)
                 values (?, ?, ?, ?, ?, Now() )
             """.trimIndent()
         ).withParameters(

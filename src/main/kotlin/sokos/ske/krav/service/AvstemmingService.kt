@@ -82,6 +82,8 @@ class AvstemmingService(
             """
             <tr>
             <td rowspan="2">${it.kravId}</td>
+            <td>${it.filNavn}</>
+            <td>${it.linjenummer}</>
             <td>${it.saksnummerNAV}</td>
             <td>${it.fagsystemId}</td>
             <td>${it.tidspunktOpprettet}</td>
@@ -148,7 +150,7 @@ class AvstemmingService(
             """.trimIndent()
         } else {
             """
-                    <td colspan="7">"<b>Feilmelding: </b> ${feilmelding}"</td>
+                    <td colspan="9">"<b>Feilmelding: </b> ${feilmelding}"</td>
                 """.trimIndent()
         }
     }
