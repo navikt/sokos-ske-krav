@@ -2,6 +2,7 @@ package sokos.ske.krav.config
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.serialization.Configuration
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
@@ -35,7 +36,6 @@ import java.util.*
 private val logger = KotlinLogging.logger { }
 @OptIn(ExperimentalSerializationApi::class)
 fun Application.commonConfig(
-	configuratuion: Configuration
 ) {
 
   install(CallId) {
@@ -56,22 +56,6 @@ fun Application.commonConfig(
 	  explicitNulls = false
 	})
   }
-	install(Authentication) {
-		jwt {
-			verifier(configuratuion.azureAd.jwkProvider, configuratuion.azureAd.openIdConfiguration.issuer)
-			realm = configuratuion.appName
-			validate { cred ->
-				try {
-					requireNotNull(cred.payload.audience) { "Ikke gyldig Token, mangler audience" }
-					require(cred.payload.audience.contains(configuratuion.azureAd.clientId)) { "Ikke gyldig Token, ikke gyldig audienceClaim" }
-					JWTPrincipal(cred.payload)
-				} catch (e: Exception) {
-					logger.warn { e.message }
-					null
-				}
-			}
-		}
-	}
 
   install(MicrometerMetrics) {
 	registry = Metrics.registry

@@ -1,18 +1,24 @@
 package sokos.ske.krav
 
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.engine.stop
+import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
 import sokos.ske.krav.api.naisApi
 import sokos.ske.krav.api.skeApi
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.config.Configuration
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.commonConfig
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
-import sokos.ske.krav.service.*
+import sokos.ske.krav.service.AvstemmingService
+import sokos.ske.krav.service.DatabaseService
+import sokos.ske.krav.service.EndreKravService
+import sokos.ske.krav.service.OpprettKravService
+import sokos.ske.krav.service.SkeService
+import sokos.ske.krav.service.StatusService
+import sokos.ske.krav.service.StoppKravService
 import sokos.ske.krav.util.httpClient
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
@@ -30,10 +36,9 @@ fun main() {
     val skeService =
         SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, databaseService)
     val avstemmingService = AvstemmingService(databaseService)
-    val configuration = Configuration()
 
     applicationState.ready = true
-    HttpServer(applicationState, skeService, statusService, avstemmingService, configuration).start()
+    HttpServer(applicationState, skeService, statusService, avstemmingService).start()
 
     postgresDataSource.close()
 }
@@ -43,7 +48,6 @@ class HttpServer(
     private val skeService: SkeService,
     private val statusService: StatusService,
     private val avstemmingService: AvstemmingService,
-    private val configuration: Configuration,
     port: Int = 8080,
 ) {
     init {
@@ -54,7 +58,7 @@ class HttpServer(
     }
 
     private val embeddedServer = embeddedServer(Netty, port) {
-        commonConfig(configuration)
+        commonConfig()
         routing {
             naisApi({ applicationState.ready }, { applicationState.running })
             skeApi(skeService, statusService, avstemmingService)
