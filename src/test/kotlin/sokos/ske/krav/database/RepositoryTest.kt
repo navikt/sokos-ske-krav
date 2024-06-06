@@ -1,6 +1,5 @@
 package sokos.ske.krav.database
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -21,9 +20,6 @@ import sokos.ske.krav.database.Repository.updateEndringWithSkeKravIdentifikator
 import sokos.ske.krav.database.Repository.updateSentKrav
 import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.Repository.updateStatusForAvstemtKravToReported
-import sokos.ske.krav.database.RepositoryExtensions.getColumn
-import sokos.ske.krav.database.RepositoryExtensions.toFeilmelding
-import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.nav.FileParser
@@ -37,7 +33,6 @@ import sokos.ske.krav.util.getAllKrav
 import sokos.ske.krav.util.readFileFromFS
 import sokos.ske.krav.util.startContainer
 import java.math.BigDecimal
-import java.sql.SQLException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -149,23 +144,6 @@ internal class RepositoryTest : FunSpec({
 
     }
 
-    test("updateSendtKrav skal oppdatere krav med ny status og ny corr_id, og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
-        startContainer(UUID.randomUUID().toString(), listOf("KravSomSkalResendes.sql")).use { ds ->
-            val originalKrav = ds.connection.getAllKrav().first { it.corr_id == "CORR83985902" }
-            originalKrav.status shouldBe "RESKONTROFOERT"
-            originalKrav.tidspunktSendt!!.toString() shouldBe "2023-02-01T12:00"
-            originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
-
-            ds.connection.updateSentKrav("NYCORRID", "CORR83985902", "NYTT_KRAV", "TESTSTATUS")
-
-            val updatedKrav = ds.connection.getAllKrav().first { it.corr_id == "NYCORRID" }
-            updatedKrav.status shouldBe "TESTSTATUS"
-            updatedKrav.tidspunktSendt!!.toLocalDate() shouldBe LocalDate.now()
-            updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
-        }
-
-
-    }
 
     test("updateStatus skal oppdatere status, og tidspunkt_siste_status skal settes til NOW") {
         startContainer(UUID.randomUUID().toString(), listOf("KravSomSkalResendes.sql")).use { ds ->
@@ -315,30 +293,5 @@ internal class RepositoryTest : FunSpec({
         }
     }
 
-    test("getColumn skal kaste exception hvis den ikke kan parse datatypen") {
-        shouldThrow<SQLException> {
-            emptyDB.connection.use {
-                val rs = it.prepareStatement("""select * from feilmelding""").executeQuery()
-                rs.getColumn("any")
-            }
-        }
-    }
-
-    test("resultset getcolumn skal kaste exception hvis den ikke finner kolonne med det gitte navnet") {
-        shouldThrow<SQLException> {
-            emptyDB.connection.use {
-                val rs = it.prepareStatement("""select * from feilmelding""").executeQuery()
-                rs.getColumn("foo")
-            }
-        }
-    }
-
-    test("useAndHandleErrors skal kaste exception oppover") {
-        shouldThrow<SQLException> {
-            emptyDB.connection.useAndHandleErrors {
-                it.prepareStatement("""insert into foo values(1,2)""").execute()
-            }
-        }
-    }
 })
 

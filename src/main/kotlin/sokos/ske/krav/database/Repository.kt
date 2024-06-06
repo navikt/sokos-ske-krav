@@ -19,7 +19,6 @@ import sokos.ske.krav.util.isEndring
 import sokos.ske.krav.util.isStopp
 import java.sql.Connection
 import java.sql.Date
-import java.time.LocalDate
 import java.util.*
 
 object Repository {
@@ -177,31 +176,7 @@ object Repository {
         commit()
     }
 
-    fun Connection.updateSentKrav(
-        saveCorrID: String,
-        searchCorrID: String,
-        type: String,
-        responseStatus: String
-    ) {
-        prepareStatement(
-            """
-                update krav 
-                    set tidspunkt_sendt = NOW(), 
-                    tidspunkt_siste_status = NOW(),
-                    status = ?,
-                    corr_id = ?
-                where 
-                    corr_id = ? and
-                    kravtype = ?
-            """.trimIndent()
-        ).withParameters(
-            param(responseStatus),
-            param(saveCorrID),
-            param(searchCorrID),
-            param(type)
-        ).execute()
-        commit()
-    }
+
 
     fun Connection.updateStatus(mottakStatus: String, corrId: String) {
         prepareStatement(
