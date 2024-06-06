@@ -15,7 +15,7 @@ internal class ParserTest : FunSpec({
 
     test("lesInnStartLinjeTilclass") {
         val expected = KontrollLinjeHeader(
-            transaksjonDato = "20230526221340",
+            transaksjonsDato = "20230526221340",
             avsender = "OB04"
         )
         val startlinje: KontrollLinjeHeader = parser.parseKontrollLinjeHeader()

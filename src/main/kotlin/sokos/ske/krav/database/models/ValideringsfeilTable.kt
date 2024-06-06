@@ -7,7 +7,7 @@ data class ValideringsfeilTable(
     val valideringsfeilId: Long,
     val filnavn: String,
     val linjenummer: Int,
-    val saksnummer: String,
+    val saksnummerNav: String,
     val kravLinje: String,
     val feilmelding: String,
     val tidspunktOpprettet: LocalDateTime,

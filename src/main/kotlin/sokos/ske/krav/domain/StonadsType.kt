@@ -54,9 +54,9 @@ enum class StonadsType(val kravKode: String, val hjemmelkode: String, val altern
            krav: KravLinje
         ): StonadsType {
             return StonadsType.entries.firstOrNull {
-               krav.kravKode == it.kravKode  &&  (krav.hjemmelKode == it.hjemmelkode  || krav.hjemmelKode == it.alternativHjemmelkode) }
+               krav.kravKode == it.kravKode  &&  (krav.kodeHjemmel == it.hjemmelkode  || krav.kodeHjemmel == it.alternativHjemmelkode) }
                ?: throw NotImplementedError(
-               "Kombinasjonen kravkode=${krav.kravKode} og hjemmelkode=${krav.hjemmelKode} gir ingen kravtype.",
+               "Kombinasjonen kravkode=${krav.kravKode} og hjemmelkode=${krav.kodeHjemmel} gir ingen kravtype.",
            )
         }
     }

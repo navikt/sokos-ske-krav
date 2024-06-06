@@ -40,30 +40,30 @@ class LineValidator {
     private fun validateLine(krav: KravLinje): ValidationResult {
         val errorMessages = mutableListOf<String>()
 
-        val saksnrValid = validateSaksnr(krav.saksNummer)
-        val vedtakDatoValid = validateVedtaksdato(krav.vedtakDato)
+        val saksnrValid = validateSaksnr(krav.saksnummerNav)
+        val vedtakDatoValid = validateVedtaksdato(krav.vedtaksDato)
         val kravtypeValid = validateKravtype(krav)
-        val refnrGammelSakValid = if (!krav.isOpprettKrav()) validateSaksnr(krav.referanseNummerGammelSak) else true
+        val refnrGammelSakValid = if (!krav.isOpprettKrav()) validateSaksnr(krav.referansenummerGammelSak) else true
         val fomTomValid = validatePeriode(krav.periodeFOM, krav.periodeTOM)
-        val utbetalingsDatoValid = validateUtbetalingsDato(krav.utbetalDato, krav.vedtakDato)
+        val utbetalingsDatoValid = validateUtbetalingsDato(krav.utbetalDato, krav.vedtaksDato)
 
         if (!saksnrValid) {
-            errorMessages.add("Saksnummer er ikke riktig formatert og/eller inneholder ugyldige tegn (${krav.saksNummer}) på linje ${krav.linjeNummer}")
+            errorMessages.add("Saksnummer er ikke riktig formatert og/eller inneholder ugyldige tegn (${krav.saksnummerNav}) på linje ${krav.linjenummer}")
         }
         if (!vedtakDatoValid) {
-            errorMessages.add("Vedtaksdato er kan ikke være i fremtiden. Dersom feltet i denne linjen viser +9999... er  datoen feil formatert : ${krav.vedtakDato} på linje ${krav.linjeNummer}")
+            errorMessages.add("Vedtaksdato er kan ikke være i fremtiden. Dersom feltet i denne linjen viser +9999... er  datoen feil formatert : ${krav.vedtaksDato} på linje ${krav.linjenummer}")
         }
         if (!kravtypeValid) {
-            errorMessages.add("Kravtype finnes ikke definert for oversending til skatt : (${krav.kravKode} sammen med (${krav.hjemmelKode}) på linje ${krav.linjeNummer} ")
+            errorMessages.add("Kravtype finnes ikke definert for oversending til skatt : (${krav.kravKode} sammen med (${krav.kodeHjemmel}) på linje ${krav.linjenummer} ")
         }
         if (!refnrGammelSakValid) {
-            errorMessages.add("Refnummer gammel sak er ikke riktig formatert og/eller inneholder ugyldige tegn (${krav.referanseNummerGammelSak}) på linje ${krav.linjeNummer}\")")
+            errorMessages.add("Refnummer gammel sak er ikke riktig formatert og/eller inneholder ugyldige tegn (${krav.referansenummerGammelSak}) på linje ${krav.linjenummer}\")")
         }
         if (!fomTomValid) {
-            errorMessages.add("Periode(fom->tom) må være i fortid og FOM må være før TOM: (Fom: ${krav.periodeFOM} Tom: ${krav.periodeTOM} på linje ${krav.linjeNummer} ")
+            errorMessages.add("Periode(fom->tom) må være i fortid og FOM må være før TOM: (Fom: ${krav.periodeFOM} Tom: ${krav.periodeTOM} på linje ${krav.linjenummer} ")
         }
         if (!utbetalingsDatoValid) {
-            errorMessages.add("Utbetalingsdato må være i fortid og må være før vedtaksdato: (Utbetalinngsdato: ${krav.utbetalDato} Vedtaksdato: ${krav.vedtakDato} på linje ${krav.linjeNummer} ")
+            errorMessages.add("Utbetalingsdato må være i fortid og må være før vedtaksdato: (Utbetalinngsdato: ${krav.utbetalDato} Vedtaksdato: ${krav.vedtaksDato} på linje ${krav.linjenummer} ")
         }
 
         return if (errorMessages.isNotEmpty()) {

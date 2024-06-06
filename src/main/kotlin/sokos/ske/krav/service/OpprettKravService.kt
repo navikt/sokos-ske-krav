@@ -24,7 +24,7 @@ class OpprettKravService(
 
     private suspend fun sendOpprettKrav(krav: KravTable): RequestResult {
         val opprettKravRequest = createOpprettKravRequest(krav)
-        val response = skeClient.opprettKrav(opprettKravRequest, krav.corr_id)
+        val response = skeClient.opprettKrav(opprettKravRequest, krav.corrId)
 
         val kravIdentifikator =
             if (response.status.isSuccess())

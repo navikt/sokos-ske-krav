@@ -25,7 +25,7 @@ class StoppKravService(
     ): RequestResult {
         val kravidentifikatorPair = createKravidentifikatorPair(krav)
         val request = createStoppKravRequest(kravidentifikatorPair.first, kravidentifikatorPair.second)
-        val response = skeClient.stoppKrav(request, krav.corr_id)
+        val response = skeClient.stoppKrav(request, krav.corrId)
 
         return RequestResult(
             response = response,

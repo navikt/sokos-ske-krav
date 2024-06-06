@@ -106,14 +106,14 @@ internal class RepositoryTest : FunSpec({
 
     test("updateSentKrav skal oppdatere krav med ny status og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
         startContainer(UUID.randomUUID().toString(), listOf("KravSomSkalResendes.sql")).use { ds ->
-            val originalKrav = ds.connection.getAllKrav().first { it.corr_id == "CORR83985902" }
+            val originalKrav = ds.connection.getAllKrav().first { it.corrId == "CORR83985902" }
             originalKrav.status shouldBe "RESKONTROFOERT"
             originalKrav.tidspunktSendt!!.toString() shouldBe "2023-02-01T12:00"
             originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
             ds.connection.updateSentKrav("CORR83985902", "TESTSTATUS")
 
-            val updatedKrav = ds.connection.getAllKrav().first { it.corr_id == "CORR83985902" }
+            val updatedKrav = ds.connection.getAllKrav().first { it.corrId == "CORR83985902" }
             updatedKrav.status shouldBe "TESTSTATUS"
             updatedKrav.tidspunktSendt!!.toLocalDate() shouldBe LocalDate.now()
             updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
@@ -126,7 +126,7 @@ internal class RepositoryTest : FunSpec({
     test("updateSendtKrav skal oppdatere krav med ny status og ny kravidentifikator_ske, og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
 
         startContainer(UUID.randomUUID().toString(), listOf("KravSomSkalResendes.sql")).use { ds ->
-            val originalKrav = ds.connection.getAllKrav().first { it.corr_id == "CORR83985902" }
+            val originalKrav = ds.connection.getAllKrav().first { it.corrId == "CORR83985902" }
             originalKrav.status shouldBe "RESKONTROFOERT"
             originalKrav.kravidentifikatorSKE shouldBe "6666-skeUUID"
             originalKrav.tidspunktSendt!!.toString() shouldBe "2023-02-01T12:00"
@@ -134,7 +134,7 @@ internal class RepositoryTest : FunSpec({
 
             ds.connection.updateSentKrav("CORR83985902", "NykravidentSke", "TESTSTATUS")
 
-            val updatedKrav = ds.connection.getAllKrav().first { it.corr_id == "CORR83985902" }
+            val updatedKrav = ds.connection.getAllKrav().first { it.corrId == "CORR83985902" }
             updatedKrav.status shouldBe "TESTSTATUS"
             updatedKrav.kravidentifikatorSKE shouldBe "NykravidentSke"
             updatedKrav.tidspunktSendt!!.toLocalDate() shouldBe LocalDate.now()
@@ -147,13 +147,13 @@ internal class RepositoryTest : FunSpec({
 
     test("updateStatus skal oppdatere status, og tidspunkt_siste_status skal settes til NOW") {
         startContainer(UUID.randomUUID().toString(), listOf("KravSomSkalResendes.sql")).use { ds ->
-            val originalKrav = ds.connection.getAllKrav().first { it.corr_id == "CORR83985902" }
+            val originalKrav = ds.connection.getAllKrav().first { it.corrId == "CORR83985902" }
             originalKrav.status shouldBe "RESKONTROFOERT"
             originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
             ds.connection.updateStatus("NY_STATUS", "CORR83985902")
 
-            val updatedKrav = ds.connection.getAllKrav().first { it.corr_id == "CORR83985902" }
+            val updatedKrav = ds.connection.getAllKrav().first { it.corrId == "CORR83985902" }
             updatedKrav.status shouldBe "NY_STATUS"
             updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
         }
@@ -285,8 +285,8 @@ internal class RepositoryTest : FunSpec({
             ).executeQuery()
             savedErrorRs.next()
             savedErrorRs.getString("filnavn") shouldBe fileName
-            savedErrorRs.getString("linjenummer") shouldBe linje.linjeNummer.toString()
-            savedErrorRs.getString("saksnummer") shouldBe linje.saksNummer
+            savedErrorRs.getString("linjenummer") shouldBe linje.linjenummer.toString()
+            savedErrorRs.getString("saksnummer_nav") shouldBe linje.saksnummerNav
             savedErrorRs.getString("kravlinje") shouldBe linje.toString()
             savedErrorRs.getString("feilmelding") shouldBe feilMelding
 

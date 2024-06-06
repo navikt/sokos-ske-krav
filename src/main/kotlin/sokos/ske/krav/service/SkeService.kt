@@ -91,16 +91,16 @@ class SkeService(
 
     private suspend fun updateAllEndringerAndStopp(kravLinjer: List<KravLinje>) =
         kravLinjer.forEach {
-            val skeKravidentifikator = databaseService.getSkeKravidentifikator(it.referanseNummerGammelSak)
+            val skeKravidentifikator = databaseService.getSkeKravidentifikator(it.referansenummerGammelSak)
             var skeKravidentifikatorSomSkalLagres = skeKravidentifikator
             if (skeKravidentifikator.isBlank()) {
-                val httpResponse = skeClient.getSkeKravidentifikator(it.referanseNummerGammelSak)
+                val httpResponse = skeClient.getSkeKravidentifikator(it.referansenummerGammelSak)
                 if (httpResponse.status.isSuccess()) {
                     skeKravidentifikatorSomSkalLagres = httpResponse.body<AvstemmingResponse>().kravidentifikator
                 }
             }
             if (skeKravidentifikatorSomSkalLagres.isNotBlank()) databaseService.updateEndringWithSkeKravIdentifikator(
-                it.saksNummer,
+                it.saksnummerNav,
                 skeKravidentifikatorSomSkalLagres
             )
         }

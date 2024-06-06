@@ -35,21 +35,21 @@ class FileParser(val content: List<String>) {
 
     private fun kontrollLinjeHeaderParser(linje: String): KontrollLinjeHeader =
         KontrollLinjeHeader(
-            transaksjonDato = OVERFORINGS_DATO_POS.parseString(linje),
+            transaksjonsDato = OVERFORINGS_DATO_POS.parseString(linje),
             avsender = SENDER_POS.parseString(linje),
         )
 
     private fun kontrollLinjeFooterParser(linje: String): KontrollLinjeFooter =
         KontrollLinjeFooter(
-            transaksjonDato = OVERFORINGS_DATO_POS.parseString(linje),
+            transaksjonsDato = OVERFORINGS_DATO_POS.parseString(linje),
             avsender = SENDER_POS.parseString(linje),
             antallTransaksjoner = ANTALL_LINJER_POS.parseInt(linje),
             sumAlleTransaksjoner = SUM_ALLE_LINJER_POS.parseBigDecimal(linje),
         )
 
     private fun kravLinjeParser(linje: String) = KravLinje(
-        linjeNummer = LINJE_NUMMER_POS.parseInt(linje),
-        saksNummer = SAKS_NUMMER_POS.parseString(linje),
+        linjenummer = LINJE_NUMMER_POS.parseInt(linje),
+        saksnummerNav = SAKS_NUMMER_POS.parseString(linje),
         BELOP_POS.parseBigDecimal(linje),
         VEDTAK_DATO_POS.parseDate(linje),
         GJELDER_ID_POS.parseString(linje),

@@ -69,7 +69,7 @@ class EndreKravService(
         return if (krav.kravtype == ENDRING_RENTE) {
             val endreRenterRequest = createEndreRenteRequest(krav)
             val endreRenterResponse =
-                skeClient.endreRenter(endreRenterRequest, kravidentifikator, kravidentifikatorType, krav.corr_id)
+                skeClient.endreRenter(endreRenterRequest, kravidentifikator, kravidentifikatorType, krav.corrId)
 
             val requestResultEndreRente = RequestResult(
                 response = endreRenterResponse,
@@ -83,7 +83,7 @@ class EndreKravService(
         } else {
             val endreHovedstolRequest = createEndreHovedstolRequest(krav)
             val endreHovedstolResponse =
-                skeClient.endreHovedstol(endreHovedstolRequest, kravidentifikator, kravidentifikatorType, krav.corr_id)
+                skeClient.endreHovedstol(endreHovedstolRequest, kravidentifikator, kravidentifikatorType, krav.corrId)
 
             val requestResultEndreHovedstol = RequestResult(
                 response = endreHovedstolResponse,

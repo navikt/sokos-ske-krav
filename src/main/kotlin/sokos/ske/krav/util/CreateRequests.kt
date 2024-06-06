@@ -17,7 +17,7 @@ fun createOpprettKravRequest(krav: KravTable) = OpprettInnkrevingsoppdragRequest
     renteBeloep = createRenteBelop(krav).takeIf { it.first().beloep > 0L },
     oppdragsgiversReferanse = krav.fagsystemId,
     oppdragsgiversKravIdentifikator = krav.saksnummerNAV,
-    fastsettelsesDato = krav.vedtakDato.toKotlinLocalDate(),
+    fastsettelsesDato = krav.vedtaksDato.toKotlinLocalDate(),
     foreldelsesFristensUtgangspunkt = krav.utbetalDato.toKotlinLocalDate(),
     tilleggsInformasjon = createTilleggsinformasjonNav(krav),
 )
@@ -25,7 +25,7 @@ fun createOpprettKravRequest(krav: KravTable) = OpprettInnkrevingsoppdragRequest
 private fun createRenteBelop(krav: KravTable): List<RenteBeloep> = listOf(
     RenteBeloep(
         beloep = krav.belopRente.roundToLong(),
-        renterIlagtDato = krav.vedtakDato.toKotlinLocalDate(),
+        renterIlagtDato = krav.vedtaksDato.toKotlinLocalDate(),
     ),
 )
 
@@ -60,5 +60,5 @@ fun createStoppKravRequest(kravidentifikator: String, kravidentifikatorType: Kra
     AvskrivingRequest(kravidentifikatorType.value, kravidentifikator)
 
 fun KravLinje.isOpprettKrav() = (!this.isEndring() && !this.isStopp())
-fun KravLinje.isEndring() = (referanseNummerGammelSak.isNotEmpty() && !isStopp())
+fun KravLinje.isEndring() = (referansenummerGammelSak.isNotEmpty() && !isStopp())
 fun KravLinje.isStopp() = (belop.toDouble().roundToLong() == 0L)

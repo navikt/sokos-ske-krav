@@ -4,20 +4,20 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class KravLinje(
-    val linjeNummer: Int,
-    val saksNummer: String,
+    val linjenummer: Int,
+    val saksnummerNav: String,
     val belop: BigDecimal,
-    val vedtakDato: LocalDate,
-    val gjelderID: String,
+    val vedtaksDato: LocalDate,
+    val gjelderId: String,
     val periodeFOM: String,
     val periodeTOM: String,
     val kravKode: String,
-    val referanseNummerGammelSak: String,
-    val transaksjonDato: String,
+    val referansenummerGammelSak: String,
+    val transaksjonsDato: String,
     val enhetBosted: String,
     val enhetBehandlende: String,
-    val hjemmelKode: String,
-    val arsakKode: String,
+    val kodeHjemmel: String,
+    val kodeArsak: String,
     val belopRente: BigDecimal,
     val fremtidigYtelse: BigDecimal,
     val utbetalDato: LocalDate,
@@ -26,12 +26,12 @@ data class KravLinje(
 )
 
 data class KontrollLinjeHeader(
-    val transaksjonDato: String,
+    val transaksjonsDato: String,
     val avsender: String
 )
 
 data class KontrollLinjeFooter(
-    val transaksjonDato: String,
+    val transaksjonsDato: String,
     val avsender: String,
     val antallTransaksjoner: Int,
     val sumAlleTransaksjoner: BigDecimal,

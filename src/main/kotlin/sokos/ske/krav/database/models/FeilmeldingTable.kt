@@ -7,7 +7,7 @@ data class FeilmeldingTable(
     val feilmeldingId: Long,
     val kravId: Long,
     val corrId: String,
-    val saksnummer: String,
+    val saksnummerNav: String,
     val kravidentifikatorSKE: String?,
     val error: String,
     val melding: String,

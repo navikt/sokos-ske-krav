@@ -108,11 +108,11 @@ class DatabaseService(
 
             if (it.kravTable.kravtype == NYTT_KRAV) updateSentKrav(
                 it.kravidentifikator,
-                it.kravTable.corr_id,
+                it.kravTable.corrId,
                 it.status.value
             )
             else updateSentKrav(
-                it.kravTable.corr_id,
+                it.kravTable.corrId,
                 it.status.value
             )
         }
@@ -125,15 +125,15 @@ class DatabaseService(
         kravidentifikator: String,
     ) {
         val skeKravidentifikator =
-            if (kravidentifikator == krav.saksnummerNAV || kravidentifikator == krav.referanseNummerGammelSak) "" else kravidentifikator
+            if (kravidentifikator == krav.saksnummerNAV || kravidentifikator == krav.referansenummerGammelSak) "" else kravidentifikator
 
         val feilResponse = response.body<FeilResponse>()
 
         val feilmelding = FeilmeldingTable(
             0L,
-            getKravTableIdFromCorrelationId(krav.corr_id),
-            krav.corr_id,
-            krav.kravidentifikatorSKE,
+            getKravTableIdFromCorrelationId(krav.corrId),
+            krav.corrId,
+            krav.saksnummerNAV,
             skeKravidentifikator,
             feilResponse.status.toString(),
             feilResponse.detail,

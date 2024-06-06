@@ -9,7 +9,7 @@ fun createKravidentifikatorPair(it: KravTable,): Pair<String, KravidentifikatorT
     var kravIdentifikatorType = KravidentifikatorType.SKATTEETATENSKRAVIDENTIFIKATOR
 
     if (kravIdentifikator.isEmpty() && it.kravtype != NYTT_KRAV) {
-        kravIdentifikator = it.referanseNummerGammelSak
+        kravIdentifikator = it.referansenummerGammelSak
         kravIdentifikatorType = KravidentifikatorType.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
     }
     return Pair(kravIdentifikator, kravIdentifikatorType)

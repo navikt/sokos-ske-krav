@@ -31,7 +31,7 @@ class StatusService(
             if (response.status.isSuccess()) {
                 try {
                     val mottaksstatus = response.body<MottaksStatusResponse>()
-                    databaseService.updateStatus(mottaksstatus.mottaksStatus, it.corr_id)
+                    databaseService.updateStatus(mottaksstatus.mottaksStatus, it.corrId)
                     if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value)
                         hentOgLagreValideringsFeil(kravIdentifikatorPair, it)
                 } catch (e: SerializationException) {
@@ -56,7 +56,7 @@ class StatusService(
                 val feilmeldingTable = FeilmeldingTable(
                     0,
                     kravTable.kravId,
-                    kravTable.corr_id,
+                    kravTable.corrId,
                     kravTable.saksnummerNAV,
                     kravTable.kravidentifikatorSKE,
                     it.error,

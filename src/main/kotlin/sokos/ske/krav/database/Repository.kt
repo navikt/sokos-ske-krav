@@ -60,7 +60,7 @@ object Repository {
         return prepareStatement(
             """
                 select * from feilmelding
-                where kravid = ?
+                where krav_id = ?
             """.trimIndent()
         ).withParameters(
             param(kravId)
@@ -70,7 +70,7 @@ object Repository {
         return prepareStatement(
             """
                 select * from valideringsfeil
-                where filNavn = ? and linjenummer = ?
+                where filnavn = ? and linjenummer = ?
             """.trimIndent()
         ).withParameters(
             param(kravTable.filnavn),
@@ -91,7 +91,7 @@ object Repository {
         val rs = prepareStatement(
             """
             select min(tidspunkt_opprettet) as opprettet, kravidentifikator_ske from krav
-            where (saksnummer_nav = ? or referanseNummerGammelSak = ?) 
+            where (saksnummer_nav = ? or referansenummergammelsak = ?) 
             and (kravidentifikator_ske is not null and kravidentifikator_ske <> '') 
             group by kravidentifikator_ske limit 1
         """.trimIndent()
@@ -207,7 +207,7 @@ object Repository {
         ).execute()
         commit()
     }
-    fun Connection.updateEndringWithSkeKravIdentifikator(navSaksnummer: String, skeKravident: String) {
+    fun Connection.updateEndringWithSkeKravIdentifikator(saksnummerNav: String, skeKravident: String) {
         prepareStatement(
             """
                 update krav 
@@ -218,7 +218,7 @@ object Repository {
             """.trimIndent()
         ).withParameters(
             param(skeKravident),
-            param(navSaksnummer),
+            param(saksnummerNav),
             param(NYTT_KRAV)
         ).execute()
         commit()
@@ -234,25 +234,25 @@ object Repository {
                 insert into krav (
                 saksnummer_nav,
                 belop,
-                vedtakDato,
-                gjelderId,
-                periodeFOM,
-                periodeTOM,
+                vedtaksdato,
+                gjelder_id,
+                periode_fom,
+                periode_tom,
                 kravkode,
-                referanseNummerGammelSak,
-                transaksjonDato,
-                enhetBosted,
-                enhetBehandlende,
-                kodeHjemmel,
-                kodeArsak,
-                belopRente,
-                fremtidigYtelse,
-                utbetalDato,
-                fagsystemId,
+                referansenummergammelsak,
+                transaksjonsdato,
+                enhet_bosted,
+                enhet_behandlende,
+                kode_hjemmel,
+                kode_arsak,
+                belop_rente,
+                fremtidig_ytelse,
+                utbetaldato,
+                fagsystem_id,
                 status, 
                 kravtype,
                 corr_id,
-                filNavn,
+                filnavn,
                 linjenummer
                 ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?, ?)
             """.trimIndent())
@@ -263,19 +263,19 @@ object Repository {
                 it.isEndring() -> ENDRING_HOVEDSTOL
                 else -> NYTT_KRAV
             }
-            prepStmt.setString(1, it.saksNummer)
+            prepStmt.setString(1, it.saksnummerNav)
             prepStmt.setBigDecimal(2, it.belop)
-            prepStmt.setDate(3, Date.valueOf(it.vedtakDato))
-            prepStmt.setString(4, it.gjelderID)
+            prepStmt.setDate(3, Date.valueOf(it.vedtaksDato))
+            prepStmt.setString(4, it.gjelderId)
             prepStmt.setString(5, it.periodeFOM)
             prepStmt.setString(6, it.periodeTOM)
             prepStmt.setString(7, it.kravKode)
-            prepStmt.setString(8, it.referanseNummerGammelSak)
-            prepStmt.setString(9, it.transaksjonDato)
+            prepStmt.setString(8, it.referansenummerGammelSak)
+            prepStmt.setString(9, it.transaksjonsDato)
             prepStmt.setString(10, it.enhetBosted)
             prepStmt.setString(11, it.enhetBehandlende)
-            prepStmt.setString(12, it.hjemmelKode)
-            prepStmt.setString(13, it.arsakKode)
+            prepStmt.setString(12, it.kodeHjemmel)
+            prepStmt.setString(13, it.kodeArsak)
             prepStmt.setDouble(14, it.belopRente.toDouble())
             prepStmt.setString(15, it.fremtidigYtelse.toString())
             prepStmt.setDate(16, Date.valueOf(it.utbetalDato))
@@ -284,22 +284,22 @@ object Repository {
             prepStmt.setString(19, type)
             prepStmt.setString(20, UUID.randomUUID().toString())
             prepStmt.setString(21, filnavn)
-            prepStmt.setInt(22, it.linjeNummer)
+            prepStmt.setInt(22, it.linjenummer)
             prepStmt.addBatch()
             if (type == ENDRING_HOVEDSTOL) {
-                prepStmt.setString(1, it.saksNummer)
+                prepStmt.setString(1, it.saksnummerNav)
                 prepStmt.setBigDecimal(2, it.belop)
-                prepStmt.setDate(3, Date.valueOf(it.vedtakDato))
-                prepStmt.setString(4, it.gjelderID)
+                prepStmt.setDate(3, Date.valueOf(it.vedtaksDato))
+                prepStmt.setString(4, it.gjelderId)
                 prepStmt.setString(5, it.periodeFOM)
                 prepStmt.setString(6, it.periodeTOM)
                 prepStmt.setString(7, it.kravKode)
-                prepStmt.setString(8, it.referanseNummerGammelSak)
-                prepStmt.setString(9, it.transaksjonDato)
+                prepStmt.setString(8, it.referansenummerGammelSak)
+                prepStmt.setString(9, it.transaksjonsDato)
                 prepStmt.setString(10, it.enhetBosted)
                 prepStmt.setString(11, it.enhetBehandlende)
-                prepStmt.setString(12, it.hjemmelKode)
-                prepStmt.setString(13, it.arsakKode)
+                prepStmt.setString(12, it.kodeHjemmel)
+                prepStmt.setString(13, it.kodeArsak)
                 prepStmt.setDouble(14, it.belopRente.toDouble())
                 prepStmt.setString(15, it.fremtidigYtelse.toString())
                 prepStmt.setDate(16, Date.valueOf(it.utbetalDato))
@@ -308,7 +308,7 @@ object Repository {
                 prepStmt.setString(19, ENDRING_RENTE)
                 prepStmt.setString(20, UUID.randomUUID().toString())
                 prepStmt.setString(21, filnavn)
-                prepStmt.setInt(22, it.linjeNummer)
+                prepStmt.setInt(22, it.linjenummer)
                 prepStmt.addBatch()
             }
         }
@@ -322,20 +322,20 @@ object Repository {
         prepareStatement(
             """
                 insert into feilmelding (
-                    kravid,
-                    saksnummer,
+                    krav_id,
+                    saksnummer_nav,
                     kravidentifikator_ske,
                     corr_id,
                     error,
 				    melding,
-					navRequest,
-                    skeResponse
+					nav_request,
+                    ske_response
                 ) 
                 values (?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
         ).withParameters(
             param(feilmelding.kravId),
-            param(feilmelding.saksnummer),
+            param(feilmelding.saksnummerNav),
             param(feilmelding.kravidentifikatorSKE),
             param(feilmelding.corrId),
             param(feilmelding.error),
@@ -349,13 +349,13 @@ object Repository {
     fun Connection.insertValidationError(filnavn: String, kravlinje: KravLinje, feilmelding: String) {
         prepareStatement(
             """
-                insert into valideringsfeil (filnavn, linjenummer, saksnummer, kravlinje, feilmelding)
+                insert into valideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
                 values (?, ?, ?, ?, ? )
             """.trimIndent()
         ).withParameters(
             param(filnavn),
-            param(kravlinje.linjeNummer),
-            param(kravlinje.saksNummer),
+            param(kravlinje.linjenummer),
+            param(kravlinje.saksnummerNav),
             param(kravlinje.toString()),
             param(feilmelding)
         ).execute()

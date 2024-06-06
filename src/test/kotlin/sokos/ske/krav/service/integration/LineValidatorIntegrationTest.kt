@@ -18,7 +18,7 @@ internal class LineValidatorIntegrationTest : FunSpec({
         val dataSource = startContainer(this.testCase.name.testName, emptyList())
 
         val kravLinje = KravLinje(
-            1, "saksnummer", BigDecimal.ONE, LocalDate.now(), "gjelderID",
+            1, "saksnummer_nav", BigDecimal.ONE, LocalDate.now(), "gjelderID",
             "20231201", "20231212", "KS KS", "refgammelsak",
             "20230112", "bosted", "beh", "TA", "arsak",
             BigDecimal.ZERO, BigDecimal.ZERO, LocalDate.now().minusDays(1), "1234"
@@ -41,7 +41,7 @@ internal class LineValidatorIntegrationTest : FunSpec({
         rs.next() shouldBe true
 
         rs.getString("filnavn") shouldBe this.testCase.name.testName
-        rs.getString("saksnummer") shouldBe kravLinje.saksNummer
+        rs.getString("saksnummer_nav") shouldBe kravLinje.saksnummerNav
 
         rs.next() shouldBe false
 

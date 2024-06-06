@@ -34,7 +34,7 @@ internal class RepositoryExtensionTest: FunSpec({
             emptyDB.connection.use {
                 it.prepareStatement(
                     """
-                    insert into feilmelding ( kravID, corr_id, saksnummer, kravidentifikator_ske, error, melding, navRequest, skeResponse, tidspunkt_opprettet)
+                    insert into feilmelding ( kravID, corr_id, saksnummer_nav, kravidentifikator_ske, error, melding, nav_request, ske_response, tidspunkt_opprettet)
                     values  (1, 'CORR769', '3330-navsaksnummer', '3333-skeUUID', 422, 'feilmelding 422 3333', '{nav request 3}', '{ske response 3}', null);
                 """.trimIndent()
                 ).execute()
