@@ -21,7 +21,7 @@ spec:
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i validering av linje
-          expr: (rate(sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}[3m]) * 180) >= 0
+          expr: (rate(sokos_ske_krav_linjevalidering_feil_total{app="sokos-ske-krav"}[3m]) * 180) > 0
           for: 2m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
@@ -32,7 +32,7 @@ spec:
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i innsending av krav
-          expr:  (rate(sokos_ske_krav_innsending_av_krav_feil_total{app="sokos-ske-krav"}[3m]) * 180) >= 0
+          expr:  (rate(sokos_ske_krav_innsending_av_krav_feil_total{app="sokos-ske-krav"}[3m]) * 180) > 0
           for: 2m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
