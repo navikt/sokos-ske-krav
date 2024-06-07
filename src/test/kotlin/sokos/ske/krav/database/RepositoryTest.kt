@@ -44,6 +44,7 @@ internal class RepositoryTest : FunSpec({
     val kravSomSkalAvstemmesDB = startContainer(UUID.randomUUID().toString(), listOf("KravSomSkalAvstemmes.sql"))
     val emptyDB = startContainer(UUID.randomUUID().toString(), emptyList())
 
+
     test("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING") {
         kravSomSkalResendesDB.connection.getAllKravForStatusCheck().size shouldBe 5
 

@@ -4,21 +4,23 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import sokos.ske.krav.config.SftpConfig
-import sokos.ske.krav.listener.SftpListener
-import sokos.ske.krav.listener.SftpListener.sftpProperties
+import sokos.ske.krav.util.containers.SftpContainer
+
+
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
+import sokos.ske.krav.util.containers.SftpListener
 
 internal class FtpServiceTest: BehaviorSpec({
 
-    extensions(listOf(SftpListener))
+    extensions(SftpListener)
 
     val ftpService: FtpService by lazy {
-        FtpService(sftpSession =  SftpConfig(sftpProperties).createSftpConnection())
+        FtpService(sftpSession =  SftpConfig(SftpContainer.sftpProperties).createSftpConnection())
     }
 
     Given("det finnes ubehandlede filer i \"inbound\" på FTP-serveren ") {
-        SftpListener.putFiles(ftpService.session, listOf("AltOkFil.txt", "Fil-A.txt", "Fil-B.txt", "FilMedFeilIKontrollLinje.txt"), Directories.INBOUND,)
+        SftpContainer.putFiles(ftpService.session, listOf("AltOkFil.txt", "Fil-A.txt", "Fil-B.txt", "FilMedFeilIKontrollLinje.txt"), Directories.INBOUND,)
         When("Validering"){
            ftpService.getValidatedFiles()
 

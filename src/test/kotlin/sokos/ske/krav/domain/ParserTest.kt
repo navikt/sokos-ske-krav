@@ -13,6 +13,7 @@ internal class ParserTest : FunSpec({
     val liste = fileAsList("${File.separator}FtpFiler${File.separator}AltOkFil.txt")
     val parser = FileParser(liste)
 
+
     test("lesInnStartLinjeTilclass") {
         val expected = KontrollLinjeHeader(
             transaksjonsDato = "20230526221340",
