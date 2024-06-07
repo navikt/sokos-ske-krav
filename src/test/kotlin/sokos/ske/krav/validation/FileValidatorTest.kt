@@ -2,20 +2,20 @@ package sokos.ske.krav.validation
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import sokos.ske.krav.util.asResource
-import sokos.ske.krav.util.readFileFromFS
+import sokos.ske.krav.util.FtpTestUtil.fileAsList
+import java.io.File
 
 internal class FileValidatorTest: FunSpec({
 
     test("Når validering av fil er OK skal ValidationResult.Success returneres med kravlinjene"){
-        val liste = readFileFromFS("AltOkFil.txt".asResource())
+        val liste = fileAsList("${File.separator}FtpFiler${File.separator}/AltOkFil.txt")
         val validationResult =	FileValidator.validateFile(liste, "AltOkFil.txt")
         (validationResult is ValidationResult.Success) shouldBe true
         (validationResult as ValidationResult.Success).kravLinjer.size shouldBe liste.size - 2
     }
 
     test("Når validering av fil ikke er OK skal ValidationResult.Error returneres med feilmeldinger"){
-        val liste = readFileFromFS("FilMedFeilIKontrollLinje.txt".asResource())
+        val liste = fileAsList("${File.separator}FtpFiler${File.separator}/FilMedFeilIKontrollLinje.txt")
         val validationResult =	FileValidator.validateFile(liste, "FilMedFeilIKontrollLinje.txt")
         (validationResult is ValidationResult.Error) shouldBe true
         (validationResult as ValidationResult.Error).messages.size shouldBe 2

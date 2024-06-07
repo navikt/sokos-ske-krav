@@ -28,10 +28,10 @@ import sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import sokos.ske.krav.service.ENDRING_RENTE
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
-import sokos.ske.krav.util.asResource
 import sokos.ske.krav.util.getAllKrav
-import sokos.ske.krav.util.readFileFromFS
 import sokos.ske.krav.util.startContainer
+import sokos.ske.krav.util.FtpTestUtil.fileAsList
+import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -225,8 +225,8 @@ internal class RepositoryTest : FunSpec({
 
 
     test("insertAllNewKrav skal inserte alle kravlinjene") {
-        val filnavn = "8NyeKrav1Endring1Stopp.txt"
-        val liste = readFileFromFS(filnavn.asResource())
+        val filnavn = "${File.separator}FtpFiler${File.separator}8NyeKrav1Endring1Stopp.txt"
+        val liste = fileAsList(filnavn)
         val kravlinjer = FileParser(liste).parseKravLinjer()
         startContainer(this.testCase.name.testName, emptyList()).use { ds ->
             ds.connection.insertAllNewKrav(kravlinjer, filnavn)

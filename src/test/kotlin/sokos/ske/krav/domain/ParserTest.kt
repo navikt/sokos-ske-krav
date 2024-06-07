@@ -6,11 +6,11 @@ import io.kotest.matchers.shouldBe
 import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.domain.nav.KontrollLinjeFooter
 import sokos.ske.krav.domain.nav.KontrollLinjeHeader
-import sokos.ske.krav.util.asResource
-import sokos.ske.krav.util.readFileFromFS
+import sokos.ske.krav.util.FtpTestUtil.fileAsList
+import java.io.File
 
 internal class ParserTest : FunSpec({
-    val liste = readFileFromFS("AltOkFil.txt".asResource())
+    val liste = fileAsList("${File.separator}FtpFiler${File.separator}AltOkFil.txt")
     val parser = FileParser(liste)
 
     test("lesInnStartLinjeTilclass") {

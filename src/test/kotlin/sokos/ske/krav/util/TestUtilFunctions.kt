@@ -24,20 +24,18 @@ import sokos.ske.krav.service.OpprettKravService
 import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
 import sokos.ske.krav.service.StoppKravService
-import java.io.File
-import java.net.URI
+import java.io.Reader
 import java.sql.Connection
 
 
-fun readFileFromFS(file: String): List<String> {
-    val pn = URI(file)
-    pn.normalize()
-    return File(URI(file)).readLines()
+object FtpTestUtil{
+    fun fileAsString(fileName: String): String = fileAs(fileName, Reader::readText)
+    fun fileAsList(fileName: String): List<String> = fileAs(fileName, Reader::readLines)
+
+   private fun<T> fileAs(fileName: String, func: Reader.() -> T): T = this::class.java.getResourceAsStream(fileName)!!.bufferedReader().use { it.func() }
 }
 
-fun String.asResource(): String = object {}.javaClass.classLoader.getResource(this)!!.toString()
-fun String.asText(): String =
-    object {}.javaClass.classLoader.getResourceAsStream(this)!!.bufferedReader().use { it.readText() }
+
 
 fun startContainer(containerName: String, initScripts: List<String>): HikariDataSource {
     return TestContainer(containerName)

@@ -21,8 +21,8 @@ import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemWriter
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.SftpConfig
 import sokos.ske.krav.service.Directories
-import sokos.ske.krav.util.asText
 
+import sokos.ske.krav.util.FtpTestUtil.fileAsString
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStreamWriter
@@ -110,7 +110,10 @@ object SftpListener : TestListener {
 
 
                 val path = "${directory.value}${File.separator}$fileName"
-                put(fileName.asText().toByteArray().inputStream(), path)
+                println("PATH: $path")
+                 val content = fileAsString("${File.separator}FtpFiler${File.separator}$fileName")
+                put(content.toByteArray().inputStream(), path)
+
             }
         }
 
