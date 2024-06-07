@@ -11,6 +11,7 @@ import io.mockk.mockk
 import io.mockk.spyk
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
+import sokos.ske.krav.config.SftpConfig
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.getSkeKravidentifikator
 import sokos.ske.krav.database.Repository.insertAllNewKrav
@@ -22,15 +23,17 @@ import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.AvstemmingResponse
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
+import sokos.ske.krav.listener.SftpListener
+import sokos.ske.krav.listener.SftpListener.sftpProperties
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import sokos.ske.krav.service.ENDRING_RENTE
+import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
 import sokos.ske.krav.service.StatusService
-import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.MockHttpClientUtils.EndepunktType
 import sokos.ske.krav.util.MockHttpClientUtils.MockRequestObj
 import sokos.ske.krav.util.MockHttpClientUtils.Responses
@@ -42,11 +45,18 @@ import sokos.ske.krav.util.startContainer
 
 internal class SkeServiceIntegrationTest : FunSpec({
 
+    extensions(listOf(SftpListener))
+    val ftpService: FtpService by lazy {
+        FtpService(sftpSession =  SftpConfig(sftpProperties).createSftpConnection())
+    }
+
+
 
     test("Når SkeService leser inn en fil skal kravene lagres i database") {
         val filnavn = "10NyeKrav.txt"
         val dataSource = startContainer(this.testCase.name.testName, emptyList())
-        val ftpService = FakeFtpService().setupMocks(Directories.INBOUND, listOf(filnavn))
+     //   val ftpService = FakeFtpService().setupMocks(Directories.INBOUND, listOf(filnavn))
+        SftpListener.putFiles(ftpService.session, listOf("10NyeKrav.txt"), Directories.INBOUND,)
 
         val dsMock = mockk<DatabaseService> {
             every { getAllUnsentKrav() } returns emptyList()
@@ -68,7 +78,7 @@ internal class SkeServiceIntegrationTest : FunSpec({
     test("Etter at kravene lagres i database skal endringer og avskrivinger oppdateres med kravidentifikatorSKE fra database") {
         val filnavn = "TestEndringKravident.txt"
         val dataSource = startContainer(this.testCase.name.testName, listOf("10NyeKrav.sql"))
-        val ftpService = FakeFtpService().setupMocks(Directories.INBOUND, listOf("TestEndringKravident.txt"))
+        SftpListener.putFiles(ftpService.session, listOf("TestEndringKravident.txt"), Directories.INBOUND,)
 
         val skeClient = mockk<SkeClient> {
             coEvery { getSkeKravidentifikator("8888-navsaksnr") } returns mockk<HttpResponse> {
@@ -102,7 +112,8 @@ internal class SkeServiceIntegrationTest : FunSpec({
     test("Kravdata skal lagres med type som beskriver hva slags krav det er") {
         val filnavn = "AltOkFil.txt"
         val dataSource = startContainer(this.testCase.name.testName, emptyList())
-        val ftpService = FakeFtpService().setupMocks(Directories.INBOUND, listOf(filnavn))
+        SftpListener.putFiles(ftpService.session, listOf("AltOkFil.txt"), Directories.INBOUND,)
+
 
         val dsMock = mockk<DatabaseService> {
             every { getAllUnsentKrav() } returns emptyList()
@@ -131,6 +142,7 @@ internal class SkeServiceIntegrationTest : FunSpec({
         lagredeKrav.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
     }
 
+    //todo: flytt??
 
     test("Mottaksstatus skal oppdateres i database") {
         val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
@@ -150,7 +162,7 @@ internal class SkeServiceIntegrationTest : FunSpec({
 
     test("Når et krav feiler skal det lagres i feilmeldingtabell") {
         val ds = startContainer(this.testCase.name.testName, emptyList())
-
+        SftpListener.putFiles(ftpService.session, listOf("10NyeKrav.txt"), Directories.INBOUND,)
         val nyttKravKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.OPPRETT, HttpStatusCode.NotFound)
         val avskrivKravKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.NotFound)
         val endreRenterKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.NotFound)
@@ -159,7 +171,7 @@ internal class SkeServiceIntegrationTest : FunSpec({
         val mottaksstatusKall = MockRequestObj(Responses.mottaksStatusResponse(), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
 
         val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall, mottaksstatusKall))
-        val skeService = setupSkeServiceMockWithMockEngine(ds, httpClient, listOf("10NyeKrav.txt"), Directories.INBOUND)
+        val skeService = setupSkeServiceMockWithMockEngine(ds, httpClient, ftpService)
 
         skeService.handleNewKrav()
         val feilmeldinger = ds.connection.prepareStatement("SELECT * FROM FEILMELDING").executeQuery().toFeilmelding()
@@ -197,7 +209,7 @@ internal class SkeServiceIntegrationTest : FunSpec({
 
         val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall, mottaksstatusKall))
 
-        val skeService = setupSkeServiceMockWithMockEngine(ds, httpClient)
+        val skeService = setupSkeServiceMockWithMockEngine(ds, httpClient, ftpService)
         skeService.handleNewKrav()
 
         ds.connection.getAllKrav().let { kravAfter ->

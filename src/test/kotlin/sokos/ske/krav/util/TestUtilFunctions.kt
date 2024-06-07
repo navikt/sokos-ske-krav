@@ -18,7 +18,6 @@ import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.DatabaseService
-import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.EndreKravService
 import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.service.OpprettKravService
@@ -95,13 +94,11 @@ fun setUpMockHttpClient(endepunktTyper: List<MockHttpClientUtils.MockRequestObj>
 fun setupSkeServiceMockWithMockEngine(
     dataSource: HikariDataSource,
     httpClient: HttpClient,
-    ftpFiler: List<String> = emptyList(),
-    directory: Directories = Directories.INBOUND,
+    ftpService: FtpService
 
     ): SkeService {
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
 
-    val ftpService = FakeFtpService().setupMocks(directory, ftpFiler)
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
     val databaseService = DatabaseService(PostgresDataSource(dataSource))
     val endreKravService = EndreKravService(skeClient, databaseService)

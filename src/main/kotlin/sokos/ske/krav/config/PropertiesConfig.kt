@@ -50,12 +50,11 @@ object PropertiesConfig {
 		val profile: Profile = Profile.valueOf(this["APPLICATION_PROFILE"]),
 	)
 
-	data class FtpConfig(
-		val server: String = getOrEmpty("FTP_SERVER"),
+	data class SftpProperties(
+		val host: String = getOrEmpty("FTP_SERVER"),
 		val username: String = getOrEmpty("SKE_SFTP_USERNAME"),
-		val keyPass: String = getOrEmpty("SKE_SFTP_PASSWORD"),
-		val privKey: String = getOrEmpty("SFTP_PRIVATE_KEY_FILE_PATH"),
-		val hostKey: String = getOrEmpty("SFTP_HOST_KEY_FILE_PATH"),
+		val privateKeyPassword: String = getOrEmpty("SKE_SFTP_PASSWORD"),
+		val privateKey: String = getOrEmpty("SFTP_PRIVATE_KEY_FILE_PATH"),
 		val port: Int = getOrEmpty("FTP_PORT").toInt()
 	)
 

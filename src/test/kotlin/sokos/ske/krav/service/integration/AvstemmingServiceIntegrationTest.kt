@@ -5,22 +5,28 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.mockk.every
 import io.mockk.mockk
+import sokos.ske.krav.config.SftpConfig
 import sokos.ske.krav.database.Repository.getAllKravForAvstemming
 import sokos.ske.krav.database.Repository.getFeilmeldingForKravId
 import sokos.ske.krav.database.Repository.updateStatusForAvstemtKravToReported
+import sokos.ske.krav.listener.SftpListener
+import sokos.ske.krav.listener.SftpListener.sftpProperties
 import sokos.ske.krav.service.AvstemmingService
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
-import sokos.ske.krav.util.FakeFtpService
 import sokos.ske.krav.util.startContainer
 
 internal class AvstemmingServiceIntegrationTest: FunSpec ({
 
+    extensions(listOf(SftpListener))
+
+    val ftpService: FtpService by lazy {
+        FtpService(sftpSession =  SftpConfig(sftpProperties).createSftpConnection())
+    }
 
     test("visFeilFiler skal liste opp alle filer som ligger i Directories.FAILED"){
-        val ftpService = FakeFtpService().setupMocks(Directories.FAILED, listOf("Fil-A.txt", "Fil-B.txt", "Fil-C.txt"))
-
+        SftpListener.putFiles(ftpService.session, listOf("Fil-A.txt", "Fil-B.txt", "Fil-C.txt"), Directories.FAILED,)
         AvstemmingService(mockk<DatabaseService>(),  ftpService).visFeilFiler().run {
             this shouldContain "Filer som feilet"
             this shouldContain "<tr><td>Fil-A.txt</td</tr>"
@@ -38,7 +44,7 @@ internal class AvstemmingServiceIntegrationTest: FunSpec ({
         }
         dsMock.getAllKravForAvstemming().size shouldBe 9
 
-        val avstemmingService = AvstemmingService(dsMock, mockk<FtpService>())
+        val avstemmingService = AvstemmingService(dsMock, ftpService)
         avstemmingService.oppdaterAvstemtKravTilRapportert(1)
         dsMock.getAllKravForAvstemming().size shouldBe 8
     }
