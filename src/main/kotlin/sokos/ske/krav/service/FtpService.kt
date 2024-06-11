@@ -25,12 +25,11 @@ data class FtpFil(
     val kravLinjer: List<KravLinje>
 )
 class FtpService (
-    private val config: PropertiesConfig.SftpProperties = PropertiesConfig.SftpProperties(),
-    private val sftpSession: Session = SftpConfig(config).createSftpConnection(),
+    private val sftpSession: Session = SftpConfig( PropertiesConfig.SftpProperties()).createSftpConnection(),
 
     ) {
         private val logger = KotlinLogging.logger("secureLogger")
-        val session get() =sftpSession
+        val session get() = sftpSession
         private fun getSftpChannel(): ChannelSftp {
             val channelSftp = sftpSession.openChannel("sftp") as ChannelSftp
             return channelSftp.apply {

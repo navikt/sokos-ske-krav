@@ -36,6 +36,7 @@ import sokos.ske.krav.service.StatusService
 import sokos.ske.krav.util.MockHttpClientUtils.EndepunktType
 import sokos.ske.krav.util.MockHttpClientUtils.MockRequestObj
 import sokos.ske.krav.util.MockHttpClientUtils.Responses
+import sokos.ske.krav.util.containers.SftpListener
 import sokos.ske.krav.util.getAllKrav
 import sokos.ske.krav.util.setUpMockHttpClient
 import sokos.ske.krav.util.setupSkeServiceMock
@@ -43,10 +44,8 @@ import sokos.ske.krav.util.setupSkeServiceMockWithMockEngine
 import sokos.ske.krav.util.startContainer
 
 internal class SkeServiceIntegrationTest : FunSpec({
+    extensions(SftpListener)
 
-    beforeSpec{
-        SftpContainer.container.start()
-    }
     val ftpService: FtpService by lazy {
         FtpService(sftpSession =  SftpConfig(SftpContainer.sftpProperties).createSftpConnection())
     }

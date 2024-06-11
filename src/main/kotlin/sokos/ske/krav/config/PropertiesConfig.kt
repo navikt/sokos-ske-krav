@@ -24,6 +24,7 @@ object PropertiesConfig {
 		"SFTP_HOST_KEY_FILE_PATH" to "hostKey",
 		"SFTP_PRIVATE_KEY_FILE_PATH" to "privKey",
 		"FTP_SERVER" to "10.183.32.98",
+		"FTP_PORT" to "22",
 	)
 
 	private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
