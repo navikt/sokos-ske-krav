@@ -40,8 +40,6 @@ spec:
   filesFrom:
     - secret: ske-sftp-private-key
       mountPath: /var/run/secrets/ske-sftp-private-key
-    - secret: ske-sftp-host-key
-      mountPath: /var/run/secrets/ske-sftp-host-key
   envFrom:
     - secret: ske-sftp-creds
   ingresses:
@@ -71,10 +69,8 @@ spec:
     - name: POSTGRES_NAME
       value: sokos-ske-krav
     - name: VAULT_MOUNTPATH
-      value: postgresql/preprod-fss/
+      value: postgresql/prod-fss/
     - name: LOG_APPENDER
       value: CONSOLE
     - name: SFTP_PRIVATE_KEY_FILE_PATH
       value: /var/run/secrets/ske-sftp-private-key/ske-sftp-private-key
-    - name: SFTP_HOST_KEY_FILE_PATH
-      value: /var/run/secrets/ske-sftp-host-key/ske-sftp-host-key
