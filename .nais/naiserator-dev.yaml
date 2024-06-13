@@ -58,7 +58,7 @@ spec:
       value: https://api-test.sits.no/api/innkreving/innkrevingsoppdrag/v1/
     - name: SFTP_SERVER
       value: b27drvl011.preprod.local
-    - name: SFTP_SERVER
+    - name: SFTP_PORT
       value: "22"
     - name: SFTP_PRIVATE_KEY_FILE_PATH
       value: /var/run/secrets/ske-sftp-private-key/ske-sftp-private-key
