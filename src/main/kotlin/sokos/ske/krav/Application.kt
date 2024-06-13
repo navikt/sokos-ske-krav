@@ -1,16 +1,20 @@
 package sokos.ske.krav
 
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStarted
+import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.engine.stop
+
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
-import sokos.ske.krav.api.naisApi
+
 import sokos.ske.krav.api.skeApi
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.commonConfig
+import sokos.ske.krav.config.internalNaisRoutes
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.metrics.Metrics
+
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.AvstemmingService
 import sokos.ske.krav.service.DatabaseService
@@ -20,10 +24,13 @@ import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
 import sokos.ske.krav.service.StoppKravService
 import sokos.ske.krav.util.httpClient
-import java.util.concurrent.TimeUnit
-import kotlin.properties.Delegates
+
 
 fun main() {
+    embeddedServer(Netty, port = 8080, module = Application::module).start(true)
+}
+
+private fun Application.module(){
     val applicationState = ApplicationState()
     val tokenProvider = MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), httpClient)
     val skeClient = SkeClient(tokenProvider, PropertiesConfig.SKEConfig().skeRestUrl)
@@ -33,51 +40,31 @@ fun main() {
     val endreKravService = EndreKravService(skeClient, databaseService)
     val opprettKravService = OpprettKravService(skeClient, databaseService)
     val statusService = StatusService(skeClient, databaseService)
-    val skeService =
-        SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, databaseService)
+
+    val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, databaseService)
     val avstemmingService = AvstemmingService(databaseService)
 
-    applicationState.ready = true
-    HttpServer(applicationState, skeService, statusService, avstemmingService).start()
 
-    postgresDataSource.close()
-}
-
-class HttpServer(
-    private val applicationState: ApplicationState,
-    private val skeService: SkeService,
-    private val statusService: StatusService,
-    private val avstemmingService: AvstemmingService,
-    port: Int = 8080,
-) {
-    init {
-        Runtime.getRuntime().addShutdownHook(Thread {
-            applicationState.running = false
-            this.embeddedServer.stop(gracePeriod = 2, timeout = 20, TimeUnit.SECONDS)
-        })
-    }
-
-    private val embeddedServer = embeddedServer(Netty, port) {
-        commonConfig()
-        routing {
-            naisApi({ applicationState.ready }, { applicationState.running })
-            skeApi(skeService, statusService, avstemmingService)
-        }
-    }
-
-    fun start() {
-        applicationState.running = true
-        embeddedServer.start(wait = true)
+    commonConfig()
+    applicationLifecycleConfig(applicationState)
+    routing {
+        internalNaisRoutes(applicationState)
+        skeApi(skeService, statusService, avstemmingService)
     }
 }
 
-class ApplicationState {
-    var ready: Boolean by Delegates.observable(false) { _, _, newValue ->
-        if (!newValue) Metrics.appStateReadyFalse.inc()
+fun Application.applicationLifecycleConfig(applicationState: ApplicationState) {
+    environment.monitor.subscribe(ApplicationStarted) {
+        applicationState.ready = true
     }
 
-    var running: Boolean by Delegates.observable(false) { _, _, newValue ->
-        if (!newValue) Metrics.appStateRunningFalse.inc()
+    environment.monitor.subscribe(ApplicationStopped) {
+        applicationState.ready = false
     }
 }
+
+class ApplicationState(
+    var ready: Boolean = true,
+    var alive: Boolean = true,
+)
 
