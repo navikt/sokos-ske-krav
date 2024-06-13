@@ -56,12 +56,12 @@ spec:
   env:
     - name: SKE_REST_URL
       value: https://api.skatteetaten.no/api/innkreving/innkrevingsoppdrag/v1/
-    - name: FTP_SERVER
-      value: b27drvl011.preprod.local
-    - name: FTP_PORT
+    - name: SFTP_SERVER
+      value: http://filmottak.adeo.no
+    - name: SFTP_SERVER
       value: "22"
-    - name: FTP_DIRECTORY
-      value: "/"
+    - name: SFTP_PRIVATE_KEY_FILE_PATH
+      value: /var/run/secrets/ske-sftp-private-key/ske-sftp-private-key
     - name: POSTGRES_HOST
       value: b27dbvl030.preprod.local
     - name: POSTGRES_PORT
@@ -72,5 +72,4 @@ spec:
       value: postgresql/prod-fss/
     - name: LOG_APPENDER
       value: CONSOLE
-    - name: SFTP_PRIVATE_KEY_FILE_PATH
-      value: /var/run/secrets/ske-sftp-private-key/ske-sftp-private-key
+

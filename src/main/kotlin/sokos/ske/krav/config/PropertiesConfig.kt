@@ -23,8 +23,8 @@ object PropertiesConfig {
 		"POSTGRES_HOST" to "dev-pg.intern.nav.no",
 		"SFTP_HOST_KEY_FILE_PATH" to "hostKey",
 		"SFTP_PRIVATE_KEY_FILE_PATH" to "privKey",
-		"FTP_SERVER" to "10.183.32.98",
-		"FTP_PORT" to "22",
+		"SFTP_SERVER" to "10.183.32.98",
+		"SFTP_PORT" to "22",
 	)
 
 	private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
@@ -52,11 +52,11 @@ object PropertiesConfig {
 	)
 
 	data class SftpProperties(
-		val host: String = getOrEmpty("FTP_SERVER"),
+		val host: String = getOrEmpty("SFTP_SERVER"),
 		val username: String = getOrEmpty("SKE_SFTP_USERNAME"),
 		val privateKeyPassword: String = getOrEmpty("SKE_SFTP_PASSWORD"),
 		val privateKey: String = getOrEmpty("SFTP_PRIVATE_KEY_FILE_PATH"),
-		val port: Int = getOrEmpty("FTP_PORT").toInt()
+		val port: Int = getOrEmpty("SFTP_PORT").toInt()
 	)
 
 	data class MaskinportenClientConfig(

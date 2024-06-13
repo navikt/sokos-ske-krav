@@ -51,9 +51,11 @@ create table "valideringsfeil"
     id                    bigserial primary key,
     filnavn               text,
     linjenummer           int,
-    saksnummer_nav            text,
+    saksnummer_nav        text,
     kravlinje             text,
     feilmelding           text,
     tidspunkt_opprettet   timestamp NOT NULL DEFAULT NOW()
 );
 
+create index if not exists idxstatus on krav(status)
+;
