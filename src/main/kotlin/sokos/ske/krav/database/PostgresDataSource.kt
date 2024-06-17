@@ -22,7 +22,7 @@ class PostgresDataSource {
     }
 
     constructor(){
-        if (!isLocal) {
+/*        if (!isLocal) {
             val role = adminRole
             logger.info("Flyway db opprettes med rolle $role")
             Flyway.configure()
@@ -30,7 +30,7 @@ class PostgresDataSource {
                 .initSql("""SET ROLE "$role"""")
                 .load()
                 .migrate()
-        }
+        }*/
         dataSource = dataSource()
     }
 
