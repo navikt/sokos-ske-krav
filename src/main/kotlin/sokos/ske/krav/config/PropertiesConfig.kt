@@ -53,8 +53,8 @@ object PropertiesConfig {
 
 	data class SftpProperties(
 		val host: String = getOrEmpty("SFTP_SERVER"),
-		val username: String = getOrEmpty("SKE_SFTP_USERNAME"),
-		val privateKeyPassword: String = getOrEmpty("SKE_SFTP_PASSWORD"),
+		val username: String = getOrEmpty("SKE_SFTP_USERNAME").trim(),
+		val privateKeyPassword: String = getOrEmpty("SKE_SFTP_PASSWORD").trim(),
 		val privateKey: String = getOrEmpty("SFTP_PRIVATE_KEY_FILE_PATH"),
 		val port: Int = getOrEmpty("SFTP_PORT").toInt()
 	)
