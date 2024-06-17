@@ -63,7 +63,7 @@ spec:
     - name: SFTP_PRIVATE_KEY_FILE_PATH
       value: /var/run/secrets/ske-sftp-private-key/ske-sftp-private-key
     - name: POSTGRES_HOST
-      value: b27dbvl030.preprod.local
+      value: A01DBVL037.adeo.no
     - name: POSTGRES_PORT
       value: "5432"
     - name: POSTGRES_NAME
