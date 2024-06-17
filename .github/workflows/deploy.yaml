@@ -68,6 +68,6 @@ jobs:
       - uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: prod-fss
-          RESOURCE: .nais/naiserator-dev.yaml
+          RESOURCE: .nais/naiserator-prod.yaml
           IMAGE: ${{ needs.build.outputs.image }}
           PRINT_PAYLOAD: true
