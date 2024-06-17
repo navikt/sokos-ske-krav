@@ -58,7 +58,7 @@ spec:
       value: https://api.skatteetaten.no/api/innkreving/innkrevingsoppdrag/v1/
     - name: SFTP_SERVER
       value: http://filmottak.adeo.no
-    - name: SFTP_SERVER
+    - name: SFTP_PORT
       value: "22"
     - name: SFTP_PRIVATE_KEY_FILE_PATH
       value: /var/run/secrets/ske-sftp-private-key/ske-sftp-private-key
