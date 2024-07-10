@@ -11,7 +11,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 object RepositoryExtensions {
-
     val logger = KotlinLogging.logger("secureLogger")
 
     inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R {
@@ -29,22 +28,23 @@ object RepositoryExtensions {
         columnLabel: String,
         transform: (T) -> T = { it },
     ): T {
-        val columnValue = when (T::class) {
-            Int::class -> getInt(columnLabel)
-            Long::class -> getLong(columnLabel)
-            Char::class -> getString(columnLabel)?.get(0) ?: ' '
-            Double::class -> getDouble(columnLabel)
-            String::class -> getString(columnLabel)?.trim() ?: ""
-            Boolean::class -> getBoolean(columnLabel)
-            BigDecimal::class -> getBigDecimal(columnLabel)
-            LocalDate::class -> getDate(columnLabel)?.toLocalDate()
-            LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
+        val columnValue =
+            when (T::class) {
+                Int::class -> getInt(columnLabel)
+                Long::class -> getLong(columnLabel)
+                Char::class -> getString(columnLabel)?.get(0) ?: ' '
+                Double::class -> getDouble(columnLabel)
+                String::class -> getString(columnLabel)?.trim() ?: ""
+                Boolean::class -> getBoolean(columnLabel)
+                BigDecimal::class -> getBigDecimal(columnLabel)
+                LocalDate::class -> getDate(columnLabel)?.toLocalDate()
+                LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
 
-            else -> {
-                logger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
-                throw SQLException("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
+                else -> {
+                    logger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
+                    throw SQLException("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
+                }
             }
-        }
 
         if (null !is T && columnValue == null) {
             logger.error("Påkrevet kolonne '$columnLabel' er null")
@@ -55,88 +55,89 @@ object RepositoryExtensions {
     }
 
     fun interface Parameter {
-        fun addToPreparedStatement(statement: PreparedStatement, index: Int)
-    }
-
-    fun param(value: Int) =
-        Parameter { statement: PreparedStatement, index: Int -> statement.setInt(index, value) }
-
-    fun param(value: Long) =
-        Parameter { statement: PreparedStatement, index: Int -> statement.setLong(index, value) }
-
-    fun param(value: String?) =
-        Parameter { statement: PreparedStatement, index: Int -> statement.setString(index, value) }
-
-    fun param(value: LocalDate) =
-        Parameter { statement: PreparedStatement, index: Int -> statement.setDate(index, Date.valueOf(value)) }
-
-    fun PreparedStatement.withParameters(vararg parameters: Parameter?) = apply {
-        var index = 1
-        parameters.forEach { it?.addToPreparedStatement(this, index++) }
-    }
-
-    fun ResultSet.toKrav() = toList {
-        KravTable(
-            kravId = getColumn("id"),
-            filnavn = getColumn("filnavn"),
-            linjenummer = getColumn<Int>("linjenummer"),
-            saksnummerNAV = getColumn("saksnummer_nav"),
-            kravidentifikatorSKE = getColumn("kravidentifikator_ske"),
-            belop = getColumn("belop"),
-            vedtaksDato = getColumn("vedtaksDato"),
-            gjelderId = getColumn("gjelder_id"),
-            periodeFOM = getColumn("periode_fom"),
-            periodeTOM = getColumn("periode_tom"),
-            kravkode = getColumn("kravkode"),
-            referansenummerGammelSak = getColumn("referansenummerGammelSak"),
-            transaksjonsDato = getColumn("transaksjonsDato"),
-            enhetBosted = getColumn("enhet_bosted"),
-            enhetBehandlende = getColumn("enhet_behandlende"),
-            kodeHjemmel = getColumn("kode_hjemmel"),
-            kodeArsak = getColumn("kode_arsak"),
-            belopRente = getColumn("belop_rente"),
-            fremtidigYtelse = getColumn("fremtidig_ytelse"),
-            utbetalDato = getColumn("utbetaldato"),
-            fagsystemId = getColumn("fagsystem_id"),
-            status = getColumn("status"),
-            kravtype = getColumn("kravtype"),
-            corrId = getColumn("corr_id"),
-            tidspunktSendt = getColumn("tidspunkt_sendt"),
-            tidspunktSisteStatus = getColumn("tidspunkt_siste_status"),
-            tidspunktOpprettet = getColumn("tidspunkt_opprettet"),
+        fun addToPreparedStatement(
+            statement: PreparedStatement,
+            index: Int,
         )
     }
 
-    fun ResultSet.toFeilmelding() = toList {
-        FeilmeldingTable(
-            feilmeldingId = getColumn("id"),
-            kravId = getColumn("krav_id"),
-            corrId = getColumn("corr_id"),
-            saksnummerNav = getColumn("saksnummer_nav"),
-            kravidentifikatorSKE = getColumn("kravidentifikator_ske"),
-            error = getColumn("error"),
-            melding = getColumn("melding"),
-            navRequest = getColumn("nav_request"),
-            skeResponse = getColumn("ske_response"),
-            tidspunktOpprettet = getColumn("tidspunkt_opprettet")
-        )
-    }
+    fun param(value: Int) = Parameter { statement: PreparedStatement, index: Int -> statement.setInt(index, value) }
 
-    fun ResultSet.toValideringsfeil() = toList {
-        ValideringsfeilTable(
-            valideringsfeilId = getColumn("id"),
-            filnavn = getColumn("filnavn"),
-            linjenummer = getColumn("linjenummer"),
-            saksnummerNav = getColumn("saksnummer_nav"),
-            kravLinje = getColumn("kravlinje"),
-            feilmelding = getColumn("feilmelding"),
-            tidspunktOpprettet = getColumn("tidspunkt_opprettet")
-        )
-    }
+    fun param(value: Long) = Parameter { statement: PreparedStatement, index: Int -> statement.setLong(index, value) }
 
-    private fun <T> ResultSet.toList(mapper: ResultSet.() -> T) = mutableListOf<T>().apply {
-        while (next()) {
-            add(mapper())
+    fun param(value: String?) = Parameter { statement: PreparedStatement, index: Int -> statement.setString(index, value) }
+
+    fun PreparedStatement.withParameters(vararg parameters: Parameter?) =
+        apply {
+            parameters.forEachIndexed { index, param -> param?.addToPreparedStatement(this, index + 1) }
         }
-    }
+
+    fun ResultSet.toKrav() =
+        toList {
+            KravTable(
+                kravId = getColumn("id"),
+                filnavn = getColumn("filnavn"),
+                linjenummer = getColumn<Int>("linjenummer"),
+                saksnummerNAV = getColumn("saksnummer_nav"),
+                kravidentifikatorSKE = getColumn("kravidentifikator_ske"),
+                belop = getColumn("belop"),
+                vedtaksDato = getColumn("vedtaksDato"),
+                gjelderId = getColumn("gjelder_id"),
+                periodeFOM = getColumn("periode_fom"),
+                periodeTOM = getColumn("periode_tom"),
+                kravkode = getColumn("kravkode"),
+                referansenummerGammelSak = getColumn("referansenummerGammelSak"),
+                transaksjonsDato = getColumn("transaksjonsDato"),
+                enhetBosted = getColumn("enhet_bosted"),
+                enhetBehandlende = getColumn("enhet_behandlende"),
+                kodeHjemmel = getColumn("kode_hjemmel"),
+                kodeArsak = getColumn("kode_arsak"),
+                belopRente = getColumn("belop_rente"),
+                fremtidigYtelse = getColumn("fremtidig_ytelse"),
+                utbetalDato = getColumn("utbetaldato"),
+                fagsystemId = getColumn("fagsystem_id"),
+                status = getColumn("status"),
+                kravtype = getColumn("kravtype"),
+                corrId = getColumn("corr_id"),
+                tidspunktSendt = getColumn("tidspunkt_sendt"),
+                tidspunktSisteStatus = getColumn("tidspunkt_siste_status"),
+                tidspunktOpprettet = getColumn("tidspunkt_opprettet"),
+            )
+        }
+
+    fun ResultSet.toFeilmelding() =
+        toList {
+            FeilmeldingTable(
+                feilmeldingId = getColumn("id"),
+                kravId = getColumn("krav_id"),
+                corrId = getColumn("corr_id"),
+                saksnummerNav = getColumn("saksnummer_nav"),
+                kravidentifikatorSKE = getColumn("kravidentifikator_ske"),
+                error = getColumn("error"),
+                melding = getColumn("melding"),
+                navRequest = getColumn("nav_request"),
+                skeResponse = getColumn("ske_response"),
+                tidspunktOpprettet = getColumn("tidspunkt_opprettet"),
+            )
+        }
+
+    fun ResultSet.toValideringsfeil() =
+        toList {
+            ValideringsfeilTable(
+                valideringsfeilId = getColumn("id"),
+                filnavn = getColumn("filnavn"),
+                linjenummer = getColumn("linjenummer"),
+                saksnummerNav = getColumn("saksnummer_nav"),
+                kravLinje = getColumn("kravlinje"),
+                feilmelding = getColumn("feilmelding"),
+                tidspunktOpprettet = getColumn("tidspunkt_opprettet"),
+            )
+        }
+
+    private fun <T> ResultSet.toList(mapper: ResultSet.() -> T) =
+        mutableListOf<T>().apply {
+            while (next()) {
+                add(mapper())
+            }
+        }
 }

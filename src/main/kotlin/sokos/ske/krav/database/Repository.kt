@@ -19,16 +19,16 @@ import sokos.ske.krav.util.isEndring
 import sokos.ske.krav.util.isStopp
 import java.sql.Connection
 import java.sql.Date
-import java.util.*
+import java.util.UUID
 
 object Repository {
-
     fun Connection.getAllKravForStatusCheck() =
         prepareStatement("""select * from krav where status in (?, ?)""")
             .withParameters(
                 param(Status.KRAV_SENDT.value),
                 param(Status.MOTTATT_UNDERBEHANDLING.value),
-            ).executeQuery().toKrav()
+            ).executeQuery()
+            .toKrav()
 
     fun Connection.getAllKravForResending() =
         prepareStatement("""select * from krav where status in (?, ?, ?, ?, ?)""")
@@ -37,115 +37,122 @@ object Repository {
                 param(Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value),
                 param(Status.HTTP500_ANNEN_SERVER_FEIL.value),
                 param(Status.HTTP503_UTILGJENGELIG_TJENESTE.value),
-                param(Status.HTTP500_INTERN_TJENERFEIL.value)
-            ).executeQuery().toKrav()
+                param(Status.HTTP500_INTERN_TJENERFEIL.value),
+            ).executeQuery()
+            .toKrav()
 
     fun Connection.getAllUnsentKrav() =
         prepareStatement("""select * from krav where status = ?""")
             .withParameters(
                 param(Status.KRAV_IKKE_SENDT.value),
-            ).executeQuery().toKrav()
+            ).executeQuery()
+            .toKrav()
 
-    fun Connection.getAllValidationErrors() =
-        prepareStatement("""select * from krav where status = ? or status = ?""")
-            .withParameters(
-                param(Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value),
-                param(Status.HTTP422_VALIDERINGSFEIL.value)
-            ).executeQuery().toKrav()
+    fun Connection.getAllFeilmeldinger() = prepareStatement("""select * from feilmelding""").executeQuery().toFeilmelding()
 
-    fun Connection.getAllFeilmeldinger() =
-        prepareStatement("""select * from feilmelding""").executeQuery().toFeilmelding()
-
-    fun Connection.getFeilmeldingForKravId(kravId: Long): List<FeilmeldingTable> {
-        return prepareStatement(
+    fun Connection.getFeilmeldingForKravId(kravId: Long): List<FeilmeldingTable> =
+        prepareStatement(
             """
-                select * from feilmelding
-                where krav_id = ?
-            """.trimIndent()
+            select * from feilmelding
+            where krav_id = ?
+            """.trimIndent(),
         ).withParameters(
-            param(kravId)
-        ).executeQuery().toFeilmelding()
-    }
-    fun Connection.getValidationMessageForKravId(kravTable: KravTable): List<ValideringsfeilTable> {
-        return prepareStatement(
+            param(kravId),
+        ).executeQuery()
+            .toFeilmelding()
+
+    fun Connection.getValidationMessageForKravId(kravTable: KravTable): List<ValideringsfeilTable> =
+        prepareStatement(
             """
-                select * from valideringsfeil
-                where filnavn = ? and linjenummer = ?
-            """.trimIndent()
+            select * from valideringsfeil
+            where filnavn = ? and linjenummer = ?
+            """.trimIndent(),
         ).withParameters(
             param(kravTable.filnavn),
             param(kravTable.linjenummer),
-        ).executeQuery().toValideringsfeil()
-    }
+        ).executeQuery()
+            .toValideringsfeil()
 
     fun Connection.getAllKravForAvstemming() =
-        prepareStatement("""select * from krav 
+        prepareStatement(
+            """
+            select * from krav 
             where status not in ( ?, ? ) order by id
-        """.trimIndent()
+            """.trimIndent(),
         ).withParameters(
             param(Status.RESKONTROFOERT.value),
-            param(Status.VALIDERINGFEIL_RAPPORTERT.value)
-        ).executeQuery().toKrav()
+            param(Status.VALIDERINGFEIL_RAPPORTERT.value),
+        ).executeQuery()
+            .toKrav()
 
     fun Connection.getSkeKravidentifikator(navref: String): String {
-        val rs = prepareStatement(
-            """
-            select min(tidspunkt_opprettet) as opprettet, kravidentifikator_ske from krav
-            where (saksnummer_nav = ? or referansenummergammelsak = ?) 
-            and (kravidentifikator_ske is not null and kravidentifikator_ske <> '') 
-            group by kravidentifikator_ske limit 1
-        """.trimIndent()
-        ).withParameters(
-            param(navref),
-            param(navref),
-        ).executeQuery()
-        return if (rs.next())
+        val rs =
+            prepareStatement(
+                """
+                select min(tidspunkt_opprettet) as opprettet, kravidentifikator_ske from krav
+                where (saksnummer_nav = ? or referansenummergammelsak = ?) 
+                and (kravidentifikator_ske is not null and kravidentifikator_ske <> '') 
+                group by kravidentifikator_ske limit 1
+                """.trimIndent(),
+            ).withParameters(
+                param(navref),
+                param(navref),
+            ).executeQuery()
+        return if (rs.next()) {
             rs.getColumn("kravidentifikator_ske")
-        else ""
+        } else {
+            ""
+        }
     }
 
     fun Connection.getPreviousReferansenummer(navref: String): String {
-        val rs = prepareStatement(
-            """
+        val rs =
+            prepareStatement(
+                """
                 select referansenummergammelsak from krav
                 where saksnummer_nav = ? and referansenummergammelsak <> saksnummer_nav
                 order by id limit 1
-            """.trimIndent()
-        ).withParameters(
-            param(navref),
-        ).executeQuery()
-        return if (rs.next())
+                """.trimIndent(),
+            ).withParameters(
+                param(navref),
+            ).executeQuery()
+        return if (rs.next()) {
             rs.getColumn("referansenummergammelsak")
-        else navref
+        } else {
+            navref
+        }
     }
 
     fun Connection.getKravTableIdFromCorrelationId(corrID: String): Long {
-        val rs = prepareStatement(
-            """
-            select id from krav
-            where corr_id = ? order by id limit 1
-        """.trimIndent()
-        ).withParameters(
-            param(corrID)
-        ).executeQuery()
-        return if (rs.next())
+        val rs =
+            prepareStatement(
+                """
+                select id from krav
+                where corr_id = ? order by id limit 1
+                """.trimIndent(),
+            ).withParameters(
+                param(corrID),
+            ).executeQuery()
+        return if (rs.next()) {
             rs.getColumn("id")
-        else 0
+        } else {
+            0
+        }
     }
 
     fun Connection.updateSentKrav(
         corrID: String,
-        responseStatus: String
+        responseStatus: String,
     ) {
         prepareStatement(
             """
-                update krav 
-                    set tidspunkt_sendt = NOW(), 
-                    tidspunkt_siste_status = NOW(),
-                    status = ?
-                where 
-                    corr_id = ?
-            """.trimIndent()
+            update krav 
+                set tidspunkt_sendt = NOW(), 
+                tidspunkt_siste_status = NOW(),
+                status = ?
+            where 
+                corr_id = ?
+            """.trimIndent(),
         ).withParameters(
             param(responseStatus),
             param(corrID),
@@ -156,18 +163,18 @@ object Repository {
     fun Connection.updateSentKrav(
         corrID: String,
         skeKravidentifikator: String,
-        responseStatus: String
+        responseStatus: String,
     ) {
         prepareStatement(
             """
-                update krav 
-                    set tidspunkt_sendt = NOW(), 
-                    tidspunkt_siste_status = NOW(),
-                    status = ?,
-                    kravidentifikator_ske = ?
-                where 
-                    corr_id = ?
-            """.trimIndent()
+            update krav 
+                set tidspunkt_sendt = NOW(), 
+                tidspunkt_siste_status = NOW(),
+                status = ?,
+                kravidentifikator_ske = ?
+            where 
+                corr_id = ?
+            """.trimIndent(),
         ).withParameters(
             param(responseStatus),
             param(skeKravidentifikator),
@@ -176,19 +183,20 @@ object Repository {
         commit()
     }
 
-
-
-    fun Connection.updateStatus(mottakStatus: String, corrId: String) {
+    fun Connection.updateStatus(
+        mottakStatus: String,
+        corrId: String,
+    ) {
         prepareStatement(
             """
             update krav 
                 set status = ?, 
                 tidspunkt_siste_status = NOW()
             where corr_id = ?
-        """.trimIndent()
+            """.trimIndent(),
         ).withParameters(
             param(mottakStatus),
-            param(corrId)
+            param(corrId),
         ).execute()
         commit()
     }
@@ -196,41 +204,45 @@ object Repository {
     fun Connection.updateStatusForAvstemtKravToReported(kravId: Int) {
         prepareStatement(
             """
-                update krav 
-                set status = ?,
-                tidspunkt_siste_status = NOW()
-                where id = ?
-            """.trimIndent()
+            update krav 
+            set status = ?,
+            tidspunkt_siste_status = NOW()
+            where id = ?
+            """.trimIndent(),
         ).withParameters(
             param(Status.VALIDERINGFEIL_RAPPORTERT.value),
-            param(kravId)
-        ).execute()
-        commit()
-    }
-    fun Connection.updateEndringWithSkeKravIdentifikator(saksnummerNav: String, skeKravident: String) {
-        prepareStatement(
-            """
-                update krav 
-                    set kravidentifikator_ske = ? 
-                where 
-                    saksnummer_nav = ? and
-                    kravtype <> ?
-            """.trimIndent()
-        ).withParameters(
-            param(skeKravident),
-            param(saksnummerNav),
-            param(NYTT_KRAV)
+            param(kravId),
         ).execute()
         commit()
     }
 
+    fun Connection.updateEndringWithSkeKravIdentifikator(
+        saksnummerNav: String,
+        skeKravident: String,
+    ) {
+        prepareStatement(
+            """
+            update krav 
+                set kravidentifikator_ske = ? 
+            where 
+                saksnummer_nav = ? and
+                kravtype <> ?
+            """.trimIndent(),
+        ).withParameters(
+            param(skeKravident),
+            param(saksnummerNav),
+            param(NYTT_KRAV),
+        ).execute()
+        commit()
+    }
 
     fun Connection.insertAllNewKrav(
         kravListe: List<KravLinje>,
         filnavn: String,
     ) {
-        val prepStmt = prepareStatement(
-            """
+        val prepStmt =
+            prepareStatement(
+                """
                 insert into krav (
                 saksnummer_nav,
                 belop,
@@ -255,14 +267,16 @@ object Repository {
                 filnavn,
                 linjenummer
                 ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?, ?)
-            """.trimIndent())
+                """.trimIndent(),
+            )
 
-        kravListe.forEach() {
-            val type: String = when {
-                it.isStopp() -> STOPP_KRAV
-                it.isEndring() -> ENDRING_HOVEDSTOL
-                else -> NYTT_KRAV
-            }
+        kravListe.forEach {
+            val type: String =
+                when {
+                    it.isStopp() -> STOPP_KRAV
+                    it.isEndring() -> ENDRING_HOVEDSTOL
+                    else -> NYTT_KRAV
+                }
             prepStmt.setString(1, it.saksnummerNav)
             prepStmt.setBigDecimal(2, it.belop)
             prepStmt.setDate(3, Date.valueOf(it.vedtaksDato))
@@ -316,23 +330,21 @@ object Repository {
         commit()
     }
 
-
-
     fun Connection.insertFeilmelding(feilmelding: FeilmeldingTable) {
         prepareStatement(
             """
-                insert into feilmelding (
-                    krav_id,
-                    saksnummer_nav,
-                    kravidentifikator_ske,
-                    corr_id,
-                    error,
-				    melding,
-					nav_request,
-                    ske_response
-                ) 
-                values (?, ?, ?, ?, ?, ?, ?, ?)
-            """.trimIndent()
+            insert into feilmelding (
+                krav_id,
+                saksnummer_nav,
+                kravidentifikator_ske,
+                corr_id,
+                error,
+                melding,
+                nav_request,
+                ske_response
+            ) 
+            values (?, ?, ?, ?, ?, ?, ?, ?)
+            """.trimIndent(),
         ).withParameters(
             param(feilmelding.kravId),
             param(feilmelding.saksnummerNav),
@@ -346,20 +358,23 @@ object Repository {
         commit()
     }
 
-    fun Connection.insertValidationError(filnavn: String, kravlinje: KravLinje, feilmelding: String) {
+    fun Connection.insertValidationError(
+        filnavn: String,
+        kravlinje: KravLinje,
+        feilmelding: String,
+    ) {
         prepareStatement(
             """
-                insert into valideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
-                values (?, ?, ?, ?, ? )
-            """.trimIndent()
+            insert into valideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
+            values (?, ?, ?, ?, ? )
+            """.trimIndent(),
         ).withParameters(
             param(filnavn),
             param(kravlinje.linjenummer),
             param(kravlinje.saksnummerNav),
             param(kravlinje.toString()),
-            param(feilmelding)
+            param(feilmelding),
         ).execute()
         commit()
     }
 }
-
