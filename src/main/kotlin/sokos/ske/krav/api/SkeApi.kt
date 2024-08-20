@@ -48,7 +48,7 @@ fun Routing.skeApi(
                 )
             }
         }
-        get("validering") {
+        get("alleFeilmeldinger") {
             logger.info("API kaller Valideringsfeil")
             try {
                 statusService.hentValideringsfeil()
@@ -60,10 +60,6 @@ fun Routing.skeApi(
                             "Stacktrace= ${e.stackTraceToString()}"
                 )
             }
-        }
-        get("allekrav") {
-            val databaseService = DatabaseService(PostgresDataSource())
-            call.respond(databaseService.getAllFeilmeldinger().toString())
         }
         get("avstemming") {
             call.respondText(avstemmingService.hentAvstemmingsRapport(), Html)
