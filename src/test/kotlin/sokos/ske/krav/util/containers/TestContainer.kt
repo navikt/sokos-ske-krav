@@ -46,7 +46,7 @@ object TestContainer : TestListener {
                     password = properties.password
                     serverNames = arrayOf(container.host)
                     databaseName = properties.name
-                    portNumbers = intArrayOf(properties.port.toInt())
+                    portNumbers = intArrayOf(5432)
                     connectionTimeout = Duration.ofSeconds(10).toMillis()
                     maxLifetime = Duration.ofMinutes(30).toMillis()
                     initializationFailTimeout = Duration.ofMinutes(30).toMillis()

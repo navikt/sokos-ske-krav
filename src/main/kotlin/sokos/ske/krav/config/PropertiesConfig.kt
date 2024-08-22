@@ -27,6 +27,7 @@ object PropertiesConfig {
         ConfigurationMap(
             "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
             "POSTGRES_HOST" to "dev-pg.intern.nav.no",
+            "POSTGRES_PORT" to "5422",
             "SFTP_HOST_KEY_FILE_PATH" to "hostKey",
             "SFTP_PRIVATE_KEY_FILE_PATH" to "privKey",
             "SFTP_SERVER" to "10.183.32.98",
