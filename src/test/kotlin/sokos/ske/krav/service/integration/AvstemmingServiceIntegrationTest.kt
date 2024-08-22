@@ -3,48 +3,41 @@ package sokos.ske.krav.service.integration
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.mockk.every
 import io.mockk.mockk
 import sokos.ske.krav.config.SftpConfig
-import sokos.ske.krav.database.Repository.getAllKravForAvstemming
-import sokos.ske.krav.database.Repository.getFeilmeldingForKravId
-import sokos.ske.krav.database.Repository.updateStatusForAvstemtKravToReported
-import sokos.ske.krav.util.containers.SftpContainer
 import sokos.ske.krav.service.AvstemmingService
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
+import sokos.ske.krav.util.containers.SftpContainer
 import sokos.ske.krav.util.containers.SftpListener
-import sokos.ske.krav.util.startContainer
+import sokos.ske.krav.util.containers.TestContainer
 
-internal class AvstemmingServiceIntegrationTest: FunSpec ({
-    extensions(SftpListener)
+internal class AvstemmingServiceIntegrationTest :
+    FunSpec({
+        extensions(SftpListener, TestContainer)
 
-    val ftpService: FtpService by lazy {
-        FtpService(sftpSession =  SftpConfig(SftpContainer.sftpProperties).createSftpConnection())
-    }
-
-    test("visFeilFiler skal liste opp alle filer som ligger i Directories.FAILED"){
-        SftpContainer.putFiles(ftpService.session, listOf("Fil-A.txt", "Fil-B.txt", "Fil-C.txt"), Directories.FAILED,)
-        AvstemmingService(mockk<DatabaseService>(),  ftpService).visFeilFiler().run {
-            this shouldContain "Filer som feilet"
-            this shouldContain "<tr><td>Fil-A.txt</td</tr>"
-            this shouldContain "<tr><td>Fil-B.txt</td</tr>"
-            this shouldContain "<tr><td>Fil-C.txt</td</tr>"
+        val ftpService: FtpService by lazy {
+            FtpService(sftpSession = SftpConfig(SftpContainer.sftpProperties).createSftpConnection())
         }
-    }
 
-    test("oppdaterAvstemtKravTilRapportert skal sette status til rapportert og hente tabelldata på nytt"){
-        val kravSomSkalAvstemmesDS = startContainer(this.testCase.name.testName, listOf("KravSomSkalAvstemmes.sql"))
-        val dsMock = mockk<DatabaseService> {
-            every { updateStatusForAvstemtKravToReported(any<Int>()) } answers { kravSomSkalAvstemmesDS.connection.updateStatusForAvstemtKravToReported(firstArg<Int>()) }
-            every { getAllKravForAvstemming() } answers { kravSomSkalAvstemmesDS.connection.getAllKravForAvstemming() }
-            every { getFeilmeldingForKravId(any<Long>()) } answers { kravSomSkalAvstemmesDS.connection.getFeilmeldingForKravId(firstArg<Long>())}
+        test("visFeilFiler skal liste opp alle filer som ligger i Directories.FAILED") {
+            SftpContainer.putFiles(ftpService.session, listOf("Fil-A.txt", "Fil-B.txt", "Fil-C.txt"), Directories.FAILED)
+            AvstemmingService(mockk<DatabaseService>(), ftpService).visFeilFiler().run {
+                this shouldContain "Filer som feilet"
+                this shouldContain "<tr><td>Fil-A.txt</td</tr>"
+                this shouldContain "<tr><td>Fil-B.txt</td</tr>"
+                this shouldContain "<tr><td>Fil-C.txt</td</tr>"
+            }
         }
-        dsMock.getAllKravForAvstemming().size shouldBe 9
 
-        val avstemmingService = AvstemmingService(dsMock, ftpService)
-        avstemmingService.oppdaterAvstemtKravTilRapportert(1)
-        dsMock.getAllKravForAvstemming().size shouldBe 8
-    }
-})
+        test("oppdaterAvstemtKravTilRapportert skal sette status til rapportert og hente tabelldata på nytt") {
+            TestContainer.loadInitScript("KravSomSkalAvstemmes.sql")
+            val dbService = DatabaseService(TestContainer.dataSource)
+            dbService.getAllKravForAvstemming().size shouldBe 9
+
+            val avstemmingService = AvstemmingService(dbService, ftpService)
+            avstemmingService.oppdaterAvstemtKravTilRapportert(1)
+            dbService.getAllKravForAvstemming().size shouldBe 8
+        }
+    })

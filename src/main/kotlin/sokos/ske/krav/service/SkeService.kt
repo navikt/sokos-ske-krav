@@ -67,17 +67,17 @@ class SkeService(
 
         val allResponses = mutableListOf<RequestResult>()
         allResponses.addAll(
-            opprettKravService.sendAllOpprettKrav(kravTableList.filter { it.kravtype == NYTT_KRAV })
+            opprettKravService.sendAllOpprettKrav(kravTableList.filter { it.kravtype == NYTT_KRAV }),
         )
         allResponses.addAll(
-            endreKravService.sendAllEndreKrav(kravTableList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE })
+            endreKravService.sendAllEndreKrav(kravTableList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }),
         )
         allResponses.addAll(
-            stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV })
+            stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV }),
         )
 
         allResponses.filter { !it.response.status.isSuccess() }
-            .forEach() {
+            .forEach {
                 databaseService.saveErrorMessage(
                     it.request,
                     it.response,
@@ -99,9 +99,12 @@ class SkeService(
                     skeKravidentifikatorSomSkalLagres = httpResponse.body<AvstemmingResponse>().kravidentifikator
                 }
             }
-            if (skeKravidentifikatorSomSkalLagres.isNotBlank()) databaseService.updateEndringWithSkeKravIdentifikator(
-                it.saksnummerNav,
-                skeKravidentifikatorSomSkalLagres
-            )
+
+            if (skeKravidentifikatorSomSkalLagres.isNotBlank()) {
+                databaseService.updateEndringWithSkeKravIdentifikator(
+                    it.saksnummerNav,
+                    skeKravidentifikatorSomSkalLagres,
+                )
+            }
         }
 }

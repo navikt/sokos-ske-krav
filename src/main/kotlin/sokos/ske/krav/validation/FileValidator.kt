@@ -3,10 +3,10 @@ package sokos.ske.krav.validation
 import mu.KotlinLogging
 import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.metrics.Metrics
-import java.util.*
 
-object FileValidator{
+object FileValidator {
     private val logger = KotlinLogging.logger("secureLogger")
+
     fun validateFile(content: List<String>, fileName: String): ValidationResult {
         val parser = FileParser(content)
         val firstLine = parser.parseKontrollLinjeHeader()
@@ -23,9 +23,8 @@ object FileValidator{
         if (invalidSum) errorMessages.add("Sum alle linjer stemmer ikke med sum i siste linje! Sum alle linjer: ${kravLinjer.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAlleTransaksjoner}")
         if (invalidTransferDate) errorMessages.add("Dato sendt er avvikende mellom første og siste linje fra OS! Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonsDato}")
 
-
         return if (errorMessages.isNotEmpty()) {
-            Metrics.fileValidationError.labels("$fileName${UUID.randomUUID()}", "$errorMessages${UUID.randomUUID()}").inc()
+            Metrics.fileValidationError.labels(fileName, "$errorMessages").inc()
             logger.info("*****************Feil i validering av fil $fileName: $errorMessages")
             return ValidationResult.Error(messages = errorMessages)
         } else {
@@ -33,4 +32,3 @@ object FileValidator{
         }
     }
 }
-

@@ -1,5 +1,6 @@
 package sokos.ske.krav.service
 
+import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -32,169 +33,159 @@ import sokos.ske.krav.util.RequestResult
 import java.time.LocalDateTime
 
 class DatabaseService(
-    private val postgresDataSource: PostgresDataSource
+    private val dataSource: HikariDataSource = PostgresDataSource.dataSource(),
 ) {
-
     fun getSkeKravidentifikator(navref: String): String {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+        dataSource.connection.useAndHandleErrors { con ->
             val kravId1 = con.getSkeKravidentifikator(navref)
-            if (kravId1.isNotBlank()) return kravId1
-            else {
+            if (kravId1.isNotBlank()) {
+                return kravId1
+            } else {
                 val kravId2 = con.getPreviousReferansenummer(navref)
-                if (kravId2.isNotBlank())return con.getSkeKravidentifikator(kravId2)
-                else return ""
+                if (kravId2.isNotBlank()) {
+                    return con.getSkeKravidentifikator(kravId2)
+                } else {
+                    return ""
+                }
             }
         }
     }
 
     private fun getKravTableIdFromCorrelationId(corrID: String): Long {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+        dataSource.connection.useAndHandleErrors { con ->
             return con.getKravTableIdFromCorrelationId(corrID)
         }
     }
 
-    private fun updateSentKrav(
-        skeKravidentifikator: String,
-        corrID: String,
-        responseStatus: String
-    ) {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+    private fun updateSentKrav(skeKravidentifikator: String, corrID: String, responseStatus: String) {
+        dataSource.connection.useAndHandleErrors { con ->
             con.updateSentKrav(corrID, skeKravidentifikator, responseStatus)
         }
     }
 
-    private fun updateSentKrav(
-        corrID: String,
-        responseStatus: String
-    ) {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+    private fun updateSentKrav(corrID: String, responseStatus: String) {
+        dataSource.connection.useAndHandleErrors { con ->
             con.updateSentKrav(corrID, responseStatus)
         }
     }
 
-    fun saveAllNewKrav(
-        kravLinjer: List<KravLinje>,
-        filnavn: String
-    ) {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+    fun saveAllNewKrav(kravLinjer: List<KravLinje>, filnavn: String) {
+        dataSource.connection.useAndHandleErrors { con ->
             con.insertAllNewKrav(kravLinjer, filnavn)
         }
     }
 
     fun getAllFeilmeldinger(): List<FeilmeldingTable> {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+        dataSource.connection.useAndHandleErrors { con ->
             return con.getAllFeilmeldinger()
         }
     }
 
-
     fun saveFeilmelding(feilMelding: FeilmeldingTable) {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+        dataSource.connection.useAndHandleErrors { con ->
             con.insertFeilmelding(feilMelding)
         }
     }
 
     fun saveValidationError(filnavn: String, kravlinje: KravLinje, feilmelding: String) {
-        postgresDataSource.connection.useAndHandleErrors { con ->
-        con.insertValidationError(filnavn, kravlinje, feilmelding)}
+        dataSource.connection.useAndHandleErrors { con ->
+            con.insertValidationError(filnavn, kravlinje, feilmelding)
+        }
     }
 
-    fun updateSentKrav(
-        responses: List<RequestResult>,
-    ) {
+    fun updateSentKrav(responses: List<RequestResult>) {
         responses.forEach {
             Metrics.numberOfKravSent.inc()
             Metrics.typeKravSent.labels(it.kravTable.kravkode).inc()
 
-            if (it.kravTable.kravtype == NYTT_KRAV) updateSentKrav(
-                it.kravidentifikator,
-                it.kravTable.corrId,
-                it.status.value
-            )
-            else updateSentKrav(
-                it.kravTable.corrId,
-                it.status.value
-            )
+            if (it.kravTable.kravtype == NYTT_KRAV) {
+                updateSentKrav(
+                    it.kravidentifikator,
+                    it.kravTable.corrId,
+                    it.status.value,
+                )
+            } else {
+                updateSentKrav(
+                    it.kravTable.corrId,
+                    it.status.value,
+                )
+            }
         }
     }
 
-    suspend fun saveErrorMessage(
-        request: String,
-        response: HttpResponse,
-        krav: KravTable,
-        kravidentifikator: String,
-    ) {
+    suspend fun saveErrorMessage(request: String, response: HttpResponse, krav: KravTable, kravidentifikator: String) {
         val skeKravidentifikator =
             if (kravidentifikator == krav.saksnummerNAV || kravidentifikator == krav.referansenummerGammelSak) "" else kravidentifikator
 
         val feilResponse = response.body<FeilResponse>()
 
-        val feilmelding = FeilmeldingTable(
-            0L,
-            getKravTableIdFromCorrelationId(krav.corrId),
-            krav.corrId,
-            krav.saksnummerNAV,
-            skeKravidentifikator,
-            feilResponse.status.toString(),
-            feilResponse.detail,
-            request,
-            response.bodyAsText(),
-            LocalDateTime.now(),
-        )
+        val feilmelding =
+            FeilmeldingTable(
+                0L,
+                getKravTableIdFromCorrelationId(krav.corrId),
+                krav.corrId,
+                krav.saksnummerNAV,
+                skeKravidentifikator,
+                feilResponse.status.toString(),
+                feilResponse.detail,
+                request,
+                response.bodyAsText(),
+                LocalDateTime.now(),
+            )
 
         saveFeilmelding(feilmelding)
     }
 
     fun getAllKravForStatusCheck(): List<KravTable> {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+        dataSource.connection.useAndHandleErrors { con ->
             return con.getAllKravForStatusCheck()
         }
     }
 
     fun getAllKravForAvstemming(): List<KravTable> {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+        dataSource.connection.useAndHandleErrors { con ->
             return con.getAllKravForAvstemming()
         }
     }
 
     fun getFeilmeldingForKravId(kravId: Long): List<FeilmeldingTable> {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+        dataSource.connection.useAndHandleErrors { con ->
             return con.getFeilmeldingForKravId(kravId)
         }
     }
 
     fun getValidationMessageForKrav(kravTable: KravTable): List<ValideringsfeilTable> {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+        dataSource.connection.useAndHandleErrors { con ->
             return con.getValidationMessageForKravId(kravTable)
         }
     }
 
     fun updateStatus(mottakStatus: String, corrId: String) {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+        dataSource.connection.useAndHandleErrors { con ->
             con.updateStatus(mottakStatus, corrId)
         }
     }
 
     fun updateStatusForAvstemtKravToReported(kravId: Int) {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+        dataSource.connection.useAndHandleErrors { con ->
             con.updateStatusForAvstemtKravToReported(kravId)
         }
     }
 
     fun getAllKravForResending(): List<KravTable> {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+        dataSource.connection.useAndHandleErrors { con ->
             return con.getAllKravForResending()
         }
     }
 
     fun getAllUnsentKrav(): List<KravTable> {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+        dataSource.connection.useAndHandleErrors { con ->
             return con.getAllUnsentKrav()
         }
     }
 
     fun updateEndringWithSkeKravIdentifikator(navsaksnummer: String, skeKravidentifikator: String) {
-        postgresDataSource.connection.useAndHandleErrors { con ->
+        dataSource.connection.useAndHandleErrors { con ->
             con.updateEndringWithSkeKravIdentifikator(navsaksnummer, skeKravidentifikator)
         }
     }

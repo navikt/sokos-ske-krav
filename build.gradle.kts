@@ -15,18 +15,19 @@ repositories {
 }
 
 val ktorVersion = "2.3.6"
-val hikaricpVersion = "5.1.0"
 val jschVersion = "0.2.12"
 val nimbusVersion = "9.37.2"
-val postgresqlVersion = "42.6.1"
-val flywayVersion = "9.16.1"
-val vaultVersion = "1.3.10"
-val natpryceVersion = "1.6.10.0"
 val kotlinxSerializationVersion = "1.6.0"
 val kotlinxDatetimeVersion = "0.4.1"
-val prometheusVersion = "1.11.5"
-val simpleXmlVersion = "2.7.1"
 
+val vaultVersion = "1.3.10"
+val konfigVersion = "1.6.10.0"
+val prometheusVersion = "1.11.5"
+
+// DB
+val hikaricpVersion = "5.1.0"
+val flywayVersion = "10.17.0"
+val postgresqlVersion = "42.7.3"
 
 // Test
 val kotestVersion = "5.8.0"
@@ -64,23 +65,19 @@ dependencies {
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("no.nav:vault-jdbc:$vaultVersion")
 
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")
+
     // Serialization
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:$kotlinxDatetimeVersion")
-    implementation("javax.xml.bind:jaxb-api:2.3.1")
 
     // FTP
     implementation("com.github.mwiede:jsch:$jschVersion")
 
     // Config
-    implementation("com.natpryce:konfig:$natpryceVersion")
-
-    // Flyway
-    implementation("org.flywaydb:flyway-core:$flywayVersion")
-
-    //XML
-    implementation("org.simpleframework:simple-xml:$simpleXmlVersion")
+    implementation("com.natpryce:konfig:$konfigVersion")
 
     // metrics
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
@@ -123,6 +120,10 @@ tasks {
         archiveFileName.set("sokos-ske-krav.jar")
         manifest {
             attributes["Main-Class"] = "sokos.ske.krav.ApplicationKt"
+        }
+
+        mergeServiceFiles {
+            setPath("META-INF/services/org.flywaydb.core.extensibility.Plugin")
         }
     }
 
