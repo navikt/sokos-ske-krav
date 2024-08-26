@@ -11,6 +11,7 @@ import io.kotest.core.test.TestResult
 import io.kotest.core.test.isRootTest
 import org.postgresql.ds.PGSimpleDataSource
 import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.ext.ScriptUtils
 import org.testcontainers.jdbc.JdbcDatabaseDelegate
 import sokos.ske.krav.config.PropertiesConfig
@@ -30,6 +31,7 @@ object TestContainer : TestListener {
                 withCreateContainerCmdModifier { cmd ->
                     cmd.hostConfig!!.withPortBindings(PortBinding(Ports.Binding.bindPort(5432), ExposedPort(5432)))
                 }
+                waitingFor(Wait.forLogMessage(".*ready to accept connections*\\n", 1))
             }
 
     val dataSource: HikariDataSource by lazy {
