@@ -9,9 +9,10 @@ import io.kotest.core.listeners.TestListener
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
 import io.kotest.core.test.isRootTest
+import mu.KotlinLogging
 import org.postgresql.ds.PGSimpleDataSource
 import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.containers.wait.strategy.Wait
+import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.ext.ScriptUtils
 import org.testcontainers.jdbc.JdbcDatabaseDelegate
 import sokos.ske.krav.config.PropertiesConfig
@@ -20,9 +21,10 @@ import java.time.Duration
 
 object TestContainer : TestListener {
     private val properties = PropertiesConfig.PostgresConfig()
+    private val logger = KotlinLogging.logger {}
 
     private val container =
-        PostgreSQLContainer<Nothing>("postgres:16-alpine")
+        PostgreSQLContainer<Nothing>("postgres:latest")
             .apply {
                 withExposedPorts(5432)
                 withUsername(properties.adminUser)
@@ -31,7 +33,7 @@ object TestContainer : TestListener {
                 withCreateContainerCmdModifier { cmd ->
                     cmd.hostConfig!!.withPortBindings(PortBinding(Ports.Binding.bindPort(5432), ExposedPort(5432)))
                 }
-                waitingFor(Wait.forLogMessage(".*ready to accept connections*\\n", 1))
+                withLogConsumer(Slf4jLogConsumer(logger))
             }
 
     val dataSource: HikariDataSource by lazy {
