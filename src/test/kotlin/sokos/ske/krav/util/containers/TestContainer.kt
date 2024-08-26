@@ -22,7 +22,7 @@ object TestContainer : TestListener {
     private val properties = PropertiesConfig.PostgresConfig()
 
     private val container =
-        PostgreSQLContainer<Nothing>("postgres:latest")
+        PostgreSQLContainer<Nothing>("postgres:16-alpine")
             .apply {
                 withExposedPorts(5432)
                 withUsername(properties.adminUser)
