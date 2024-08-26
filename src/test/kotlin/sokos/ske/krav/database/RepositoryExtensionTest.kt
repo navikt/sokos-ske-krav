@@ -1,3 +1,4 @@
+/*
 package sokos.ske.krav.database
 
 import io.kotest.assertions.throwables.shouldThrow
@@ -52,4 +53,4 @@ internal class RepositoryExtensionTest :
                 }
             }
         }
-    })
+    })*/

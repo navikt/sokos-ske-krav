@@ -88,7 +88,7 @@ fun setupSkeServiceMockWithMockEngine(httpClient: HttpClient, ftpService: FtpSer
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
 
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-    val databaseService = DatabaseService(TestContainer.dataSource)
+    val databaseService = DatabaseService(TestContainer().dataSource)
     val endreKravService = EndreKravService(skeClient, databaseService)
     val opprettKravService = OpprettKravService(skeClient, databaseService)
     val statusService = StatusService(skeClient, databaseService)

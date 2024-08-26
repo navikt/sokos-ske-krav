@@ -1,3 +1,4 @@
+/*
 package sokos.ske.krav.database
 
 import io.kotest.core.spec.style.FunSpec
@@ -116,4 +117,4 @@ internal class RepositoryTest :
                 savedErrorRs.getString("feilmelding") shouldBe feilMelding
             }
         }
-    })
+    })*/

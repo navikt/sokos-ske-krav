@@ -6,22 +6,30 @@ import com.github.dockerjava.api.model.Ports
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.listeners.TestListener
+import io.kotest.core.spec.Spec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestResult
 import io.kotest.core.test.isRootTest
 import mu.KotlinLogging
 import org.postgresql.ds.PGSimpleDataSource
 import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.ext.ScriptUtils
 import org.testcontainers.jdbc.JdbcDatabaseDelegate
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.database.PostgresDataSource
 import java.time.Duration
+import java.util.UUID
 
-object TestContainer : TestListener {
+class TestContainer : TestListener {
     private val properties = PropertiesConfig.PostgresConfig()
     private val logger = KotlinLogging.logger {}
+    private val scripts = mutableListOf<Script>()
+    private val loadedScripts = mutableListOf<Script>()
+
+    private data class Script(
+        val name: String,
+        val id: UUID,
+    )
 
     private val container =
         PostgreSQLContainer<Nothing>("postgres:16-alpine")
@@ -33,7 +41,7 @@ object TestContainer : TestListener {
                 withCreateContainerCmdModifier { cmd ->
                     cmd.hostConfig!!.withPortBindings(PortBinding(Ports.Binding.bindPort(5432), ExposedPort(5432)))
                 }
-                withLogConsumer(Slf4jLogConsumer(logger))
+                // withLogConsumer(Slf4jLogConsumer(logger))
             }
 
     val dataSource: HikariDataSource by lazy {
@@ -57,12 +65,17 @@ object TestContainer : TestListener {
                 }
         }
 
-    fun loadInitScript(script: String) =
-        ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), script)
+    fun loadInitScript(name: String) = ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)
+
+    override suspend fun beforeSpec(spec: Spec) {
+        super.beforeSpec(spec)
+   /*     container.start()
+        PostgresDataSource.migrate(dataSource)*/
+    }
 
     override suspend fun beforeTest(testCase: TestCase) {
         if (!testCase.isRootTest()) return
-
+        println("STARTUP")
         container.start()
         PostgresDataSource.migrate(dataSource)
     }

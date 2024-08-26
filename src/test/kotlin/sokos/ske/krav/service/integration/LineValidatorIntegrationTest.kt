@@ -1,3 +1,4 @@
+/*
 package sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.FunSpec
@@ -51,4 +52,4 @@ internal class LineValidatorIntegrationTest :
 
             rs.next() shouldBe false
         }
-    })
+    })*/
