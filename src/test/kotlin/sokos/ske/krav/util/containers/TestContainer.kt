@@ -24,7 +24,7 @@ object TestContainer : TestListener {
     private val logger = KotlinLogging.logger {}
 
     private val container =
-        PostgreSQLContainer<Nothing>("postgres:latest")
+        PostgreSQLContainer<Nothing>("postgres:16-alpine")
             .apply {
                 withExposedPorts(5432)
                 withUsername(properties.adminUser)

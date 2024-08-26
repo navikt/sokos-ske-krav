@@ -6,13 +6,13 @@ import com.jcraft.jsch.Session
 import mu.KotlinLogging
 import org.slf4j.LoggerFactory
 
-
 class SftpConfig(
     private val sftpProperties: PropertiesConfig.SftpProperties = PropertiesConfig.SftpProperties(),
 ) {
     private val logger = KotlinLogging.logger {}
-    fun createSftpConnection(): Session {
-        return JSch().apply {
+
+    fun createSftpConnection(): Session =
+        JSch().apply {
             JSch.setLogger(JSchLogger())
             addIdentity(sftpProperties.privateKey, sftpProperties.privateKeyPassword)
         }.run {
@@ -23,15 +23,12 @@ class SftpConfig(
             it.connect()
             logger.debug { "Åpner session på host: ${sftpProperties.host}:${sftpProperties.port}" }
         }
-    }
 }
 
 class JSchLogger : Logger {
     private val logger = LoggerFactory.getLogger(JSch::class.java)
 
-    override fun isEnabled(level: Int): Boolean {
-        return level == Logger.DEBUG && logger.isDebugEnabled
-    }
+    override fun isEnabled(level: Int): Boolean = level == Logger.DEBUG && logger.isDebugEnabled
 
     override fun log(
         level: Int,

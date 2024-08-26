@@ -1,9 +1,10 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    kotlin("jvm") version "1.9.20"
-    kotlin("plugin.serialization") version "1.8.21"
+    kotlin("jvm") version "2.0.10"
+    kotlin("plugin.serialization") version "2.0.10"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -17,7 +18,7 @@ repositories {
 val ktorVersion = "2.3.6"
 val jschVersion = "0.2.12"
 val nimbusVersion = "9.37.2"
-val kotlinxSerializationVersion = "1.6.0"
+val kotlinxSerializationVersion = "1.7.1"
 val kotlinxDatetimeVersion = "0.4.1"
 
 val vaultVersion = "1.3.10"
@@ -30,11 +31,11 @@ val flywayVersion = "10.17.0"
 val postgresqlVersion = "42.7.3"
 
 // Test
-val kotestVersion = "5.8.0"
+val kotestVersion = "5.9.1"
 val kotestTestContainerExtensionVersion = "2.0.2"
-val mockkVersion = "1.13.8"
+val mockkVersion = "1.13.12"
 val commonsVersion = "3.10.0"
-val testContainerVersion = "1.19.1"
+val testContainerVersion = "1.20.1"
 val mockFtpServerVersion = "3.1.0"
 
 // Logging
@@ -86,8 +87,8 @@ dependencies {
     // Logging
     implementation("io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion")
     runtimeOnly("org.codehaus.janino:janino:$janinoVersion")
-    implementation("ch.qos.logback:logback-classic:$logbackVersion")
-    implementation("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
+    runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
+    runtimeOnly("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
 
     // Test
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
@@ -134,14 +135,16 @@ tasks {
     withType<Test>().configureEach {
         useJUnitPlatform()
         testLogging {
-            exceptionFormat = TestExceptionFormat.FULL
-            events("passed", "skipped", "failed")
+            showExceptions = true
+            showStackTraces = true
+            exceptionFormat = FULL
+            events = setOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
         }
 
         reports.forEach { report -> report.required.value(false) }
     }
 
     withType<Wrapper> {
-        gradleVersion = "8.4"
+        gradleVersion = "8.9"
     }
 }

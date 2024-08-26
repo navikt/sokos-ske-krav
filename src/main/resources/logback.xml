@@ -35,9 +35,6 @@
             <logger name="secureLogger" level="DEBUG" additivity="false">
                 <appender-ref ref="${LOG_APPENDER:-secureLog}"/>
             </logger>
-            <logger name="validationLogger" level="WARN" additivity="false">
-                <appender-ref ref="${LOG_APPENDER:-secureLog}"/>
-            </logger>
         </then>
     </if>
 
