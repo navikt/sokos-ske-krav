@@ -31,7 +31,7 @@ val flywayVersion = "9.16.1"
 val postgresqlVersion = "42.6.1"
 
 // Test
-val kotestVersion = "5.9.1"
+val kotestVersion = "5.8.0"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.13.12"
 val commonsVersion = "3.10.0"
@@ -87,8 +87,8 @@ dependencies {
     // Logging
     implementation("io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion")
     runtimeOnly("org.codehaus.janino:janino:$janinoVersion")
-    runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
-    runtimeOnly("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
+    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+    implementation("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
 
     // Test
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
