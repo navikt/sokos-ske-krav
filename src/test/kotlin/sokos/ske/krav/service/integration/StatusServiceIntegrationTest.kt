@@ -1,4 +1,3 @@
-/*
 package sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.FunSpec
@@ -72,4 +71,4 @@ internal class StatusServiceIntegrationTest :
             errorMessages.size shouldBe 5
             errorMessages.filter { it.error == "420" }.size shouldBe 5
         }
-    })*/
+    })

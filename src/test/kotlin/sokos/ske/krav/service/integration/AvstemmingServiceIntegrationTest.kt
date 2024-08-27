@@ -1,4 +1,3 @@
-/*
 package sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.FunSpec
@@ -43,4 +42,4 @@ internal class AvstemmingServiceIntegrationTest :
             avstemmingService.oppdaterAvstemtKravTilRapportert(1)
             dbService.getAllKravForAvstemming().size shouldBe 8
         }
-    })*/
+    })
