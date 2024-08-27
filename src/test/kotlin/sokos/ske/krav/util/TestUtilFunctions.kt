@@ -21,7 +21,6 @@ import sokos.ske.krav.service.OpprettKravService
 import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
 import sokos.ske.krav.service.StoppKravService
-import sokos.ske.krav.util.containers.TestContainer
 import java.io.Reader
 import java.sql.Connection
 
@@ -84,11 +83,11 @@ fun setupSkeServiceMock(skeClient: SkeClient = mockSkeClient, stoppService: Stop
 
 fun setUpMockHttpClient(endepunktTyper: List<MockHttpClientUtils.MockRequestObj>) = MockHttpClient().getClient(endepunktTyper)
 
-fun setupSkeServiceMockWithMockEngine(httpClient: HttpClient, ftpService: FtpService): SkeService {
+fun setupSkeServiceMockWithMockEngine(httpClient: HttpClient, ftpService: FtpService, databaseService: DatabaseService): SkeService {
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
 
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-    val databaseService = DatabaseService(TestContainer().dataSource)
+    // val databaseService = DatabaseService(TestContainer().dataSource)
     val endreKravService = EndreKravService(skeClient, databaseService)
     val opprettKravService = OpprettKravService(skeClient, databaseService)
     val statusService = StatusService(skeClient, databaseService)
