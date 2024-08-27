@@ -27,15 +27,15 @@ val prometheusVersion = "1.11.5"
 
 // DB
 val hikaricpVersion = "5.1.0"
-val flywayVersion = "9.16.1"
-val postgresqlVersion = "42.6.1"
+val flywayVersion = "10.17.0"
+val postgresqlVersion = "42.7.3"
 
 // Test
-val kotestVersion = "5.8.0"
+val kotestVersion = "5.9.1"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.13.12"
 val commonsVersion = "3.10.0"
-val testContainerVersion = "1.19.1"
+val testContainerVersion = "1.20.1"
 val mockFtpServerVersion = "3.1.0"
 
 // Logging
@@ -67,7 +67,7 @@ dependencies {
     implementation("no.nav:vault-jdbc:$vaultVersion")
 
     implementation("org.flywaydb:flyway-core:$flywayVersion")
-    // runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")
 
     // Serialization
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
@@ -115,7 +115,6 @@ sourceSets {
 }
 
 tasks {
-
     withType<ShadowJar>().configureEach {
         enabled = true
         archiveFileName.set("sokos-ske-krav.jar")
