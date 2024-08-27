@@ -11,7 +11,7 @@ class TestContainer {
     private val properties = PropertiesConfig.PostgresConfig()
 
     private val container =
-        PostgreSQLContainer<Nothing>("postgres:latest")
+        PostgreSQLContainer<Nothing>("postgres:16-alpine")
             .apply {
                 withUsername(properties.adminUser)
                 withPassword(properties.password)
