@@ -1,4 +1,3 @@
-/*
 package sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.FunSpec
@@ -16,11 +15,11 @@ import sokos.ske.krav.util.setUpMockHttpClient
 
 internal class StatusServiceIntegrationTest :
     FunSpec({
-        extensions(TestContainer)
 
         test("hentOgOppdaterMottaksStatus skal hente alle krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING fra db, hente mottaksstatus fra SKE, og lagre det i database") {
-            TestContainer.loadInitScript("KravSomSkalOppdateres.sql")
-            val dbService = DatabaseService(TestContainer.dataSource)
+            val testContainer = TestContainer()
+            testContainer.migrate("KravSomSkalOppdateres.sql")
+            val dbService = DatabaseService(testContainer.dataSource)
 
             val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse()
             val valideringsFeilRespons = MockHttpClientUtils.Responses.emptyValideringsfeilResponse()
@@ -36,18 +35,20 @@ internal class StatusServiceIntegrationTest :
 
             val statusService = StatusService(skeClient, dbService)
 
-            val allKravBeforeUpdate = TestContainer.dataSource.connection.use { con -> con.getAllKrav() }
+            val allKravBeforeUpdate = testContainer.dataSource.connection.use { con -> con.getAllKrav() }
             allKravBeforeUpdate.filter { it.status == "RESKONTROFOERT" }.size shouldBe 3
 
             statusService.hentOgOppdaterMottaksStatus()
 
-            val allKravAfterUpdate = TestContainer.dataSource.connection.use { con -> con.getAllKrav() }
+            val allKravAfterUpdate = testContainer.dataSource.connection.use { con -> con.getAllKrav() }
             allKravAfterUpdate.filter { it.status == "RESKONTROFOERT" }.size shouldBe 8
         }
 
         test("hentOgLagreValideringsFeil skal hente valideringsfeil fra SKE og lagre dem i DB") {
-            TestContainer.loadInitScript("KravSomSkalOppdateres.sql")
-            val dbService = DatabaseService(TestContainer.dataSource)
+            val testContainer = TestContainer()
+            testContainer.migrate("KravSomSkalOppdateres.sql")
+
+            val dbService = DatabaseService(testContainer.dataSource)
 
             val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse(status = "VALIDERINGSFEIL")
             val valideringsFeilRespons = MockHttpClientUtils.Responses.valideringsfeilResponse("420", "Feilmelding test")
@@ -70,4 +71,4 @@ internal class StatusServiceIntegrationTest :
             errorMessages.size shouldBe 5
             errorMessages.filter { it.error == "420" }.size shouldBe 5
         }
-    })*/
+    })

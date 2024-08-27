@@ -1,4 +1,3 @@
-/*
 package sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.FunSpec
@@ -14,7 +13,6 @@ import java.time.LocalDate
 internal class LineValidatorIntegrationTest :
     FunSpec({
 
-        extensions(TestContainer)
         test("Når validering av linjer feiler skal valideringsfeilene lagres i database") {
 
             val kravLinje =
@@ -38,13 +36,13 @@ internal class LineValidatorIntegrationTest :
                     LocalDate.now().minusDays(1),
                     "1234",
                 )
-
+            val testContainer = TestContainer()
             val fil = FtpFil(this.testCase.name.testName, emptyList(), kravLinjer = listOf(kravLinje))
-            val dbService = DatabaseService(TestContainer.dataSource)
+            val dbService = DatabaseService(testContainer.dataSource)
 
             LineValidator().validateNewLines(fil, dbService)
 
-            val rs = TestContainer.dataSource.connection.prepareStatement("""select * from valideringsfeil""").executeQuery()
+            val rs = testContainer.dataSource.connection.prepareStatement("""select * from valideringsfeil""").executeQuery()
             rs.next() shouldBe true
 
             rs.getString("filnavn") shouldBe this.testCase.name.testName
@@ -52,4 +50,4 @@ internal class LineValidatorIntegrationTest :
 
             rs.next() shouldBe false
         }
-    })*/
+    })

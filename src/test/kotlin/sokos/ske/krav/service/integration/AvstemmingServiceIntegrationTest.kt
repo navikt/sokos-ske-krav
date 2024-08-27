@@ -1,4 +1,3 @@
-/*
 package sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.FunSpec
@@ -16,7 +15,7 @@ import sokos.ske.krav.util.containers.TestContainer
 
 internal class AvstemmingServiceIntegrationTest :
     FunSpec({
-        extensions(SftpListener, TestContainer)
+        extensions(SftpListener)
 
         val ftpService: FtpService by lazy {
             FtpService(sftpSession = SftpConfig(SftpContainer.sftpProperties).createSftpConnection())
@@ -33,12 +32,14 @@ internal class AvstemmingServiceIntegrationTest :
         }
 
         test("oppdaterAvstemtKravTilRapportert skal sette status til rapportert og hente tabelldata på nytt") {
-            TestContainer.loadInitScript("KravSomSkalAvstemmes.sql")
-            val dbService = DatabaseService(TestContainer.dataSource)
+            val testContainer = TestContainer()
+            testContainer.migrate("KravSomSkalAvstemmes.sql")
+
+            val dbService = DatabaseService(testContainer.dataSource)
             dbService.getAllKravForAvstemming().size shouldBe 9
 
             val avstemmingService = AvstemmingService(dbService, ftpService)
             avstemmingService.oppdaterAvstemtKravTilRapportert(1)
             dbService.getAllKravForAvstemming().size shouldBe 8
         }
-    })*/
+    })

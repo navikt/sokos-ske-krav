@@ -1,4 +1,3 @@
-/*
 package sokos.ske.krav.database
 
 import io.kotest.core.spec.style.FunSpec
@@ -24,14 +23,14 @@ import java.time.LocalDateTime
 
 internal class RepositoryTest :
     FunSpec({
-        extensions(TestContainer)
 
         test("insertAllNewKrav skal inserte alle kravlinjene") {
+
             val filnavn = "${File.separator}FtpFiler${File.separator}8NyeKrav1Endring1Stopp.txt"
             val liste = fileAsList(filnavn)
             val kravlinjer = FileParser(liste).parseKravLinjer()
-
-            TestContainer.dataSource.connection.use { con ->
+            val testContainer = TestContainer()
+            testContainer.dataSource.connection.use { con ->
                 con.insertAllNewKrav(kravlinjer, filnavn)
                 val lagredeKrav = con.getAllKrav()
                 lagredeKrav.size shouldBe kravlinjer.size + 1
@@ -43,7 +42,8 @@ internal class RepositoryTest :
         }
 
         test("insertErrorMessage skal lagre feilmelding") {
-            TestContainer.loadInitScript("Feilmeldinger.sql")
+            val testContainer = TestContainer()
+            testContainer.migrate("Feilmeldinger.sql")
             val feilmelding =
                 FeilmeldingTable(
                     2L,
@@ -58,7 +58,7 @@ internal class RepositoryTest :
                     LocalDateTime.now(),
                 )
 
-            TestContainer.dataSource.connection.use { con ->
+            testContainer.dataSource.connection.use { con ->
                 con.getAllFeilmeldinger().size shouldBe 3
                 con.insertFeilmelding(feilmelding)
 
@@ -96,8 +96,9 @@ internal class RepositoryTest :
                     "fagid",
                     "NYTT_KRAV",
                 )
+            val testContainer = TestContainer()
 
-            TestContainer.dataSource.connection.use { con ->
+            testContainer.dataSource.connection.use { con ->
                 val rsBefore = con.prepareStatement("""select count(*) from valideringsfeil""").executeQuery()
                 rsBefore.next()
                 rsBefore.getInt("count") shouldBe 0
@@ -117,4 +118,4 @@ internal class RepositoryTest :
                 savedErrorRs.getString("feilmelding") shouldBe feilMelding
             }
         }
-    })*/
+    })

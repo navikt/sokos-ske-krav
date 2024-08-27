@@ -26,11 +26,9 @@ import java.time.LocalDateTime
 
 internal class RepositoryBehaviourTest :
     BehaviorSpec({
-        val testContainer = TestContainer()
-        extensions(testContainer)
-
         given("det finnes krav som skal oppdateres") {
-            testContainer.loadInitScript("KravSomSkalOppdateres.sql")
+            val testContainer = TestContainer()
+            testContainer.migrate("KravSomSkalOppdateres.sql")
 
             then("updateSendtKrav skal oppdatere krav med ny status og ny kravidentifikator_ske, og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
 
@@ -100,7 +98,8 @@ internal class RepositoryBehaviourTest :
         }
 
         given("det finnes krav som skal resendes") {
-            testContainer.loadInitScript("KravSomSkalResendes.sql")
+            val testContainer = TestContainer()
+            testContainer.migrate("KravSomSkalResendes.sql")
 
             then("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING") {
                 testContainer.dataSource.connection.use { it.getAllKravForStatusCheck().size shouldBe 5 }
@@ -135,8 +134,8 @@ internal class RepositoryBehaviourTest :
             }
 
             then("updateSentKrav skal oppdatere krav med ny status og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
-                PostgresDataSource.migrate(testContainer.dataSource)
-                testContainer.loadInitScript("KravSomSkalResendes.sql")
+
+                testContainer.migrate("KravSomSkalResendes.sql")
                 testContainer.dataSource.connection.use { con ->
                     val originalKrav = con.getAllKrav().first { it.corrId == "CORR83985902" }
                     originalKrav.status shouldBe "RESKONTROFOERT"
@@ -154,7 +153,8 @@ internal class RepositoryBehaviourTest :
         }
 
         given("det finnes feilmeldinger") {
-            testContainer.loadInitScript("Feilmeldinger.sql")
+            val testContainer = TestContainer()
+            testContainer.migrate("Feilmeldinger.sql")
 
             then("getAllErrorMessages skal returnere alle feilmeldinger ") {
                 testContainer.dataSource.connection.use { it.getAllFeilmeldinger().size shouldBe 3 }
@@ -199,7 +199,8 @@ internal class RepositoryBehaviourTest :
         }
 
         given("det finnes krav som skal avstemmes") {
-            testContainer.loadInitScript("KravSomSkalAvstemmes.sql")
+            val testContainer = TestContainer()
+            testContainer.migrate("KravSomSkalAvstemmes.sql")
 
             then("getAllKravForAvstemming skal returnere alle krav som ikke har status RESKONTROFOERT eller VALIDERINGFEIL_RAPPORTERT") {
                 testContainer.dataSource.connection.use { it.getAllKravForAvstemming().size shouldBe 9 }

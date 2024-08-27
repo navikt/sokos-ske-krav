@@ -1,4 +1,3 @@
-/*
 package sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.FunSpec
@@ -19,17 +18,18 @@ import java.time.LocalDateTime
 
 internal class OpprettKravServiceIntegrationTest :
     FunSpec({
-        extensions(TestContainer)
 
         test("Nye krav skal lagres i database med response fra skeclient") {
-            TestContainer.loadInitScript("NyeKrav.sql")
+            val testContainer = TestContainer()
+            testContainer.migrate("NyeKrav.sql")
+
             val kravidentifikatorSKE = "4321"
             val skeResponse = MockHttpClientUtils.Responses.nyttKravResponse(kravidentifikatorSKE)
 
             val httpClient = setUpMockHttpClient(listOf(MockHttpClientUtils.MockRequestObj(skeResponse, MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.OK)))
             val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true))
 
-            val opprettService = OpprettKravService(skeClient, DatabaseService(TestContainer.dataSource))
+            val opprettService = OpprettKravService(skeClient, DatabaseService(testContainer.dataSource))
             val kravListe =
                 listOf(
                     KravTable(
@@ -92,15 +92,15 @@ internal class OpprettKravServiceIntegrationTest :
                     ),
                 )
 
-            TestContainer.dataSource.connection.getAllKrav().size shouldBe 2
+            testContainer.dataSource.connection.getAllKrav().size shouldBe 2
 
             opprettService.sendAllOpprettKrav(kravListe)
 
-            val lagredeKrav = TestContainer.dataSource.connection.getAllKrav()
+            val lagredeKrav = testContainer.dataSource.connection.getAllKrav()
             lagredeKrav.size shouldBe 2
 
             lagredeKrav.filter { it.kravidentifikatorSKE == kravidentifikatorSKE }.size shouldBe 2
             lagredeKrav.filter { it.saksnummerNAV == "1111-navsaksnr" }.size shouldBe 1
             lagredeKrav.filter { it.saksnummerNAV == "2222-navsaksnr" }.size shouldBe 1
         }
-    })*/
+    })
