@@ -12,23 +12,27 @@ class TestContainer {
     private val properties = PropertiesConfig.PostgresConfig()
     private val dockerImageName = "postgres:latest"
     private val container =
-        PostgreSQLContainer<Nothing>(DockerImageName.parse(dockerImageName))
-            .apply {
-                withUsername(properties.adminUser)
-                withPassword(properties.password)
-                withDatabaseName(properties.name)
-                withReuse(false)
-                start()
-            }
-    val dataSource = container.toDataSource { isAutoCommit = false }
+        PostgreSQLContainer<Nothing>(DockerImageName.parse(dockerImageName)).apply {
+            withReuse(false)
+            withUsername(properties.adminUser)
+            start()
+        }
+
+    private val ds =
+        container.toDataSource {
+            maximumPoolSize = 100
+            minimumIdle = 1
+            isAutoCommit = false
+        }
 
     init {
-        PostgresDataSource.migrate(dataSource)
+        PostgresDataSource.migrate(ds)
     }
 
+    val dataSource = ds
+
     fun migrate(script: String = "") {
-        if (script.isEmpty()) PostgresDataSource.migrate(dataSource)
-        loadInitScript(script)
+        if (script.isNotEmpty()) loadInitScript(script)
     }
 
     private fun loadInitScript(name: String) = ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)
