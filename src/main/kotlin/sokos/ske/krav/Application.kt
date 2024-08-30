@@ -6,6 +6,8 @@ import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import sokos.ske.krav.api.skeApi
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.config.PropertiesConfig
@@ -21,6 +23,7 @@ import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
 import sokos.ske.krav.service.StoppKravService
 import sokos.ske.krav.util.httpClient
+import java.util.*
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -38,6 +41,7 @@ private fun Application.module() {
 
     val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, databaseService)
     val avstemmingService = AvstemmingService(databaseService)
+    val timer = Timer()
 
     commonConfig()
     applicationLifecycleConfig(applicationState)
@@ -49,6 +53,13 @@ private fun Application.module() {
     if (!PropertiesConfig.isLocal()) {
         PostgresDataSource.migrate()
     }
+
+    timer.schedule(object : TimerTask() {
+        override fun run() {
+            println("******************Timer Køyrer......${Clock.System.now()}")
+        }
+    }, 500, 300_000)
+
 }
 
 fun Application.applicationLifecycleConfig(applicationState: ApplicationState) {
