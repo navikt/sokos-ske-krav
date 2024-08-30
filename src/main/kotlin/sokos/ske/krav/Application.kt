@@ -6,6 +6,7 @@ import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import sokos.ske.krav.api.skeApi
@@ -56,7 +57,9 @@ private fun Application.module() {
 
     timer.schedule(object : TimerTask() {
         override fun run() {
-            println("******************Timer Køyrer......${Clock.System.now()}")
+            println("******************Starter henting av nye filer......${Clock.System.now()}")
+            runBlocking {  skeService.handleNewKrav() }
+            println("******************Henting av nye filer  ferdig......${Clock.System.now()}")
         }
     }, 500, 300_000)
 
