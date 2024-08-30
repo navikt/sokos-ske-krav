@@ -103,6 +103,12 @@ object PropertiesConfig {
         val user = "$name-user"
     }
 
+    data class TimerConfig(
+        val useTimer: Boolean = get("USE_TIMER").toBoolean(),
+        val initialDelay: Long = get("TIMER_INITIAL_DELAY").toLong(),
+        val intervallPeriod: Long = get("TIMER_INTERVALL_PERIOD").toLong()
+    )
+
     open class JwtConfig(
         private val wellKnownUrl: String,
     ) {

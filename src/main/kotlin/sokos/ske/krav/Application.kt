@@ -8,7 +8,6 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import sokos.ske.krav.api.skeApi
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.config.PropertiesConfig
@@ -43,6 +42,7 @@ private fun Application.module() {
     val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, databaseService)
     val avstemmingService = AvstemmingService(databaseService)
     val timer = Timer()
+    val timerConfig = PropertiesConfig.TimerConfig()
 
     commonConfig()
     applicationLifecycleConfig(applicationState)
@@ -55,14 +55,15 @@ private fun Application.module() {
         PostgresDataSource.migrate()
     }
 
-    timer.schedule(object : TimerTask() {
-        override fun run() {
-            println("******************Starter henting av nye filer......${Clock.System.now()}")
-            runBlocking {  skeService.handleNewKrav() }
-            println("******************Henting av nye filer  ferdig......${Clock.System.now()}")
-        }
-    }, 500, 300_000)
-
+    if (timerConfig.useTimer) {
+        timer.schedule(object : TimerTask() {
+            override fun run() {
+                println("******************Starter henting av nye filer......${Clock.System.now()}")
+                runBlocking { skeService.handleNewKrav() }
+                println("******************Henting av nye filer  ferdig......${Clock.System.now()}")
+            }
+        }, timerConfig.initialDelay, timerConfig.intervallPeriod)
+    }
 }
 
 fun Application.applicationLifecycleConfig(applicationState: ApplicationState) {

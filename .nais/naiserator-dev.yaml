@@ -72,3 +72,9 @@ spec:
       value: postgresql/preprod-fss/
     - name: LOG_APPENDER
       value: CONSOLE
+    - name: USE_TIMER
+      value: true
+    - name: TIMER_INITIAL_DELAY
+      value: 500
+    - name: TIMER_INTERVALL_PERIOD
+      value: 3600000
