@@ -62,7 +62,7 @@ private fun Application.module() {
                 runBlocking { skeService.handleNewKrav() }
                 println("******************Henting av nye filer  ferdig......${Clock.System.now()}")
             }
-        }, timerConfig.initialDelay, timerConfig.intervallPeriod)
+        }, timerConfig.initialDelay, timerConfig.intervalPeriod)
     }
 }
 
