@@ -73,8 +73,8 @@ spec:
     - name: LOG_APPENDER
       value: CONSOLE
     - name: USE_TIMER
-      value: false
+      value: "false"
     - name: TIMER_INITIAL_DELAY
-      value: 500
+      value: "500"
     - name: TIMER_INTERVALL_PERIOD
-      value: 3600000
+      value: "3600000"
