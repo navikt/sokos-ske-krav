@@ -16,12 +16,12 @@ class SftpConfig(
             JSch.setLogger(JSchLogger())
             addIdentity(sftpProperties.privateKey, sftpProperties.privateKeyPassword)
         }.run {
-            logger.debug { "Oppretter connection med privat nøkkel på host: ${sftpProperties.host}:${sftpProperties.port}" }
+            logger.info { "Oppretter connection med privat nøkkel på host: ${sftpProperties.host}:${sftpProperties.port}" }
             getSession(sftpProperties.username, sftpProperties.host, sftpProperties.port)
         }.also {
             it.setConfig("StrictHostKeyChecking", "no")
             it.connect()
-            logger.debug { "Åpner session på host: ${sftpProperties.host}:${sftpProperties.port}" }
+            logger.info { "Åpner session på host: ${sftpProperties.host}:${sftpProperties.port}" }
         }
 }
 

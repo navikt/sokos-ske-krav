@@ -29,8 +29,9 @@ class FtpService (
 
     ) {
         private val logger = KotlinLogging.logger("secureLogger")
-        val session get() = sftpSession
-        private fun getSftpChannel(): ChannelSftp {
+        val session get() = if (sftpSession.isConnected) sftpSession else SftpConfig( PropertiesConfig.SftpProperties()).createSftpConnection()
+
+    private fun getSftpChannel(): ChannelSftp {
             val channelSftp = sftpSession.openChannel("sftp") as ChannelSftp
             return channelSftp.apply {
                 connect()
