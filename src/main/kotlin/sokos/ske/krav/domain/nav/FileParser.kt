@@ -27,10 +27,13 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-class FileParser(val content: List<String>) {
-
+class FileParser(
+    val content: List<String>,
+) {
     fun parseKontrollLinjeHeader() = kontrollLinjeHeaderParser(content.first())
+
     fun parseKontrollLinjeFooter() = kontrollLinjeFooterParser(content.last())
+
     fun parseKravLinjer() = content.subList(1, content.lastIndex).map { kravLinjeParser(it) }
 
     private fun kontrollLinjeHeaderParser(linje: String): KontrollLinjeHeader =
@@ -47,26 +50,27 @@ class FileParser(val content: List<String>) {
             sumAlleTransaksjoner = SUM_ALLE_LINJER_POS.parseBigDecimal(linje),
         )
 
-    private fun kravLinjeParser(linje: String) = KravLinje(
-        linjenummer = LINJE_NUMMER_POS.parseInt(linje),
-        saksnummerNav = SAKS_NUMMER_POS.parseString(linje),
-        BELOP_POS.parseBigDecimal(linje),
-        VEDTAK_DATO_POS.parseDate(linje),
-        GJELDER_ID_POS.parseString(linje),
-        PERIODE_FOM_POS.parseString(linje),
-        PERIODE_TOM_POS.parseString(linje),
-        KRAV_KODE_POS.parseString(linje),
-        REFERANSE_GAMMEL_SAK_POS.parseString(linje),
-        TRANSAKSJONS_DATO_POS.parseString(linje),
-        ENHET_BOSTED_POS.parseString(linje),
-        ENHET_BEHANDLENDE_POS.parseString(linje),
-        HJEMMEL_KODE_POS.parseString(linje),
-        ARSAK_KODE_POS.parseString(linje),
-        BELOP_RENTE_POS.parseBigDecimal(linje),
-        FREMTIDIG_YTELSE_POS.parseBigDecimal(linje),
-        UTBETAL_DATO_POS.parseDate(linje),
-        FAGSYSTEM_ID_POS.parseString(linje),
-    )
+    private fun kravLinjeParser(linje: String) =
+        KravLinje(
+            linjenummer = LINJE_NUMMER_POS.parseInt(linje),
+            saksnummerNav = SAKS_NUMMER_POS.parseString(linje),
+            BELOP_POS.parseBigDecimal(linje),
+            VEDTAK_DATO_POS.parseDate(linje),
+            GJELDER_ID_POS.parseString(linje),
+            PERIODE_FOM_POS.parseString(linje),
+            PERIODE_TOM_POS.parseString(linje),
+            KRAV_KODE_POS.parseString(linje),
+            REFERANSE_GAMMEL_SAK_POS.parseString(linje),
+            TRANSAKSJONS_DATO_POS.parseString(linje),
+            ENHET_BOSTED_POS.parseString(linje),
+            ENHET_BEHANDLENDE_POS.parseString(linje),
+            HJEMMEL_KODE_POS.parseString(linje),
+            ARSAK_KODE_POS.parseString(linje),
+            BELOP_RENTE_POS.parseBigDecimal(linje),
+            FREMTIDIG_YTELSE_POS.parseBigDecimal(linje),
+            UTBETAL_DATO_POS.parseDate(linje),
+            FAGSYSTEM_ID_POS.parseString(linje),
+        )
 
     private object SisteLinjeFeltPosisjoner {
         val OVERFORINGS_DATO_POS = Posisjon(start = 4, end = 18)
@@ -97,7 +101,10 @@ class FileParser(val content: List<String>) {
         val FAGSYSTEM_ID_POS = Posisjon(start = 170, end = 200)
     }
 
-    private data class Posisjon(val start: Int, val end: Int) {
+    private data class Posisjon(
+        val start: Int,
+        val end: Int,
+    ) {
         private val logger = KotlinLogging.logger("secureLogger")
 
         fun parseString(line: String): String {
@@ -105,13 +112,19 @@ class FileParser(val content: List<String>) {
                 logger.error("Feil i fil! Startposisjon $start er større enn sluttposisjon $end")
                 return ""
             }
-            return if (start > line.length) ""
-            else if (end > line.length) line.substring(start).trim()
-            else line.substring(start, end).trim()
+            return if (start > line.length) {
+                ""
+            } else if (end > line.length) {
+                line.substring(start).trim()
+            } else {
+                line.substring(start, end).trim()
+            }
         }
 
         fun parseBigDecimal(line: String): BigDecimal {
             val amount = parseString(line)
+            if (amount.length < 3) return BigDecimal.valueOf(0.0)
+
             val integer = amount.dropLast(2)
             val dec = amount.drop(amount.length - 2)
 
@@ -120,11 +133,11 @@ class FileParser(val content: List<String>) {
 
         fun parseInt(line: String): Int = parseString(line).toInt()
 
-        fun parseDate(line: String): LocalDate = parseString(line).runCatching {
+        fun parseDate(line: String): LocalDate =
+            parseString(line).runCatching {
                 LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd"))
             }.getOrElse {
                 LocalDate.parse("21240101", DateTimeFormatter.ofPattern("yyyyMMdd"))
             }
-
     }
 }
