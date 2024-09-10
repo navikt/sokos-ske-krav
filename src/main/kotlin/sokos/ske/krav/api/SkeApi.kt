@@ -88,9 +88,9 @@ fun Routing.skeApi(
             val liste = mutableListOf<String>()
             liste.add("INNBOUND")
             liste.addAll(ftpService.listFiles(Directories.INBOUND))
-            liste.add("INNBOUND")
+            liste.add("OUTBOUND")
             liste.addAll(ftpService.listFiles(Directories.OUTBOUND))
-            liste.add("INNBOUND")
+            liste.add("FEIL-FILER")
             liste.addAll(ftpService.listFiles(Directories.FAILED))
             call.respond(liste.joinToString("\n"))
         }
