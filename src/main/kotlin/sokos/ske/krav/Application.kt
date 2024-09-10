@@ -18,6 +18,7 @@ import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.AvstemmingService
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.EndreKravService
+import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.service.OpprettKravService
 import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
@@ -38,6 +39,7 @@ private fun Application.module() {
     val endreKravService = EndreKravService(skeClient, databaseService)
     val opprettKravService = OpprettKravService(skeClient, databaseService)
     val statusService = StatusService(skeClient, databaseService)
+    val ftpService = FtpService()
 
     val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, databaseService)
     val avstemmingService = AvstemmingService(databaseService)
@@ -48,7 +50,7 @@ private fun Application.module() {
     applicationLifecycleConfig(applicationState)
     routing {
         internalNaisRoutes(applicationState)
-        skeApi(skeService, statusService, avstemmingService)
+        skeApi(skeService, statusService, avstemmingService, ftpService)
     }
 
     if (!PropertiesConfig.isLocal()) {

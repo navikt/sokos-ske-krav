@@ -1,23 +1,28 @@
 package sokos.ske.krav.api
 
-import io.ktor.http.*
 import io.ktor.http.ContentType.Text.CSV
 import io.ktor.http.ContentType.Text.Html
-import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondRedirect
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.Routing
+import io.ktor.server.routing.get
+import io.ktor.server.routing.route
 import kotlinx.datetime.Clock
 import mu.KotlinLogging
-import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.service.AvstemmingService
-import sokos.ske.krav.service.DatabaseService
+import sokos.ske.krav.service.Directories
+import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
 
 fun Routing.skeApi(
     skeService: SkeService,
     statusService: StatusService,
-    avstemmingService: AvstemmingService
+    avstemmingService: AvstemmingService,
+    ftpService: FtpService
 ) {
     val logger = KotlinLogging.logger ("secureLogger")
 
@@ -77,6 +82,17 @@ fun Routing.skeApi(
         }
         get("resending") {
             call.respondText(avstemmingService.hentKravSomSkalresendes(), Html)
+        }
+        //hjelpe saker under utvikling
+        get("filer") {
+            val liste = mutableListOf<String>()
+            liste.add("INNBOUND")
+            liste.addAll(ftpService.listFiles(Directories.INBOUND))
+            liste.add("INNBOUND")
+            liste.addAll(ftpService.listFiles(Directories.OUTBOUND))
+            liste.add("INNBOUND")
+            liste.addAll(ftpService.listFiles(Directories.FAILED))
+            call.respond(liste.joinToString("\n"))
         }
     }
 }
