@@ -31,6 +31,7 @@ enum class StonadsType(val kravKode: String, val hjemmelkode: String, val altern
     TILBAKEKREVING_UFOERETRYGD_UTBETALT_TIL_FEIL_MOTTAKER   ("PE UT", "C"),
     TILBAKEKREVING_UFOERETRYGD_AVREGNING                    ("PE UT", "TA"),
     TILBAKEKREVING_AVTALEFESTET_PENSJON                     ("PE XP", "T"),
+    TILBAKEKREVING_SUPPLERENDE_STOENAD_ALDER                ("SU AP", "T") ,
     TILBAKEKREVING_SUPPLERENDE_STOENAD                      ("SU UF", "T") ,
     TILBAKEKREVING_OPPLAERINGSPENGER                        ("BS OP", "T") ,
     TILBAKEKREVING_UTDANNINGSSTOENAD                        ("EF UT", "T"),
