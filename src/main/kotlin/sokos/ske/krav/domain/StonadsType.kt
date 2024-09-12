@@ -13,7 +13,7 @@ enum class StonadsType(val kravKode: String, val hjemmelkode: String, val altern
     TILBAKEKREVING_ENGANGSSTOENAD_VED_FOEDSEL               ("FA FE", "T"),
     TILBAKEKREVING_FORELDREPENGER                           ("FA FØ", "T"),
     TILBAKEKREVING_SVANGERSKAPSPENGER                       ("FA SV", "T"),
-    TILBAKEKREVING_FORSKUTTERTE_DAGPENGER                   ("FO FT", "T"),
+    TILBAKEKREVING_FORSKUTTERTE_DAGPENGER                   ("FO FT", "FT"),
     TILBAKEKREVING_KOMPENSASJON_NAERING_OG_FRILANS          ("FR SN", "T"),
     TILBAKEKREVING_SYKEPENGER                               ("KT SP", "T"),
     TILBAKEKREVING_PERMITTERINGSPENGER_KORONA               ("LK LK", "T"),
