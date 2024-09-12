@@ -34,7 +34,7 @@ class FtpService (
     private fun getSftpChannel(): ChannelSftp {
             val channelSftp = sftpSession.openChannel("sftp") as ChannelSftp
             return channelSftp.apply {
-                connect()
+                connect(50000)
             }
         }
 
