@@ -31,6 +31,7 @@ class StatusService(
             if (response.status.isSuccess()) {
                 try {
                     val mottaksstatus = response.body<MottaksStatusResponse>()
+                    println("Krav ${it.corrId} har motaksstatus: ${mottaksstatus.mottaksStatus}")
                     databaseService.updateStatus(mottaksstatus.mottaksStatus, it.corrId)
                     if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value)
                         hentOgLagreValideringsFeil(kravIdentifikatorPair, it)
