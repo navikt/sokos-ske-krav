@@ -38,9 +38,14 @@ class FtpService (
             }
         }
 
+    private fun closeSftpChannel(){
+        sftpSession.disconnect()
+    }
+
+
 
         fun listFiles(directory: Directories = Directories.INBOUND): List<String> =
-            getSftpChannel().ls(directory.value).filter { !it.attrs.isDir  }.map { it.filename }
+            getSftpChannel().ls(directory.value).filter { !it.attrs.isDir  }.map { it.filename }.also { closeSftpChannel() }
 
         fun moveFile(fileName: String, from: Directories, to: Directories) {
             getSftpChannel().apply {
@@ -58,7 +63,7 @@ class FtpService (
                 } finally {
                     exit()
                 }
-            }
+            }.also { closeSftpChannel() }
         }
         private fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> {
             var fileName = ""
@@ -81,7 +86,7 @@ class FtpService (
                 } finally {
                     exit()
                 }
-            }
+            }.also { closeSftpChannel() }
         }
 
         fun getValidatedFiles(directory: Directories = Directories.INBOUND): List<FtpFil> {
@@ -98,7 +103,7 @@ class FtpService (
                         moveFile(entry.key, directory, Directories.FAILED)
                     }
                 }
-            }
+            }.also { closeSftpChannel() }
             return successFiles
         }
 
