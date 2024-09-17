@@ -1,5 +1,6 @@
 package sokos.ske.krav.config
 
+import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Logger
 import com.jcraft.jsch.Session
@@ -11,18 +12,30 @@ class SftpConfig(
 ) {
     private val logger = KotlinLogging.logger {}
 
-    fun createSftpConnection(): Session =
+    private val jsch: JSch =
         JSch().apply {
             JSch.setLogger(JSchLogger())
             addIdentity(sftpProperties.privateKey, sftpProperties.privateKeyPassword)
-        }.run {
-            logger.info { "Oppretter connection med privat nøkkel på host: ${sftpProperties.host}:${sftpProperties.port}" }
-            getSession(sftpProperties.username, sftpProperties.host, sftpProperties.port)
-        }.also {
-            it.setConfig("StrictHostKeyChecking", "no")
-            it.connect()
-            logger.info { "Åpner session på host: ${sftpProperties.host}:${sftpProperties.port}" }
         }
+
+    fun <T> channel(operation: (ChannelSftp) -> T): T {
+        var session: Session? = null
+        var sftpChannel: ChannelSftp? = null
+
+        try {
+            session =
+                jsch.getSession(sftpProperties.username, sftpProperties.host, sftpProperties.port).apply {
+                    setConfig("StrictHostKeyChecking", "no")
+                    connect()
+                }
+            sftpChannel = (session.openChannel("sftp") as ChannelSftp).apply { connect() }
+            logger.debug { "Åpner session på host: ${sftpProperties.host}:${sftpProperties.port}" }
+            return operation(sftpChannel)
+        } finally {
+            sftpChannel?.disconnect()
+            session?.disconnect()
+        }
+    }
 }
 
 class JSchLogger : Logger {

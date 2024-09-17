@@ -10,7 +10,7 @@ import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.OpprettKravService
 import sokos.ske.krav.util.MockHttpClientUtils
-import sokos.ske.krav.util.containers.TestContainer
+import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.util.getAllKrav
 import sokos.ske.krav.util.setUpMockHttpClient
 import java.time.LocalDate

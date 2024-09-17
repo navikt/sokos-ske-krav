@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.FtpFil
-import sokos.ske.krav.util.containers.TestContainer
+import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.validation.LineValidator
 import java.math.BigDecimal
 import java.time.LocalDate

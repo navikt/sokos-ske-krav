@@ -9,20 +9,19 @@ import sokos.ske.krav.service.AvstemmingService
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
-import sokos.ske.krav.util.containers.SftpContainer
-import sokos.ske.krav.util.containers.SftpListener
-import sokos.ske.krav.util.containers.TestContainer
+import sokos.ske.krav.util.SftpListener
+import sokos.ske.krav.util.TestContainer
 
 internal class AvstemmingServiceIntegrationTest :
     FunSpec({
         extensions(SftpListener)
 
         val ftpService: FtpService by lazy {
-            FtpService(sftpSession = SftpConfig(SftpContainer.sftpProperties).createSftpConnection())
+            FtpService(SftpConfig(SftpListener.sftpProperties))
         }
 
         test("visFeilFiler skal liste opp alle filer som ligger i Directories.FAILED") {
-            SftpContainer.putFiles(ftpService.session, listOf("Fil-A.txt", "Fil-B.txt", "Fil-C.txt"), Directories.FAILED)
+            SftpListener.putFiles(listOf("Fil-A.txt", "Fil-B.txt", "Fil-C.txt"), Directories.FAILED)
             AvstemmingService(mockk<DatabaseService>(), ftpService).visFeilFiler().run {
                 this shouldContain "Filer som feilet"
                 this shouldContain "<tr><td>Fil-A.txt</td</tr>"

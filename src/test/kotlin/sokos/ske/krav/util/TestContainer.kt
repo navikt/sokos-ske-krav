@@ -1,4 +1,4 @@
-package sokos.ske.krav.util.containers
+package sokos.ske.krav.util
 
 import io.kotest.extensions.testcontainers.toDataSource
 import org.testcontainers.containers.PostgreSQLContainer

@@ -14,7 +14,7 @@ import sokos.ske.krav.service.ENDRING_RENTE
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
 import sokos.ske.krav.util.FtpTestUtil.fileAsList
-import sokos.ske.krav.util.containers.TestContainer
+import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.util.getAllKrav
 import java.io.File
 import java.math.BigDecimal

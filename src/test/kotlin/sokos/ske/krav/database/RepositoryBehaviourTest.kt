@@ -19,7 +19,7 @@ import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.Repository.updateStatusForAvstemtKravToReported
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.domain.Status
-import sokos.ske.krav.util.containers.TestContainer
+import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.util.getAllKrav
 import java.time.LocalDate
 import java.time.LocalDateTime
