@@ -24,7 +24,8 @@ import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
 import sokos.ske.krav.service.StoppKravService
 import sokos.ske.krav.util.httpClient
-import java.util.*
+import java.util.Timer
+import java.util.TimerTask
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -58,13 +59,17 @@ private fun Application.module() {
     }
 
     if (timerConfig.useTimer) {
-        timer.schedule(object : TimerTask() {
-            override fun run() {
-                println("******************Starter henting av nye filer......${Clock.System.now()}")
-                runBlocking { skeService.handleNewKrav() }
-                println("******************Henting av nye filer  ferdig......${Clock.System.now()}")
-            }
-        }, timerConfig.initialDelay, timerConfig.intervalPeriod)
+        timer.schedule(
+            object : TimerTask() {
+                override fun run() {
+                    println("******************Starter henting av nye filer......${Clock.System.now()}")
+                    runBlocking { skeService.handleNewKrav() }
+                    println("******************Henting av nye filer  ferdig......${Clock.System.now()}")
+                }
+            },
+            timerConfig.initialDelay,
+            timerConfig.intervalPeriod,
+        )
     }
 }
 

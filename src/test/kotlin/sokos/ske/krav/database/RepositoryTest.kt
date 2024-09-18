@@ -2,11 +2,15 @@ package sokos.ske.krav.database
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
 import sokos.ske.krav.database.Repository.getAllFeilmeldinger
+import sokos.ske.krav.database.Repository.getValideringsFeilForKravId
 import sokos.ske.krav.database.Repository.insertAllNewKrav
 import sokos.ske.krav.database.Repository.insertFeilmelding
-import sokos.ske.krav.database.Repository.insertValidationError
+import sokos.ske.krav.database.Repository.insertValideringsfeil
 import sokos.ske.krav.database.models.FeilmeldingTable
+import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.service.ENDRING_HOVEDSTOL
@@ -41,7 +45,7 @@ internal class RepositoryTest :
             }
         }
 
-        test("insertErrorMessage skal lagre feilmelding") {
+        test("insertFeilmelding skal lagre feilmelding") {
             val testContainer = TestContainer()
             testContainer.migrate("Feilmeldinger.sql")
             val feilmelding =
@@ -71,7 +75,7 @@ internal class RepositoryTest :
             }
         }
 
-        test("insertValidationError skal lagre valideringsfeil") {
+        test("insertValideringsfeil skal lagre valideringsfeil") {
             val fileName = this.testCase.name.testName
             val feilMelding = "Test validation error insert"
             val linje =
@@ -96,14 +100,13 @@ internal class RepositoryTest :
                     "fagid",
                     "NYTT_KRAV",
                 )
-            val testContainer = TestContainer()
 
-            testContainer.dataSource.connection.use { con ->
+            TestContainer().dataSource.connection.use { con ->
                 val rsBefore = con.prepareStatement("""select count(*) from valideringsfeil""").executeQuery()
                 rsBefore.next()
                 rsBefore.getInt("count") shouldBe 0
 
-                con.insertValidationError(fileName, linje, feilMelding)
+                con.insertValideringsfeil(fileName, linje, feilMelding)
 
                 val rsAfter = con.prepareStatement("""select count(*) from valideringsfeil""").executeQuery()
                 rsAfter.next()
@@ -116,6 +119,91 @@ internal class RepositoryTest :
                 savedErrorRs.getString("saksnummer_nav") shouldBe linje.saksnummerNav
                 savedErrorRs.getString("kravlinje") shouldBe linje.toString()
                 savedErrorRs.getString("feilmelding") shouldBe feilMelding
+            }
+        }
+
+        test("getValideringsFeilForKravId skal returnere en liste av ValideringsFeil knyttet til gitt KravID") {
+            val testContainer = TestContainer()
+            testContainer.migrate("ValideringsFeil.sql")
+            val kravtable1 =
+                mockk<KravTable>(relaxed = true) {
+                    every { filnavn } returns "Fil1.txt"
+                    every { linjenummer } returns 1
+                }
+            val kravtable2 =
+                mockk<KravTable>(relaxed = true) {
+                    every { filnavn } returns "Fil2.txt"
+                    every { linjenummer } returns 2
+                }
+            val kravtable3 =
+                mockk<KravTable>(relaxed = true) {
+                    every { filnavn } returns "Fil3.txt"
+                    every { linjenummer } returns 3
+                }
+
+            testContainer.dataSource.connection.use { con ->
+                with(con.getValideringsFeilForKravId(kravtable1)) {
+                    size shouldBe 1
+                    with(first()) {
+                        valideringsfeilId shouldBe 1
+                        filnavn shouldBe "Fil1.txt"
+                        linjenummer shouldBe 1
+                        saksnummerNav shouldBe "111"
+                        kravLinje shouldBe "linje1"
+                        feilmelding shouldBe "feilmelding1"
+                    }
+                }
+            }
+
+            testContainer.dataSource.connection.use { con ->
+                with(con.getValideringsFeilForKravId(kravtable2)) {
+                    size shouldBe 2
+                    with(get(0)) {
+                        valideringsfeilId shouldBe 21
+                        filnavn shouldBe "Fil2.txt"
+                        linjenummer shouldBe 2
+                        saksnummerNav shouldBe "222"
+                        kravLinje shouldBe "linje2.1"
+                        feilmelding shouldBe "feilmelding2.1"
+                    }
+                    with(get(1)) {
+                        valideringsfeilId shouldBe 22
+                        filnavn shouldBe "Fil2.txt"
+                        linjenummer shouldBe 2
+                        saksnummerNav shouldBe "222"
+                        kravLinje shouldBe "linje2.2"
+                        feilmelding shouldBe "feilmelding2.2"
+                    }
+                }
+            }
+            testContainer.dataSource.connection.use { con ->
+                with(con.getValideringsFeilForKravId(kravtable3)) {
+                    size shouldBe 3
+                    with(get(0)) {
+                        valideringsfeilId shouldBe 31
+                        filnavn shouldBe "Fil3.txt"
+                        linjenummer shouldBe 3
+                        saksnummerNav shouldBe "333"
+                        kravLinje shouldBe "linje3.1"
+                        feilmelding shouldBe "feilmelding3.1"
+                    }
+                    with(get(1)) {
+                        valideringsfeilId shouldBe 32
+                        filnavn shouldBe "Fil3.txt"
+                        linjenummer shouldBe 3
+                        saksnummerNav shouldBe "333"
+                        kravLinje shouldBe "linje3.2"
+                        feilmelding shouldBe "feilmelding3.2"
+                    }
+                    with(get(2)) {
+                        valideringsfeilId shouldBe 33
+                        filnavn shouldBe "Fil3.txt"
+                        linjenummer shouldBe 3
+                        saksnummerNav shouldBe "333"
+                        kravLinje shouldBe "linje3.3"
+                        feilmelding shouldBe "feilmelding3.3"
+                    }
+                }
             }
         }
     })

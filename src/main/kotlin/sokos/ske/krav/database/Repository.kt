@@ -61,7 +61,7 @@ object Repository {
         ).executeQuery()
             .toFeilmelding()
 
-    fun Connection.getValidationMessageForKravId(kravTable: KravTable): List<ValideringsfeilTable> =
+    fun Connection.getValideringsFeilForKravId(kravTable: KravTable): List<ValideringsfeilTable> =
         prepareStatement(
             """
             select * from valideringsfeil
@@ -358,7 +358,7 @@ object Repository {
         commit()
     }
 
-    fun Connection.insertValidationError(
+    fun Connection.insertValideringsfeil(
         filnavn: String,
         kravlinje: KravLinje,
         feilmelding: String,

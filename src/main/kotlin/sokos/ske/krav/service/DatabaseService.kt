@@ -14,10 +14,10 @@ import sokos.ske.krav.database.Repository.getFeilmeldingForKravId
 import sokos.ske.krav.database.Repository.getKravTableIdFromCorrelationId
 import sokos.ske.krav.database.Repository.getPreviousReferansenummer
 import sokos.ske.krav.database.Repository.getSkeKravidentifikator
-import sokos.ske.krav.database.Repository.getValidationMessageForKravId
+import sokos.ske.krav.database.Repository.getValideringsFeilForKravId
 import sokos.ske.krav.database.Repository.insertAllNewKrav
 import sokos.ske.krav.database.Repository.insertFeilmelding
-import sokos.ske.krav.database.Repository.insertValidationError
+import sokos.ske.krav.database.Repository.insertValideringsfeil
 import sokos.ske.krav.database.Repository.updateEndringWithSkeKravIdentifikator
 import sokos.ske.krav.database.Repository.updateSentKrav
 import sokos.ske.krav.database.Repository.updateStatus
@@ -89,7 +89,7 @@ class DatabaseService(
 
     fun saveValidationError(filnavn: String, kravlinje: KravLinje, feilmelding: String) {
         dataSource.connection.useAndHandleErrors { con ->
-            con.insertValidationError(filnavn, kravlinje, feilmelding)
+            con.insertValideringsfeil(filnavn, kravlinje, feilmelding)
         }
     }
 
@@ -156,7 +156,7 @@ class DatabaseService(
 
     fun getValidationMessageForKrav(kravTable: KravTable): List<ValideringsfeilTable> {
         dataSource.connection.useAndHandleErrors { con ->
-            return con.getValidationMessageForKravId(kravTable)
+            return con.getValideringsFeilForKravId(kravTable)
         }
     }
 
