@@ -2,9 +2,6 @@ package sokos.ske.krav.database
 
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.param
-import sokos.ske.krav.database.RepositoryExtensions.toFeilmelding
-import sokos.ske.krav.database.RepositoryExtensions.toKrav
-import sokos.ske.krav.database.RepositoryExtensions.toValideringsfeil
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
@@ -17,9 +14,12 @@ import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
 import sokos.ske.krav.util.isEndring
 import sokos.ske.krav.util.isStopp
+import toFeilmelding
+import toKrav
+import toValideringsfeil
 import java.sql.Connection
 import java.sql.Date
-import java.util.UUID
+import java.util.*
 
 object Repository {
     fun Connection.getAllKravForStatusCheck() =

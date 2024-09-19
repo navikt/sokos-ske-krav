@@ -9,7 +9,6 @@ import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.database.RepositoryExtensions.toKrav
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.FeilResponse
@@ -21,6 +20,7 @@ import sokos.ske.krav.service.OpprettKravService
 import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
 import sokos.ske.krav.service.StoppKravService
+import toKrav
 import java.io.Reader
 import java.sql.Connection
 
