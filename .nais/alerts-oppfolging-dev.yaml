@@ -10,18 +10,19 @@ spec:
     - name: sokos-ske-krav-oppfolging-alerts
       rules:
         - alert: Feil i validering av fil
-          expr: sokos_ske_krav_filvalidering_feil_created{app="sokos-ske-krav"} == 0
-          for: 2m
+          expr: increase(sokos_ske_krav_filvalidering_feil_created{app="sokos-ske-krav"}[1m]) > 0
+          for: 0m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
             summary: "Feil i validering av fil {{ $labels.fileName }}: {{ $labels.message }}"
           labels:
             namespace: okonomi
-            severity: danger
+            severity: warning
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i validering av linje
-          expr: sokos_ske_krav_linjevalidering_feil_created{app="sokos-ske-krav"} == 0
+          expr: increase(sokos_ske_krav_linjevalidering_feil_created{app="sokos-ske-krav"}[1m]) > 0
+          for: 0m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
             summary: "Feil i validering av linje fra fil {{ $labels.fileName }}: {{ $labels.message }}"
@@ -31,8 +32,8 @@ spec:
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i innsending av krav
-          expr:  sokos_ske_krav_innsending_av_krav_feil_created{app="sokos-ske-krav"} == 0
-          for: 2m
+          expr:  increase(sokos_ske_krav_innsending_av_krav_feil_created{app="sokos-ske-krav"}[1m]) > 0
+          for: 0m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
             summary: "{{ $labels.message }}"
@@ -76,13 +77,12 @@ spec:
             {{- end }}
             {{ end }}
   route:
-    groupBy:
-      - alertname
+    groupBy: ['...']
     matchers:
       - name: "sokos_ske_krav_oppfolging_type"
         matchType: "="
         value: "sokos-ske-krav"
     groupInterval: 30s
-    groupWait: 10s
+    groupWait: 0s
     receiver: sokos-ske-krav-oppfolging-receiver
     repeatInterval: 30m
