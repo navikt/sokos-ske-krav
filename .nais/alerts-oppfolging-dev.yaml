@@ -10,7 +10,7 @@ spec:
     - name: sokos-ske-krav-oppfolging-alerts
       rules:
         - alert: Feil i validering av fil
-          expr: increase(sokos_ske_krav_filvalidering_feil_created{app="sokos-ske-krav"}[1m]) > 0
+          expr: changes(sokos_ske_krav_filvalidering_feil_created{app="sokos-ske-krav"}[2m]) > 0
           for: 0m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
@@ -21,7 +21,7 @@ spec:
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i validering av linje
-          expr: increase(sokos_ske_krav_linjevalidering_feil_created{app="sokos-ske-krav"}[1m]) > 0
+          expr: changes(sokos_ske_krav_linjevalidering_feil_created{app="sokos-ske-krav"}[2m]) > 0
           for: 0m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
@@ -32,7 +32,7 @@ spec:
             sokos_ske_krav_oppfolging_type: sokos-ske-krav
             alert_type: custom
         - alert: Feil i innsending av krav
-          expr:  increase(sokos_ske_krav_innsending_av_krav_feil_created{app="sokos-ske-krav"}[1m]) > 0
+          expr:  changes(sokos_ske_krav_innsending_av_krav_feil_created{app="sokos-ske-krav"}[2m]) > 0
           for: 0m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
