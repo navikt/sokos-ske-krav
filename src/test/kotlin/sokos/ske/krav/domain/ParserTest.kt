@@ -12,8 +12,6 @@ import java.math.BigDecimal
 
 internal class ParserTest :
     FunSpec({
-        val liste = fileAsList("${File.separator}FtpFiler${File.separator}AltOkFil.txt")
-        val parser = FileParser(liste)
 
         test("teste parsing av fil uten fremtidig ytelse") {
             val liste = fileAsList("${File.separator}FtpFiler${File.separator}Fil-B-feil.txt")
@@ -24,6 +22,8 @@ internal class ParserTest :
         }
 
         test("lesInnStartLinjeTilclass") {
+            val liste = fileAsList("${File.separator}FtpFiler${File.separator}AltOkFil.txt")
+            val parser = FileParser(liste)
             val expected =
                 KontrollLinjeHeader(
                     transaksjonsDato = "20230526221340",
@@ -34,6 +34,8 @@ internal class ParserTest :
         }
 
         test("lesInnSluttLineTilClass") {
+            val liste = fileAsList("${File.separator}FtpFiler${File.separator}AltOkFil.txt")
+            val parser = FileParser(liste)
             val sluttlinje: KontrollLinjeFooter = parser.parseKontrollLinjeFooter()
             withClue({ "Antall transaksjonslinjer skal være 101: ${sluttlinje.antallTransaksjoner}" }) {
                 sluttlinje.antallTransaksjoner shouldBe 101
@@ -41,6 +43,8 @@ internal class ParserTest :
         }
 
         test("sjekkAtSumStemmerMedSisteLinje") {
+            val liste = fileAsList("${File.separator}FtpFiler${File.separator}AltOkFil.txt")
+            val parser = FileParser(liste)
             val sumBelopOgRenter =
                 parser.parseKravLinjer().sumOf {
                     it.belop + it.belopRente

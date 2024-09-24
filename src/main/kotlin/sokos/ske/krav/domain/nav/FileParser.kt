@@ -80,7 +80,6 @@ class FileParser(
     }
 
     private object KravLinjeFeltPosisjoner {
-        val LINJE_TYPE_POS = Posisjon(start = 0, end = 4)
         val LINJE_NUMMER_POS = Posisjon(start = 4, end = 11)
         val SAKS_NUMMER_POS = Posisjon(start = 11, end = 29)
         val BELOP_POS = Posisjon(start = 29, end = 40)
@@ -134,10 +133,11 @@ class FileParser(
         fun parseInt(line: String): Int = parseString(line).toInt()
 
         fun parseDate(line: String): LocalDate =
-            parseString(line).runCatching {
-                LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd"))
-            }.getOrElse {
-                LocalDate.parse("21240101", DateTimeFormatter.ofPattern("yyyyMMdd"))
-            }
+            parseString(line)
+                .runCatching {
+                    LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd"))
+                }.getOrElse {
+                    LocalDate.parse("21240101", DateTimeFormatter.ofPattern("yyyyMMdd"))
+                }
     }
 }

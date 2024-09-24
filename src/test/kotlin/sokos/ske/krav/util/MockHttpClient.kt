@@ -20,7 +20,6 @@ object MockHttpClientUtils {
         ENDRE_RENTER("/renter"),
         ENDRE_HOVEDSTOL("/hovedstol"),
         AVSKRIVING("/avskriving"),
-        AVSTEMMING("/avstemming"),
         ENDRE_REFERANSE("/oppdragsgiversreferanse"),
         HENT_VALIDERINGSFEIL("/valideringsfeil"),
     }
@@ -51,18 +50,6 @@ object MockHttpClientUtils {
 
         fun nyEndringResponse(transaksjonsId: String = "791e5955-af86-42fe-b609-d4fc2754e35e") = """{"transaksjonsid": "$transaksjonsId"}"""
 
-        fun innkrevingsOppdragEksistererFraFor(kravIdentifikator: String = "1234") =
-            //language=json
-            """      
-            {
-                "type":"tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-eksisterer-fra-for",
-                "title":"Innkrevingsoppdrag eksisterer fra før",
-                "status":422,
-                "detail":"Innkrevingsoppdrag med oppdragsgiversKravidentifikator=$kravIdentifikator eksisterer fra før",
-                "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/avskriving"
-            }
-            """.trimIndent()
-
         fun innkrevingsOppdragEksistererIkkeResponse(kravIdentifikator: String = "1234") =
             //language=json
             """      
@@ -72,30 +59,6 @@ object MockHttpClientUtils {
                 "status":404,
                 "detail":"Innkrevingsoppdrag med oppdragsgiversKravidentifikator=$kravIdentifikator eksisterer ikke",
                 "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/avskriving"
-            }
-            """.trimIndent()
-
-        //language=json
-        fun innkrevingsOppdragHarUgyldigTilstandResponse() =
-            """
-            {
-            "type":"tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-har-ugyldig-tilstand",
-            "title":"Innkrevingsoppdrag har ugyldig tilstand",
-            "status":409,
-            "detail":"Oppdrag med Kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR og Kravidentifikator=51dfc1fa-b241-4886-bb8f-a448e80c9b10 er ikke reskontroført og renter kan derfor ikke endres.",
-            "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/51dfc1fa-b241-4886-bb8f-a448e80c9b10/renter"
-            }
-            """.trimIndent()
-
-        //language=json
-        fun innkrevingsOppdragErIkkeReskontrofortResponse() =
-            """
-            {
-            "type":"tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-er-ikke-reskontrofoert",
-            "title":"Innkrevingsoppdraget er ikke reskontroført",
-            "status":409,
-            "detail":"Oppdrag med Kravidentifikatortype=SKATTEETATENS_KRAVIDENTIFIKATOR og Kravidentifikator=51dfc1fa-b241-4886-bb8f-a448e80c9b10 er ikke reskontroført og renter kan derfor ikke endres.",
-            "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/51dfc1fa-b241-4886-bb8f-a448e80c9b10/renter"
             }
             """.trimIndent()
 
