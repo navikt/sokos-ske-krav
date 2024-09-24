@@ -2,11 +2,16 @@ package sokos.ske.krav.security
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.NoTransformationFoundException
+import io.ktor.client.call.body
+import io.ktor.client.request.accept
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
+import io.ktor.http.contentType
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
@@ -16,7 +21,7 @@ import mu.KotlinLogging
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.domain.maskinporten.AccessToken
 import sokos.ske.krav.domain.maskinporten.Token
-import java.util.*
+import java.util.Date
 
 class MaskinportenAccessTokenClient(
     private val maskinportenConfig: PropertiesConfig.MaskinportenClientConfig,
@@ -47,29 +52,37 @@ class MaskinportenAccessTokenClient(
     }
 
     private suspend fun hentAccessTokenFraProvider(): Token {
-        val jwt = JWT.create()
-            .withAudience(maskinportenConfig.openIdConfiguration.issuer)
-            .withIssuer(maskinportenConfig.clientId)
-            .withClaim("scope", maskinportenConfig.scopes)
-            .withExpiresAt(Date(Clock.System.now().plus(2, DateTimeUnit.MINUTE).toEpochMilliseconds()))
-            .withIssuedAt(Date())
-            .withKeyId(maskinportenConfig.rsaKey?.keyID)
-            .sign(Algorithm.RSA256(null, maskinportenConfig.rsaKey?.toRSAPrivateKey()))
-        val response = client.post(maskinportenConfig.openIdConfiguration.tokenEndpoint) {
-            accept(ContentType.Application.Json)
-            contentType(ContentType.Application.FormUrlEncoded)
-            method = HttpMethod.Post
-            setBody("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=$jwt")
-        }
+        val jwt =
+            JWT
+                .create()
+                .withAudience(maskinportenConfig.openIdConfiguration.issuer)
+                .withIssuer(maskinportenConfig.clientId)
+                .withClaim("scope", maskinportenConfig.scopes)
+                .withExpiresAt(
+                    Date(
+                        Clock.System
+                            .now()
+                            .plus(2, DateTimeUnit.MINUTE)
+                            .toEpochMilliseconds(),
+                    ),
+                ).withIssuedAt(Date())
+                .withKeyId(maskinportenConfig.rsaKey?.keyID)
+                .sign(Algorithm.RSA256(null, maskinportenConfig.rsaKey?.toRSAPrivateKey()))
+        val response =
+            client.post(maskinportenConfig.openIdConfiguration.tokenEndpoint) {
+                accept(ContentType.Application.Json)
+                contentType(ContentType.Application.FormUrlEncoded)
+                method = HttpMethod.Post
+                setBody("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=$jwt")
+            }
 
         return try {
             response.body()
         } catch (ex: NoTransformationFoundException) {
-            logger.error("Kunne ikke lese accessToken, se sikker log for meldingen som string" )
+            logger.error("Kunne ikke lese accessToken, se sikker log for meldingen som string")
             val feilmelding = response.bodyAsText()
-            secureLogger.error("Feil fra tokenprovider, Token: $jwt, Feilmelding: $feilmelding" )
+            secureLogger.error("Feil fra tokenprovider, Token: $jwt, Feilmelding: $feilmelding")
             throw ex
         }
     }
 }
-

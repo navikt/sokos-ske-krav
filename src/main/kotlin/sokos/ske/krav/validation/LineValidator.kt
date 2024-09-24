@@ -15,21 +15,25 @@ import java.time.format.DateTimeParseException
 class LineValidator {
     private val logger = KotlinLogging.logger("secureLogger")
 
-    fun validateNewLines(file: FtpFil, ds: DatabaseService ): List<KravLinje> {
+    fun validateNewLines(
+        file: FtpFil,
+        ds: DatabaseService,
+    ): List<KravLinje> {
         val allErrorMessages = mutableListOf<String>()
-        val returnLines = file.kravLinjer.map {
-            when (val result: ValidationResult = validateLine(it)) {
-                is ValidationResult.Success -> {
-                    it.copy(status = Status.KRAV_IKKE_SENDT.value)
-                }
+        val returnLines =
+            file.kravLinjer.map {
+                when (val result: ValidationResult = validateLine(it)) {
+                    is ValidationResult.Success -> {
+                        it.copy(status = Status.KRAV_IKKE_SENDT.value)
+                    }
 
-                is ValidationResult.Error -> {
-                    allErrorMessages.addAll(result.messages)
-                    ds.saveValidationError(file.name, it, result.messages.joinToString())
-                    it.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
+                    is ValidationResult.Error -> {
+                        allErrorMessages.addAll(result.messages)
+                        ds.saveValidationError(file.name, it, result.messages.joinToString())
+                        it.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
+                    }
                 }
             }
-        }
         if (allErrorMessages.isNotEmpty()) {
             Metrics.lineValidationError.labels(file.name, allErrorMessages.toString()).inc()
             logger.warn("Feil i validering av linjer i fil ${file.name}: $allErrorMessages")
@@ -74,15 +78,26 @@ class LineValidator {
     }
 
     private fun validateSaksnr(navSaksnr: String) = navSaksnr.matches("^[a-zA-Z0-9-/]+$".toRegex())
+
     private fun validateVedtaksdato(date: LocalDate) = validateDateInPast(date)
-    private fun validateUtbetalingsDato(utbetalingsDato: LocalDate, vedtaksDato: LocalDate) = validateDateInPast(utbetalingsDato) && utbetalingsDato.isBefore(vedtaksDato)
-    private fun validateKravtype(krav: KravLinje): Boolean = try {
-        StonadsType.getStonadstype(krav)
-        true
-    } catch (e: NotImplementedError) {
-        false
-    }
-    private fun validatePeriode(fom: String, tom: String) = try {
+
+    private fun validateUtbetalingsDato(
+        utbetalingsDato: LocalDate,
+        vedtaksDato: LocalDate,
+    ) = validateDateInPast(utbetalingsDato) && utbetalingsDato.isBefore(vedtaksDato)
+
+    private fun validateKravtype(krav: KravLinje): Boolean =
+        try {
+            StonadsType.getStonadstype(krav)
+            true
+        } catch (e: NotImplementedError) {
+            false
+        }
+
+    private fun validatePeriode(
+        fom: String,
+        tom: String,
+    ) = try {
         val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
         val dateFrom = LocalDate.parse(fom, dtf)
         val dateTo = LocalDate.parse(tom, dtf)

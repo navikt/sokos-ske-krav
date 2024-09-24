@@ -12,12 +12,13 @@ import sokos.ske.krav.util.createOpprettKravRequest
 
 class OpprettKravService(
     private val skeClient: SkeClient,
-    private val databaseService: DatabaseService
+    private val databaseService: DatabaseService,
 ) {
     suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<RequestResult> {
-        val responseList = kravList.map {
-            sendOpprettKrav(it)
-        }
+        val responseList =
+            kravList.map {
+                sendOpprettKrav(it)
+            }
         databaseService.updateSentKrav(responseList)
         return responseList
     }
@@ -27,9 +28,11 @@ class OpprettKravService(
         val response = skeClient.opprettKrav(opprettKravRequest, krav.corrId)
 
         val kravIdentifikator =
-            if (response.status.isSuccess())
+            if (response.status.isSuccess()) {
                 response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
-            else ""
+            } else {
+                ""
+            }
 
         return RequestResult(
             response = response,

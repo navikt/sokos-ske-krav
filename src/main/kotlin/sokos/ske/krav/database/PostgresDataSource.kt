@@ -26,7 +26,10 @@ object PostgresDataSource {
         logger.info { "Migration finished" }
     }
 
-    fun dataSource(hikariConfig: HikariConfig = hikariConfig(), role: String = PropertiesConfig.PostgresConfig().user): HikariDataSource =
+    fun dataSource(
+        hikariConfig: HikariConfig = hikariConfig(),
+        role: String = PropertiesConfig.PostgresConfig().user,
+    ): HikariDataSource =
         if (PropertiesConfig.isLocal()) {
             HikariDataSource(hikariConfig)
         } else {

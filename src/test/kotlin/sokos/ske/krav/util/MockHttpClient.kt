@@ -11,9 +11,10 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
-
 object MockHttpClientUtils {
-    enum class EndepunktType(val url: String) {
+    enum class EndepunktType(
+        val url: String,
+    ) {
         MOTTAKSSTATUS("/mottaksstatus"),
         OPPRETT("/innkrevingsoppdrag"),
         ENDRE_RENTER("/renter"),
@@ -29,7 +30,6 @@ object MockHttpClientUtils {
         val type: EndepunktType,
         val statusCode: HttpStatusCode,
     )
-
 
     object Responses {
         fun mottaksStatusResponse(
@@ -113,15 +113,13 @@ object MockHttpClientUtils {
             """.trimMargin()
 
         //language=json
-        fun emptyValideringsfeilResponse() = """
+        fun emptyValideringsfeilResponse() =
+            """
             {
             "valideringsfeil": []
             }
             """.trimMargin()
-
     }
-
-
 }
 
 class MockHttpClient {
@@ -135,24 +133,23 @@ class MockHttpClient {
             explicitNulls = false
         }
 
-
-    fun getClient(
-        kall: List<MockHttpClientUtils.MockRequestObj>,
-    ) = HttpClient(MockEngine) {
-        install(ContentNegotiation) { json(jsonConfig) }
-        engine {
-            addHandler { request ->
-                val handler = kall.singleOrNull {
-                    generateUrls(it.type.url).contains(request.url.encodedPath)
-                }
-                if (handler != null) {
-                    respond(handler.response, handler.statusCode, responseHeaders)
-                } else {
-                    error("Ikke implementert: ${request.url.encodedPath}")
+    fun getClient(kall: List<MockHttpClientUtils.MockRequestObj>) =
+        HttpClient(MockEngine) {
+            install(ContentNegotiation) { json(jsonConfig) }
+            engine {
+                addHandler { request ->
+                    val handler =
+                        kall.singleOrNull {
+                            generateUrls(it.type.url).contains(request.url.encodedPath)
+                        }
+                    if (handler != null) {
+                        respond(handler.response, handler.statusCode, responseHeaders)
+                    } else {
+                        error("Ikke implementert: ${request.url.encodedPath}")
+                    }
                 }
             }
         }
-    }
 
     private fun generateUrls(baseUrl: String) =
         listOf(

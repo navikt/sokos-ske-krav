@@ -71,5 +71,4 @@ object RepositoryExtensions {
         apply {
             parameters.forEachIndexed { index, param -> param?.addToPreparedStatement(this, index + 1) }
         }
-
 }

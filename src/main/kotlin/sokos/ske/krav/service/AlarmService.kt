@@ -6,7 +6,10 @@ import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.RequestResult
 
 object AlarmService {
-    fun handleFeil(liste: List<RequestResult>, file: FtpFil) {
+    fun handleFeil(
+        liste: List<RequestResult>,
+        file: FtpFil,
+    ) {
         val unsuccessful = liste.filter { !it.response.status.isSuccess() }
         if (unsuccessful.isEmpty()) return
 

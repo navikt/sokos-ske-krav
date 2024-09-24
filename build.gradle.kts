@@ -1,11 +1,13 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.0.10"
-    kotlin("plugin.serialization") version "2.0.10"
+    kotlin("jvm") version "2.0.20"
+    kotlin("plugin.serialization") version "2.0.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
 }
 
 group = "no.nav.sokos"
@@ -15,7 +17,7 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
-val ktorVersion = "2.3.6"
+val ktorVersion = "2.3.12"
 val jschVersion = "0.2.12"
 val nimbusVersion = "9.37.2"
 val kotlinxSerializationVersion = "1.7.1"
@@ -115,6 +117,10 @@ sourceSets {
 }
 
 tasks {
+    withType<KotlinCompile>().configureEach {
+        dependsOn("ktlintFormat")
+    }
+
     withType<ShadowJar>().configureEach {
         enabled = true
         archiveFileName.set("sokos-ske-krav.jar")

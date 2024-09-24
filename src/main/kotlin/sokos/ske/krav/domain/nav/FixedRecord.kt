@@ -22,12 +22,12 @@ data class KravLinje(
     val fremtidigYtelse: BigDecimal,
     val utbetalDato: LocalDate,
     val fagsystemId: String,
-    val status: String? = null
+    val status: String? = null,
 )
 
 data class KontrollLinjeHeader(
     val transaksjonsDato: String,
-    val avsender: String
+    val avsender: String,
 )
 
 data class KontrollLinjeFooter(

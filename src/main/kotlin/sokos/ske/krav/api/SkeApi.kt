@@ -22,12 +22,11 @@ fun Routing.skeApi(
     skeService: SkeService,
     statusService: StatusService,
     avstemmingService: AvstemmingService,
-    ftpService: FtpService
+    ftpService: FtpService,
 ) {
-    val logger = KotlinLogging.logger ("secureLogger")
+    val logger = KotlinLogging.logger("secureLogger")
 
     route("krav") {
-
         get("test") {
             logger.info("API : Kaller handleNewKrav")
             try {
@@ -35,8 +34,10 @@ fun Routing.skeApi(
                 skeService.handleNewKrav()
                 logger.info("API :  Krav sendt")
             } catch (e: Exception) {
-                logger.error("API : Sorry feilet: ${e.message}, \n" +
-                            "Stacktrace= ${e.stackTraceToString()}")
+                logger.error(
+                    "API : Sorry feilet: ${e.message}, \n" +
+                        "Stacktrace= ${e.stackTraceToString()}",
+                )
             }
         }
         get("status") {
@@ -49,7 +50,7 @@ fun Routing.skeApi(
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "APISorry feilet: ${e.message}, \n" +
-                            "Stacktrace= ${e.stackTraceToString()}"
+                        "Stacktrace= ${e.stackTraceToString()}",
                 )
             }
         }
@@ -62,7 +63,7 @@ fun Routing.skeApi(
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "Sorry validering feilet: ${e.message}, \n" +
-                            "Stacktrace= ${e.stackTraceToString()}"
+                        "Stacktrace= ${e.stackTraceToString()}",
                 )
             }
         }
@@ -83,7 +84,7 @@ fun Routing.skeApi(
         get("resending") {
             call.respondText(avstemmingService.hentKravSomSkalresendes(), Html)
         }
-        //hjelpe saker under utvikling
+        // hjelpe saker under utvikling
         get("filer") {
             val liste = mutableListOf<String>()
             liste.add("INNBOUND")

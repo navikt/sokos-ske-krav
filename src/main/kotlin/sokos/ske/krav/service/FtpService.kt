@@ -28,10 +28,13 @@ class FtpService(
 ) {
     private val logger = KotlinLogging.logger("secureLogger")
 
-    fun listFiles(directory: Directories = Directories.INBOUND): List<String> =
-        sftpConfig.channel { con -> con.ls(directory.value).filter { !it.attrs.isDir }.map { it.filename } }
+    fun listFiles(directory: Directories = Directories.INBOUND): List<String> = sftpConfig.channel { con -> con.ls(directory.value).filter { !it.attrs.isDir }.map { it.filename } }
 
-    fun moveFile(fileName: String, from: Directories, to: Directories) {
+    fun moveFile(
+        fileName: String,
+        from: Directories,
+        to: Directories,
+    ) {
         sftpConfig.channel { con ->
             val oldpath = "${from.value}${File.separator}$fileName"
             val newpath = "${to.value}${File.separator}$fileName"

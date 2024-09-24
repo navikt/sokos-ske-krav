@@ -57,19 +57,29 @@ class DatabaseService(
         }
     }
 
-    private fun updateSentKrav(skeKravidentifikator: String, corrID: String, responseStatus: String) {
+    private fun updateSentKrav(
+        skeKravidentifikator: String,
+        corrID: String,
+        responseStatus: String,
+    ) {
         dataSource.connection.useAndHandleErrors { con ->
             con.updateSentKrav(corrID, skeKravidentifikator, responseStatus)
         }
     }
 
-    private fun updateSentKrav(corrID: String, responseStatus: String) {
+    private fun updateSentKrav(
+        corrID: String,
+        responseStatus: String,
+    ) {
         dataSource.connection.useAndHandleErrors { con ->
             con.updateSentKrav(corrID, responseStatus)
         }
     }
 
-    fun saveAllNewKrav(kravLinjer: List<KravLinje>, filnavn: String) {
+    fun saveAllNewKrav(
+        kravLinjer: List<KravLinje>,
+        filnavn: String,
+    ) {
         dataSource.connection.useAndHandleErrors { con ->
             con.insertAllNewKrav(kravLinjer, filnavn)
         }
@@ -87,7 +97,11 @@ class DatabaseService(
         }
     }
 
-    fun saveValidationError(filnavn: String, kravlinje: KravLinje, feilmelding: String) {
+    fun saveValidationError(
+        filnavn: String,
+        kravlinje: KravLinje,
+        feilmelding: String,
+    ) {
         dataSource.connection.useAndHandleErrors { con ->
             con.insertValideringsfeil(filnavn, kravlinje, feilmelding)
         }
@@ -113,7 +127,12 @@ class DatabaseService(
         }
     }
 
-    suspend fun saveErrorMessage(request: String, response: HttpResponse, krav: KravTable, kravidentifikator: String) {
+    suspend fun saveErrorMessage(
+        request: String,
+        response: HttpResponse,
+        krav: KravTable,
+        kravidentifikator: String,
+    ) {
         val skeKravidentifikator =
             if (kravidentifikator == krav.saksnummerNAV || kravidentifikator == krav.referansenummerGammelSak) "" else kravidentifikator
 
@@ -160,7 +179,10 @@ class DatabaseService(
         }
     }
 
-    fun updateStatus(mottakStatus: String, corrId: String) {
+    fun updateStatus(
+        mottakStatus: String,
+        corrId: String,
+    ) {
         dataSource.connection.useAndHandleErrors { con ->
             con.updateStatus(mottakStatus, corrId)
         }
@@ -184,7 +206,10 @@ class DatabaseService(
         }
     }
 
-    fun updateEndringWithSkeKravIdentifikator(navsaksnummer: String, skeKravidentifikator: String) {
+    fun updateEndringWithSkeKravIdentifikator(
+        navsaksnummer: String,
+        skeKravidentifikator: String,
+    ) {
         dataSource.connection.useAndHandleErrors { con ->
             con.updateEndringWithSkeKravIdentifikator(navsaksnummer, skeKravidentifikator)
         }

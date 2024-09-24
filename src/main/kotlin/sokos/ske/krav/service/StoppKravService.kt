@@ -10,19 +10,18 @@ import sokos.ske.krav.util.createStoppKravRequest
 
 class StoppKravService(
     private val skeClient: SkeClient,
-    private val databaseService: DatabaseService
+    private val databaseService: DatabaseService,
 ) {
     suspend fun sendAllStoppKrav(kravList: List<KravTable>): List<RequestResult> {
-        val resultList = kravList.map {
-            sendStoppKrav(it)
-        }
+        val resultList =
+            kravList.map {
+                sendStoppKrav(it)
+            }
         databaseService.updateSentKrav(resultList)
         return resultList
     }
 
-    private suspend fun sendStoppKrav(
-        krav: KravTable
-    ): RequestResult {
+    private suspend fun sendStoppKrav(krav: KravTable): RequestResult {
         val kravidentifikatorPair = createKravidentifikatorPair(krav)
         val request = createStoppKravRequest(kravidentifikatorPair.first, kravidentifikatorPair.second)
         val response = skeClient.stoppKrav(request, krav.corrId)

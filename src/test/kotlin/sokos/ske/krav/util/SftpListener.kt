@@ -92,17 +92,19 @@ object SftpListener : TestListener {
         return "ssh-ed25519 $base64EncodedPublicKey".toByteArray(StandardCharsets.UTF_8)
     }
 
-    fun putFiles(fileNames: List<String>, directory: Directories = Directories.INBOUND) =
-        SftpConfig(sftpProperties).channel { con ->
-            fileNames.forEach { fileName ->
-                try {
-                    con.put(
-                        FtpTestUtil.fileAsString("/FtpFiler/$fileName").toByteArray().inputStream(),
-                        "${directory.value}/$fileName",
-                    )
-                } catch (e: Error) {
-                    println("FEIL i putting av fil $fileName")
-                }
+    fun putFiles(
+        fileNames: List<String>,
+        directory: Directories = Directories.INBOUND,
+    ) = SftpConfig(sftpProperties).channel { con ->
+        fileNames.forEach { fileName ->
+            try {
+                con.put(
+                    FtpTestUtil.fileAsString("/FtpFiler/$fileName").toByteArray().inputStream(),
+                    "${directory.value}/$fileName",
+                )
+            } catch (e: Error) {
+                println("FEIL i putting av fil $fileName")
             }
         }
+    }
 }

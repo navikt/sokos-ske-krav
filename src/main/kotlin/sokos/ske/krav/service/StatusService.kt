@@ -16,7 +16,7 @@ import java.time.LocalDateTime
 
 class StatusService(
     private val skeClient: SkeClient,
-    private val databaseService: DatabaseService
+    private val databaseService: DatabaseService,
 ) {
     private val logger = KotlinLogging.logger("secureLogger")
 
@@ -32,8 +32,9 @@ class StatusService(
                 try {
                     val mottaksstatus = response.body<MottaksStatusResponse>()
                     databaseService.updateStatus(mottaksstatus.mottaksStatus, it.corrId)
-                    if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value)
+                    if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value) {
                         hentOgLagreValideringsFeil(kravIdentifikatorPair, it)
+                    }
                 } catch (e: SerializationException) {
                     logger.error("Feil i dekoding av MottaksStatusResponse: ${e.message}")
                 } catch (e: IllegalArgumentException) {
@@ -47,29 +48,31 @@ class StatusService(
 
     private suspend fun hentOgLagreValideringsFeil(
         kravIdentifikatorPair: Pair<String, KravidentifikatorType>,
-        kravTable: KravTable
+        kravTable: KravTable,
     ) {
         val response = skeClient.getValideringsfeil(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
         if (response.status.isSuccess()) {
             val valideringsfeil = response.body<ValideringsFeilResponse>().valideringsfeil
             valideringsfeil.forEach {
-                val feilmeldingTable = FeilmeldingTable(
-                    0,
-                    kravTable.kravId,
-                    kravTable.corrId,
-                    kravTable.saksnummerNAV,
-                    kravTable.kravidentifikatorSKE,
-                    it.error,
-                    it.message,
-                    "",
-                    "",
-                    LocalDateTime.now()
-                )
+                val feilmeldingTable =
+                    FeilmeldingTable(
+                        0,
+                        kravTable.kravId,
+                        kravTable.corrId,
+                        kravTable.saksnummerNAV,
+                        kravTable.kravidentifikatorSKE,
+                        it.error,
+                        it.message,
+                        "",
+                        "",
+                        LocalDateTime.now(),
+                    )
                 databaseService.saveFeilmelding(feilmeldingTable)
             }
         } else {
             logger.error { "Kall til henting av valideringsfeil hos SKE feilet: ${response.status.value}, ${response.status.description}" }
         }
     }
+
     fun hentValideringsfeil() = databaseService.getAllFeilmeldinger()
 }

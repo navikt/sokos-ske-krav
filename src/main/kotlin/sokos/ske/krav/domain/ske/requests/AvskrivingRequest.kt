@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AvskrivingRequest(
     @SerialName("kravidentifikatortype")
-	val kravidentifikatorType: String,
-    val kravidentifikator: String
+    val kravidentifikatorType: String,
+    val kravidentifikator: String,
 )

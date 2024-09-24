@@ -18,7 +18,6 @@ data class OpprettInnkrevingsoppdragRequest(
     val oppdragsgiversKravIdentifikator: String,
     @SerialName("fastsettelsesdato")
     val fastsettelsesDato: LocalDate,
-
     @SerialName("foreldelsesfristensUtgangspunkt")
     val foreldelsesFristensUtgangspunkt: LocalDate? = null,
     @SerialName("tilleggsinformasjon")
@@ -30,7 +29,7 @@ data class RenteBeloep(
     val valuta: Valuta = Valuta.NOK,
     val beloep: Long,
     val renterIlagtDato: LocalDate,
-    val rentetype: String = "STRAFFERENTE"
+    val rentetype: String = "STRAFFERENTE",
 )
 
 @Serializable
@@ -55,7 +54,6 @@ data class YtelseForAvregningBeloep(
 data class TilbakeKrevingsPeriode(
     val fom: LocalDate,
     val tom: LocalDate,
-
 )
 
 @Serializable

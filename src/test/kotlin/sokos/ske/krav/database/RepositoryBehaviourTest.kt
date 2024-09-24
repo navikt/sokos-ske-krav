@@ -104,7 +104,9 @@ internal class RepositoryBehaviourTest :
             then("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING") {
                 testContainer.dataSource.connection.use { it.getAllKravForStatusCheck().size shouldBe 5 }
             }
-            then("getAllKravForResending skal returnere krav som har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500 ") {
+            then(
+                "getAllKravForResending skal returnere krav som har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500 ",
+            ) {
                 testContainer.dataSource.connection.use { it.getAllKravForResending().size shouldBe 9 }
             }
             then("getAllUnsentKrav skal returnere krav som har status KRAV_IKKE_SENDT") {

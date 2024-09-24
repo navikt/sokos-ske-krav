@@ -3,7 +3,6 @@ package sokos.ske.krav.database.models
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-
 data class KravTable(
     val kravId: Long,
     val filnavn: String,

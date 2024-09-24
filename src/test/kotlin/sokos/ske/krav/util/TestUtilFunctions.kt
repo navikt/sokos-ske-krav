@@ -29,7 +29,10 @@ object FtpTestUtil {
 
     fun fileAsList(fileName: String): List<String> = fileAs(fileName, Reader::readLines)
 
-    private fun <T> fileAs(fileName: String, func: Reader.() -> T): T =
+    private fun <T> fileAs(
+        fileName: String,
+        func: Reader.() -> T,
+    ): T =
         this::class.java
             .getResourceAsStream(fileName)!!
             .bufferedReader()
@@ -70,20 +73,31 @@ private val dataSourceMock =
         every { getSkeKravidentifikator(any<String>()) } returns "foo"
     }
 
-fun setupSkeServiceMock(skeClient: SkeClient = mockSkeClient, stoppService: StoppKravService = stoppServiceMock, endreService: EndreKravService = endreServiceMock, opprettService: OpprettKravService = opprettServiceMock, statusService: StatusService = statusServiceMock, databaseService: DatabaseService = dataSourceMock, ftpService: FtpService = ftpServiceMock) =
-    SkeService(
-        skeClient,
-        stoppService,
-        endreService,
-        opprettService,
-        statusService,
-        databaseService,
-        ftpService,
-    )
+fun setupSkeServiceMock(
+    skeClient: SkeClient = mockSkeClient,
+    stoppService: StoppKravService = stoppServiceMock,
+    endreService: EndreKravService = endreServiceMock,
+    opprettService: OpprettKravService = opprettServiceMock,
+    statusService: StatusService = statusServiceMock,
+    databaseService: DatabaseService = dataSourceMock,
+    ftpService: FtpService = ftpServiceMock,
+) = SkeService(
+    skeClient,
+    stoppService,
+    endreService,
+    opprettService,
+    statusService,
+    databaseService,
+    ftpService,
+)
 
 fun setUpMockHttpClient(endepunktTyper: List<MockHttpClientUtils.MockRequestObj>) = MockHttpClient().getClient(endepunktTyper)
 
-fun setupSkeServiceMockWithMockEngine(httpClient: HttpClient, ftpService: FtpService, databaseService: DatabaseService): SkeService {
+fun setupSkeServiceMockWithMockEngine(
+    httpClient: HttpClient,
+    ftpService: FtpService,
+    databaseService: DatabaseService,
+): SkeService {
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
 
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
@@ -102,10 +116,12 @@ fun setupSkeServiceMockWithMockEngine(httpClient: HttpClient, ftpService: FtpSer
     )
 }
 
-fun mockHttpResponse(code: Int, feilResponseType: String = "") =
-    mockk<HttpResponse> {
-        every { status.value } returns code
-        coEvery { body<FeilResponse>().type } returns feilResponseType
-    }
+fun mockHttpResponse(
+    code: Int,
+    feilResponseType: String = "",
+) = mockk<HttpResponse> {
+    every { status.value } returns code
+    coEvery { body<FeilResponse>().type } returns feilResponseType
+}
 
 fun Connection.getAllKrav(): List<KravTable> = prepareStatement("""select * from krav""").executeQuery().toKrav()

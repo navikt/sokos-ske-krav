@@ -106,7 +106,7 @@ object PropertiesConfig {
     data class TimerConfig(
         val useTimer: Boolean = config.getOrElse(Key("USE_TIMER", stringType), "false").toBoolean(),
         val initialDelay: Long = config.getOrElse(Key("TIMER_INITIAL_DELAY", stringType), "500").toLong(),
-        val intervalPeriod: Long = config.getOrElse(Key("TIMER_INTERVAL_PERIOD", stringType), "3600000").toLong()
+        val intervalPeriod: Long = config.getOrElse(Key("TIMER_INTERVAL_PERIOD", stringType), "3600000").toLong(),
     )
 
     open class JwtConfig(

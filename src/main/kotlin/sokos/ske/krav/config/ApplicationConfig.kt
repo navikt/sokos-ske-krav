@@ -21,77 +21,75 @@ import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.binder.system.UptimeMetrics
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import org.slf4j.event.Level
 import sokos.ske.krav.ApplicationState
 import sokos.ske.krav.metrics.Metrics
 import java.util.UUID
 
-
-@OptIn(ExperimentalSerializationApi::class)
 fun Application.commonConfig() {
+    install(CallId) {
+        header("nav-call-id")
+        generate { UUID.randomUUID().toString() }
+        verify { it.isNotEmpty() }
+    }
+    install(CallLogging) {
+        level = Level.INFO
+        callIdMdc(HttpHeaders.XCorrelationId)
+        filter { call -> call.request.path().startsWith("/krav") }
+        disableDefaultColors()
+    }
+    install(ContentNegotiation) {
+        json(
+            Json {
+                prettyPrint = true
+                isLenient = true
+                explicitNulls = false
+            },
+        )
+    }
 
-  install(CallId) {
-	header("nav-call-id")
-	generate { UUID.randomUUID().toString() }
-	verify { it.isNotEmpty() }
-  }
-  install(CallLogging) {
-	level = Level.INFO
-	callIdMdc(HttpHeaders.XCorrelationId)
-	filter { call -> call.request.path().startsWith("/krav") }
-	disableDefaultColors()
-  }
-  install(ContentNegotiation) {
-	json(Json {
-	  prettyPrint = true
-	  isLenient = true
-	  explicitNulls = false
-	})
-  }
-
-  install(MicrometerMetrics) {
-	registry = Metrics.registry
-	meterBinders = listOf(
-	  UptimeMetrics(),
-	  JvmMemoryMetrics(),
-	  JvmGcMetrics(),
-	  JvmThreadMetrics(),
-	  ProcessorMetrics(),
-	)
-  }
-
+    install(MicrometerMetrics) {
+        registry = Metrics.registry
+        meterBinders =
+            listOf(
+                UptimeMetrics(),
+                JvmMemoryMetrics(),
+                JvmGcMetrics(),
+                JvmThreadMetrics(),
+                ProcessorMetrics(),
+            )
+    }
 }
 
 fun Routing.internalNaisRoutes(
-	applicationState: ApplicationState,
-	readynessCheck: () -> Boolean = { applicationState.ready },
-	alivenessCheck: () -> Boolean = { applicationState.alive },
+    applicationState: ApplicationState,
+    readynessCheck: () -> Boolean = { applicationState.ready },
+    alivenessCheck: () -> Boolean = { applicationState.alive },
 ) {
-	route("internal") {
-		get("isAlive") {
-			when (alivenessCheck()) {
-				true -> call.respondText { "I'm alive :)" }
-				else ->
-					call.respondText(
-						text = "I'm dead x_x",
-						status = HttpStatusCode.InternalServerError,
-					)
-			}
-		}
-		get("isReady") {
-			when (readynessCheck()) {
-				true -> call.respondText { "I'm ready! :)" }
-				else ->
-					call.respondText(
-						text = "Wait! I'm not ready yet! :O",
-						status = HttpStatusCode.InternalServerError,
-					)
-			}
-		}
-		get("metrics") {
-			call.respondText(Metrics.registry.scrape())
-		}
-	}
+    route("internal") {
+        get("isAlive") {
+            when (alivenessCheck()) {
+                true -> call.respondText { "I'm alive :)" }
+                else ->
+                    call.respondText(
+                        text = "I'm dead x_x",
+                        status = HttpStatusCode.InternalServerError,
+                    )
+            }
+        }
+        get("isReady") {
+            when (readynessCheck()) {
+                true -> call.respondText { "I'm ready! :)" }
+                else ->
+                    call.respondText(
+                        text = "Wait! I'm not ready yet! :O",
+                        status = HttpStatusCode.InternalServerError,
+                    )
+            }
+        }
+        get("metrics") {
+            call.respondText(Metrics.registry.scrape())
+        }
+    }
 }

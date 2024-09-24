@@ -2,7 +2,6 @@ package sokos.ske.krav.database.models
 
 import java.time.LocalDateTime
 
-
 data class FeilmeldingTable(
     val feilmeldingId: Long,
     val kravId: Long,
@@ -15,4 +14,3 @@ data class FeilmeldingTable(
     val skeResponse: String,
     val tidspunktOpprettet: LocalDateTime,
 )
-

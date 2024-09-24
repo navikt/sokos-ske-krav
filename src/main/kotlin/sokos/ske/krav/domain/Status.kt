@@ -1,6 +1,8 @@
 package sokos.ske.krav.domain
 
-enum class Status(val value: String) {
+enum class Status(
+    val value: String,
+) {
     KRAV_INNLEST_FRA_FIL("KRAV_INNLEST_FRA_FIL"),
     KRAV_IKKE_SENDT("KRAV_IKKE_SENDT"),
     KRAV_SENDT("KRAV_SENDT"),
@@ -32,49 +34,4 @@ enum class Status(val value: String) {
     HTTP500_ANNEN_SERVER_FEIL("500_SERIE_ANNEN_SERVER_FEIL"),
     HTTP500_INTERN_TJENERFEIL("500_FEIL_PÅ_MOTTAKSERVER"),
     HTTP503_UTILGJENGELIG_TJENESTE("503_TJENESTEN_ER_IKKE_TILGJENGELIG"),
-    ;
-
-    companion object {
-        private val map = Status.entries.associateBy { it.value }
-
-        fun Status.isOkStatus(): Boolean {
-            return when (this) {
-                KRAV_IKKE_SENDT,
-                KRAV_SENDT,
-                MOTTATT_UNDERBEHANDLING,
-                RESKONTROFOERT,
-                HTTP409_IKKE_RESKONTROFORT_RESEND -> true
-                else -> false
-            }
-        }
-
-        fun Status.isResendStatus(): Boolean {
-            return when (this) {
-                KRAV_IKKE_SENDT,
-                HTTP409_IKKE_RESKONTROFORT_RESEND,
-                HTTP500_INTERN_TJENERFEIL,
-                HTTP503_UTILGJENGELIG_TJENESTE -> true
-                else -> false
-            }
-        }
-
-        fun Status.isAlarm(): Boolean {
-            return when (this) {
-                HTTP400_UGYLDIG_FORESPORSEL,
-                HTTP401_FEIL_AUTENTISERING,
-                HTTP403_INGEN_TILGANG,
-                HTTP404_FANT_IKKE_SAKSREF,
-                HTTP404_ANNEN_IKKE_FUNNET,
-                HTTP406_FEIL_MEDIETYPE,
-                HTTP409_KRAV_ER_AVSKREVET,
-                HTTP409_IKKE_RESKONTROFORT,
-                HTTP409_ANNEN_KONFLIKT,
-                HTTP422_VALIDERINGSFEIL,
-                HTTP422_ANNEN_VALIDERINGSFEIL,
-                UKJENT_FEIL,
-                UKJENT_STATUS -> true
-                else -> false
-            }
-        }
-    }
 }

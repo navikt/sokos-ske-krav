@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class OpprettInnkrevingsOppdragResponse(
-	val kravidentifikator: String
+    val kravidentifikator: String,
 )

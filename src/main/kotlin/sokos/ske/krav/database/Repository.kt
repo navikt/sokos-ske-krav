@@ -19,7 +19,7 @@ import toKrav
 import toValideringsfeil
 import java.sql.Connection
 import java.sql.Date
-import java.util.*
+import java.util.UUID
 
 object Repository {
     fun Connection.getAllKravForStatusCheck() =

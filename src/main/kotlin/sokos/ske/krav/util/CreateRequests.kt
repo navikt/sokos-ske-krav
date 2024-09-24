@@ -4,61 +4,82 @@ import kotlinx.datetime.toKotlinLocalDate
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.StonadsType
 import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.domain.ske.requests.*
+import sokos.ske.krav.domain.ske.requests.AvskrivingRequest
+import sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
+import sokos.ske.krav.domain.ske.requests.HovedstolBeloep
+import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
+import sokos.ske.krav.domain.ske.requests.NyHovedStolRequest
+import sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
+import sokos.ske.krav.domain.ske.requests.RenteBeloep
+import sokos.ske.krav.domain.ske.requests.Skyldner
+import sokos.ske.krav.domain.ske.requests.TilbakeKrevingsPeriode
+import sokos.ske.krav.domain.ske.requests.TilleggsinformasjonNav
+import sokos.ske.krav.domain.ske.requests.Valuta
+import sokos.ske.krav.domain.ske.requests.YtelseForAvregningBeloep
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
 
+fun createOpprettKravRequest(krav: KravTable) =
+    OpprettInnkrevingsoppdragRequest(
+        stonadstype = StonadsType.getStonadstype(krav),
+        skyldner = createSkyldner(krav),
+        hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.roundToLong()),
+        renteBeloep = createRenteBelop(krav).takeIf { it.first().beloep > 0L },
+        oppdragsgiversReferanse = krav.fagsystemId,
+        oppdragsgiversKravIdentifikator = krav.saksnummerNAV,
+        fastsettelsesDato = krav.vedtaksDato.toKotlinLocalDate(),
+        foreldelsesFristensUtgangspunkt = krav.utbetalDato.toKotlinLocalDate(),
+        tilleggsInformasjon = createTilleggsinformasjonNav(krav),
+    )
 
-fun createOpprettKravRequest(krav: KravTable) = OpprettInnkrevingsoppdragRequest(
-    stonadstype = StonadsType.getStonadstype(krav),
-    skyldner = createSkyldner(krav),
-    hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.roundToLong()),
-    renteBeloep = createRenteBelop(krav).takeIf { it.first().beloep > 0L },
-    oppdragsgiversReferanse = krav.fagsystemId,
-    oppdragsgiversKravIdentifikator = krav.saksnummerNAV,
-    fastsettelsesDato = krav.vedtaksDato.toKotlinLocalDate(),
-    foreldelsesFristensUtgangspunkt = krav.utbetalDato.toKotlinLocalDate(),
-    tilleggsInformasjon = createTilleggsinformasjonNav(krav),
-)
-
-private fun createRenteBelop(krav: KravTable): List<RenteBeloep> = listOf(
-    RenteBeloep(
-        beloep = krav.belopRente.roundToLong(),
-        renterIlagtDato = krav.vedtaksDato.toKotlinLocalDate(),
-    ),
-)
+private fun createRenteBelop(krav: KravTable): List<RenteBeloep> =
+    listOf(
+        RenteBeloep(
+            beloep = krav.belopRente.roundToLong(),
+            renterIlagtDato = krav.vedtaksDato.toKotlinLocalDate(),
+        ),
+    )
 
 private fun createSkyldner(krav: KravTable) =
-    if (krav.gjelderId.startsWith("00")) Skyldner(
-        Skyldner.IdentifikatorType.ORGANISASJON,
-        krav.gjelderId.substring(2, krav.gjelderId.length))
-    else Skyldner(Skyldner.IdentifikatorType.PERSON, krav.gjelderId)
-
+    if (krav.gjelderId.startsWith("00")) {
+        Skyldner(
+            Skyldner.IdentifikatorType.ORGANISASJON,
+            krav.gjelderId.substring(2, krav.gjelderId.length),
+        )
+    } else {
+        Skyldner(Skyldner.IdentifikatorType.PERSON, krav.gjelderId)
+    }
 
 private fun createTilleggsinformasjonNav(krav: KravTable): TilleggsinformasjonNav {
     val kravFremtidigYtelse = krav.fremtidigYtelse.roundToLong()
     val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
-    val tilleggsinformasjonNav = TilleggsinformasjonNav(
-        tilbakeKrevingsPeriode = TilbakeKrevingsPeriode(
-            LocalDate.parse(krav.periodeFOM, dtf).toKotlinLocalDate(),
-            LocalDate.parse(krav.periodeTOM, dtf).toKotlinLocalDate()
-        ),
-        ytelserForAvregning = YtelseForAvregningBeloep(beloep = kravFremtidigYtelse).takeIf { kravFremtidigYtelse > 0L },
-    )
+    val tilleggsinformasjonNav =
+        TilleggsinformasjonNav(
+            tilbakeKrevingsPeriode =
+                TilbakeKrevingsPeriode(
+                    LocalDate.parse(krav.periodeFOM, dtf).toKotlinLocalDate(),
+                    LocalDate.parse(krav.periodeTOM, dtf).toKotlinLocalDate(),
+                ),
+            ytelserForAvregning = YtelseForAvregningBeloep(beloep = kravFremtidigYtelse).takeIf { kravFremtidigYtelse > 0L },
+        )
     return tilleggsinformasjonNav
 }
 
-fun createEndreRenteRequest(krav: KravTable) = EndreRenteBeloepRequest(
-    createRenteBelop(krav)
-)
+fun createEndreRenteRequest(krav: KravTable) =
+    EndreRenteBeloepRequest(
+        createRenteBelop(krav),
+    )
 
-fun createEndreHovedstolRequest(krav: KravTable): NyHovedStolRequest =
-    NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.roundToLong()))
+fun createEndreHovedstolRequest(krav: KravTable): NyHovedStolRequest = NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.roundToLong()))
 
-fun createStoppKravRequest(kravidentifikator: String, kravidentifikatorType: KravidentifikatorType) =
-    AvskrivingRequest(kravidentifikatorType.value, kravidentifikator)
+fun createStoppKravRequest(
+    kravidentifikator: String,
+    kravidentifikatorType: KravidentifikatorType,
+) = AvskrivingRequest(kravidentifikatorType.value, kravidentifikator)
 
 fun KravLinje.isOpprettKrav() = (!this.isEndring() && !this.isStopp())
+
 fun KravLinje.isEndring() = (referansenummerGammelSak.isNotEmpty() && !isStopp())
+
 fun KravLinje.isStopp() = (belop.toDouble().roundToLong() == 0L)
