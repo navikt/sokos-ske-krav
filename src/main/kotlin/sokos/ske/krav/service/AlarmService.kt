@@ -19,15 +19,16 @@ object AlarmService {
 
         if (endringer.isNotEmpty()) {
             val message = "Feil i innsending av endring av krav: ${endringer.map {"\n${it.kravTable.saksnummerNAV}:  ${it.status}" }}"
-            Metrics.requestError.labels(file.name, message).inc()
+
+            Metrics.requestError.labelValues(file.name, message).inc()
         }
         if (stopp.isNotEmpty()) {
             val message = "${Clock.System.now()}\nFeil i innsending av stopp av krav i fil ${file.name}: ${stopp.map {"\n${it.kravTable.saksnummerNAV}:  ${it.status}" }}"
-            Metrics.requestError.labels(file.name, message).inc()
+            Metrics.requestError.labelValues(file.name, message).inc()
         }
         if (nye.isNotEmpty()) {
             val message = "${Clock.System.now()}\nFeil i innsending av nytt krav i fil ${file.name}: ${nye.map {"\n${it.kravTable.saksnummerNAV}:  ${it.status}" }}"
-            Metrics.requestError.labels(file.name, message).inc()
+            Metrics.requestError.labelValues(file.name, message).inc()
         }
     }
 }

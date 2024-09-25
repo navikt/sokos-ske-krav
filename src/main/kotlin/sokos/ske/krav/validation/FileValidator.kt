@@ -35,10 +35,11 @@ object FileValidator {
         }
 
         return if (errorMessages.isNotEmpty()) {
-            //  val error = Metrics.fileValidationError.labels(fileName, "$errorMessages")
-            // error.inc(500.0)
+            val err = Metrics.fileValidationError.labelValues(fileName, "$errorMessages")
+            err.inc()
+            // err.incWithExemplar(1.0, mapOf("fileName" to fileName, "message" to "$errorMessages"))
 
-            Metrics.fileValidationError.incWithExemplar(1.0, fileName, "$errorMessages")
+            //   err.incWithExemplar(1.0, fileName, "$errorMessages")
 
             // Metrics.fileValidationError.labels(fileName, "$errorMessages").inc()
             logger.warn("*****************Feil i validering av fil $fileName: $errorMessages")
