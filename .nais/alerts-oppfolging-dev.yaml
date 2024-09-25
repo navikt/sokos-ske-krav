@@ -22,7 +22,7 @@ spec:
             alert_type: custom
         - alert: Feil i validering av linje
           expr: changes(sokos_ske_krav_linjevalidering_feil_created{app="sokos-ske-krav"}[2m]) ==  0
-          for: 0m
+          for: 1m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
             summary: "Feil i validering av linje fra fil {{ $labels.fileName }}: {{ $labels.message }}"
