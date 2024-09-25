@@ -10,7 +10,7 @@ spec:
     - name: sokos-ske-krav-oppfolging-alerts
       rules:
         - alert: Feil i validering av fil
-          expr: changes(sokos_ske_krav_filvalidering_feil_created{app="sokos-ske-krav"}[2m]) > 0
+          expr: change(sokos_ske_krav_filvalidering_feil_total{app="sokos-ske-krav"}[2m])) > 0
           for: 0m
           annotations:
             action: "Sjekk database og logger for sokos-ske-krav"
