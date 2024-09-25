@@ -35,8 +35,11 @@ object FileValidator {
         }
 
         return if (errorMessages.isNotEmpty()) {
-            Metrics.fileValidationError.labels(fileName, "$errorMessages").inc()
-            Metrics.fileValidationError.labels(fileName, "$errorMessages").inc()
+            val error = Metrics.fileValidationError.labels(fileName, "$errorMessages")
+            error.inc()
+            error.inc()
+            // Metrics.fileValidationError.labels(fileName, "$errorMessages").inc()
+            // Metrics.fileValidationError.labels(fileName, "$errorMessages").inc()
             logger.warn("*****************Feil i validering av fil $fileName: $errorMessages")
             return ValidationResult.Error(messages = errorMessages)
         } else {
