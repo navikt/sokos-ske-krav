@@ -35,7 +35,10 @@ object FileValidator {
         }
 
         return if (errorMessages.isNotEmpty()) {
-            Metrics.registerFileValidationError(fileName, "$errorMessages").increment(2.0)
+            Metrics.registerFileValidationError(fileName, "$errorMessages").increment()
+            Thread.sleep(1000)
+            Metrics.registerFileValidationError(fileName, "$errorMessages").increment()
+
           /*  val error = Metrics.fileValidationError.labels(fileName, "$errorMessages")
             error.inc(500.0)
             Metrics.fileValidationError.labels(fileName, "$errorMessages").inc()*/
