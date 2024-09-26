@@ -35,12 +35,13 @@ object FileValidator {
         }
 
         return if (errorMessages.isNotEmpty()) {
-            val error = Metrics.fileValidationError.labels(fileName, "$errorMessages")
+            Metrics.registerFileValidationError(fileName, "$errorMessages")
+          /*  val error = Metrics.fileValidationError.labels(fileName, "$errorMessages")
             error.inc(500.0)
-            Metrics.fileValidationError.labels(fileName, "$errorMessages").inc()
+            Metrics.fileValidationError.labels(fileName, "$errorMessages").inc()*/
             logger.warn("*****************Feil i validering av fil $fileName: $errorMessages")
             val res = ValidationResult.Error(messages = errorMessages)
-            error.inc(500.0)
+            //    error.inc(500.0)
             return res
         } else {
             ValidationResult.Success(kravLinjer)

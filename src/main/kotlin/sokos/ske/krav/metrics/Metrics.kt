@@ -41,14 +41,26 @@ object Metrics {
             .labelNames("kravtype")
             .register(registry.prometheusRegistry)
 
-    val fileValidationError: Counter =
+    fun registerFileValidationError(
+        fileName: String,
+        message: String,
+    ) {
+        io.micrometer.core.instrument.Counter
+            .builder("sokos_ske_krav_filvalidering_feil")
+            .tag("fileName", fileName)
+            .tag("message", message)
+            .register(registry)
+            .increment()
+    }
+
+   /* val fileValidationError: Counter =
         Counter
             .build()
             .namespace(NAMESPACE)
             .name("filvalidering_feil")
             .help("feil i validering av fil")
             .labelNames("fileName", "message")
-            .register(registry.prometheusRegistry)
+            .register(registry.prometheusRegistry)*/
 
     val lineValidationError: Counter =
         Counter
