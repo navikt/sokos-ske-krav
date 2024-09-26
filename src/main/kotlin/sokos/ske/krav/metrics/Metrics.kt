@@ -6,58 +6,58 @@ import io.prometheus.metrics.model.registry.PrometheusRegistry
 object Metrics {
     //  val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     private const val NAMESPACE = "sokos_ske_krav"
-    val registry = PrometheusRegistry()
+    private val registry = PrometheusRegistry()
 
     val numberOfKravRead: Counter =
         Counter
             .builder() // kan sende inn config
-            .name("krav_lest")
+            .name("sokos_ske_krav_krav_lest")
             .help("antall krav Lest fra fil")
-            .register(registry)
+            .register()
 
     val numberOfKravSent: Counter =
         Counter
             .builder()
-            .name("krav_sendt")
+            .name("sokos_ske_krav_krav_sendt")
             .help("antall krav sendt til endepunkt")
-            .register(registry)
+            .register()
 
     val numberOfKravResent: Counter =
         Counter
             .builder()
-            .name("krav_resendt")
+            .name("sokos_ske_krav_krav_resendt")
             .help("antall krav resendt")
-            .register(registry)
+            .register()
 
     val typeKravSent: Counter =
         Counter
             .builder()
-            .name("type_krav_sendt")
+            .name("sokos_ske_krav_type_krav_sendt")
             .help("type krav sendt til endepunkt")
             .labelNames("kravtype")
-            .register(registry)
+            .register()
 
     val fileValidationError: Counter =
         Counter
             .builder()
-            .name("filvalidering_feil")
+            .name("sokos_ske_krav_filvalidering_feil")
             .help("feil i validering av fil")
             .labelNames("fileName", "message")
-            .register(registry)
+            .register()
 
     val lineValidationError: Counter =
         Counter
             .builder()
-            .name("linjevalidering_feil")
+            .name("sokos_ske_krav_linjevalidering_feil")
             .help("feil i validering av linje")
             .labelNames("fileName", "message")
-            .register(registry)
+            .register()
 
     val requestError: Counter =
         Counter
             .builder()
-            .name("innsending_av_krav_feil")
+            .name("sokos_ske_krav_innsending_av_krav_feil")
             .help("feil i innsending av krav")
             .labelNames("fileName", "message")
-            .register(registry)
+            .register()
 }
