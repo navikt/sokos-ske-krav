@@ -8,13 +8,6 @@ object Metrics {
     val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     private const val NAMESPACE = "sokos_ske_krav"
 
-    init {
-        Counter
-            .builder("${NAMESPACE}_filvalidering_feil")
-            .description("Feil i validering av fil")
-            .register(registry)
-    }
-
     val numberOfKravRead: Counter =
         Counter
             .builder("${NAMESPACE}_krav_lest")
