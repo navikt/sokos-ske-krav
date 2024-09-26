@@ -32,12 +32,12 @@ class SkeService(
 
     suspend fun handleNewKrav() {
         statusService.hentOgOppdaterMottaksStatus()
-        Metrics.numberOfKravResent.inc(sendKrav(databaseService.getAllKravForResending()).size.toDouble())
+        Metrics.numberOfKravResent.increment(sendKrav(databaseService.getAllKravForResending()).size.toDouble())
 
         sendNewFilesToSKE().also { delay(10_000) }
 
         statusService.hentOgOppdaterMottaksStatus()
-        Metrics.numberOfKravResent.inc(sendKrav(databaseService.getAllKravForResending()).size.toDouble())
+        Metrics.numberOfKravResent.increment(sendKrav(databaseService.getAllKravForResending()).size.toDouble())
     }
 
     private suspend fun sendNewFilesToSKE() {
@@ -49,7 +49,7 @@ class SkeService(
             logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
 
             val validatedLines = LineValidator().validateNewLines(file, databaseService)
-            Metrics.numberOfKravRead.inc(validatedLines.size.toDouble())
+            Metrics.numberOfKravRead.increment(validatedLines.size.toDouble())
 
             databaseService.saveAllNewKrav(validatedLines, file.name)
             ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
@@ -76,7 +76,8 @@ class SkeService(
             stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV }),
         )
 
-        allResponses.filter { !it.response.status.isSuccess() }
+        allResponses
+            .filter { !it.response.status.isSuccess() }
             .forEach {
                 databaseService.saveErrorMessage(
                     it.request,

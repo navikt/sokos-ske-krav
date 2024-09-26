@@ -109,8 +109,8 @@ class DatabaseService(
 
     fun updateSentKrav(responses: List<RequestResult>) {
         responses.forEach {
-            Metrics.numberOfKravSent.inc()
-            Metrics.typeKravSent.labels(it.kravTable.kravkode).inc()
+            Metrics.numberOfKravSent.increment()
+            Metrics.registerTypeKravSendtMetric(it.kravTable.kravkode).increment()
 
             if (it.kravTable.kravtype == NYTT_KRAV) {
                 updateSentKrav(

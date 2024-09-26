@@ -1,8 +1,8 @@
 package sokos.ske.krav.metrics
 
-import io.micrometer.prometheus.PrometheusConfig
-import io.micrometer.prometheus.PrometheusMeterRegistry
-import io.prometheus.client.Counter
+import io.micrometer.core.instrument.Counter
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 
 object Metrics {
     val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
@@ -10,73 +10,56 @@ object Metrics {
 
     val numberOfKravRead: Counter =
         Counter
-            .build()
-            .namespace(NAMESPACE)
-            .name("krav_lest")
-            .help("antall krav Lest fra fil")
-            .register(registry.prometheusRegistry)
+            .builder("${NAMESPACE}_krav_lest")
+            .description("antall krav Lest fra fil")
+            .register(registry)
 
     val numberOfKravSent: Counter =
         Counter
-            .build()
-            .namespace(NAMESPACE)
-            .name("krav_sendt")
-            .help("antall krav sendt til endepunkt")
-            .register(registry.prometheusRegistry)
+            .builder("${NAMESPACE}_krav_sendt")
+            .description("antall krav sendt til endepunkt")
+            .register(registry)
 
     val numberOfKravResent: Counter =
         Counter
-            .build()
-            .namespace(NAMESPACE)
-            .name("krav_resendt")
-            .help("antall krav resendt")
-            .register(registry.prometheusRegistry)
+            .builder("${NAMESPACE}_krav_resendt")
+            .description("antall krav resendt")
+            .register(registry)
 
-    val typeKravSent: Counter =
+    fun registerTypeKravSendtMetric(kravType: String): Counter =
         Counter
-            .build()
-            .namespace(NAMESPACE)
-            .name("type_krav_sendt")
-            .help("type krav sendt til endepunkt")
-            .labelNames("kravtype")
-            .register(registry.prometheusRegistry)
+            .builder("${NAMESPACE}_type_krav_sendt")
+            .description("type krav sendt til endepunkt")
+            .tag("kravtype", kravType)
+            .register(registry)
 
     fun registerFileValidationError(
         fileName: String,
         message: String,
-    ) {
-        io.micrometer.core.instrument.Counter
-            .builder("sokos_ske_krav_filvalidering_feil")
+    ): Counter =
+        Counter
+            .builder("${NAMESPACE}_filvalidering_feil")
             .tag("fileName", fileName)
             .tag("message", message)
             .register(registry)
-            .increment(2.0)
-    }
 
-   /* val fileValidationError: Counter =
+    fun registerLineValidationError(
+        fileName: String,
+        message: String,
+    ): Counter =
         Counter
-            .build()
-            .namespace(NAMESPACE)
-            .name("filvalidering_feil")
-            .help("feil i validering av fil")
-            .labelNames("fileName", "message")
-            .register(registry.prometheusRegistry)*/
+            .builder("${NAMESPACE}_linjevalidering_feil")
+            .tag("fileName", fileName)
+            .tag("message", message)
+            .register(registry)
 
-    val lineValidationError: Counter =
+    fun registerRequestError(
+        fileName: String,
+        message: String,
+    ): Counter =
         Counter
-            .build()
-            .namespace(NAMESPACE)
-            .name("linjevalidering_feil")
-            .help("feil i validering av linje")
-            .labelNames("fileName", "message")
-            .register(registry.prometheusRegistry)
-
-    val requestError: Counter =
-        Counter
-            .build()
-            .namespace(NAMESPACE)
-            .name("innsending_av_krav_feil")
-            .help("feil i innsending av krav")
-            .labelNames("fileName", "message")
-            .register(registry.prometheusRegistry)
+            .builder("${NAMESPACE}_innsending_av_krav_feil")
+            .tag("fileName", fileName)
+            .tag("message", message)
+            .register(registry)
 }

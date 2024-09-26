@@ -35,7 +35,7 @@ class LineValidator {
                 }
             }
         if (allErrorMessages.isNotEmpty()) {
-            Metrics.lineValidationError.labels(file.name, allErrorMessages.toString()).inc()
+            Metrics.registerLineValidationError(file.name, allErrorMessages.toString()).increment()
             logger.warn("Feil i validering av linjer i fil ${file.name}: $allErrorMessages")
         }
         return returnLines
