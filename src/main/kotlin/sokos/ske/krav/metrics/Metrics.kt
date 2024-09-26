@@ -50,7 +50,7 @@ object Metrics {
             .tag("fileName", fileName)
             .tag("message", message)
             .register(registry)
-            .increment()
+            .increment(2.0)
     }
 
    /* val fileValidationError: Counter =
