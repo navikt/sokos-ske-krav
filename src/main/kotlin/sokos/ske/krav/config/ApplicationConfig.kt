@@ -25,7 +25,7 @@ import kotlinx.serialization.json.Json
 import org.slf4j.event.Level
 import sokos.ske.krav.ApplicationState
 import sokos.ske.krav.metrics.Metrics
-import java.util.*
+import java.util.UUID
 
 fun Application.commonConfig() {
     install(CallId) {

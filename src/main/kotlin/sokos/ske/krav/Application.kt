@@ -24,7 +24,8 @@ import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
 import sokos.ske.krav.service.StoppKravService
 import sokos.ske.krav.util.httpClient
-import java.util.*
+import java.util.Timer
+import java.util.TimerTask
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
