@@ -86,7 +86,7 @@ dependencies {
     // implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
     //  implementation("io.micrometer:micrometer-registry-prometheus:$prometheusVersion")
     implementation("io.prometheus:prometheus-metrics-core:1.3.1")
-    implementation("io.prometheus:prometheus-metrics-instrumentation-jvm::1.3.1")
+    implementation("io.prometheus:prometheus-metrics-instrumentation-jvm:1.3.1")
     implementation("io.prometheus:prometheus-metrics-exporter-httpserver:1.3.1")
 
     // Logging
