@@ -18,7 +18,6 @@ import io.ktor.server.routing.route
 import kotlinx.serialization.json.Json
 import org.slf4j.event.Level
 import sokos.ske.krav.ApplicationState
-import sokos.ske.krav.metrics.Metrics
 import java.util.UUID
 
 fun Application.commonConfig() {
@@ -82,8 +81,8 @@ fun Routing.internalNaisRoutes(
                     )
             }
         }
-        get("metrics") {
-            call.respondText(Metrics.registry.scrape().toString())
-        }
+      /*  get("metrics") {
+            call.respondText(Metrics.registry.)
+        }*/
     }
 }
