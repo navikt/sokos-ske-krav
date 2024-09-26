@@ -36,7 +36,7 @@ spec:
   webproxy: true
   prometheus:
     enabled: true
-    path: /metrics
+    path: /internal/metrics
   filesFrom:
     - secret: ske-sftp-private-key
       mountPath: /var/run/secrets/ske-sftp-private-key
