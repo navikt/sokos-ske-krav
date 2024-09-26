@@ -32,6 +32,14 @@ import java.util.TimerTask
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
+
+    val server =
+        HTTPServer
+            .builder()
+            .port(8080)
+            .buildAndStart()
+
+    println("HTTPServer listening on port http://localhost:" + server.port + "/metrics")
 }
 
 private fun Application.module() {
@@ -51,14 +59,6 @@ private fun Application.module() {
     val timerConfig = PropertiesConfig.TimerConfig()
 
     JvmMetrics.builder().register(Metrics.registry)
-
-    val server =
-        HTTPServer
-            .builder()
-            .port(9400)
-            .buildAndStart()
-
-    println("HTTPServer listening on port http://localhost:" + server.port + "/metrics")
 
     commonConfig()
     applicationLifecycleConfig(applicationState)
