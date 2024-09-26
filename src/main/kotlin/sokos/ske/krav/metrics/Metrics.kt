@@ -1,63 +1,70 @@
 package sokos.ske.krav.metrics
 
-import io.prometheus.metrics.core.metrics.Counter
-import io.prometheus.metrics.model.registry.PrometheusRegistry
+import io.micrometer.prometheus.PrometheusConfig
+import io.micrometer.prometheus.PrometheusMeterRegistry
+import io.prometheus.client.Counter
 
 object Metrics {
-    //  val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     private const val NAMESPACE = "sokos_ske_krav"
-    val registry = PrometheusRegistry()
 
     val numberOfKravRead: Counter =
         Counter
-            .builder()
-            .name("sokos_ske_krav_krav_lest")
+            .build()
+            .namespace(NAMESPACE)
+            .name("krav_lest")
             .help("antall krav Lest fra fil")
-            .register(registry)
+            .register(registry.prometheusRegistry)
 
     val numberOfKravSent: Counter =
         Counter
-            .builder()
-            .name("sokos_ske_krav_krav_sendt")
+            .build()
+            .namespace(NAMESPACE)
+            .name("krav_sendt")
             .help("antall krav sendt til endepunkt")
-            .register(registry)
+            .register(registry.prometheusRegistry)
 
     val numberOfKravResent: Counter =
         Counter
-            .builder()
-            .name("sokos_ske_krav_krav_resendt")
+            .build()
+            .namespace(NAMESPACE)
+            .name("krav_resendt")
             .help("antall krav resendt")
-            .register(registry)
+            .register(registry.prometheusRegistry)
 
     val typeKravSent: Counter =
         Counter
-            .builder()
-            .name("sokos_ske_krav_type_krav_sendt")
+            .build()
+            .namespace(NAMESPACE)
+            .name("type_krav_sendt")
             .help("type krav sendt til endepunkt")
             .labelNames("kravtype")
-            .register(registry)
+            .register(registry.prometheusRegistry)
 
     val fileValidationError: Counter =
         Counter
-            .builder()
-            .name("sokos_ske_krav_filvalidering_feil")
+            .build()
+            .namespace(NAMESPACE)
+            .name("filvalidering_feil")
             .help("feil i validering av fil")
             .labelNames("fileName", "message")
-            .register()
+            .register(registry.prometheusRegistry)
 
     val lineValidationError: Counter =
         Counter
-            .builder()
-            .name("sokos_ske_krav_linjevalidering_feil")
+            .build()
+            .namespace(NAMESPACE)
+            .name("linjevalidering_feil")
             .help("feil i validering av linje")
             .labelNames("fileName", "message")
-            .register(registry)
+            .register(registry.prometheusRegistry)
 
     val requestError: Counter =
         Counter
-            .builder()
-            .name("sokos_ske_krav_innsending_av_krav_feil")
+            .build()
+            .namespace(NAMESPACE)
+            .name("innsending_av_krav_feil")
             .help("feil i innsending av krav")
             .labelNames("fileName", "message")
-            .register(registry)
+            .register(registry.prometheusRegistry)
 }

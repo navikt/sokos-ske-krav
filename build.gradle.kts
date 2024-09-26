@@ -25,7 +25,7 @@ val kotlinxDatetimeVersion = "0.4.1"
 
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
-val prometheusVersion = "1.13.1"
+val prometheusVersion = "1.11.5"
 
 // DB
 val hikaricpVersion = "5.1.0"
@@ -83,11 +83,8 @@ dependencies {
     implementation("com.natpryce:konfig:$konfigVersion")
 
     // metrics
-    // implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
-    //  implementation("io.micrometer:micrometer-registry-prometheus:$prometheusVersion")
-    implementation("io.prometheus:prometheus-metrics-core:1.3.1")
-    implementation("io.prometheus:prometheus-metrics-instrumentation-jvm:1.3.1")
-    implementation("io.prometheus:prometheus-metrics-exporter-httpserver:1.3.1")
+    implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
+    implementation("io.micrometer:micrometer-registry-prometheus:$prometheusVersion")
 
     // Logging
     implementation("io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion")

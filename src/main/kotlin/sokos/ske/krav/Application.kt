@@ -6,8 +6,6 @@ import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
-import io.prometheus.metrics.exporter.httpserver.HTTPServer
-import io.prometheus.metrics.instrumentation.jvm.JvmMetrics
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import sokos.ske.krav.api.skeApi
@@ -16,7 +14,6 @@ import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.commonConfig
 import sokos.ske.krav.config.internalNaisRoutes
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.AvstemmingService
 import sokos.ske.krav.service.DatabaseService
@@ -27,19 +24,10 @@ import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
 import sokos.ske.krav.service.StoppKravService
 import sokos.ske.krav.util.httpClient
-import java.util.Timer
-import java.util.TimerTask
+import java.util.*
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
-
-    val server =
-        HTTPServer
-            .builder()
-            .port(8080)
-            .buildAndStart()
-
-    println("HTTPServer listening on port http://localhost:" + server.port + "/metrics")
 }
 
 private fun Application.module() {
@@ -57,8 +45,6 @@ private fun Application.module() {
     val avstemmingService = AvstemmingService(databaseService)
     val timer = Timer()
     val timerConfig = PropertiesConfig.TimerConfig()
-
-    JvmMetrics.builder().register(Metrics.registry)
 
     commonConfig()
     applicationLifecycleConfig(applicationState)
