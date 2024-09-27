@@ -12,6 +12,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import kotlinx.datetime.Clock
 import mu.KotlinLogging
+import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.service.AvstemmingService
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
@@ -94,6 +95,11 @@ fun Routing.skeApi(
             liste.add("FEIL-FILER")
             liste.addAll(ftpService.listFiles(Directories.FAILED))
             call.respond(liste.joinToString("\n"))
+        }
+
+        get("slack") {
+            val sk = SlackClient()
+            call.respond(HttpStatusCode.OK, "Jada")
         }
     }
 }
