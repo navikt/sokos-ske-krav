@@ -8,7 +8,7 @@ import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import sokos.ske.krav.util.httpClient
-import java.util.*
+import java.util.Calendar
 
 class SlackClient(
     private val client: HttpClient = httpClient,
