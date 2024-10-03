@@ -31,14 +31,14 @@ class LineValidator {
 
                     is ValidationResult.Error -> {
                         allErrorMessages.addAll(result.messages)
-                        ds.saveValidationError(file.name, it, result.messages.joinToString())
-                        slackClient.sendLinjevalideringsMelding(file.name, result.messages)
+                        ds.saveValidationError(file.name, it, result.messages.map {msg -> msg.joinToString() }.joinToString())
                         it.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
                     }
                 }
             }
         if (allErrorMessages.isNotEmpty()) {
             Metrics.registerLineValidationError(file.name, allErrorMessages.toString()).increment()
+            slackClient.sendLinjevalideringsMelding(file.name, allErrorMessages)
             logger.warn("Feil i validering av linjer i fil ${file.name}: $allErrorMessages")
         }
         return returnLines
