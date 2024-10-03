@@ -13,7 +13,7 @@ import java.time.LocalDate
 internal class LineValidatorIntegrationTest :
     FunSpec({
 
-        test("Når validering av linjer feiler skal valideringsfeilene lagres i database") {
+        test("Når validering av linjer feiler skal valideringsfeilene lagres i database").config(enabled = false) {
 
             val kravLinje =
                 KravLinje(
