@@ -103,6 +103,9 @@ object PropertiesConfig {
         val user = "$name-user"
     }
 
+    data class SlackConfig(
+        val url : String = getOrEmpty("TEAM_BEST_SLACK_WEBHOOK_URL")
+    )
     data class TimerConfig(
         val useTimer: Boolean = config.getOrElse(Key("USE_TIMER", stringType), "false").toBoolean(),
         val initialDelay: Long = config.getOrElse(Key("TIMER_INITIAL_DELAY", stringType), "500").toLong(),

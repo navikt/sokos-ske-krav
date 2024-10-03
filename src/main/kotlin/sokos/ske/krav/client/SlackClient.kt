@@ -7,78 +7,36 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import kotlinx.coroutines.runBlocking
+import sokos.ske.krav.config.PropertiesConfig
+import sokos.ske.krav.domain.slack.Data
+import sokos.ske.krav.domain.slack.message
 import sokos.ske.krav.util.httpClient
-import java.util.Calendar
 
 class SlackClient(
+    private val slackEndpoint: String = PropertiesConfig.SlackConfig().url,
     private val client: HttpClient = httpClient,
 ) {
-    private val slackEndpoint = "https://hooks.slack.com/services/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"
 
-    suspend fun doPost(
-        feiltype: String,
-        filnavn: String,
-        feilmelding: String,
-    ) = client.post(
-        HttpRequestBuilder().apply {
-            url("$slackEndpoint")
-            contentType(ContentType.Application.Json)
-            setBody(request(feiltype, filnavn, feilmelding))
-        },
-    )
+
+    fun sendFilvalideringsMelding(filnavn: String, meldinger: List<List<String>>) =
+        doPost(
+            message("Feil i  filvalidering for sokos-ske-krav", filnavn, meldinger)
+        )
+
+        fun sendLinjevalideringsMelding(filnavn: String, meldinger: List<List<String>>) =
+        doPost(
+            message("Feil i linjevalidering for sokos-ske-krav", filnavn, meldinger)
+        )
+
+    fun doPost(data: Data) = runBlocking {
+        client.post(
+            HttpRequestBuilder().apply {
+                url("$slackEndpoint")
+                contentType(ContentType.Application.Json)
+                setBody(data)
+            },
+        )
+    }
 }
 
-private fun request(
-    feiltype: String,
-    filnavn: String,
-    feilmelding: String,
-) = """{ 
-"blocks": [ 
-    {
-        "type": "header",
-        "text": {
-        "type": "plain_text",
-        "text": "*FEIL VED VALIDERING AV FIL*",
-        "emoji": true
-    }
-},{
-    "type": "section",
-    "fields": [
-        {
-            "type": "mrkdwn",
-            "text": "*Feil:*\n$feiltype"
-        },
-        {
-            "type": "mrkdwn",
-            "text": "*Filnavn:*\n$filnavn"
-        }
-    ]
-}, {
-    "type": "section",
-    "fields": [
-        {
-            "type": "mrkdwn",
-            "text": "*Feilmelding:*\n$feilmelding"
-        }
-    ]
-}, {
-    "type": "section",
-    "fields": [
-        {
-            "type": "mrkdwn",
-            "text": "*Når:*\n${Calendar.getInstance().time}"
-        }
-    ]
-}, {
-    "type": "section",
-    "fields": [
-        {
-            "type": "mrkdwn",
-            "text": "*Løses av*\n<@U03EEJ1EQ1W>"
-        },
-        {
-            "type": "mrkdwn",
-            "text": "*Varsles når løst*\n<@UA7DM5UHG>"
-        }
-    ]
-} ] }"""
