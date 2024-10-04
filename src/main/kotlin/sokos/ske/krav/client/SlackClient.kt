@@ -7,6 +7,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.domain.slack.Data
@@ -20,15 +21,20 @@ class SlackClient(
 
 
     fun sendFilvalideringsMelding(filnavn: String, meldinger: List<List<String>>) = runBlocking {
-        doPost(
-            message("Feil i  filvalidering for sokos-ske-krav", filnavn, meldinger)
-        )
+        launch {
+            doPost(
+                message("Feil i  filvalidering for sokos-ske-krav", filnavn, meldinger)
+            )
+        }
     }
 
-        fun sendLinjevalideringsMelding(filnavn: String, meldinger: List<List<String>>) = runBlocking {
-        doPost(
-            message("Feil i linjevalidering for sokos-ske-krav", filnavn, meldinger)
-        )}
+    fun sendLinjevalideringsMelding(filnavn: String, meldinger: List<List<String>>) = runBlocking {
+        launch {
+            doPost(
+                message("Feil i linjevalidering for sokos-ske-krav", filnavn, meldinger)
+            )
+        }
+    }
 
     suspend fun doPost(data: Data) =
         client.post(

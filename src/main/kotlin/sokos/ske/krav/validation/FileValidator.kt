@@ -39,7 +39,7 @@ object FileValidator {
 //            Metrics.registerFileValidationError(fileName, "$errorMessages").increment(1.0)
 //            Metrics.registerFileValidationError(fileName, "$errorMessages").increment(1.0)
 
-//            slackClient.sendFilvalideringsMelding(fileName, errorMessages)
+            slackClient.sendFilvalideringsMelding(fileName, errorMessages)
 
           /*  val error = Metrics.fileValidationError.labels(fileName, "$errorMessages")
             error.inc(500.0)
