@@ -74,18 +74,26 @@ fun message(
                 )
             )
         )
+        addAll(content.map { section(it) })
     }
-    sections.addAll(content.map { section(it) })
     return Data(sections)
 }
 
-private fun section(content: List<String>): Block =
-    Block(
+private fun section(content: List<String>): Block {
+    var label: String = "Feilmelding"
+    return Block(
         type = "section",
         fields = content.map {
-            Field(
-                text = "*Feilmelding*\n${it}"
+            val field = Field(
+                text = "*$label*\n${it}"
             )
+            if (label.equals("Feilmelding")) {
+                label = "Info"
+            } else {
+                label = "Feilmelding"
+            }
+            field
         }
     )
+}
 
