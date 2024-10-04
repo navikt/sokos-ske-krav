@@ -19,24 +19,25 @@ class SlackClient(
 ) {
 
 
-    fun sendFilvalideringsMelding(filnavn: String, meldinger: List<List<String>>) =
+    fun sendFilvalideringsMelding(filnavn: String, meldinger: List<List<String>>) = runBlocking {
         doPost(
             message("Feil i  filvalidering for sokos-ske-krav", filnavn, meldinger)
         )
+    }
 
-        fun sendLinjevalideringsMelding(filnavn: String, meldinger: List<List<String>>) =
+        fun sendLinjevalideringsMelding(filnavn: String, meldinger: List<List<String>>) = runBlocking {
         doPost(
             message("Feil i linjevalidering for sokos-ske-krav", filnavn, meldinger)
-        )
+        )}
 
-    fun doPost(data: Data) = runBlocking {
+    suspend fun doPost(data: Data) =
         client.post(
             HttpRequestBuilder().apply {
                 url("$slackEndpoint")
                 contentType(ContentType.Application.Json)
                 setBody(data)
-            },
+            }
         )
-    }
+
 }
 
