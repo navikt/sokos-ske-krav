@@ -59,7 +59,7 @@ fun message(
                 type = "header",
                 text = Text(
                     type = "plain_text",
-                    text = "$feilHeader",
+                    text = ":error:  $feilHeader    ",
                     emoji = true
                 )
             )
@@ -85,6 +85,7 @@ private fun section(content: List<String>): Block {
         type = "section",
         fields = content.map {
             val field = Field(
+
                 text = "*$label*\n${it}"
             )
             if (label.equals("Feilmelding")) {

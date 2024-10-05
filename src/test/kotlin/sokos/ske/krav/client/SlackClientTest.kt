@@ -70,7 +70,7 @@ class SlackClientTest : FunSpec({
         )
 
 
-        val data = message("Feil ved kjøring av sokos-ske-krav", "Feilfil1.txt", listList)
+        val data = message("Tester Slack ved kjøring av sokos-ske-krav", "Feilfil1.txt", listList)
         val gson = GsonBuilder().setPrettyPrinting().create()
         println(gson.toJson(data))
         val sk = SlackClient()
