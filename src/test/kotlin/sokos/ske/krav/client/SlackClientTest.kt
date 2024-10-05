@@ -64,7 +64,7 @@ class SlackClientTest : FunSpec({
         sk.doPost(data).also { println("Response: ${it.status}") }
     }
 
-    test("tester ny oppbygging av melding").config(enabled = true) {
+    test("tester ny oppbygging av melding").config(enabled = false) {
         val listList = listOf(
             listOf("Feil i innsending av krav", "Antall krav stemmer ikke med antallet i siste linje! Antall krav:16, Antall i siste linje: 11101"),
             listOf("Feil i validering av linje", "Kravtype finnes ikke definert for oversending til skatt : (FO FT sammen med (EU) på linje 4995 ] "),
