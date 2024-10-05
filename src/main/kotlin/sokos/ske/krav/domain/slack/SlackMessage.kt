@@ -1,9 +1,11 @@
 package sokos.ske.krav.domain.slack
 
+import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Data(
+    val text: String,
     val blocks: List<Block>,
 )
 
@@ -32,6 +34,7 @@ data class Elements(
     val value: String? = null,
     val style: String? = null,
     val action_id: String? = null,
+    val url: String? = null
 )
 
 @Serializable
@@ -59,24 +62,64 @@ fun message(
                 type = "header",
                 text = Text(
                     type = "plain_text",
-                    text = ":error:  $feilHeader    ",
+                    text = ":error:  $feilHeader  ",
                     emoji = true
                 )
             )
+        )
+        add(
+            Block(type = "divider")
         )
         add(
             Block(
                 type = "section",
                 fields = listOf(
                     Field(
-                        text = "*Filnavn*\n${filnavn}"
+                        text = "*Filnavn* \n${filnavn}"
+                    ),
+                    Field(
+                        text = "*Dato* \n${Clock.System.now()}"
                     )
                 )
             )
         )
+        add(
+            Block(type = "divider")
+        )
         addAll(content.map { section(it) })
+        add(
+            Block(type = "divider")
+        )
+        add(
+            Block(
+                type = "actions",
+                elements = listOf(
+                    Elements(
+                        type = "button",
+                        text = Text(
+                            type = "plain_text",
+                            text = "resend",
+                            emoji = true
+                        ),
+                        value = "click_me_123"
+                    ), Elements(
+                        type = "button",
+                        text = Text(
+                            type = "plain_text",
+                            text = "Google??",
+                            emoji = true
+                        ),
+                        value = "click_me_123",
+                        url = "https://google.com"
+                    )
+                )
+            )
+        )
     }
-    return Data(sections)
+    return Data(
+        text = ":package: $feilHeader",
+        blocks = sections
+    )
 }
 
 private fun section(content: List<String>): Block {
