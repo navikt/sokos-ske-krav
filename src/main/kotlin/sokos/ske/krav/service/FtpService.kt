@@ -25,6 +25,7 @@ data class FtpFil(
 
 class FtpService(
     private val sftpConfig: SftpConfig = SftpConfig(),
+    private val fileValidator: FileValidator = FileValidator(),
 ) {
     private val logger = KotlinLogging.logger("secureLogger")
 
@@ -80,7 +81,7 @@ class FtpService(
         if (files.isEmpty()) return emptyList()
 
         files.map { entry ->
-            when (val result: ValidationResult = FileValidator.validateFile(entry.value, entry.key)) {
+            when (val result: ValidationResult = fileValidator.validateFile(entry.value, entry.key)) {
                 is ValidationResult.Success -> {
                     successFiles.add(FtpFil(entry.key, entry.value, result.kravLinjer))
                 }

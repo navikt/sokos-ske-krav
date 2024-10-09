@@ -54,7 +54,7 @@ object PropertiesConfig {
         PROD,
     }
 
-    fun isLocal() = Configuration().profile == Profile.LOCAL
+    val isLocal = Configuration().profile == Profile.LOCAL
 
     operator fun get(key: String): String = config[Key(key, stringType)]
 

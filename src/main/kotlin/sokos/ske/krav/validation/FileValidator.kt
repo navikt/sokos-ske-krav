@@ -4,9 +4,10 @@ import mu.KotlinLogging
 import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.domain.nav.FileParser
 
-object FileValidator {
+class FileValidator(
+    private val slackClient: SlackClient = SlackClient(),
+) {
     private val logger = KotlinLogging.logger("secureLogger")
-    private val slackClient = SlackClient()
 
     suspend fun validateFile(
         content: List<String>,
@@ -42,17 +43,10 @@ object FileValidator {
         }
 
         return if (errorMessages.isNotEmpty()) {
-//            Metrics.registerFileValidationError(fileName, "$errorMessages").increment(1.0)
-//            Metrics.registerFileValidationError(fileName, "$errorMessages").increment(1.0)
-
             slackClient.sendFilvalideringsMelding(fileName, errorMessages)
 
-          /*  val error = Metrics.fileValidationError.labels(fileName, "$errorMessages")
-            error.inc(500.0)
-            Metrics.fileValidationError.labels(fileName, "$errorMessages").inc()*/
             logger.warn("*****************Feil i validering av fil $fileName: $errorMessages")
             val res = ValidationResult.Error(messages = errorMessages)
-            //    error.inc(500.0)
             return res
         } else {
             ValidationResult.Success(kravLinjer)

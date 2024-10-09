@@ -96,6 +96,16 @@ class MockHttpClient {
             explicitNulls = false
         }
 
+    fun getSlackClient() =
+        HttpClient(MockEngine) {
+            install(ContentNegotiation) { json(jsonConfig) }
+            engine {
+                addHandler {
+                    respond("", HttpStatusCode.OK, responseHeaders)
+                }
+            }
+        }
+
     fun getClient(kall: List<MockHttpClientUtils.MockRequestObj>) =
         HttpClient(MockEngine) {
             install(ContentNegotiation) { json(jsonConfig) }

@@ -54,7 +54,7 @@ private fun Application.module() {
         skeApi(skeService, statusService, avstemmingService, ftpService)
     }
 
-    if (!PropertiesConfig.isLocal()) {
+    if (!PropertiesConfig.isLocal) {
         PostgresDataSource.migrate()
     }
 

@@ -2,9 +2,11 @@ package sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.FtpFil
+import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.validation.LineValidator
 import java.math.BigDecimal
@@ -39,8 +41,7 @@ internal class LineValidatorIntegrationTest :
             val testContainer = TestContainer()
             val fil = FtpFil(this.testCase.name.testName, emptyList(), kravLinjer = listOf(kravLinje))
             val dbService = DatabaseService(testContainer.dataSource)
-
-            LineValidator().validateNewLines(fil, dbService)
+            LineValidator(SlackClient(client = MockHttpClient().getSlackClient())).validateNewLines(fil, dbService)
 
             val rs =
                 testContainer.dataSource.connection

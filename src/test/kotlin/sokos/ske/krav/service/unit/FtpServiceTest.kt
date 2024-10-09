@@ -3,10 +3,13 @@ package sokos.ske.krav.service.unit
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
+import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.config.SftpConfig
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
+import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.util.SftpListener
+import sokos.ske.krav.validation.FileValidator
 
 internal class FtpServiceTest :
     BehaviorSpec({
@@ -14,7 +17,7 @@ internal class FtpServiceTest :
         extensions(SftpListener)
 
         val ftpService: FtpService by lazy {
-            FtpService(SftpConfig(SftpListener.sftpProperties))
+            FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(SlackClient(client = MockHttpClient().getSlackClient())))
         }
 
         Given("det finnes ubehandlede filer i \"inbound\" på FTP-serveren ") {

@@ -13,13 +13,14 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
-class LineValidator {
+class LineValidator(
+    private val slackClient: SlackClient = SlackClient(),
+) {
     private val logger = KotlinLogging.logger("secureLogger")
 
     suspend fun validateNewLines(
         file: FtpFil,
         ds: DatabaseService,
-        slackClient: SlackClient = SlackClient(),
     ): List<KravLinje> {
         val allErrorMessages = mutableListOf<List<String>>()
         val returnLines =
