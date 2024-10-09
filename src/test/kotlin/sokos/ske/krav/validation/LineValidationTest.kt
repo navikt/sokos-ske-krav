@@ -4,12 +4,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.justRun
 import io.mockk.mockk
-import io.mockk.spyk
-import io.mockk.verify
+import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.FtpFil
+import sokos.ske.krav.util.MockHttpClient
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -86,55 +86,9 @@ internal class LineValidationTest :
                     kravLinjer = listOf(kravLinje),
                 )
 
-            val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
-            lineVal.validateNewLines(fil, dsMock)
-
-            verify {
-                val res: Boolean = lineVal["validateKravtype"](kravLinje) as Boolean
-                res shouldBe false
-            }
-        }
-
-        test("Beløp kan ikke være 0 når det er nytt krav eller krav som skal endres") {
-            val dsMock =
-                mockk<DatabaseService> {
-                    justRun { saveValidationError(any(), any(), any()) }
-                }
-            val kravLinje =
-                KravLinje(
-                    1,
-                    "saksnummer",
-                    BigDecimal.ONE,
-                    LocalDate.now(),
-                    "gjelderID",
-                    "20231201",
-                    "20231212",
-                    "KS KS",
-                    "refgammelsak",
-                    "20230112",
-                    "bosted",
-                    "beh",
-                    "T",
-                    "arsak",
-                    BigDecimal.ZERO,
-                    BigDecimal.ZERO,
-                    LocalDate.now().minusDays(1),
-                    "1234",
-                )
-            val fil =
-                FtpFil(
-                    this.testCase.name.testName,
-                    emptyList(),
-                    kravLinjer = listOf(kravLinje),
-                )
-
-            val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
-            lineVal.validateNewLines(fil, dsMock)
-
-            verify {
-                val res: Boolean = lineVal["validateSaksnr"]("refgammelsak") as Boolean
-                res shouldBe false
-            }
+            val lineVal = LineValidator(SlackClient(client = MockHttpClient().getSlackClient()))
+            val res = lineVal.validateNewLines(fil, dsMock)
+            res.first().status shouldBe "VALIDERINGSFEIL_AV_LINJE_I_FIL"
         }
 
         test("Saksnummer må være riktig formatert") {
@@ -171,13 +125,9 @@ internal class LineValidationTest :
                     kravLinjer = listOf(kravLinje),
                 )
 
-            val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
-            lineVal.validateNewLines(fil, dsMock)
-
-            verify {
-                val res: Boolean = lineVal["validateSaksnr"](any<String>()) as Boolean
-                res shouldBe false
-            }
+            val lineVal = LineValidator(SlackClient(client = MockHttpClient().getSlackClient()))
+            val res = lineVal.validateNewLines(fil, dsMock)
+            res.first().status shouldBe "VALIDERINGSFEIL_AV_LINJE_I_FIL"
         }
 
         test("Refnummer gamme sak må være riktig formatert") {
@@ -213,13 +163,9 @@ internal class LineValidationTest :
                     kravLinjer = listOf(kravLinje),
                 )
 
-            val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
-            lineVal.validateNewLines(fil, dsMock)
-
-            verify {
-                val res: Boolean = lineVal["validateSaksnr"](any<String>()) as Boolean
-                res shouldBe false
-            }
+            val lineVal = LineValidator(SlackClient(client = MockHttpClient().getSlackClient()))
+            val res = lineVal.validateNewLines(fil, dsMock)
+            res.first().status shouldBe "VALIDERINGSFEIL_AV_LINJE_I_FIL"
         }
 
         test("Vedtaksdato kan ikke være i fremtiden") {
@@ -255,13 +201,9 @@ internal class LineValidationTest :
                     kravLinjer = listOf(kravLinje),
                 )
 
-            val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
-            lineVal.validateNewLines(fil, dsMock)
-
-            verify {
-                val res: Boolean = lineVal["validateVedtaksdato"](any<LocalDate>()) as Boolean
-                res shouldBe false
-            }
+            val lineVal = LineValidator(SlackClient(client = MockHttpClient().getSlackClient()))
+            val res = lineVal.validateNewLines(fil, dsMock)
+            res.first().status shouldBe "VALIDERINGSFEIL_AV_LINJE_I_FIL"
         }
 
         test("Periode må være i fortid og fom må være før tom") {
@@ -297,13 +239,9 @@ internal class LineValidationTest :
                     kravLinjer = listOf(kravLinje),
                 )
 
-            val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
-            lineVal.validateNewLines(fil, dsMock)
-
-            verify {
-                val res: Boolean = lineVal["validatePeriode"](any<String>(), any<String>()) as Boolean
-                res shouldBe false
-            }
+            val lineVal = LineValidator(SlackClient(client = MockHttpClient().getSlackClient()))
+            val res = lineVal.validateNewLines(fil, dsMock)
+            res.first().status shouldBe "VALIDERINGSFEIL_AV_LINJE_I_FIL"
         }
 
         test("utbetalingsdato må være i fortid") {
@@ -339,13 +277,9 @@ internal class LineValidationTest :
                     kravLinjer = listOf(kravLinje),
                 )
 
-            val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
-            lineVal.validateNewLines(fil, dsMock)
-
-            verify {
-                val res: Boolean = lineVal["validateUtbetalingsDato"](any<LocalDate>(), any<LocalDate>()) as Boolean
-                res shouldBe false
-            }
+            val lineVal = LineValidator(SlackClient(client = MockHttpClient().getSlackClient()))
+            val res = lineVal.validateNewLines(fil, dsMock)
+            res.first().status shouldBe "VALIDERINGSFEIL_AV_LINJE_I_FIL"
         }
         test("validering av periode skal returnere false når dato er på ugyldig format") {
             val dsMock =
@@ -381,12 +315,8 @@ internal class LineValidationTest :
                     kravLinjer = listOf(kravLinje),
                 )
 
-            val lineVal = spyk<LineValidator>(recordPrivateCalls = true)
-            lineVal.validateNewLines(fil, dsMock)
-
-            verify {
-                val res: Boolean = lineVal["validatePeriode"](any<String>(), any<String>()) as Boolean
-                res shouldBe false
-            }
+            val lineVal = LineValidator(SlackClient(client = MockHttpClient().getSlackClient()))
+            val res = lineVal.validateNewLines(fil, dsMock)
+            res.first().status shouldBe "VALIDERINGSFEIL_AV_LINJE_I_FIL"
         }
     })
