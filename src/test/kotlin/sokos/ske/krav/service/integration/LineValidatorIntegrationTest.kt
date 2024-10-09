@@ -13,7 +13,7 @@ import java.time.LocalDate
 internal class LineValidatorIntegrationTest :
     FunSpec({
 
-        test("Når validering av linjer feiler skal valideringsfeilene lagres i database").config(enabled = false) {
+        test("Når validering av linjer feiler skal valideringsfeilene lagres i database") {
 
             val kravLinje =
                 KravLinje(
@@ -42,7 +42,10 @@ internal class LineValidatorIntegrationTest :
 
             LineValidator().validateNewLines(fil, dbService)
 
-            val rs = testContainer.dataSource.connection.prepareStatement("""select * from valideringsfeil""").executeQuery()
+            val rs =
+                testContainer.dataSource.connection
+                    .prepareStatement("""select * from valideringsfeil""")
+                    .executeQuery()
             rs.next() shouldBe true
 
             rs.getString("filnavn") shouldBe this.testCase.name.testName

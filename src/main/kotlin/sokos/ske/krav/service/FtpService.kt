@@ -55,7 +55,8 @@ class FtpService(
         var fileName = ""
         return sftpConfig.channel { con ->
             try {
-                con.ls("${directory.value}/*")
+                con
+                    .ls("${directory.value}/*")
                     .filter { !it.attrs.isDir }
                     .map { it.filename }
                     .sorted()
@@ -73,7 +74,7 @@ class FtpService(
         }
     }
 
-    fun getValidatedFiles(directory: Directories = Directories.INBOUND): List<FtpFil> {
+    suspend fun getValidatedFiles(directory: Directories = Directories.INBOUND): List<FtpFil> {
         val successFiles = mutableListOf<FtpFil>()
         val files = downloadFiles(directory)
         if (files.isEmpty()) return emptyList()

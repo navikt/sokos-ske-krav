@@ -6,9 +6,9 @@ import sokos.ske.krav.domain.nav.FileParser
 
 object FileValidator {
     private val logger = KotlinLogging.logger("secureLogger")
-    private val  slackClient = SlackClient()
+    private val slackClient = SlackClient()
 
-    fun validateFile(
+    suspend fun validateFile(
         content: List<String>,
         fileName: String,
     ): ValidationResult {
@@ -25,14 +25,20 @@ object FileValidator {
 
         if (invalidNumberOfLines) errorMessages.add(listOf("Feil antall linjer i fil", "Antall krav stemmer ikke med antallet i siste linje! Antall krav:${kravLinjer.size}, Antall i siste linje: ${lastLine.antallTransaksjoner} \n"))
         if (invalidSum) {
-            errorMessages.add(listOf(
-                "Sum alle linjer stemmer ikke med sum i siste linje!", "Sum alle linjer: ${kravLinjer.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAlleTransaksjoner}\n",
-            ))
+            errorMessages.add(
+                listOf(
+                    "Sum alle linjer stemmer ikke med sum i siste linje!",
+                    "Sum alle linjer: ${kravLinjer.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAlleTransaksjoner}\n",
+                ),
+            )
         }
         if (invalidTransferDate) {
-            errorMessages.add(listOf(
-                "Dato sendt er avvikende mellom første og siste linje fra OS!", "Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonsDato}\n",
-            ))
+            errorMessages.add(
+                listOf(
+                    "Dato sendt er avvikende mellom første og siste linje fra OS!",
+                    "Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonsDato}\n",
+                ),
+            )
         }
 
         return if (errorMessages.isNotEmpty()) {

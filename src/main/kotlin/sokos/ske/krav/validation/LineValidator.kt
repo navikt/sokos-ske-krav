@@ -16,10 +16,10 @@ import java.time.format.DateTimeParseException
 class LineValidator {
     private val logger = KotlinLogging.logger("secureLogger")
 
-    fun validateNewLines(
+    suspend fun validateNewLines(
         file: FtpFil,
         ds: DatabaseService,
-        slackClient: SlackClient = SlackClient()
+        slackClient: SlackClient = SlackClient(),
     ): List<KravLinje> {
         val allErrorMessages = mutableListOf<List<String>>()
         val returnLines =
@@ -31,7 +31,7 @@ class LineValidator {
 
                     is ValidationResult.Error -> {
                         allErrorMessages.addAll(result.messages)
-                        ds.saveValidationError(file.name, it, result.messages.map {msg -> msg.joinToString() }.joinToString())
+                        ds.saveValidationError(file.name, it, result.messages.map { msg -> msg.joinToString() }.joinToString())
                         it.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
                     }
                 }
@@ -58,10 +58,10 @@ class LineValidator {
             errorMessages.add(listOf("Feil i Saksnr.", "Saksnummer er ikke riktig formatert og/eller inneholder ugyldige tegn (${krav.saksnummerNav}) på linje ${krav.linjenummer}\n"))
         }
         if (!vedtakDatoValid) {
-            errorMessages.add(listOf("Feil i vedtaksdato","Vedtaksdato er kan ikke være i fremtiden. Dersom feltet i denne linjen viser +9999... er  datoen feil formatert : ${krav.vedtaksDato} på linje ${krav.linjenummer}\n"))
+            errorMessages.add(listOf("Feil i vedtaksdato", "Vedtaksdato er kan ikke være i fremtiden. Dersom feltet i denne linjen viser +9999... er  datoen feil formatert : ${krav.vedtaksDato} på linje ${krav.linjenummer}\n"))
         }
         if (!kravtypeValid) {
-            errorMessages.add(listOf("Feil med kravtype","Kravtype finnes ikke definert for oversending til skatt : (${krav.kravKode} sammen med (${krav.kodeHjemmel}) på linje ${krav.linjenummer} \n"))
+            errorMessages.add(listOf("Feil med kravtype", "Kravtype finnes ikke definert for oversending til skatt : (${krav.kravKode} sammen med (${krav.kodeHjemmel}) på linje ${krav.linjenummer} \n"))
         }
         if (!refnrGammelSakValid) {
             errorMessages.add(listOf("Feili refnr gammel sak", "Refnummer gammel sak er ikke riktig formatert og/eller inneholder ugyldige tegn (${krav.referansenummerGammelSak}) på linje ${krav.linjenummer}\")\n"))
