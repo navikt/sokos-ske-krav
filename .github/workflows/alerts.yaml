@@ -30,17 +30,6 @@ jobs:
           CLUSTER: dev-fss
           RESOURCE: .nais/alerts-dev.yaml
 
-  deploy-alerts-dev-oppfolging:
-    name: Deploy alerts to dev
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Deploy to dev
-        uses: nais/deploy/actions/deploy@v2
-        env:
-          CLUSTER: dev-fss
-          RESOURCE: .nais/alerts-oppfolging-dev.yaml
-
 #  deploy-alerts-prod:
 #    name: Deploy alerts to prod
 #    runs-on: ubuntu-latest
