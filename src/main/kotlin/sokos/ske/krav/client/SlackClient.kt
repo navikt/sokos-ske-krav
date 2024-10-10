@@ -32,10 +32,9 @@ class SlackClient(
     )
 
     suspend fun sendValideringsfeilFraSke(
-        filnavn: String,
         meldinger: List<List<String>>,
     ) = doPost(
-        message("Valideringsfeil hos Skatteetaten ved sending fra sokos-ske-krav", filnavn, meldinger)
+        message("Valideringsfeil hos Skatteetaten ved sending fra sokos-ske-krav", "-NA-", meldinger)
             .also { println("DoPoster valideringsfeil") },
     )
 
