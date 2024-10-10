@@ -11,6 +11,7 @@ import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
+import mu.KotlinLogging
 import sokos.ske.krav.domain.ske.requests.AvskrivingRequest
 import sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
 import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
@@ -18,7 +19,7 @@ import sokos.ske.krav.domain.ske.requests.NyHovedStolRequest
 import sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.util.httpClient
-import java.util.UUID
+import java.util.*
 
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
 private const val ENDRE_RENTER = "innkrevingsoppdrag/%s/renter?kravidentifikatortype=%s"
@@ -34,12 +35,15 @@ class SkeClient(
     private val skeEndpoint: String,
     private val client: HttpClient = httpClient,
 ) {
+    private val logger = KotlinLogging.logger("secureLogger")
+
     suspend fun endreRenter(
         request: EndreRenteBeloepRequest,
         kravidentifikator: String,
         kravidentifikatorType: KravidentifikatorType,
         corrID: String,
     ) = doPut(String.format(ENDRE_RENTER, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
+        .also { logger.info("EndreRenter: $corrID") }
 
     suspend fun endreHovedstol(
         request: NyHovedStolRequest,
@@ -47,16 +51,19 @@ class SkeClient(
         kravidentifikatorType: KravidentifikatorType,
         corrID: String,
     ) = doPut(String.format(ENDRE_HOVESTOL, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
+        .also { logger.info("EndreHovestol: $corrID") }
 
     suspend fun opprettKrav(
         request: OpprettInnkrevingsoppdragRequest,
         corrID: String,
     ) = doPost(OPPRETT_KRAV, request, corrID)
+        .also { logger.info("OpprettKrav: $corrID, ${request.oppdragsgiversKravIdentifikator}") }
 
     suspend fun stoppKrav(
         request: AvskrivingRequest,
         corrID: String,
     ) = doPost(STOPP_KRAV, request, corrID)
+        .also { logger.info("AvskriverKrav: $corrID") }
 
     suspend fun getMottaksStatus(
         kravid: String,
