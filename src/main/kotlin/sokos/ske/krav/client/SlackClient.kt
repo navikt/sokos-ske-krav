@@ -16,6 +16,7 @@ class SlackClient(
     private val slackEndpoint: String = PropertiesConfig.SlackConfig().url,
     private val client: HttpClient = httpClient,
 ) {
+
     suspend fun sendFilvalideringsMelding(
         filnavn: String,
         meldinger: List<List<String>>,
@@ -28,6 +29,14 @@ class SlackClient(
         meldinger: List<List<String>>,
     ) = doPost(
         message("Feil i linjevalidering for sokos-ske-krav", filnavn, meldinger),
+    )
+
+    suspend fun sendValideringsfeilFraSke(
+        filnavn: String,
+        meldinger: List<List<String>>,
+    ) = doPost(
+        message("Valideringsfeil hos Skatteetaten ved sending fra sokos-ske-krav", filnavn, meldinger)
+            .also {  },
     )
 
     suspend fun doPost(data: Data) =

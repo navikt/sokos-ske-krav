@@ -1,13 +1,16 @@
 package sokos.ske.krav.service
 
 import io.ktor.client.call.body
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
+import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.AvstemmingResponse
+import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.isOpprettKrav
@@ -27,6 +30,7 @@ class SkeService(
     private val statusService: StatusService,
     private val databaseService: DatabaseService,
     private val ftpService: FtpService = FtpService(),
+    private val slackClient: SlackClient = SlackClient()
 ) {
     private val logger = KotlinLogging.logger("secureLogger")
 
@@ -57,6 +61,11 @@ class SkeService(
             updateAllEndringerAndStopp(validatedLines.filter { !it.isOpprettKrav() })
 
             val result = sendKrav(databaseService.getAllUnsentKrav())
+            val feilmeldinger = result
+                .filter {it.response.status != HttpStatusCode.OK }
+                .map { listOf( it.response.body<FeilResponse>().title, it.response.body<FeilResponse>().detail ) }
+
+            slackClient.sendValideringsfeilFraSke(file.name, feilmeldinger)
             AlarmService.handleFeil(result, file)
         }
         logger.info("*******************KJØRING FERDIG*******************")
