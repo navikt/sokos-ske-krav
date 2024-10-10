@@ -9,6 +9,7 @@ import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
+import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.FeilResponse
@@ -81,6 +82,7 @@ fun setupSkeServiceMock(
     statusService: StatusService = statusServiceMock,
     databaseService: DatabaseService = dataSourceMock,
     ftpService: FtpService = ftpServiceMock,
+    slackClient: SlackClient = SlackClient(client = MockHttpClient().getSlackClient())
 ) = SkeService(
     skeClient,
     stoppService,
@@ -89,6 +91,7 @@ fun setupSkeServiceMock(
     statusService,
     databaseService,
     ftpService,
+    slackClient
 )
 
 fun setUpMockHttpClient(endepunktTyper: List<MockHttpClientUtils.MockRequestObj>) = MockHttpClient().getClient(endepunktTyper)
@@ -113,6 +116,7 @@ fun setupSkeServiceMockWithMockEngine(
         statusService,
         databaseService,
         ftpService,
+        SlackClient(client = MockHttpClient().getSlackClient())
     )
 }
 
