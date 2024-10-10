@@ -35,7 +35,6 @@ class SlackClient(
         meldinger: List<List<String>>,
     ) = doPost(
         message("Valideringsfeil hos Skatteetaten ved sending fra sokos-ske-krav", "-NA-", meldinger)
-            .also { println("DoPoster valideringsfeil") },
     )
 
     suspend fun doPost(data: Data) =

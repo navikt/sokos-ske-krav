@@ -92,12 +92,12 @@ class SkeService(
                 )
             }
 
-        allResponses.forEach { println("Status1: ${it.response.status} !Equal OK = ${it.response.status != HttpStatusCode.OK}(${HttpStatusCode.NotFound})") }
         val feilmeldinger = allResponses
             .filter {it.response.status != HttpStatusCode.OK }
             .map {
                 println("Status2 = ${it.response.status} - ${it.response.body<FeilResponse>().title} - ${it.response.body<FeilResponse>().detail}")
                 listOf( it.response.body<FeilResponse>().title, it.response.body<FeilResponse>().detail ) }
+
         slackClient.sendValideringsfeilFraSke(feilmeldinger)
 
         return allResponses
