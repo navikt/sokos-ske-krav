@@ -15,7 +15,7 @@ val httpClient =
 
         install(HttpRequestRetry) {
             retryOnException(maxRetries = 3)
-            delayMillis { retry -> retry * 150000L }
+            delayMillis { retry -> retry * 15000L }
         }
 
         install(ContentNegotiation) {
