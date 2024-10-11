@@ -11,6 +11,7 @@ import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.createEndreHovedstolRequest
 import sokos.ske.krav.util.createEndreRenteRequest
 import sokos.ske.krav.util.createKravidentifikatorPair
+import sokos.ske.krav.util.defineStatus
 
 class EndreKravService(
     private val skeClient: SkeClient,
@@ -78,6 +79,7 @@ class EndreKravService(
                     request = Json.encodeToString(endreRenterRequest),
                     kravTable = krav,
                     kravidentifikator = "",
+                    status = defineStatus(endreRenterResponse)
                 )
 
             requestResultEndreRente
@@ -92,6 +94,7 @@ class EndreKravService(
                     request = Json.encodeToString(endreHovedstolRequest),
                     kravTable = krav,
                     kravidentifikator = "",
+                    status = defineStatus(endreHovedstolResponse),
                 )
 
             requestResultEndreHovedstol

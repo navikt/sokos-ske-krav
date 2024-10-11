@@ -9,6 +9,7 @@ import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.createOpprettKravRequest
+import sokos.ske.krav.util.defineStatus
 
 class OpprettKravService(
     private val skeClient: SkeClient,
@@ -39,6 +40,7 @@ class OpprettKravService(
             request = Json.encodeToString(opprettKravRequest),
             kravTable = krav,
             kravidentifikator = kravIdentifikator,
+            status = defineStatus(response)
         )
     }
 }

@@ -13,6 +13,7 @@ import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.EndreKravService
 import sokos.ske.krav.util.RequestResult
+import sokos.ske.krav.util.defineStatus
 import sokos.ske.krav.util.mockHttpResponse
 
 internal class EndreKravServiceTest : FunSpec({
@@ -39,8 +40,8 @@ internal class EndreKravServiceTest : FunSpec({
             )
         } returnsMany
             listOf(
-                RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", ""),
-                RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", ""),
+                RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(404))),
+                RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(422))),
             )
 
         val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
@@ -58,8 +59,8 @@ internal class EndreKravServiceTest : FunSpec({
             )
         } returnsMany
             listOf(
-                RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", ""),
-                RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", ""),
+                RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(409))),
+                RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(422))),
             )
 
         val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
@@ -77,8 +78,8 @@ internal class EndreKravServiceTest : FunSpec({
             )
         } returnsMany
             listOf(
-                RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", ""),
-                RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", ""),
+                RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(409))),
+                RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(404))),
             )
 
         val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
@@ -95,8 +96,8 @@ internal class EndreKravServiceTest : FunSpec({
             )
         } returnsMany
             listOf(
-                RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", ""),
-                RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", ""),
+                RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(409))),
+                RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(200))),
             )
 
         val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
@@ -113,8 +114,8 @@ internal class EndreKravServiceTest : FunSpec({
             )
         } returnsMany
             listOf(
-                RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", ""),
-                RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", ""),
+                RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(200))),
+                RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(422))),
             )
 
         val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
