@@ -98,7 +98,7 @@ class SkeService(
                 println("Status2 = ${it.response.status} - ${it.response.body<FeilResponse>().title} - ${it.response.body<FeilResponse>().detail}")
                 listOf( it.response.body<FeilResponse>().title, it.response.body<FeilResponse>().detail ) }
 
-        slackClient.sendValideringsfeilFraSke(feilmeldinger)
+        if (feilmeldinger.isNotEmpty()) slackClient.sendValideringsfeilFraSke(feilmeldinger)
 
         return allResponses
     }
