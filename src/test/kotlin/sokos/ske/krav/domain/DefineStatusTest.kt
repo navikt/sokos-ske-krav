@@ -22,7 +22,7 @@ internal class DefineStatusTest :
             }
 
             test("Når responsekode er 401 skal krav ha status Status.FEIL_AUTENTISERING_401") {
-                val requestResult = RequestResult(mockHttpResponse(401), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(400)))
+                val requestResult = RequestResult(mockHttpResponse(401), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(401)))
                 requestResult.status shouldBe Status.HTTP401_FEIL_AUTENTISERING
             }
 
@@ -33,7 +33,7 @@ internal class DefineStatusTest :
 
             test("Når responsekode er 404 og typen inneholder KRAV_EKSISTERER_IKKE, skal krav ha status Status.FANT_IKKE_SAKSREF_404") {
                 val requestResult =
-                    RequestResult(mockHttpResponse(404, "test $KRAV_EKSISTERER_IKKE"), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(404)))
+                    RequestResult(mockHttpResponse(404, "test $KRAV_EKSISTERER_IKKE"), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(404, "test $KRAV_EKSISTERER_IKKE")))
                 requestResult.status shouldBe Status.HTTP404_FANT_IKKE_SAKSREF
             }
 
@@ -49,16 +49,16 @@ internal class DefineStatusTest :
 
             test("Når responsekode er 409 og typen inneholder KRAV_IKKE_RESKONTROFORT_RESEND skal krav ha status Status.IKKE_RESKONTROFORT_RESEND") {
                 val requestResult =
-                    RequestResult(mockHttpResponse(409, "test $KRAV_IKKE_RESKONTROFORT_RESEND"), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(409)))
+                    RequestResult(mockHttpResponse(409, "test $KRAV_IKKE_RESKONTROFORT_RESEND"), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(409, "test $KRAV_IKKE_RESKONTROFORT_RESEND")))
                 requestResult.status shouldBe Status.HTTP409_IKKE_RESKONTROFORT_RESEND
             }
 
             test("Når responsekode er 409 og typen inneholder KRAV_ER_AVSKREVET eller KRAV_ER_ALLEREDE_AVSKREVET skal krav ha status Status.KRAV_ER_AVSKREVET_409") {
                 val requestResultAvskrevet =
-                    RequestResult(mockHttpResponse(409, "test $KRAV_ER_AVSKREVET"), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(409)))
+                    RequestResult(mockHttpResponse(409, "test $KRAV_ER_AVSKREVET"), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(409, "test $KRAV_ER_AVSKREVET")))
                 requestResultAvskrevet.status shouldBe Status.HTTP409_KRAV_ER_AVSKREVET
                 val requestResultAlleredeAvskrevet =
-                    RequestResult(mockHttpResponse(409, "test $KRAV_ER_ALLEREDE_AVSKREVET"), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(409)))
+                    RequestResult(mockHttpResponse(409, "test $KRAV_ER_ALLEREDE_AVSKREVET"), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(409, "test $KRAV_ER_ALLEREDE_AVSKREVET")))
                 requestResultAlleredeAvskrevet.status shouldBe Status.HTTP409_KRAV_ER_AVSKREVET
             }
 
