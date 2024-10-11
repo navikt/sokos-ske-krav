@@ -7,6 +7,7 @@ import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.createKravidentifikatorPair
 import sokos.ske.krav.util.createStoppKravRequest
+import sokos.ske.krav.util.defineStatus
 
 class StoppKravService(
     private val skeClient: SkeClient,
@@ -31,6 +32,7 @@ class StoppKravService(
             request = Json.encodeToString(request),
             kravTable = krav,
             kravidentifikator = kravidentifikatorPair.first,
+            status = defineStatus(response)
         )
     }
 }

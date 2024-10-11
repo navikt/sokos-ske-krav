@@ -13,6 +13,7 @@ import sokos.ske.krav.service.EndreKravService
 import sokos.ske.krav.service.OpprettKravService
 import sokos.ske.krav.service.StoppKravService
 import sokos.ske.krav.util.RequestResult
+import sokos.ske.krav.util.defineStatus
 import sokos.ske.krav.util.mockHttpResponse
 import sokos.ske.krav.util.setupSkeServiceMock
 
@@ -32,7 +33,8 @@ internal class SkeServiceTest : FunSpec({
                             mockk<KravTable>(),
                             "",
                             "STOPP_KRAV",
-                        ),
+                            defineStatus(mockHttpResponse(200))
+                        )
                     )
             }
 
@@ -40,8 +42,8 @@ internal class SkeServiceTest : FunSpec({
             mockk<EndreKravService> {
                 coEvery { sendAllEndreKrav(any()) } returns
                     listOf(
-                        RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_RENTER"),
-                        RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_HOVEDSTOL"),
+                        RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_RENTER", defineStatus(mockHttpResponse(200))),
+                        RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_HOVEDSTOL", defineStatus(mockHttpResponse(200))),
                     )
             }
 
@@ -54,6 +56,7 @@ internal class SkeServiceTest : FunSpec({
                             mockk<KravTable>(),
                             "",
                             "NYTT_KRAV",
+                            defineStatus(mockHttpResponse(200))
                         ),
                     )
                 )
@@ -84,6 +87,7 @@ internal class SkeServiceTest : FunSpec({
                             mockk<KravTable>(),
                             "",
                             "STOPP_KRAV",
+                            defineStatus(mockHttpResponse(404))
                         ),
                     )
             }
@@ -92,8 +96,8 @@ internal class SkeServiceTest : FunSpec({
             mockk<EndreKravService> {
                 coEvery { sendAllEndreKrav(any()) } returns
                     listOf(
-                        RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_RENTER"),
-                        RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_HOVEDSTOL"),
+                        RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_RENTER", defineStatus(mockHttpResponse(200))),
+                        RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "ENDRE_HOVEDSTOL", defineStatus(mockHttpResponse(200))),
                     )
             }
 
@@ -106,6 +110,7 @@ internal class SkeServiceTest : FunSpec({
                             mockk<KravTable>(),
                             "",
                             "NYTT_KRAV",
+                            defineStatus(mockHttpResponse(500))
                         ),
                     )
             }

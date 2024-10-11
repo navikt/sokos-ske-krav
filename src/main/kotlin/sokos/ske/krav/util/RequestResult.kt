@@ -3,7 +3,6 @@ package sokos.ske.krav.util
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.isSuccess
-import kotlinx.coroutines.runBlocking
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.ske.responses.FeilResponse
@@ -18,12 +17,12 @@ data class RequestResult(
     val kravTable: KravTable,
     val request: String,
     val kravidentifikator: String,
-    val status: Status = defineStatus(response),
-) {
-    private companion object {
-        fun defineStatus(response: HttpResponse): Status {
+    val status: Status,
+)
+
+suspend fun defineStatus(response: HttpResponse): Status {
             if (response.status.isSuccess()) return Status.KRAV_SENDT
-            val content = runBlocking { response.body<FeilResponse>() }
+    val content = response.body<FeilResponse>()
 
             return when (response.status.value) {
                 400 -> Status.HTTP400_UGYLDIG_FORESPORSEL
@@ -56,5 +55,5 @@ data class RequestResult(
                 else -> Status.UKJENT_FEIL
             }
         }
-    }
-}
+
+

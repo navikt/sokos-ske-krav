@@ -11,6 +11,7 @@ import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.StoppKravService
 import sokos.ske.krav.util.RequestResult
+import sokos.ske.krav.util.defineStatus
 import sokos.ske.krav.util.mockHttpResponse
 
 class StoppKravServiceTest : FunSpec({
@@ -29,8 +30,8 @@ class StoppKravServiceTest : FunSpec({
 
         every { stoppKravMock["sendStoppKrav"](any<KravTable>()) } returnsMany
             listOf(
-                RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "123"),
-                RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "456"),
+                RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "123", defineStatus(mockHttpResponse(404))),
+                RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "456", defineStatus(mockHttpResponse(200))),
             )
         val result = stoppKravMock.sendAllStoppKrav(listOf(kravTableMock, kravTableMock))
 
