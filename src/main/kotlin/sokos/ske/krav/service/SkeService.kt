@@ -95,7 +95,7 @@ class SkeService(
         val feilmeldinger = allResponses
             .filter {it.response.status != HttpStatusCode.OK }
             .map {
-                println("Status2 = ${it.response.status} - ${it.response.body<FeilResponse>().title} - ${it.response.body<FeilResponse>().detail}")
+                logger.warn("Feilmeldinger fra sending av krav: ${it.response.status} - ${it.response.body<FeilResponse>().title} - ${it.response.body<FeilResponse>().detail}")
                 listOf( it.response.body<FeilResponse>().title, it.response.body<FeilResponse>().detail ) }
 
         if (feilmeldinger.isNotEmpty()) slackClient.sendValideringsfeilFraSke(feilmeldinger)
