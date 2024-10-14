@@ -54,6 +54,10 @@ class SkeService(
             val validatedLines = LineValidator().validateNewLines(file, databaseService)
             Metrics.numberOfKravRead.increment(validatedLines.size.toDouble())
 
+            if (file.kravLinjer.size > validatedLines.size ){
+                logger.warn("Ved validering av linjker i fil ${file.name} har ${file.kravLinjer.size-validatedLines.size} linjer velideringsfeil ")
+            }
+
             databaseService.saveAllNewKrav(validatedLines, file.name)
             ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
 
@@ -79,26 +83,23 @@ class SkeService(
         allResponses.addAll(
             stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV }),
         )
-        logger.info("alle krav sendt, lagrer feilmeldinger")
+
+        logger.info("Alle krav sendt, lagrer evetuelle feilmeldinger")
+
+        val feilmeldinger = mutableListOf<List<String>>()
         allResponses
             .filter { !it.response.status.isSuccess() }
-            .forEach {
+            .map {
                 databaseService.saveErrorMessage(
                     it.request,
                     it.response,
                     it.kravTable,
                     it.kravidentifikator,
                 )
-            }
-        logger.info("Feilmeldinger lagter, lager slack melding")
-        val feilmeldinger = allResponses
-            .filter {!it.response.status.isSuccess() }
-            .map {
                 logger.warn("Feilmeldinger fra sending av krav: ${it.response.status} - ${it.response.body<FeilResponse>().title} - ${it.response.body<FeilResponse>().detail}")
-                listOf( it.response.body<FeilResponse>().title, it.response.body<FeilResponse>().detail ) }
-        logger.info("Sender slackmeldinger")
+                feilmeldinger.add(listOf( it.response.body<FeilResponse>().title, it.response.body<FeilResponse>().detail ))
+            }
         if (feilmeldinger.isNotEmpty()) slackClient.sendValideringsfeilFraSke(feilmeldinger)
-        logger.info("Feridg med sending returnerer allResponses")
         return allResponses
     }
 

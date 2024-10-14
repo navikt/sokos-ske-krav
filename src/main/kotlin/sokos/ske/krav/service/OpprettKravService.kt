@@ -4,7 +4,6 @@ import io.ktor.client.call.body
 import io.ktor.http.isSuccess
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
@@ -16,25 +15,19 @@ class OpprettKravService(
     private val skeClient: SkeClient,
     private val databaseService: DatabaseService,
 ) {
-    private val logger = KotlinLogging.logger("secureLogger")
 
     suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<RequestResult> {
         val responseList =
             kravList.map {
-                logger.info("Sender krav: ${it.saksnummerNAV}")
                 sendOpprettKrav(it)
             }
-        logger.info("Krav sendt lagrer i db")
         databaseService.updateSentKrav(responseList)
-        logger.info("Lagret i db returnerer responseList")
         return responseList
     }
 
     private suspend fun sendOpprettKrav(krav: KravTable): RequestResult {
         val opprettKravRequest = createOpprettKravRequest(krav)
-        logger.info("skeclient.opprettkrav kall")
         val response = skeClient.opprettKrav(opprettKravRequest, krav.corrId)
-        logger.info("skeclient.opprettkrav ferdig")
         val kravIdentifikator =
             if (response.status.isSuccess()) {
                 response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
@@ -42,7 +35,6 @@ class OpprettKravService(
                 ""
             }
 
-        logger.info( "Krav sendt, lager requestResult")
         return RequestResult(
             response = response,
             request = Json.encodeToString(opprettKravRequest),
