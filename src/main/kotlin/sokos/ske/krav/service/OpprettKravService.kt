@@ -21,6 +21,7 @@ class OpprettKravService(
     suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<RequestResult> {
         val responseList =
             kravList.map {
+                logger.info("Sender krav: ${it.saksnummerNAV}")
                 sendOpprettKrav(it)
             }
         logger.info("Krav sendt lagrer i db")
@@ -31,8 +32,9 @@ class OpprettKravService(
 
     private suspend fun sendOpprettKrav(krav: KravTable): RequestResult {
         val opprettKravRequest = createOpprettKravRequest(krav)
+        logger.info("skeclient.opprettkrav kall")
         val response = skeClient.opprettKrav(opprettKravRequest, krav.corrId)
-
+        logger.info("skeclient.opprettkrav ferdig")
         val kravIdentifikator =
             if (response.status.isSuccess()) {
                 response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
