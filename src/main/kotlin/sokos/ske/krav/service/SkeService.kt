@@ -1,7 +1,6 @@
 package sokos.ske.krav.service
 
 import io.ktor.client.call.body
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
@@ -93,7 +92,7 @@ class SkeService(
             }
         logger.info("Feilmeldinger lagter, lager slack melding")
         val feilmeldinger = allResponses
-            .filter {it.response.status != HttpStatusCode.OK }
+            .filter {!it.response.status.isSuccess() }
             .map {
                 logger.warn("Feilmeldinger fra sending av krav: ${it.response.status} - ${it.response.body<FeilResponse>().title} - ${it.response.body<FeilResponse>().detail}")
                 listOf( it.response.body<FeilResponse>().title, it.response.body<FeilResponse>().detail ) }
