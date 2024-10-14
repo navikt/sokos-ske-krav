@@ -80,7 +80,7 @@ class SkeService(
         allResponses.addAll(
             stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV }),
         )
-
+        logger.info("alle krav sendt, lagrer feilmeldinger")
         allResponses
             .filter { !it.response.status.isSuccess() }
             .forEach {
@@ -91,15 +91,15 @@ class SkeService(
                     it.kravidentifikator,
                 )
             }
-
+        logger.info("Feilmeldinger lagter, lager slack melding")
         val feilmeldinger = allResponses
             .filter {it.response.status != HttpStatusCode.OK }
             .map {
                 logger.warn("Feilmeldinger fra sending av krav: ${it.response.status} - ${it.response.body<FeilResponse>().title} - ${it.response.body<FeilResponse>().detail}")
                 listOf( it.response.body<FeilResponse>().title, it.response.body<FeilResponse>().detail ) }
-
+        logger.info("Sender slackmeldinger")
         if (feilmeldinger.isNotEmpty()) slackClient.sendValideringsfeilFraSke(feilmeldinger)
-
+        logger.info("Feridg med sending returnerer allResponses")
         return allResponses
     }
 

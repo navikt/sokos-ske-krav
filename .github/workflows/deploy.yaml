@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - Feilmelding-Feilreponse
     paths-ignore:
       - '**.md'
       - 'LICENCE'
@@ -52,7 +53,6 @@ jobs:
     name: Deploy to dev
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
       - uses: nais/deploy/actions/deploy@v2
