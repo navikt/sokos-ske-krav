@@ -1,5 +1,6 @@
 package sokos.ske.krav.domain.nav
 
+import io.ktor.utils.io.core.toByteArray
 import mu.KotlinLogging
 import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.ARSAK_KODE_POS
 import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.BELOP_POS
@@ -114,9 +115,9 @@ class FileParser(
             return if (start > line.length) {
                 ""
             } else if (end > line.length) {
-                line.substring(start).trim()
+                line.substring(start).trim().toByteArray(Charsets.ISO_8859_1).toString()
             } else {
-                line.substring(start, end).trim()
+                line.substring(start, end).trim().toByteArray(Charsets.ISO_8859_1).toString()
             }
         }
 
