@@ -1,6 +1,5 @@
 package sokos.ske.krav.domain.nav
 
-import io.ktor.utils.io.core.toByteArray
 import mu.KotlinLogging
 import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.ARSAK_KODE_POS
 import sokos.ske.krav.domain.nav.FileParser.KravLinjeFeltPosisjoner.BELOP_POS
@@ -112,12 +111,13 @@ class FileParser(
                 logger.error("Feil i fil! Startposisjon $start er større enn sluttposisjon $end")
                 return ""
             }
+
             return if (start > line.length) {
                 ""
             } else if (end > line.length) {
-                line.substring(start).trim().toByteArray(Charsets.ISO_8859_1).toString()
+                line.substring(start).trim().fixNorskTegn()
             } else {
-                line.substring(start, end).trim().toByteArray(Charsets.ISO_8859_1).toString()
+                line.substring(start, end).trim().fixNorskTegn()
             }
         }
 
@@ -130,6 +130,11 @@ class FileParser(
 
             return "$integer.$dec".toBigDecimal()
         }
+
+        private fun String.fixNorskTegn() = map {
+            if (it == 0xD1.toChar()) "Ø"
+            else it
+        }.joinToString(separator = "")
 
         fun parseInt(line: String): Int = parseString(line).toInt()
 
