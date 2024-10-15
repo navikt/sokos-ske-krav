@@ -30,6 +30,9 @@ import java.time.format.DateTimeFormatter
 class FileParser(
     val content: List<String>,
 ) {
+
+    private val logger = KotlinLogging.logger("secureLogger")
+
     fun parseKontrollLinjeHeader() = kontrollLinjeHeaderParser(content.first())
 
     fun parseKontrollLinjeFooter() = kontrollLinjeFooterParser(content.last())
@@ -143,10 +146,10 @@ class FileParser(
     }
 
     fun String.fixNorskTegn() = map {
-        println("$it er samme som ${it.code}")
+        logger.info("$it er samme som ${it.code}")
         if (it == 0xFF.toChar()) "Ø"
         else it
-    }.joinToString(separator = "")
+    }.joinToString(separator = "").also { logger.info( it ) }
 
 
 }
