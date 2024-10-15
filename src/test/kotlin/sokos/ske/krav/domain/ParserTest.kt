@@ -51,4 +51,15 @@ internal class ParserTest :
                 }
             parser.parseKontrollLinjeFooter().sumAlleTransaksjoner shouldBe sumBelopOgRenter
         }
+
+//        test("tester FA FØ"){
+//        val inn = "FA Fÿ"
+//            println(inn.map {
+//                println("$it er samme som ${it.code}")
+//                if (it == 0xFF.toChar()) "Ø"
+//                else it
+//            }.joinToString(separator = ""))
+//
+//        }
+
     })

@@ -59,7 +59,7 @@ class FileParser(
             GJELDER_ID_POS.parseString(linje),
             PERIODE_FOM_POS.parseString(linje),
             PERIODE_TOM_POS.parseString(linje),
-            KRAV_KODE_POS.parseString(linje),
+            KRAV_KODE_POS.parseString(linje).fixNorskTegn(),
             REFERANSE_GAMMEL_SAK_POS.parseString(linje),
             TRANSAKSJONS_DATO_POS.parseString(linje),
             ENHET_BOSTED_POS.parseString(linje),
@@ -115,9 +115,9 @@ class FileParser(
             return if (start > line.length) {
                 ""
             } else if (end > line.length) {
-                line.substring(start).trim().fixNorskTegn()
+                line.substring(start).trim()
             } else {
-                line.substring(start, end).trim().fixNorskTegn()
+                line.substring(start, end).trim()
             }
         }
 
@@ -131,11 +131,6 @@ class FileParser(
             return "$integer.$dec".toBigDecimal()
         }
 
-        private fun String.fixNorskTegn() = map {
-            if (it == 0xD1.toChar()) "Ø"
-            else it
-        }.joinToString(separator = "")
-
         fun parseInt(line: String): Int = parseString(line).toInt()
 
         fun parseDate(line: String): LocalDate =
@@ -146,4 +141,12 @@ class FileParser(
                     LocalDate.parse("21240101", DateTimeFormatter.ofPattern("yyyyMMdd"))
                 }
     }
+
+    fun String.fixNorskTegn() = map {
+        println("$it er samme som ${it.code}")
+        if (it == 0xFF.toChar()) "Ø"
+        else it
+    }.joinToString(separator = "")
+
+
 }
