@@ -14,7 +14,6 @@ import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.commonConfig
 import sokos.ske.krav.config.internalNaisRoutes
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.AvstemmingService
 import sokos.ske.krav.service.DatabaseService
@@ -57,11 +56,6 @@ private fun Application.module() {
 
     if (!PropertiesConfig.isLocal) {
         PostgresDataSource.migrate()
-    }
-
-    databaseService.getKravkoder().forEach {
-        println("registrerer $it")
-        Metrics.registerTypeKravSendtMetric(it)
     }
 
     if (timerConfig.useTimer) {

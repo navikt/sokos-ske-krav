@@ -3,6 +3,7 @@ package sokos.ske.krav.metrics
 import io.micrometer.core.instrument.Counter
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import java.util.concurrent.ConcurrentHashMap
 
 object Metrics {
     val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
@@ -26,12 +27,18 @@ object Metrics {
             .description("antall krav resendt")
             .register(registry)
 
-    fun registerTypeKravSendtMetric(kravType: String): Counter =
-        Counter
-            .builder("${NAMESPACE}_type_krav_sendt")
-            .description("type krav sendt til endepunkt")
-            .tag("kravtype", kravType)
-            .register(registry)
+    private val typeKravSendtCounters = ConcurrentHashMap<String, Counter>()
+
+    fun incrementTypeKravSendtMetric(kravType: String) {
+        typeKravSendtCounters
+            .computeIfAbsent(kravType) {
+                Counter
+                    .builder("${NAMESPACE}_type_krav_sendt")
+                    .description("type krav sendt til endepunkt")
+                    .tag("kravtype", kravType)
+                    .register(registry)
+            }.increment()
+    }
 
     fun registerRequestError(
         fileName: String,
