@@ -146,10 +146,9 @@ class FileParser(
     }
 
     fun String.fixNorskTegn() = map {
-        logger.info("$it er samme som ${it.code}")
         if (it == 0xFFFD.toChar()) "Ø"
         else it
-    }.joinToString(separator = "").also { logger.info( it ) }
+    }.joinToString(separator = "")
 
 
 }
