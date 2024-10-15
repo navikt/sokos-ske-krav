@@ -12,12 +12,12 @@ import java.time.Duration
 object PostgresDataSource {
     private val logger = KotlinLogging.logger("secureLogger")
 
-    fun migrate(dataSource: HikariDataSource = dataSource(role = PropertiesConfig.PostgresConfig().adminUser)) {
+    fun migrate(dataSource: HikariDataSource = dataSource(role = PropertiesConfig.PostgresConfig.adminUser)) {
         logger.info { "Flyway migration" }
         Flyway
             .configure()
             .dataSource(dataSource)
-            .initSql("""SET ROLE "${ PropertiesConfig.PostgresConfig().adminUser}"""")
+            .initSql("""SET ROLE "${ PropertiesConfig.PostgresConfig.adminUser}"""")
             .lockRetryCount(-1)
             .validateMigrationNaming(true)
             .load()
@@ -28,20 +28,20 @@ object PostgresDataSource {
 
     fun dataSource(
         hikariConfig: HikariConfig = hikariConfig(),
-        role: String = PropertiesConfig.PostgresConfig().user,
+        role: String = PropertiesConfig.PostgresConfig.user,
     ): HikariDataSource =
         if (PropertiesConfig.isLocal) {
             HikariDataSource(hikariConfig)
         } else {
             createHikariDataSourceWithVaultIntegration(
                 hikariConfig,
-                PropertiesConfig.PostgresConfig().vaultMountPath,
+                PropertiesConfig.PostgresConfig.vaultMountPath,
                 role,
             )
         }
 
     private fun hikariConfig(): HikariConfig {
-        val postgresConfig = PropertiesConfig.PostgresConfig()
+        val postgresConfig = PropertiesConfig.PostgresConfig
         return HikariConfig().apply {
             maximumPoolSize = 5
             minimumIdle = 1

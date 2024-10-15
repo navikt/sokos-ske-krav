@@ -22,6 +22,15 @@ import java.sql.Date
 import java.util.UUID
 
 object Repository {
+    fun Connection.getAllUniqueKravkoder(): List<String> {
+        val res = prepareStatement("""select distinct kravkode from krav""").executeQuery()
+        return buildList {
+            while (res.next()) {
+                add(res.getString(1))
+            }
+        }
+    }
+
     fun Connection.getAllKravForStatusCheck() =
         prepareStatement("""select * from krav where status in (?, ?)""")
             .withParameters(

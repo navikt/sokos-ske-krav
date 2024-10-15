@@ -9,7 +9,7 @@ import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.database.PostgresDataSource
 
 class TestContainer {
-    private val properties = PropertiesConfig.PostgresConfig()
+    private val properties = PropertiesConfig.PostgresConfig
     private val dockerImageName = "postgres:latest"
     private val container =
         PostgreSQLContainer<Nothing>(DockerImageName.parse(dockerImageName)).apply {

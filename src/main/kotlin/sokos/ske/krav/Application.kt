@@ -14,6 +14,7 @@ import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.commonConfig
 import sokos.ske.krav.config.internalNaisRoutes
 import sokos.ske.krav.database.PostgresDataSource
+import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.AvstemmingService
 import sokos.ske.krav.service.DatabaseService
@@ -34,7 +35,7 @@ fun main() {
 private fun Application.module() {
     val applicationState = ApplicationState()
     val tokenProvider = MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), httpClient)
-    val skeClient = SkeClient(tokenProvider, PropertiesConfig.SKEConfig().skeRestUrl)
+    val skeClient = SkeClient(tokenProvider, PropertiesConfig.SKEConfig.skeRestUrl)
     val databaseService = DatabaseService()
     val stoppKravService = StoppKravService(skeClient, databaseService)
     val endreKravService = EndreKravService(skeClient, databaseService)
@@ -45,7 +46,7 @@ private fun Application.module() {
     val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, databaseService)
     val avstemmingService = AvstemmingService(databaseService)
     val timer = Timer()
-    val timerConfig = PropertiesConfig.TimerConfig()
+    val timerConfig = PropertiesConfig.TimerConfig
 
     commonConfig()
     applicationLifecycleConfig(applicationState)
@@ -56,6 +57,11 @@ private fun Application.module() {
 
     if (!PropertiesConfig.isLocal) {
         PostgresDataSource.migrate()
+    }
+
+    databaseService.getKravkoder().forEach {
+        println("registrerer $it")
+        Metrics.registerTypeKravSendtMetric(it)
     }
 
     if (timerConfig.useTimer) {

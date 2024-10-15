@@ -29,7 +29,7 @@ class SkeService(
     private val statusService: StatusService,
     private val databaseService: DatabaseService,
     private val ftpService: FtpService = FtpService(),
-    private val slackClient: SlackClient = SlackClient()
+    private val slackClient: SlackClient = SlackClient(),
 ) {
     private val logger = KotlinLogging.logger("secureLogger")
 
@@ -54,8 +54,8 @@ class SkeService(
             val validatedLines = LineValidator().validateNewLines(file, databaseService)
             Metrics.numberOfKravRead.increment(validatedLines.size.toDouble())
 
-            if (file.kravLinjer.size > validatedLines.size ){
-                logger.warn("Ved validering av linjker i fil ${file.name} har ${file.kravLinjer.size-validatedLines.size} linjer velideringsfeil ")
+            if (file.kravLinjer.size > validatedLines.size) {
+                logger.warn("Ved validering av linjker i fil ${file.name} har ${file.kravLinjer.size - validatedLines.size} linjer velideringsfeil ")
             }
 
             databaseService.saveAllNewKrav(validatedLines, file.name)
@@ -97,7 +97,7 @@ class SkeService(
                     it.kravidentifikator,
                 )
                 logger.warn("Feilmeldinger fra sending av krav: ${it.response.status} - ${it.response.body<FeilResponse>().title} - ${it.response.body<FeilResponse>().detail}")
-                feilmeldinger.add(listOf( it.response.body<FeilResponse>().title, it.response.body<FeilResponse>().detail ))
+                feilmeldinger.add(listOf(it.response.body<FeilResponse>().title, it.response.body<FeilResponse>().detail))
             }
         if (feilmeldinger.isNotEmpty()) slackClient.sendValideringsfeilFraSke(feilmeldinger)
         return allResponses

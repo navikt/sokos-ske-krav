@@ -67,7 +67,7 @@ fun ResultSet.toValideringsfeil() =
     }
 
 private fun <T> ResultSet.toList(mapper: ResultSet.() -> T) =
-    mutableListOf<T>().apply {
+    buildList {
         while (next()) {
             add(mapper())
         }

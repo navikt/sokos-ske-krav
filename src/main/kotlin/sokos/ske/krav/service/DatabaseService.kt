@@ -9,6 +9,7 @@ import sokos.ske.krav.database.Repository.getAllFeilmeldinger
 import sokos.ske.krav.database.Repository.getAllKravForAvstemming
 import sokos.ske.krav.database.Repository.getAllKravForResending
 import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
+import sokos.ske.krav.database.Repository.getAllUniqueKravkoder
 import sokos.ske.krav.database.Repository.getAllUnsentKrav
 import sokos.ske.krav.database.Repository.getFeilmeldingForKravId
 import sokos.ske.krav.database.Repository.getKravTableIdFromCorrelationId
@@ -213,5 +214,14 @@ class DatabaseService(
         dataSource.connection.useAndHandleErrors { con ->
             con.updateEndringWithSkeKravIdentifikator(navsaksnummer, skeKravidentifikator)
         }
+    }
+
+    fun getKravkoder() = dataSource.connection.useAndHandleErrors { con -> con.getAllUniqueKravkoder() }
+
+    fun getKravkodeCount(): Map<String, Int> {
+        val getUniqueKravkoder = dataSource.connection.useAndHandleErrors { con -> con.getAllUniqueKravkoder() }
+
+        println(getUniqueKravkoder)
+        return emptyMap()
     }
 }

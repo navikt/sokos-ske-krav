@@ -5,7 +5,6 @@ import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.StonadsType
 import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.FtpFil
 import sokos.ske.krav.util.isOpprettKrav
@@ -32,14 +31,13 @@ class LineValidator(
 
                     is ValidationResult.Error -> {
                         allErrorMessages.addAll(result.messages)
-                        ds.saveValidationError(file.name, it, result.messages.map { msg -> msg.joinToString() }.joinToString())
-                        logger.warn("Linje ${it.linjenummer} i fila ${file.name} har valideringsfeil: ${result.messages.map { it.joinToString() }.joinToString() }")
+                        ds.saveValidationError(file.name, it, result.messages.joinToString { msg -> msg.joinToString() })
+                        logger.warn("Linje ${it.linjenummer} i fila ${file.name} har valideringsfeil: ${result.messages.joinToString { msg -> msg.joinToString() }}")
                         it.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
                     }
                 }
             }
         if (allErrorMessages.isNotEmpty()) {
-            Metrics.registerLineValidationError(file.name, allErrorMessages.toString()).increment()
             slackClient.sendLinjevalideringsMelding(file.name, allErrorMessages)
             logger.warn("Feil i validering av linjer i fil ${file.name}: $allErrorMessages")
         }

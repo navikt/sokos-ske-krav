@@ -13,10 +13,9 @@ import sokos.ske.krav.domain.slack.message
 import sokos.ske.krav.util.httpClient
 
 class SlackClient(
-    private val slackEndpoint: String = PropertiesConfig.SlackConfig().url,
+    private val slackEndpoint: String = PropertiesConfig.SlackConfig.url,
     private val client: HttpClient = httpClient,
 ) {
-
     suspend fun sendFilvalideringsMelding(
         filnavn: String,
         meldinger: List<List<String>>,
@@ -31,11 +30,10 @@ class SlackClient(
         message("Feil i linjevalidering for sokos-ske-krav", filnavn, meldinger),
     )
 
-    suspend fun sendValideringsfeilFraSke(
-        meldinger: List<List<String>>,
-    ) = doPost(
-        message("Valideringsfeil hos Skatteetaten ved sending fra sokos-ske-krav", "-NA-", meldinger)
-    )
+    suspend fun sendValideringsfeilFraSke(meldinger: List<List<String>>) =
+        doPost(
+            message("Valideringsfeil hos Skatteetaten ved sending fra sokos-ske-krav", "-NA-", meldinger),
+        )
 
     suspend fun doPost(data: Data) =
         client.post(

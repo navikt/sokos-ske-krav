@@ -33,26 +33,6 @@ object Metrics {
             .tag("kravtype", kravType)
             .register(registry)
 
-    fun registerFileValidationError(
-        fileName: String,
-        message: String,
-    ): Counter =
-        Counter
-            .builder("${NAMESPACE}_filvalidering_feil")
-            .tag("fileName", fileName)
-            .tag("message", message)
-            .register(registry)
-
-    fun registerLineValidationError(
-        fileName: String,
-        message: String,
-    ): Counter =
-        Counter
-            .builder("${NAMESPACE}_linjevalidering_feil")
-            .tag("fileName", fileName)
-            .tag("message", message)
-            .register(registry)
-
     fun registerRequestError(
         fileName: String,
         message: String,

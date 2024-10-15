@@ -87,31 +87,30 @@ object PropertiesConfig {
         @SerialName("token_endpoint") val tokenEndpoint: String,
     )
 
-    data class SKEConfig(
-        val skeRestUrl: String = getOrEmpty("SKE_REST_URL"),
-    )
+    data object SKEConfig {
+        val skeRestUrl: String = getOrEmpty("SKE_REST_URL")
+    }
 
-    data class PostgresConfig(
-        val host: String = getOrEmpty("POSTGRES_HOST"),
-        val port: String = getOrEmpty("POSTGRES_PORT"),
-        val name: String = getOrEmpty("POSTGRES_NAME"),
-        val username: String = getOrEmpty("POSTGRES_USERNAME").trim(),
-        val password: String = getOrEmpty("POSTGRES_PASSWORD").trim(),
-        val vaultMountPath: String = getOrEmpty("VAULT_MOUNTPATH"),
-    ) {
+    data object PostgresConfig {
+        val host: String = getOrEmpty("POSTGRES_HOST")
+        val port: String = getOrEmpty("POSTGRES_PORT")
+        val name: String = getOrEmpty("POSTGRES_NAME")
+        val username: String = getOrEmpty("POSTGRES_USERNAME").trim()
+        val password: String = getOrEmpty("POSTGRES_PASSWORD").trim()
+        val vaultMountPath: String = getOrEmpty("VAULT_MOUNTPATH")
         val adminUser = "$name-admin"
         val user = "$name-user"
     }
 
-    data class SlackConfig(
-        val url: String = getOrEmpty("TEAM_BEST_SLACK_WEBHOOK_URL").trim(),
-    )
+    data object SlackConfig {
+        val url: String = getOrEmpty("TEAM_BEST_SLACK_WEBHOOK_URL").trim()
+    }
 
-    data class TimerConfig(
-        val useTimer: Boolean = config.getOrElse(Key("USE_TIMER", stringType), "false").toBoolean(),
-        val initialDelay: Long = config.getOrElse(Key("TIMER_INITIAL_DELAY", stringType), "500").toLong(),
-        val intervalPeriod: Long = config.getOrElse(Key("TIMER_INTERVAL_PERIOD", stringType), "3600000").toLong(),
-    )
+    data object TimerConfig {
+        val useTimer: Boolean = config.getOrElse(Key("USE_TIMER", stringType), "false").toBoolean()
+        val initialDelay: Long = config.getOrElse(Key("TIMER_INITIAL_DELAY", stringType), "500").toLong()
+        val intervalPeriod: Long = config.getOrElse(Key("TIMER_INTERVAL_PERIOD", stringType), "3600000").toLong()
+    }
 
     open class JwtConfig(
         private val wellKnownUrl: String,
