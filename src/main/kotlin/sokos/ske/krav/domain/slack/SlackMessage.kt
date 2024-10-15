@@ -91,29 +91,7 @@ fun message(
             Block(type = "divider")
         )
         add(
-            Block(
-                type = "actions",
-                elements = listOf(
-                    Elements(
-                        type = "button",
-                        text = Text(
-                            type = "plain_text",
-                            text = "resend",
-                            emoji = true
-                        ),
-                        value = "click_me_123"
-                    ), Elements(
-                        type = "button",
-                        text = Text(
-                            type = "plain_text",
-                            text = "Google??",
-                            emoji = true
-                        ),
-                        value = "click_me_123",
-                        url = "https://google.com"
-                    )
-                )
-            )
+            Block(type = "divider")
         )
     }
     return Data(
