@@ -8,6 +8,9 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import mu.KotlinLogging
 import sokos.ske.krav.api.skeApi
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.config.PropertiesConfig
@@ -24,14 +27,15 @@ import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
 import sokos.ske.krav.service.StoppKravService
 import sokos.ske.krav.util.httpClient
-import java.util.Timer
-import java.util.TimerTask
+import java.util.*
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
 }
 
 private fun Application.module() {
+    val logger = KotlinLogging.logger("secureLogger")
+
     val applicationState = ApplicationState()
     val tokenProvider = MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), httpClient)
     val skeClient = SkeClient(tokenProvider, PropertiesConfig.SKEConfig.skeRestUrl)
@@ -62,9 +66,9 @@ private fun Application.module() {
         timer.schedule(
             object : TimerTask() {
                 override fun run() {
-                    println("******************Starter henting av nye filer......${Clock.System.now()}")
+                    logger.info("**** Starter schedulert henting av nye filer......${Clock.System.now().toLocalDateTime(TimeZone.of("Europe/Berlin"))}")
                     runBlocking { skeService.handleNewKrav() }
-                    println("******************Henting av nye filer  ferdig......${Clock.System.now()}")
+                    logger.info("**** Schedulert henting av nye filer ferdig......${Clock.System.now().toLocalDateTime(TimeZone.of("Europe/Berlin"))}")
                 }
             },
             timerConfig.initialDelay,

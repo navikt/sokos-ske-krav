@@ -45,7 +45,7 @@ class SkeService(
 
     private suspend fun sendNewFilesToSKE() {
         val files = ftpService.getValidatedFiles()
-        logger.info("*******************${LocalDateTime.now()}*******************")
+        logger.info("****Starter sending av nye filer ${LocalDateTime.now()}*******************")
         logger.info("Starter innsending av ${files.size} filer")
 
         files.forEach { file ->
@@ -67,7 +67,7 @@ class SkeService(
 
             AlarmService.handleFeil(result, file)
         }
-        logger.info("*******************KJØRING FERDIG*******************")
+        logger.info("****Sending av nye filer er FERDIG*******************")
     }
 
     private suspend fun sendKrav(kravTableList: List<KravTable>): List<RequestResult> {

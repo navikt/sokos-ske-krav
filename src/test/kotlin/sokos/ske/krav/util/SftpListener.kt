@@ -5,6 +5,7 @@ import com.github.dockerjava.api.model.PortBinding
 import com.github.dockerjava.api.model.Ports
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
+import mu.KotlinLogging
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.images.builder.Transferable
 import org.testcontainers.shaded.org.bouncycastle.crypto.AsymmetricCipherKeyPair
@@ -23,7 +24,7 @@ import java.io.File
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
-import java.util.Base64
+import java.util.*
 
 object SftpListener : TestListener {
     private val keyPair = generateKeyPair()
@@ -96,6 +97,8 @@ object SftpListener : TestListener {
         fileNames: List<String>,
         directory: Directories = Directories.INBOUND,
     ) = SftpConfig(sftpProperties).channel { con ->
+        val logger = KotlinLogging.logger("secureLogger")
+
         fileNames.forEach { fileName ->
             try {
                 con.put(
@@ -103,7 +106,7 @@ object SftpListener : TestListener {
                     "${directory.value}/$fileName",
                 )
             } catch (e: Error) {
-                println("FEIL i putting av fil $fileName")
+                logger.error("FEIL i putting av fil $fileName")
             }
         }
     }
