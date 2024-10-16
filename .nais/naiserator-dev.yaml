@@ -77,5 +77,5 @@ spec:
       value: "true"
     - name: TIMER_INITIAL_DELAY
       value: "500"
-    - name: TIMER_INTERVALL_PERIOD
+    - name: TIMER_INTERVAL_PERIOD
       value: "1800000"
