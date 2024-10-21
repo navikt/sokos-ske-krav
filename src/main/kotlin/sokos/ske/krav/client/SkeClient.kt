@@ -19,7 +19,7 @@ import sokos.ske.krav.domain.ske.requests.NyHovedStolRequest
 import sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.util.httpClient
-import java.util.*
+import java.util.UUID
 
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
 private const val ENDRE_RENTER = "innkrevingsoppdrag/%s/renter?kravidentifikatortype=%s"

@@ -33,8 +33,8 @@ internal class SkeServiceTest : FunSpec({
                             mockk<KravTable>(),
                             "",
                             "STOPP_KRAV",
-                            defineStatus(mockHttpResponse(200))
-                        )
+                            defineStatus(mockHttpResponse(200)),
+                        ),
                     )
             }
 
@@ -56,7 +56,7 @@ internal class SkeServiceTest : FunSpec({
                             mockk<KravTable>(),
                             "",
                             "NYTT_KRAV",
-                            defineStatus(mockHttpResponse(200))
+                            defineStatus(mockHttpResponse(200)),
                         ),
                     )
                 )
@@ -87,7 +87,7 @@ internal class SkeServiceTest : FunSpec({
                             mockk<KravTable>(),
                             "",
                             "STOPP_KRAV",
-                            defineStatus(mockHttpResponse(404))
+                            defineStatus(mockHttpResponse(404)),
                         ),
                     )
             }
@@ -110,7 +110,7 @@ internal class SkeServiceTest : FunSpec({
                             mockk<KravTable>(),
                             "",
                             "NYTT_KRAV",
-                            defineStatus(mockHttpResponse(500))
+                            defineStatus(mockHttpResponse(500)),
                         ),
                     )
             }

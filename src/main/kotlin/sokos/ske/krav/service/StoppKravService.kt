@@ -32,7 +32,7 @@ class StoppKravService(
             request = Json.encodeToString(request),
             kravTable = krav,
             kravidentifikator = kravidentifikatorPair.first,
-            status = defineStatus(response)
+            status = defineStatus(response),
         )
     }
 }

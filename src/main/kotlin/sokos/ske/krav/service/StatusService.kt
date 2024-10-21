@@ -70,7 +70,7 @@ class StatusService(
                 databaseService.saveFeilmelding(feilmeldingTable)
             }
         } else {
-            logger.error( "Kall til henting av valideringsfeil hos SKE feilet: ${response.status.value}, ${response.status.description}" )
+            logger.error("Kall til henting av valideringsfeil hos SKE feilet: ${response.status.value}, ${response.status.description}")
         }
     }
 

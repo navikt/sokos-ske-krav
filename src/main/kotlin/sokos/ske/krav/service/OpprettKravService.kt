@@ -15,7 +15,6 @@ class OpprettKravService(
     private val skeClient: SkeClient,
     private val databaseService: DatabaseService,
 ) {
-
     suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<RequestResult> {
         val responseList =
             kravList.map {
@@ -40,7 +39,7 @@ class OpprettKravService(
             request = Json.encodeToString(opprettKravRequest),
             kravTable = krav,
             kravidentifikator = kravIdentifikator,
-            status = defineStatus(response)
+            status = defineStatus(response),
         )
     }
 }

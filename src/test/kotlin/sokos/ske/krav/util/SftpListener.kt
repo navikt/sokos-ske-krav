@@ -24,7 +24,7 @@ import java.io.File
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
-import java.util.*
+import java.util.Base64
 
 object SftpListener : TestListener {
     private val keyPair = generateKeyPair()

@@ -34,7 +34,7 @@ data class Elements(
     val value: String? = null,
     val style: String? = null,
     val action_id: String? = null,
-    val url: String? = null
+    val url: String? = null,
 )
 
 @Serializable
@@ -53,69 +53,72 @@ data class Field(
 fun message(
     feilHeader: String,
     filnavn: String,
-    content: List<List<String>>
+    content: List<List<String>>,
 ): Data {
     val sections = mutableListOf<Block>()
     with(sections) {
         add(
             Block(
                 type = "header",
-                text = Text(
-                    type = "plain_text",
-                    text = ":error:  $feilHeader  ",
-                    emoji = true
-                )
-            )
+                text =
+                    Text(
+                        type = "plain_text",
+                        text = ":error:  $feilHeader  ",
+                        emoji = true,
+                    ),
+            ),
         )
         add(
-            Block(type = "divider")
+            Block(type = "divider"),
         )
         add(
             Block(
                 type = "section",
-                fields = listOf(
-                    Field(
-                        text = "*Filnavn* \n${filnavn}"
+                fields =
+                    listOf(
+                        Field(
+                            text = "*Filnavn* \n$filnavn",
+                        ),
+                        Field(
+                            text = "*Dato* \n${Clock.System.now()}",
+                        ),
                     ),
-                    Field(
-                        text = "*Dato* \n${Clock.System.now()}"
-                    )
-                )
-            )
+            ),
         )
         add(
-            Block(type = "divider")
+            Block(type = "divider"),
         )
         addAll(content.map { section(it) })
         add(
-            Block(type = "divider")
+            Block(type = "divider"),
         )
         add(
-            Block(type = "divider")
+            Block(type = "divider"),
         )
     }
     return Data(
         text = ":package: $feilHeader",
-        blocks = sections
+        blocks = sections,
     )
 }
 
 private fun section(content: List<String>): Block {
-    var label: String = "Feilmelding"
+    var label = "Feilmelding"
     return Block(
         type = "section",
-        fields = content.map {
-            val field = Field(
-
-                text = "*$label*\n${it}"
-            )
-            if (label.equals("Feilmelding")) {
-                label = "Info"
-            } else {
-                label = "Feilmelding"
-            }
-            field
-        }
+        fields =
+            content.map {
+                val field =
+                    Field(
+                        text = "*$label*\n$it",
+                    )
+                label =
+                    if (label == "Feilmelding") {
+                        "Info"
+                    } else {
+                        "Feilmelding"
+                    }
+                field
+            },
     )
 }
-

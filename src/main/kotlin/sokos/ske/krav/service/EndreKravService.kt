@@ -79,7 +79,7 @@ class EndreKravService(
                     request = Json.encodeToString(endreRenterRequest),
                     kravTable = krav,
                     kravidentifikator = "",
-                    status = defineStatus(endreRenterResponse)
+                    status = defineStatus(endreRenterResponse),
                 )
 
             requestResultEndreRente
