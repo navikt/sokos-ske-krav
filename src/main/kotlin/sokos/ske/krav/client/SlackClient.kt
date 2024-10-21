@@ -9,7 +9,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.domain.slack.Data
-import sokos.ske.krav.domain.slack.message
+import sokos.ske.krav.domain.slack.buildSlackMessage
 import sokos.ske.krav.util.httpClient
 
 class SlackClient(
@@ -18,21 +18,21 @@ class SlackClient(
 ) {
     suspend fun sendFilvalideringsMelding(
         filnavn: String,
-        meldinger: List<List<String>>,
+        meldinger: List<Pair<String, String>>,
     ) = doPost(
-        message("Feil i  filvalidering for sokos-ske-krav", filnavn, meldinger),
+        buildSlackMessage("Feil i  filvalidering for sokos-ske-krav", filnavn, meldinger),
     )
 
     suspend fun sendLinjevalideringsMelding(
         filnavn: String,
-        meldinger: List<List<String>>,
+        meldinger: List<Pair<String, String>>,
     ) = doPost(
-        message("Feil i linjevalidering for sokos-ske-krav", filnavn, meldinger),
+        buildSlackMessage("Feil i linjevalidering for sokos-ske-krav", filnavn, meldinger),
     )
 
-    suspend fun sendValideringsfeilFraSke(meldinger: List<List<String>>) =
+    suspend fun sendValideringsfeilFraSke(meldinger: List<Pair<String, String>>) =
         doPost(
-            message("Valideringsfeil hos Skatteetaten ved sending fra sokos-ske-krav", "-NA-", meldinger),
+            buildSlackMessage("Valideringsfeil hos Skatteetaten ved sending fra sokos-ske-krav", "-NA-", meldinger),
         )
 
     suspend fun doPost(data: Data) =

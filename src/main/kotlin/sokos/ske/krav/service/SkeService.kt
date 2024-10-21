@@ -86,7 +86,7 @@ class SkeService(
 
         logger.info("Alle krav sendt, lagrer evetuelle feilmeldinger")
 
-        val feilmeldinger = mutableListOf<List<String>>()
+        val feilmeldinger = mutableListOf<Pair<String, String>>()
         allResponses
             .filter { !it.response.status.isSuccess() }
             .map {
@@ -97,7 +97,7 @@ class SkeService(
                     it.kravidentifikator,
                 )
                 logger.warn("Feilmeldinger fra sending av krav: ${it.response.status} - ${it.response.body<FeilResponse>().title} - ${it.response.body<FeilResponse>().detail}")
-                feilmeldinger.add(listOf(it.response.body<FeilResponse>().title, it.response.body<FeilResponse>().detail))
+                feilmeldinger.add(Pair(it.response.body<FeilResponse>().title, it.response.body<FeilResponse>().detail))
             }
         if (feilmeldinger.isNotEmpty()) slackClient.sendValideringsfeilFraSke(feilmeldinger)
         return allResponses
