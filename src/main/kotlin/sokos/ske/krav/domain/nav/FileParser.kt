@@ -28,7 +28,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 class FileParser(
-    val content: List<String>,
+    private val content: List<String>,
 ) {
     fun parseKontrollLinjeHeader() = kontrollLinjeHeaderParser(content.first())
 
@@ -59,7 +59,7 @@ class FileParser(
             GJELDER_ID_POS.parseString(linje),
             PERIODE_FOM_POS.parseString(linje),
             PERIODE_TOM_POS.parseString(linje),
-            KRAV_KODE_POS.parseString(linje).fixNorskTegn(),
+            KRAV_KODE_POS.parseString(linje).replace(0xFFFD.toChar(), 'Ø'),
             REFERANSE_GAMMEL_SAK_POS.parseString(linje),
             TRANSAKSJONS_DATO_POS.parseString(linje),
             ENHET_BOSTED_POS.parseString(linje),
@@ -141,13 +141,4 @@ class FileParser(
                     LocalDate.parse("21240101", DateTimeFormatter.ofPattern("yyyyMMdd"))
                 }
     }
-
-    fun String.fixNorskTegn() =
-        map {
-            if (it == 0xFFFD.toChar()) {
-                "Ø"
-            } else {
-                it
-            }
-        }.joinToString(separator = "")
 }
