@@ -108,9 +108,9 @@ spec:
         - apiURL:
             key: apiUrl
             name: slack-webhook
-          channel: '#team-best-alerts-dev'
+          channel: '#team-best-alerts-prod'
           iconEmoji: ':alert:'
-          username: 'Alert dev-fss'
+          username: 'Alert prod-fss'
           sendResolved: true
           httpConfig:
             proxyURL: http://webproxy.nais:8088
