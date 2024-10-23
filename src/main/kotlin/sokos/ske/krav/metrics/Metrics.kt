@@ -29,13 +29,13 @@ object Metrics {
 
     private val typeKravSendtCounters = ConcurrentHashMap<String, Counter>()
 
-    fun incrementTypeKravSendtMetric(kravType: String) {
+    fun incrementTypeKravSendtMetric(kravkode: String) {
         typeKravSendtCounters
-            .computeIfAbsent(kravType) {
+            .computeIfAbsent(kravkode) {
                 Counter
-                    .builder("${NAMESPACE}_type_krav_sendt")
+                    .builder("${NAMESPACE}_kode_krav_sendt")
                     .description("type krav sendt til endepunkt")
-                    .tag("kravtype", kravType)
+                    .tag("kravkode", kravkode)
                     .register(registry)
             }.increment()
     }
