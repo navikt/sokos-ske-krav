@@ -48,7 +48,7 @@ class SkeService(
         if (files.isNotEmpty()) {
             logger.info("*** Starter sending av ${files.size} filer ${LocalDate.now()} ***")
         } else {
-            logger.info("***Ingen nye filer***")
+            logger.info("*** Ingen nye filer ***")
         }
 
         files.forEach { file ->
@@ -85,7 +85,7 @@ class SkeService(
     }
 
     private suspend fun sendKrav(kravTableList: List<KravTable>): List<RequestResult> {
-        if (kravTableList.isNotEmpty()) logger.info("sender ${kravTableList.size}")
+        if (kravTableList.isNotEmpty()) logger.info("Sender ${kravTableList.size}")
 
         val allResponses = mutableListOf<RequestResult>()
         allResponses.addAll(

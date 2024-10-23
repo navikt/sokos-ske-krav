@@ -42,7 +42,6 @@ class FtpService(
 
             try {
                 con.rename(oldpath, newpath)
-                logger.debug { "$fileName ble flyttet fra mappen ${from.value} til mappen ${to.value}" }
             } catch (e: SftpException) {
                 logger.error {
                     "$fileName ble ikke flyttet fra mappe $oldpath til mappe $newpath: ${e.message}"
@@ -64,7 +63,6 @@ class FtpService(
                     .associateWith {
                         fileName = "${directory.value}/$it"
                         val outputStream = ByteArrayOutputStream()
-                        logger.debug { "$fileName ble lastet ned fra mappen $directory" }
                         con.get(fileName, outputStream)
                         String(outputStream.toByteArray()).lines().filter { file -> file.isNotEmpty() }
                     }

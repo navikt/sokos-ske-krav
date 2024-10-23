@@ -32,7 +32,6 @@ class LineValidator(
                     is ValidationResult.Error -> {
                         allErrorMessages.addAll(result.messages)
                         ds.saveValidationError(file.name, it, result.messages.joinToString { pair -> pair.second })
-                        logger.warn("Linje ${it.linjenummer} i fila ${file.name} har valideringsfeil: ${ result.messages.joinToString { pair -> pair.second }}")
                         it.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
                     }
                 }

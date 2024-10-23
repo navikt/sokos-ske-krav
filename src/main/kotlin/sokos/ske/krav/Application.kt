@@ -70,7 +70,7 @@ private fun Application.module() {
         timer.schedule(
             object : TimerTask() {
                 override fun run() {
-                    logger.info("*** Scheduled run ${LocalDate.now()}***")
+                    logger.info("*** Scheduled run ${LocalDate.now()} ***")
                     runBlocking { skeService.handleNewKrav() }
                 }
             },

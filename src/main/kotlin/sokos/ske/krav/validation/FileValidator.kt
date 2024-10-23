@@ -44,10 +44,8 @@ class FileValidator(
 
         return if (errorMessages.isNotEmpty()) {
             slackClient.sendFilvalideringsMelding(fileName, errorMessages)
-
-            logger.warn("*****************Feil i validering av fil $fileName: $errorMessages")
-            val res = ValidationResult.Error(messages = errorMessages)
-            return res
+            logger.warn("*** Feil i validering av fil $fileName. Sjekk Slack og Database ***")
+            return ValidationResult.Error(messages = errorMessages)
         } else {
             ValidationResult.Success(kravLinjer)
         }
