@@ -33,7 +33,7 @@ object Metrics {
         typeKravSendtCounters
             .computeIfAbsent(kravkode) {
                 Counter
-                    .builder("${NAMESPACE}_type_krav_sendt")
+                    .builder("${NAMESPACE}_kode_krav_sendt")
                     .description("type krav sendt til endepunkt")
                     .tag("kravkode", kravkode)
                     .register(registry)
