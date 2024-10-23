@@ -14,27 +14,6 @@ data class Block(
     val type: String,
     val text: Text? = null,
     val fields: List<Field>? = null,
-    val accessory: Accessory? = null,
-    val elements: List<Elements>? = null,
-)
-
-@Serializable
-data class Accessory(
-    val type: String,
-    val text: Text?,
-    val value: String? = null,
-    val style: String? = null,
-    val action_id: String? = null,
-)
-
-@Serializable
-data class Elements(
-    val type: String,
-    val text: Text?,
-    val value: String? = null,
-    val style: String? = null,
-    val action_id: String? = null,
-    val url: String? = null,
 )
 
 @Serializable
@@ -50,75 +29,67 @@ data class Field(
     val text: String,
 )
 
-fun message(
+fun buildSlackMessage(
     feilHeader: String,
     filnavn: String,
-    content: List<List<String>>,
+    content: List<Pair<String, String>>,
 ): Data {
-    val sections = mutableListOf<Block>()
-    with(sections) {
-        add(
-            Block(
-                type = "header",
-                text =
-                    Text(
-                        type = "plain_text",
-                        text = ":error:  $feilHeader  ",
-                        emoji = true,
-                    ),
-            ),
-        )
-        add(
-            Block(type = "divider"),
-        )
-        add(
-            Block(
-                type = "section",
-                fields =
-                    listOf(
-                        Field(
-                            text = "*Filnavn* \n$filnavn",
+    val sections =
+        buildList {
+            add(
+                Block(
+                    type = "header",
+                    text =
+                        Text(
+                            type = "plain_text",
+                            text = ":error:  $feilHeader  ",
+                            emoji = true,
                         ),
-                        Field(
-                            text = "*Dato* \n${Clock.System.now()}",
+                ),
+            )
+            add(
+                Block(type = "divider"),
+            )
+            add(
+                Block(
+                    type = "section",
+                    fields =
+                        listOf(
+                            Field(
+                                text = "*Filnavn* \n$filnavn",
+                            ),
+                            Field(
+                                text = "*Dato* \n${Clock.System.now()}",
+                            ),
                         ),
-                    ),
-            ),
-        )
-        add(
-            Block(type = "divider"),
-        )
-        addAll(content.map { section(it) })
-        add(
-            Block(type = "divider"),
-        )
-        add(
-            Block(type = "divider"),
-        )
-    }
+                ),
+            )
+            add(
+                Block(type = "divider"),
+            )
+
+            addAll(
+                content.map {
+                    Block(
+                        type = "section",
+                        fields =
+                            listOf(
+                                Field(text = "*Feilmelding*\n${it.first}"),
+                                Field(text = "*Info*\n${it.second}"),
+                            ),
+                    )
+                },
+            )
+
+            add(
+                Block(type = "divider"),
+            )
+            add(
+                Block(type = "divider"),
+            )
+        }
     return Data(
         text = ":package: $feilHeader",
         blocks = sections,
-    )
-}
-
-private fun section(content: List<String>): Block {
-    var label = "Feilmelding"
-    return Block(
-        type = "section",
-        fields =
-            content.map {
-                val field =
-                    Field(
-                        text = "*$label*\n$it",
-                    )
-                label =
-                    if (label == "Feilmelding") {
-                        "Info"
-                    } else {
-                        "Feilmelding"
-                    }
-                field
-            },
     )
 }

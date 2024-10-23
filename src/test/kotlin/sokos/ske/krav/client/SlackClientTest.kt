@@ -1,80 +1,62 @@
 package sokos.ske.krav.client
 
-import com.google.gson.GsonBuilder
 import io.kotest.core.spec.style.FunSpec
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import sokos.ske.krav.domain.slack.Block
 import sokos.ske.krav.domain.slack.Data
-import sokos.ske.krav.domain.slack.Elements
 import sokos.ske.krav.domain.slack.Field
 import sokos.ske.krav.domain.slack.Text
-import sokos.ske.krav.domain.slack.message
+import sokos.ske.krav.domain.slack.buildSlackMessage
 
-class SlackClientTest : FunSpec({
+private val json = Json { prettyPrint = true }
 
-    test("TEster om jeg får melding til slack").config(enabled = false) {
+class SlackClientTest :
+    FunSpec({
 
-        val sk = SlackClient()
-        val data =
-            Data(
-                text = "hei hei",
+        test("TEster om jeg får melding til slack").config(enabled = false) {
+            val data =
+                Data(
+                    text = "hei hei",
+                    listOf(
+                        Block(
+                            type = "header",
+                            text = Text(text = "FEILMELDING"),
+                        ),
+                        Block(
+                            type = "section",
+                            fields =
+                                listOf(
+                                    Field(
+                                        text = "*FEIL1*:\nFeil nummer 1",
+                                    ),
+                                ),
+                        ),
+                        Block(
+                            type = "section",
+                            fields =
+                                listOf(
+                                    Field(
+                                        text = "*FEIL2*:\nFeil nummer 2 men hvor lange kan disse meldingene være før de brekker uansett når det kun er en feilkollone i seksjonene over",
+                                    ),
+                                ),
+                        ),
+                    ),
+                )
+
+            println(json.encodeToString(data))
+            //  SlackClient().doPost(data).also { println("Response: ${it.status}") }
+        }
+
+        test("tester ny oppbygging av melding").config(enabled = false) {
+            val listList =
                 listOf(
-                    Block(
-                        type = "header",
-                        text = Text(text = "FEILMELDING"),
-                    ),
-                    Block(
-                        type = "section",
-                        fields =
-                            listOf(
-                                Field(
-                                    text = "*FEIL1*:\nFeil nummer 1",
-                                ),
-                            ),
-                    ),
-                    Block(
-                        type = "section",
-                        fields =
-                            listOf(
-                                Field(
-                                    text = "*FEIL2*:\nFeil nummer 2 men hvor lange kan disse meldingene være før de brekker uansett når det kun er en feilkollone i seksjonene over",
-                                ),
-                            ),
-                    ),
-                    Block(
-                        type = "actions",
-                        elements =
-                            listOf(
-                                Elements(
-                                    type = "button",
-                                    text =
-                                        Text(
-                                            type = "plain_text",
-                                            text = "Click me",
-                                        ),
-                                    value = "Click_value",
-                                    action_id = "button_action",
-                                ),
-                            ),
-                    ),
-                ),
-            )
+                    Pair("Feil i innsending av krav", "Antall krav stemmer ikke med antallet i siste linje! Antall krav:16, Antall i siste linje: 11101"),
+                    Pair("Feil i validering av linje", "Kravtype finnes ikke definert for oversending til skatt : (FO FT sammen med (EU) på linje 4995 ] "),
+                )
 
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        println(gson.toJson(data))
-        sk.doPost(data).also { println("Response: ${it.status}") }
-    }
-
-    test("tester ny oppbygging av melding").config(enabled = false) {
-        val listList =
-            listOf(
-                listOf("Feil i innsending av krav", "Antall krav stemmer ikke med antallet i siste linje! Antall krav:16, Antall i siste linje: 11101"),
-                listOf("Feil i validering av linje", "Kravtype finnes ikke definert for oversending til skatt : (FO FT sammen med (EU) på linje 4995 ] "),
-            )
-
-        val data = message("Tester Slack ved kjøring av sokos-ske-krav", "Feilfil1.txt", listList)
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        println(gson.toJson(data))
-        val sk = SlackClient()
-        sk.doPost(data).also { println("Response: ${it.status}") }
-    }
-})
+            val data = buildSlackMessage("Tester Slack ved kjøring av sokos-ske-krav", "Feilfil1.txt", listList)
+            println(json.encodeToString(data))
+            // SlackClient().doPost(data).also { println("Response: ${it.status}") }
+        }
+    })

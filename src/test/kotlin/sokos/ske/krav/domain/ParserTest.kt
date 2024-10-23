@@ -51,4 +51,12 @@ internal class ParserTest :
                 }
             parser.parseKontrollLinjeFooter().sumAlleTransaksjoner shouldBe sumBelopOgRenter
         }
+
+        test("Feil encoded Ø skal erstattes med Ø") {
+            val liste = fileAsList("${File.separator}FtpFiler${File.separator}FA_FO_Feilencoding.txt")
+            val parser = FileParser(liste)
+            val kravlinjer = parser.parseKravLinjer()
+
+            kravlinjer.filter { linje -> linje.kravKode == "FA FØ" }.size shouldBe 1
+        }
     })

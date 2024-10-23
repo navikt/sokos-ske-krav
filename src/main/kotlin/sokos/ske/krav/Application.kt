@@ -17,6 +17,8 @@ import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.commonConfig
 import sokos.ske.krav.config.internalNaisRoutes
 import sokos.ske.krav.database.PostgresDataSource
+import sokos.ske.krav.domain.StonadsType
+import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.AvstemmingService
 import sokos.ske.krav.service.DatabaseService
@@ -63,6 +65,9 @@ private fun Application.module() {
         PostgresDataSource.migrate()
     }
 
+    StonadsType.entries.forEach {
+        Metrics.incrementTypeKravSendtMetric(it.kravKode)
+    }
     if (timerConfig.useTimer) {
         timer.schedule(
             object : TimerTask() {
