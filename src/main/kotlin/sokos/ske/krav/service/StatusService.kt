@@ -22,7 +22,7 @@ class StatusService(
 
     suspend fun hentOgOppdaterMottaksStatus() {
         val krav = databaseService.getAllKravForStatusCheck()
-        logger.info("Sjekk av mottaksstatus -> antall krav som ikke er reskontroført: ${krav.size}")
+        if (krav.isNotEmpty()) logger.info("Sjekk av mottaksstatus -> Antall krav som ikke er reskontroført: ${krav.size}")
 
         krav.forEach {
             val kravIdentifikatorPair = createKravidentifikatorPair(it)

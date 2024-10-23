@@ -51,19 +51,16 @@ class SkeClient(
         kravidentifikatorType: KravidentifikatorType,
         corrID: String,
     ) = doPut(String.format(ENDRE_HOVESTOL, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
-        .also { logger.info("EndreHovestol: $corrID") }
 
     suspend fun opprettKrav(
         request: OpprettInnkrevingsoppdragRequest,
         corrID: String,
     ) = doPost(OPPRETT_KRAV, request, corrID)
-        .also { logger.info("OpprettKrav: $corrID, ${request.oppdragsgiversKravIdentifikator}") }
 
     suspend fun stoppKrav(
         request: AvskrivingRequest,
         corrID: String,
     ) = doPost(STOPP_KRAV, request, corrID)
-        .also { logger.info("AvskriverKrav: $corrID") }
 
     suspend fun getMottaksStatus(
         kravid: String,

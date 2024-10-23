@@ -35,7 +35,12 @@ class SlackClient(
             buildSlackMessage("Valideringsfeil hos Skatteetaten ved sending fra sokos-ske-krav", "-NA-", meldinger),
         )
 
-    suspend fun doPost(data: Data) =
+    suspend fun sendFantIkkeKravidentifikator(meldinger: List<Pair<String, String>>) =
+        doPost(
+            buildSlackMessage("Fant ikke kravidentifikator for migrert krav", "-NA-", meldinger),
+        )
+
+    private suspend fun doPost(data: Data) =
         client.post(
             HttpRequestBuilder().apply {
                 url(slackEndpoint)

@@ -5,6 +5,8 @@ import kotlinx.datetime.Clock
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.RequestResult
 
+// TODO: Endre dette til å bruke slackbot. Trenger vi "Alarmservice"? Da må i så fall alle slackbotmeldinger inn hit.
+//  Kan vi gjøre dette på en ryddigere måte?
 object AlarmService {
     fun handleFeil(
         liste: List<RequestResult>,
