@@ -11,7 +11,6 @@ import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
-import mu.KotlinLogging
 import sokos.ske.krav.domain.ske.requests.AvskrivingRequest
 import sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
 import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
@@ -35,15 +34,12 @@ class SkeClient(
     private val skeEndpoint: String,
     private val client: HttpClient = httpClient,
 ) {
-    private val logger = KotlinLogging.logger("secureLogger")
-
     suspend fun endreRenter(
         request: EndreRenteBeloepRequest,
         kravidentifikator: String,
         kravidentifikatorType: KravidentifikatorType,
         corrID: String,
     ) = doPut(String.format(ENDRE_RENTER, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
-        .also { logger.info("EndreRenter: $corrID") }
 
     suspend fun endreHovedstol(
         request: NyHovedStolRequest,
