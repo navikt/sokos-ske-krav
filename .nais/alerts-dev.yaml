@@ -87,8 +87,6 @@ spec:
           iconEmoji: ':alert:'
           username: 'Alert dev-fss'
           sendResolved: true
-          httpConfig:
-            proxyURL: http://webproxy.nais:8088
           title: |-
             [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
           text: >-
