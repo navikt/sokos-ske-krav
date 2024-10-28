@@ -1,9 +1,9 @@
 package sokos.ske.krav.database
 
 import mu.KotlinLogging
-import sokos.ske.krav.database.RepositoryExtensions.Parameter
 import java.math.BigDecimal
 import java.sql.Connection
+import java.sql.Date
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.SQLException
@@ -13,21 +13,14 @@ import java.time.LocalDateTime
 object RepositoryExtensions {
     val logger = KotlinLogging.logger("secureLogger")
 
-    inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R {
-        try {
+    inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R =
+        runCatching {
             use {
-                return block(this)
+                block(this)
             }
-        } catch (ex: SQLException) {
-            logger.error(ex.message)
-            throw ex
-        }
-    }
+        }.onFailure { logger.error(it.message) }.getOrThrow()
 
-    inline fun <reified T : Any?> ResultSet.getColumn(
-        columnLabel: String,
-        transform: (T) -> T = { it },
-    ): T {
+    inline fun <reified T> ResultSet.getColumn(columnLabel: String): T {
         val columnValue =
             when (T::class) {
                 Int::class -> getInt(columnLabel)
@@ -51,24 +44,20 @@ object RepositoryExtensions {
             throw SQLException("Påkrevet kolonne '$columnLabel' er null")
         }
 
-        return transform(columnValue as T)
+        return columnValue as T
     }
 
-    fun interface Parameter {
-        fun addToPreparedStatement(
-            statement: PreparedStatement,
-            index: Int,
-        )
-    }
-
-    fun param(value: Int) = Parameter { statement: PreparedStatement, index: Int -> statement.setInt(index, value) }
-
-    fun param(value: Long) = Parameter { statement: PreparedStatement, index: Int -> statement.setLong(index, value) }
-
-    fun param(value: String?) = Parameter { statement: PreparedStatement, index: Int -> statement.setString(index, value) }
-
-    fun PreparedStatement.withParameters(vararg parameters: Parameter?) =
+    fun PreparedStatement.withParameters(vararg parameters: Any?) =
         apply {
-            parameters.forEachIndexed { index, param -> param?.addToPreparedStatement(this, index + 1) }
+            parameters.forEachIndexed { index, param ->
+                val idx = index + 1
+                when (param) {
+                    is Int -> setInt(idx, param)
+                    is Long -> setLong(idx, param)
+                    is String -> setString(idx, param)
+                    is LocalDate -> setDate(idx, Date.valueOf(param))
+                    is BigDecimal -> setDouble(idx, param.toDouble())
+                }
+            }
         }
 }

@@ -1,7 +1,6 @@
 package sokos.ske.krav.database
 
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
-import sokos.ske.krav.database.RepositoryExtensions.param
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
@@ -18,33 +17,32 @@ import toFeilmelding
 import toKrav
 import toValideringsfeil
 import java.sql.Connection
-import java.sql.Date
 import java.util.UUID
 
 object Repository {
     fun Connection.getAllKravForStatusCheck() =
         prepareStatement("""select * from krav where status in (?, ?)""")
             .withParameters(
-                param(Status.KRAV_SENDT.value),
-                param(Status.MOTTATT_UNDERBEHANDLING.value),
+                Status.KRAV_SENDT.value,
+                Status.MOTTATT_UNDERBEHANDLING.value,
             ).executeQuery()
             .toKrav()
 
     fun Connection.getAllKravForResending() =
         prepareStatement("""select * from krav where status in (?, ?, ?, ?, ?)""")
             .withParameters(
-                param(Status.KRAV_IKKE_SENDT.value),
-                param(Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value),
-                param(Status.HTTP500_ANNEN_SERVER_FEIL.value),
-                param(Status.HTTP503_UTILGJENGELIG_TJENESTE.value),
-                param(Status.HTTP500_INTERN_TJENERFEIL.value),
+                Status.KRAV_IKKE_SENDT.value,
+                Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value,
+                Status.HTTP500_ANNEN_SERVER_FEIL.value,
+                Status.HTTP503_UTILGJENGELIG_TJENESTE.value,
+                Status.HTTP500_INTERN_TJENERFEIL.value,
             ).executeQuery()
             .toKrav()
 
     fun Connection.getAllUnsentKrav() =
         prepareStatement("""select * from krav where status = ?""")
             .withParameters(
-                param(Status.KRAV_IKKE_SENDT.value),
+                Status.KRAV_IKKE_SENDT.value,
             ).executeQuery()
             .toKrav()
 
@@ -57,7 +55,7 @@ object Repository {
             where krav_id = ?
             """.trimIndent(),
         ).withParameters(
-            param(kravId),
+            kravId,
         ).executeQuery()
             .toFeilmelding()
 
@@ -68,8 +66,8 @@ object Repository {
             where filnavn = ? and linjenummer = ?
             """.trimIndent(),
         ).withParameters(
-            param(kravTable.filnavn),
-            param(kravTable.linjenummer),
+            kravTable.filnavn,
+            kravTable.linjenummer,
         ).executeQuery()
             .toValideringsfeil()
 
@@ -80,8 +78,8 @@ object Repository {
             where status not in ( ?, ? ) order by id
             """.trimIndent(),
         ).withParameters(
-            param(Status.RESKONTROFOERT.value),
-            param(Status.VALIDERINGFEIL_RAPPORTERT.value),
+            Status.RESKONTROFOERT.value,
+            Status.VALIDERINGFEIL_RAPPORTERT.value,
         ).executeQuery()
             .toKrav()
 
@@ -95,8 +93,8 @@ object Repository {
                 group by kravidentifikator_ske limit 1
                 """.trimIndent(),
             ).withParameters(
-                param(navref),
-                param(navref),
+                navref,
+                navref,
             ).executeQuery()
         return if (rs.next()) {
             rs.getColumn("kravidentifikator_ske")
@@ -114,7 +112,7 @@ object Repository {
                 order by id limit 1
                 """.trimIndent(),
             ).withParameters(
-                param(navref),
+                navref,
             ).executeQuery()
         return if (rs.next()) {
             rs.getColumn("referansenummergammelsak")
@@ -131,7 +129,7 @@ object Repository {
                 where corr_id = ? order by id limit 1
                 """.trimIndent(),
             ).withParameters(
-                param(corrID),
+                corrID,
             ).executeQuery()
         return if (rs.next()) {
             rs.getColumn("id")
@@ -154,8 +152,8 @@ object Repository {
                 corr_id = ?
             """.trimIndent(),
         ).withParameters(
-            param(responseStatus),
-            param(corrID),
+            responseStatus,
+            corrID,
         ).execute()
         commit()
     }
@@ -176,9 +174,9 @@ object Repository {
                 corr_id = ?
             """.trimIndent(),
         ).withParameters(
-            param(responseStatus),
-            param(skeKravidentifikator),
-            param(corrID),
+            responseStatus,
+            skeKravidentifikator,
+            corrID,
         ).execute()
         commit()
     }
@@ -195,8 +193,8 @@ object Repository {
             where corr_id = ?
             """.trimIndent(),
         ).withParameters(
-            param(mottakStatus),
-            param(corrId),
+            mottakStatus,
+            corrId,
         ).execute()
         commit()
     }
@@ -210,8 +208,8 @@ object Repository {
             where id = ?
             """.trimIndent(),
         ).withParameters(
-            param(Status.VALIDERINGFEIL_RAPPORTERT.value),
-            param(kravId),
+            Status.VALIDERINGFEIL_RAPPORTERT.value,
+            kravId,
         ).execute()
         commit()
     }
@@ -229,9 +227,9 @@ object Repository {
                 kravtype <> ?
             """.trimIndent(),
         ).withParameters(
-            param(skeKravident),
-            param(saksnummerNav),
-            param(NYTT_KRAV),
+            skeKravident,
+            saksnummerNav,
+            NYTT_KRAV,
         ).execute()
         commit()
     }
@@ -270,60 +268,66 @@ object Repository {
                 """.trimIndent(),
             )
 
-        kravListe.forEach {
+        kravListe.forEach { krav ->
             val type: String =
                 when {
-                    it.isStopp() -> STOPP_KRAV
-                    it.isEndring() -> ENDRING_HOVEDSTOL
+                    krav.isStopp() -> STOPP_KRAV
+                    krav.isEndring() -> ENDRING_HOVEDSTOL
                     else -> NYTT_KRAV
                 }
-            prepStmt.setString(1, it.saksnummerNav)
-            prepStmt.setBigDecimal(2, it.belop)
-            prepStmt.setDate(3, Date.valueOf(it.vedtaksDato))
-            prepStmt.setString(4, it.gjelderId)
-            prepStmt.setString(5, it.periodeFOM)
-            prepStmt.setString(6, it.periodeTOM)
-            prepStmt.setString(7, it.kravKode)
-            prepStmt.setString(8, it.referansenummerGammelSak)
-            prepStmt.setString(9, it.transaksjonsDato)
-            prepStmt.setString(10, it.enhetBosted)
-            prepStmt.setString(11, it.enhetBehandlende)
-            prepStmt.setString(12, it.kodeHjemmel)
-            prepStmt.setString(13, it.kodeArsak)
-            prepStmt.setDouble(14, it.belopRente.toDouble())
-            prepStmt.setString(15, it.fremtidigYtelse.toString())
-            prepStmt.setDate(16, Date.valueOf(it.utbetalDato))
-            prepStmt.setString(17, it.fagsystemId)
-            prepStmt.setString(18, it.status ?: Status.KRAV_INNLEST_FRA_FIL.value)
-            prepStmt.setString(19, type)
-            prepStmt.setString(20, UUID.randomUUID().toString())
-            prepStmt.setString(21, filnavn)
-            prepStmt.setInt(22, it.linjenummer)
-            prepStmt.addBatch()
+
+            prepStmt
+                .withParameters(
+                    krav.saksnummerNav,
+                    krav.belop,
+                    krav.vedtaksDato,
+                    krav.gjelderId,
+                    krav.periodeFOM,
+                    krav.periodeTOM,
+                    krav.kravKode,
+                    krav.referansenummerGammelSak,
+                    krav.transaksjonsDato,
+                    krav.enhetBosted,
+                    krav.enhetBehandlende,
+                    krav.kodeHjemmel,
+                    krav.kodeArsak,
+                    krav.belopRente,
+                    krav.fremtidigYtelse.toString(),
+                    krav.utbetalDato,
+                    krav.fagsystemId,
+                    krav.status ?: Status.KRAV_INNLEST_FRA_FIL.value,
+                    type,
+                    UUID.randomUUID().toString(),
+                    filnavn,
+                    krav.linjenummer,
+                ).addBatch()
+
             if (type == ENDRING_HOVEDSTOL) {
-                prepStmt.setString(1, it.saksnummerNav)
-                prepStmt.setBigDecimal(2, it.belop)
-                prepStmt.setDate(3, Date.valueOf(it.vedtaksDato))
-                prepStmt.setString(4, it.gjelderId)
-                prepStmt.setString(5, it.periodeFOM)
-                prepStmt.setString(6, it.periodeTOM)
-                prepStmt.setString(7, it.kravKode)
-                prepStmt.setString(8, it.referansenummerGammelSak)
-                prepStmt.setString(9, it.transaksjonsDato)
-                prepStmt.setString(10, it.enhetBosted)
-                prepStmt.setString(11, it.enhetBehandlende)
-                prepStmt.setString(12, it.kodeHjemmel)
-                prepStmt.setString(13, it.kodeArsak)
-                prepStmt.setDouble(14, it.belopRente.toDouble())
-                prepStmt.setString(15, it.fremtidigYtelse.toString())
-                prepStmt.setDate(16, Date.valueOf(it.utbetalDato))
-                prepStmt.setString(17, it.fagsystemId)
-                prepStmt.setString(18, it.status ?: Status.KRAV_INNLEST_FRA_FIL.value)
-                prepStmt.setString(19, ENDRING_RENTE)
-                prepStmt.setString(20, UUID.randomUUID().toString())
-                prepStmt.setString(21, filnavn)
-                prepStmt.setInt(22, it.linjenummer)
-                prepStmt.addBatch()
+                prepStmt
+                    .withParameters(
+                        krav.saksnummerNav,
+                        krav.belop,
+                        krav.vedtaksDato,
+                        krav.gjelderId,
+                        krav.periodeFOM,
+                        krav.periodeTOM,
+                        krav.kravKode,
+                        krav.referansenummerGammelSak,
+                        krav.transaksjonsDato,
+                        krav.enhetBosted,
+                        krav.enhetBehandlende,
+                        krav.kodeHjemmel,
+                        krav.kodeArsak,
+                        krav.belopRente,
+                        krav.fremtidigYtelse.toString(),
+                        krav.utbetalDato,
+                        krav.fagsystemId,
+                        krav.status ?: Status.KRAV_INNLEST_FRA_FIL.value,
+                        ENDRING_RENTE,
+                        UUID.randomUUID().toString(),
+                        filnavn,
+                        krav.linjenummer,
+                    ).addBatch()
             }
         }
         prepStmt.executeBatch()
@@ -346,14 +350,14 @@ object Repository {
             values (?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
         ).withParameters(
-            param(feilmelding.kravId),
-            param(feilmelding.saksnummerNav),
-            param(feilmelding.kravidentifikatorSKE),
-            param(feilmelding.corrId),
-            param(feilmelding.error),
-            param(feilmelding.melding),
-            param(feilmelding.navRequest),
-            param(feilmelding.skeResponse),
+            feilmelding.kravId,
+            feilmelding.saksnummerNav,
+            feilmelding.kravidentifikatorSKE,
+            feilmelding.corrId,
+            feilmelding.error,
+            feilmelding.melding,
+            feilmelding.navRequest,
+            feilmelding.skeResponse,
         ).execute()
         commit()
     }
@@ -369,11 +373,11 @@ object Repository {
             values (?, ?, ?, ?, ? )
             """.trimIndent(),
         ).withParameters(
-            param(filnavn),
-            param(kravlinje.linjenummer),
-            param(kravlinje.saksnummerNav),
-            param(kravlinje.toString()),
-            param(feilmelding),
+            filnavn,
+            kravlinje.linjenummer,
+            kravlinje.saksnummerNav,
+            kravlinje.toString(),
+            feilmelding,
         ).execute()
         commit()
     }
