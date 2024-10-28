@@ -20,9 +20,9 @@ import sokos.ske.krav.service.StatusService
 
 fun Routing.skeApi(
     skeService: SkeService,
-    statusService: StatusService,
-    avstemmingService: AvstemmingService,
-    ftpService: FtpService,
+    statusService: StatusService = StatusService(),
+    avstemmingService: AvstemmingService = AvstemmingService(),
+    ftpService: FtpService = FtpService(),
 ) {
     val logger = KotlinLogging.logger("secureLogger")
 
@@ -57,7 +57,7 @@ fun Routing.skeApi(
         get("alleFeilmeldinger") {
             logger.info("API kaller Valideringsfeil")
             try {
-                statusService.hentValideringsfeil()
+                call.respond(statusService.hentValideringsfeil())
             } catch (e: Exception) {
                 logger.error("APIlogger: validering feilet")
                 call.respond(
