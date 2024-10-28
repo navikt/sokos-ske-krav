@@ -9,23 +9,13 @@ import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import sokos.ske.krav.api.skeApi
-import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.commonConfig
 import sokos.ske.krav.config.internalNaisRoutes
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.domain.StonadsType
 import sokos.ske.krav.metrics.Metrics
-import sokos.ske.krav.security.MaskinportenAccessTokenClient
-import sokos.ske.krav.service.AvstemmingService
-import sokos.ske.krav.service.DatabaseService
-import sokos.ske.krav.service.EndreKravService
-import sokos.ske.krav.service.FtpService
-import sokos.ske.krav.service.OpprettKravService
 import sokos.ske.krav.service.SkeService
-import sokos.ske.krav.service.StatusService
-import sokos.ske.krav.service.StoppKravService
-import sokos.ske.krav.util.httpClient
 import java.time.LocalDate
 import java.util.Timer
 import java.util.TimerTask
@@ -38,25 +28,14 @@ private fun Application.module() {
     val logger = KotlinLogging.logger("secureLogger")
 
     val applicationState = ApplicationState()
-    val tokenProvider = MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), httpClient)
-    val skeClient = SkeClient(tokenProvider, PropertiesConfig.SKEConfig.skeRestUrl)
-    val databaseService = DatabaseService()
-    val stoppKravService = StoppKravService(skeClient, databaseService)
-    val endreKravService = EndreKravService(skeClient, databaseService)
-    val opprettKravService = OpprettKravService(skeClient, databaseService)
-    val statusService = StatusService(skeClient, databaseService)
-    val ftpService = FtpService()
 
-    val skeService = SkeService(skeClient, stoppKravService, endreKravService, opprettKravService, statusService, databaseService)
-    val avstemmingService = AvstemmingService(databaseService)
-    val timer = Timer()
-    val timerConfig = PropertiesConfig.TimerConfig
+    val skeService = SkeService()
 
     commonConfig()
     applicationLifecycleConfig(applicationState)
     routing {
         internalNaisRoutes(applicationState)
-        skeApi(skeService, statusService, avstemmingService, ftpService)
+        skeApi(skeService)
     }
 
     if (!PropertiesConfig.isLocal) {
@@ -66,8 +45,10 @@ private fun Application.module() {
     StonadsType.entries.forEach {
         Metrics.incrementKravKodeSendtMetric(it.kravKode)
     }
+
+    val timerConfig = PropertiesConfig.TimerConfig
     if (timerConfig.useTimer) {
-        timer.schedule(
+        Timer().schedule(
             object : TimerTask() {
                 override fun run() {
                     logger.info("*** Scheduled run ${LocalDate.now()} ***")

@@ -22,12 +22,12 @@ const val ENDRING_HOVEDSTOL = "ENDRING_HOVEDSTOL"
 const val STOPP_KRAV = "STOPP_KRAV"
 
 class SkeService(
-    private val skeClient: SkeClient,
-    private val stoppKravService: StoppKravService,
-    private val endreKravService: EndreKravService,
-    private val opprettKravService: OpprettKravService,
-    private val statusService: StatusService,
-    private val databaseService: DatabaseService,
+    private val skeClient: SkeClient = SkeClient(),
+    private val databaseService: DatabaseService = DatabaseService(),
+    private val statusService: StatusService = StatusService(skeClient, databaseService),
+    private val stoppKravService: StoppKravService = StoppKravService(skeClient, databaseService),
+    private val endreKravService: EndreKravService = EndreKravService(skeClient, databaseService),
+    private val opprettKravService: OpprettKravService = OpprettKravService(skeClient, databaseService),
     private val ftpService: FtpService = FtpService(),
     private val slackClient: SlackClient = SlackClient(),
 ) {

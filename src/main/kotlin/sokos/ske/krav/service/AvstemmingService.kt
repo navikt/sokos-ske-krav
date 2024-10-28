@@ -4,7 +4,7 @@ import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.Status
 
 class AvstemmingService(
-    private val databaseService: DatabaseService,
+    private val databaseService: DatabaseService = DatabaseService(),
     private val ftpService: FtpService = FtpService(),
 ) {
     private val statusFeil = "STATUS_FEIL"
@@ -157,9 +157,17 @@ class AvstemmingService(
     private fun hentFeillinjeForKrav(kravTable: KravTable): String {
         val feilmelding =
             if (kravTable.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value) {
-                databaseService.getValidationMessageForKrav(kravTable).takeIf { it.isNotEmpty() }?.first()?.feilmelding
+                databaseService
+                    .getValidationMessageForKrav(kravTable)
+                    .takeIf { it.isNotEmpty() }
+                    ?.first()
+                    ?.feilmelding
             } else {
-                databaseService.getFeilmeldingForKravId(kravTable.kravId).takeIf { it.isNotEmpty() }?.first()?.melding
+                databaseService
+                    .getFeilmeldingForKravId(kravTable.kravId)
+                    .takeIf { it.isNotEmpty() }
+                    ?.first()
+                    ?.melding
             }
         return if (feilmelding.isNullOrBlank()) {
             """

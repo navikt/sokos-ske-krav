@@ -15,8 +15,8 @@ import sokos.ske.krav.util.createKravidentifikatorPair
 import java.time.LocalDateTime
 
 class StatusService(
-    private val skeClient: SkeClient,
-    private val databaseService: DatabaseService,
+    private val skeClient: SkeClient = SkeClient(),
+    private val databaseService: DatabaseService = DatabaseService(),
 ) {
     private val logger = KotlinLogging.logger("secureLogger")
 

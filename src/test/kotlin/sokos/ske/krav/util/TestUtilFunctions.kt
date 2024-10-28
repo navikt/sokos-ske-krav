@@ -76,22 +76,22 @@ private val dataSourceMock =
 
 fun setupSkeServiceMock(
     skeClient: SkeClient = mockSkeClient,
-    stoppService: StoppKravService = stoppServiceMock,
-    endreService: EndreKravService = endreServiceMock,
-    opprettService: OpprettKravService = opprettServiceMock,
+    stoppKravService: StoppKravService = stoppServiceMock,
+    endreKravService: EndreKravService = endreServiceMock,
+    opprettKravService: OpprettKravService = opprettServiceMock,
     statusService: StatusService = statusServiceMock,
     databaseService: DatabaseService = dataSourceMock,
     ftpService: FtpService = ftpServiceMock,
     slackClient: SlackClient = SlackClient(client = MockHttpClient().getSlackClient()),
 ) = SkeService(
-    skeClient,
-    stoppService,
-    endreService,
-    opprettService,
-    statusService,
-    databaseService,
-    ftpService,
-    slackClient,
+    skeClient = skeClient,
+    stoppKravService = stoppKravService,
+    endreKravService = endreKravService,
+    opprettKravService = opprettKravService,
+    statusService = statusService,
+    databaseService = databaseService,
+    ftpService = ftpService,
+    slackClient = slackClient,
 )
 
 fun setUpMockHttpClient(endepunktTyper: List<MockHttpClientUtils.MockRequestObj>) = MockHttpClient().getClient(endepunktTyper)
@@ -108,15 +108,16 @@ fun setupSkeServiceMockWithMockEngine(
     val opprettKravService = OpprettKravService(skeClient, databaseService)
     val statusService = StatusService(skeClient, databaseService)
     val stoppKravService = StoppKravService(skeClient, databaseService)
+    val slackClient = SlackClient(client = MockHttpClient().getSlackClient())
     return SkeService(
-        skeClient,
-        stoppKravService,
-        endreKravService,
-        opprettKravService,
-        statusService,
-        databaseService,
-        ftpService,
-        SlackClient(client = MockHttpClient().getSlackClient()),
+        skeClient = skeClient,
+        stoppKravService = stoppKravService,
+        endreKravService = endreKravService,
+        opprettKravService = opprettKravService,
+        statusService = statusService,
+        databaseService = databaseService,
+        ftpService = ftpService,
+        slackClient = slackClient,
     )
 }
 
