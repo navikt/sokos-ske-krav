@@ -4,12 +4,12 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.isSuccess
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.database.Repository.getAllFeilmeldinger
 import sokos.ske.krav.database.Repository.getAllKravForAvstemming
 import sokos.ske.krav.database.Repository.getAllKravForResending
 import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
-import sokos.ske.krav.database.Repository.getAllUniqueKravkoder
 import sokos.ske.krav.database.Repository.getAllUnsentKrav
 import sokos.ske.krav.database.Repository.getFeilmeldingForKravId
 import sokos.ske.krav.database.Repository.getKravTableIdFromCorrelationId
@@ -108,10 +108,10 @@ class DatabaseService(
         }
     }
 
-    fun updateSentKrav(responses: List<RequestResult>) {
-        responses.forEach {
-            Metrics.numberOfKravSent.increment()
-            Metrics.incrementTypeKravSendtMetric(it.kravTable.kravkode)
+    fun updateSentKrav(results: List<RequestResult>) {
+        incrementMetrics(results)
+        results.forEach {
+            Metrics.incrementKravKodeSendtMetric(it.kravTable.kravkode)
 
             if (it.kravTable.kravtype == NYTT_KRAV) {
                 updateSentKrav(
@@ -126,6 +126,14 @@ class DatabaseService(
                 )
             }
         }
+    }
+
+    private fun incrementMetrics(results: List<RequestResult>) {
+        Metrics.numberOfKravSent.increment(results.size.toDouble())
+        Metrics.numberOfKravFeilet.increment(results.filter { !it.response.status.isSuccess() }.size.toDouble())
+        Metrics.numberOfNyeKrav.increment(results.filter { it.kravTable.kravtype == NYTT_KRAV }.size.toDouble())
+        Metrics.numberOfEndringerAvKrav.increment(results.filter { it.kravTable.kravtype == ENDRING_RENTE }.size.toDouble())
+        Metrics.numberOfStoppAvKrav.increment(results.filter { it.kravTable.kravtype == STOPP_KRAV }.size.toDouble())
     }
 
     suspend fun saveErrorMessage(
@@ -214,14 +222,5 @@ class DatabaseService(
         dataSource.connection.useAndHandleErrors { con ->
             con.updateEndringWithSkeKravIdentifikator(navsaksnummer, skeKravidentifikator)
         }
-    }
-
-    fun getKravkoder() = dataSource.connection.useAndHandleErrors { con -> con.getAllUniqueKravkoder() }
-
-    fun getKravkodeCount(): Map<String, Int> {
-        val getUniqueKravkoder = dataSource.connection.useAndHandleErrors { con -> con.getAllUniqueKravkoder() }
-
-        println(getUniqueKravkoder)
-        return emptyMap()
     }
 }

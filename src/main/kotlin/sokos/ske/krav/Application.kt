@@ -64,7 +64,7 @@ private fun Application.module() {
     }
 
     StonadsType.entries.forEach {
-        Metrics.incrementTypeKravSendtMetric(it.kravKode)
+        Metrics.incrementKravKodeSendtMetric(it.kravKode)
     }
     if (timerConfig.useTimer) {
         timer.schedule(

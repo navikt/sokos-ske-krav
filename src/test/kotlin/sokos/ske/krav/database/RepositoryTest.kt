@@ -13,7 +13,6 @@ import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import sokos.ske.krav.service.ENDRING_RENTE
 import sokos.ske.krav.service.NYTT_KRAV
@@ -29,12 +28,6 @@ import java.time.LocalDateTime
 internal class RepositoryTest :
     FunSpec({
 
-        test("getAllUniqueKravkode") {
-            val testContainer = TestContainer()
-            testContainer.migrate("10NyeKrav.sql")
-
-            DatabaseService(testContainer.dataSource).getKravkodeCount()
-        }
         test("insertAllNewKrav skal inserte alle kravlinjene") {
 
             val filnavn = "${File.separator}FtpFiler${File.separator}8NyeKrav1Endring1Stopp.txt"

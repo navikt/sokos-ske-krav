@@ -68,7 +68,6 @@ class SkeService(
 
             val result = sendKrav(databaseService.getAllUnsentKrav())
             logResult(result)
-            AlarmService.handleFeil(result, file)
         }
     }
 
