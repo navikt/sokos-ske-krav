@@ -5,7 +5,6 @@ import io.kotest.core.spec.style.FunSpec
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.util.TestContainer
-import toFeilmelding
 import java.sql.SQLException
 
 internal class RepositoryExtensionTest :

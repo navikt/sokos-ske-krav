@@ -12,6 +12,8 @@ import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.config.SftpConfig
+import sokos.ske.krav.database.toFeilmelding
+import sokos.ske.krav.database.toKrav
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.ske.responses.AvstemmingResponse
 import sokos.ske.krav.domain.ske.responses.FeilResponse
@@ -35,8 +37,6 @@ import sokos.ske.krav.util.getAllKrav
 import sokos.ske.krav.util.setUpMockHttpClient
 import sokos.ske.krav.util.setupSkeServiceMock
 import sokos.ske.krav.util.setupSkeServiceMockWithMockEngine
-import toFeilmelding
-import toKrav
 
 internal class SkeServiceIntegrationTest :
     FunSpec({

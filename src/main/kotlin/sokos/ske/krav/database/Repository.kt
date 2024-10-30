@@ -13,9 +13,6 @@ import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
 import sokos.ske.krav.util.isEndring
 import sokos.ske.krav.util.isStopp
-import toFeilmelding
-import toKrav
-import toValideringsfeil
 import java.sql.Connection
 import java.util.UUID
 

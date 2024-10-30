@@ -1,3 +1,5 @@
+package sokos.ske.krav.database
+
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
