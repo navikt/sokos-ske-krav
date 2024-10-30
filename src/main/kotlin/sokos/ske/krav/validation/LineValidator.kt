@@ -5,6 +5,7 @@ import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.StonadsType
 import sokos.ske.krav.domain.nav.KravLinje
+import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.FtpFil
 import sokos.ske.krav.util.isOpprettKrav
@@ -24,6 +25,7 @@ class LineValidator(
         val allErrorMessages = mutableListOf<Pair<String, String>>()
         val returnLines =
             file.kravLinjer.map {
+                Metrics.numberOfKravRead.increment()
                 when (val result: ValidationResult = validateLine(it)) {
                     is ValidationResult.Success -> {
                         it.copy(status = Status.KRAV_IKKE_SENDT.value)

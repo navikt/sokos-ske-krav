@@ -132,7 +132,7 @@ class DatabaseService(
         Metrics.numberOfKravSent.increment(results.size.toDouble())
         Metrics.numberOfKravFeilet.increment(results.filter { !it.response.status.isSuccess() }.size.toDouble())
         Metrics.numberOfNyeKrav.increment(results.filter { it.kravTable.kravtype == NYTT_KRAV }.size.toDouble())
-        Metrics.numberOfEndringerAvKrav.increment(results.filter { it.kravTable.kravtype == ENDRING_RENTE }.size.toDouble())
+        Metrics.numberOfEndringerAvKrav.increment(results.filter { it.kravTable.kravtype == ENDRING_RENTE || it.kravTable.kravtype == ENDRING_HOVEDSTOL }.size.toDouble())
         Metrics.numberOfStoppAvKrav.increment(results.filter { it.kravTable.kravtype == STOPP_KRAV }.size.toDouble())
     }
 
