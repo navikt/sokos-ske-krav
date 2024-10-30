@@ -55,7 +55,6 @@ class SkeService(
             logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
 
             val validatedLines = LineValidator().validateNewLines(file, databaseService)
-            Metrics.numberOfKravRead.increment(validatedLines.size.toDouble())
 
             if (file.kravLinjer.size > validatedLines.size) {
                 logger.warn("Ved validering av linjer i fil ${file.name} har ${file.kravLinjer.size - validatedLines.size} linjer velideringsfeil ")
@@ -78,7 +77,7 @@ class SkeService(
         logger.info { "Sendte ${result.size} krav$unsuccesfulMessage" }
 
         val nye = successful.count { it.kravTable.kravtype == NYTT_KRAV }
-        val endringer = successful.count { it.kravTable.kravtype == ENDRING_RENTE }
+        val endringer = successful.count { it.kravTable.kravtype == ENDRING_RENTE } + successful.count { it.kravTable.kravtype == ENDRING_HOVEDSTOL }
         val stopp = successful.count { it.kravTable.kravtype == STOPP_KRAV }
         logger.info { "$nye nye, $endringer endringer, $stopp stopp" }
     }
