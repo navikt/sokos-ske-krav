@@ -78,4 +78,4 @@ spec:
     - name: TIMER_INITIAL_DELAY
       value: "500"
     - name: TIMER_INTERVAL_PERIOD
-      value: "1800000"
+      value: "3600000 "
