@@ -32,7 +32,6 @@ fun Routing.skeApi(
             try {
                 call.respond(HttpStatusCode.OK, "Da er den i gang ${Clock.System.now()}")
                 skeService.handleNewKrav()
-                logger.info("API :  Krav sendt")
             } catch (e: Exception) {
                 logger.error(
                     "API : Sorry feilet: ${e.message}, \n" +
@@ -44,7 +43,6 @@ fun Routing.skeApi(
             logger.info("APIlogger:  Status Start")
             try {
                 call.respond(statusService.hentOgOppdaterMottaksStatus())
-                logger.info("APILogger Status ferdig")
             } catch (e: Exception) {
                 logger.error("APILogger: Status feilet")
                 call.respond(
@@ -59,7 +57,6 @@ fun Routing.skeApi(
             try {
                 call.respond(statusService.hentValideringsfeil())
             } catch (e: Exception) {
-                logger.error("APIlogger: validering feilet")
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "Sorry validering feilet: ${e.message}, \n" +

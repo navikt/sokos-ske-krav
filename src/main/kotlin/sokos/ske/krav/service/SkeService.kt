@@ -2,7 +2,6 @@ package sokos.ske.krav.service
 
 import io.ktor.client.call.body
 import io.ktor.http.isSuccess
-import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.SlackClient
@@ -33,14 +32,26 @@ class SkeService(
 ) {
     private val logger = KotlinLogging.logger("secureLogger")
 
+    private var haltRun = false
+
     suspend fun handleNewKrav() {
+        if (haltRun) {
+            logger.info("*** Run is halted ***")
+            return
+        }
+
         statusService.hentOgOppdaterMottaksStatus()
         Metrics.numberOfKravResent.increment(sendKrav(databaseService.getAllKravForResending()).size.toDouble())
 
-        sendNewFilesToSKE().also { delay(10_000) }
+        sendNewFilesToSKE()
 
         statusService.hentOgOppdaterMottaksStatus()
         Metrics.numberOfKravResent.increment(sendKrav(databaseService.getAllKravForResending()).size.toDouble())
+
+        if (haltRun) {
+            haltRun = false
+            logger.info("*** Run has been unhalted ***")
+        }
     }
 
     private suspend fun sendNewFilesToSKE() {
@@ -59,7 +70,10 @@ class SkeService(
             if (file.kravLinjer.size > validatedLines.size) {
                 logger.warn("Ved validering av linjer i fil ${file.name} har ${file.kravLinjer.size - validatedLines.size} linjer velideringsfeil ")
             }
-
+            if (validatedLines.size >= 1000) {
+                logger.info("***Large file. Halting run***")
+                haltRun = true
+            }
             databaseService.saveAllNewKrav(validatedLines, file.name)
             ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
 
