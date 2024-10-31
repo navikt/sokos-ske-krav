@@ -44,6 +44,7 @@ class StatusService(
                 logger.error { "Kall til mottaksstatus hos skatt feilet: ${response.status.value}, ${response.status.description}" }
             }
         }
+        if (krav.isNotEmpty()) logger.info("Sjekk av mottaksstatus ferdig")
     }
 
     private suspend fun hentOgLagreValideringsFeil(
