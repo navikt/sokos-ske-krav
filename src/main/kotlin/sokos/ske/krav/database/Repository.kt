@@ -77,10 +77,11 @@ object Repository {
         prepareStatement(
             """
             select * from krav 
-            where status not in ( ?, ? ) order by id
+            where status not in ( ?, ?, ? ) order by id
             """.trimIndent(),
         ).withParameters(
             param(Status.RESKONTROFOERT.value),
+            param(Status.MIGRERT.value),
             param(Status.VALIDERINGFEIL_RAPPORTERT.value),
         ).executeQuery()
             .toKrav()
