@@ -77,7 +77,7 @@ object Repository {
         prepareStatement(
             """
             select * from krav 
-            where status in ( ?, ?, ? ) order by id
+            where status in ( ?, ?, ?, ?) order by id
             """.trimIndent(),
         ).withParameters(
             param(Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value),
