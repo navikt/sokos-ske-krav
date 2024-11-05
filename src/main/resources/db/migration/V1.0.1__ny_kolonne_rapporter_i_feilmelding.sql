@@ -1,0 +1,1 @@
+alter table feilmelding add rapporter boolean default true ;
