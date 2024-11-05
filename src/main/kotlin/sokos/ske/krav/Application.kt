@@ -7,28 +7,26 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
 import sokos.ske.krav.api.skeApi
 import sokos.ske.krav.config.PropertiesConfig
+import sokos.ske.krav.config.PropertiesConfig.TimerConfig.initialDelay
+import sokos.ske.krav.config.PropertiesConfig.TimerConfig.intervalPeriod
+import sokos.ske.krav.config.PropertiesConfig.TimerConfig.useTimer
 import sokos.ske.krav.config.commonConfig
 import sokos.ske.krav.config.internalNaisRoutes
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.domain.StonadsType
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.SkeService
-import java.time.LocalDate
 import java.util.Timer
-import java.util.TimerTask
+import kotlin.concurrent.schedule
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
 }
 
 private fun Application.module() {
-    val logger = KotlinLogging.logger("secureLogger")
-
     val applicationState = ApplicationState()
-
     val skeService = SkeService()
 
     commonConfig()
@@ -46,18 +44,13 @@ private fun Application.module() {
         Metrics.incrementKravKodeSendtMetric(it.kravKode)
     }
 
-    val timerConfig = PropertiesConfig.TimerConfig
-    if (timerConfig.useTimer) {
-        Timer().schedule(
-            object : TimerTask() {
-                override fun run() {
-                    logger.info("*** Scheduled run ${LocalDate.now()} ***")
-                    runBlocking { skeService.handleNewKrav() }
-                }
-            },
-            timerConfig.initialDelay,
-            timerConfig.intervalPeriod,
-        )
+    if (!useTimer) return
+
+    Timer("Krav Scheduled Run").schedule(
+        initialDelay,
+        intervalPeriod,
+    ) {
+        runBlocking { skeService.handleNewKrav() }
     }
 }
 
