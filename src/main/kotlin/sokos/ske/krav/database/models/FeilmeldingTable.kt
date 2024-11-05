@@ -13,4 +13,5 @@ data class FeilmeldingTable(
     val navRequest: String,
     val skeResponse: String,
     val tidspunktOpprettet: LocalDateTime,
+    val rapporter: Boolean = true,
 )
