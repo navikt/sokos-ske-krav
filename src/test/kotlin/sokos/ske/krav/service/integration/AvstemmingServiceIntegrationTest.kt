@@ -33,12 +33,13 @@ internal class AvstemmingServiceIntegrationTest :
         test("oppdaterAvstemtKravTilRapportert skal sette status til rapportert og hente tabelldata på nytt") {
             val testContainer = TestContainer()
             testContainer.migrate("KravSomSkalAvstemmes.sql")
+            testContainer.migrate("FeilmeldingerSomSkalAvstemmes.sql")
 
             val dbService = DatabaseService(testContainer.dataSource)
-            dbService.getAllKravForAvstemming().size shouldBe 9
+            dbService.getAllKravForAvstemming().size shouldBe 3
 
             val avstemmingService = AvstemmingService(dbService, ftpService)
             avstemmingService.oppdaterAvstemtKravTilRapportert(1)
-            dbService.getAllKravForAvstemming().size shouldBe 8
+            dbService.getAllKravForAvstemming().size shouldBe 2
         }
     })

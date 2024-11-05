@@ -52,6 +52,7 @@ fun ResultSet.toFeilmelding() =
             navRequest = getColumn("nav_request"),
             skeResponse = getColumn("ske_response"),
             tidspunktOpprettet = getColumn("tidspunkt_opprettet"),
+            rapporter = getColumn("rapporter"),
         )
     }
 
