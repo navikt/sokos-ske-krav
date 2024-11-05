@@ -2,7 +2,6 @@ package sokos.ske.krav.database
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import sokos.ske.krav.database.Repository.getAllFeilmeldinger
 import sokos.ske.krav.database.Repository.getAllKravForAvstemming
 import sokos.ske.krav.database.Repository.getAllKravForResending
@@ -18,7 +17,6 @@ import sokos.ske.krav.database.Repository.updateSentKrav
 import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.Repository.updateStatusForAvstemtKravToReported
 import sokos.ske.krav.database.models.FeilmeldingTable
-import sokos.ske.krav.domain.Status
 import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.util.getAllKrav
 import java.time.LocalDate
@@ -203,9 +201,10 @@ internal class RepositoryBehaviourTest :
         given("det finnes krav som skal avstemmes") {
             val testContainer = TestContainer()
             testContainer.migrate("KravSomSkalAvstemmes.sql")
+            testContainer.migrate("FeilmeldingerSomSkalAvstemmes.sql")
 
-            then("getAllKravForAvstemming skal returnere alle krav som ikke har status RESKONTROFOERT eller VALIDERINGFEIL_RAPPORTERT") {
-                testContainer.dataSource.connection.use { it.getAllKravForAvstemming().size shouldBe 9 }
+            then("getAllKravForAvstemming skal returnere alle krav som har en feilmelding med status rapporter=true") {
+                testContainer.dataSource.connection.use { it.getAllKravForAvstemming().size shouldBe 3 }
             }
 
             then("updateStatusForAvstemtKravToReported skal sette status til VALIDERINGFEIL_RAPPORTERT på krav med angitt kravid") {
@@ -213,22 +212,18 @@ internal class RepositoryBehaviourTest :
 
                 val firstKrav = kravForAvstemmingBeforeUpdate.first()
                 val lastKrav = kravForAvstemmingBeforeUpdate.last()
-                firstKrav.status shouldNotBe Status.VALIDERINGFEIL_RAPPORTERT.value
-                lastKrav.status shouldNotBe Status.VALIDERINGFEIL_RAPPORTERT.value
 
                 testContainer.dataSource.connection.use { it.updateStatusForAvstemtKravToReported(firstKrav.kravId.toInt()) }
                 testContainer.dataSource.connection.use { it.updateStatusForAvstemtKravToReported(lastKrav.kravId.toInt()) }
 
                 val kravForAvstemmingAfterUpdate = testContainer.dataSource.connection.use { it.getAllKravForAvstemming() }
                 kravForAvstemmingAfterUpdate.size shouldBe kravForAvstemmingBeforeUpdate.size - 2
-                kravForAvstemmingAfterUpdate.filter { it.status == Status.VALIDERINGFEIL_RAPPORTERT.value }.size shouldBe 0
 
-                val alleKrav = testContainer.dataSource.connection.use { it.getAllKrav() }
-                val firstKravAfterUpdate = alleKrav.find { it.kravId == firstKrav.kravId }
-                val lastKravAfterUpdate = alleKrav.find { it.kravId == lastKrav.kravId }
+                val feilmelding1 = testContainer.dataSource.connection.use { it.getFeilmeldingForKravId(firstKrav.kravId) }
+                val feilmelding2 = testContainer.dataSource.connection.use { it.getFeilmeldingForKravId(lastKrav.kravId) }
 
-                firstKravAfterUpdate?.status shouldBe Status.VALIDERINGFEIL_RAPPORTERT.value
-                lastKravAfterUpdate?.status shouldBe Status.VALIDERINGFEIL_RAPPORTERT.value
+                feilmelding1.first().rapporter shouldBe false
+                feilmelding2.first().rapporter shouldBe false
             }
         }
     })

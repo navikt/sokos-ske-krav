@@ -71,13 +71,12 @@ object Repository {
     fun Connection.getAllKravForAvstemming() =
         prepareStatement(
             """
-            select * from krav 
-            where status not in ( ?, ?, ? ) order by id
+            select a.* from krav a join feilmelding b on a.id=b.krav_id
+            where a.status not in ( ?, ?) and b.rapporter = true order by a.id
             """.trimIndent(),
         ).withParameters(
             Status.RESKONTROFOERT.value,
             Status.MIGRERT.value,
-            Status.VALIDERINGFEIL_RAPPORTERT.value,
         ).executeQuery()
             .toKrav()
 
@@ -200,13 +199,11 @@ object Repository {
     fun Connection.updateStatusForAvstemtKravToReported(kravId: Int) {
         prepareStatement(
             """
-            update krav 
-            set status = ?,
-            tidspunkt_siste_status = NOW()
-            where id = ?
+            update feilmelding 
+            set rapporter = false
+            where krav_id = ?
             """.trimIndent(),
         ).withParameters(
-            Status.VALIDERINGFEIL_RAPPORTERT.value,
             kravId,
         ).execute()
         commit()
