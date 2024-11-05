@@ -11,6 +11,9 @@ import java.time.Duration
 
 object PostgresDataSource {
     private val logger = KotlinLogging.logger("secureLogger")
+    val dataSource: HikariDataSource by lazy {
+        dataSource()
+    }
 
     fun migrate(dataSource: HikariDataSource = dataSource(role = PropertiesConfig.PostgresConfig.adminUser)) {
         logger.info { "Flyway migration" }
@@ -26,7 +29,7 @@ object PostgresDataSource {
         logger.info { "Migration finished" }
     }
 
-    fun dataSource(
+    private fun dataSource(
         hikariConfig: HikariConfig = hikariConfig(),
         role: String = PropertiesConfig.PostgresConfig.user,
     ): HikariDataSource =
