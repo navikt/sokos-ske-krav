@@ -34,7 +34,7 @@ import sokos.ske.krav.util.RequestResult
 import java.time.LocalDateTime
 
 class DatabaseService(
-    private val dataSource: HikariDataSource = PostgresDataSource.dataSource(),
+    private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
 ) {
     fun getSkeKravidentifikator(navref: String): String {
         dataSource.connection.useAndHandleErrors { con ->
