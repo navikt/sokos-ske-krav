@@ -7,7 +7,8 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
-import sokos.ske.krav.api.skeApi
+import sokos.ske.krav.api.avstemmingRoutes
+import sokos.ske.krav.api.internalRoutes
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.PropertiesConfig.TimerConfig.initialDelay
 import sokos.ske.krav.config.PropertiesConfig.TimerConfig.intervalPeriod
@@ -17,6 +18,7 @@ import sokos.ske.krav.config.internalNaisRoutes
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.domain.StonadsType
 import sokos.ske.krav.metrics.Metrics
+import sokos.ske.krav.service.Frontend
 import sokos.ske.krav.service.SkeService
 import java.util.Timer
 import kotlin.concurrent.schedule
@@ -25,6 +27,7 @@ fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
 }
 
+@OptIn(Frontend::class)
 private fun Application.module() {
     val applicationState = ApplicationState()
     val skeService = SkeService()
@@ -33,7 +36,8 @@ private fun Application.module() {
     applicationLifecycleConfig(applicationState)
     routing {
         internalNaisRoutes(applicationState)
-        skeApi(skeService)
+        internalRoutes(skeService)
+        avstemmingRoutes()
     }
 
     if (!PropertiesConfig.isLocal) {
