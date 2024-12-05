@@ -1,0 +1,1 @@
+alter table valideringsfeil add rapporter boolean default true ;
