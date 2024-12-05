@@ -12,6 +12,7 @@ import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.config.SftpConfig
+import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.toFeilmelding
 import sokos.ske.krav.database.toKrav
 import sokos.ske.krav.domain.Status
@@ -42,7 +43,7 @@ internal class SkeServiceIntegrationTest :
     FunSpec({
         extensions(SftpListener)
         val ftpService: FtpService by lazy {
-            FtpService(SftpConfig(SftpListener.sftpProperties))
+            FtpService(SftpConfig(SftpListener.sftpProperties), databaseService = mockk<DatabaseService>())
         }
 
         test("Når SkeService leser inn en fil skal kravene lagres i database") {
@@ -149,7 +150,7 @@ internal class SkeServiceIntegrationTest :
             val feilmeldinger =
                 testContainer.dataSource.connection.use {
                     it
-                        .prepareStatement("SELECT * FROM FEILMELDING")
+                        .prepareStatement("SELECT * FROM feilmelding")
                         .executeQuery()
                         .toFeilmelding()
                 }
@@ -157,15 +158,17 @@ internal class SkeServiceIntegrationTest :
             feilmeldinger.size shouldBe 10
             feilmeldinger.map { Json.decodeFromString<FeilResponse>(it.skeResponse).status == 404 }.size shouldBe 10
 
-            val joinToString = feilmeldinger.joinToString("','") { it.corrId }
             val kravMedFeil =
-                testContainer.dataSource.connection.use {
-                    it
-                        .prepareStatement(
-                            """select * from Krav where corr_id in ('$joinToString')""",
-                        ).executeQuery()
-                        .toKrav()
-                }
+                testContainer.dataSource.connection
+                    .use { con ->
+                        feilmeldinger.map { feilmelding ->
+                            con
+                                .prepareStatement("""select * from krav where corr_id = ?""")
+                                .withParameters(feilmelding.corrId)
+                                .executeQuery()
+                                .toKrav()
+                        }
+                    }.flatten()
 
             kravMedFeil.size shouldBe 10
             kravMedFeil.filter { it.status == Status.HTTP404_FANT_IKKE_SAKSREF.value }.size shouldBe 10

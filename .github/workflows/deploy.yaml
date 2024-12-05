@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - filvalidering-skal-lagre-feil-i-db
     paths-ignore:
       - '**.md'
       - 'LICENCE'

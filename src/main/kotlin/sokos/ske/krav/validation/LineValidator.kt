@@ -33,7 +33,7 @@ class LineValidator(
 
                     is ValidationResult.Error -> {
                         allErrorMessages.addAll(result.messages)
-                        ds.saveValidationError(file.name, it, result.messages.joinToString { pair -> pair.second })
+                        ds.saveLineValidationError(file.name, it, result.messages.joinToString { pair -> pair.second })
                         it.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
                     }
                 }

@@ -26,6 +26,7 @@ data class FtpFil(
 class FtpService(
     private val sftpConfig: SftpConfig = SftpConfig(),
     private val fileValidator: FileValidator = FileValidator(),
+    private val databaseService: DatabaseService = DatabaseService(),
 ) {
     private val logger = KotlinLogging.logger("secureLogger")
 
@@ -85,6 +86,12 @@ class FtpService(
                 }
                 is ValidationResult.Error -> {
                     moveFile(entry.key, directory, Directories.FAILED)
+                    result.messages.forEach { p ->
+                        val title = p.first
+                        val message = p.second
+
+                        databaseService.saveFileValidationError(entry.key, "$title: $message")
+                    }
                 }
             }
         }
