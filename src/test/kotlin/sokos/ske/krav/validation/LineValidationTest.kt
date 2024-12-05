@@ -19,7 +19,7 @@ internal class LineValidationTest :
         test("Validering av linje skal returnere true når validering er ok") {
             val dsMock =
                 mockk<DatabaseService> {
-                    justRun { saveValidationError(any(), any(), any()) }
+                    justRun { saveLineValidationError(any(), any(), any()) }
                 }
             val kravLinje =
                 KravLinje(
@@ -56,7 +56,7 @@ internal class LineValidationTest :
         test("Validering av linje skal feile når kravtypen er ugyldig") {
             val dsMock =
                 mockk<DatabaseService> {
-                    justRun { saveValidationError(any(), any(), any()) }
+                    justRun { saveLineValidationError(any(), any(), any()) }
                 }
             val kravLinje =
                 KravLinje(
@@ -94,7 +94,7 @@ internal class LineValidationTest :
         test("Saksnummer må være riktig formatert") {
             val dsMock =
                 mockk<DatabaseService> {
-                    justRun { saveValidationError(any(), any(), any()) }
+                    justRun { saveLineValidationError(any(), any(), any()) }
                 }
 
             val kravLinje =
@@ -133,7 +133,7 @@ internal class LineValidationTest :
         test("Refnummer gamme sak må være riktig formatert") {
             val dsMock =
                 mockk<DatabaseService> {
-                    justRun { saveValidationError(any(), any(), any()) }
+                    justRun { saveLineValidationError(any(), any(), any()) }
                 }
             val kravLinje =
                 KravLinje(
@@ -171,7 +171,7 @@ internal class LineValidationTest :
         test("Vedtaksdato kan ikke være i fremtiden") {
             val dsMock =
                 mockk<DatabaseService> {
-                    justRun { saveValidationError(any(), any(), any()) }
+                    justRun { saveLineValidationError(any(), any(), any()) }
                 }
             val kravLinje =
                 KravLinje(
@@ -209,7 +209,7 @@ internal class LineValidationTest :
         test("Periode må være i fortid og fom må være før tom") {
             val dsMock =
                 mockk<DatabaseService> {
-                    justRun { saveValidationError(any(), any(), any()) }
+                    justRun { saveLineValidationError(any(), any(), any()) }
                 }
             val kravLinje =
                 KravLinje(
@@ -247,7 +247,7 @@ internal class LineValidationTest :
         test("utbetalingsdato må være i fortid") {
             val dsMock =
                 mockk<DatabaseService> {
-                    justRun { saveValidationError(any(), any(), any()) }
+                    justRun { saveLineValidationError(any(), any(), any()) }
                 }
             val kravLinje =
                 KravLinje(
@@ -284,7 +284,7 @@ internal class LineValidationTest :
         test("validering av periode skal returnere false når dato er på ugyldig format") {
             val dsMock =
                 mockk<DatabaseService> {
-                    justRun { saveValidationError(any(), any(), any()) }
+                    justRun { saveLineValidationError(any(), any(), any()) }
                 }
             val kravLinje =
                 KravLinje(

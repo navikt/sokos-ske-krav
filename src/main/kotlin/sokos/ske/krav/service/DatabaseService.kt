@@ -15,10 +15,12 @@ import sokos.ske.krav.database.Repository.getFeilmeldingForKravId
 import sokos.ske.krav.database.Repository.getKravTableIdFromCorrelationId
 import sokos.ske.krav.database.Repository.getPreviousReferansenummer
 import sokos.ske.krav.database.Repository.getSkeKravidentifikator
-import sokos.ske.krav.database.Repository.getValideringsFeilForKravId
+import sokos.ske.krav.database.Repository.getValideringsFeilForFil
+import sokos.ske.krav.database.Repository.getValideringsFeilForLinje
 import sokos.ske.krav.database.Repository.insertAllNewKrav
 import sokos.ske.krav.database.Repository.insertFeilmelding
-import sokos.ske.krav.database.Repository.insertValideringsfeil
+import sokos.ske.krav.database.Repository.insertFileValideringsfeil
+import sokos.ske.krav.database.Repository.insertLineValideringsfeil
 import sokos.ske.krav.database.Repository.updateEndringWithSkeKravIdentifikator
 import sokos.ske.krav.database.Repository.updateSentKrav
 import sokos.ske.krav.database.Repository.updateStatus
@@ -98,13 +100,22 @@ class DatabaseService(
         }
     }
 
-    fun saveValidationError(
+    fun saveLineValidationError(
         filnavn: String,
-        kravlinje: KravLinje,
+        kravlinje: KravLinje?,
         feilmelding: String,
     ) {
         dataSource.connection.useAndHandleErrors { con ->
-            con.insertValideringsfeil(filnavn, kravlinje, feilmelding)
+            con.insertLineValideringsfeil(filnavn, kravlinje, feilmelding)
+        }
+    }
+
+    fun saveFileValidationError(
+        filnavn: String,
+        feilmelding: String,
+    ) {
+        dataSource.connection.useAndHandleErrors { con ->
+            con.insertFileValideringsfeil(filnavn, feilmelding)
         }
     }
 
@@ -182,9 +193,18 @@ class DatabaseService(
         }
     }
 
-    fun getValidationMessageForKrav(kravTable: KravTable): List<ValideringsfeilTable> {
+    fun getLineValidationMessage(
+        filNavn: String,
+        linjeNummer: Int,
+    ): List<ValideringsfeilTable> {
         dataSource.connection.useAndHandleErrors { con ->
-            return con.getValideringsFeilForKravId(kravTable)
+            return con.getValideringsFeilForLinje(filNavn, linjeNummer)
+        }
+    }
+
+    fun getFileValidationMessage(filNavn: String): List<ValideringsfeilTable> {
+        dataSource.connection.useAndHandleErrors { con ->
+            return con.getValideringsFeilForFil(filNavn)
         }
     }
 

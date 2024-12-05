@@ -17,7 +17,7 @@ internal class AvstemmingServiceIntegrationTest :
         extensions(SftpListener)
 
         val ftpService: FtpService by lazy {
-            FtpService(SftpConfig(SftpListener.sftpProperties))
+            FtpService(SftpConfig(SftpListener.sftpProperties), databaseService = mockk<DatabaseService>())
         }
 
         test("visFeilFiler skal liste opp alle filer som ligger i Directories.FAILED") {

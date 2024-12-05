@@ -3,7 +3,6 @@ package sokos.ske.krav.database
 import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.models.FeilmeldingTable
-import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.ValideringsfeilTable
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.nav.KravLinje
@@ -56,23 +55,39 @@ object Repository {
         ).executeQuery()
             .toFeilmelding()
 
-    fun Connection.getValideringsFeilForKravId(kravTable: KravTable): List<ValideringsfeilTable> =
+    fun Connection.getValideringsFeilForLinje(
+        filNavn: String,
+        linjeNummer: Int,
+    ): List<ValideringsfeilTable> =
         prepareStatement(
             """
             select * from valideringsfeil
             where filnavn = ? and linjenummer = ?
             """.trimIndent(),
         ).withParameters(
-            kravTable.filnavn,
-            kravTable.linjenummer,
+            filNavn,
+            linjeNummer,
+        ).executeQuery()
+            .toValideringsfeil()
+
+    fun Connection.getValideringsFeilForFil(filNavn: String): List<ValideringsfeilTable> =
+        prepareStatement(
+            """
+            select * from valideringsfeil
+            where filnavn = ?
+            """.trimIndent(),
+        ).withParameters(
+            filNavn,
         ).executeQuery()
             .toValideringsfeil()
 
     fun Connection.getAllKravForAvstemming() =
         prepareStatement(
             """
-            select a.* from krav a join feilmelding b on a.id=b.krav_id
-            where a.status not in ( ?, ?) and b.rapporter = true order by a.id
+            select a.* from krav a 
+            join feilmelding b on a.id=b.krav_id
+            where a.status not in ( ?, ?) and b.rapporter = true 
+            order by a.id
             """.trimIndent(),
         ).withParameters(
             Status.RESKONTROFOERT.value,
@@ -357,9 +372,25 @@ object Repository {
         commit()
     }
 
-    fun Connection.insertValideringsfeil(
+    fun Connection.insertFileValideringsfeil(
         filnavn: String,
-        kravlinje: KravLinje,
+        feilmelding: String,
+    ) {
+        prepareStatement(
+            """
+            insert into valideringsfeil (filnavn, feilmelding)
+            values (?, ?)
+            """.trimIndent(),
+        ).withParameters(
+            filnavn,
+            feilmelding,
+        ).execute()
+        commit()
+    }
+
+    fun Connection.insertLineValideringsfeil(
+        filnavn: String,
+        kravlinje: KravLinje?,
         feilmelding: String,
     ) {
         prepareStatement(
@@ -369,8 +400,8 @@ object Repository {
             """.trimIndent(),
         ).withParameters(
             filnavn,
-            kravlinje.linjenummer,
-            kravlinje.saksnummerNav,
+            kravlinje?.linjenummer,
+            kravlinje?.saksnummerNav,
             kravlinje.toString(),
             feilmelding,
         ).execute()

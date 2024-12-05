@@ -158,7 +158,7 @@ class AvstemmingService(
         val feilmelding =
             if (kravTable.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value) {
                 databaseService
-                    .getValidationMessageForKrav(kravTable)
+                    .getLineValidationMessage(kravTable.filnavn, kravTable.linjenummer)
                     .takeIf { it.isNotEmpty() }
                     ?.first()
                     ?.feilmelding

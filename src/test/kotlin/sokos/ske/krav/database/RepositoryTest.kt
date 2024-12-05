@@ -5,10 +5,10 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import sokos.ske.krav.database.Repository.getAllFeilmeldinger
-import sokos.ske.krav.database.Repository.getValideringsFeilForKravId
+import sokos.ske.krav.database.Repository.getValideringsFeilForLinje
 import sokos.ske.krav.database.Repository.insertAllNewKrav
 import sokos.ske.krav.database.Repository.insertFeilmelding
-import sokos.ske.krav.database.Repository.insertValideringsfeil
+import sokos.ske.krav.database.Repository.insertLineValideringsfeil
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.FileParser
@@ -106,7 +106,7 @@ internal class RepositoryTest :
                 rsBefore.next()
                 rsBefore.getInt("count") shouldBe 0
 
-                con.insertValideringsfeil(fileName, linje, feilMelding)
+                con.insertLineValideringsfeil(fileName, linje, feilMelding)
 
                 val rsAfter = con.prepareStatement("""select count(*) from valideringsfeil""").executeQuery()
                 rsAfter.next()
@@ -142,7 +142,7 @@ internal class RepositoryTest :
                 }
 
             testContainer.dataSource.connection.use { con ->
-                with(con.getValideringsFeilForKravId(kravtable1)) {
+                with(con.getValideringsFeilForLinje(kravtable1.filnavn, kravtable1.linjenummer)) {
                     size shouldBe 1
                     with(first()) {
                         valideringsfeilId shouldBe 1
@@ -156,7 +156,7 @@ internal class RepositoryTest :
             }
 
             testContainer.dataSource.connection.use { con ->
-                with(con.getValideringsFeilForKravId(kravtable2)) {
+                with(con.getValideringsFeilForLinje(kravtable2.filnavn, kravtable2.linjenummer)) {
                     size shouldBe 2
                     with(get(0)) {
                         valideringsfeilId shouldBe 21
@@ -177,7 +177,7 @@ internal class RepositoryTest :
                 }
             }
             testContainer.dataSource.connection.use { con ->
-                with(con.getValideringsFeilForKravId(kravtable3)) {
+                with(con.getValideringsFeilForLinje(kravtable3.filnavn, kravtable3.linjenummer)) {
                     size shouldBe 3
                     with(get(0)) {
                         valideringsfeilId shouldBe 31
