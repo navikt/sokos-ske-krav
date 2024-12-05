@@ -3,8 +3,8 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    kotlin("jvm") version "2.0.21"
-    kotlin("plugin.serialization") version "2.0.21"
+    kotlin("jvm") version "2.1.0"
+    kotlin("plugin.serialization") version "2.1.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -15,19 +15,19 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
-val ktorVersion = "3.0.0"
-val jschVersion = "0.2.20"
-val nimbusVersion = "9.42"
+val ktorVersion = "3.0.1"
+val jschVersion = "0.2.21"
+val nimbusVersion = "9.47"
 val kotlinxSerializationVersion = "1.7.3"
 val kotlinxDatetimeVersion = "0.6.1"
 
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
-val prometheusVersion = "1.13.6"
+val prometheusVersion = "1.14.1"
 
 // DB
-val hikaricpVersion = "6.0.0"
-val flywayVersion = "10.20.1"
+val hikaricpVersion = "6.2.1"
+val flywayVersion = "11.0.0"
 val postgresqlVersion = "42.7.4"
 
 // Test
@@ -35,7 +35,7 @@ val kotestVersion = "5.9.1"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.13.13"
 val commonsVersion = "3.11.1"
-val testContainerVersion = "1.20.1"
+val testContainerVersion = "1.20.4"
 val mockFtpServerVersion = "3.2.0"
 
 // Logging
