@@ -10,7 +10,6 @@ import io.mockk.mockk
 import io.mockk.spyk
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.config.SftpConfig
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.toFeilmelding
@@ -28,7 +27,6 @@ import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
 import sokos.ske.krav.service.StatusService
-import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.util.MockHttpClientUtils.EndepunktType
 import sokos.ske.krav.util.MockHttpClientUtils.MockRequestObj
 import sokos.ske.krav.util.MockHttpClientUtils.Responses
@@ -51,7 +49,7 @@ internal class SkeServiceIntegrationTest :
             val testContainer = TestContainer()
             val dbService = DatabaseService(testContainer.dataSource)
 
-            val skeService = setupSkeServiceMock(databaseService = dbService, ftpService = ftpService, slackClient = SlackClient(client = MockHttpClient().getSlackClient()))
+            val skeService = setupSkeServiceMock(databaseService = dbService, ftpService = ftpService)
             val skeMock = spyk(skeService, recordPrivateCalls = true)
 
             skeMock.handleNewKrav()

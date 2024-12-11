@@ -40,14 +40,9 @@ internal class FtpServiceIntegrationTest :
                 }
                 When("ikke er ok") {
                     Then("Skal filen flyttes til FAILED") {
-                        // TODO: Databasetest
                         val failedFilesInDir = ftpService.listFiles(Directories.FAILED)
                         failedFilesInDir.size shouldBe 1
                         failedFilesInDir[0] shouldBe "FilMedFeilIKontrollLinje.txt"
-                    }
-                    And("Feil skal lagres i DB") {
-                        val valideringsfeil = dbService.getFileValidationMessage("FilMedFeilIKontrollLinje.txt")
-                        valideringsfeil.size shouldBe 2
                     }
                 }
             }

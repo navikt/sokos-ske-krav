@@ -23,6 +23,7 @@ import sokos.ske.krav.domain.nav.FileParser.SisteLinjeFeltPosisjoner.ANTALL_LINJ
 import sokos.ske.krav.domain.nav.FileParser.SisteLinjeFeltPosisjoner.OVERFORINGS_DATO_POS
 import sokos.ske.krav.domain.nav.FileParser.SisteLinjeFeltPosisjoner.SENDER_POS
 import sokos.ske.krav.domain.nav.FileParser.SisteLinjeFeltPosisjoner.SUM_ALLE_LINJER_POS
+import sokos.ske.krav.validation.LineValidationRules
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -138,7 +139,7 @@ class FileParser(
                 .runCatching {
                     LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd"))
                 }.getOrElse {
-                    LocalDate.parse("21240101", DateTimeFormatter.ofPattern("yyyyMMdd"))
+                    LineValidationRules.errorDate
                 }
     }
 }

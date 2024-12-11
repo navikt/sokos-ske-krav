@@ -99,16 +99,10 @@ class SkeService(
     private suspend fun sendKrav(kravTableList: List<KravTable>): List<RequestResult> {
         if (kravTableList.isNotEmpty()) logger.info("Sender ${kravTableList.size}")
 
-        val allResponses = mutableListOf<RequestResult>()
-        allResponses.addAll(
-            opprettKravService.sendAllOpprettKrav(kravTableList.filter { it.kravtype == NYTT_KRAV }),
-        )
-        allResponses.addAll(
-            endreKravService.sendAllEndreKrav(kravTableList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }),
-        )
-        allResponses.addAll(
-            stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV }),
-        )
+        val allResponses =
+            opprettKravService.sendAllOpprettKrav(kravTableList.filter { it.kravtype == NYTT_KRAV }) +
+                endreKravService.sendAllEndreKrav(kravTableList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }) +
+                stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV })
 
         if (kravTableList.isNotEmpty()) logger.info("Alle krav sendt, lagrer eventuelle feilmeldinger")
 
@@ -122,7 +116,6 @@ class SkeService(
                     it.kravTable,
                     it.kravidentifikator,
                 )
-                logger.warn("Feilmeldinger fra sending av krav: ${it.response.status} - ${it.response.body<FeilResponse>().title} - ${it.response.body<FeilResponse>().detail}")
                 feilmeldinger.add(Pair(it.response.body<FeilResponse>().title, it.response.body<FeilResponse>().detail))
             }
         if (feilmeldinger.isNotEmpty()) slackClient.sendValideringsfeilFraSke(feilmeldinger)

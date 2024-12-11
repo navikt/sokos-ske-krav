@@ -8,7 +8,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
 object MockHttpClientUtils {
@@ -92,7 +91,6 @@ class MockHttpClient {
             prettyPrint = true
             ignoreUnknownKeys = true
             encodeDefaults = true
-            @OptIn(ExperimentalSerializationApi::class)
             explicitNulls = false
         }
 

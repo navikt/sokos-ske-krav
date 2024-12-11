@@ -10,24 +10,25 @@ import io.ktor.http.contentType
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.domain.slack.Data
 import sokos.ske.krav.domain.slack.buildSlackMessage
+import sokos.ske.krav.domain.slack.createSlackMessage
 import sokos.ske.krav.util.httpClient
 
 class SlackClient(
     private val slackEndpoint: String = PropertiesConfig.SlackConfig.url,
     private val client: HttpClient = httpClient,
 ) {
+    suspend fun sendLinjevalideringsMelding(
+        filnavn: String,
+        meldinger: Map<String, List<String>>,
+    ) = doPost(
+        createSlackMessage("Feil i linjevalidering for sokos-ske-krav", filnavn, meldinger),
+    )
+
     suspend fun sendFilvalideringsMelding(
         filnavn: String,
         meldinger: List<Pair<String, String>>,
     ) = doPost(
-        buildSlackMessage("Feil i  filvalidering for sokos-ske-krav", filnavn, meldinger),
-    )
-
-    suspend fun sendLinjevalideringsMelding(
-        filnavn: String,
-        meldinger: List<Pair<String, String>>,
-    ) = doPost(
-        buildSlackMessage("Feil i linjevalidering for sokos-ske-krav", filnavn, meldinger),
+        createSlackMessage("Feil i  filvalidering for sokos-ske-krav", filnavn, meldinger),
     )
 
     suspend fun sendValideringsfeilFraSke(meldinger: List<Pair<String, String>>) =
