@@ -15,7 +15,7 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
-val ktorVersion = "2.3.12"
+val ktorVersion = "3.0.2"
 val jschVersion = "0.2.12"
 val nimbusVersion = "9.37.2"
 val kotlinxSerializationVersion = "1.7.1"
