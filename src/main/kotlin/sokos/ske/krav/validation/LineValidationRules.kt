@@ -3,14 +3,33 @@ package sokos.ske.krav.validation
 import sokos.ske.krav.domain.StonadsType
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.util.isOpprettKrav
+import sokos.ske.krav.validation.LineValidationRules.ErrorKeys.KRAVTYPE_ERROR
+import sokos.ske.krav.validation.LineValidationRules.ErrorKeys.PERIODE_ERROR
+import sokos.ske.krav.validation.LineValidationRules.ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+import sokos.ske.krav.validation.LineValidationRules.ErrorKeys.SAKSNUMMER_ERROR
+import sokos.ske.krav.validation.LineValidationRules.ErrorKeys.UTBETALINGSDATO_ERROR
+import sokos.ske.krav.validation.LineValidationRules.ErrorKeys.VEDTAKSDATO_ERROR
+import sokos.ske.krav.validation.LineValidationRules.ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+import sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM
+import sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIODE_FOM_WRONG_FORMAT
+import sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE
+import sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIODE_TOM_WRONG_FORMAT
+import sokos.ske.krav.validation.LineValidationRules.ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
+import sokos.ske.krav.validation.LineValidationRules.ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+import sokos.ske.krav.validation.LineValidationRules.ErrorMessages.UNKNOWN_DATE_ERROR
+import sokos.ske.krav.validation.LineValidationRules.ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
+import sokos.ske.krav.validation.LineValidationRules.ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
+import sokos.ske.krav.validation.LineValidationRules.ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
+import sokos.ske.krav.validation.LineValidationRules.ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 /*
 * Validerer med Skatteetatens synkrone regler:
 * https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler
-* foreldelsesfristensUtgangspunkt = utbetalingsDato
-* fastsettelsesdato = vedtaksdato
+* utbetalingsDato = foreldelsesfristensUtgangspunkt
+* vedtaksdato = fastsettelsesdato
+
 */
 object LineValidationRules {
     fun runValidation(krav: KravLinje): ValidationResult {
@@ -18,26 +37,26 @@ object LineValidationRules {
             buildList {
                 with(krav) {
                     if (!saksNummerIsValid(saksnummerNav)) {
-                        add(Pair("Feil i Saksnr", "Saksnummer er ikke riktig formatert og/eller inneholder ugyldige tegn ($saksnummerNav). Linje: ${linjenummer}\n"))
+                        add(Pair(SAKSNUMMER_ERROR, "$SAKSNUMMER_WRONG_FORMAT: ($saksnummerNav). Linje: ${linjenummer}\n"))
                     }
                     if (!vedtaksDatoIsValid(vedtaksDato)) {
                         // TODO: Bekreft dette
                         val message = checkVedtaksDatoRules(vedtaksDato)
-                        add(Pair("Feil med vedtaksdato", message + "\n Vedtaksdato: $vedtaksDato. Linje: ${linjenummer}\n"))
+                        add(Pair(VEDTAKSDATO_ERROR, message + "\n Vedtaksdato: $vedtaksDato. Linje: ${linjenummer}\n"))
                     }
                     if (!kravTypeIsValid(krav)) {
-                        add(Pair("Kravtype finnes ikke definert for oversending til skatt ", "($kravKode) sammen med ($kodeHjemmel). Linje: ${linjenummer}\n"))
+                        add(Pair(KRAVTYPE_ERROR, "$KRAVTYPE_DOES_NOT_EXIST: ($kravKode) sammen med ($kodeHjemmel). Linje: ${linjenummer}\n"))
                     }
                     if (!referanseNummerGammelSakIsValid(referansenummerGammelSak, isOpprettKrav())) {
-                        add(Pair("Feil i refnr gammel sak", "Refnummer gammel sak er ikke riktig formatert og/eller inneholder ugyldige tegn ($referansenummerGammelSak). Linje: ${linjenummer}\n"))
+                        add(Pair(REFERANSENUMMERGAMMELSAK_ERROR, "$REFERANSENUMMERGAMMELSAK_WRONG_FORMAT: ($referansenummerGammelSak). Linje: ${linjenummer}\n"))
                     }
-                    if (!periodeIsValid(periodeFOM, periodeTOM, kravKode)) {
-                        val message = checkPeriodeRules(periodeFOM.toDate(), periodeTOM.toDate(), kravKode)
-                        add(Pair("Feil med periode", message + "\n FOM:$periodeFOM, TOM: $periodeTOM. Linje: ${linjenummer}\n"))
+                    if (!periodeIsValid(periodeFOM, periodeTOM)) {
+                        val message = checkPeriodeRules(periodeFOM.toDate(), periodeTOM.toDate())
+                        add(Pair(PERIODE_ERROR, message + ": FOM:$periodeFOM, TOM: $periodeTOM. Linje: ${linjenummer}\n"))
                     }
                     if (!utbetalingsDatoIsValid(utbetalDato, vedtaksDato)) {
                         val message = checkUtbetalingsDatoRules(utbetalDato, vedtaksDato)
-                        add(Pair("Feil med utbetalingsdato/vedtaksdato", message + "\n Utbetalingsdato:$utbetalDato, Vedtaksdato: $vedtaksDato. Linje: ${linjenummer}\n"))
+                        add(Pair(UTBETALINGSDATO_ERROR, message + ": Utbetalingsdato:$utbetalDato, Vedtaksdato: $vedtaksDato. Linje: ${linjenummer}\n"))
                     }
                 }
             }
@@ -49,39 +68,38 @@ object LineValidationRules {
         }
     }
 
-    private fun LocalDate.isInFuture() = this.isAfter(LocalDate.now())
-
-    // Vedtaksdato
+    // Vedtaksdato kan ikke være i fremtiden
     private fun vedtaksDatoIsValid(date: LocalDate) = !date.isInFuture()
 
     private fun checkVedtaksDatoRules(vedtaksDato: LocalDate) =
         when {
-            vedtaksDato == errorDate -> "Vedtaksdato er feil formattert i fil"
-            vedtaksDato.isInFuture() -> "Vedtaksdato kan ikke være i fremtiden"
-            else -> "Ukjent datofeil"
+            vedtaksDato == errorDate -> VEDTAKSDATO_WRONG_FORMAT
+            vedtaksDato.isInFuture() -> VEDTAKSDATO_IS_IN_FUTURE
+            else -> UNKNOWN_DATE_ERROR
         }
 
-    // Utbetalingsdato
-
+    // Utbetalingsdato kan aldri være lik eller etter vedtaksdato
     private fun utbetalingsDatoIsValid(
         utbetalingsDato: LocalDate,
         vedtaksDato: LocalDate,
-    ) = !utbetalingsDato.isInFuture() && utbetalingsDato.isBefore(vedtaksDato)
+    ) = utbetalingsDato.isBefore(vedtaksDato)
 
     private fun checkUtbetalingsDatoRules(
         utbetalingsDato: LocalDate,
         vedtaksDato: LocalDate,
     ) = when {
-        utbetalingsDato == errorDate -> "Utbetalingsdato er feil formattert i fil"
-        utbetalingsDato.isAfter(vedtaksDato) || utbetalingsDato == vedtaksDato -> "Utbetalingsdato må være tidligere enn vedtaksdato"
-        else -> "Ukjent datofeil"
+        utbetalingsDato == errorDate -> UTBETALINGSDATO_WRONG_FORMAT
+        utbetalingsDato.isAfter(vedtaksDato) || utbetalingsDato == vedtaksDato -> UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
+        else -> UNKNOWN_DATE_ERROR
     }
 
     // Periode
+    // Fom-dato kan ikke være etter tom (kan være lik tom)
+    // Tom-dato kan være frem i tid, men ikke lenger frem enn inneværende måned
+    // Dvs, Tom-dato må være før neste måned
     private fun periodeIsValid(
         fom: String,
         tom: String,
-        kravkode: String,
     ): Boolean {
         val dateFrom = fom.toDate()
         val dateTo = tom.toDate()
@@ -90,27 +108,21 @@ object LineValidationRules {
             return false
         }
 
-        // TODO: Hør med steinar om dette blir riktig
-        if (kravkode == "FO FT") {
-            return (dateFrom == dateTo || dateFrom.isBefore(dateTo))
-        }
-        return (dateFrom == dateTo || dateFrom.isBefore(dateTo)) && dateTo.isBefore(LocalDate.now())
+        return !dateFrom.isAfter(dateTo) && dateTo.isBeforeNextMonth()
     }
 
     private fun checkPeriodeRules(
         periodeFom: LocalDate,
         periodeTom: LocalDate,
-        kravKode: String,
     ) = when {
-        periodeFom == errorDate -> "FOM er feil formattert i fil"
-        periodeTom == errorDate -> "TOM er feil formattert i fil"
-        periodeFom.isBefore(periodeTom) -> "FOM må være før TOM. "
-        periodeTom.isInFuture() && kravKode != "FO FT" -> "Periode(fom->tom) må være i fortid. "
-        else -> "Ukjent datofeil"
+        periodeFom == errorDate -> PERIODE_FOM_WRONG_FORMAT
+        periodeTom == errorDate -> PERIODE_TOM_WRONG_FORMAT
+        periodeFom.isAfter(periodeTom) -> PERIODE_FOM_IS_AFTER_PERIODE_TOM
+        !periodeTom.isBeforeNextMonth() -> PERIODE_TOM_IS_IN_INVALID_FUTURE
+        else -> UNKNOWN_DATE_ERROR
     }
 
     // Saksnummer
-
     private fun saksNummerIsValid(navSaksnr: String) = navSaksnr.matches("^[a-zA-Z0-9-/]+$".toRegex())
 
     private fun referanseNummerGammelSakIsValid(
@@ -127,7 +139,40 @@ object LineValidationRules {
             false
         }
 
+    private fun LocalDate.isInFuture() = this.isAfter(LocalDate.now())
+
+    private fun LocalDate.isBeforeNextMonth(): Boolean {
+        val next = LocalDate.now().plusMonths(1)
+        val nextMonthStart = LocalDate.of(next.year, next.month, 1)
+
+        return this.isBefore(nextMonthStart)
+    }
+
     val errorDate: LocalDate = LocalDate.parse("21240101", DateTimeFormatter.ofPattern("yyyyMMdd"))
+
+    object ErrorMessages {
+        const val VEDTAKSDATO_WRONG_FORMAT = "Vedtaksdato er feil formattert i fil"
+        const val VEDTAKSDATO_IS_IN_FUTURE = "Vedtaksdato kan ikke være i fremtiden"
+        const val UTBETALINGSDATO_WRONG_FORMAT = "Utbetalingsdato er feil formattert i fil"
+        const val UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO = "Utbetalingsdato må være tidligere enn vedtaksdato"
+        const val PERIODE_FOM_WRONG_FORMAT = "FOM er feil formattert i fil"
+        const val PERIODE_TOM_WRONG_FORMAT = "FOM er feil formattert i fil"
+        const val PERIODE_FOM_IS_AFTER_PERIODE_TOM = "Periode FOM kan ikke være etter TOM"
+        const val PERIODE_TOM_IS_IN_INVALID_FUTURE = "Periode TOM kan ikke være etter inneværende måned"
+        const val UNKNOWN_DATE_ERROR = "Ukjent datofeil"
+        const val SAKSNUMMER_WRONG_FORMAT = "Saksnummer er feil formattert i fil"
+        const val REFERANSENUMMERGAMMELSAK_WRONG_FORMAT = "ReferanseNummerGammelSak er feil formattert i fil"
+        const val KRAVTYPE_DOES_NOT_EXIST = "Kravtype finnes ikke definert for oversending til skatt"
+    }
+
+    object ErrorKeys {
+        const val VEDTAKSDATO_ERROR = "Feil med vedtaksdato"
+        const val UTBETALINGSDATO_ERROR = "Feil med utbetalingsdato"
+        const val PERIODE_ERROR = "Feil med periode"
+        const val SAKSNUMMER_ERROR = "Feil med saksnummer"
+        const val REFERANSENUMMERGAMMELSAK_ERROR = "Feil med ReferanseNummerGammelSak"
+        const val KRAVTYPE_ERROR = "Kravtype finnes ikke definert for oversending til skatt"
+    }
 
     private fun String.toDate() =
         runCatching {

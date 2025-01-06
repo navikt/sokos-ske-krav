@@ -3,12 +3,12 @@ package sokos.ske.krav.service.integration
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.config.SftpConfig
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
-import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.util.SftpListener
 import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.validation.FileValidator
@@ -22,10 +22,10 @@ internal class FtpServiceIntegrationTest :
             val testContainer = TestContainer()
             val dbService = DatabaseService(testContainer.dataSource)
             val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(SlackClient(client = MockHttpClient().getSlackClient())), databaseService = dbService)
+                FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(mockk<SlackClient>(relaxed = true)), databaseService = dbService)
             }
 
-            SftpListener.putFiles(listOf("AltOkFil.txt", "Fil-A.txt", "Fil-B.txt", "FilMedFeilIKontrollLinje.txt"), Directories.INBOUND)
+            SftpListener.putFiles(listOf("AltOkFil.txt", "Fil-A.txt", "Fil-B.txt", "FilMedFeilAntallKrav.txt"), Directories.INBOUND)
             When("Validering") {
                 ftpService.getValidatedFiles()
 
@@ -42,7 +42,7 @@ internal class FtpServiceIntegrationTest :
                     Then("Skal filen flyttes til FAILED") {
                         val failedFilesInDir = ftpService.listFiles(Directories.FAILED)
                         failedFilesInDir.size shouldBe 1
-                        failedFilesInDir[0] shouldBe "FilMedFeilIKontrollLinje.txt"
+                        failedFilesInDir[0] shouldBe "FilMedFeilAntallKrav.txt"
                     }
                 }
             }

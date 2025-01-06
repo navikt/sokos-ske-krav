@@ -22,13 +22,14 @@ import sokos.ske.krav.util.getAllKrav
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+// TODO: Skriv disse testene bedre
 internal class RepositoryBehaviourTest :
     BehaviorSpec({
-        given("det finnes krav som skal oppdateres") {
+        Given("det finnes krav som skal oppdateres") {
             val testContainer = TestContainer()
             testContainer.migrate("KravSomSkalOppdateres.sql")
 
-            then("updateSendtKrav skal oppdatere krav med ny status og ny kravidentifikator_ske, og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
+            Then("updateSendtKrav skal oppdatere krav med ny status og ny kravidentifikator_ske, og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
 
                 testContainer.dataSource.connection.use { con ->
                     val originalKrav = con.getAllKrav().first { it.corrId == "CORR83985902" }
@@ -47,7 +48,7 @@ internal class RepositoryBehaviourTest :
                 }
             }
 
-            then("updateStatus skal oppdatere status, og tidspunkt_siste_status skal settes til NOW") {
+            Then("updateStatus skal oppdatere status, og tidspunkt_siste_status skal settes til NOW") {
 
                 testContainer.dataSource.connection.use { con ->
                     val originalKrav = con.getAllKrav().first { it.corrId == "CORR457387" }
@@ -62,7 +63,7 @@ internal class RepositoryBehaviourTest :
                 }
             }
 
-            then("updateEndringWithSkeKravIdentifikator skal sette kravidentifikator_ske med gitt saksnummer") {
+            Then("updateEndringWithSkeKravIdentifikator skal sette kravidentifikator_ske med gitt saksnummer") {
                 testContainer.dataSource.connection.use { con ->
                     val originalNyttKrav = con.getAllKrav().first { it.saksnummerNAV == "7770-navsaksnummer" }
                     originalNyttKrav.kravidentifikatorSKE shouldBe "7777-skeUUID"
@@ -95,34 +96,34 @@ internal class RepositoryBehaviourTest :
             }
         }
 
-        given("det finnes krav som skal resendes") {
+        Given("det finnes krav som skal resendes") {
             val testContainer = TestContainer()
             testContainer.migrate("KravSomSkalResendes.sql")
 
-            then("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING") {
+            Then("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING") {
                 testContainer.dataSource.connection.use { it.getAllKravForStatusCheck().size shouldBe 5 }
             }
-            then(
+            Then(
                 "getAllKravForResending skal returnere krav som har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500 ",
             ) {
                 testContainer.dataSource.connection.use { it.getAllKravForResending().size shouldBe 9 }
             }
-            then("getAllUnsentKrav skal returnere krav som har status KRAV_IKKE_SENDT") {
+            Then("getAllUnsentKrav skal returnere krav som har status KRAV_IKKE_SENDT") {
                 testContainer.dataSource.connection.use { it.getAllUnsentKrav().size shouldBe 3 }
             }
-            then("getSkeKravIdent skal returnere kravidentifikator_ske basert på saksnummer_nav eller gammel referanse") {
+            Then("getSkeKravIdent skal returnere kravidentifikator_ske basert på saksnummer_nav eller gammel referanse") {
                 testContainer.dataSource.connection.use { it.getSkeKravidentifikator("2220-navsaksnummer") shouldBe "1111-skeUUID" }
                 testContainer.dataSource.connection.use { it.getSkeKravidentifikator("3330-navsaksnummer") shouldBe "3333-skeUUID" }
                 testContainer.dataSource.connection.use { it.getSkeKravidentifikator("4440-navsaksnummer") shouldBe "4444-skeUUID" }
                 testContainer.dataSource.connection.use { it.getSkeKravidentifikator("1111-navsaksnummer") shouldBe "" }
                 testContainer.dataSource.connection.use { it.getSkeKravidentifikator("1113-navsaksnummer") shouldBe "1112-skeUUID" }
             }
-            then("getPreviousOldRef skal returnere den tidligste referansenummergammelsak basert på saksnummer_nav") {
+            Then("getPreviousOldRef skal returnere den tidligste referansenummergammelsak basert på saksnummer_nav") {
                 testContainer.dataSource.connection.use { it.getPreviousReferansenummer("2220-navsaksnummer") shouldBe "1110-navsaksnummer" }
                 testContainer.dataSource.connection.use { it.getPreviousReferansenummer("foo-navsaksnummer") shouldBe "foo-navsaksnummer" }
             }
 
-            then("getKravIdfromCorrId skal returnere krav_id basert på corr_id") {
+            Then("getKravIdfromCorrId skal returnere krav_id basert på corr_id") {
                 testContainer.dataSource.connection.use { it.getKravTableIdFromCorrelationId("CORR456") shouldBe 1 }
                 testContainer.dataSource.connection.use { it.getKravTableIdFromCorrelationId("CORR789") shouldBe 2 }
                 testContainer.dataSource.connection.use { it.getKravTableIdFromCorrelationId("CORR987") shouldBe 3 }
@@ -133,7 +134,7 @@ internal class RepositoryBehaviourTest :
                 testContainer.dataSource.connection.use { it.getKravTableIdFromCorrelationId("finnesikke") shouldBe 0 }
             }
 
-            then("updateSentKrav skal oppdatere krav med ny status og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
+            Then("updateSentKrav skal oppdatere krav med ny status og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
 
                 testContainer.migrate("KravSomSkalResendes.sql")
                 testContainer.dataSource.connection.use { con ->
@@ -151,16 +152,16 @@ internal class RepositoryBehaviourTest :
                 }
             }
         }
-
-        given("det finnes feilmeldinger") {
+        // TODO: Valideringsfeil
+        Given("det finnes feilmeldinger") {
             val testContainer = TestContainer()
             testContainer.migrate("Feilmeldinger.sql")
 
-            then("getAllErrorMessages skal returnere alle feilmeldinger ") {
+            Then("getAllErrorMessages skal returnere alle feilmeldinger ") {
                 testContainer.dataSource.connection.use { it.getAllFeilmeldinger().size shouldBe 3 }
             }
 
-            then("getErrorMessageForKravId skal returnere en liste med feilmeldinger for angitt kravid") {
+            Then("getErrorMessageForKravId skal returnere en liste med feilmeldinger for angitt kravid") {
                 val feilmelding1 = testContainer.dataSource.connection.use { it.getFeilmeldingForKravId(1) }
                 feilmelding1.size shouldBe 1
                 feilmelding1.first().corrId shouldBe "CORR856"
@@ -169,7 +170,7 @@ internal class RepositoryBehaviourTest :
                 feilmelding2.filter { it.error == "404" }.size shouldBe 1
                 feilmelding2.filter { it.error == "422" }.size shouldBe 1
             }
-            then("insertErrorMessage skal lagre feilmelding") {
+            Then("insertErrorMessage skal lagre feilmelding") {
                 val feilmelding =
                     FeilmeldingTable(
                         2L,
@@ -198,16 +199,16 @@ internal class RepositoryBehaviourTest :
             }
         }
 
-        given("det finnes krav som skal avstemmes") {
+        Given("det finnes krav som skal avstemmes") {
             val testContainer = TestContainer()
             testContainer.migrate("KravSomSkalAvstemmes.sql")
             testContainer.migrate("FeilmeldingerSomSkalAvstemmes.sql")
 
-            then("getAllKravForAvstemming skal returnere alle krav som har en feilmelding med status rapporter=true") {
+            Then("getAllKravForAvstemming skal returnere alle krav som har en feilmelding med status rapporter=true") {
                 testContainer.dataSource.connection.use { it.getAllKravForAvstemming().size shouldBe 3 }
             }
 
-            then("updateStatusForAvstemtKravToReported skal sette status til VALIDERINGFEIL_RAPPORTERT på krav med angitt kravid") {
+            Then("updateStatusForAvstemtKravToReported skal sette status til VALIDERINGFEIL_RAPPORTERT på krav med angitt kravid") {
                 val kravForAvstemmingBeforeUpdate = testContainer.dataSource.connection.use { it.getAllKravForAvstemming() }
 
                 val firstKrav = kravForAvstemmingBeforeUpdate.first()
