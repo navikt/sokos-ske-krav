@@ -65,7 +65,7 @@ class SkeService(
         files.forEach { file ->
             logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
 
-            val validatedLines = LineValidator.validateNewLines(file, databaseService)
+            val validatedLines = LineValidator().validateNewLines(file, databaseService)
 
             if (file.kravLinjer.size > validatedLines.size) {
                 logger.warn("Ved validering av linjer i fil ${file.name} har ${file.kravLinjer.size - validatedLines.size} linjer velideringsfeil ")

@@ -17,7 +17,6 @@ internal class ParserTest :
             val liste = fileAsList("${File.separator}FtpFiler${File.separator}Fil-B-feil.txt")
             val parser = FileParser(liste)
             val kravlinjer = parser.parseKravLinjer()
-            println(kravlinjer)
             kravlinjer.first { it.saksnummerNav == "FinnesIkke" }.fremtidigYtelse shouldBe BigDecimal.valueOf(0.0)
         }
 

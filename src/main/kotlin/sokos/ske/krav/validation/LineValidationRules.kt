@@ -37,26 +37,25 @@ object LineValidationRules {
             buildList {
                 with(krav) {
                     if (!saksNummerIsValid(saksnummerNav)) {
-                        add(Pair(SAKSNUMMER_ERROR, "$SAKSNUMMER_WRONG_FORMAT: ($saksnummerNav). Linje: ${linjenummer}\n"))
+                        add(Pair(SAKSNUMMER_ERROR, "$SAKSNUMMER_WRONG_FORMAT: ($saksnummerNav). Linje: $linjenummer"))
                     }
                     if (!vedtaksDatoIsValid(vedtaksDato)) {
-                        // TODO: Bekreft dette
                         val message = checkVedtaksDatoRules(vedtaksDato)
-                        add(Pair(VEDTAKSDATO_ERROR, message + "\n Vedtaksdato: $vedtaksDato. Linje: ${linjenummer}\n"))
+                        add(Pair(VEDTAKSDATO_ERROR, "$message: (Vedtaksdato: $vedtaksDato). Linje: $linjenummer"))
                     }
                     if (!kravTypeIsValid(krav)) {
-                        add(Pair(KRAVTYPE_ERROR, "$KRAVTYPE_DOES_NOT_EXIST: ($kravKode) sammen med ($kodeHjemmel). Linje: ${linjenummer}\n"))
+                        add(Pair(KRAVTYPE_ERROR, "$KRAVTYPE_DOES_NOT_EXIST: ($kravKode) sammen med ($kodeHjemmel). Linje: $linjenummer"))
                     }
                     if (!referanseNummerGammelSakIsValid(referansenummerGammelSak, isOpprettKrav())) {
-                        add(Pair(REFERANSENUMMERGAMMELSAK_ERROR, "$REFERANSENUMMERGAMMELSAK_WRONG_FORMAT: ($referansenummerGammelSak). Linje: ${linjenummer}\n"))
+                        add(Pair(REFERANSENUMMERGAMMELSAK_ERROR, "$REFERANSENUMMERGAMMELSAK_WRONG_FORMAT: ($referansenummerGammelSak). Linje: $linjenummer"))
                     }
                     if (!periodeIsValid(periodeFOM, periodeTOM)) {
                         val message = checkPeriodeRules(periodeFOM.toDate(), periodeTOM.toDate())
-                        add(Pair(PERIODE_ERROR, message + ": FOM:$periodeFOM, TOM: $periodeTOM. Linje: ${linjenummer}\n"))
+                        add(Pair(PERIODE_ERROR, "$message: (FOM:$periodeFOM, TOM: $periodeTOM). Linje: $linjenummer"))
                     }
                     if (!utbetalingsDatoIsValid(utbetalDato, vedtaksDato)) {
                         val message = checkUtbetalingsDatoRules(utbetalDato, vedtaksDato)
-                        add(Pair(UTBETALINGSDATO_ERROR, message + ": Utbetalingsdato:$utbetalDato, Vedtaksdato: $vedtaksDato. Linje: ${linjenummer}\n"))
+                        add(Pair(UTBETALINGSDATO_ERROR, "$message: (Utbetalingsdato:$utbetalDato, Vedtaksdato: $vedtaksDato). Linje: $linjenummer"))
                     }
                 }
             }

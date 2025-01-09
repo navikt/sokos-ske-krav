@@ -8,13 +8,14 @@ import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.FtpFil
 
-object LineValidator {
+class LineValidator(
+    private val slackClient: SlackClient = SlackClient(),
+) {
     private val logger = KotlinLogging.logger("secureLogger")
 
     suspend fun validateNewLines(
         file: FtpFil,
         dbService: DatabaseService,
-        slackClient: SlackClient = SlackClient(),
     ): List<KravLinje> {
         val messages = mutableMapOf<String, MutableList<String>>()
         val returnLines =
@@ -29,7 +30,7 @@ object LineValidator {
                         result.messages.forEach { pair ->
                             messages.putIfAbsent(pair.first, mutableListOf(pair.second))?.add(pair.second)
                         }
-                        // TODO: kan vi bruke errormessages istedet for jointostring?
+                        // TODO: Hvorfor ikke lagre hver feilmelding separat? altså flere database entries per linje
                         dbService.saveLineValidationError(file.name, linje, result.messages.joinToString { pair -> pair.second })
                         linje.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
                     }
@@ -38,7 +39,7 @@ object LineValidator {
 
         if (messages.isNotEmpty()) {
             logger.warn("Feil i validering av linjer i fil ${file.name}: ${messages.keys}")
-            sendAlert(file.name, messages, slackClient)
+            sendAlert(file.name, messages)
         }
 
         return returnLines
@@ -47,7 +48,6 @@ object LineValidator {
     private suspend fun sendAlert(
         filename: String,
         errors: Map<String, List<String>>,
-        slackClient: SlackClient,
     ) {
         val errorMessagesToSend =
             buildMap {
