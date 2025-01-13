@@ -40,12 +40,12 @@ class SkeService(
             return
         }
 
-        statusService.hentOgOppdaterMottaksStatus()
+        statusService.getMottaksStatus()
         Metrics.numberOfKravResent.increment(sendKrav(databaseService.getAllKravForResending()).size.toDouble())
 
         sendNewFilesToSKE()
 
-        statusService.hentOgOppdaterMottaksStatus()
+        statusService.getMottaksStatus()
         Metrics.numberOfKravResent.increment(sendKrav(databaseService.getAllKravForResending()).size.toDouble())
 
         if (haltRun) {
@@ -84,18 +84,6 @@ class SkeService(
         }
     }
 
-    private fun logResult(result: List<RequestResult>) {
-        val successful = result.filter { it.response.status.isSuccess() }
-        val unsuccessful = result.size - successful.size
-        val unsuccesfulMessage = if (unsuccessful > 0) ". $unsuccessful feilet" else ""
-        logger.info { "Sendte ${result.size} krav$unsuccesfulMessage" }
-
-        val nye = successful.count { it.kravTable.kravtype == NYTT_KRAV }
-        val endringer = successful.count { it.kravTable.kravtype == ENDRING_RENTE } + successful.count { it.kravTable.kravtype == ENDRING_HOVEDSTOL }
-        val stopp = successful.count { it.kravTable.kravtype == STOPP_KRAV }
-        logger.info { "$nye nye, $endringer endringer, $stopp stopp" }
-    }
-
     private suspend fun sendKrav(kravTableList: List<KravTable>): List<RequestResult> {
         if (kravTableList.isNotEmpty()) logger.info("Sender ${kravTableList.size}")
 
@@ -109,16 +97,17 @@ class SkeService(
         val feilmeldinger = mutableListOf<Pair<String, String>>()
         allResponses
             .filter { !it.response.status.isSuccess() }
-            .map {
+            .forEach {
                 databaseService.saveErrorMessage(
                     it.request,
                     it.response,
                     it.kravTable,
                     it.kravidentifikator,
                 )
-                feilmeldinger.add(Pair(it.response.body<FeilResponse>().title, it.response.body<FeilResponse>().detail))
+                val feilmelding = it.response.body<FeilResponse>()
+                feilmeldinger.add(Pair(feilmelding.title, feilmelding.detail))
             }
-        if (feilmeldinger.isNotEmpty()) slackClient.sendValideringsfeilFraSke(feilmeldinger)
+        if (feilmeldinger.isNotEmpty()) slackClient.sendHttpFeilFraSke(feilmeldinger)
         return allResponses
     }
 
@@ -144,9 +133,22 @@ class SkeService(
                         "Fant ikke gyldig kravidentifikator for migrert krav",
                         "Saksnummer: ${it.saksnummerNav} \n ReferansenummerGammelSak: ${it.referansenummerGammelSak} \n Dette må følges opp manuelt",
                     )
-                SlackClient().sendFantIkkeKravidentifikator(
-                    meldinger = listOf(melding),
+                slackClient.sendFantIkkeKravidentifikator(
+                    "Linjenummer ${it.linjenummer}",
+                    melding,
                 )
             }
         }
+
+    private fun logResult(result: List<RequestResult>) {
+        val successful = result.filter { it.response.status.isSuccess() }
+        val unsuccessful = result.size - successful.size
+        val unsuccesfulMessage = if (unsuccessful > 0) ". $unsuccessful feilet" else ""
+        logger.info { "Sendte ${result.size} krav$unsuccesfulMessage" }
+
+        val nye = successful.count { it.kravTable.kravtype == NYTT_KRAV }
+        val endringer = successful.count { it.kravTable.kravtype == ENDRING_RENTE } + successful.count { it.kravTable.kravtype == ENDRING_HOVEDSTOL }
+        val stopp = successful.count { it.kravTable.kravtype == STOPP_KRAV }
+        logger.info { "$nye nye, $endringer endringer, $stopp stopp" }
+    }
 }

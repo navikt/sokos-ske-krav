@@ -3,7 +3,6 @@ package sokos.ske.krav.api
 import io.ktor.http.ContentType.Text.CSV
 import io.ktor.http.ContentType.Text.Html
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.response.respondText
@@ -42,7 +41,7 @@ fun Routing.skeApi(
         get("status") {
             logger.info("APIlogger:  Status Start")
             try {
-                call.respond(statusService.hentOgOppdaterMottaksStatus())
+                call.respond(statusService.getMottaksStatus())
             } catch (e: Exception) {
                 logger.error("APILogger: Status feilet")
                 call.respond(
@@ -52,18 +51,7 @@ fun Routing.skeApi(
                 )
             }
         }
-        get("alleFeilmeldinger") {
-            logger.info("API kaller Valideringsfeil")
-            try {
-                call.respond(statusService.hentValideringsfeil())
-            } catch (e: Exception) {
-                call.respond(
-                    HttpStatusCode.InternalServerError,
-                    "Sorry validering feilet: ${e.message}, \n" +
-                        "Stacktrace= ${e.stackTraceToString()}",
-                )
-            }
-        }
+
         get("avstemming") {
             call.respondText(avstemmingService.hentAvstemmingsRapport(), Html)
         }

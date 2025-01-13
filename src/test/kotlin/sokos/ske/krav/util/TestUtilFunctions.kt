@@ -62,7 +62,7 @@ private val opprettServiceMock =
 
 private val statusServiceMock =
     mockk<StatusService> {
-        coJustRun { hentOgOppdaterMottaksStatus() }
+        coJustRun { getMottaksStatus() }
     }
 
 private val ftpServiceMock = mockk<FtpService>()

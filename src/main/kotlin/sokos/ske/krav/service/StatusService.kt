@@ -5,6 +5,7 @@ import io.ktor.http.isSuccess
 import kotlinx.serialization.SerializationException
 import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
+import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.Status
@@ -17,10 +18,11 @@ import java.time.LocalDateTime
 class StatusService(
     private val skeClient: SkeClient = SkeClient(),
     private val databaseService: DatabaseService = DatabaseService(),
+    private val slackClient: SlackClient = SlackClient(),
 ) {
     private val logger = KotlinLogging.logger("secureLogger")
 
-    suspend fun hentOgOppdaterMottaksStatus() {
+    suspend fun getMottaksStatus() {
         val krav = databaseService.getAllKravForStatusCheck()
         if (krav.isNotEmpty()) logger.info("Sjekk av mottaksstatus -> Antall krav som ikke er reskontroført: ${krav.size}")
 
@@ -31,10 +33,7 @@ class StatusService(
             if (response.status.isSuccess()) {
                 try {
                     val mottaksstatus = response.body<MottaksStatusResponse>()
-                    databaseService.updateStatus(mottaksstatus.mottaksStatus, it.corrId)
-                    if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value) {
-                        hentOgLagreValideringsFeil(kravIdentifikatorPair, it)
-                    }
+                    updateMottaksStatus(mottaksstatus, kravIdentifikatorPair, it)
                 } catch (e: SerializationException) {
                     logger.error("Feil i dekoding av MottaksStatusResponse: ${e.message}")
                 } catch (e: IllegalArgumentException) {
@@ -44,36 +43,50 @@ class StatusService(
                 logger.error { "Kall til mottaksstatus hos skatt feilet: ${response.status.value}, ${response.status.description}" }
             }
         }
-        if (krav.isNotEmpty()) logger.info("Sjekk av mottaksstatus ferdig")
     }
 
-    private suspend fun hentOgLagreValideringsFeil(
+    private suspend fun updateMottaksStatus(
+        mottaksstatus: MottaksStatusResponse,
+        kravIdentifikatorPair: Pair<String, KravidentifikatorType>,
+        krav: KravTable,
+    ) {
+        databaseService.updateStatus(mottaksstatus.mottaksStatus, krav.corrId)
+
+        if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value) {
+            handleValideringsFeil(kravIdentifikatorPair, krav)
+        }
+    }
+
+    private suspend fun handleValideringsFeil(
         kravIdentifikatorPair: Pair<String, KravidentifikatorType>,
         kravTable: KravTable,
     ) {
         val response = skeClient.getValideringsfeil(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
-        if (response.status.isSuccess()) {
-            val valideringsfeil = response.body<ValideringsFeilResponse>().valideringsfeil
-            valideringsfeil.forEach {
-                val feilmeldingTable =
-                    FeilmeldingTable(
-                        0,
-                        kravTable.kravId,
-                        kravTable.corrId,
-                        kravTable.saksnummerNAV,
-                        kravTable.kravidentifikatorSKE,
-                        it.error,
-                        it.message,
-                        "",
-                        "",
-                        LocalDateTime.now(),
-                    )
-                databaseService.saveFeilmelding(feilmeldingTable)
-            }
-        } else {
+        if (!response.status.isSuccess()) {
             logger.error("Kall til henting av valideringsfeil hos SKE feilet: ${response.status.value}, ${response.status.description}")
+            return
+        }
+
+        val valideringsfeil = response.body<ValideringsFeilResponse>().valideringsfeil
+        logger.info("Asynk Valideringsfeil mottatt: ${valideringsfeil.joinToString { it.error }} ")
+
+        valideringsfeil.forEach {
+            val feilmeldingTable =
+                FeilmeldingTable(
+                    0,
+                    kravTable.kravId,
+                    kravTable.corrId,
+                    kravTable.saksnummerNAV,
+                    kravTable.kravidentifikatorSKE,
+                    it.error,
+                    it.message,
+                    "",
+                    "",
+                    LocalDateTime.now(),
+                )
+            databaseService.saveFeilmelding(feilmeldingTable)
+
+            slackClient.sendAsynkValideringsFeilFraSke(kravTable.filnavn, Pair(it.error, "Linje ${kravTable.linjenummer}. Sjekk avstemming for detaljer"))
         }
     }
-
-    fun hentValideringsfeil() = databaseService.getAllFeilmeldinger()
 }

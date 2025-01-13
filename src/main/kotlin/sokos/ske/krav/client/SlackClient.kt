@@ -18,27 +18,36 @@ class SlackClient(
     private val client: HttpClient = httpClient,
 ) {
     suspend fun sendLinjevalideringsMelding(
-        filnavn: String,
-        meldinger: Map<String, List<String>>,
+        fileName: String,
+        messages: Map<String, List<String>>,
     ) = doPost(
-        createSlackMessage("Feil i linjevalidering for sokos-ske-krav", filnavn, meldinger),
+        createSlackMessage("Feil i linjevalidering", fileName, messages),
     )
 
     suspend fun sendFilvalideringsMelding(
-        filnavn: String,
-        meldinger: List<Pair<String, String>>,
+        fileName: String,
+        messages: List<Pair<String, String>>,
     ) = doPost(
-        createSlackMessage("Feil i  filvalidering for sokos-ske-krav", filnavn, meldinger),
+        createSlackMessage("Feil i  filvalidering", fileName, messages),
     )
 
-    suspend fun sendValideringsfeilFraSke(meldinger: List<Pair<String, String>>) =
-        doPost(
-            buildSlackMessage("Valideringsfeil hos Skatteetaten ved sending fra sokos-ske-krav", "-NA-", meldinger),
-        )
+    suspend fun sendAsynkValideringsFeilFraSke(
+        fileName: String,
+        message: Pair<String, String>,
+    ) = doPost(
+        createSlackMessage("Asynk valideringsfeil", fileName, listOf(message)),
+    )
 
-    suspend fun sendFantIkkeKravidentifikator(meldinger: List<Pair<String, String>>) =
+    suspend fun sendFantIkkeKravidentifikator(
+        fileName: String,
+        message: Pair<String, String>,
+    ) = doPost(
+        createSlackMessage("Fant ikke kravidentifikator for migrert krav", fileName, listOf(message)),
+    )
+
+    suspend fun sendHttpFeilFraSke(meldinger: List<Pair<String, String>>) =
         doPost(
-            buildSlackMessage("Fant ikke kravidentifikator for migrert krav", "-NA-", meldinger),
+            buildSlackMessage("Feil i HTTP kall til Skatteetaten", "-NA-", meldinger),
         )
 
     private suspend fun doPost(data: Data) =

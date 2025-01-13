@@ -125,7 +125,7 @@ internal class SkeServiceIntegrationTest :
             val databaseService = DatabaseService(testContainer.dataSource)
             val statusService = StatusService(skeClient, databaseService)
 
-            statusService.hentOgOppdaterMottaksStatus()
+            statusService.getMottaksStatus()
             val kravdata = testContainer.dataSource.connection.use { it.getAllKrav() }
 
             kravdata.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 10

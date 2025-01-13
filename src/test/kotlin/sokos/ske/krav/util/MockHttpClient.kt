@@ -9,6 +9,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import sokos.ske.krav.domain.Status
 
 object MockHttpClientUtils {
     enum class EndepunktType(
@@ -32,7 +33,7 @@ object MockHttpClientUtils {
     object Responses {
         fun mottaksStatusResponse(
             kravIdentifikator: String = "1234",
-            status: String = "RESKONTROFOERT",
+            status: String = Status.RESKONTROFOERT.value,
         ): String {
             //language=json
             return """

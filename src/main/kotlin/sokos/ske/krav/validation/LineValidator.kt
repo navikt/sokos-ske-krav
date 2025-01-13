@@ -17,7 +17,7 @@ class LineValidator(
         file: FtpFil,
         dbService: DatabaseService,
     ): List<KravLinje> {
-        val messages = mutableMapOf<String, MutableList<String>>()
+        val slackMessages = mutableMapOf<String, MutableList<String>>()
         val returnLines =
             file.kravLinjer.map { linje ->
                 Metrics.numberOfKravRead.increment()
@@ -28,7 +28,7 @@ class LineValidator(
                     }
                     is ValidationResult.Error -> {
                         result.messages.forEach { pair ->
-                            messages.putIfAbsent(pair.first, mutableListOf(pair.second))?.add(pair.second)
+                            slackMessages.putIfAbsent(pair.first, mutableListOf(pair.second))?.add(pair.second)
                         }
                         // TODO: Hvorfor ikke lagre hver feilmelding separat? altså flere database entries per linje
                         dbService.saveLineValidationError(file.name, linje, result.messages.joinToString { pair -> pair.second })
@@ -37,9 +37,9 @@ class LineValidator(
                 }
             }
 
-        if (messages.isNotEmpty()) {
-            logger.warn("Feil i validering av linjer i fil ${file.name}: ${messages.keys}")
-            sendAlert(file.name, messages)
+        if (slackMessages.isNotEmpty()) {
+            logger.warn("Feil i validering av linjer i fil ${file.name}: ${slackMessages.keys}")
+            sendAlert(file.name, slackMessages)
         }
 
         return returnLines
