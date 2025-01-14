@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - feature/feilmeldinger-og-alarmer
     paths-ignore:
       - '**.md'
       - 'LICENCE'
