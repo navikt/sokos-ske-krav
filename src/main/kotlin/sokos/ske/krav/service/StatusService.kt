@@ -86,7 +86,7 @@ class StatusService(
                 )
             databaseService.saveFeilmelding(feilmeldingTable)
 
-            slackClient.sendAsynkValideringsFeilFraSke(kravTable.filnavn, Pair(it.error, "Linje ${kravTable.linjenummer}. Sjekk avstemming for detaljer"))
+            slackClient.sendMessage("Asynk valideringsfeil", kravTable.filnavn, Pair(it.error, "Saksnummer ${kravTable.saksnummerNAV}. Sjekk avstemming for detaljer"))
         }
     }
 }

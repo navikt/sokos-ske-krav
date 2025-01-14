@@ -43,7 +43,7 @@ internal class StatusServiceIntegrationTest :
             }
             And("Alert skal ikke sendes") {
                 coVerify(exactly = 0) {
-                    slackClient.sendAsynkValideringsFeilFraSke(any<String>(), any<Pair<String, String>>())
+                    slackClient.sendMessage(any<String>(), any<String>(), any<Pair<String, String>>())
                 }
             }
         }
@@ -75,7 +75,7 @@ internal class StatusServiceIntegrationTest :
             }
             And("Alert skal sendes til slack") {
                 coVerify(exactly = 5) {
-                    slackClient.sendAsynkValideringsFeilFraSke(any<String>(), any<Pair<String, String>>())
+                    slackClient.sendMessage(any<String>(), any<String>(), any<Pair<String, String>>())
                 }
             }
         }

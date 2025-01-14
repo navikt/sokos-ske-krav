@@ -57,6 +57,6 @@ class LineValidator(
                 putAll(errors.filterNot { it.value.size > 5 })
             }
 
-        if (errorMessagesToSend.isNotEmpty()) slackClient.sendLinjevalideringsMelding(filename, errorMessagesToSend)
+        if (errorMessagesToSend.isNotEmpty()) slackClient.sendMessage("Feil i linjevalidering", filename, errorMessagesToSend)
     }
 }

@@ -156,6 +156,7 @@ class DatabaseService(
         val skeKravidentifikator =
             if (kravidentifikator == krav.saksnummerNAV || kravidentifikator == krav.referansenummerGammelSak) "" else kravidentifikator
 
+        // Todo: Try-catch
         val feilResponse = response.body<FeilResponse>()
 
         val feilmelding =

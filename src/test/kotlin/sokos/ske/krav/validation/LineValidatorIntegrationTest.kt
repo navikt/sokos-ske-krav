@@ -120,7 +120,7 @@ internal class LineValidatorIntegrationTest :
                         val sendLinjevalideringsMeldingMessagesSlot = slot<Map<String, List<String>>>()
 
                         coVerify(exactly = 1) {
-                            slackClientSpy["sendLinjevalideringsMelding"](capture(sendLinjevalideringsMeldingFilenameSlot), capture(sendLinjevalideringsMeldingMessagesSlot))
+                            slackClientSpy["sendMessage"](any<String>(), capture(sendLinjevalideringsMeldingFilenameSlot), capture(sendLinjevalideringsMeldingMessagesSlot))
                         }
                         sendLinjevalideringsMeldingFilenameSlot.captured shouldBe fileName
 
@@ -206,7 +206,7 @@ internal class LineValidatorIntegrationTest :
                         val sendLinjevalideringsMeldingMessagesSlot = slot<Map<String, List<String>>>()
 
                         coVerify(exactly = 1) {
-                            slackClientSpy["sendLinjevalideringsMelding"](capture(sendLinjevalideringsMeldingFilenameSlot), capture(sendLinjevalideringsMeldingMessagesSlot))
+                            slackClientSpy["sendMessage"](any<String>(), capture(sendLinjevalideringsMeldingFilenameSlot), capture(sendLinjevalideringsMeldingMessagesSlot))
                         }
                         sendLinjevalideringsMeldingFilenameSlot.captured shouldBe fileName
 
@@ -283,7 +283,7 @@ internal class LineValidatorIntegrationTest :
                         val sendLinjevalideringsMeldingMessagesSlot = slot<Map<String, List<String>>>()
 
                         coVerify(exactly = 1) {
-                            slackClientSpy["sendLinjevalideringsMelding"](capture(sendLinjevalideringsMeldingFilenameSlot), capture(sendLinjevalideringsMeldingMessagesSlot))
+                            slackClientSpy["sendMessage"](any<String>(), capture(sendLinjevalideringsMeldingFilenameSlot), capture(sendLinjevalideringsMeldingMessagesSlot))
                         }
                         sendLinjevalideringsMeldingFilenameSlot.captured shouldBe fileName
 
@@ -368,7 +368,7 @@ internal class LineValidatorIntegrationTest :
                             val sendLinjevalideringsMeldingMessagesSlot = slot<Map<String, List<String>>>()
 
                             coVerify(exactly = 1) {
-                                slackClientSpy["sendLinjevalideringsMelding"](capture(sendLinjevalideringsMeldingFilenameSlot), capture(sendLinjevalideringsMeldingMessagesSlot))
+                                slackClientSpy["sendMessage"](any<String>(), capture(sendLinjevalideringsMeldingFilenameSlot), capture(sendLinjevalideringsMeldingMessagesSlot))
                             }
                             sendLinjevalideringsMeldingFilenameSlot.captured shouldBe fileName
                             val capturedErrorMessages = sendLinjevalideringsMeldingMessagesSlot.captured

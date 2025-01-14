@@ -58,7 +58,7 @@ class FileValidator(
 
         return if (errorMessages.isNotEmpty()) {
             // TODO: Hvorfor ikke lagre hver feilmelding separat? altså flere database entries per fil
-            slackClient.sendFilvalideringsMelding(fileName, errorMessages)
+            slackClient.sendMessage("Feil i  filvalidering", fileName, errorMessages)
             logger.warn("*** Feil i validering av fil $fileName. Sjekk Slack og Database ***")
             ValidationResult.Error(messages = errorMessages)
         } else {

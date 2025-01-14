@@ -1,6 +1,5 @@
 package sokos.ske.krav.domain.slack
 
-import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
 
@@ -29,12 +28,6 @@ data class Field(
     val type: String = "mrkdwn",
     val text: String,
 )
-
-fun createSlackMessage(
-    feilHeader: String,
-    filnavn: String,
-    content: List<Pair<String, String>>,
-) = createSlackMessage(feilHeader, filnavn, content.groupBy({ it.first }, { it.second }))
 
 fun createSlackMessage(
     feilHeader: String,
@@ -98,69 +91,4 @@ private fun buildSections(
     blocks.add(dividerBlock)
     blocks.add(dividerBlock)
     return blocks
-}
-
-fun buildSlackMessage(
-    feilHeader: String,
-    filnavn: String,
-    content: List<Pair<String, String>>,
-): Data {
-    val sections =
-        buildList {
-            add(
-                Block(
-                    type = "header",
-                    text =
-                        Text(
-                            type = "plain_text",
-                            text = ":error:  $feilHeader  ",
-                            emoji = true,
-                        ),
-                ),
-            )
-            add(
-                Block(type = "divider"),
-            )
-            add(
-                Block(
-                    type = "section",
-                    fields =
-                        listOf(
-                            Field(
-                                text = "*Filnavn* \n$filnavn",
-                            ),
-                            Field(
-                                text = "*Dato* \n${Clock.System.now()}",
-                            ),
-                        ),
-                ),
-            )
-            add(
-                Block(type = "divider"),
-            )
-
-            addAll(
-                content.map {
-                    Block(
-                        type = "section",
-                        fields =
-                            listOf(
-                                Field(text = "*Feilmelding*\n${it.first}"),
-                                Field(text = "*Info*\n${it.second}"),
-                            ),
-                    )
-                },
-            )
-
-            add(
-                Block(type = "divider"),
-            )
-            add(
-                Block(type = "divider"),
-            )
-        }
-    return Data(
-        text = ":package: $feilHeader",
-        blocks = sections,
-    )
 }

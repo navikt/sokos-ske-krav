@@ -22,6 +22,7 @@ data class RequestResult(
 
 suspend fun defineStatus(response: HttpResponse): Status {
     if (response.status.isSuccess()) return Status.KRAV_SENDT
+    // TODO: Try-catch
     val content = response.body<FeilResponse>()
 
     return when (response.status.value) {

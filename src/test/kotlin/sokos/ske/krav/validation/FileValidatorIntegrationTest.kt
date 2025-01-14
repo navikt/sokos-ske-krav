@@ -39,7 +39,7 @@ internal class FileValidatorIntegrationTest :
 
                 And("Alert skal ikke sendes") {
                     coVerify(exactly = 0) {
-                        slackClient.sendFilvalideringsMelding(any<String>(), any<List<Pair<String, String>>>())
+                        slackClient.sendMessage(any<String>(), any<String>(), any<List<Pair<String, String>>>())
                     }
                 }
             }
@@ -72,7 +72,7 @@ internal class FileValidatorIntegrationTest :
                     val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
 
                     coVerify(exactly = 1) {
-                        slackClient.sendFilvalideringsMelding(capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
+                        slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameSlot.captured shouldBe fileName
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
@@ -109,7 +109,7 @@ internal class FileValidatorIntegrationTest :
                     val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
 
                     coVerify(exactly = 1) {
-                        slackClient.sendFilvalideringsMelding(capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
+                        slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameSlot.captured shouldBe fileName
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
@@ -148,7 +148,7 @@ internal class FileValidatorIntegrationTest :
                     val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
 
                     coVerify(exactly = 1) {
-                        slackClient.sendFilvalideringsMelding(capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
+                        slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameSlot.captured shouldBe fileName
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
@@ -184,7 +184,7 @@ internal class FileValidatorIntegrationTest :
                     val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
 
                     coVerify(exactly = 1) {
-                        slackClient.sendFilvalideringsMelding(capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
+                        slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameSlot.captured shouldBe fileName
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured

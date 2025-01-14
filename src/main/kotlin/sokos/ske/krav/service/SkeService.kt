@@ -77,7 +77,7 @@ class SkeService(
             databaseService.saveAllNewKrav(validatedLines, file.name)
             ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
 
-            updateAllEndringerAndStopp(validatedLines.filter { !it.isOpprettKrav() })
+            updateAllEndringerAndStopp(file.name, validatedLines.filter { !it.isOpprettKrav() })
 
             val result = sendKrav(databaseService.getAllUnsentKrav())
             logResult(result)
@@ -94,7 +94,8 @@ class SkeService(
 
         if (kravTableList.isNotEmpty()) logger.info("Alle krav sendt, lagrer eventuelle feilmeldinger")
 
-        val feilmeldinger = mutableListOf<Pair<String, String>>()
+        val feil = mutableMapOf<String, MutableList<Pair<String, String>>>()
+
         allResponses
             .filter { !it.response.status.isSuccess() }
             .forEach {
@@ -104,17 +105,28 @@ class SkeService(
                     it.kravTable,
                     it.kravidentifikator,
                 )
+                // TODO: Try-catch
                 val feilmelding = it.response.body<FeilResponse>()
-                feilmeldinger.add(Pair(feilmelding.title, feilmelding.detail))
+                val errorPair = Pair(feilmelding.title, feilmelding.detail)
+                feil.putIfAbsent(it.kravTable.filnavn, mutableListOf(errorPair))?.add(errorPair)
             }
-        if (feilmeldinger.isNotEmpty()) slackClient.sendHttpFeilFraSke(feilmeldinger)
+
+        feil.forEach { (fileName, messages) ->
+            slackClient.sendMessage("Feil fra SKE", fileName, messages)
+        }
+
         return allResponses
     }
 
-    private suspend fun updateAllEndringerAndStopp(kravLinjer: List<KravLinje>) =
+    private suspend fun updateAllEndringerAndStopp(
+        fileName: String,
+        kravLinjer: List<KravLinje>,
+    ) {
+        val feilmeldinger = mutableListOf<Pair<String, String>>()
         kravLinjer.forEach {
             val skeKravidentifikator = databaseService.getSkeKravidentifikator(it.referansenummerGammelSak)
             var skeKravidentifikatorSomSkalLagres = skeKravidentifikator
+
             if (skeKravidentifikator.isBlank()) {
                 val httpResponse = skeClient.getSkeKravidentifikator(it.referansenummerGammelSak)
                 if (httpResponse.status.isSuccess()) {
@@ -133,12 +145,18 @@ class SkeService(
                         "Fant ikke gyldig kravidentifikator for migrert krav",
                         "Saksnummer: ${it.saksnummerNav} \n ReferansenummerGammelSak: ${it.referansenummerGammelSak} \n Dette må følges opp manuelt",
                     )
-                slackClient.sendFantIkkeKravidentifikator(
-                    "Linjenummer ${it.linjenummer}",
-                    melding,
-                )
+                feilmeldinger.add(melding)
             }
         }
+
+        if (feilmeldinger.isNotEmpty()) {
+            slackClient.sendMessage(
+                "Fant ikke kravidentifikator for migrert krav",
+                fileName,
+                feilmeldinger,
+            )
+        }
+    }
 
     private fun logResult(result: List<RequestResult>) {
         val successful = result.filter { it.response.status.isSuccess() }
