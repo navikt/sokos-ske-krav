@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - feature/legge-inn-status-i-feilmelding-tabell
     paths-ignore:
       - '**.md'
       - 'LICENCE'

@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');
+
+
+body {
+    background-color: #F2F3F5;
+    font-family: "Source Sans 3", Verdana, sans-serif;
+}
+
+body * {
+    box-sizing: border-box;
+}
+
+.header {
+    background-color: #23262A;
+    color: white;
+    padding: 0.6rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    margin-bottom: 2%;
+    text-transform: uppercase;
+
+}
+
+.header-logo{
+    width: 10%;
+}
+
+h1{
+    font-size: 46px;
+    padding-left: 25%;
+}
+.table-krav {
+    margin: 25px 100px 100px 75px;
+    display: inline-block;
+
+}
+
+.actionbtn, .btn{
+    border-radius: 4px;
+    padding: 12px 28px;
+    font-size: 14px;
+    margin-left: 20px;
+    margin-right: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+.buttonIcon{
+    padding-left: 20px;
+    width: 80px
+
+}
+.btn {
+    background-color:#0060B8;
+    color: white;
+
+}
+
+.actionbtn {
+    border-color: #0060B8;
+    color: #0060B8;
+
+}
+
+.feilmeldinger{
+    text-align: left;
+}
+
+
+
+table{
+    border: 1px #dcdcdc solid;
+}
+
+
+td {
+    text-align: center;
+    vertical-align: middle;
+    padding: 10px;
+    color: black;
+    font-size: 18px;
+}
+
+td:last-child {
+    font-size: 0.95em;
+    line-height: 1.4;
+    text-align: left;
+}
+
+
+th  {
+    text-transform: uppercase;
+    border-color: #23262A;
+
+    font-size: 1.2em;
+    color: black;
+    padding: 8px;
+    white-space: nowrap;
+    max-width: fit-content;
+
+}
+tr:nth-child(2n) {
+    background-color: #fbfcfc;
+}
+tr:nth-child(2n+1) {
+    background-color: white;
+}
+
