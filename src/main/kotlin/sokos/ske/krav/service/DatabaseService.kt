@@ -1,7 +1,6 @@
 package sokos.ske.krav.service
 
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
@@ -33,6 +32,7 @@ import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.RequestResult
+import sokos.ske.krav.util.parseTo
 import java.time.LocalDateTime
 
 class DatabaseService(
@@ -156,8 +156,7 @@ class DatabaseService(
         val skeKravidentifikator =
             if (kravidentifikator == krav.saksnummerNAV || kravidentifikator == krav.referansenummerGammelSak) "" else kravidentifikator
 
-        // Todo: Try-catch
-        val feilResponse = response.body<FeilResponse>()
+        val feilResponse = response.parseTo<FeilResponse>() ?: return
 
         val feilmelding =
             FeilmeldingTable(

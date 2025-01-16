@@ -1,7 +1,7 @@
 package sokos.ske.krav.validation
 
-import mu.KotlinLogging
 import sokos.ske.krav.client.SlackClient
+import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.metrics.Metrics
@@ -11,8 +11,6 @@ import sokos.ske.krav.service.FtpFil
 class LineValidator(
     private val slackClient: SlackClient = SlackClient(),
 ) {
-    private val logger = KotlinLogging.logger("secureLogger")
-
     suspend fun validateNewLines(
         file: FtpFil,
         dbService: DatabaseService,
@@ -38,7 +36,7 @@ class LineValidator(
             }
 
         if (slackMessages.isNotEmpty()) {
-            logger.warn("Feil i validering av linjer i fil ${file.name}: ${slackMessages.keys}")
+            secureLogger.warn("Feil i validering av linjer i fil ${file.name}: ${slackMessages.keys}")
             sendAlert(file.name, slackMessages)
         }
 

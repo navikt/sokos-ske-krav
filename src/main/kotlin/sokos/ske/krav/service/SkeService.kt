@@ -1,10 +1,9 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.call.body
 import io.ktor.http.isSuccess
-import mu.KotlinLogging
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.SlackClient
+import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.AvstemmingResponse
@@ -12,6 +11,7 @@ import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.isOpprettKrav
+import sokos.ske.krav.util.parseTo
 import sokos.ske.krav.validation.LineValidator
 import java.time.LocalDate
 
@@ -30,13 +30,11 @@ class SkeService(
     private val ftpService: FtpService = FtpService(),
     private val slackClient: SlackClient = SlackClient(),
 ) {
-    private val logger = KotlinLogging.logger("secureLogger")
-
     private var haltRun = false
 
     suspend fun handleNewKrav() {
         if (haltRun) {
-            logger.info("*** Run is halted ***")
+            secureLogger.info("*** Run is halted ***")
             return
         }
 
@@ -50,28 +48,28 @@ class SkeService(
 
         if (haltRun) {
             haltRun = false
-            logger.info("*** Run has been unhalted ***")
+            secureLogger.info("*** Run has been unhalted ***")
         }
     }
 
     private suspend fun sendNewFilesToSKE() {
         val files = ftpService.getValidatedFiles()
         if (files.isNotEmpty()) {
-            logger.info("*** Starter sending av ${files.size} filer ${LocalDate.now()} ***")
+            secureLogger.info("*** Starter sending av ${files.size} filer ${LocalDate.now()} ***")
         } else {
-            logger.info("*** Ingen nye filer ***")
+            secureLogger.info("*** Ingen nye filer ***")
         }
 
         files.forEach { file ->
-            logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
+            secureLogger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
 
             val validatedLines = LineValidator().validateNewLines(file, databaseService)
 
             if (file.kravLinjer.size > validatedLines.size) {
-                logger.warn("Ved validering av linjer i fil ${file.name} har ${file.kravLinjer.size - validatedLines.size} linjer velideringsfeil ")
+                secureLogger.warn("Ved validering av linjer i fil ${file.name} har ${file.kravLinjer.size - validatedLines.size} linjer velideringsfeil ")
             }
             if (validatedLines.size >= 1000) {
-                logger.info("***Large file. Halting run***")
+                secureLogger.info("***Large file. Halting run***")
                 haltRun = true
             }
             databaseService.saveAllNewKrav(validatedLines, file.name)
@@ -85,14 +83,14 @@ class SkeService(
     }
 
     private suspend fun sendKrav(kravTableList: List<KravTable>): List<RequestResult> {
-        if (kravTableList.isNotEmpty()) logger.info("Sender ${kravTableList.size}")
+        if (kravTableList.isNotEmpty()) secureLogger.info("Sender ${kravTableList.size}")
 
         val allResponses =
             opprettKravService.sendAllOpprettKrav(kravTableList.filter { it.kravtype == NYTT_KRAV }) +
                 endreKravService.sendAllEndreKrav(kravTableList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }) +
                 stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV })
 
-        if (kravTableList.isNotEmpty()) logger.info("Alle krav sendt, lagrer eventuelle feilmeldinger")
+        if (kravTableList.isNotEmpty()) secureLogger.info("Alle krav sendt, lagrer eventuelle feilmeldinger")
 
         val feil = mutableMapOf<String, MutableList<Pair<String, String>>>()
 
@@ -105,10 +103,11 @@ class SkeService(
                     it.kravTable,
                     it.kravidentifikator,
                 )
-                // TODO: Try-catch
-                val feilmelding = it.response.body<FeilResponse>()
-                val errorPair = Pair(feilmelding.title, feilmelding.detail)
-                feil.putIfAbsent(it.kravTable.filnavn, mutableListOf(errorPair))?.add(errorPair)
+
+                it.response.parseTo<FeilResponse>()?.let { feilResponse ->
+                    val errorPair = Pair(feilResponse.title, feilResponse.detail)
+                    feil.putIfAbsent(it.kravTable.filnavn, mutableListOf(errorPair))?.add(errorPair)
+                }
             }
 
         feil.forEach { (fileName, messages) ->
@@ -123,27 +122,29 @@ class SkeService(
         kravLinjer: List<KravLinje>,
     ) {
         val feilmeldinger = mutableListOf<Pair<String, String>>()
-        kravLinjer.forEach {
-            val skeKravidentifikator = databaseService.getSkeKravidentifikator(it.referansenummerGammelSak)
+        kravLinjer.forEach { krav ->
+            val skeKravidentifikator = databaseService.getSkeKravidentifikator(krav.referansenummerGammelSak)
             var skeKravidentifikatorSomSkalLagres = skeKravidentifikator
 
             if (skeKravidentifikator.isBlank()) {
-                val httpResponse = skeClient.getSkeKravidentifikator(it.referansenummerGammelSak)
+                val httpResponse = skeClient.getSkeKravidentifikator(krav.referansenummerGammelSak)
                 if (httpResponse.status.isSuccess()) {
-                    skeKravidentifikatorSomSkalLagres = httpResponse.body<AvstemmingResponse>().kravidentifikator
+                    httpResponse.parseTo<AvstemmingResponse>()?.let {
+                        skeKravidentifikatorSomSkalLagres = it.kravidentifikator
+                    }
                 }
             }
 
             if (skeKravidentifikatorSomSkalLagres.isNotBlank()) {
                 databaseService.updateEndringWithSkeKravIdentifikator(
-                    it.saksnummerNav,
+                    krav.saksnummerNav,
                     skeKravidentifikatorSomSkalLagres,
                 )
             } else {
                 val melding =
                     Pair(
                         "Fant ikke gyldig kravidentifikator for migrert krav",
-                        "Saksnummer: ${it.saksnummerNav} \n ReferansenummerGammelSak: ${it.referansenummerGammelSak} \n Dette må følges opp manuelt",
+                        "Saksnummer: ${krav.saksnummerNav} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
                     )
                 feilmeldinger.add(melding)
             }
@@ -162,11 +163,11 @@ class SkeService(
         val successful = result.filter { it.response.status.isSuccess() }
         val unsuccessful = result.size - successful.size
         val unsuccesfulMessage = if (unsuccessful > 0) ". $unsuccessful feilet" else ""
-        logger.info { "Sendte ${result.size} krav$unsuccesfulMessage" }
+        secureLogger.info { "Sendte ${result.size} krav$unsuccesfulMessage" }
 
         val nye = successful.count { it.kravTable.kravtype == NYTT_KRAV }
         val endringer = successful.count { it.kravTable.kravtype == ENDRING_RENTE } + successful.count { it.kravTable.kravtype == ENDRING_HOVEDSTOL }
         val stopp = successful.count { it.kravTable.kravtype == STOPP_KRAV }
-        logger.info { "$nye nye, $endringer endringer, $stopp stopp" }
+        secureLogger.info { "$nye nye, $endringer endringer, $stopp stopp" }
     }
 }

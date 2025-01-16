@@ -1,6 +1,5 @@
 package sokos.ske.krav.util
 
-import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.isSuccess
 import sokos.ske.krav.database.models.KravTable
@@ -22,15 +21,15 @@ data class RequestResult(
 
 suspend fun defineStatus(response: HttpResponse): Status {
     if (response.status.isSuccess()) return Status.KRAV_SENDT
-    // TODO: Try-catch
-    val content = response.body<FeilResponse>()
+
+    val type = response.parseTo<FeilResponse>()?.type ?: "FEIL_FRA_SERVER"
 
     return when (response.status.value) {
         400 -> Status.HTTP400_UGYLDIG_FORESPORSEL
         401 -> Status.HTTP401_FEIL_AUTENTISERING
         403 -> Status.HTTP403_INGEN_TILGANG
         404 -> {
-            if (content.type.contains(KRAV_EKSISTERER_IKKE)) {
+            if (type.contains(KRAV_EKSISTERER_IKKE)) {
                 Status.HTTP404_FANT_IKKE_SAKSREF
             } else {
                 Status.HTTP404_ANNEN_IKKE_FUNNET
@@ -38,9 +37,9 @@ suspend fun defineStatus(response: HttpResponse): Status {
         }
         406 -> Status.HTTP406_FEIL_MEDIETYPE
         409 -> {
-            if (content.type.contains(KRAV_IKKE_RESKONTROFORT_RESEND)) {
+            if (type.contains(KRAV_IKKE_RESKONTROFORT_RESEND)) {
                 Status.HTTP409_IKKE_RESKONTROFORT_RESEND
-            } else if (content.type.contains(KRAV_ER_AVSKREVET) || content.type.contains(KRAV_ER_ALLEREDE_AVSKREVET)) {
+            } else if (type.contains(KRAV_ER_AVSKREVET) || type.contains(KRAV_ER_ALLEREDE_AVSKREVET)) {
                 Status.HTTP409_KRAV_ER_AVSKREVET
             } else {
                 Status.HTTP409_ANNEN_KONFLIKT

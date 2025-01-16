@@ -1,14 +1,12 @@
 package sokos.ske.krav.validation
 
-import mu.KotlinLogging
 import sokos.ske.krav.client.SlackClient
+import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.domain.nav.FileParser
 
 class FileValidator(
     private val slackClient: SlackClient = SlackClient(),
 ) {
-    private val logger = KotlinLogging.logger("secureLogger")
-
     object ErrorKeys {
         const val FEIL_I_ANTALL = "Antall krav stemmer ikke med antallet i siste linje"
         const val FEIL_I_SUM = "Sum alle linjer stemmer ikke med sum i siste linje"
@@ -59,7 +57,7 @@ class FileValidator(
         return if (errorMessages.isNotEmpty()) {
             // TODO: Hvorfor ikke lagre hver feilmelding separat? altså flere database entries per fil
             slackClient.sendMessage("Feil i  filvalidering", fileName, errorMessages)
-            logger.warn("*** Feil i validering av fil $fileName. Sjekk Slack og Database ***")
+            secureLogger.warn("*** Feil i validering av fil $fileName. Sjekk Slack og Database ***")
             ValidationResult.Error(messages = errorMessages)
         } else {
             ValidationResult.Success(kravLinjer)

@@ -1,6 +1,5 @@
 package sokos.ske.krav.service
 
-import io.ktor.client.call.body
 import io.ktor.http.isSuccess
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -10,6 +9,7 @@ import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.createOpprettKravRequest
 import sokos.ske.krav.util.defineStatus
+import sokos.ske.krav.util.parseTo
 
 class OpprettKravService(
     private val skeClient: SkeClient,
@@ -29,11 +29,10 @@ class OpprettKravService(
         val response = skeClient.opprettKrav(opprettKravRequest, krav.corrId)
         val kravIdentifikator =
             if (response.status.isSuccess()) {
-                response.body<OpprettInnkrevingsOppdragResponse>().kravidentifikator
+                response.parseTo<OpprettInnkrevingsOppdragResponse>()?.kravidentifikator ?: ""
             } else {
                 ""
             }
-
         return RequestResult(
             response = response,
             request = Json.encodeToString(opprettKravRequest),

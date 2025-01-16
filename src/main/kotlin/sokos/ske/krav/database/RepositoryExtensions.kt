@@ -1,6 +1,6 @@
 package sokos.ske.krav.database
 
-import mu.KotlinLogging
+import sokos.ske.krav.config.secureLogger
 import java.math.BigDecimal
 import java.sql.Connection
 import java.sql.Date
@@ -11,14 +11,12 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 object RepositoryExtensions {
-    val logger = KotlinLogging.logger("secureLogger")
-
     inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R =
         runCatching {
             use {
                 block(this)
             }
-        }.onFailure { logger.error(it.message) }.getOrThrow()
+        }.onFailure { secureLogger.error(it.message) }.getOrThrow()
 
     inline fun <reified T> ResultSet.getColumn(columnLabel: String): T {
         val columnValue =
@@ -34,13 +32,13 @@ object RepositoryExtensions {
                 LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
 
                 else -> {
-                    logger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
+                    secureLogger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
                     throw SQLException("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
                 }
             }
 
         if (null !is T && columnValue == null) {
-            logger.error("Påkrevet kolonne '$columnLabel' er null")
+            secureLogger.error("Påkrevet kolonne '$columnLabel' er null")
             throw SQLException("Påkrevet kolonne '$columnLabel' er null")
         }
 

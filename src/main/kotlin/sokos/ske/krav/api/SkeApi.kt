@@ -10,7 +10,7 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import kotlinx.datetime.Clock
-import mu.KotlinLogging
+import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.service.AvstemmingService
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
@@ -23,27 +23,25 @@ fun Routing.skeApi(
     avstemmingService: AvstemmingService = AvstemmingService(),
     ftpService: FtpService = FtpService(),
 ) {
-    val logger = KotlinLogging.logger("secureLogger")
-
     route("krav") {
         get("test") {
-            logger.info("API : Kaller handleNewKrav")
+            secureLogger.info("API : Kaller handleNewKrav")
             try {
                 call.respond(HttpStatusCode.OK, "Da er den i gang ${Clock.System.now()}")
                 skeService.handleNewKrav()
             } catch (e: Exception) {
-                logger.error(
+                secureLogger.error(
                     "API : Sorry feilet: ${e.message}, \n" +
                         "Stacktrace= ${e.stackTraceToString()}",
                 )
             }
         }
         get("status") {
-            logger.info("APIlogger:  Status Start")
+            secureLogger.info("APILogger:  Status Start")
             try {
                 call.respond(statusService.getMottaksStatus())
             } catch (e: Exception) {
-                logger.error("APILogger: Status feilet")
+                secureLogger.error("APILogger: Status feilet")
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     "APISorry feilet: ${e.message}, \n" +

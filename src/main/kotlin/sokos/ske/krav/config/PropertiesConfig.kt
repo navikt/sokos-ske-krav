@@ -12,10 +12,13 @@ import io.ktor.client.request.get
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import mu.KotlinLogging
 import sokos.ske.krav.util.httpClient
 import java.io.File
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+
+val secureLogger = KotlinLogging.logger("secureLogger")
 
 object PropertiesConfig {
     private val defaultProperties =
