@@ -24,7 +24,7 @@ fun Routing.internalRoutes(
         }
         get("hentStatus") {
             logger.info("API Kall: Oppdaterer mottaksstatus manuelt")
-            call.respond(statusService.hentOgOppdaterMottaksStatus())
+            call.respond(statusService.getMottaksStatus())
         }
     }
 }
