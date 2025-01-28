@@ -11,8 +11,7 @@ import io.mockk.slot
 import io.mockk.spyk
 import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.config.SftpConfig
-import sokos.ske.krav.database.models.ValideringsfeilTable
-import sokos.ske.krav.database.toValideringsfeil
+import sokos.ske.krav.database.repository.ValideringsfeilRepository.getValideringsFeilForFil
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.Directories
@@ -23,7 +22,6 @@ import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.validation.LineValidationRules.ErrorKeys
 import sokos.ske.krav.validation.LineValidationRules.ErrorMessages
 import sokos.ske.krav.validation.LineValidationRules.errorDate
-import java.sql.Connection
 
 internal class LineValidatorIntegrationTest :
     BehaviorSpec({
@@ -36,7 +34,7 @@ internal class LineValidatorIntegrationTest :
             val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
             val lineValidatorSpy = spyk(LineValidator(slackClient), recordPrivateCalls = true)
             val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(slackClient), databaseService = mockk<DatabaseService>(relaxed = true))
+                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = mockk<SlackClient>(relaxed = true), databaseService = dbService)
             }
             val fileName = "AltOkFil.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
@@ -48,7 +46,7 @@ internal class LineValidatorIntegrationTest :
 
                 Then("Skal ingen feil lagres i database") {
                     testContainer.dataSource.connection
-                        .getValideringsFeil(fileName)
+                        .getValideringsFeilForFil(fileName)
                         .size shouldBe 0
                 }
                 Then("Ingen linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
@@ -68,7 +66,7 @@ internal class LineValidatorIntegrationTest :
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
             val lineValidatorSpy = spyk(LineValidator(slackClientSpy), recordPrivateCalls = true)
             val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(slackClientSpy), databaseService = mockk<DatabaseService>(relaxed = true))
+                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = mockk<SlackClient>(relaxed = true), databaseService = dbService)
             }
             val fileName = "1LinjeHarFeilKravtype.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
@@ -79,7 +77,7 @@ internal class LineValidatorIntegrationTest :
                 lineValidatorSpy.validateNewLines(ftpFil, dbService)
 
                 Then("Skal én feil lagres i database") {
-                    with(testContainer.dataSource.connection.getValideringsFeil(fileName)) {
+                    with(testContainer.dataSource.connection.getValideringsFeilForFil(fileName)) {
                         size shouldBe 1
                         with(first().feilmelding) {
                             shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
@@ -143,7 +141,7 @@ internal class LineValidatorIntegrationTest :
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
             val lineValidatorSpy = spyk(LineValidator(slackClientSpy), recordPrivateCalls = true)
             val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(slackClientSpy), databaseService = mockk<DatabaseService>(relaxed = true))
+                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = mockk<SlackClient>(relaxed = true), databaseService = dbService)
             }
 
             val fileName = "1LinjeHarFeilSaksnummer_OgVedtaksdato_OgKravtype.txt"
@@ -156,10 +154,14 @@ internal class LineValidatorIntegrationTest :
 
                 Then("1 returnert linje skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
                     validatedLines.size shouldBe ftpFil.kravLinjer.size
-                    validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }.size shouldBe 1
+                    with(validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }) {
+                        size shouldBe 1
+                        filter { it.kravKode == "MJ AU" }.size shouldBe 1
+                        filter { it.saksnummerNav == "saksnummer_øOB" }.size shouldBe 1
+                    }
                 }
                 Then("Skal 3 feil lagres som én feilmelding i database") {
-                    with(testContainer.dataSource.connection.getValideringsFeil(fileName)) {
+                    with(testContainer.dataSource.connection.getValideringsFeilForFil(fileName)) {
                         size shouldBe 1
                         with(first().feilmelding) {
                             shouldContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
@@ -232,7 +234,7 @@ internal class LineValidatorIntegrationTest :
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(SlackClient(client = MockHttpClient().getSlackClient())), databaseService = mockk<DatabaseService>(relaxed = true))
+                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = mockk<SlackClient>(relaxed = true), databaseService = mockk<DatabaseService>(relaxed = true))
             }
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileName }
             ftpFil.kravLinjer.size shouldBe 10
@@ -248,11 +250,14 @@ internal class LineValidatorIntegrationTest :
 
                 Then("6 returnerte linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
                     validatedLines.size shouldBe ftpFil.kravLinjer.size
-                    validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value && it.kravKode == "MJ AU" }.size shouldBe 6
+                    with(validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }) {
+                        size shouldBe 6
+                        filter { it.kravKode == "MJ AU" }.size shouldBe 6
+                    }
                 }
 
                 Then("Skal 6 feil lagres i database") {
-                    with(testContainer.dataSource.connection.getValideringsFeil(fileName)) {
+                    with(testContainer.dataSource.connection.getValideringsFeilForFil(fileName)) {
                         size shouldBe 6
                         all {
                             it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
@@ -332,12 +337,17 @@ internal class LineValidatorIntegrationTest :
                     val validatedLines = lineValidatorSpy.validateNewLines(nyeLinjer, dbService)
 
                     Then("6 returnerte linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
-                        // TODO: Sjekk at det er riktige linjer som får denne statusen
                         validatedLines.size shouldBe nyeLinjer.kravLinjer.size
-                        validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }.size shouldBe 6
+                        with(validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }) {
+                            size shouldBe 6
+                            filter { it.kravKode == "MJ AU" }.size shouldBe 6
+                            filter { it.saksnummerNav == "saksnummer_ø" }.size shouldBe 1
+                            filter { it.referansenummerGammelSak == "refgammel_ø" }.size shouldBe 1
+                            filter { it.vedtaksDato == errorDate }.size shouldBe 1
+                        }
                     }
                     Then("Skal 6 feil lagres  i database ") {
-                        with(testContainer.dataSource.connection.getValideringsFeil(fileName)) {
+                        with(testContainer.dataSource.connection.getValideringsFeilForFil(fileName)) {
                             size shouldBe 6
                             filter { it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.size shouldBe 6
                             filter { it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT) }.size shouldBe 1
@@ -408,10 +418,3 @@ internal class LineValidatorIntegrationTest :
             }
         }
     })
-
-// TODO: Sjekk hvordan valideringsfeil hentes i nye frontenden og om dette finnes
-private fun Connection.getValideringsFeil(filNavn: String): List<ValideringsfeilTable> =
-    prepareStatement(
-        """select * from valideringsfeil where filnavn='$filNavn'""".trimIndent(),
-    ).executeQuery()
-        .toValideringsfeil()

@@ -11,7 +11,7 @@ import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.database.toKrav
+import sokos.ske.krav.database.repository.toKrav
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
@@ -102,13 +102,13 @@ fun setupSkeServiceMockWithMockEngine(
     databaseService: DatabaseService,
 ): SkeService {
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
-
+    val slackClient = SlackClient(client = MockHttpClient().getSlackClient())
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
     val endreKravService = EndreKravService(skeClient, databaseService)
     val opprettKravService = OpprettKravService(skeClient, databaseService)
-    val statusService = StatusService(skeClient, databaseService)
+    val statusService = StatusService(skeClient, databaseService, slackClient)
     val stoppKravService = StoppKravService(skeClient, databaseService)
-    val slackClient = SlackClient(client = MockHttpClient().getSlackClient())
+
     return SkeService(
         skeClient = skeClient,
         stoppKravService = stoppKravService,

@@ -25,7 +25,7 @@ internal class FileValidatorIntegrationTest :
         Given("Fil er OK") {
             val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
             val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(slackClient), databaseService = dbService)
+                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = slackClient, databaseService = dbService)
             }
             val fileName = "AltOkFil.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
@@ -47,7 +47,7 @@ internal class FileValidatorIntegrationTest :
         Given("En fil har feil antall linjer i kontroll-linjen") {
             val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
             val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(slackClient), databaseService = dbService)
+                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = slackClient, databaseService = dbService)
             }
 
             val fileName = "FilMedFeilAntallKrav.txt"
@@ -85,7 +85,7 @@ internal class FileValidatorIntegrationTest :
         Given("En fil har feil sum i kontroll-linjen") {
             val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
             val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(slackClient), databaseService = dbService)
+                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = slackClient, databaseService = dbService)
             }
             val fileName = "FilMedFeilSum.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
@@ -124,7 +124,7 @@ internal class FileValidatorIntegrationTest :
             val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
 
             val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(slackClient), databaseService = dbService)
+                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = slackClient, databaseService = dbService)
             }
             val fileName = "FilMedFeilSendtDato.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
@@ -162,7 +162,7 @@ internal class FileValidatorIntegrationTest :
             val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
 
             val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(slackClient), databaseService = dbService)
+                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = slackClient, databaseService = dbService)
             }
             val fileName = "FilMedAlleTyperFeilForFilValidering.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)

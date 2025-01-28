@@ -2,8 +2,9 @@ package sokos.ske.krav.database
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
-import sokos.ske.krav.database.RepositoryExtensions.getColumn
-import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
+import sokos.ske.krav.database.repository.RepositoryExtensions.getColumn
+import sokos.ske.krav.database.repository.RepositoryExtensions.useAndHandleErrors
+import sokos.ske.krav.database.repository.toFeilmelding
 import sokos.ske.krav.util.TestContainer
 import java.sql.SQLException
 

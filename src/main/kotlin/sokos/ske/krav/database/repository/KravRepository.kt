@@ -1,9 +1,7 @@
-package sokos.ske.krav.database
+package sokos.ske.krav.database.repository
 
-import sokos.ske.krav.database.RepositoryExtensions.getColumn
-import sokos.ske.krav.database.RepositoryExtensions.withParameters
-import sokos.ske.krav.database.models.FeilmeldingTable
-import sokos.ske.krav.database.models.ValideringsfeilTable
+import sokos.ske.krav.database.repository.RepositoryExtensions.getColumn
+import sokos.ske.krav.database.repository.RepositoryExtensions.withParameters
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.service.ENDRING_HOVEDSTOL
@@ -15,7 +13,7 @@ import sokos.ske.krav.util.isStopp
 import java.sql.Connection
 import java.util.UUID
 
-object Repository {
+object KravRepository {
     fun Connection.getAllKravForStatusCheck() =
         prepareStatement("""select * from krav where status in (?, ?)""")
             .withParameters(
@@ -42,52 +40,21 @@ object Repository {
             ).executeQuery()
             .toKrav()
 
-    fun Connection.getAllFeilmeldinger() = prepareStatement("""select * from feilmelding""").executeQuery().toFeilmelding()
-
-    fun Connection.getFeilmeldingForKravId(kravId: Long): List<FeilmeldingTable> =
-        prepareStatement(
-            """
-            select * from feilmelding
-            where krav_id = ?
-            """.trimIndent(),
-        ).withParameters(
-            kravId,
-        ).executeQuery()
-            .toFeilmelding()
-
-    fun Connection.getValideringsFeilForLinje(
-        filNavn: String,
-        linjeNummer: Int,
-    ): List<ValideringsfeilTable> =
-        prepareStatement(
-            """
-            select * from valideringsfeil
-            where filnavn = ? and linjenummer = ?
-            """.trimIndent(),
-        ).withParameters(
-            filNavn,
-            linjeNummer,
-        ).executeQuery()
-            .toValideringsfeil()
-
-    fun Connection.getValideringsFeilForFil(filNavn: String): List<ValideringsfeilTable> =
-        prepareStatement(
-            """
-            select * from valideringsfeil
-            where filnavn = ?
-            """.trimIndent(),
-        ).withParameters(
-            filNavn,
-        ).executeQuery()
-            .toValideringsfeil()
-
+    // TODO må også returnere de med valideringsfeil rapporter = true
+    // Men da må valideringsfeil tabell ha krav id
+    // Eventuelt kan vi bruke saksnummer_nav men må se på hvordan visningen blir
+    // Og hvordan blir det da med valideringsfeil for fil?
+    // Bedre kanskje å kalle denne for getAllFeilmeldingerForKrav
+    // Og så gjøre noe annet for valideringsfeil
     fun Connection.getAllKravForAvstemming() =
+
         prepareStatement(
             """
-            select a.* from krav a 
-            join feilmelding b on a.id=b.krav_id
-            where a.status not in ( ?, ?) and b.rapporter = true 
-            order by a.id
+            select k.* from krav k
+            join feilmelding f on k.id=f.krav_id
+            where k.status not in ( ?, ?) 
+            and f.rapporter = true 
+            order by k.id
             """.trimIndent(),
         ).withParameters(
             Status.RESKONTROFOERT.value,
@@ -101,7 +68,7 @@ object Repository {
                 """
                 select min(tidspunkt_opprettet) as opprettet, kravidentifikator_ske from krav
                 where (saksnummer_nav = ? or referansenummergammelsak = ?) 
-                and (kravidentifikator_ske is not null and kravidentifikator_ske <> '') 
+                and (kravidentifikator_ske is not null and kravidentifikator_ske != '') 
                 group by kravidentifikator_ske limit 1
                 """.trimIndent(),
             ).withParameters(
@@ -120,7 +87,7 @@ object Repository {
             prepareStatement(
                 """
                 select referansenummergammelsak from krav
-                where saksnummer_nav = ? and referansenummergammelsak <> saksnummer_nav
+                where saksnummer_nav = ? and referansenummergammelsak != saksnummer_nav
                 order by id limit 1
                 """.trimIndent(),
             ).withParameters(
@@ -211,6 +178,7 @@ object Repository {
         commit()
     }
 
+    // Todo: Må ha samme for valideringsfeil
     fun Connection.updateStatusForAvstemtKravToReported(kravId: Int) {
         prepareStatement(
             """
@@ -341,70 +309,6 @@ object Repository {
             }
         }
         prepStmt.executeBatch()
-        commit()
-    }
-
-    fun Connection.insertFeilmelding(feilmelding: FeilmeldingTable) {
-        prepareStatement(
-            """
-            insert into feilmelding (
-                krav_id,
-                saksnummer_nav,
-                kravidentifikator_ske,
-                corr_id,
-                error,
-                melding,
-                nav_request,
-                ske_response
-            ) 
-            values (?, ?, ?, ?, ?, ?, ?, ?)
-            """.trimIndent(),
-        ).withParameters(
-            feilmelding.kravId,
-            feilmelding.saksnummerNav,
-            feilmelding.kravidentifikatorSKE,
-            feilmelding.corrId,
-            feilmelding.error,
-            feilmelding.melding,
-            feilmelding.navRequest,
-            feilmelding.skeResponse,
-        ).execute()
-        commit()
-    }
-
-    fun Connection.insertFileValideringsfeil(
-        filnavn: String,
-        feilmelding: String,
-    ) {
-        prepareStatement(
-            """
-            insert into valideringsfeil (filnavn, feilmelding)
-            values (?, ?)
-            """.trimIndent(),
-        ).withParameters(
-            filnavn,
-            feilmelding,
-        ).execute()
-        commit()
-    }
-
-    fun Connection.insertLineValideringsfeil(
-        filnavn: String,
-        kravlinje: KravLinje?,
-        feilmelding: String,
-    ) {
-        prepareStatement(
-            """
-            insert into valideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
-            values (?, ?, ?, ?, ? )
-            """.trimIndent(),
-        ).withParameters(
-            filnavn,
-            kravlinje?.linjenummer,
-            kravlinje?.saksnummerNav,
-            kravlinje.toString(),
-            feilmelding,
-        ).execute()
         commit()
     }
 }

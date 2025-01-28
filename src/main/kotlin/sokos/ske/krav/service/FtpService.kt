@@ -2,6 +2,7 @@ package sokos.ske.krav.service
 
 import com.jcraft.jsch.SftpException
 import mu.KotlinLogging
+import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.config.SftpConfig
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.validation.FileValidator
@@ -25,7 +26,8 @@ data class FtpFil(
 
 class FtpService(
     private val sftpConfig: SftpConfig = SftpConfig(),
-    private val fileValidator: FileValidator = FileValidator(),
+    private val slackClient: SlackClient = SlackClient(),
+    private val fileValidator: FileValidator = FileValidator(slackClient),
     private val databaseService: DatabaseService = DatabaseService(),
 ) {
     private val logger = KotlinLogging.logger("secureLogger")

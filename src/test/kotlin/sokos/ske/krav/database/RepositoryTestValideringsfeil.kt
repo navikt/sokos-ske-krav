@@ -2,81 +2,39 @@ package sokos.ske.krav.database
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
-import sokos.ske.krav.database.Repository.getAllFeilmeldinger
-import sokos.ske.krav.database.Repository.getValideringsFeilForLinje
-import sokos.ske.krav.database.Repository.insertAllNewKrav
-import sokos.ske.krav.database.Repository.insertFeilmelding
-import sokos.ske.krav.database.Repository.insertLineValideringsfeil
-import sokos.ske.krav.database.models.FeilmeldingTable
-import sokos.ske.krav.database.models.KravTable
-import sokos.ske.krav.domain.nav.FileParser
+import sokos.ske.krav.database.repository.ValideringsfeilRepository.getValideringsFeilForFil
+import sokos.ske.krav.database.repository.ValideringsfeilRepository.getValideringsFeilForLinje
+import sokos.ske.krav.database.repository.ValideringsfeilRepository.insertFileValideringsfeil
+import sokos.ske.krav.database.repository.ValideringsfeilRepository.insertLineValideringsfeil
+import sokos.ske.krav.database.repository.toValideringsfeil
 import sokos.ske.krav.domain.nav.KravLinje
-import sokos.ske.krav.service.ENDRING_HOVEDSTOL
-import sokos.ske.krav.service.ENDRING_RENTE
-import sokos.ske.krav.service.NYTT_KRAV
-import sokos.ske.krav.service.STOPP_KRAV
-import sokos.ske.krav.util.FtpTestUtil.fileAsList
 import sokos.ske.krav.util.TestContainer
-import sokos.ske.krav.util.getAllKrav
-import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.LocalDateTime
 
-// TODO: BehaviorSpec, valideringsfeil, sjekk at alle funksjoner er testet
-internal class RepositoryTest :
+internal class RepositoryTestValideringsfeil :
     FunSpec({
         val testContainer = TestContainer()
-        testContainer.migrate("SQLscript/Feilmeldinger.sql")
         testContainer.migrate("SQLscript/ValideringsFeil.sql")
-        test("insertAllNewKrav skal inserte alle kravlinjene") {
 
-            val filnavn = "${File.separator}FtpFiler${File.separator}8NyeKrav1Endring1Stopp.txt"
-            val liste = fileAsList(filnavn)
-            val kravlinjer = FileParser(liste).parseKravLinjer()
-
+        test("getValideringsFeilForFil skal returnere valideringsfeil basert på filnavn") {
             testContainer.dataSource.connection.use { con ->
-                con.insertAllNewKrav(kravlinjer, filnavn)
-                val lagredeKrav = con.getAllKrav()
-                lagredeKrav.size shouldBe kravlinjer.size + 1
-                lagredeKrav.filter { it.kravtype == NYTT_KRAV }.size shouldBe 8
-                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.size shouldBe 1
-                lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.size shouldBe 1
-                lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.size shouldBe 1
+                con.getValideringsFeilForFil("Fil1.txt").size shouldBe 1
+                con.getValideringsFeilForFil("Fil2.txt").size shouldBe 2
+                con.getValideringsFeilForFil("Fil3.txt").size shouldBe 3
+            }
+        }
+        test("insertFileValideringsfeil skal inserte ny valideringsfeil med filnanvn og feilmelding") {
+            testContainer.dataSource.connection.use { con ->
+                con.insertFileValideringsfeil("Fil4.txt", "Test validation error insert")
+
+                val inserted = con.getValideringsFeilForFil("Fil4.txt")
+                inserted.size shouldBe 1
+                inserted.first().feilmelding shouldBe "Test validation error insert"
             }
         }
 
-        test("insertFeilmelding skal lagre feilmelding") {
-            val feilmelding =
-                FeilmeldingTable(
-                    2L,
-                    1L,
-                    "CORR456",
-                    "1110-navsaksnummer",
-                    "1111-skeUUID",
-                    "409",
-                    "feilmelding 409 1111",
-                    "{nav request2}",
-                    "{ske response 2}",
-                    LocalDateTime.now(),
-                )
-
-            testContainer.dataSource.connection.use { con ->
-                con.getAllFeilmeldinger().size shouldBe 4
-                con.insertFeilmelding(feilmelding)
-
-                val feilmeldinger = con.getAllFeilmeldinger()
-                feilmeldinger.size shouldBe 5
-                feilmeldinger.filter { it.kravId == 1L }.size shouldBe 2
-                feilmeldinger.filter { it.corrId == "CORR456" }.size shouldBe 1
-                feilmeldinger.filter { it.corrId == "CORR856" }.size shouldBe 1
-                feilmeldinger.filter { it.corrId == "CORR658" }.size shouldBe 2
-            }
-        }
-
-        test("insertValideringsfeil skal lagre valideringsfeil") {
+        test("insertLineValideringsfeil skal inserte ny valideringsfeil med filnanvn, linjenummer, saksnummerNav, kravlinje, og feilmelding") {
             val fileName = this.testCase.name.testName
             val feilMelding = "Test validation error insert"
             val linje =
@@ -103,17 +61,12 @@ internal class RepositoryTest :
                 )
 
             testContainer.dataSource.connection.use { con ->
-                val rsBefore = con.prepareStatement("""select count(*) from valideringsfeil""").executeQuery()
-                rsBefore.next()
-                rsBefore.getInt("count") shouldBe 6
+                val valideringsFeilBefore = con.prepareStatement("""select * from valideringsfeil""").executeQuery().toValideringsfeil()
 
                 con.insertLineValideringsfeil(fileName, linje, feilMelding)
 
-                val rsAfter = con.prepareStatement("""select count(*) from valideringsfeil""").executeQuery()
-                rsAfter.next()
-                rsAfter.getInt("count") shouldBe 7
-
                 val valideringsFeil = con.prepareStatement("""select * from valideringsfeil""").executeQuery().toValideringsfeil()
+                valideringsFeil.size shouldBe valideringsFeilBefore.size + 1
                 with(valideringsFeil.filter { it.filnavn == fileName }) {
                     size shouldBe 1
                     with(first()) {
@@ -126,26 +79,10 @@ internal class RepositoryTest :
             }
         }
 
-        test("getValideringsFeilForKravId skal returnere en liste av ValideringsFeil knyttet til gitt KravID") {
-
-            val kravtable1 =
-                mockk<KravTable>(relaxed = true) {
-                    every { filnavn } returns "Fil1.txt"
-                    every { linjenummer } returns 1
-                }
-            val kravtable2 =
-                mockk<KravTable>(relaxed = true) {
-                    every { filnavn } returns "Fil2.txt"
-                    every { linjenummer } returns 2
-                }
-            val kravtable3 =
-                mockk<KravTable>(relaxed = true) {
-                    every { filnavn } returns "Fil3.txt"
-                    every { linjenummer } returns 3
-                }
+        test("getValideringsFeilForLinje skal returnere en liste av ValideringsFeil knyttet til gitt filnavn og linjenummer") {
 
             testContainer.dataSource.connection.use { con ->
-                with(con.getValideringsFeilForLinje(kravtable1.filnavn, kravtable1.linjenummer)) {
+                with(con.getValideringsFeilForLinje("Fil1.txt", 1)) {
                     size shouldBe 1
                     with(first()) {
                         valideringsfeilId shouldBe 11
@@ -159,7 +96,7 @@ internal class RepositoryTest :
             }
 
             testContainer.dataSource.connection.use { con ->
-                with(con.getValideringsFeilForLinje(kravtable2.filnavn, kravtable2.linjenummer)) {
+                with(con.getValideringsFeilForLinje("Fil2.txt", 2)) {
                     size shouldBe 2
                     with(get(0)) {
                         valideringsfeilId shouldBe 21
@@ -180,7 +117,7 @@ internal class RepositoryTest :
                 }
             }
             testContainer.dataSource.connection.use { con ->
-                with(con.getValideringsFeilForLinje(kravtable3.filnavn, kravtable3.linjenummer)) {
+                with(con.getValideringsFeilForLinje("Fil3.txt", 3)) {
                     size shouldBe 3
                     with(get(0)) {
                         valideringsfeilId shouldBe 31

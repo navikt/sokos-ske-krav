@@ -58,7 +58,6 @@ internal class StatusServiceIntegrationTest :
             val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
             val statusService = StatusService(skeClient, dbService, slackClient)
 
-
             dbService.getAllFeilmeldinger().size shouldBe 0
 
             statusService.getMottaksStatus()
@@ -68,11 +67,11 @@ internal class StatusServiceIntegrationTest :
             }
             Then("Mottaksstatus skal settes til VALIDERINGSFEIL i database") {
 
-                    testContainer.dataSource.connection
-                        .use { con -> con.getAllKrav() }
-                        .filter { it.status == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value }
-                        .distinctBy { it.corrId }
-                        .size shouldBe 5
+                testContainer.dataSource.connection
+                    .use { con -> con.getAllKrav() }
+                    .filter { it.status == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value }
+                    .distinctBy { it.corrId }
+                    .size shouldBe 5
             }
             And("Alert skal sendes til slack") {
                 coVerify(exactly = 5) {

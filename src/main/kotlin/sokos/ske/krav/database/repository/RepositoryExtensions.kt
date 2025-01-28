@@ -1,4 +1,4 @@
-package sokos.ske.krav.database
+package sokos.ske.krav.database.repository
 
 import sokos.ske.krav.config.secureLogger
 import java.math.BigDecimal

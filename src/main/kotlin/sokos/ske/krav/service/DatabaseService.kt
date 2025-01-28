@@ -5,29 +5,28 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import sokos.ske.krav.database.PostgresDataSource
-import sokos.ske.krav.database.Repository.getAllFeilmeldinger
-import sokos.ske.krav.database.Repository.getAllKravForAvstemming
-import sokos.ske.krav.database.Repository.getAllKravForResending
-import sokos.ske.krav.database.Repository.getAllKravForStatusCheck
-import sokos.ske.krav.database.Repository.getAllUnsentKrav
-import sokos.ske.krav.database.Repository.getFeilmeldingForKravId
-import sokos.ske.krav.database.Repository.getKravTableIdFromCorrelationId
-import sokos.ske.krav.database.Repository.getPreviousReferansenummer
-import sokos.ske.krav.database.Repository.getSkeKravidentifikator
-import sokos.ske.krav.database.Repository.getValideringsFeilForFil
-import sokos.ske.krav.database.Repository.getValideringsFeilForLinje
-import sokos.ske.krav.database.Repository.insertAllNewKrav
-import sokos.ske.krav.database.Repository.insertFeilmelding
-import sokos.ske.krav.database.Repository.insertFileValideringsfeil
-import sokos.ske.krav.database.Repository.insertLineValideringsfeil
-import sokos.ske.krav.database.Repository.updateEndringWithSkeKravIdentifikator
-import sokos.ske.krav.database.Repository.updateSentKrav
-import sokos.ske.krav.database.Repository.updateStatus
-import sokos.ske.krav.database.Repository.updateStatusForAvstemtKravToReported
-import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.ValideringsfeilTable
+import sokos.ske.krav.database.repository.FeilmeldingRepository.getAllFeilmeldinger
+import sokos.ske.krav.database.repository.FeilmeldingRepository.getFeilmeldingForKravId
+import sokos.ske.krav.database.repository.FeilmeldingRepository.insertFeilmelding
+import sokos.ske.krav.database.repository.KravRepository.getAllKravForAvstemming
+import sokos.ske.krav.database.repository.KravRepository.getAllKravForResending
+import sokos.ske.krav.database.repository.KravRepository.getAllKravForStatusCheck
+import sokos.ske.krav.database.repository.KravRepository.getAllUnsentKrav
+import sokos.ske.krav.database.repository.KravRepository.getKravTableIdFromCorrelationId
+import sokos.ske.krav.database.repository.KravRepository.getPreviousReferansenummer
+import sokos.ske.krav.database.repository.KravRepository.getSkeKravidentifikator
+import sokos.ske.krav.database.repository.KravRepository.insertAllNewKrav
+import sokos.ske.krav.database.repository.KravRepository.updateEndringWithSkeKravIdentifikator
+import sokos.ske.krav.database.repository.KravRepository.updateSentKrav
+import sokos.ske.krav.database.repository.KravRepository.updateStatus
+import sokos.ske.krav.database.repository.KravRepository.updateStatusForAvstemtKravToReported
+import sokos.ske.krav.database.repository.RepositoryExtensions.useAndHandleErrors
+import sokos.ske.krav.database.repository.ValideringsfeilRepository.getValideringsFeilForFil
+import sokos.ske.krav.database.repository.ValideringsfeilRepository.insertFileValideringsfeil
+import sokos.ske.krav.database.repository.ValideringsfeilRepository.insertLineValideringsfeil
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.metrics.Metrics
@@ -190,15 +189,6 @@ class DatabaseService(
     fun getFeilmeldingForKravId(kravId: Long): List<FeilmeldingTable> {
         dataSource.connection.useAndHandleErrors { con ->
             return con.getFeilmeldingForKravId(kravId)
-        }
-    }
-
-    fun getLineValidationMessage(
-        filNavn: String,
-        linjeNummer: Int,
-    ): List<ValideringsfeilTable> {
-        dataSource.connection.useAndHandleErrors { con ->
-            return con.getValideringsFeilForLinje(filNavn, linjeNummer)
         }
     }
 

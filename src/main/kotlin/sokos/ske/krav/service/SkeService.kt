@@ -27,8 +27,8 @@ class SkeService(
     private val stoppKravService: StoppKravService = StoppKravService(skeClient, databaseService),
     private val endreKravService: EndreKravService = EndreKravService(skeClient, databaseService),
     private val opprettKravService: OpprettKravService = OpprettKravService(skeClient, databaseService),
-    private val ftpService: FtpService = FtpService(),
     private val slackClient: SlackClient = SlackClient(),
+    private val ftpService: FtpService = FtpService(slackClient = slackClient),
 ) {
     private var haltRun = false
 
@@ -129,9 +129,7 @@ class SkeService(
             if (skeKravidentifikator.isBlank()) {
                 val httpResponse = skeClient.getSkeKravidentifikator(krav.referansenummerGammelSak)
                 if (httpResponse.status.isSuccess()) {
-                    httpResponse.parseTo<AvstemmingResponse>()?.let {
-                        skeKravidentifikatorSomSkalLagres = it.kravidentifikator
-                    }
+                    skeKravidentifikatorSomSkalLagres = httpResponse.parseTo<AvstemmingResponse>()?.kravidentifikator ?: ""
                 }
             }
 

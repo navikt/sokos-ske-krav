@@ -5,7 +5,7 @@ import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.domain.nav.FileParser
 
 class FileValidator(
-    private val slackClient: SlackClient = SlackClient(),
+    private val slackClient: SlackClient,
 ) {
     object ErrorKeys {
         const val FEIL_I_ANTALL = "Antall krav stemmer ikke med antallet i siste linje"

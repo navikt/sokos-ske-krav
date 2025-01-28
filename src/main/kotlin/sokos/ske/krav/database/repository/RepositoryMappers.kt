@@ -1,9 +1,9 @@
-package sokos.ske.krav.database
+package sokos.ske.krav.database.repository
 
-import sokos.ske.krav.database.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.models.ValideringsfeilTable
+import sokos.ske.krav.database.repository.RepositoryExtensions.getColumn
 import java.sql.ResultSet
 
 fun ResultSet.toKrav() =
@@ -66,6 +66,7 @@ fun ResultSet.toValideringsfeil() =
             kravLinje = getColumn("kravlinje"),
             feilmelding = getColumn("feilmelding"),
             tidspunktOpprettet = getColumn("tidspunkt_opprettet"),
+            rapporter = getColumn("rapporter"),
         )
     }
 

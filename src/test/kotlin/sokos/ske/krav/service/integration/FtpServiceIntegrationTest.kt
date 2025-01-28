@@ -11,7 +11,6 @@ import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.util.SftpListener
 import sokos.ske.krav.util.TestContainer
-import sokos.ske.krav.validation.FileValidator
 
 internal class FtpServiceIntegrationTest :
     BehaviorSpec({
@@ -22,7 +21,7 @@ internal class FtpServiceIntegrationTest :
             val testContainer = TestContainer()
             val dbService = DatabaseService(testContainer.dataSource)
             val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(mockk<SlackClient>(relaxed = true)), databaseService = dbService)
+                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = mockk<SlackClient>(relaxed = true), databaseService = dbService)
             }
 
             SftpListener.putFiles(listOf("AltOkFil.txt", "Fil-A.txt", "Fil-B.txt", "FilMedFeilAntallKrav.txt"), Directories.INBOUND)
