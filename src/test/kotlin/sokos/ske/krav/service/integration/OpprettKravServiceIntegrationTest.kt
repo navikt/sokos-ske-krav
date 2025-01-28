@@ -21,7 +21,7 @@ internal class OpprettKravServiceIntegrationTest :
 
         test("Nye krav skal lagres i database med response fra skeclient") {
             val testContainer = TestContainer()
-            testContainer.migrate("NyeKrav.sql")
+            testContainer.migrate("SQLscript/NyeKrav.sql")
 
             val kravidentifikatorSKE = "4321"
             val skeResponse = MockHttpClientUtils.Responses.nyttKravResponse(kravidentifikatorSKE)
@@ -92,7 +92,9 @@ internal class OpprettKravServiceIntegrationTest :
                     ),
                 )
 
-            testContainer.dataSource.connection.getAllKrav().size shouldBe 2
+            testContainer.dataSource.connection
+                .getAllKrav()
+                .size shouldBe 2
 
             opprettService.sendAllOpprettKrav(kravListe)
 

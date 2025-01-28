@@ -87,7 +87,7 @@ class AvstemmingTemplate : Template<FlowContent> {
                     }
                     td { +it.tidspunktSisteStatus }
 
-                    // TODO: Valideringsfeil tabell må ha en "rapporter" kolonne
+                    // TODO: Rapporter valideringsfeil
                     if (it.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value) {
                         td {
                             form {

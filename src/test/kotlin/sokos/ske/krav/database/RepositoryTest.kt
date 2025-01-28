@@ -25,16 +25,18 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-// TODO: BehaviorSpec, valideringsfeil
+// TODO: BehaviorSpec, valideringsfeil, sjekk at alle funksjoner er testet
 internal class RepositoryTest :
     FunSpec({
-
+        val testContainer = TestContainer()
+        testContainer.migrate("SQLscript/Feilmeldinger.sql")
+        testContainer.migrate("SQLscript/ValideringsFeil.sql")
         test("insertAllNewKrav skal inserte alle kravlinjene") {
 
             val filnavn = "${File.separator}FtpFiler${File.separator}8NyeKrav1Endring1Stopp.txt"
             val liste = fileAsList(filnavn)
             val kravlinjer = FileParser(liste).parseKravLinjer()
-            val testContainer = TestContainer()
+
             testContainer.dataSource.connection.use { con ->
                 con.insertAllNewKrav(kravlinjer, filnavn)
                 val lagredeKrav = con.getAllKrav()
@@ -47,8 +49,6 @@ internal class RepositoryTest :
         }
 
         test("insertFeilmelding skal lagre feilmelding") {
-            val testContainer = TestContainer()
-            testContainer.migrate("Feilmeldinger.sql")
             val feilmelding =
                 FeilmeldingTable(
                     2L,
@@ -64,11 +64,11 @@ internal class RepositoryTest :
                 )
 
             testContainer.dataSource.connection.use { con ->
-                con.getAllFeilmeldinger().size shouldBe 3
+                con.getAllFeilmeldinger().size shouldBe 4
                 con.insertFeilmelding(feilmelding)
 
                 val feilmeldinger = con.getAllFeilmeldinger()
-                feilmeldinger.size shouldBe 4
+                feilmeldinger.size shouldBe 5
                 feilmeldinger.filter { it.kravId == 1L }.size shouldBe 2
                 feilmeldinger.filter { it.corrId == "CORR456" }.size shouldBe 1
                 feilmeldinger.filter { it.corrId == "CORR856" }.size shouldBe 1
@@ -81,7 +81,7 @@ internal class RepositoryTest :
             val feilMelding = "Test validation error insert"
             val linje =
                 KravLinje(
-                    1,
+                    55,
                     "saksnr",
                     BigDecimal.valueOf(123.45),
                     LocalDate.now(),
@@ -102,30 +102,32 @@ internal class RepositoryTest :
                     "NYTT_KRAV",
                 )
 
-            TestContainer().dataSource.connection.use { con ->
+            testContainer.dataSource.connection.use { con ->
                 val rsBefore = con.prepareStatement("""select count(*) from valideringsfeil""").executeQuery()
                 rsBefore.next()
-                rsBefore.getInt("count") shouldBe 0
+                rsBefore.getInt("count") shouldBe 6
 
                 con.insertLineValideringsfeil(fileName, linje, feilMelding)
 
                 val rsAfter = con.prepareStatement("""select count(*) from valideringsfeil""").executeQuery()
                 rsAfter.next()
-                rsAfter.getInt("count") shouldBe 1
+                rsAfter.getInt("count") shouldBe 7
 
-                val savedErrorRs = con.prepareStatement("""select * from valideringsfeil""").executeQuery()
-                savedErrorRs.next()
-                savedErrorRs.getString("filnavn") shouldBe fileName
-                savedErrorRs.getString("linjenummer") shouldBe linje.linjenummer.toString()
-                savedErrorRs.getString("saksnummer_nav") shouldBe linje.saksnummerNav
-                savedErrorRs.getString("kravlinje") shouldBe linje.toString()
-                savedErrorRs.getString("feilmelding") shouldBe feilMelding
+                val valideringsFeil = con.prepareStatement("""select * from valideringsfeil""").executeQuery().toValideringsfeil()
+                with(valideringsFeil.filter { it.filnavn == fileName }) {
+                    size shouldBe 1
+                    with(first()) {
+                        linjenummer shouldBe linje.linjenummer
+                        saksnummerNav shouldBe linje.saksnummerNav
+                        kravLinje shouldBe linje.toString()
+                        feilmelding shouldBe feilMelding
+                    }
+                }
             }
         }
 
         test("getValideringsFeilForKravId skal returnere en liste av ValideringsFeil knyttet til gitt KravID") {
-            val testContainer = TestContainer()
-            testContainer.migrate("ValideringsFeil.sql")
+
             val kravtable1 =
                 mockk<KravTable>(relaxed = true) {
                     every { filnavn } returns "Fil1.txt"
@@ -146,7 +148,7 @@ internal class RepositoryTest :
                 with(con.getValideringsFeilForLinje(kravtable1.filnavn, kravtable1.linjenummer)) {
                     size shouldBe 1
                     with(first()) {
-                        valideringsfeilId shouldBe 1
+                        valideringsfeilId shouldBe 11
                         filnavn shouldBe "Fil1.txt"
                         linjenummer shouldBe 1
                         saksnummerNav shouldBe "111"

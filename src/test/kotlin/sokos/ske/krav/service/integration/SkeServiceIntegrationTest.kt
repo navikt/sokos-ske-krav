@@ -11,12 +11,14 @@ import io.mockk.spyk
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.config.SftpConfig
+import sokos.ske.krav.database.Repository.updateStatus
 import sokos.ske.krav.database.RepositoryExtensions.withParameters
 import sokos.ske.krav.database.toFeilmelding
 import sokos.ske.krav.database.toKrav
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.ske.responses.AvstemmingResponse
 import sokos.ske.krav.domain.ske.responses.FeilResponse
+import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.Directories
@@ -35,32 +37,32 @@ import sokos.ske.krav.util.setUpMockHttpClient
 import sokos.ske.krav.util.setupSkeServiceMock
 import sokos.ske.krav.util.setupSkeServiceMockWithMockEngine
 
+// Todo: Fullfør omskriving til behaviourspec , dvs skriv given-when-then ordentlig :)
 internal class SkeServiceIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener)
         val ftpService: FtpService by lazy {
             FtpService(SftpConfig(SftpListener.sftpProperties), databaseService = mockk<DatabaseService>())
         }
+        val testContainer = TestContainer()
+        testContainer.migrate("SQLscript/10NyeKrav.sql")
 
         Given("Det finnes en fil i INBOUND") {
             SftpListener.putFiles(listOf("10NyeKrav.txt"), Directories.INBOUND)
-            val testContainer = TestContainer()
+
             val skeService = setupSkeServiceMock(databaseService = DatabaseService(testContainer.dataSource), ftpService = ftpService)
 
             Then("Skal alle validerte linjer lagres i database") {
                 val kravbefore = testContainer.dataSource.connection.use { it.getAllKrav() }
-                kravbefore.size shouldBe 0
 
                 skeService.handleNewKrav()
 
                 val kravEtter = testContainer.dataSource.connection.use { it.getAllKrav() }
-                kravEtter.size shouldBe 10
+                kravEtter.size shouldBe 10 + kravbefore.size
             }
         }
 
         Given("Etter at kravene lagres i database skal endringer og avskrivinger oppdateres med kravidentifikatorSKE fra database") {
-            val testContainer = TestContainer()
-            testContainer.migrate("10NyeKrav.sql")
             SftpListener.putFiles(listOf("TestEndringKravident.txt"), Directories.INBOUND)
 
             val skeClient =
@@ -80,11 +82,13 @@ internal class SkeServiceIntegrationTest :
             val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dbService, ftpService = ftpService)
             val skeMock = spyk(skeService, recordPrivateCalls = true)
 
-            skeMock.handleNewKrav()
+            Then("skal noe") {
+                skeMock.handleNewKrav()
 
-            val kravEtter = testContainer.dataSource.connection.use { it.getAllKrav() }
-            kravEtter.find { it.saksnummerNAV == "2223-navsaksnr" }?.kravidentifikatorSKE shouldBe "2222-skeUUID"
-            kravEtter.find { it.saksnummerNAV == "8889-navsaksnr" }?.kravidentifikatorSKE shouldBe "8888-skeUUID"
+                val kravEtter = testContainer.dataSource.connection.use { it.getAllKrav() }
+                kravEtter.find { it.saksnummerNAV == "2223-navsaksnr" }?.kravidentifikatorSKE shouldBe "2222-skeUUID"
+                kravEtter.find { it.saksnummerNAV == "8889-navsaksnr" }?.kravidentifikatorSKE shouldBe "8888-skeUUID"
+            }
         }
 
         Given("Kravdata skal lagres med type som beskriver hva slags krav det er") {
@@ -97,22 +101,35 @@ internal class SkeServiceIntegrationTest :
                             coEvery { body<AvstemmingResponse>().kravidentifikator } returns "foo"
                             coEvery { status } returns HttpStatusCode.OK
                         }
+                    coEvery { getMottaksStatus(any(), any()) } returns
+                        mockk<HttpResponse> {
+                            coEvery { body<MottaksStatusResponse>().mottaksStatus } returns "RESKONTROFOERT"
+                            coEvery { status } returns HttpStatusCode.OK
+                        }
                 }
-            val testContainer = TestContainer()
+            // val testContainer = TestContainer()
             val dbService = DatabaseService(testContainer.dataSource)
             val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dbService, ftpService = ftpService)
             val skeMock = spyk(skeService, recordPrivateCalls = true)
+            val kravbefore = testContainer.dataSource.connection.use { it.getAllKrav() }
 
-            skeMock.handleNewKrav()
-            val lagredeKrav = testContainer.dataSource.connection.use { it.getAllKrav() }
-            lagredeKrav.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
-            lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.size shouldBe 2
-            lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.size shouldBe 2
-            lagredeKrav.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
+            Then("skal noe") {
+                skeMock.handleNewKrav()
+                val lagredeKrav = testContainer.dataSource.connection.use { it.getAllKrav() }
+                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2 + kravbefore.filter { it.kravtype == STOPP_KRAV }.size
+                lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.size shouldBe 2 + kravbefore.filter { it.kravtype == ENDRING_RENTE }.size
+                lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.size shouldBe 2 + kravbefore.filter { it.kravtype == ENDRING_HOVEDSTOL }.size
+                lagredeKrav.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97 + kravbefore.filter { it.kravtype == NYTT_KRAV }.size
+                lagredeKrav.forEach {
+                    testContainer.dataSource.connection.use { con ->
+                        con.updateStatus("RESKONTROFOERT", it.corrId)
+                    }
+                }
+            }
         }
 
         Given("Når et krav feiler skal det lagres i feilmeldingtabell") {
-            val testContainer = TestContainer()
+
             SftpListener.putFiles(listOf("10NyeKrav.txt"), Directories.INBOUND)
             val nyttKravKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.OPPRETT, HttpStatusCode.NotFound)
             val avskrivKravKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.NotFound)
@@ -124,37 +141,49 @@ internal class SkeServiceIntegrationTest :
             val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall, mottaksstatusKall))
             val skeService = setupSkeServiceMockWithMockEngine(httpClient, ftpService, DatabaseService(testContainer.dataSource))
 
-            skeService.handleNewKrav()
-            val feilmeldinger =
+            val feilmeldingerBefore =
                 testContainer.dataSource.connection.use {
                     it
                         .prepareStatement("SELECT * FROM feilmelding")
                         .executeQuery()
                         .toFeilmelding()
                 }
+            println(feilmeldingerBefore.size)
 
-            feilmeldinger.size shouldBe 10
-            feilmeldinger.map { Json.decodeFromString<FeilResponse>(it.skeResponse).status == 404 }.size shouldBe 10
+            Then("skal noe") {
+                skeService.handleNewKrav()
 
-            val kravMedFeil =
-                testContainer.dataSource.connection
-                    .use { con ->
-                        feilmeldinger.map { feilmelding ->
-                            con
-                                .prepareStatement("""select * from krav where corr_id = ?""")
-                                .withParameters(feilmelding.corrId)
-                                .executeQuery()
-                                .toKrav()
-                        }
-                    }.flatten()
+                val feilmeldinger =
+                    testContainer.dataSource.connection.use {
+                        it
+                            .prepareStatement("SELECT * FROM feilmelding")
+                            .executeQuery()
+                            .toFeilmelding()
+                    }
 
-            kravMedFeil.size shouldBe 10
-            kravMedFeil.filter { it.status == Status.HTTP404_FANT_IKKE_SAKSREF.value }.size shouldBe 10
+                println(feilmeldinger.map { it.error })
+                feilmeldinger.size shouldBe 10 + feilmeldingerBefore.size
+                feilmeldinger.map { Json.decodeFromString<FeilResponse>(it.skeResponse).status == 404 }.size shouldBe 10
+
+                val kravMedFeil =
+                    testContainer.dataSource.connection
+                        .let { con ->
+                            feilmeldinger.map { feilmelding ->
+                                con
+                                    .prepareStatement("""select * from krav where corr_id = ?""")
+                                    .withParameters(feilmelding.corrId)
+                                    .executeQuery()
+                                    .toKrav()
+                            }
+                        }.flatten()
+
+                kravMedFeil.size shouldBe 10
+                kravMedFeil.filter { it.status == Status.HTTP404_FANT_IKKE_SAKSREF.value }.size shouldBe 10
+            }
         }
 
         Given("Hvis krav har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500 så skal kravet resendes") {
-            val testContainer = TestContainer()
-            testContainer.migrate("KravSomSkalResendes.sql")
+            testContainer.migrate("SQLscript/KravSomSkalResendes.sql")
 
             testContainer.dataSource.connection.use { con ->
                 con.getAllKrav().also { kravBefore ->
@@ -176,14 +205,16 @@ internal class SkeServiceIntegrationTest :
             val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall, mottaksstatusKall))
 
             val skeService = setupSkeServiceMockWithMockEngine(httpClient, ftpService, DatabaseService(testContainer.dataSource))
-            skeService.handleNewKrav()
-            testContainer.dataSource.connection.use { con ->
-                con.getAllKrav().also { kravAfter ->
-                    kravAfter.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 0
-                    kravAfter.filter { it.status == Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 0
-                    kravAfter.filter { it.status == Status.HTTP500_ANNEN_SERVER_FEIL.value }.size shouldBe 0
-                    kravAfter.filter { it.status == Status.HTTP503_UTILGJENGELIG_TJENESTE.value }.size shouldBe 0
-                    kravAfter.filter { it.status == Status.HTTP500_INTERN_TJENERFEIL.value }.size shouldBe 0
+            Then("skal noe") {
+                skeService.handleNewKrav()
+                testContainer.dataSource.connection.use { con ->
+                    con.getAllKrav().also { kravAfter ->
+                        kravAfter.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 0
+                        kravAfter.filter { it.status == Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 0
+                        kravAfter.filter { it.status == Status.HTTP500_ANNEN_SERVER_FEIL.value }.size shouldBe 0
+                        kravAfter.filter { it.status == Status.HTTP503_UTILGJENGELIG_TJENESTE.value }.size shouldBe 0
+                        kravAfter.filter { it.status == Status.HTTP500_INTERN_TJENERFEIL.value }.size shouldBe 0
+                    }
                 }
             }
         }

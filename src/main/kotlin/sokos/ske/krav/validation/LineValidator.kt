@@ -28,7 +28,6 @@ class LineValidator(
                         result.messages.forEach { pair ->
                             slackMessages.putIfAbsent(pair.first, mutableListOf(pair.second))?.add(pair.second)
                         }
-                        // TODO: Hvorfor ikke lagre hver feilmelding separat? altså flere database entries per linje
                         dbService.saveLineValidationError(file.name, linje, result.messages.joinToString { pair -> pair.second })
                         linje.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
                     }

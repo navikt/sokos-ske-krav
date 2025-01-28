@@ -13,6 +13,7 @@ import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.config.SftpConfig
 import sokos.ske.krav.database.models.ValideringsfeilTable
 import sokos.ske.krav.database.toValideringsfeil
+import sokos.ske.krav.domain.Status
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
@@ -27,11 +28,11 @@ import java.sql.Connection
 internal class LineValidatorIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener)
+        val testContainer = TestContainer()
 
         Given("Alle linjer er ok") {
-            val dataSource = TestContainer().dataSource
 
-            val dbService = DatabaseService(dataSource)
+            val dbService = DatabaseService(testContainer.dataSource)
             val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
             val lineValidatorSpy = spyk(LineValidator(slackClient), recordPrivateCalls = true)
             val ftpService: FtpService by lazy {
@@ -43,10 +44,16 @@ internal class LineValidatorIntegrationTest :
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileName }
 
             When("Linjer valideres") {
-                lineValidatorSpy.validateNewLines(ftpFil, dbService)
+                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, dbService)
 
                 Then("Skal ingen feil lagres i database") {
-                    dataSource.connection.getValideringsFeil(fileName).size shouldBe 0
+                    testContainer.dataSource.connection
+                        .getValideringsFeil(fileName)
+                        .size shouldBe 0
+                }
+                Then("Ingen linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
+                    validatedLines.size shouldBe ftpFil.kravLinjer.size
+                    validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }.size shouldBe 0
                 }
                 And("Alert skal ikke sendes") {
                     coVerify(exactly = 0) {
@@ -57,8 +64,7 @@ internal class LineValidatorIntegrationTest :
         }
 
         Given("1 linje har 1 feil") {
-            val dataSource = TestContainer().dataSource
-            val dbService = DatabaseService(dataSource)
+            val dbService = DatabaseService(testContainer.dataSource)
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
             val lineValidatorSpy = spyk(LineValidator(slackClientSpy), recordPrivateCalls = true)
             val ftpService: FtpService by lazy {
@@ -70,11 +76,10 @@ internal class LineValidatorIntegrationTest :
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileName }
 
             When("Linjer valideres") {
-
                 lineValidatorSpy.validateNewLines(ftpFil, dbService)
 
                 Then("Skal én feil lagres i database") {
-                    with(dataSource.connection.getValideringsFeil(fileName)) {
+                    with(testContainer.dataSource.connection.getValideringsFeil(fileName)) {
                         size shouldBe 1
                         with(first().feilmelding) {
                             shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
@@ -110,6 +115,7 @@ internal class LineValidatorIntegrationTest :
                     capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldBe null
                     capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldBe null
                     capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
+
                     with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
                         size shouldBe 1
                         first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
@@ -132,8 +138,8 @@ internal class LineValidatorIntegrationTest :
         }
 
         Given("1 linje har 3 forskjellige feil") {
-            val dataSource = TestContainer().dataSource
-            val dbService = DatabaseService(dataSource)
+            testContainer.migrate()
+            val dbService = DatabaseService(testContainer.dataSource)
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
             val lineValidatorSpy = spyk(LineValidator(slackClientSpy), recordPrivateCalls = true)
             val ftpService: FtpService by lazy {
@@ -146,10 +152,14 @@ internal class LineValidatorIntegrationTest :
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileName }
 
             When("Linjer valideres") {
-                lineValidatorSpy.validateNewLines(ftpFil, dbService)
+                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, dbService)
 
+                Then("1 returnert linje skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
+                    validatedLines.size shouldBe ftpFil.kravLinjer.size
+                    validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }.size shouldBe 1
+                }
                 Then("Skal 3 feil lagres som én feilmelding i database") {
-                    with(dataSource.connection.getValideringsFeil(fileName)) {
+                    with(testContainer.dataSource.connection.getValideringsFeil(fileName)) {
                         size shouldBe 1
                         with(first().feilmelding) {
                             shouldContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
@@ -218,7 +228,7 @@ internal class LineValidatorIntegrationTest :
         }
 
         Given("6 linjer har samme type feil") {
-            val fileName = "6LinjerHarSammeTypeFeil.txt"
+            var fileName = "6LinjerHarSammeTypeFeil.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             val ftpService: FtpService by lazy {
@@ -228,16 +238,21 @@ internal class LineValidatorIntegrationTest :
             ftpFil.kravLinjer.size shouldBe 10
 
             When("Linjer valideres") {
-                val dataSource = TestContainer().dataSource
-                val dbService = DatabaseService(dataSource)
+
+                val dbService = DatabaseService(testContainer.dataSource)
 
                 val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
                 val lineValidatorSpy = spyk(LineValidator(slackClientSpy), recordPrivateCalls = true)
 
-                lineValidatorSpy.validateNewLines(ftpFil, dbService)
+                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, dbService)
+
+                Then("6 returnerte linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
+                    validatedLines.size shouldBe ftpFil.kravLinjer.size
+                    validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value && it.kravKode == "MJ AU" }.size shouldBe 6
+                }
 
                 Then("Skal 6 feil lagres i database") {
-                    with(dataSource.connection.getValideringsFeil(fileName)) {
+                    with(testContainer.dataSource.connection.getValideringsFeil(fileName)) {
                         size shouldBe 6
                         all {
                             it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
@@ -296,9 +311,8 @@ internal class LineValidatorIntegrationTest :
                 }
             }
             And("3 linjer har ulike feil") {
-                val dataSource = TestContainer().dataSource
-                val dbService = DatabaseService(dataSource)
-
+                val dbService = DatabaseService(testContainer.dataSource)
+                fileName = "$fileName-2"
                 val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
                 val lineValidatorSpy = spyk(LineValidator(slackClientSpy), recordPrivateCalls = true)
 
@@ -313,10 +327,17 @@ internal class LineValidatorIntegrationTest :
                     }
 
                 When("Linjer valideres") {
-                    lineValidatorSpy.validateNewLines(ftpFil.copy(kravLinjer = ikkeOkKravMedUlikeFeil), dbService)
 
+                    val nyeLinjer = ftpFil.copy(kravLinjer = ikkeOkKravMedUlikeFeil, name = fileName)
+                    val validatedLines = lineValidatorSpy.validateNewLines(nyeLinjer, dbService)
+
+                    Then("6 returnerte linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
+                        // TODO: Sjekk at det er riktige linjer som får denne statusen
+                        validatedLines.size shouldBe nyeLinjer.kravLinjer.size
+                        validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }.size shouldBe 6
+                    }
                     Then("Skal 6 feil lagres  i database ") {
-                        with(dataSource.connection.getValideringsFeil(fileName)) {
+                        with(testContainer.dataSource.connection.getValideringsFeil(fileName)) {
                             size shouldBe 6
                             filter { it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.size shouldBe 6
                             filter { it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT) }.size shouldBe 1

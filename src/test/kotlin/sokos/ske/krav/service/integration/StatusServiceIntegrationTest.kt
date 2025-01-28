@@ -19,11 +19,10 @@ import sokos.ske.krav.util.getAllKrav
 
 internal class StatusServiceIntegrationTest :
     BehaviorSpec({
+        val testContainer = TestContainer()
 
         Given("Mottaksstatus er RESKONTROFOERT") {
-            val testContainer = TestContainer()
-            testContainer.migrate("KravSomSkalOppdateres.sql")
-
+            testContainer.migrate("SQLscript/KravSomSkalOppdateres.sql")
             val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse(status = Status.RESKONTROFOERT.value)
             val httpClient = mottaksStatusMockHttpClient(mottaksStatusResponse)
 
@@ -41,16 +40,14 @@ internal class StatusServiceIntegrationTest :
                 val allKravAfterUpdate = testContainer.dataSource.connection.use { con -> con.getAllKrav() }
                 allKravAfterUpdate.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 8
             }
-            And("Alert skal ikke sendes") {
+            Then("Alert skal ikke sendes") {
                 coVerify(exactly = 0) {
                     slackClient.sendMessage(any<String>(), any<String>(), any<Pair<String, String>>())
                 }
             }
         }
         Given("Mottaksstatus er VALIDERINGSFEIL") {
-            val testContainer = TestContainer()
-            testContainer.migrate("KravSomSkalOppdateres.sql")
-
+            testContainer.migrate("SQLscript/KravSomSkalOppdateres.sql")
             val status = "ORGANISASJONSNUMMER_FINNES_IKKE"
             val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse(status = Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value)
             val valideringsFeilRespons = MockHttpClientUtils.Responses.valideringsfeilResponse(status, "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke")
@@ -61,17 +58,21 @@ internal class StatusServiceIntegrationTest :
             val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
             val statusService = StatusService(skeClient, dbService, slackClient)
 
+
             dbService.getAllFeilmeldinger().size shouldBe 0
+
             statusService.getMottaksStatus()
 
             Then("Skal feilmelding lagres i Feilmelding tabell") {
-                val errorMessages = dbService.getAllFeilmeldinger()
-                errorMessages.size shouldBe 5
-                errorMessages.filter { it.error == status }.size shouldBe 5
+                dbService.getAllFeilmeldinger().filter { it.error == status }.size shouldBe 5
             }
-            And("Mottaksstatus skal settes til VALIDERINGSFEIL i database") {
-                val allKravAfterUpdate = testContainer.dataSource.connection.use { con -> con.getAllKrav() }
-                allKravAfterUpdate.filter { it.status == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value }.size shouldBe 5
+            Then("Mottaksstatus skal settes til VALIDERINGSFEIL i database") {
+
+                    testContainer.dataSource.connection
+                        .use { con -> con.getAllKrav() }
+                        .filter { it.status == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value }
+                        .distinctBy { it.corrId }
+                        .size shouldBe 5
             }
             And("Alert skal sendes til slack") {
                 coVerify(exactly = 5) {
