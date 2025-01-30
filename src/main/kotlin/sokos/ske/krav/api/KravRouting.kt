@@ -19,12 +19,13 @@ fun Routing.internalRoutes(
     route("krav") {
         get("hentNye") {
             logger.info("API Kall: Henter nye krav manuelt")
-            call.respond(HttpStatusCode.OK, "Da er den i gang ${Clock.System.now()}")
+            call.respond(HttpStatusCode.OK, "Startet henting av nye ${Clock.System.now()}")
             skeService.handleNewKrav()
         }
         get("hentStatus") {
             logger.info("API Kall: Oppdaterer mottaksstatus manuelt")
-            call.respond(statusService.getMottaksStatus())
+            statusService.getMottaksStatus()
+            call.respond(HttpStatusCode.OK, "Startet oppdatering status ${Clock.System.now()}")
         }
     }
 }
