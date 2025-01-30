@@ -1,61 +1,69 @@
 package sokos.ske.krav.domain
 
-import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.domain.nav.KontrollLinjeFooter
 import sokos.ske.krav.domain.nav.KontrollLinjeHeader
 import sokos.ske.krav.util.FtpTestUtil.fileAsList
+import sokos.ske.krav.validation.LineValidationRules
 import java.io.File
 import java.math.BigDecimal
 
 internal class ParserTest :
     FunSpec({
+        val altOkFil = fileAsList("${File.separator}FtpFiler${File.separator}AltOkFil.txt")
+        val altOkParser = FileParser(altOkFil)
 
-        test("teste parsing av fil uten fremtidig ytelse") {
-            val liste = fileAsList("${File.separator}FtpFiler${File.separator}Fil-B-feil.txt")
-            val parser = FileParser(liste)
-            val kravlinjer = parser.parseKravLinjer()
-            kravlinjer.first { it.saksnummerNav == "FinnesIkke" }.fremtidigYtelse shouldBe BigDecimal.valueOf(0.0)
+        test("Alle linjer skal være av type KravLinje") {
+            altOkParser.parseKravLinjer().size shouldBe 101
         }
 
-        test("lesInnStartLinjeTilclass") {
-            val liste = fileAsList("${File.separator}FtpFiler${File.separator}AltOkFil.txt")
-            val parser = FileParser(liste)
-            val expected =
+        test("startlinje skal være av type KontrollLinjeHeader") {
+            altOkParser.parseKontrollLinjeHeader() shouldBe
                 KontrollLinjeHeader(
                     transaksjonsDato = "20230526221340",
                     avsender = "OB04",
                 )
-            val startlinje: KontrollLinjeHeader = parser.parseKontrollLinjeHeader()
-            startlinje.toString() shouldBe expected.toString()
         }
 
-        test("lesInnSluttLineTilClass") {
-            val liste = fileAsList("${File.separator}FtpFiler${File.separator}AltOkFil.txt")
-            val parser = FileParser(liste)
-            val sluttlinje: KontrollLinjeFooter = parser.parseKontrollLinjeFooter()
-            withClue({ "Antall transaksjonslinjer skal være 101: ${sluttlinje.antallTransaksjoner}" }) {
-                sluttlinje.antallTransaksjoner shouldBe 101
-            }
+        test("sluttLinje skal være av type KontrollLinjeFooter") {
+            altOkParser.parseKontrollLinjeFooter() shouldBe
+                KontrollLinjeFooter(
+                    transaksjonTimestamp = "20230526221340",
+                    avsender = "OB04",
+                    antallTransaksjoner = 101,
+                    sumAlleTransaksjoner = "2645917.40".toBigDecimal(),
+                )
         }
 
-        test("sjekkAtSumStemmerMedSisteLinje") {
-            val liste = fileAsList("${File.separator}FtpFiler${File.separator}AltOkFil.txt")
-            val parser = FileParser(liste)
-            val sumBelopOgRenter =
-                parser.parseKravLinjer().sumOf {
-                    it.belop + it.belopRente
+        test("Ugyldig dato skal erstattes med errordate") {
+            val feilIDatoKrav = fileAsList("${File.separator}FtpFiler${File.separator}FilMedFeilUtbetalDato.txt")
+            FileParser(feilIDatoKrav)
+                .parseKravLinjer()
+                .filter { linje ->
+                    linje.utbetalDato == LineValidationRules.errorDate
+                }.run {
+                    println(this)
+                    get(0).linjenummer shouldBe 7
+                    get(1).linjenummer shouldBe 9
                 }
-            parser.parseKontrollLinjeFooter().sumAlleTransaksjoner shouldBe sumBelopOgRenter
         }
 
         test("Feil encoded Ø skal erstattes med Ø") {
-            val liste = fileAsList("${File.separator}FtpFiler${File.separator}FA_FO_Feilencoding.txt")
-            val parser = FileParser(liste)
-            val kravlinjer = parser.parseKravLinjer()
+            val kravMedFeilEncoding = fileAsList("${File.separator}FtpFiler${File.separator}FA_FO_Feilencoding.txt")
+            FileParser(kravMedFeilEncoding).parseKravLinjer().filter { linje -> linje.kravKode == "FA FØ" }.size shouldBe 1
+        }
 
-            kravlinjer.filter { linje -> linje.kravKode == "FA FØ" }.size shouldBe 1
+        test("Hvis linje ikke har fremtidig ytelse skal den settes til 0") {
+            val utenFremtidigYtelse = fileAsList("${File.separator}FtpFiler${File.separator}Fil-uten-fremtidigytelse.txt")
+            FileParser(utenFremtidigYtelse).parseKravLinjer().run {
+                first { it.saksnummerNav == "FinnesIkke" }.fremtidigYtelse shouldBe BigDecimal.valueOf(0.0)
+                first { it.saksnummerNav == "Dnummer1" }.fremtidigYtelse shouldBe BigDecimal.valueOf(0.0)
+                first { it.saksnummerNav == "Dnummer2" }.fremtidigYtelse shouldBe BigDecimal.valueOf(0.0)
+
+                count { it.fremtidigYtelse == BigDecimal.valueOf(0.0) } shouldBe 3
+                count { it.fremtidigYtelse != BigDecimal.valueOf(0.0) } shouldBe 2
+            }
         }
     })

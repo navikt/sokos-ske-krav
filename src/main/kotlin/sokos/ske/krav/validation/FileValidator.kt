@@ -24,7 +24,7 @@ class FileValidator(
 
         val invalidNumberOfLines = lastLine.antallTransaksjoner != kravLinjer.size
         val invalidSum = kravLinjer.sumOf { it.belop + it.belopRente } != lastLine.sumAlleTransaksjoner
-        val invalidTransferDate = firstLine.transaksjonsDato != lastLine.transaksjonsDato
+        val invalidTransferDate = firstLine.transaksjonsDato != lastLine.transaksjonTimestamp
 
         val errorMessages =
             buildList {
@@ -32,7 +32,7 @@ class FileValidator(
                     add(
                         Pair(
                             ErrorKeys.FEIL_I_ANTALL,
-                            "Antall krav:${kravLinjer.size}, Antall i siste linje: ${lastLine.antallTransaksjoner}\n",
+                            "Antall krav: ${kravLinjer.size}, Antall i siste linje: ${lastLine.antallTransaksjoner}\n",
                         ),
                     )
                 }
@@ -48,14 +48,14 @@ class FileValidator(
                     add(
                         Pair(
                             ErrorKeys.FEIL_I_DATO,
-                            "Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonsDato}\n",
+                            "Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonTimestamp}\n",
                         ),
                     )
                 }
             }
 
         return if (errorMessages.isNotEmpty()) {
-            slackClient.sendMessage("Feil i  filvalidering", fileName, errorMessages)
+            slackClient.sendMessage("Feil i filvalidering", fileName, errorMessages)
             secureLogger.warn("*** Feil i validering av fil $fileName. Sjekk Slack og Database ***")
             ValidationResult.Error(messages = errorMessages)
         } else {

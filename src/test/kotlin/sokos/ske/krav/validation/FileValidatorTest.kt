@@ -66,7 +66,7 @@ internal class FileValidatorTest :
         }
 
         Given("En fil har forskjellige datoer i kontroll-linjene") {
-            val fileName = "FilMedFeilSendtDato.txt"
+            val fileName = "FilMedFeilUtbetalDato.txt"
             val content = getFileContent(fileName)
 
             When("Filen valideres") {

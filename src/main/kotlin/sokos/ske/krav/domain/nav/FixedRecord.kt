@@ -31,7 +31,7 @@ data class KontrollLinjeHeader(
 )
 
 data class KontrollLinjeFooter(
-    val transaksjonsDato: String,
+    val transaksjonTimestamp: String,
     val avsender: String,
     val antallTransaksjoner: Int,
     val sumAlleTransaksjoner: BigDecimal,

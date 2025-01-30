@@ -11,10 +11,10 @@ import sokos.ske.krav.service.Directories
 import sokos.ske.krav.service.FtpService
 import sokos.ske.krav.util.SftpListener
 import sokos.ske.krav.util.TestContainer
+import sokos.ske.krav.validation.FileValidator
 
 internal class FtpServiceIntegrationTest :
     BehaviorSpec({
-
         extensions(SftpListener)
 
         Given("det finnes ubehandlede filer i \"inbound\" på FTP-serveren ") {
@@ -29,7 +29,7 @@ internal class FtpServiceIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 When("er ok") {
-                    Then("Skal filen forbli i inbound") {
+                    Then("Skal filen forbli i INBOUND") {
                         val successFilesInDir = ftpService.listFiles(Directories.INBOUND)
                         successFilesInDir.size shouldBe 3
                         successFilesInDir shouldContain "AltOkFil.txt"
@@ -42,6 +42,12 @@ internal class FtpServiceIntegrationTest :
                         val failedFilesInDir = ftpService.listFiles(Directories.FAILED)
                         failedFilesInDir.size shouldBe 1
                         failedFilesInDir[0] shouldBe "FilMedFeilAntallKrav.txt"
+                    }
+                    And("Feilmelding skal lagres i database") {
+                        dbService.getFileValidationMessage("FilMedFeilAntallKrav.txt").run {
+                            size shouldBe 1
+                            first().feilmelding shouldBe "${FileValidator.ErrorKeys.FEIL_I_ANTALL}: Antall krav: 16, Antall i siste linje: 101"
+                        }
                     }
                 }
             }

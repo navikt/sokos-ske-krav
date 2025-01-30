@@ -45,7 +45,7 @@ class FileParser(
 
     private fun kontrollLinjeFooterParser(linje: String): KontrollLinjeFooter =
         KontrollLinjeFooter(
-            transaksjonsDato = OVERFORINGS_DATO_POS.parseString(linje),
+            transaksjonTimestamp = OVERFORINGS_DATO_POS.parseString(linje),
             avsender = SENDER_POS.parseString(linje),
             antallTransaksjoner = ANTALL_LINJER_POS.parseInt(linje),
             sumAlleTransaksjoner = SUM_ALLE_LINJER_POS.parseBigDecimal(linje),

@@ -126,7 +126,7 @@ internal class FileValidatorIntegrationTest :
             val ftpService: FtpService by lazy {
                 FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = slackClient, databaseService = dbService)
             }
-            val fileName = "FilMedFeilSendtDato.txt"
+            val fileName = "FilMedFeilUtbetalDato.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             When("Filen valideres") {
