@@ -30,13 +30,17 @@ internal class RepositoryTestValideringsfeil :
 
                 val inserted = con.getValideringsFeilForFil("Fil4.txt")
                 inserted.size shouldBe 1
-                inserted.first().feilmelding shouldBe "Test validation error insert"
+                inserted.first().run {
+                    filnavn shouldBe "Fil4.txt"
+                    linjenummer shouldBe 0
+                    saksnummerNav shouldBe ""
+                    kravLinje shouldBe ""
+                    feilmelding shouldBe "Test validation error insert"
+                }
             }
         }
 
         test("insertLineValideringsfeil skal inserte ny valideringsfeil med filnanvn, linjenummer, saksnummerNav, kravlinje, og feilmelding") {
-            val fileName = this.testCase.name.testName
-            val feilMelding = "Test validation error insert"
             val linje =
                 KravLinje(
                     55,
@@ -61,13 +65,16 @@ internal class RepositoryTestValideringsfeil :
                 )
 
             testContainer.dataSource.connection.use { con ->
+                val feilMelding = "Test validation error insert med non-null kravlinje"
+                val fileName = "Non-null test"
+
                 val valideringsFeilBefore = con.prepareStatement("""select * from valideringsfeil""").executeQuery().toValideringsfeil()
 
                 con.insertLineValideringsfeil(fileName, linje, feilMelding)
 
                 val valideringsFeil = con.prepareStatement("""select * from valideringsfeil""").executeQuery().toValideringsfeil()
                 valideringsFeil.size shouldBe valideringsFeilBefore.size + 1
-                with(valideringsFeil.filter { it.filnavn == fileName }) {
+                valideringsFeil.filter { it.filnavn == fileName }.run {
                     size shouldBe 1
                     with(first()) {
                         linjenummer shouldBe linje.linjenummer

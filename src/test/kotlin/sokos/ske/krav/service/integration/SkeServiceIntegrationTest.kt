@@ -48,14 +48,11 @@ internal class SkeServiceIntegrationTest :
 
         Given("Det finnes en fil i INBOUND") {
             SftpListener.putFiles(listOf("10NyeKrav.txt"), Directories.INBOUND)
-
             val skeService = setupSkeServiceMock(databaseService = DatabaseService(testContainer.dataSource), ftpService = ftpService)
 
             Then("Skal alle validerte linjer lagres i database") {
                 val kravbefore = testContainer.dataSource.connection.use { it.getAllKrav() }
-
                 skeService.handleNewKrav()
-
                 val kravEtter = testContainer.dataSource.connection.use { it.getAllKrav() }
                 kravEtter.size shouldBe 10 + kravbefore.size
             }
@@ -99,7 +96,6 @@ internal class SkeServiceIntegrationTest :
 
             When("Kravet finnes i database") {
                 Then("skal endringer og avskrivinger oppdateres med kravidentifikatorSKE fra database") {
-
                     val kravEtter = testContainer.dataSource.connection.use { it.getAllKrav() }
                     kravEtter.find { it.saksnummerNAV == "2223-navsaksnr" }?.kravidentifikatorSKE shouldBe "2222-skeUUID"
                     kravEtter.find { it.saksnummerNAV == "8889-navsaksnr" }?.kravidentifikatorSKE shouldBe "8888-skeUUID"

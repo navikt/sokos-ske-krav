@@ -8,7 +8,7 @@ import sokos.ske.krav.service.RapportService
 import sokos.ske.krav.util.TestContainer
 
 @OptIn(Frontend::class)
-internal class AvstemmingServiceIntegrationTest :
+internal class RapportServiceIntegrationTest :
     FunSpec({
 
         test("oppdaterAvstemtKravTilRapportert skal sette status til rapportert og hente tabelldata på nytt") {

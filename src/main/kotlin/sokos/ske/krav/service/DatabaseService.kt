@@ -101,7 +101,7 @@ class DatabaseService(
 
     fun saveLineValidationError(
         filnavn: String,
-        kravlinje: KravLinje?,
+        kravlinje: KravLinje,
         feilmelding: String,
     ) {
         dataSource.connection.useAndHandleErrors { con ->

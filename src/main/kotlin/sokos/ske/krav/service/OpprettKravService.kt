@@ -15,14 +15,10 @@ class OpprettKravService(
     private val skeClient: SkeClient,
     private val databaseService: DatabaseService,
 ) {
-    suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<RequestResult> {
-        val responseList =
-            kravList.map {
-                sendOpprettKrav(it)
-            }
-        databaseService.updateSentKrav(responseList)
-        return responseList
-    }
+    suspend fun sendAllOpprettKrav(kravList: List<KravTable>): List<RequestResult> =
+        kravList
+            .map { sendOpprettKrav(it) }
+            .also { databaseService.updateSentKrav(it) }
 
     private suspend fun sendOpprettKrav(krav: KravTable): RequestResult {
         val opprettKravRequest = createOpprettKravRequest(krav)

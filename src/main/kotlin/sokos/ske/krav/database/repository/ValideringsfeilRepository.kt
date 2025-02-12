@@ -50,7 +50,7 @@ object ValideringsfeilRepository {
 
     fun Connection.insertLineValideringsfeil(
         filnavn: String,
-        kravlinje: KravLinje?,
+        kravlinje: KravLinje,
         feilmelding: String,
     ) {
         prepareStatement(
@@ -60,8 +60,8 @@ object ValideringsfeilRepository {
             """.trimIndent(),
         ).withParameters(
             filnavn,
-            kravlinje?.linjenummer,
-            kravlinje?.saksnummerNav,
+            kravlinje.linjenummer,
+            kravlinje.saksnummerNav,
             kravlinje.toString(),
             feilmelding,
         ).execute()

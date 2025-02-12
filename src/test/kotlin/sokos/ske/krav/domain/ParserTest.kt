@@ -44,7 +44,6 @@ internal class ParserTest :
                 .filter { linje ->
                     linje.utbetalDato == LineValidationRules.errorDate
                 }.run {
-                    println(this)
                     get(0).linjenummer shouldBe 7
                     get(1).linjenummer shouldBe 9
                 }

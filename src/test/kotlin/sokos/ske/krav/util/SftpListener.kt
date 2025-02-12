@@ -38,6 +38,7 @@ object SftpListener : TestListener {
             privateKeyPassword = "pass",
             port = 5678,
         )
+    private val sftpConfig = SftpConfig(sftpProperties)
 
     override suspend fun beforeSpec(spec: Spec) {
         genericContainer.start()
@@ -95,7 +96,7 @@ object SftpListener : TestListener {
     fun putFiles(
         fileNames: List<String>,
         directory: Directories = Directories.INBOUND,
-    ) = SftpConfig(sftpProperties).channel { con ->
+    ) = sftpConfig.channel { con ->
 
         fileNames.forEach { fileName ->
 
@@ -103,6 +104,15 @@ object SftpListener : TestListener {
                 FtpTestUtil.fileAsString("/FtpFiler/$fileName").toByteArray().inputStream(),
                 "${directory.value}/$fileName",
             )
+        }
+    }
+
+    fun clearDirectory(directory: Directories) {
+        sftpConfig.channel { con ->
+            val files = con.ls(directory.value).filter { !it.attrs.isDir }.map { it.filename }
+            files.forEach { file ->
+                con.rm("${directory.value}/$file")
+            }
         }
     }
 }

@@ -1,6 +1,8 @@
 package sokos.ske.krav.service.unit
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.data.blocking.forAll
+import io.kotest.data.row
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.justRun
@@ -31,113 +33,36 @@ internal class EndreKravServiceTest :
                 every { saksnummerNAV } returns "bar"
             }
 
-        test("Hvis første status er 404 og andre status er 422 skal status for begge settes til 404") {
+        forAll(
+            row("404 and 422", 404, 422, Status.HTTP404_ANNEN_IKKE_FUNNET, Status.HTTP404_ANNEN_IKKE_FUNNET),
+            row("409 and 422", 409, 422, Status.HTTP422_VALIDERINGSFEIL, Status.HTTP422_VALIDERINGSFEIL),
+            row("409 and 404", 409, 404, Status.HTTP404_ANNEN_IKKE_FUNNET, Status.HTTP404_ANNEN_IKKE_FUNNET),
+            row("409 and 200", 409, 200, Status.HTTP409_ANNEN_KONFLIKT, Status.HTTP409_ANNEN_KONFLIKT),
+            row("200 and 422", 200, 422, Status.HTTP422_VALIDERINGSFEIL, Status.HTTP422_VALIDERINGSFEIL),
+            row("102 and 102", 102, 102, Status.UKJENT_STATUS, Status.UKJENT_STATUS),
+        ) { _, firstStatus, secondStatus, expectedFirstStatus, expectedSecondStatus ->
 
-            every {
-                endreKravMock["sendEndreKrav"](
-                    any<String>(),
-                    any<KravidentifikatorType>(),
-                    any<KravTable>(),
-                )
-            } returnsMany
-                listOf(
-                    RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(404))),
-                    RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(422))),
-                )
+            test("If first status is $firstStatus and second status is $secondStatus, both should be set to $expectedFirstStatus") {
 
-            val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
+                every {
+                    endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<KravTable>())
+                } returnsMany
+                    if (firstStatus == 102 && secondStatus == 102) {
+                        listOf(
+                            RequestResult(mockHttpResponse(102), mockk<KravTable>(), "", "", Status.HTTP409_KRAV_ER_AVSKREVET),
+                            RequestResult(mockHttpResponse(102), mockk<KravTable>(), "", "", Status.HTTP500_ANNEN_SERVER_FEIL),
+                        )
+                    } else {
+                        listOf(
+                            RequestResult(mockHttpResponse(firstStatus), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(firstStatus))),
+                            RequestResult(mockHttpResponse(secondStatus), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(secondStatus))),
+                        )
+                    }
 
-            result.filter { it.status == Status.HTTP404_ANNEN_IKKE_FUNNET || it.status == Status.HTTP404_FANT_IKKE_SAKSREF }.size shouldBe 2
-        }
+                val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
 
-        test("Hvis første status er 409 og andre status er 422 skal status for begge settes til 409") {
-
-            every {
-                endreKravMock["sendEndreKrav"](
-                    any<String>(),
-                    any<KravidentifikatorType>(),
-                    any<KravTable>(),
-                )
-            } returnsMany
-                listOf(
-                    RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(409))),
-                    RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(422))),
-                )
-
-            val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
-
-            result.filter { it.status == Status.HTTP422_VALIDERINGSFEIL }.size shouldBe 2
-        }
-
-        test("Hvis første status er 409 og andre status er 404 skal status for begge settes til 404") {
-
-            every {
-                endreKravMock["sendEndreKrav"](
-                    any<String>(),
-                    any<KravidentifikatorType>(),
-                    any<KravTable>(),
-                )
-            } returnsMany
-                listOf(
-                    RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(409))),
-                    RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(404))),
-                )
-
-            val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
-
-            result.filter { it.status == Status.HTTP404_ANNEN_IKKE_FUNNET || it.status == Status.HTTP404_FANT_IKKE_SAKSREF }.size shouldBe 2
-        }
-
-        test("Hvis første status er 409 og andre status er 200 skal status for begge settes til 409") {
-            every {
-                endreKravMock["sendEndreKrav"](
-                    any<String>(),
-                    any<KravidentifikatorType>(),
-                    any<KravTable>(),
-                )
-            } returnsMany
-                listOf(
-                    RequestResult(mockHttpResponse(409), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(409))),
-                    RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(200))),
-                )
-
-            val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
-
-            result.filter { it.status == Status.HTTP409_ANNEN_KONFLIKT || it.status == Status.HTTP409_KRAV_ER_AVSKREVET }.size shouldBe 2
-        }
-
-        test("Hvis første status er 200 og andre status er 422 skal status for begge settes til 422") {
-            every {
-                endreKravMock["sendEndreKrav"](
-                    any<String>(),
-                    any<KravidentifikatorType>(),
-                    any<KravTable>(),
-                )
-            } returnsMany
-                listOf(
-                    RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(200))),
-                    RequestResult(mockHttpResponse(422), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(422))),
-                )
-
-            val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
-
-            result.filter { it.status == Status.HTTP422_VALIDERINGSFEIL }.size shouldBe 2
-        }
-
-        test("hvis responsen ikke er 404, 409, eller 422 skal status settes til ukjent") {
-            every {
-                endreKravMock["sendEndreKrav"](
-                    any<String>(),
-                    any<KravidentifikatorType>(),
-                    any<KravTable>(),
-                )
-            } returnsMany
-                listOf(
-                    RequestResult(mockHttpResponse(102), mockk<KravTable>(), "", "", Status.HTTP409_KRAV_ER_AVSKREVET),
-                    RequestResult(mockHttpResponse(102), mockk<KravTable>(), "", "", Status.HTTP500_ANNEN_SERVER_FEIL),
-                )
-
-            val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
-            result.filter { it.status == Status.UKJENT_STATUS }.size shouldBe 2
+                result[0].status shouldBe expectedFirstStatus
+                result[1].status shouldBe expectedSecondStatus
+            }
         }
     })

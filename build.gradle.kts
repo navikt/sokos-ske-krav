@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import kotlinx.kover.gradle.plugin.dsl.tasks.KoverReport
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
@@ -6,6 +7,7 @@ plugins {
     kotlin("jvm") version "2.1.0"
     kotlin("plugin.serialization") version "2.1.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
 
 group = "no.nav.sokos"
@@ -122,7 +124,7 @@ tasks {
         manifest {
             attributes["Main-Class"] = "sokos.ske.krav.ApplicationKt"
         }
-
+        finalizedBy(koverHtmlReport)
         mergeServiceFiles {
             setPath("META-INF/services/org.flywaydb.core.extensibility.Plugin")
         }
@@ -142,6 +144,19 @@ tasks {
         }
 
         reports.forEach { report -> report.required.value(false) }
+    }
+
+    withType<KoverReport>().configureEach {
+        kover {
+            reports {
+                filters {
+                    excludes {
+                        // exclusion rules - classes to exclude from report
+                        classes("sokos.ske.krav.api*", "sokos.ske.krav.domain.maskinporten.*", "sokos.ske.krav.security.*", "sokos.ske.krav.config.*", "*Application*", "sokos.ske.krav.ApplicationState", "sokos.ske.krav.database.PostgresDataSource")
+                    }
+                }
+            }
+        }
     }
 
     withType<Wrapper> {

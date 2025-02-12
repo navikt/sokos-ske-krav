@@ -25,26 +25,26 @@ class StatusService(
         if (kravListe.isNotEmpty()) secureLogger.info("Sjekk av mottaksstatus -> Antall krav som ikke er reskontroført: ${kravListe.size}")
 
         val feil = mutableMapOf<String, MutableList<Pair<String, String>>>()
-        val updated = mutableListOf<Pair<String, String>>()
 
-        kravListe.forEach { krav ->
-            val kravIdentifikatorPair = createKravidentifikatorPair(krav)
-            val response = skeClient.getMottaksStatus(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
+        val updated =
+            kravListe.mapNotNull { krav ->
+                val kravIdentifikatorPair = createKravidentifikatorPair(krav)
+                val response = skeClient.getMottaksStatus(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
 
-            if (response.status.isSuccess()) {
-                response.parseTo<MottaksStatusResponse>()?.let { status ->
-                    if (status.mottaksStatus == "RESKONTROFOERT") updated.add(Pair(krav.status, status.mottaksStatus))
-                    updateMottaksStatus(status, kravIdentifikatorPair, krav)
-                }
-            } else {
-                response.parseTo<FeilResponse>()?.let { feilmelding ->
-                    secureLogger.error { "getMottaksStatus feilet: ${feilmelding.title}" }
-                    val errorPair = Pair(feilmelding.title, feilmelding.detail)
-                    feil.putIfAbsent(krav.filnavn, mutableListOf(errorPair))?.add(errorPair)
+                if (response.status.isSuccess()) {
+                    response.parseTo<MottaksStatusResponse>()?.let { status ->
+                        updateMottaksStatus(status, kravIdentifikatorPair, krav)
+                        if (status.mottaksStatus == "RESKONTROFOERT") Pair(krav.status, status.mottaksStatus) else null
+                    }
+                } else {
+                    response.parseTo<FeilResponse>()?.let { feilmelding ->
+                        secureLogger.error { "getMottaksStatus feilet: ${feilmelding.title}" }
+                        val errorPair = Pair(feilmelding.title, feilmelding.detail)
+                        feil.putIfAbsent(krav.filnavn, mutableListOf(errorPair))?.add(errorPair)
+                    }
+                    null
                 }
             }
-        }
-
         secureLogger.info { "Antall reskontroførte krav: ${updated.size}" }
         feil.forEach { (fileName, messages) ->
             slackClient.sendMessage("Feil i oppdatering av mottaksstatus", fileName, messages)
