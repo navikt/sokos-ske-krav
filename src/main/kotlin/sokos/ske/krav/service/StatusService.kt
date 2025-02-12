@@ -45,7 +45,7 @@ class StatusService(
                     null
                 }
             }
-        secureLogger.info { "Antall reskontroførte krav: ${updated.size}" }
+        if (updated.isNotEmpty()) secureLogger.info { "Antall reskontroførte krav: ${updated.size}" }
         feil.forEach { (fileName, messages) ->
             slackClient.sendMessage("Feil i oppdatering av mottaksstatus", fileName, messages)
         }
