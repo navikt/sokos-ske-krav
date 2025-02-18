@@ -49,6 +49,7 @@ class SkeService(
     }
 
     private suspend fun resendKrav() {
+        secureLogger.info("Resender krav")
         statusService.getMottaksStatus()
         databaseService.getAllKravForResending().takeIf { it.isNotEmpty() }?.let {
             secureLogger.info("Resender ${it.size} krav")
@@ -60,6 +61,8 @@ class SkeService(
         val files = ftpService.getValidatedFiles()
         if (files.isNotEmpty()) {
             secureLogger.info("*** Starter sending av ${files.size} filer ${LocalDate.now()} ***")
+        } else {
+            secureLogger.info("*** Ingen nye filer ***")
         }
 
         files.forEach { file ->
@@ -89,7 +92,7 @@ class SkeService(
                 endreKravService.sendAllEndreKrav(kravTableList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }) +
                 stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV })
 
-        if (kravTableList.isNotEmpty()) secureLogger.info("Alle krav sendt, lagrer eventuelle feilmeldinger")
+        secureLogger.info("Alle krav sendt, lagrer eventuelle feilmeldinger")
 
         handleErrors(allResponses, databaseService)
 

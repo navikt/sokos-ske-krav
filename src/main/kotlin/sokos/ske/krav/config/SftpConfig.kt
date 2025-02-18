@@ -28,7 +28,6 @@ class SftpConfig(
                     connect()
                 }
             sftpChannel = (session.openChannel("sftp") as ChannelSftp).apply { connect() }
-            logger.debug { "Åpner session på host: ${sftpProperties.host}:${sftpProperties.port}" }
             return operation(sftpChannel)
         } finally {
             sftpChannel?.disconnect()

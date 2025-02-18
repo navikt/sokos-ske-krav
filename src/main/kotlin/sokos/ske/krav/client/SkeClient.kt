@@ -6,9 +6,11 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
+import io.ktor.http.headers
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.domain.ske.requests.AvskrivingRequest
 import sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
@@ -19,14 +21,14 @@ import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.util.httpClient
 import java.util.UUID
 
-private const val BASE_URL = "innkrevingsoppdrag"
-private const val OPPRETT_KRAV = BASE_URL
-private const val ENDRE_RENTER = "$BASE_URL/%s/renter?kravidentifikatortype=%s"
-private const val ENDRE_HOVESTOL = "$BASE_URL/%s/hovedstol?kravidentifikatortype=%s"
-private const val STOPP_KRAV = "$BASE_URL/avskriving"
-private const val MOTTAKSSTATUS = "$BASE_URL/%s/mottaksstatus?kravidentifikatortype=%s"
-private const val VALIDERINGSFEIL = "$BASE_URL/%s/valideringsfeil?kravidentifikatortype=%s"
-private const val HENT_SKE_KRAVIDENT = "$BASE_URL/%s/avstemming?kravidentifikatortype=OPPDRAGSGIVERS_KRAVIDENTIFIKATOR"
+private const val OPPRETT_KRAV = "innkrevingsoppdrag"
+private const val ENDRE_RENTER = "innkrevingsoppdrag/%s/renter?kravidentifikatortype=%s"
+private const val ENDRE_HOVESTOL = "innkrevingsoppdrag/%s/hovedstol?kravidentifikatortype=%s"
+private const val STOPP_KRAV = "innkrevingsoppdrag/avskriving"
+private const val MOTTAKSSTATUS = "innkrevingsoppdrag/%s/mottaksstatus?kravidentifikatortype=%s"
+private const val VALIDERINGSFEIL = "innkrevingsoppdrag/%s/valideringsfeil?kravidentifikatortype=%s"
+private const val HENT_SKE_KRAVIDENT = "innkrevingsoppdrag/%s/avstemming?kravidentifikatortype=OPPDRAGSGIVERS_KRAVIDENTIFIKATOR"
+private const val KLIENT_ID = "NAV/0.1"
 
 class SkeClient(
     private val tokenProvider: MaskinportenAccessTokenClient = MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), httpClient),
@@ -38,14 +40,14 @@ class SkeClient(
         kravidentifikator: String,
         kravidentifikatorType: KravidentifikatorType,
         corrID: String,
-    ) = doPut(createUrl(ENDRE_RENTER, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
+    ) = doPut(String.format(ENDRE_RENTER, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
 
     suspend fun endreHovedstol(
         request: NyHovedStolRequest,
         kravidentifikator: String,
         kravidentifikatorType: KravidentifikatorType,
         corrID: String,
-    ) = doPut(createUrl(ENDRE_HOVESTOL, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
+    ) = doPut(String.format(ENDRE_HOVESTOL, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
 
     suspend fun opprettKrav(
         request: OpprettInnkrevingsoppdragRequest,
@@ -60,53 +62,56 @@ class SkeClient(
     suspend fun getMottaksStatus(
         kravid: String,
         kravidentifikatorType: KravidentifikatorType,
-    ) = doGet(path = createUrl(MOTTAKSSTATUS, kravid, kravidentifikatorType.value))
+    ) = doGet(String.format(MOTTAKSSTATUS, kravid, kravidentifikatorType.value), UUID.randomUUID().toString())
 
     suspend fun getValideringsfeil(
         kravid: String,
         kravidentifikatorType: KravidentifikatorType,
-    ) = doGet(path = createUrl(VALIDERINGSFEIL, kravid, kravidentifikatorType.value))
+    ) = doGet(String.format(VALIDERINGSFEIL, kravid, kravidentifikatorType.value), UUID.randomUUID().toString())
 
-    suspend fun getSkeKravidentifikator(referanse: String) = doGet(path = createUrl(HENT_SKE_KRAVIDENT, referanse))
+    suspend fun getSkeKravidentifikator(referanse: String) = doGet(String.format(HENT_SKE_KRAVIDENT, referanse), UUID.randomUUID().toString())
 
     private suspend inline fun <reified T> doPost(
         path: String,
         request: T,
         corrID: String,
-    ) = client.post(path) {
-        addDefaultHeaders(corrID)
-        contentType(ContentType.Application.Json)
-        setBody(request)
-    }
+    ) = client.post(
+        buildHttpRequest(path, corrID).apply {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        },
+    )
 
     private suspend inline fun <reified T> doPut(
         path: String,
         request: T,
         kravidentifikator: String,
         corrID: String,
-    ) = client.put(path) {
-        addDefaultHeaders(corrID)
-        contentType(ContentType.Application.Json)
-        headers.append("kravidentifikator", kravidentifikator)
-        setBody(request)
-    }
+    ) = client.put(
+        buildHttpRequest(path, corrID).apply {
+            contentType(ContentType.Application.Json)
+            headers.append("kravidentifikator", kravidentifikator)
+            setBody(request)
+        },
+    )
 
     private suspend fun doGet(
         path: String,
-        corrID: String = UUID.randomUUID().toString(),
-    ) = client.get(path) {
-        addDefaultHeaders(corrID)
-    }
+        corrID: String,
+    ) = client.get(buildHttpRequest(path, corrID))
 
-    private suspend fun HttpRequestBuilder.addDefaultHeaders(correlationId: String) {
+    private suspend fun buildHttpRequest(
+        path: String,
+        corrID: String,
+    ): HttpRequestBuilder {
         val token = tokenProvider.hentAccessToken()
-        headers.append("Klientid", "NAV/0.1")
-        headers.append("Korrelasjonsid", correlationId)
-        headers.append(HttpHeaders.Authorization, "Bearer $token")
+        return HttpRequestBuilder().apply {
+            url("$skeEndpoint$path")
+            headers {
+                append("Klientid", KLIENT_ID)
+                append("Korrelasjonsid", corrID)
+                append(HttpHeaders.Authorization, "Bearer $token")
+            }
+        }
     }
-
-    private fun createUrl(
-        template: String,
-        vararg args: Any,
-    ): String = "$skeEndpoint${String.format(template, *args)}"
 }
