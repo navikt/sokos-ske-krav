@@ -51,7 +51,6 @@ object PropertiesConfig {
             "SFTP_PRIVATE_KEY_FILE_PATH" to "privKey",
             "SFTP_SERVER" to "10.183.32.98",
             "SFTP_PORT" to "22",
-            "SKE_REST_URL" to "https://api-test.sits.no/api/innkreving/innkrevingsoppdrag/v1/",
         )
 
     private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
