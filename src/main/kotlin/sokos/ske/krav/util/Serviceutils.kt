@@ -2,6 +2,8 @@ package sokos.ske.krav.util
 
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
@@ -23,3 +25,9 @@ suspend inline fun <reified T> HttpResponse.parseTo(): T? =
         .onFailure {
             secureLogger.error { "Error decoding JSON to ${T::class.simpleName}: ${it.message}" }
         }.getOrNull()
+
+inline fun <reified T> T.encodeToString(): String =
+    runCatching { Json.encodeToString(this) }
+        .onFailure {
+            secureLogger.error { "Error encoding JSON to ${T::class.simpleName}: ${it.message}" }
+        }.getOrDefault("Error encoding JSON to ${T::class.simpleName}")

@@ -2,12 +2,15 @@ package sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.spyk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.SlackClient
+import sokos.ske.krav.client.SlackService
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.DatabaseService
@@ -21,15 +24,23 @@ internal class StatusServiceIntegrationTest :
     BehaviorSpec({
         val testContainer = TestContainer()
 
+        fun setupServices(
+            client: HttpClient,
+            databaseService: DatabaseService,
+        ): Triple<SlackClient, SlackService, StatusService> {
+            val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
+            val slackServiceSpy = spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
+            val skeClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true))
+            val statusService = StatusService(skeClient, databaseService, slackServiceSpy)
+            return Triple(slackClientSpy, slackServiceSpy, statusService)
+        }
+
         Given("Mottaksstatus er RESKONTROFOERT") {
             testContainer.migrate("SQLscript/KravSomSkalOppdateres.sql")
             val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse(status = Status.RESKONTROFOERT.value)
             val httpClient = mottaksStatusMockHttpClient(mottaksStatusResponse)
-
-            val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true))
             val dbService = DatabaseService(testContainer.dataSource)
-            val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
-            val statusService = StatusService(skeClient, dbService, slackClient)
+            val (slackClientSpy, _, statusService) = setupServices(httpClient, dbService)
 
             Then("Skal mottaksstatus settes til RESKONTROFOERT i database") {
                 val allKravBeforeUpdate = testContainer.dataSource.connection.use { con -> con.getAllKrav() }
@@ -42,40 +53,66 @@ internal class StatusServiceIntegrationTest :
             }
             Then("Alert skal ikke sendes") {
                 coVerify(exactly = 0) {
-                    slackClient.sendMessage(any<String>(), any<String>(), any<Pair<String, String>>())
+                    slackClientSpy.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>())
                 }
             }
         }
         Given("Mottaksstatus er VALIDERINGSFEIL") {
-            testContainer.migrate("SQLscript/KravSomSkalOppdateres.sql")
+            val fileName = "KravSomSkalOppdateres.sql"
+            testContainer.migrate("SQLscript/$fileName")
             val status = "ORGANISASJONSNUMMER_FINNES_IKKE"
             val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse(status = Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value)
             val valideringsFeilRespons = MockHttpClientUtils.Responses.valideringsfeilResponse(status, "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke")
             val httpClient = mottaksStatusMockHttpClient(mottaksStatusResponse, valideringsFeilRespons)
-
-            val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true))
             val dbService = DatabaseService(testContainer.dataSource)
-            val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
-            val statusService = StatusService(skeClient, dbService, slackClient)
+            val (slackClientSpy, slackServiceSpy, statusService) = setupServices(httpClient, dbService)
 
             dbService.getAllFeilmeldinger().size shouldBe 0
+            dbService.getAllKravForStatusCheck().size shouldBe 5
 
             statusService.getMottaksStatus()
 
             Then("Skal feilmelding lagres i Feilmelding tabell") {
-                dbService.getAllFeilmeldinger().filter { it.error == status }.size shouldBe 5
+                val feilmeldinger = dbService.getAllFeilmeldinger()
+                feilmeldinger.size shouldBe 5
+                feilmeldinger.forEach {
+                    it.error shouldBe status
+                    it.melding shouldBe "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke"
+                }
             }
-            Then("Mottaksstatus skal settes til VALIDERINGSFEIL i database") {
 
+            Then("Mottaksstatus skal settes til VALIDERINGSFEIL i database") {
                 testContainer.dataSource.connection
                     .use { con -> con.getAllKrav() }
                     .filter { it.status == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value }
                     .distinctBy { it.corrId }
                     .size shouldBe 5
             }
-            And("Alert skal sendes til slack") {
+            When("Feilmeldinger håndteres") {
+                val addErrorFilenameSlots = mutableListOf<String>()
+                val addErrorMessagesSlot = mutableListOf<Pair<String, String>>()
+
                 coVerify(exactly = 5) {
-                    slackClient.sendMessage(any<String>(), any<String>(), any<Pair<String, String>>())
+                    slackServiceSpy.addError(capture(addErrorFilenameSlots), any<String>(), capture(addErrorMessagesSlot))
+                }
+
+                Then("Skal 5 feilmeldinger dannes") {
+                    addErrorFilenameSlots.filter { it == fileName }.size shouldBe 5
+                    addErrorMessagesSlot.size shouldBe 5
+                    addErrorMessagesSlot.forEach {
+                        it.first shouldBe status
+                        it.second shouldBe "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke"
+                    }
+                }
+                Then("Skal 3 feilmeldinger sendes") {
+                    val sendAlertFilenameSlot = slot<String>()
+                    val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
+
+                    coVerify(exactly = 1) {
+                        slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
+                    }
+                    sendAlertFilenameSlot.captured shouldBe fileName
+                    sendAlertMessagesSlot.captured shouldBe addErrorMessagesSlot.groupBy({ it.first }, { it.second })
                 }
             }
         }

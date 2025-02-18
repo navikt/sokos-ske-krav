@@ -37,85 +37,64 @@ import java.time.LocalDateTime
 class DatabaseService(
     private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
 ) {
-    fun getSkeKravidentifikator(navref: String): String {
-        dataSource.connection.useAndHandleErrors { con ->
-            val kravId1 = con.getSkeKravidentifikator(navref)
-            if (kravId1.isNotBlank()) {
-                return kravId1
-            } else {
-                val kravId2 = con.getPreviousReferansenummer(navref)
-                if (kravId2.isNotBlank()) {
-                    return con.getSkeKravidentifikator(kravId2)
-                } else {
-                    return ""
-                }
+    fun getSkeKravidentifikator(navref: String): String =
+        dataSource.connection.useAndHandleErrors {
+            it.getSkeKravidentifikator(navref).ifBlank {
+                val kravId2 = it.getPreviousReferansenummer(navref)
+                if (kravId2.isNotBlank()) it.getSkeKravidentifikator(kravId2) else ""
             }
         }
-    }
 
-    private fun getKravTableIdFromCorrelationId(corrID: String): Long {
-        dataSource.connection.useAndHandleErrors { con ->
-            return con.getKravTableIdFromCorrelationId(corrID)
+    private fun getKravTableIdFromCorrelationId(corrID: String): Long =
+        dataSource.connection.useAndHandleErrors {
+            it.getKravTableIdFromCorrelationId(corrID)
         }
-    }
 
     private fun updateSentKrav(
         skeKravidentifikator: String,
         corrID: String,
         responseStatus: String,
-    ) {
-        dataSource.connection.useAndHandleErrors { con ->
-            con.updateSentKrav(corrID, skeKravidentifikator, responseStatus)
-        }
+    ) = dataSource.connection.useAndHandleErrors {
+        it.updateSentKrav(corrID, skeKravidentifikator, responseStatus)
     }
 
     private fun updateSentKrav(
         corrID: String,
         responseStatus: String,
-    ) {
-        dataSource.connection.useAndHandleErrors { con ->
-            con.updateSentKrav(corrID, responseStatus)
-        }
+    ) = dataSource.connection.useAndHandleErrors {
+        it.updateSentKrav(corrID, responseStatus)
     }
 
     fun saveAllNewKrav(
         kravLinjer: List<KravLinje>,
         filnavn: String,
-    ) {
-        dataSource.connection.useAndHandleErrors { con ->
-            con.insertAllNewKrav(kravLinjer, filnavn)
-        }
+    ) = dataSource.connection.useAndHandleErrors {
+        it.insertAllNewKrav(kravLinjer, filnavn)
     }
 
-    fun getAllFeilmeldinger(): List<FeilmeldingTable> {
-        dataSource.connection.useAndHandleErrors { con ->
-            return con.getAllFeilmeldinger()
+    fun getAllFeilmeldinger(): List<FeilmeldingTable> =
+        dataSource.connection.useAndHandleErrors {
+            it.getAllFeilmeldinger()
         }
-    }
 
-    fun saveFeilmelding(feilMelding: FeilmeldingTable) {
-        dataSource.connection.useAndHandleErrors { con ->
-            con.insertFeilmelding(feilMelding)
+    fun saveFeilmelding(feilMelding: FeilmeldingTable) =
+        dataSource.connection.useAndHandleErrors {
+            it.insertFeilmelding(feilMelding)
         }
-    }
 
     fun saveLineValidationError(
         filnavn: String,
         kravlinje: KravLinje,
         feilmelding: String,
-    ) {
-        dataSource.connection.useAndHandleErrors { con ->
-            con.insertLineValideringsfeil(filnavn, kravlinje, feilmelding)
-        }
+    ) = dataSource.connection.useAndHandleErrors {
+        it.insertLineValideringsfeil(filnavn, kravlinje, feilmelding)
     }
 
     fun saveFileValidationError(
         filnavn: String,
         feilmelding: String,
-    ) {
-        dataSource.connection.useAndHandleErrors { con ->
-            con.insertFileValideringsfeil(filnavn, feilmelding)
-        }
+    ) = dataSource.connection.useAndHandleErrors {
+        it.insertFileValideringsfeil(filnavn, feilmelding)
     }
 
     fun updateSentKrav(results: List<RequestResult>) {
@@ -138,14 +117,6 @@ class DatabaseService(
         }
     }
 
-    private fun incrementMetrics(results: List<RequestResult>) {
-        Metrics.numberOfKravSent.increment(results.size.toDouble())
-        Metrics.numberOfKravFeilet.increment(results.filter { !it.response.status.isSuccess() }.size.toDouble())
-        Metrics.numberOfNyeKrav.increment(results.filter { it.kravTable.kravtype == NYTT_KRAV }.size.toDouble())
-        Metrics.numberOfEndringerAvKrav.increment(results.filter { it.kravTable.kravtype == ENDRING_RENTE || it.kravTable.kravtype == ENDRING_HOVEDSTOL }.size.toDouble())
-        Metrics.numberOfStoppAvKrav.increment(results.filter { it.kravTable.kravtype == STOPP_KRAV }.size.toDouble())
-    }
-
     suspend fun saveErrorMessage(
         request: String,
         response: HttpResponse,
@@ -156,7 +127,6 @@ class DatabaseService(
             if (kravidentifikator == krav.saksnummerNAV || kravidentifikator == krav.referansenummerGammelSak) "" else kravidentifikator
 
         val feilResponse = response.parseTo<FeilResponse>() ?: return
-
         val feilmelding =
             FeilmeldingTable(
                 0L,
@@ -174,6 +144,7 @@ class DatabaseService(
         saveFeilmelding(feilmelding)
     }
 
+    // TODO bruk junie for å erstatte resten med = og it istedet for con
     fun getAllKravForStatusCheck(): List<KravTable> {
         dataSource.connection.useAndHandleErrors { con ->
             return con.getAllKravForStatusCheck()
@@ -232,5 +203,14 @@ class DatabaseService(
         dataSource.connection.useAndHandleErrors { con ->
             con.updateEndringWithSkeKravIdentifikator(navsaksnummer, skeKravidentifikator)
         }
+    }
+
+    // TODO: Bruk junie for å flytte dette til requestresult filen
+    private fun incrementMetrics(results: List<RequestResult>) {
+        Metrics.numberOfKravSent.increment(results.size.toDouble())
+        Metrics.numberOfKravFeilet.increment(results.filter { !it.response.status.isSuccess() }.size.toDouble())
+        Metrics.numberOfNyeKrav.increment(results.filter { it.kravTable.kravtype == NYTT_KRAV }.size.toDouble())
+        Metrics.numberOfEndringerAvKrav.increment(results.filter { it.kravTable.kravtype == ENDRING_RENTE || it.kravTable.kravtype == ENDRING_HOVEDSTOL }.size.toDouble())
+        Metrics.numberOfStoppAvKrav.increment(results.filter { it.kravTable.kravtype == STOPP_KRAV }.size.toDouble())
     }
 }

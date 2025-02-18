@@ -13,9 +13,7 @@ import java.time.LocalDateTime
 object RepositoryExtensions {
     inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R =
         runCatching {
-            use {
-                block(this)
-            }
+            use(block)
         }.onFailure { secureLogger.error(it.message) }.getOrThrow()
 
     inline fun <reified T> ResultSet.getColumn(columnLabel: String): T {
@@ -58,4 +56,20 @@ object RepositoryExtensions {
                 }
             }
         }
+
+    fun Connection.executeUpdate(
+        query: String,
+        vararg params: Any?,
+    ) {
+        prepareStatement(query).withParameters(*params).execute()
+        commit()
+    }
+
+    fun Connection.executeSelect(
+        query: String,
+        vararg params: Any?,
+    ): ResultSet =
+        prepareStatement(query)
+            .withParameters(*params)
+            .executeQuery()
 }

@@ -1,25 +1,24 @@
 package sokos.ske.krav.database.repository
 
 import sokos.ske.krav.database.models.FeilmeldingTable
-import sokos.ske.krav.database.repository.RepositoryExtensions.withParameters
+import sokos.ske.krav.database.repository.RepositoryExtensions.executeSelect
+import sokos.ske.krav.database.repository.RepositoryExtensions.executeUpdate
 import java.sql.Connection
 
 object FeilmeldingRepository {
     fun Connection.getAllFeilmeldinger() = prepareStatement("""select * from feilmelding""").executeQuery().toFeilmelding()
 
     fun Connection.getFeilmeldingForKravId(kravId: Long): List<FeilmeldingTable> =
-        prepareStatement(
+        executeSelect(
             """
             select * from feilmelding
             where krav_id = ?
-            """.trimIndent(),
-        ).withParameters(
+            """,
             kravId,
-        ).executeQuery()
-            .toFeilmelding()
+        ).toFeilmelding()
 
-    fun Connection.insertFeilmelding(feilmelding: FeilmeldingTable) {
-        prepareStatement(
+    fun Connection.insertFeilmelding(feilmelding: FeilmeldingTable) =
+        executeUpdate(
             """
             insert into feilmelding (
                 krav_id,
@@ -32,8 +31,7 @@ object FeilmeldingRepository {
                 ske_response
             ) 
             values (?, ?, ?, ?, ?, ?, ?, ?)
-            """.trimIndent(),
-        ).withParameters(
+            """,
             feilmelding.kravId,
             feilmelding.saksnummerNav,
             feilmelding.kravidentifikatorSKE,
@@ -42,7 +40,5 @@ object FeilmeldingRepository {
             feilmelding.melding,
             feilmelding.navRequest,
             feilmelding.skeResponse,
-        ).execute()
-        commit()
-    }
+        )
 }

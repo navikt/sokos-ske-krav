@@ -7,10 +7,9 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.mockk
-import io.mockk.spyk
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.client.SlackClient
+import sokos.ske.krav.client.SlackService
 import sokos.ske.krav.config.SftpConfig
 import sokos.ske.krav.database.repository.KravRepository.updateStatus
 import sokos.ske.krav.database.repository.RepositoryExtensions.withParameters
@@ -36,12 +35,13 @@ import sokos.ske.krav.util.getAllKrav
 import sokos.ske.krav.util.setUpMockHttpClient
 import sokos.ske.krav.util.setupSkeServiceMock
 import sokos.ske.krav.util.setupSkeServiceMockWithMockEngine
+import sokos.ske.krav.validation.FileValidator
 
 internal class SkeServiceIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener)
         val ftpService: FtpService by lazy {
-            FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = mockk<SlackClient>(relaxed = true), databaseService = mockk<DatabaseService>())
+            FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = mockk<DatabaseService>())
         }
         val testContainer = TestContainer()
         testContainer.migrate("SQLscript/10NyeKrav.sql")
@@ -77,7 +77,6 @@ internal class SkeServiceIntegrationTest :
 
             val dbService = DatabaseService(testContainer.dataSource)
             val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dbService, ftpService = ftpService)
-            val skeMock = spyk(skeService, recordPrivateCalls = true)
 
             val kravBefore = testContainer.dataSource.connection.getAllKrav()
             with(kravBefore.find { it.saksnummerNAV == "2222-navsaksnr" }) {
@@ -92,7 +91,7 @@ internal class SkeServiceIntegrationTest :
             kravBefore.find { it.saksnummerNAV == "2222-migrert" } shouldBe null
             kravBefore.find { it.saksnummerNAV == "8888-migrert" } shouldBe null
 
-            skeMock.handleNewKrav()
+            skeService.handleNewKrav()
 
             When("Kravet finnes i database") {
                 Then("skal endringer og avskrivinger oppdateres med kravidentifikatorSKE fra database") {
@@ -128,11 +127,10 @@ internal class SkeServiceIntegrationTest :
                 }
             val dbService = DatabaseService(testContainer.dataSource)
             val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dbService, ftpService = ftpService)
-            val skeMock = spyk(skeService, recordPrivateCalls = true)
             val kravbefore = testContainer.dataSource.connection.use { it.getAllKrav() }
 
             Then("skal type krav avgjøres og lagres") {
-                skeMock.handleNewKrav()
+                skeService.handleNewKrav()
                 val lagredeKrav = testContainer.dataSource.connection.use { it.getAllKrav() }
                 lagredeKrav.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2 + kravbefore.filter { it.kravtype == STOPP_KRAV }.size
                 lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.size shouldBe 2 + kravbefore.filter { it.kravtype == ENDRING_RENTE }.size

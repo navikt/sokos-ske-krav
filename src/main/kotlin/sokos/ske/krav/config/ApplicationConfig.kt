@@ -4,6 +4,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
 import io.ktor.server.metrics.micrometer.MicrometerMetrics
 import io.ktor.server.plugins.callid.CallId
@@ -63,32 +64,26 @@ fun Application.commonConfig() {
 
 fun Routing.internalNaisRoutes(
     applicationState: ApplicationState,
-    readynessCheck: () -> Boolean = { applicationState.ready },
+    readinessCheck: () -> Boolean = { applicationState.ready },
     alivenessCheck: () -> Boolean = { applicationState.alive },
 ) {
     route("internal") {
         get("isAlive") {
-            when (alivenessCheck()) {
-                true -> call.respondText { "I'm alive :)" }
-                else ->
-                    call.respondText(
-                        text = "I'm dead x_x",
-                        status = HttpStatusCode.InternalServerError,
-                    )
-            }
+            healthCheckResponse(alivenessCheck(), call, "I'm alive :)", "I'm dead x_x")
         }
         get("isReady") {
-            when (readynessCheck()) {
-                true -> call.respondText { "I'm ready! :)" }
-                else ->
-                    call.respondText(
-                        text = "Wait! I'm not ready yet! :O",
-                        status = HttpStatusCode.InternalServerError,
-                    )
-            }
-        }
-        get("metrics") {
-            call.respondText(Metrics.registry.scrape())
+            healthCheckResponse(readinessCheck(), call, "I'm ready! :)", "Wait! I'm not ready yet! :O")
         }
     }
+    get("metrics") {
+        call.respondText(Metrics.registry.scrape())
+    }
 }
+
+private val healthCheckResponse: suspend (Boolean, ApplicationCall, String, String) -> Unit =
+    { isHealthy, call, successMessage, failureMessage ->
+        when (isHealthy) {
+            true -> call.respondText { successMessage }
+            else -> call.respondText(failureMessage, status = HttpStatusCode.InternalServerError)
+        }
+    }

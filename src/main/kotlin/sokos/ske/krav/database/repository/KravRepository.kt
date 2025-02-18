@@ -1,5 +1,7 @@
 package sokos.ske.krav.database.repository
 
+import sokos.ske.krav.database.repository.RepositoryExtensions.executeSelect
+import sokos.ske.krav.database.repository.RepositoryExtensions.executeUpdate
 import sokos.ske.krav.database.repository.RepositoryExtensions.getColumn
 import sokos.ske.krav.database.repository.RepositoryExtensions.withParameters
 import sokos.ske.krav.domain.Status
@@ -15,30 +17,27 @@ import java.util.UUID
 
 object KravRepository {
     fun Connection.getAllKravForStatusCheck() =
-        prepareStatement("""select * from krav where status in (?, ?)""")
-            .withParameters(
-                Status.KRAV_SENDT.value,
-                Status.MOTTATT_UNDERBEHANDLING.value,
-            ).executeQuery()
-            .toKrav()
+        executeSelect(
+            """select * from krav where status in (?, ?)""",
+            Status.KRAV_SENDT.value,
+            Status.MOTTATT_UNDERBEHANDLING.value,
+        ).toKrav()
 
     fun Connection.getAllKravForResending() =
-        prepareStatement("""select * from krav where status in (?, ?, ?, ?, ?)""")
-            .withParameters(
-                Status.KRAV_IKKE_SENDT.value,
-                Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value,
-                Status.HTTP500_ANNEN_SERVER_FEIL.value,
-                Status.HTTP503_UTILGJENGELIG_TJENESTE.value,
-                Status.HTTP500_INTERN_TJENERFEIL.value,
-            ).executeQuery()
-            .toKrav()
+        executeSelect(
+            """select * from krav where status in (?, ?, ?, ?, ?)""",
+            Status.KRAV_IKKE_SENDT.value,
+            Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value,
+            Status.HTTP500_ANNEN_SERVER_FEIL.value,
+            Status.HTTP503_UTILGJENGELIG_TJENESTE.value,
+            Status.HTTP500_INTERN_TJENERFEIL.value,
+        ).toKrav()
 
     fun Connection.getAllUnsentKrav() =
-        prepareStatement("""select * from krav where status = ?""")
-            .withParameters(
-                Status.KRAV_IKKE_SENDT.value,
-            ).executeQuery()
-            .toKrav()
+        executeSelect(
+            """select * from krav where status = ?""",
+            Status.KRAV_IKKE_SENDT.value,
+        ).toKrav()
 
     // TODO må også returnere de med valideringsfeil rapporter = true
     // Men da må valideringsfeil tabell ha krav id
@@ -47,34 +46,30 @@ object KravRepository {
     // Bedre kanskje å kalle denne for getAllFeilmeldingerForKrav
     // Og så gjøre noe annet for valideringsfeil
     fun Connection.getAllKravForAvstemming() =
-
-        prepareStatement(
+        executeSelect(
             """
             select k.* from krav k
             join feilmelding f on k.id=f.krav_id
             where k.status not in ( ?, ?) 
             and f.rapporter = true 
             order by k.id
-            """.trimIndent(),
-        ).withParameters(
+            """,
             Status.RESKONTROFOERT.value,
             Status.MIGRERT.value,
-        ).executeQuery()
-            .toKrav()
+        ).toKrav()
 
     fun Connection.getSkeKravidentifikator(navref: String): String {
         val rs =
-            prepareStatement(
+            executeSelect(
                 """
                 select min(tidspunkt_opprettet) as opprettet, kravidentifikator_ske from krav
                 where (saksnummer_nav = ? or referansenummergammelsak = ?) 
                 and (kravidentifikator_ske is not null and kravidentifikator_ske != '') 
                 group by kravidentifikator_ske limit 1
-                """.trimIndent(),
-            ).withParameters(
+                """,
                 navref,
                 navref,
-            ).executeQuery()
+            )
         return if (rs.next()) {
             rs.getColumn("kravidentifikator_ske")
         } else {
@@ -84,15 +79,14 @@ object KravRepository {
 
     fun Connection.getPreviousReferansenummer(navref: String): String {
         val rs =
-            prepareStatement(
+            executeSelect(
                 """
                 select referansenummergammelsak from krav
                 where saksnummer_nav = ? and referansenummergammelsak != saksnummer_nav
                 order by id limit 1
-                """.trimIndent(),
-            ).withParameters(
+                """,
                 navref,
-            ).executeQuery()
+            )
         return if (rs.next()) {
             rs.getColumn("referansenummergammelsak")
         } else {
@@ -102,14 +96,13 @@ object KravRepository {
 
     fun Connection.getKravTableIdFromCorrelationId(corrID: String): Long {
         val rs =
-            prepareStatement(
+            executeSelect(
                 """
                 select id from krav
                 where corr_id = ? order by id limit 1
-                """.trimIndent(),
-            ).withParameters(
+                """,
                 corrID,
-            ).executeQuery()
+            )
         return if (rs.next()) {
             rs.getColumn("id")
         } else {
@@ -120,97 +113,78 @@ object KravRepository {
     fun Connection.updateSentKrav(
         corrID: String,
         responseStatus: String,
-    ) {
-        prepareStatement(
-            """
-            update krav 
-                set tidspunkt_sendt = NOW(), 
-                tidspunkt_siste_status = NOW(),
-                status = ?
-            where 
-                corr_id = ?
-            """.trimIndent(),
-        ).withParameters(
-            responseStatus,
-            corrID,
-        ).execute()
-        commit()
-    }
+    ) = executeUpdate(
+        """
+        update krav 
+            set tidspunkt_sendt = NOW(), 
+            tidspunkt_siste_status = NOW(),
+            status = ?
+        where 
+            corr_id = ?
+        """,
+        responseStatus,
+        corrID,
+    )
 
     fun Connection.updateSentKrav(
         corrID: String,
         skeKravidentifikator: String,
         responseStatus: String,
-    ) {
-        prepareStatement(
-            """
-            update krav 
-                set tidspunkt_sendt = NOW(), 
-                tidspunkt_siste_status = NOW(),
-                status = ?,
-                kravidentifikator_ske = ?
-            where 
-                corr_id = ?
-            """.trimIndent(),
-        ).withParameters(
-            responseStatus,
-            skeKravidentifikator,
-            corrID,
-        ).execute()
-        commit()
-    }
+    ) = executeUpdate(
+        """
+        update krav 
+            set tidspunkt_sendt = NOW(), 
+            tidspunkt_siste_status = NOW(),
+            status = ?,
+            kravidentifikator_ske = ?
+        where 
+            corr_id = ?
+        """,
+        responseStatus,
+        skeKravidentifikator,
+        corrID,
+    )
 
     fun Connection.updateStatus(
         mottakStatus: String,
         corrId: String,
-    ) {
-        prepareStatement(
-            """
-            update krav 
-                set status = ?, 
-                tidspunkt_siste_status = NOW()
-            where corr_id = ?
-            """.trimIndent(),
-        ).withParameters(
-            mottakStatus,
-            corrId,
-        ).execute()
-        commit()
-    }
+    ) = executeUpdate(
+        """
+        update krav 
+            set status = ?, 
+            tidspunkt_siste_status = NOW()
+        where corr_id = ?
+        """,
+        mottakStatus,
+        corrId,
+    )
 
     // Todo: Må ha samme for valideringsfeil
-    fun Connection.updateStatusForAvstemtKravToReported(kravId: Int) {
-        prepareStatement(
+    fun Connection.updateStatusForAvstemtKravToReported(kravId: Int) =
+        executeUpdate(
             """
             update feilmelding 
             set rapporter = false
             where krav_id = ?
-            """.trimIndent(),
-        ).withParameters(
+            """,
             kravId,
-        ).execute()
-        commit()
-    }
+        )
 
     fun Connection.updateEndringWithSkeKravIdentifikator(
         saksnummerNav: String,
         skeKravident: String,
-    ) {
-        prepareStatement(
-            """
-            update krav 
-                set kravidentifikator_ske = ? 
-            where 
-                saksnummer_nav = ? and
-                kravtype <> ?
-            """.trimIndent(),
-        ).withParameters(
-            skeKravident,
-            saksnummerNav,
-            NYTT_KRAV,
-        ).execute()
-        commit()
-    }
+    ) = executeUpdate(
+        """
+        update krav 
+            set kravidentifikator_ske = ? 
+        where 
+            saksnummer_nav = ? and
+            kravtype <> ?
+        """,
+        skeKravident,
+        saksnummerNav,
+        NYTT_KRAV,
+    )
 
     fun Connection.insertAllNewKrav(
         kravListe: List<KravLinje>,
@@ -243,7 +217,7 @@ object KravRepository {
                 filnavn,
                 linjenummer
                 ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?, ?)
-                """.trimIndent(),
+                """,
             )
 
         kravListe.forEach { krav ->

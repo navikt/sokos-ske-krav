@@ -8,6 +8,7 @@ import io.mockk.coVerify
 import io.mockk.slot
 import io.mockk.spyk
 import sokos.ske.krav.client.SlackClient
+import sokos.ske.krav.client.SlackService
 import sokos.ske.krav.config.SftpConfig
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.Directories
@@ -22,11 +23,16 @@ internal class FileValidatorIntegrationTest :
         extensions(SftpListener)
         val dbService = DatabaseService(TestContainer().dataSource)
 
+        fun setupSlackService(): SlackService {
+            val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
+            return spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
+        }
+
+        fun setupFtpService(slackServiceSpy: SlackService): FtpService = FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(slackService = slackServiceSpy), databaseService = dbService)
+
         Given("Fil er OK") {
-            val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
-            val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = slackClient, databaseService = dbService)
-            }
+            val slackServiceSpy = setupSlackService()
+            val ftpService = setupFtpService(slackServiceSpy)
             val fileName = "AltOkFil.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
@@ -39,16 +45,14 @@ internal class FileValidatorIntegrationTest :
 
                 And("Alert skal ikke sendes") {
                     coVerify(exactly = 0) {
-                        slackClient.sendMessage(any<String>(), any<String>(), any<List<Pair<String, String>>>())
+                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
                     }
                 }
             }
         }
         Given("En fil har feil antall linjer i kontroll-linjen") {
-            val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
-            val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = slackClient, databaseService = dbService)
-            }
+            val slackServiceSpy = setupSlackService()
+            val ftpService = setupFtpService(slackServiceSpy)
 
             val fileName = "FilMedFeilAntallKrav.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
@@ -69,12 +73,14 @@ internal class FileValidatorIntegrationTest :
                 }
                 And("Alert skal sendes til slack") {
                     val sendAlertFilenameSlot = slot<String>()
+                    val sendAlertHeaderSlot = slot<String>()
                     val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
 
                     coVerify(exactly = 1) {
-                        slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
+                        slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameSlot.captured shouldBe fileName
+                    sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
                     capturedSendAlertMessages.size shouldBe 1
                     capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_ANTALL }.size shouldBe 1
@@ -83,10 +89,8 @@ internal class FileValidatorIntegrationTest :
         }
 
         Given("En fil har feil sum i kontroll-linjen") {
-            val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
-            val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = slackClient, databaseService = dbService)
-            }
+            val slackServiceSpy = setupSlackService()
+            val ftpService = setupFtpService(slackServiceSpy)
             val fileName = "FilMedFeilSum.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
@@ -106,12 +110,14 @@ internal class FileValidatorIntegrationTest :
                 }
                 And("Alert skal sendes til slack") {
                     val sendAlertFilenameSlot = slot<String>()
+                    val sendAlertHeaderSlot = slot<String>()
                     val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
 
                     coVerify(exactly = 1) {
-                        slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
+                        slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameSlot.captured shouldBe fileName
+                    sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
                     capturedSendAlertMessages.size shouldBe 1
                     capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_SUM }.size shouldBe 1
@@ -120,12 +126,8 @@ internal class FileValidatorIntegrationTest :
         }
 
         Given("En fil har forskjellige datoer i kontroll-linjene") {
-
-            val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
-
-            val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = slackClient, databaseService = dbService)
-            }
+            val slackServiceSpy = setupSlackService()
+            val ftpService = setupFtpService(slackServiceSpy)
             val fileName = "FilMedFeilUtbetalDato.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
@@ -145,12 +147,14 @@ internal class FileValidatorIntegrationTest :
                 }
                 And("Alert skal sendes til slack") {
                     val sendAlertFilenameSlot = slot<String>()
+                    val sendAlertHeaderSlot = slot<String>()
                     val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
 
                     coVerify(exactly = 1) {
-                        slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
+                        slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameSlot.captured shouldBe fileName
+                    sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
                     capturedSendAlertMessages.size shouldBe 1
                     capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_DATO }.size shouldBe 1
@@ -159,11 +163,8 @@ internal class FileValidatorIntegrationTest :
         }
 
         Given("En fil har alle typer feil") {
-            val slackClient = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
-
-            val ftpService: FtpService by lazy {
-                FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = slackClient, databaseService = dbService)
-            }
+            val slackServiceSpy = setupSlackService()
+            val ftpService = setupFtpService(slackServiceSpy)
             val fileName = "FilMedAlleTyperFeilForFilValidering.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
@@ -181,12 +182,14 @@ internal class FileValidatorIntegrationTest :
                 }
                 And("Alert skal sendes til slack") {
                     val sendAlertFilenameSlot = slot<String>()
+                    val sendAlertHeaderSlot = slot<String>()
                     val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
 
                     coVerify(exactly = 1) {
-                        slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
+                        slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameSlot.captured shouldBe fileName
+                    sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
                     capturedSendAlertMessages.size shouldBe 3
                     capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_DATO }.size shouldBe 1

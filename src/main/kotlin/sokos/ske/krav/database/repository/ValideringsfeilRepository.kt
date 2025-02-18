@@ -1,7 +1,8 @@
 package sokos.ske.krav.database.repository
 
 import sokos.ske.krav.database.models.ValideringsfeilTable
-import sokos.ske.krav.database.repository.RepositoryExtensions.withParameters
+import sokos.ske.krav.database.repository.RepositoryExtensions.executeSelect
+import sokos.ske.krav.database.repository.RepositoryExtensions.executeUpdate
 import sokos.ske.krav.domain.nav.KravLinje
 import java.sql.Connection
 
@@ -10,61 +11,49 @@ object ValideringsfeilRepository {
         filNavn: String,
         linjeNummer: Int,
     ): List<ValideringsfeilTable> =
-        prepareStatement(
+        executeSelect(
             """
             select * from valideringsfeil
             where filnavn = ? and linjenummer = ?
-            """.trimIndent(),
-        ).withParameters(
+            """,
             filNavn,
             linjeNummer,
-        ).executeQuery()
-            .toValideringsfeil()
+        ).toValideringsfeil()
 
     fun Connection.getValideringsFeilForFil(filNavn: String): List<ValideringsfeilTable> =
-        prepareStatement(
+        executeSelect(
             """
             select * from valideringsfeil
             where filnavn = ?
-            """.trimIndent(),
-        ).withParameters(
+            """,
             filNavn,
-        ).executeQuery()
-            .toValideringsfeil()
+        ).toValideringsfeil()
 
     fun Connection.insertFileValideringsfeil(
         filnavn: String,
         feilmelding: String,
-    ) {
-        prepareStatement(
-            """
+    ) = executeUpdate(
+        """
             insert into valideringsfeil (filnavn, feilmelding)
             values (?, ?)
-            """.trimIndent(),
-        ).withParameters(
-            filnavn,
-            feilmelding,
-        ).execute()
-        commit()
-    }
+            """,
+        filnavn,
+        feilmelding,
+    )
 
     fun Connection.insertLineValideringsfeil(
         filnavn: String,
         kravlinje: KravLinje,
         feilmelding: String,
-    ) {
-        prepareStatement(
-            """
+    ) = executeUpdate(
+        """
             insert into valideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
             values (?, ?, ?, ?, ? )
-            """.trimIndent(),
-        ).withParameters(
-            filnavn,
-            kravlinje.linjenummer,
-            kravlinje.saksnummerNav,
-            kravlinje.toString(),
-            feilmelding,
-        ).execute()
-        commit()
-    }
+            """,
+        filnavn,
+        kravlinje.linjenummer,
+        kravlinje.saksnummerNav,
+        kravlinje.toString(),
+        feilmelding,
+    )
 }

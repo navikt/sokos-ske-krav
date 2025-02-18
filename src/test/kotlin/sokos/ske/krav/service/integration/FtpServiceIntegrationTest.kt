@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
-import sokos.ske.krav.client.SlackClient
+import sokos.ske.krav.client.SlackService
 import sokos.ske.krav.config.SftpConfig
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.Directories
@@ -25,7 +25,7 @@ internal class FtpServiceIntegrationTest :
         val testContainer = TestContainer()
         val dbService = DatabaseService(testContainer.dataSource)
         val ftpService: FtpService by lazy {
-            FtpService(SftpConfig(SftpListener.sftpProperties), slackClient = mockk<SlackClient>(relaxed = true), databaseService = dbService)
+            FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = dbService)
         }
 
         Given("listFiles") {

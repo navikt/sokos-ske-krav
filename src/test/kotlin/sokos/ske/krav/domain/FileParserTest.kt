@@ -10,7 +10,7 @@ import sokos.ske.krav.validation.LineValidationRules
 import java.io.File
 import java.math.BigDecimal
 
-internal class ParserTest :
+internal class FileParserTest :
     FunSpec({
         val altOkFil = fileAsList("${File.separator}FtpFiler${File.separator}AltOkFil.txt")
         val altOkParser = FileParser(altOkFil)
@@ -57,12 +57,12 @@ internal class ParserTest :
         test("Hvis linje ikke har fremtidig ytelse skal den settes til 0") {
             val utenFremtidigYtelse = fileAsList("${File.separator}FtpFiler${File.separator}Fil-uten-fremtidigytelse.txt")
             FileParser(utenFremtidigYtelse).parseKravLinjer().run {
-                first { it.saksnummerNav == "FinnesIkke" }.fremtidigYtelse shouldBe BigDecimal.valueOf(0.0)
-                first { it.saksnummerNav == "Dnummer1" }.fremtidigYtelse shouldBe BigDecimal.valueOf(0.0)
-                first { it.saksnummerNav == "Dnummer2" }.fremtidigYtelse shouldBe BigDecimal.valueOf(0.0)
+                first { it.saksnummerNav == "FinnesIkke" }.fremtidigYtelse shouldBe BigDecimal.ZERO
+                first { it.saksnummerNav == "Dnummer1" }.fremtidigYtelse shouldBe BigDecimal.ZERO
+                first { it.saksnummerNav == "Dnummer2" }.fremtidigYtelse shouldBe BigDecimal.ZERO
 
-                count { it.fremtidigYtelse == BigDecimal.valueOf(0.0) } shouldBe 3
-                count { it.fremtidigYtelse != BigDecimal.valueOf(0.0) } shouldBe 2
+                count { it.fremtidigYtelse == BigDecimal.ZERO } shouldBe 3
+                count { it.fremtidigYtelse != BigDecimal.ZERO } shouldBe 2
             }
         }
     })

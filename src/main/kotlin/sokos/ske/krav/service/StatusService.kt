@@ -1,8 +1,10 @@
 package sokos.ske.krav.service
 
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.client.SlackClient
+import sokos.ske.krav.client.SlackService
 import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
@@ -18,36 +20,51 @@ import java.time.LocalDateTime
 class StatusService(
     private val skeClient: SkeClient = SkeClient(),
     private val databaseService: DatabaseService = DatabaseService(),
-    private val slackClient: SlackClient = SlackClient(),
+    private val slackService: SlackService = SlackService(),
 ) {
     suspend fun getMottaksStatus() {
         val kravListe = databaseService.getAllKravForStatusCheck()
-        if (kravListe.isNotEmpty()) secureLogger.info("Sjekk av mottaksstatus -> Antall krav som ikke er reskontroført: ${kravListe.size}")
+        if (kravListe.isEmpty()) return
 
-        val feil = mutableMapOf<String, MutableList<Pair<String, String>>>()
-
+        secureLogger.info("Sjekk av mottaksstatus -> Antall krav som ikke er reskontroført: ${kravListe.size}")
         val updated =
             kravListe.mapNotNull { krav ->
-                val kravIdentifikatorPair = createKravidentifikatorPair(krav)
-                val response = skeClient.getMottaksStatus(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
-
-                if (response.status.isSuccess()) {
-                    response.parseTo<MottaksStatusResponse>()?.let { status ->
-                        updateMottaksStatus(status, kravIdentifikatorPair, krav)
-                        if (status.mottaksStatus == "RESKONTROFOERT") Pair(krav.status, status.mottaksStatus) else null
-                    }
-                } else {
-                    response.parseTo<FeilResponse>()?.let { feilmelding ->
-                        secureLogger.error { "getMottaksStatus feilet: ${feilmelding.title}" }
-                        val errorPair = Pair(feilmelding.title, feilmelding.detail)
-                        feil.putIfAbsent(krav.filnavn, mutableListOf(errorPair))?.add(errorPair)
-                    }
-                    null
-                }
+                processKravStatus(krav)?.takeIf { it.mottaksStatus == "RESKONTROFOERT" }?.let { Pair(krav.status, it.mottaksStatus) }
             }
-        if (updated.isNotEmpty()) secureLogger.info { "Antall reskontroførte krav: ${updated.size}" }
-        feil.forEach { (fileName, messages) ->
-            slackClient.sendMessage("Feil i oppdatering av mottaksstatus", fileName, messages)
+
+        secureLogger.info { "Antall reskontroførte krav: ${updated.size}" }
+        slackService.sendErrors()
+    }
+
+    private suspend fun processKravStatus(krav: KravTable): MottaksStatusResponse? {
+        val (kravidentifikator, kravidentifikatorType) = createKravidentifikatorPair(krav)
+        val response = skeClient.getMottaksStatus(kravidentifikator, kravidentifikatorType)
+
+        return if (response.status.isSuccess()) {
+            response.parseTo<MottaksStatusResponse>()?.also { updateMottaksStatus(it, kravidentifikator to kravidentifikatorType, krav) }
+        } else {
+            handleFailedStatusResponse(response, krav, "Feil i oppdatering av mottaksstatus", "getMottaksStatus")
+            null
+        }
+    }
+
+    private suspend fun handleFailedStatusResponse(
+        response: HttpResponse,
+        krav: KravTable,
+        feilmeldingHeader: String,
+        funksjonsKall: String,
+    ) {
+        val feilmelding = response.parseTo<FeilResponse>()
+        if (feilmelding != null) {
+            slackService.addError(
+                fileName = krav.filnavn,
+                header = feilmeldingHeader,
+                Pair(feilmelding.title, feilmelding.detail),
+            )
+            secureLogger.error { "$funksjonsKall feilet: ${feilmelding.title}" }
+        } else {
+            val responseBody = response.bodyAsText()
+            secureLogger.error { "$funksjonsKall feilet: ${response.status}: $responseBody" }
         }
     }
 
@@ -55,12 +72,8 @@ class StatusService(
         mottaksstatus: MottaksStatusResponse,
         kravIdentifikatorPair: Pair<String, KravidentifikatorType>,
         krav: KravTable,
-    ) {
-        databaseService.updateStatus(mottaksstatus.mottaksStatus, krav.corrId)
-
-        if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value) {
-            handleValideringsFeil(kravIdentifikatorPair, krav)
-        }
+    ) = databaseService.updateStatus(mottaksstatus.mottaksStatus, krav.corrId).also {
+        if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value) handleValideringsFeil(kravIdentifikatorPair, krav)
     }
 
     private suspend fun handleValideringsFeil(
@@ -68,18 +81,12 @@ class StatusService(
         kravTable: KravTable,
     ) {
         val response = skeClient.getValideringsfeil(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
-
         if (!response.status.isSuccess()) {
-            response.parseTo<FeilResponse>()?.let { feilmelding ->
-                secureLogger.error { "getValideringsfeil feilet: ${feilmelding.title}" }
-                slackClient.sendMessage("Feil i henting av valideringsfeil", "${kravTable.filnavn}: Saksnummer ${kravTable.saksnummerNAV}", Pair(feilmelding.title, feilmelding.detail))
-            }
+            handleFailedStatusResponse(response, kravTable, "Feil i henting av valideringsfeil", "getValideringsfeil")
             return
         }
 
-        val valideringsfeil = response.parseTo<ValideringsFeilResponse>()?.valideringsfeil ?: emptyList()
-        if (valideringsfeil.isEmpty()) return
-
+        val valideringsfeil = response.parseTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
         secureLogger.info("Asynk Valideringsfeil mottatt: ${valideringsfeil.joinToString { it.error }} ")
 
         valideringsfeil.forEach {
@@ -98,7 +105,7 @@ class StatusService(
                 ),
             )
 
-            slackClient.sendMessage("Asynk valideringsfeil", "${kravTable.filnavn}: Saksnummer ${kravTable.saksnummerNAV}", Pair(it.error, it.message))
+            slackService.addError(kravTable.filnavn, "Asynk valideringsfeil", Pair(it.error, it.message))
         }
     }
 }

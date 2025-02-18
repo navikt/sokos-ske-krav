@@ -3,13 +3,12 @@ package sokos.ske.krav.validation
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
-import io.mockk.spyk
 import sokos.ske.krav.client.SlackClient
+import sokos.ske.krav.client.SlackService
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.FtpFil
-import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.validation.LineValidationRules.errorDate
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -28,8 +27,8 @@ internal class LineValidatorTest :
             val fileName = this.testCase.name.testName
 
             When("Linjer valideres") {
-                val lineValidatorSpy = spyk(LineValidator(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
+                val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
+                val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
 
                 Then("Skal validering returnere ${kravLinjer.size} ok kravlinjer") {
                     val updatedLines = kravLinjer.map { it.copy(status = Status.KRAV_IKKE_SENDT.value) }
@@ -50,10 +49,10 @@ internal class LineValidatorTest :
 
             val kravLinjer = okKrav + ikkeOkKrav
             val fileName = this.testCase.name.testName
-            val lineValidatorSpy = spyk(LineValidator(SlackClient(client = MockHttpClient().getSlackClient())), recordPrivateCalls = true)
+            val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
 
             When("Linjer valideres") {
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
+                val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
 
                 Then("Skal validering returnere ${okKrav.size} ok kravlinjer") {
                     val updatedLines = okKrav.map { it.copy(status = Status.KRAV_IKKE_SENDT.value) }
@@ -80,10 +79,10 @@ internal class LineValidatorTest :
 
             val kravLinjer = okKrav + ikkeOkKrav
             val fileName = this.testCase.name.testName
-            val lineValidatorSpy = spyk(LineValidator(SlackClient(client = MockHttpClient().getSlackClient())), recordPrivateCalls = true)
+            val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
 
             When("Linjer valideres") {
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
+                val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
                 Then("Skal validering returnere ${okKrav.size} ok kravlinjer") {
                     val updatedLines = okKrav.map { it.copy(status = Status.KRAV_IKKE_SENDT.value) }
                     val validated = validatedLines.filter { it.status == Status.KRAV_IKKE_SENDT.value }
@@ -114,8 +113,8 @@ internal class LineValidatorTest :
             When("Linjer valideres") {
                 val kravLinjer = okKrav + ikkeOkKrav
                 val fileName = this.testCase.name.testName
-                val lineValidatorSpy = spyk(LineValidator(SlackClient(client = MockHttpClient().getSlackClient())), recordPrivateCalls = true)
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
+                val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
+                val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
 
                 Then("Skal validering returnere ${okKrav.size} ok kravlinjer") {
                     val updatedLines = okKrav.map { it.copy(status = Status.KRAV_IKKE_SENDT.value) }
@@ -145,8 +144,8 @@ internal class LineValidatorTest :
                 When("Linjer valideres") {
                     val kravLinjer = okKrav + ikkeOkKravMedUlikeFeil
                     val fileName = this.testCase.name.testName
-                    val lineValidatorSpy = spyk(LineValidator(SlackClient(client = MockHttpClient().getSlackClient())), recordPrivateCalls = true)
-                    val validatedLines = lineValidatorSpy.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
+                    val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
+                    val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
 
                     Then("Skal validering returnere ${okKrav.size} ok kravlinjer") {
                         val updatedLines = okKrav.map { it.copy(status = Status.KRAV_IKKE_SENDT.value) }

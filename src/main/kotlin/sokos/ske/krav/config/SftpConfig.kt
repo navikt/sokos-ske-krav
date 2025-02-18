@@ -10,8 +10,7 @@ import org.slf4j.LoggerFactory
 class SftpConfig(
     private val sftpProperties: PropertiesConfig.SftpProperties = PropertiesConfig.SftpProperties(),
 ) {
-    private val logger = KotlinLogging.logger {}
-
+    private val logger = KotlinLogging.logger("secureLogger")
     private val jsch: JSch =
         JSch().apply {
             JSch.setLogger(JSchLogger())

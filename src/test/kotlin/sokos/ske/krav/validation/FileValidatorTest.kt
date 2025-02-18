@@ -2,16 +2,16 @@ package sokos.ske.krav.validation
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import sokos.ske.krav.client.SlackClient
+import io.mockk.mockk
+import sokos.ske.krav.client.SlackService
 import sokos.ske.krav.util.FtpTestUtil.fileAsList
-import sokos.ske.krav.util.MockHttpClient
 import sokos.ske.krav.validation.FileValidator.ErrorKeys
 import java.io.File
 
 internal class FileValidatorTest :
     BehaviorSpec({
         val controlLines = 2
-        val fileValidator = FileValidator(SlackClient(client = MockHttpClient().getSlackClient()))
+        val fileValidator = FileValidator(mockk<SlackService>(relaxed = true))
 
         Given("Fil er OK") {
             val fileName = "AltOkFil.txt"

@@ -2,7 +2,6 @@ package sokos.ske.krav.service
 
 import com.jcraft.jsch.SftpException
 import mu.KotlinLogging
-import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.config.SftpConfig
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.validation.FileValidator
@@ -26,13 +25,15 @@ data class FtpFil(
 
 class FtpService(
     private val sftpConfig: SftpConfig = SftpConfig(),
-    private val slackClient: SlackClient = SlackClient(),
-    private val fileValidator: FileValidator = FileValidator(slackClient),
+    private val fileValidator: FileValidator = FileValidator(),
     private val databaseService: DatabaseService = DatabaseService(),
 ) {
     private val logger = KotlinLogging.logger("secureLogger")
 
-    fun listFiles(directory: Directories = Directories.INBOUND): List<String> = sftpConfig.channel { con -> con.ls(directory.value).filter { !it.attrs.isDir }.map { it.filename } }
+    fun listFiles(directory: Directories = Directories.INBOUND): List<String> =
+        sftpConfig.channel { con ->
+            con.ls(directory.value).filterNot { it.attrs.isDir }.map { it.filename }
+        }
 
     fun moveFile(
         fileName: String,
@@ -54,49 +55,47 @@ class FtpService(
         }
     }
 
-    private fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> {
-        var fileName = ""
-        return sftpConfig.channel { con ->
+    private fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> =
+        sftpConfig.channel { con ->
             try {
-                con
-                    .ls("${directory.value}/*")
-                    .filter { !it.attrs.isDir }
-                    .map { it.filename }
+                listFiles(directory)
                     .sorted()
-                    .associateWith {
-                        fileName = "${directory.value}/$it"
-                        val outputStream = ByteArrayOutputStream()
-                        con.get(fileName, outputStream)
-                        String(outputStream.toByteArray()).lines().filter { file -> file.isNotEmpty() }
+                    .associateWith { filename ->
+                        ByteArrayOutputStream().use { os ->
+                            con.get("${directory.value}/$filename", os)
+                            os.toString().lines().filter { it.isNotEmpty() }
+                        }
                     }
             } catch (e: SftpException) {
-                logger.error { "$fileName ble ikke hentet. Feilmelding: ${e.message}" }
+                logger.error { "Filer i ${directory.value} ble ikke hentet. Feilmelding: ${e.message}" }
                 throw e
+            }
+        }
+
+    suspend fun getValidatedFiles(directory: Directories = Directories.INBOUND): List<FtpFil> {
+        val files = downloadFiles(directory)
+        if (files.isEmpty()) return emptyList()
+
+        return files.mapNotNull { (fileName, fileContent) ->
+            when (val validationResult = fileValidator.validateFile(fileContent, fileName)) {
+                is ValidationResult.Success -> FtpFil(fileName, fileContent, validationResult.kravLinjer)
+
+                is ValidationResult.Error -> {
+                    handleValidationError(fileName, validationResult.messages, directory)
+                    null
+                }
             }
         }
     }
 
-    suspend fun getValidatedFiles(directory: Directories = Directories.INBOUND): List<FtpFil> {
-        val successFiles = mutableListOf<FtpFil>()
-        val files = downloadFiles(directory)
-        if (files.isEmpty()) return emptyList()
-
-        files.map { entry ->
-            when (val result: ValidationResult = fileValidator.validateFile(entry.value, entry.key)) {
-                is ValidationResult.Success -> {
-                    successFiles.add(FtpFil(entry.key, entry.value, result.kravLinjer))
-                }
-                is ValidationResult.Error -> {
-                    moveFile(entry.key, directory, Directories.FAILED)
-                    result.messages.forEach { p ->
-                        val title = p.first
-                        val message = p.second
-
-                        databaseService.saveFileValidationError(entry.key, "$title: $message")
-                    }
-                }
-            }
+    private fun handleValidationError(
+        fileName: String,
+        errorMessages: List<Pair<String, String>>,
+        directory: Directories,
+    ) {
+        moveFile(fileName, directory, Directories.FAILED)
+        errorMessages.forEach { message ->
+            databaseService.saveFileValidationError(fileName, "${message.first}: ${message.second}")
         }
-        return successFiles
     }
 }

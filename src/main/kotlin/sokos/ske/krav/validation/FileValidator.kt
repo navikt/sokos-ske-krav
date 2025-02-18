@@ -1,11 +1,11 @@
 package sokos.ske.krav.validation
 
-import sokos.ske.krav.client.SlackClient
+import sokos.ske.krav.client.SlackService
 import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.domain.nav.FileParser
 
 class FileValidator(
-    private val slackClient: SlackClient,
+    private val slackService: SlackService = SlackService(),
 ) {
     object ErrorKeys {
         const val FEIL_I_ANTALL = "Antall krav stemmer ikke med antallet i siste linje"
@@ -22,40 +22,23 @@ class FileValidator(
         val lastLine = parser.parseKontrollLinjeFooter()
         val kravLinjer = parser.parseKravLinjer()
 
-        val invalidNumberOfLines = lastLine.antallTransaksjoner != kravLinjer.size
-        val invalidSum = kravLinjer.sumOf { it.belop + it.belopRente } != lastLine.sumAlleTransaksjoner
-        val invalidTransferDate = firstLine.transaksjonsDato != lastLine.transaksjonTimestamp
-
         val errorMessages =
             buildList {
-                if (invalidNumberOfLines) {
-                    add(
-                        Pair(
-                            ErrorKeys.FEIL_I_ANTALL,
-                            "Antall krav: ${kravLinjer.size}, Antall i siste linje: ${lastLine.antallTransaksjoner}\n",
-                        ),
-                    )
+                if (lastLine.antallTransaksjoner != kravLinjer.size) {
+                    add(Pair(ErrorKeys.FEIL_I_ANTALL, "Antall krav: ${kravLinjer.size}, Antall i siste linje: ${lastLine.antallTransaksjoner}\n"))
                 }
-                if (invalidSum) {
-                    add(
-                        Pair(
-                            ErrorKeys.FEIL_I_SUM,
-                            "Sum alle linjer: ${kravLinjer.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAlleTransaksjoner}\n",
-                        ),
-                    )
+                if (kravLinjer.sumOf { it.belop + it.belopRente } != lastLine.sumAlleTransaksjoner) {
+                    add(Pair(ErrorKeys.FEIL_I_SUM, "Sum alle linjer: ${kravLinjer.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAlleTransaksjoner}\n"))
                 }
-                if (invalidTransferDate) {
-                    add(
-                        Pair(
-                            ErrorKeys.FEIL_I_DATO,
-                            "Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonTimestamp}\n",
-                        ),
-                    )
+                if (firstLine.transaksjonsDato != lastLine.transaksjonTimestamp) {
+                    add(Pair(ErrorKeys.FEIL_I_DATO, "Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonTimestamp}\n"))
                 }
             }
 
         return if (errorMessages.isNotEmpty()) {
-            slackClient.sendMessage("Feil i filvalidering", fileName, errorMessages)
+            slackService.addError(fileName, "Feil i validering av fil", errorMessages)
+            slackService.sendErrors()
+
             secureLogger.warn("*** Feil i validering av fil $fileName. Sjekk Slack og Database ***")
             ValidationResult.Error(messages = errorMessages)
         } else {

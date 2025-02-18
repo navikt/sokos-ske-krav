@@ -72,16 +72,14 @@ private fun createSkyldner(krav: KravTable) =
 private fun createTilleggsinformasjonNav(krav: KravTable): TilleggsinformasjonNav {
     val kravFremtidigYtelse = krav.fremtidigYtelse.roundToLong()
     val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
-    val tilleggsinformasjonNav =
-        TilleggsinformasjonNav(
-            tilbakeKrevingsPeriode =
-                TilbakeKrevingsPeriode(
-                    LocalDate.parse(krav.periodeFOM, dtf).toKotlinLocalDate(),
-                    LocalDate.parse(krav.periodeTOM, dtf).toKotlinLocalDate(),
-                ),
-            ytelserForAvregning =
-                YtelseForAvregningBeloep(beloep = kravFremtidigYtelse)
-                    .takeIf { kravFremtidigYtelse > 0L },
-        )
-    return tilleggsinformasjonNav
+    return TilleggsinformasjonNav(
+        tilbakeKrevingsPeriode =
+            TilbakeKrevingsPeriode(
+                LocalDate.parse(krav.periodeFOM, dtf).toKotlinLocalDate(),
+                LocalDate.parse(krav.periodeTOM, dtf).toKotlinLocalDate(),
+            ),
+        ytelserForAvregning =
+            YtelseForAvregningBeloep(beloep = kravFremtidigYtelse)
+                .takeIf { kravFremtidigYtelse > 0L },
+    )
 }

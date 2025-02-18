@@ -10,6 +10,7 @@ import io.mockk.justRun
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.SlackClient
+import sokos.ske.krav.client.SlackService
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.repository.toKrav
 import sokos.ske.krav.domain.nav.KravLinje
@@ -82,7 +83,7 @@ fun setupSkeServiceMock(
     statusService: StatusService = statusServiceMock,
     databaseService: DatabaseService = dataSourceMock,
     ftpService: FtpService = ftpServiceMock,
-    slackClient: SlackClient = SlackClient(client = MockHttpClient().getSlackClient()),
+    slackService: SlackService = SlackService(SlackClient(client = MockHttpClient().getSlackClient())),
 ) = SkeService(
     skeClient = skeClient,
     stoppKravService = stoppKravService,
@@ -91,7 +92,7 @@ fun setupSkeServiceMock(
     statusService = statusService,
     databaseService = databaseService,
     ftpService = ftpService,
-    slackClient = slackClient,
+    slackService = slackService,
 )
 
 fun setUpMockHttpClient(endepunktTyper: List<MockHttpClientUtils.MockRequestObj>) = MockHttpClient().getClient(endepunktTyper)
@@ -103,10 +104,11 @@ fun setupSkeServiceMockWithMockEngine(
 ): SkeService {
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
     val slackClient = SlackClient(client = MockHttpClient().getSlackClient())
+    val slackService = SlackService(slackClient)
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
     val endreKravService = EndreKravService(skeClient, databaseService)
     val opprettKravService = OpprettKravService(skeClient, databaseService)
-    val statusService = StatusService(skeClient, databaseService, slackClient)
+    val statusService = StatusService(skeClient, databaseService, slackService)
     val stoppKravService = StoppKravService(skeClient, databaseService)
 
     return SkeService(
@@ -117,7 +119,7 @@ fun setupSkeServiceMockWithMockEngine(
         statusService = statusService,
         databaseService = databaseService,
         ftpService = ftpService,
-        slackClient = slackClient,
+        slackService = slackService,
     )
 }
 

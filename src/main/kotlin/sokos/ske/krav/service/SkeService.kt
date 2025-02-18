@@ -2,7 +2,7 @@ package sokos.ske.krav.service
 
 import io.ktor.http.isSuccess
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.client.SlackClient
+import sokos.ske.krav.client.SlackService
 import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
@@ -27,8 +27,8 @@ class SkeService(
     private val stoppKravService: StoppKravService = StoppKravService(skeClient, databaseService),
     private val endreKravService: EndreKravService = EndreKravService(skeClient, databaseService),
     private val opprettKravService: OpprettKravService = OpprettKravService(skeClient, databaseService),
-    private val slackClient: SlackClient = SlackClient(),
-    private val ftpService: FtpService = FtpService(slackClient = slackClient),
+    private val slackService: SlackService = SlackService(),
+    private val ftpService: FtpService = FtpService(),
 ) {
     private var haltRun = false
 
@@ -63,23 +63,22 @@ class SkeService(
         }
 
         files.forEach { file ->
-            secureLogger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
-
-            val validatedLines = LineValidator().validateNewLines(file, databaseService)
-            if (file.kravLinjer.size > validatedLines.size) {
-                secureLogger.warn("Ved validering av linjer i fil ${file.name} har ${file.kravLinjer.size - validatedLines.size} linjer velideringsfeil ")
-            }
-            if (validatedLines.size >= 1000) {
-                secureLogger.info("***Stor fil. Blokkerer kjøring***")
-                haltRun = true
-            }
-            databaseService.saveAllNewKrav(validatedLines, file.name)
-            ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
-
-            updateAllEndringerAndStopp(file.name, validatedLines.filter { !it.isOpprettKrav() })
-
+            processFile(file)
             sendKrav(databaseService.getAllUnsentKrav()).also { logResult(it) }
         }
+    }
+
+    private suspend fun processFile(file: FtpFil) {
+        secureLogger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
+        val validatedLines = LineValidator().validateNewLines(file, databaseService)
+
+        handleValidationResults(file, validatedLines)
+
+        databaseService.saveAllNewKrav(validatedLines, file.name)
+        ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
+
+        updateAllEndringerAndStopp(file.name, validatedLines.filterNot { it.isOpprettKrav() })
+        slackService.sendErrors()
     }
 
     private suspend fun sendKrav(kravTableList: List<KravTable>): List<RequestResult> {
@@ -92,21 +91,7 @@ class SkeService(
 
         if (kravTableList.isNotEmpty()) secureLogger.info("Alle krav sendt, lagrer eventuelle feilmeldinger")
 
-        val feil = mutableMapOf<String, MutableList<Pair<String, String>>>()
-
-        allResponses
-            .filter { !it.response.status.isSuccess() }
-            .forEach {
-                databaseService.saveErrorMessage(it.request, it.response, it.kravTable, it.kravidentifikator)
-                it.response.parseTo<FeilResponse>()?.let { feilResponse ->
-                    val errorPair = Pair(feilResponse.title, feilResponse.detail)
-                    feil.putIfAbsent(it.kravTable.filnavn, mutableListOf(errorPair))?.add(errorPair)
-                }
-            }
-
-        feil.forEach { (fileName, messages) ->
-            slackClient.sendMessage("Feil fra SKE", fileName, messages)
-        }
+        handleErrors(allResponses, databaseService)
 
         return allResponses
     }
@@ -115,7 +100,7 @@ class SkeService(
         fileName: String,
         kravLinjer: List<KravLinje>,
     ) {
-        val feilmeldinger = mutableListOf<Pair<String, String>>()
+        //      val feilmeldinger = mutableListOf<Pair<String, String>>()
         kravLinjer.forEach { krav ->
             val skeKravidentifikator = databaseService.getSkeKravidentifikator(krav.referansenummerGammelSak)
             var skeKravidentifikatorSomSkalLagres = skeKravidentifikator
@@ -130,18 +115,66 @@ class SkeService(
             if (skeKravidentifikatorSomSkalLagres.isNotBlank()) {
                 databaseService.updateEndringWithSkeKravIdentifikator(krav.saksnummerNav, skeKravidentifikatorSomSkalLagres)
             } else {
-                feilmeldinger.add(
+                slackService.addError(
+                    fileName,
+                    "Fant ikke gyldig kravidentifikator for migrert krav",
                     Pair(
                         "Fant ikke gyldig kravidentifikator for migrert krav",
                         "Saksnummer: ${krav.saksnummerNav} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
                     ),
                 )
+            /*    feilmeldinger.add(
+                    Pair(
+                        "Fant ikke gyldig kravidentifikator for migrert krav",
+                        "Saksnummer: ${krav.saksnummerNav} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
+                    ),
+                )*/
             }
         }
 
-        if (feilmeldinger.isNotEmpty()) {
+     /*   if (feilmeldinger.isNotEmpty()) {
             slackClient.sendMessage("Fant ikke kravidentifikator for migrert krav", fileName, feilmeldinger)
+        }*/
+    }
+
+    private fun handleValidationResults(
+        file: FtpFil,
+        validatedLines: List<KravLinje>,
+    ) {
+        if (file.kravLinjer.size > validatedLines.size) {
+            secureLogger.warn("Ved validering av linjer i fil ${file.name} har ${file.kravLinjer.size - validatedLines.size} linjer velideringsfeil ")
         }
+        if (validatedLines.size >= 1000) {
+            secureLogger.info("***Stor fil. Blokkerer kjøring***")
+            haltRun = true
+        }
+    }
+
+    private suspend fun handleErrors(
+        responses: List<RequestResult>,
+        databaseService: DatabaseService,
+    ) {
+        //    val errorMap = mutableMapOf<String, MutableList<Pair<String, String>>>()
+        responses
+            .filterNot { it.response.status.isSuccess() }
+            .forEach { result ->
+                databaseService.saveErrorMessage(
+                    result.request,
+                    result.response,
+                    result.kravTable,
+                    result.kravidentifikator,
+                )
+                result.response.parseTo<FeilResponse>()?.let { feilResponse ->
+                    val errorPair = Pair(feilResponse.title, feilResponse.detail)
+                    slackService.addError(result.kravTable.filnavn, "Feil fra SKE", errorPair)
+                    // errorMap.getOrPut(result.kravTable.filnavn) { mutableListOf() }.add(errorPair)
+                }
+            }
+
+   /*     errorMap.forEach { (fileName, messages) ->
+
+            slackClient.sendMessage("Feil fra SKE", fileName, messages)
+        }*/
     }
 
     private fun logResult(result: List<RequestResult>) {

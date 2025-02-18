@@ -21,37 +21,34 @@ data class RequestResult(
 
 suspend fun defineStatus(response: HttpResponse): Status {
     if (response.status.isSuccess()) return Status.KRAV_SENDT
-
-    val type = response.parseTo<FeilResponse>()?.type ?: "FEIL_FRA_SERVER"
+    val errorType = response.parseTo<FeilResponse>()?.type ?: "FEIL_FRA_SERVER"
 
     return when (response.status.value) {
         400 -> Status.HTTP400_UGYLDIG_FORESPORSEL
         401 -> Status.HTTP401_FEIL_AUTENTISERING
         403 -> Status.HTTP403_INGEN_TILGANG
-        404 -> {
-            if (type.contains(KRAV_EKSISTERER_IKKE)) {
-                Status.HTTP404_FANT_IKKE_SAKSREF
-            } else {
-                Status.HTTP404_ANNEN_IKKE_FUNNET
-            }
-        }
+        404 -> handleNotFoundError(errorType)
         406 -> Status.HTTP406_FEIL_MEDIETYPE
-        409 -> {
-            if (type.contains(KRAV_IKKE_RESKONTROFORT_RESEND)) {
-                Status.HTTP409_IKKE_RESKONTROFORT_RESEND
-            } else if (type.contains(KRAV_ER_AVSKREVET) || type.contains(KRAV_ER_ALLEREDE_AVSKREVET)) {
-                Status.HTTP409_KRAV_ER_AVSKREVET
-            } else {
-                Status.HTTP409_ANNEN_KONFLIKT
-            }
-        }
+        409 -> handleConflictError(errorType)
         422 -> Status.HTTP422_VALIDERINGSFEIL
         500 -> Status.HTTP500_INTERN_TJENERFEIL
         503 -> Status.HTTP503_UTILGJENGELIG_TJENESTE
         in 300..399 -> Status.HTTP300_REDIRECTION_FEIL
         in 400..499 -> Status.HTTP400_ANNEN_KLIENT_FEIL
         in 500..599 -> Status.HTTP500_ANNEN_SERVER_FEIL
-
         else -> Status.UKJENT_FEIL
     }
 }
+
+private fun handleNotFoundError(errorType: String): Status =
+    when {
+        errorType.contains(KRAV_EKSISTERER_IKKE) -> Status.HTTP404_FANT_IKKE_SAKSREF
+        else -> Status.HTTP404_ANNEN_IKKE_FUNNET
+    }
+
+private fun handleConflictError(errorType: String): Status =
+    when {
+        errorType.contains(KRAV_IKKE_RESKONTROFORT_RESEND) -> Status.HTTP409_IKKE_RESKONTROFORT_RESEND
+        errorType.contains(KRAV_ER_AVSKREVET) || errorType.contains(KRAV_ER_ALLEREDE_AVSKREVET) -> Status.HTTP409_KRAV_ER_AVSKREVET
+        else -> Status.HTTP409_ANNEN_KONFLIKT
+    }
