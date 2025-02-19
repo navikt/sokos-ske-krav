@@ -27,7 +27,7 @@ class SlackClient(
     }
 }
 
-// TODO bruk junie for å flytte
+// TODO flytt
 private data class ErrorHeader(
     val header: String,
     val errors: MutableMap<String, MutableList<String>>,
@@ -102,5 +102,7 @@ class SlackService(
                 slackClient.sendMessage(header.header, fileErrors.fileName, header.errors)
             }
         }
+
+        errorTracking.clear()
     }
 }
