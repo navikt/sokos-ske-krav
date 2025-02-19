@@ -7,6 +7,7 @@ import kotlinx.serialization.json.Json
 import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
+import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.service.NYTT_KRAV
 
 fun createKravidentifikatorPair(it: KravTable): Pair<String, KravidentifikatorType> {
@@ -22,7 +23,10 @@ fun createKravidentifikatorPair(it: KravTable): Pair<String, KravidentifikatorTy
 
 suspend inline fun <reified T> HttpResponse.parseTo(): T? =
     runCatching { body<T>() }
-        .onFailure {
+        .recoverCatching {
+            body<FeilResponse>().also { secureLogger.error { "Valideringsfeil mottatt: ${it.title}" } }
+            null
+        }.onFailure {
             secureLogger.error { "Error decoding JSON to ${T::class.simpleName}: ${it.message}" }
         }.getOrNull()
 

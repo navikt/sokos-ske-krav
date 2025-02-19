@@ -44,6 +44,8 @@ class SkeService(
         delay(5000)
         resendKrav()
 
+        slackService.sendErrors()
+
         if (haltRun) {
             haltRun = false
             secureLogger.info("*** Kjøring er ublokkert ***")
@@ -82,7 +84,6 @@ class SkeService(
         ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
 
         updateAllEndringerAndStopp(file.name, validatedLines.filterNot { it.isOpprettKrav() })
-        slackService.sendErrors()
     }
 
     private suspend fun sendKrav(kravTableList: List<KravTable>): List<RequestResult> {
