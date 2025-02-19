@@ -3,6 +3,7 @@ package sokos.ske.krav.client
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
+import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -10,7 +11,6 @@ import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
-import io.ktor.http.headers
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.domain.ske.requests.AvskrivingRequest
 import sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
