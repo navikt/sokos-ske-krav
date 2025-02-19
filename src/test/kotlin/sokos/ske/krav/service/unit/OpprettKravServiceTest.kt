@@ -2,6 +2,7 @@ package sokos.ske.krav.service.unit
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.mockk.coEvery
 import io.mockk.every
@@ -27,7 +28,6 @@ import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.OpprettKravService
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.encodeToString
-import sokos.ske.krav.util.parseTo
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
@@ -91,10 +91,10 @@ class OpprettKravServiceTest :
             val httpResponseMock =
                 mockk<HttpResponse>(relaxed = true) {
                     every { status.value } returns 200
-                    coEvery { parseTo<OpprettInnkrevingsOppdragResponse>() } returns
-                        mockk<OpprettInnkrevingsOppdragResponse>(relaxed = true) {
-                            every { kravidentifikator } returns "123"
-                        }
+                    coEvery { body<OpprettInnkrevingsOppdragResponse>() } returns
+                        OpprettInnkrevingsOppdragResponse(
+                            kravidentifikator = "123",
+                        )
                 }
             val skeClientMock = mockk<SkeClient> { coEvery { opprettKrav(any(), any()) } returns httpResponseMock }
             val opprettKravServiceMock = spyk(OpprettKravService(skeClientMock, databaseServiceMock), recordPrivateCalls = true)

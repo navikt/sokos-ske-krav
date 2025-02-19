@@ -22,13 +22,18 @@ fun createKravidentifikatorPair(it: KravTable): Pair<String, KravidentifikatorTy
 }
 
 suspend inline fun <reified T> HttpResponse.parseTo(): T? =
-    runCatching { body<T>() }
-        .recoverCatching {
-            body<FeilResponse>().also { secureLogger.error { "Valideringsfeil mottatt: ${it.title}" } }
+    try {
+        body<T>()
+    } catch (e: Exception) {
+        try {
+            val feilResponse = body<FeilResponse>()
+            secureLogger.error { "Valideringsfeil mottatt ${feilResponse.title}" }
             null
-        }.onFailure {
-            secureLogger.error { "Error decoding JSON to ${T::class.simpleName}: ${it.message}" }
-        }.getOrNull()
+        } catch (e2: Exception) {
+            secureLogger.error { "Error decoding JSON to ${T::class.simpleName} and failed to parse error response: ${e2.message}" }
+            null
+        }
+    }
 
 inline fun <reified T> T.encodeToString(): String =
     runCatching { Json.encodeToString(this) }
