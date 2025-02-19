@@ -33,6 +33,24 @@ fun createOpprettKravRequest(krav: KravTable) =
         tilleggsInformasjon = createTilleggsinformasjonNav(krav),
     )
 
+fun createEndreRenteRequest(krav: KravTable) =
+    EndreRenteBeloepRequest(
+        createRenteBelop(krav),
+    )
+
+fun createEndreHovedstolRequest(krav: KravTable): NyHovedStolRequest = NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.roundToLong()))
+
+fun createStoppKravRequest(
+    kravidentifikator: String,
+    kravidentifikatorType: KravidentifikatorType,
+) = AvskrivingRequest(kravidentifikatorType.value, kravidentifikator)
+
+fun KravLinje.isOpprettKrav() = (!this.isEndring() && !this.isStopp())
+
+fun KravLinje.isEndring() = (referansenummerGammelSak.isNotEmpty() && !isStopp())
+
+fun KravLinje.isStopp() = (belop.toDouble().roundToLong() == 0L)
+
 private fun createRenteBelop(krav: KravTable): List<RenteBeloep> =
     listOf(
         RenteBeloep(
@@ -54,32 +72,14 @@ private fun createSkyldner(krav: KravTable) =
 private fun createTilleggsinformasjonNav(krav: KravTable): TilleggsinformasjonNav {
     val kravFremtidigYtelse = krav.fremtidigYtelse.roundToLong()
     val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
-    val tilleggsinformasjonNav =
-        TilleggsinformasjonNav(
-            tilbakeKrevingsPeriode =
-                TilbakeKrevingsPeriode(
-                    LocalDate.parse(krav.periodeFOM, dtf).toKotlinLocalDate(),
-                    LocalDate.parse(krav.periodeTOM, dtf).toKotlinLocalDate(),
-                ),
-            ytelserForAvregning = YtelseForAvregningBeloep(beloep = kravFremtidigYtelse).takeIf { kravFremtidigYtelse > 0L },
-        )
-    return tilleggsinformasjonNav
-}
-
-fun createEndreRenteRequest(krav: KravTable) =
-    EndreRenteBeloepRequest(
-        createRenteBelop(krav),
+    return TilleggsinformasjonNav(
+        tilbakeKrevingsPeriode =
+            TilbakeKrevingsPeriode(
+                LocalDate.parse(krav.periodeFOM, dtf).toKotlinLocalDate(),
+                LocalDate.parse(krav.periodeTOM, dtf).toKotlinLocalDate(),
+            ),
+        ytelserForAvregning =
+            YtelseForAvregningBeloep(beloep = kravFremtidigYtelse)
+                .takeIf { kravFremtidigYtelse > 0L },
     )
-
-fun createEndreHovedstolRequest(krav: KravTable): NyHovedStolRequest = NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.roundToLong()))
-
-fun createStoppKravRequest(
-    kravidentifikator: String,
-    kravidentifikatorType: KravidentifikatorType,
-) = AvskrivingRequest(kravidentifikatorType.value, kravidentifikator)
-
-fun KravLinje.isOpprettKrav() = (!this.isEndring() && !this.isStopp())
-
-fun KravLinje.isEndring() = (referansenummerGammelSak.isNotEmpty() && !isStopp())
-
-fun KravLinje.isStopp() = (belop.toDouble().roundToLong() == 0L)
+}

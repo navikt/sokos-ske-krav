@@ -10,4 +10,5 @@ data class ValideringsfeilTable(
     val kravLinje: String,
     val feilmelding: String,
     val tidspunktOpprettet: LocalDateTime,
+    val rapporter: Boolean,
 )

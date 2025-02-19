@@ -9,7 +9,7 @@
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>
-                %green(%d{HH:mm:ss}) [%X{X-Correlation-ID}] %cyan([%-5.5t]) %boldCyan(%0.-5p) %yellow(%logger{36}) %cyan(:) %m%n
+                %green(%d{dd-MM-yyyy HH:mm:ss}) [%X{X-Correlation-ID}] %cyan([%-5.5t]) %boldCyan(%0.-5p) %yellow(%logger{36}) %cyan(:) %m%n
             </pattern>
         </encoder>
     </appender>
@@ -52,7 +52,16 @@
 
     <logger name="no.nav.sokos.ske.krav" level="INFO"/>
 
-    <logger name="com.jcraft.jsch" level="INFO" additivity="false"/>
+    <logger name="com.jcraft.jsch" level="WARN" additivity="false"/>
+    <logger name="org.flywaydb.core.FlywayExecutor" level="WARN" additivity="false"/>
+    <logger name="org.flywaydb.core.internal.command.DbValidate" level="WARN" additivity="false"/>
+    <logger name="org.flywaydb.core.internal.command.DbMigrate" level="WARN" additivity="false"/>
+    <logger name="com.zaxxer.hikari.HikariDataSource" level="WARN" additivity="false"/>
+    <logger name="io.micrometer.core.instrument.push.PushMeterRegistry" level="WARN" additivity="false"/>
+    <logger name="io.micrometer.prometheusmetrics.PrometheusMeterRegistry" level="WARN" additivity="false"/>
+    <logger name="no.nav.vault.jdbc.hikaricp.VaultUtil" level="WARN" additivity="false"/>
+    <logger name="no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil" level="WARN" additivity="false"/>
+    <logger name="no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil" level="WARN" additivity="false"/>
 
 
 

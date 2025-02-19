@@ -23,6 +23,7 @@ import sokos.ske.krav.domain.nav.FileParser.SisteLinjeFeltPosisjoner.ANTALL_LINJ
 import sokos.ske.krav.domain.nav.FileParser.SisteLinjeFeltPosisjoner.OVERFORINGS_DATO_POS
 import sokos.ske.krav.domain.nav.FileParser.SisteLinjeFeltPosisjoner.SENDER_POS
 import sokos.ske.krav.domain.nav.FileParser.SisteLinjeFeltPosisjoner.SUM_ALLE_LINJER_POS
+import sokos.ske.krav.validation.LineValidationRules
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -44,7 +45,7 @@ class FileParser(
 
     private fun kontrollLinjeFooterParser(linje: String): KontrollLinjeFooter =
         KontrollLinjeFooter(
-            transaksjonsDato = OVERFORINGS_DATO_POS.parseString(linje),
+            transaksjonTimestamp = OVERFORINGS_DATO_POS.parseString(linje),
             avsender = SENDER_POS.parseString(linje),
             antallTransaksjoner = ANTALL_LINJER_POS.parseInt(linje),
             sumAlleTransaksjoner = SUM_ALLE_LINJER_POS.parseBigDecimal(linje),
@@ -106,39 +107,30 @@ class FileParser(
     ) {
         private val logger = KotlinLogging.logger("secureLogger")
 
-        fun parseString(line: String): String {
+        fun parseString(line: String): String =
             if (start > end) {
                 logger.error("Feil i fil! Startposisjon $start er større enn sluttposisjon $end")
-                return ""
-            }
-
-            return if (start > line.length) {
                 ""
-            } else if (end > line.length) {
-                line.substring(start).trim()
             } else {
-                line.substring(start, end).trim()
+                line.substring(start.coerceAtMost(line.length), end.coerceAtMost(line.length)).trim()
             }
-        }
 
         fun parseBigDecimal(line: String): BigDecimal {
             val amount = parseString(line)
-            if (amount.length < 3) return BigDecimal.valueOf(0.0)
-
-            val integer = amount.dropLast(2)
-            val dec = amount.drop(amount.length - 2)
-
-            return "$integer.$dec".toBigDecimal()
+            return if (amount.length < 3) {
+                BigDecimal.ZERO
+            } else {
+                BigDecimal("${amount.dropLast(2)}.${amount.takeLast(2)}")
+            }
         }
 
         fun parseInt(line: String): Int = parseString(line).toInt()
 
         fun parseDate(line: String): LocalDate =
-            parseString(line)
-                .runCatching {
-                    LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd"))
-                }.getOrElse {
-                    LocalDate.parse("21240101", DateTimeFormatter.ofPattern("yyyyMMdd"))
-                }
+            runCatching {
+                LocalDate.parse(parseString(line), DateTimeFormatter.ofPattern("yyyyMMdd"))
+            }.getOrElse {
+                LineValidationRules.errorDate
+            }
     }
 }

@@ -1,8 +1,6 @@
 package sokos.ske.krav.service
 
 import io.ktor.http.HttpStatusCode
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.Status
@@ -12,91 +10,75 @@ import sokos.ske.krav.util.createEndreHovedstolRequest
 import sokos.ske.krav.util.createEndreRenteRequest
 import sokos.ske.krav.util.createKravidentifikatorPair
 import sokos.ske.krav.util.defineStatus
+import sokos.ske.krav.util.encodeToString
 
 class EndreKravService(
     private val skeClient: SkeClient,
     private val databaseService: DatabaseService,
 ) {
-    suspend fun sendAllEndreKrav(kravList: List<KravTable>): List<RequestResult> {
-        val endringsMap = kravList.groupBy { it.kravidentifikatorSKE + it.saksnummerNAV }
+    suspend fun sendAllEndreKrav(kravList: List<KravTable>): List<RequestResult> =
+        kravList
+            .groupBy { it.kravidentifikatorSKE + it.saksnummerNAV }
+            .flatMap { (_, groupedKrav) ->
+                val kravidentifikatorPair = createKravidentifikatorPair(groupedKrav.first())
+                val response =
+                    groupedKrav.map {
+                        sendEndreKrav(kravidentifikatorPair.first, kravidentifikatorPair.second, it)
+                    }
+                getConformedResponses(response)
+            }.also { databaseService.updateSentKrav(it) }
 
-        val resultList =
-            endringsMap
-                .map { entry ->
-                    val kravidentifikatorPair = createKravidentifikatorPair(entry.value.first())
-                    val response =
-                        entry.value.map {
-                            sendEndreKrav(kravidentifikatorPair.first, kravidentifikatorPair.second, it)
-                        }
-                    getConformedResponses(response)
-                }.flatten()
+    private fun getConformedResponses(requestResults: List<RequestResult>): List<RequestResult> {
+        val endring1 = requestResults.first()
+        val endring2 = requestResults.last()
 
-        databaseService.updateSentKrav(resultList)
-        return resultList
-    }
-
-    private fun getConformedResponses(requestresultList: List<RequestResult>): List<RequestResult> {
-        val endring1 = requestresultList.first()
-        val endring2 = requestresultList.last()
-
-        if (endring1.status == endring2.status) return requestresultList
-
-        val firstKravStatus = endring1.status
-        val secondKravStatus = endring2.status
-        val firstHttpStatus = endring1.response.status
-        val secondHttpStatus = endring2.response.status
+        if (endring1.status == endring2.status) return requestResults
 
         val newStatus =
-            when {
-                firstHttpStatus.value == HttpStatusCode.NotFound.value -> firstKravStatus
-                secondHttpStatus.value == HttpStatusCode.NotFound.value -> secondKravStatus
-                firstHttpStatus.value == HttpStatusCode.UnprocessableEntity.value -> firstKravStatus
-                secondHttpStatus.value == HttpStatusCode.UnprocessableEntity.value -> secondKravStatus
-                firstHttpStatus.value == HttpStatusCode.Conflict.value -> firstKravStatus
-                secondHttpStatus.value == HttpStatusCode.Conflict.value -> secondKravStatus
-                else -> Status.UKJENT_STATUS
-            }
+            determineNewStatus(
+                Pair(endring1.response.status.value, endring1.status),
+                Pair(endring2.response.status.value, endring2.status),
+            )
 
-        return listOf(
-            endring1.copy(status = newStatus),
-            endring2.copy(status = newStatus),
-        )
+        return listOf(endring1, endring2).map { it.copy(status = newStatus) }
     }
+
+    private fun determineNewStatus(
+        endring1: Pair<Int, Status>,
+        endring2: Pair<Int, Status>,
+    ): Status =
+        when {
+            endring1.first == HttpStatusCode.NotFound.value -> endring1.second
+            endring2.first == HttpStatusCode.NotFound.value -> endring2.second
+            endring1.first == HttpStatusCode.UnprocessableEntity.value -> endring1.second
+            endring2.first == HttpStatusCode.UnprocessableEntity.value -> endring2.second
+            endring1.first == HttpStatusCode.Conflict.value -> endring1.second
+            endring2.first == HttpStatusCode.Conflict.value -> endring2.second
+            else -> Status.UKJENT_STATUS
+        }
 
     private suspend fun sendEndreKrav(
         kravidentifikator: String,
         kravidentifikatorType: KravidentifikatorType,
         krav: KravTable,
-    ): RequestResult =
-        if (krav.kravtype == ENDRING_RENTE) {
-            val endreRenterRequest = createEndreRenteRequest(krav)
-            val endreRenterResponse =
-                skeClient.endreRenter(endreRenterRequest, kravidentifikator, kravidentifikatorType, krav.corrId)
+    ): RequestResult {
+        val (response, request) =
+            if (krav.kravtype == ENDRING_RENTE) {
+                val request = createEndreRenteRequest(krav)
+                val response = skeClient.endreRenter(request, kravidentifikator, kravidentifikatorType, krav.corrId)
+                Pair(response, request.encodeToString())
+            } else {
+                val request = createEndreHovedstolRequest(krav)
+                val response = skeClient.endreHovedstol(request, kravidentifikator, kravidentifikatorType, krav.corrId)
+                Pair(response, request.encodeToString())
+            }
 
-            val requestResultEndreRente =
-                RequestResult(
-                    response = endreRenterResponse,
-                    request = Json.encodeToString(endreRenterRequest),
-                    kravTable = krav,
-                    kravidentifikator = "",
-                    status = defineStatus(endreRenterResponse),
-                )
-
-            requestResultEndreRente
-        } else {
-            val endreHovedstolRequest = createEndreHovedstolRequest(krav)
-            val endreHovedstolResponse =
-                skeClient.endreHovedstol(endreHovedstolRequest, kravidentifikator, kravidentifikatorType, krav.corrId)
-
-            val requestResultEndreHovedstol =
-                RequestResult(
-                    response = endreHovedstolResponse,
-                    request = Json.encodeToString(endreHovedstolRequest),
-                    kravTable = krav,
-                    kravidentifikator = "",
-                    status = defineStatus(endreHovedstolResponse),
-                )
-
-            requestResultEndreHovedstol
-        }
+        return RequestResult(
+            response = response,
+            request = request,
+            kravTable = krav,
+            kravidentifikator = "",
+            status = defineStatus(response),
+        )
+    }
 }
