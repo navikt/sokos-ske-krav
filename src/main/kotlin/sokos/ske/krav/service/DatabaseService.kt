@@ -144,68 +144,32 @@ class DatabaseService(
         saveFeilmelding(feilmelding)
     }
 
-    // TODO bruk junie for å erstatte resten med = og it istedet for con
-    fun getAllKravForStatusCheck(): List<KravTable> {
-        dataSource.connection.useAndHandleErrors { con ->
-            return con.getAllKravForStatusCheck()
-        }
-    }
+    fun getAllKravForStatusCheck(): List<KravTable> = dataSource.connection.useAndHandleErrors { it.getAllKravForStatusCheck() }
 
-    fun getAllKravForAvstemming(): List<KravTable> {
-        dataSource.connection.useAndHandleErrors { con ->
-            return con.getAllKravForAvstemming()
-        }
-    }
+    fun getAllKravForAvstemming(): List<KravTable> = dataSource.connection.useAndHandleErrors { it.getAllKravForAvstemming() }
 
-    fun getFeilmeldingForKravId(kravId: Long): List<FeilmeldingTable> {
-        dataSource.connection.useAndHandleErrors { con ->
-            return con.getFeilmeldingForKravId(kravId)
-        }
-    }
+    fun getFeilmeldingForKravId(kravId: Long): List<FeilmeldingTable> = dataSource.connection.useAndHandleErrors { it.getFeilmeldingForKravId(kravId) }
 
-    fun getFileValidationMessage(filNavn: String): List<ValideringsfeilTable> {
-        dataSource.connection.useAndHandleErrors { con ->
-            return con.getValideringsFeilForFil(filNavn)
-        }
-    }
+    fun getFileValidationMessage(filNavn: String): List<ValideringsfeilTable> = dataSource.connection.useAndHandleErrors { it.getValideringsFeilForFil(filNavn) }
 
     fun updateStatus(
         mottakStatus: String,
         corrId: String,
-    ) {
-        dataSource.connection.useAndHandleErrors { con ->
-            con.updateStatus(mottakStatus, corrId)
-        }
-    }
+    ) = dataSource.connection.useAndHandleErrors { it.updateStatus(mottakStatus, corrId) }
 
-    fun updateStatusForAvstemtKravToReported(kravId: Int) {
-        dataSource.connection.useAndHandleErrors { con ->
-            con.updateStatusForAvstemtKravToReported(kravId)
-        }
-    }
+    fun updateStatusForAvstemtKravToReported(kravId: Int) = dataSource.connection.useAndHandleErrors { it.updateStatusForAvstemtKravToReported(kravId) }
 
-    fun getAllKravForResending(): List<KravTable> {
-        dataSource.connection.useAndHandleErrors { con ->
-            return con.getAllKravForResending()
-        }
-    }
+    fun getAllKravForResending(): List<KravTable> = dataSource.connection.useAndHandleErrors { it.getAllKravForResending() }
 
-    fun getAllUnsentKrav(): List<KravTable> {
-        dataSource.connection.useAndHandleErrors { con ->
-            return con.getAllUnsentKrav()
-        }
-    }
+    fun getAllUnsentKrav(): List<KravTable> = dataSource.connection.useAndHandleErrors { it.getAllUnsentKrav() }
 
     fun updateEndringWithSkeKravIdentifikator(
         navsaksnummer: String,
         skeKravidentifikator: String,
-    ) {
-        dataSource.connection.useAndHandleErrors { con ->
-            con.updateEndringWithSkeKravIdentifikator(navsaksnummer, skeKravidentifikator)
-        }
+    ) = dataSource.connection.useAndHandleErrors {
+        it.updateEndringWithSkeKravIdentifikator(navsaksnummer, skeKravidentifikator)
     }
 
-    // TODO: Bruk junie for å flytte dette til requestresult filen
     private fun incrementMetrics(results: List<RequestResult>) {
         Metrics.numberOfKravSent.increment(results.size.toDouble())
         Metrics.numberOfKravFeilet.increment(results.filter { !it.response.status.isSuccess() }.size.toDouble())
