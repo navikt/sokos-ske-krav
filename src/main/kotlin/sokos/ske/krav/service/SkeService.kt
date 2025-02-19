@@ -1,6 +1,7 @@
 package sokos.ske.krav.service
 
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.delay
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.SlackService
 import sokos.ske.krav.config.secureLogger
@@ -40,6 +41,7 @@ class SkeService(
 
         resendKrav()
         sendNewFilesToSKE()
+        delay(5000)
         resendKrav()
 
         if (haltRun) {
@@ -49,7 +51,6 @@ class SkeService(
     }
 
     private suspend fun resendKrav() {
-        secureLogger.info("Resender krav")
         statusService.getMottaksStatus()
         databaseService.getAllKravForResending().takeIf { it.isNotEmpty() }?.let {
             secureLogger.info("Resender ${it.size} krav")
@@ -92,8 +93,6 @@ class SkeService(
                 endreKravService.sendAllEndreKrav(kravTableList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }) +
                 stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV })
 
-        secureLogger.info("Alle krav sendt, lagrer eventuelle feilmeldinger")
-
         handleErrors(allResponses, databaseService)
 
         return allResponses
@@ -103,7 +102,6 @@ class SkeService(
         fileName: String,
         kravLinjer: List<KravLinje>,
     ) {
-        //      val feilmeldinger = mutableListOf<Pair<String, String>>()
         kravLinjer.forEach { krav ->
             val skeKravidentifikator = databaseService.getSkeKravidentifikator(krav.referansenummerGammelSak)
             var skeKravidentifikatorSomSkalLagres = skeKravidentifikator
@@ -126,18 +124,8 @@ class SkeService(
                         "Saksnummer: ${krav.saksnummerNav} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
                     ),
                 )
-            /*    feilmeldinger.add(
-                    Pair(
-                        "Fant ikke gyldig kravidentifikator for migrert krav",
-                        "Saksnummer: ${krav.saksnummerNav} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
-                    ),
-                )*/
             }
         }
-
-     /*   if (feilmeldinger.isNotEmpty()) {
-            slackClient.sendMessage("Fant ikke kravidentifikator for migrert krav", fileName, feilmeldinger)
-        }*/
     }
 
     private fun handleValidationResults(
@@ -157,7 +145,6 @@ class SkeService(
         responses: List<RequestResult>,
         databaseService: DatabaseService,
     ) {
-        //    val errorMap = mutableMapOf<String, MutableList<Pair<String, String>>>()
         responses
             .filterNot { it.response.status.isSuccess() }
             .forEach { result ->
@@ -170,14 +157,8 @@ class SkeService(
                 result.response.parseTo<FeilResponse>()?.let { feilResponse ->
                     val errorPair = Pair(feilResponse.title, feilResponse.detail)
                     slackService.addError(result.kravTable.filnavn, "Feil fra SKE", errorPair)
-                    // errorMap.getOrPut(result.kravTable.filnavn) { mutableListOf() }.add(errorPair)
                 }
             }
-
-   /*     errorMap.forEach { (fileName, messages) ->
-
-            slackClient.sendMessage("Feil fra SKE", fileName, messages)
-        }*/
     }
 
     private fun logResult(result: List<RequestResult>) {

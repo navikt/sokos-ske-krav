@@ -1,7 +1,6 @@
 package sokos.ske.krav.service
 
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
 import sokos.ske.krav.util.RequestResult
@@ -20,7 +19,6 @@ class OpprettKravService(
             .also { databaseService.updateSentKrav(it) }
 
     private suspend fun sendOpprettKrav(krav: KravTable): RequestResult {
-        secureLogger.info("Sender krav til SKE: ${krav.corrId}")
         val opprettKravRequest = createOpprettKravRequest(krav)
         val response = skeClient.opprettKrav(opprettKravRequest, krav.corrId)
 
