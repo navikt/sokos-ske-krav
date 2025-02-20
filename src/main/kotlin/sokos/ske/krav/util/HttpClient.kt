@@ -28,6 +28,7 @@ val httpClient =
                 },
             )
         }
+
         engine {
             customizeClient {
                 setRoutePlanner(SystemDefaultRoutePlanner(ProxySelector.getDefault()))
