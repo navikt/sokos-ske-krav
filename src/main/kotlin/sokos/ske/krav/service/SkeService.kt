@@ -14,7 +14,8 @@ import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.isOpprettKrav
 import sokos.ske.krav.util.parseTo
 import sokos.ske.krav.validation.LineValidator
-import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRING_RENTE = "ENDRING_RENTE"
@@ -63,7 +64,9 @@ class SkeService(
     private suspend fun sendNewFilesToSKE() {
         val files = ftpService.getValidatedFiles()
         if (files.isNotEmpty()) {
-            secureLogger.info("*** Starter sending av ${files.size} filer ${LocalDate.now()} ***")
+            val filtekst = if (files.size == 1) "fil" else "filer"
+            val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"))
+            secureLogger.info("*** Starter sending av $filtekst filer $datetime***")
         } else {
             secureLogger.info("*** Ingen nye filer ***")
         }

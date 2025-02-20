@@ -27,7 +27,7 @@ suspend inline fun <reified T> HttpResponse.parseTo(): T? =
     } catch (e: Exception) {
         try {
             val feilResponse = body<FeilResponse>()
-            secureLogger.error { "Valideringsfeil mottatt ${feilResponse.title}" }
+            secureLogger.error { "Valideringsfeil mottatt: ${feilResponse.title}" }
             null
         } catch (e2: Exception) {
             secureLogger.error { "Error decoding JSON to ${T::class.simpleName} and failed to parse error response: ${e2.message}" }

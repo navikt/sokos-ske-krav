@@ -27,6 +27,7 @@ class StatusService(
         if (kravListe.isEmpty()) return
 
         secureLogger.info("Sjekk av mottaksstatus -> Antall krav som ikke er reskontroført: ${kravListe.size}")
+        secureLogger.info("Oppdaterer status")
         val updated =
             kravListe.mapNotNull { krav ->
                 processKravStatus(krav)?.takeIf { it.mottaksStatus == "RESKONTROFOERT" }?.let { Pair(krav.status, it.mottaksStatus) }
