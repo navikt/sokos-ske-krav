@@ -1,11 +1,13 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import kotlinx.kover.gradle.plugin.dsl.tasks.KoverReport
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    kotlin("jvm") version "2.0.20"
-    kotlin("plugin.serialization") version "2.0.20"
+    kotlin("jvm") version "2.1.0"
+    kotlin("plugin.serialization") version "2.1.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
 
 group = "no.nav.sokos"
@@ -15,34 +17,34 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
-val ktorVersion = "2.3.12"
-val jschVersion = "0.2.12"
-val nimbusVersion = "9.37.2"
-val kotlinxSerializationVersion = "1.7.1"
-val kotlinxDatetimeVersion = "0.4.1"
+val ktorVersion = "3.0.1"
+val jschVersion = "0.2.21"
+val nimbusVersion = "9.47"
+val kotlinxSerializationVersion = "1.7.3"
+val kotlinxDatetimeVersion = "0.6.1"
 
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
-val prometheusVersion = "1.13.1"
+val prometheusVersion = "1.14.1"
 
 // DB
-val hikaricpVersion = "5.1.0"
-val flywayVersion = "10.17.0"
-val postgresqlVersion = "42.7.3"
+val hikaricpVersion = "6.2.1"
+val flywayVersion = "11.0.0"
+val postgresqlVersion = "42.7.4"
 
 // Test
 val kotestVersion = "5.9.1"
 val kotestTestContainerExtensionVersion = "2.0.2"
-val mockkVersion = "1.13.12"
-val commonsVersion = "3.10.0"
-val testContainerVersion = "1.20.1"
-val mockFtpServerVersion = "3.1.0"
+val mockkVersion = "1.13.13"
+val commonsVersion = "3.11.1"
+val testContainerVersion = "1.20.4"
+val mockFtpServerVersion = "3.2.0"
 
 // Logging
-val janinoVersion = "3.1.10"
+val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.4.12"
-val logstashVersion = "7.4"
+val logbackVersion = "1.5.12"
+val logstashVersion = "8.0"
 
 dependencies {
     // Ktor Server
@@ -56,6 +58,7 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-core-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-apache-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
     // Security
     implementation("io.ktor:ktor-server-auth-jwt-jvm:$ktorVersion")
@@ -122,7 +125,7 @@ tasks {
         manifest {
             attributes["Main-Class"] = "sokos.ske.krav.ApplicationKt"
         }
-
+        finalizedBy(koverHtmlReport)
         mergeServiceFiles {
             setPath("META-INF/services/org.flywaydb.core.extensibility.Plugin")
         }
@@ -142,6 +145,19 @@ tasks {
         }
 
         reports.forEach { report -> report.required.value(false) }
+    }
+
+    withType<KoverReport>().configureEach {
+        kover {
+            reports {
+                filters {
+                    excludes {
+                        // exclusion rules - classes to exclude from report
+                        classes("sokos.ske.krav.api*", "sokos.ske.krav.domain.maskinporten.*", "sokos.ske.krav.security.*", "sokos.ske.krav.config.*", "*Application*", "sokos.ske.krav.ApplicationState", "sokos.ske.krav.database.PostgresDataSource")
+                    }
+                }
+            }
+        }
     }
 
     withType<Wrapper> {

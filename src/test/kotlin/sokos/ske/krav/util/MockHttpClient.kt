@@ -8,8 +8,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import sokos.ske.krav.domain.Status
 
 object MockHttpClientUtils {
     enum class EndepunktType(
@@ -33,7 +33,7 @@ object MockHttpClientUtils {
     object Responses {
         fun mottaksStatusResponse(
             kravIdentifikator: String = "1234",
-            status: String = "RESKONTROFOERT",
+            status: String = Status.RESKONTROFOERT.value,
         ): String {
             //language=json
             return """
@@ -92,7 +92,6 @@ class MockHttpClient {
             prettyPrint = true
             ignoreUnknownKeys = true
             encodeDefaults = true
-            @OptIn(ExperimentalSerializationApi::class)
             explicitNulls = false
         }
 
@@ -126,14 +125,17 @@ class MockHttpClient {
 
     private fun generateUrls(baseUrl: String) =
         listOf(
+            "/innkrevingsoppdrag/foo$baseUrl",
             "/innkrevingsoppdrag/1234$baseUrl",
             "/innkrevingsoppdrag/OB040000592759$baseUrl",
             "/innkrevingsoppdrag/OB040000479803$baseUrl",
             "/innkrevingsoppdrag/OB040000595755$baseUrl",
             "/innkrevingsoppdrag/2220-navsaksnummer$baseUrl",
+            "/innkrevingsoppdrag/1110-skeUUID$baseUrl",
             "/innkrevingsoppdrag/1111-skeUUID$baseUrl",
             "/innkrevingsoppdrag/1112-skeUUID$baseUrl",
             "/innkrevingsoppdrag/1113-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/1114-skeUUID$baseUrl",
             "/innkrevingsoppdrag/2222-skeUUID$baseUrl",
             "/innkrevingsoppdrag/3333-skeUUID$baseUrl",
             "/innkrevingsoppdrag/4444-skeUUID$baseUrl",

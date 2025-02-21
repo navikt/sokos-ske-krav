@@ -1,7 +1,7 @@
 package sokos.ske.krav.domain.slack
 
-import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
+import java.time.LocalDate
 
 @Serializable
 data class Data(
@@ -29,67 +29,66 @@ data class Field(
     val text: String,
 )
 
-fun buildSlackMessage(
+fun createSlackMessage(
     feilHeader: String,
     filnavn: String,
-    content: List<Pair<String, String>>,
-): Data {
-    val sections =
-        buildList {
-            add(
-                Block(
-                    type = "header",
-                    text =
-                        Text(
-                            type = "plain_text",
-                            text = ":error:  $feilHeader  ",
-                            emoji = true,
-                        ),
+    content: Map<String, List<String>>,
+) = Data(
+    text = ":package: $feilHeader",
+    blocks = buildSections(feilHeader, filnavn, content),
+)
+
+private fun buildSections(
+    feilHeader: String,
+    filnavn: String,
+    content: Map<String, List<String>>,
+): MutableList<Block> {
+    val dividerBlock = Block(type = "divider")
+    val headerBlock =
+        Block(
+            type = "header",
+            text =
+                Text(
+                    type = "plain_text",
+                    text = ":error:  $feilHeader  ",
+                    emoji = true,
                 ),
-            )
-            add(
-                Block(type = "divider"),
-            )
-            add(
+        )
+    val filnavnBlock =
+        Block(
+            type = "section",
+            fields =
+                listOf(
+                    Field(
+                        text = "*Filnavn* \n$filnavn",
+                    ),
+                    Field(
+                        text = "*Dato* \n${LocalDate.now()}",
+                    ),
+                ),
+        )
+
+    val feilmeldinger =
+        content.map { entry ->
+            entry.value.map { error ->
                 Block(
                     type = "section",
                     fields =
                         listOf(
-                            Field(
-                                text = "*Filnavn* \n$filnavn",
-                            ),
-                            Field(
-                                text = "*Dato* \n${Clock.System.now()}",
-                            ),
+                            Field(text = "*Feilmelding*\n${entry.key}"),
+                            Field(text = "*Info*\n$error"),
                         ),
-                ),
-            )
-            add(
-                Block(type = "divider"),
-            )
-
-            addAll(
-                content.map {
-                    Block(
-                        type = "section",
-                        fields =
-                            listOf(
-                                Field(text = "*Feilmelding*\n${it.first}"),
-                                Field(text = "*Info*\n${it.second}"),
-                            ),
-                    )
-                },
-            )
-
-            add(
-                Block(type = "divider"),
-            )
-            add(
-                Block(type = "divider"),
-            )
+                )
+            }
         }
-    return Data(
-        text = ":package: $feilHeader",
-        blocks = sections,
-    )
+
+    val blocks = mutableListOf<Block>()
+    blocks.add(headerBlock)
+    blocks.add(dividerBlock)
+    blocks.add(filnavnBlock)
+    blocks.add(dividerBlock)
+    feilmeldinger.forEach { blocks.addAll(it) }
+    blocks.add(dividerBlock)
+    blocks.add(dividerBlock)
+    return blocks
 }

@@ -1,13 +1,12 @@
 package sokos.ske.krav.service
 
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.createKravidentifikatorPair
 import sokos.ske.krav.util.createStoppKravRequest
 import sokos.ske.krav.util.defineStatus
+import sokos.ske.krav.util.encodeToString
 
 class StoppKravService(
     private val skeClient: SkeClient,
@@ -29,7 +28,7 @@ class StoppKravService(
 
         return RequestResult(
             response = response,
-            request = Json.encodeToString(request),
+            request = request.encodeToString(),
             kravTable = krav,
             kravidentifikator = kravidentifikatorPair.first,
             status = defineStatus(response),

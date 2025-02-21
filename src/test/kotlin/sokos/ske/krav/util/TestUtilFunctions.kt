@@ -10,7 +10,9 @@ import io.mockk.justRun
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.SlackClient
+import sokos.ske.krav.client.SlackService
 import sokos.ske.krav.database.models.KravTable
+import sokos.ske.krav.database.repository.toKrav
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.FeilResponse
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
@@ -21,7 +23,6 @@ import sokos.ske.krav.service.OpprettKravService
 import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
 import sokos.ske.krav.service.StoppKravService
-import toKrav
 import java.io.Reader
 import java.sql.Connection
 
@@ -62,7 +63,7 @@ private val opprettServiceMock =
 
 private val statusServiceMock =
     mockk<StatusService> {
-        coJustRun { hentOgOppdaterMottaksStatus() }
+        coJustRun { getMottaksStatus() }
     }
 
 private val ftpServiceMock = mockk<FtpService>()
@@ -76,22 +77,22 @@ private val dataSourceMock =
 
 fun setupSkeServiceMock(
     skeClient: SkeClient = mockSkeClient,
-    stoppService: StoppKravService = stoppServiceMock,
-    endreService: EndreKravService = endreServiceMock,
-    opprettService: OpprettKravService = opprettServiceMock,
+    stoppKravService: StoppKravService = stoppServiceMock,
+    endreKravService: EndreKravService = endreServiceMock,
+    opprettKravService: OpprettKravService = opprettServiceMock,
     statusService: StatusService = statusServiceMock,
     databaseService: DatabaseService = dataSourceMock,
     ftpService: FtpService = ftpServiceMock,
-    slackClient: SlackClient = SlackClient(client = MockHttpClient().getSlackClient()),
+    slackService: SlackService = SlackService(SlackClient(client = MockHttpClient().getSlackClient())),
 ) = SkeService(
-    skeClient,
-    stoppService,
-    endreService,
-    opprettService,
-    statusService,
-    databaseService,
-    ftpService,
-    slackClient,
+    skeClient = skeClient,
+    stoppKravService = stoppKravService,
+    endreKravService = endreKravService,
+    opprettKravService = opprettKravService,
+    statusService = statusService,
+    databaseService = databaseService,
+    ftpService = ftpService,
+    slackService = slackService,
 )
 
 fun setUpMockHttpClient(endepunktTyper: List<MockHttpClientUtils.MockRequestObj>) = MockHttpClient().getClient(endepunktTyper)
@@ -102,21 +103,23 @@ fun setupSkeServiceMockWithMockEngine(
     databaseService: DatabaseService,
 ): SkeService {
     val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
-
+    val slackClient = SlackClient(client = MockHttpClient().getSlackClient())
+    val slackService = SlackService(slackClient)
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
     val endreKravService = EndreKravService(skeClient, databaseService)
     val opprettKravService = OpprettKravService(skeClient, databaseService)
-    val statusService = StatusService(skeClient, databaseService)
+    val statusService = StatusService(skeClient, databaseService, slackService)
     val stoppKravService = StoppKravService(skeClient, databaseService)
+
     return SkeService(
-        skeClient,
-        stoppKravService,
-        endreKravService,
-        opprettKravService,
-        statusService,
-        databaseService,
-        ftpService,
-        SlackClient(client = MockHttpClient().getSlackClient()),
+        skeClient = skeClient,
+        stoppKravService = stoppKravService,
+        endreKravService = endreKravService,
+        opprettKravService = opprettKravService,
+        statusService = statusService,
+        databaseService = databaseService,
+        ftpService = ftpService,
+        slackService = slackService,
     )
 }
 

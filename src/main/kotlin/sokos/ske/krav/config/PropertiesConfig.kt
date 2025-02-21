@@ -12,8 +12,13 @@ import io.ktor.client.request.get
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import mu.KotlinLogging
 import sokos.ske.krav.util.httpClient
 import java.io.File
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
+
+val secureLogger = KotlinLogging.logger("secureLogger")
 
 object PropertiesConfig {
     private val defaultProperties =
@@ -21,6 +26,20 @@ object PropertiesConfig {
             mapOf(
                 "NAIS_APP_NAME" to "sokos-ske-krav",
                 "NAIS_NAMESPACE" to "okonomi",
+                "VAULT_MOUNTPATH" to "",
+                "TEAM_BEST_SLACK_WEBHOOK_URL" to "",
+                "USE_TIMER" to "false",
+                "TIMER_INITIAL_DELAY" to "500",
+                "TIMER_INTERVAL_PERIOD" to "0",
+                "SKE_REST_URL" to "",
+                "MASKINPORTEN_CLIENT_ID" to "",
+                "MASKINPORTEN_WELL_KNOWN_URL" to "",
+                "MASKINPORTEN_CLIENT_JWK" to "",
+                "MASKINPORTEN_SCOPES" to "",
+                "POSTGRES_NAME" to "test",
+                "POSTGRES_USERNAME" to "test",
+                "POSTGRES_PASSWORD" to "test",
+                // "POSTGRES_HOST" to "",
             ),
         )
     private val localDevProperties =
@@ -58,26 +77,24 @@ object PropertiesConfig {
 
     operator fun get(key: String): String = config[Key(key, stringType)]
 
-    fun getOrEmpty(key: String): String = config.getOrElse(Key(key, stringType), "")
-
     data class Configuration(
         val naisAppName: String = get("NAIS_APP_NAME"),
         val profile: Profile = Profile.valueOf(this["APPLICATION_PROFILE"]),
     )
 
     data class SftpProperties(
-        val host: String = getOrEmpty("SFTP_SERVER"),
-        val username: String = getOrEmpty("SKE_SFTP_USERNAME").trim(),
-        val privateKeyPassword: String = getOrEmpty("SKE_SFTP_PASSWORD").trim(),
-        val privateKey: String = getOrEmpty("SFTP_PRIVATE_KEY_FILE_PATH"),
-        val port: Int = getOrEmpty("SFTP_PORT").toInt(),
+        val host: String = get("SFTP_SERVER"),
+        val username: String = get("SKE_SFTP_USERNAME").trim(),
+        val privateKeyPassword: String = get("SKE_SFTP_PASSWORD").trim(),
+        val privateKey: String = get("SFTP_PRIVATE_KEY_FILE_PATH"),
+        val port: Int = get("SFTP_PORT").toInt(),
     )
 
     data class MaskinportenClientConfig(
-        val clientId: String = getOrEmpty("MASKINPORTEN_CLIENT_ID"),
-        val authorityEndpoint: String = getOrEmpty("MASKINPORTEN_WELL_KNOWN_URL"),
-        val rsaKey: RSAKey? = RSAKey.parse(getOrEmpty("MASKINPORTEN_CLIENT_JWK")),
-        val scopes: String = getOrEmpty("MASKINPORTEN_SCOPES"),
+        val clientId: String = get("MASKINPORTEN_CLIENT_ID"),
+        val authorityEndpoint: String = get("MASKINPORTEN_WELL_KNOWN_URL"),
+        val rsaKey: RSAKey? = RSAKey.parse(get("MASKINPORTEN_CLIENT_JWK")),
+        val scopes: String = get("MASKINPORTEN_SCOPES"),
     ) : JwtConfig(authorityEndpoint)
 
     @Serializable
@@ -88,28 +105,28 @@ object PropertiesConfig {
     )
 
     data object SKEConfig {
-        val skeRestUrl: String = getOrEmpty("SKE_REST_URL")
+        val skeRestUrl: String = get("SKE_REST_URL")
     }
 
     data object PostgresConfig {
-        val host: String = getOrEmpty("POSTGRES_HOST")
-        val port: String = getOrEmpty("POSTGRES_PORT")
-        val name: String = getOrEmpty("POSTGRES_NAME")
-        val username: String = getOrEmpty("POSTGRES_USERNAME").trim()
-        val password: String = getOrEmpty("POSTGRES_PASSWORD").trim()
-        val vaultMountPath: String = getOrEmpty("VAULT_MOUNTPATH")
+        val host: String = get("POSTGRES_HOST")
+        val port: String = get("POSTGRES_PORT")
+        val name: String = get("POSTGRES_NAME")
+        val username: String = get("POSTGRES_USERNAME").trim()
+        val password: String = get("POSTGRES_PASSWORD").trim()
+        val vaultMountPath: String = get("VAULT_MOUNTPATH")
         val adminUser = "$name-admin"
         val user = "$name-user"
     }
 
     data object SlackConfig {
-        val url: String = getOrEmpty("TEAM_BEST_SLACK_WEBHOOK_URL").trim()
+        val url: String = get("TEAM_BEST_SLACK_WEBHOOK_URL").trim()
     }
 
     data object TimerConfig {
-        val useTimer: Boolean = getOrEmpty("USE_TIMER").toBoolean()
-        val initialDelay: Long = getOrEmpty("TIMER_INITIAL_DELAY").toLong()
-        val intervalPeriod: Long = getOrEmpty("TIMER_INTERVAL_PERIOD").toLong()
+        val useTimer: Boolean = get("USE_TIMER").toBoolean()
+        val initialDelay: Long = get("TIMER_INITIAL_DELAY").toLong()
+        val intervalPeriod: Long = get("TIMER_INTERVAL_PERIOD_HOURS").toLong().toDuration(DurationUnit.HOURS).inWholeMilliseconds
     }
 
     open class JwtConfig(

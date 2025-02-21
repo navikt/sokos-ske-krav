@@ -2,18 +2,18 @@ package sokos.ske.krav.database
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
-import sokos.ske.krav.database.RepositoryExtensions.getColumn
-import sokos.ske.krav.database.RepositoryExtensions.useAndHandleErrors
+import sokos.ske.krav.database.repository.RepositoryExtensions.getColumn
+import sokos.ske.krav.database.repository.RepositoryExtensions.useAndHandleErrors
+import sokos.ske.krav.database.repository.toFeilmelding
 import sokos.ske.krav.util.TestContainer
-import toFeilmelding
 import java.sql.SQLException
 
 internal class RepositoryExtensionTest :
     FunSpec({
-
+        val testContainer = TestContainer()
         test("getColumn skal kaste exception hvis den ikke kan parse datatypen") {
             shouldThrow<SQLException> {
-                TestContainer().dataSource.connection.use {
+                testContainer.dataSource.connection.use {
                     val rs = it.prepareStatement("""select * from feilmelding""").executeQuery()
                     rs.getColumn("any")
                 }
@@ -22,7 +22,7 @@ internal class RepositoryExtensionTest :
 
         test("resultset getcolumn skal kaste exception hvis den ikke finner kolonne med det gitte navnet") {
             shouldThrow<SQLException> {
-                TestContainer().dataSource.connection.use {
+                testContainer.dataSource.connection.use {
                     val rs = it.prepareStatement("""select * from feilmelding""").executeQuery()
                     rs.getColumn("foo")
                 }
@@ -30,7 +30,7 @@ internal class RepositoryExtensionTest :
         }
         test("resultset getcolumn skal kaste exception hvis påkrevd column er null") {
             shouldThrow<SQLException> {
-                TestContainer().dataSource.connection.use {
+                testContainer.dataSource.connection.use {
                     it
                         .prepareStatement(
                             """
@@ -45,7 +45,7 @@ internal class RepositoryExtensionTest :
         }
         test("useAndHandleErrors skal kaste exception oppover") {
             shouldThrow<SQLException> {
-                TestContainer().dataSource.connection.useAndHandleErrors {
+                testContainer.dataSource.connection.useAndHandleErrors {
                     it.prepareStatement("""insert into foo values(1,2)""").execute()
                 }
             }
