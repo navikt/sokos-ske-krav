@@ -4,8 +4,8 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    kotlin("jvm") version "2.1.0"
-    kotlin("plugin.serialization") version "2.1.0"
+    kotlin("jvm") version "2.1.10"
+    kotlin("plugin.serialization") version "2.1.10"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
@@ -17,33 +17,33 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
-val ktorVersion = "3.0.1"
-val jschVersion = "0.2.21"
-val nimbusVersion = "9.47"
-val kotlinxSerializationVersion = "1.7.3"
-val kotlinxDatetimeVersion = "0.6.1"
+val ktorVersion = "3.1.0"
+val jschVersion = "0.2.23"
+val nimbusVersion = "10.0.1"
+val kotlinxSerializationVersion = "1.8.0"
+val kotlinxDatetimeVersion = "0.6.2"
 
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
-val prometheusVersion = "1.14.1"
+val prometheusVersion = "1.14.4"
 
 // DB
 val hikaricpVersion = "6.2.1"
-val flywayVersion = "11.0.0"
-val postgresqlVersion = "42.7.4"
+val flywayVersion = "11.3.3"
+val postgresqlVersion = "42.7.5"
 
 // Test
 val kotestVersion = "5.9.1"
 val kotestTestContainerExtensionVersion = "2.0.2"
-val mockkVersion = "1.13.13"
+val mockkVersion = "1.13.16"
 val commonsVersion = "3.11.1"
-val testContainerVersion = "1.20.4"
+val testContainerVersion = "1.20.5"
 val mockFtpServerVersion = "3.2.0"
 
 // Logging
 val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.12"
+val logbackVersion = "1.5.16"
 val logstashVersion = "8.0"
 
 dependencies {
