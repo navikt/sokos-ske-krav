@@ -23,13 +23,14 @@ import sokos.ske.krav.service.OpprettKravService
 import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
 import sokos.ske.krav.service.StoppKravService
+import java.io.File
 import java.io.Reader
 import java.sql.Connection
 
 object FtpTestUtil {
     fun fileAsString(fileName: String): String = fileAs(fileName, Reader::readText)
 
-    fun fileAsList(fileName: String): List<String> = fileAs(fileName, Reader::readLines)
+    fun getFileContent(filename: String) = fileAs("${File.separator}FtpFiler${File.separator}/$filename", Reader::readLines)
 
     private fun <T> fileAs(
         fileName: String,
