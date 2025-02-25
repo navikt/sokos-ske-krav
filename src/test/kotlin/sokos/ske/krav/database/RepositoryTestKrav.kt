@@ -22,10 +22,9 @@ import sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import sokos.ske.krav.service.ENDRING_RENTE
 import sokos.ske.krav.service.NYTT_KRAV
 import sokos.ske.krav.service.STOPP_KRAV
-import sokos.ske.krav.util.FtpTestUtil.fileAsList
+import sokos.ske.krav.util.FtpTestUtil.getFileContent
 import sokos.ske.krav.util.TestContainer
 import sokos.ske.krav.util.getAllKrav
-import java.io.File
 import java.time.LocalDate
 
 internal class RepositoryTestKrav :
@@ -195,8 +194,8 @@ internal class RepositoryTestKrav :
         }
 
         test("insertAllNewKrav skal inserte alle kravlinjene") {
-            val filnavn = "${File.separator}FtpFiler${File.separator}8NyeKrav1Endring1Stopp.txt"
-            val liste = fileAsList(filnavn)
+            val filnavn = "8NyeKrav1Endring1Stopp.txt"
+            val liste = getFileContent(filnavn)
             val kravlinjer = FileParser(liste).parseKravLinjer()
             val kravBefore = testContainer.dataSource.connection.getAllKrav()
 

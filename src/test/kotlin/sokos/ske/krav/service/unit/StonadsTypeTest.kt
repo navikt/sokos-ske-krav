@@ -12,7 +12,6 @@ import sokos.ske.krav.domain.nav.KravLinje
 internal class StonadsTypeTest :
     FunSpec({
 
-        // TODO: Bruk Junie
         test("getStonadstype should return correct StonadsType for all KravTable combinations") {
             val kravMap =
                 mapOf(
