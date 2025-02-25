@@ -4,9 +4,8 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import sokos.ske.krav.client.SlackService
-import sokos.ske.krav.util.FtpTestUtil.fileAsList
+import sokos.ske.krav.util.FtpTestUtil.getFileContent
 import sokos.ske.krav.validation.FileValidator.ErrorKeys
-import java.io.File
 
 internal class FileValidatorTest :
     BehaviorSpec({
@@ -102,6 +101,36 @@ internal class FileValidatorTest :
                 }
             }
         }
-    })
 
-private fun getFileContent(filename: String) = fileAsList("${File.separator}FtpFiler${File.separator}/$filename")
+        Given("En fil har feil i parsing av BigDecimal") {
+            val fileName = "FeilIParsingBigDecimal.txt"
+            val content = getFileContent(fileName)
+
+            When("Filen valideres") {
+                Then("Skal Exception kastes og melding skal inneholde 'Feil i parsing av BigDecimal'") {
+                    val validationResult = fileValidator.validateFile(content, fileName)
+                    with((validationResult as ValidationResult.Error).messages) {
+                        size shouldBe 1
+                        count { it.first == ErrorKeys.PARSE_EXCEPTION } shouldBe 1
+                        count { it.first == ErrorKeys.PARSE_EXCEPTION && it.second.contains("Feil i parsing av BigDecimal") } shouldBe 1
+                    }
+                }
+            }
+        }
+
+        Given("En fil har feil i parsing av Int") {
+            val fileName = "FeiliParsingAvInt.txt"
+            val content = getFileContent(fileName)
+
+            When("Filen valideres") {
+                Then("Skal Exception kastes og melding skal inneholde 'Feil i parsing av Int'") {
+                    val validationResult = fileValidator.validateFile(content, fileName)
+                    with((validationResult as ValidationResult.Error).messages) {
+                        size shouldBe 1
+                        count { it.first == ErrorKeys.PARSE_EXCEPTION } shouldBe 1
+                        count { it.first == ErrorKeys.PARSE_EXCEPTION && it.second.contains("Feil i parsing av Int") } shouldBe 1
+                    }
+                }
+            }
+        }
+    })
