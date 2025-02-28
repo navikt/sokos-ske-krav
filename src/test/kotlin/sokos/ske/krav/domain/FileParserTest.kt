@@ -1,18 +1,18 @@
 package sokos.ske.krav.domain
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.domain.nav.KontrollLinjeFooter
 import sokos.ske.krav.domain.nav.KontrollLinjeHeader
-import sokos.ske.krav.util.FtpTestUtil.fileAsList
-import sokos.ske.krav.validation.LineValidationRules
-import java.io.File
+import sokos.ske.krav.domain.nav.ParseException
+import sokos.ske.krav.util.FtpTestUtil.getFileContent
 import java.math.BigDecimal
 
 internal class FileParserTest :
     FunSpec({
-        val altOkFil = fileAsList("${File.separator}FtpFiler${File.separator}AltOkFil.txt")
+        val altOkFil = getFileContent("AltOkFil.txt")
         val altOkParser = FileParser(altOkFil)
 
         test("Alle linjer skal være av type KravLinje") {
@@ -37,25 +37,29 @@ internal class FileParserTest :
                 )
         }
 
-        test("Ugyldig dato skal erstattes med errordate") {
-            val feilIDatoKrav = fileAsList("${File.separator}FtpFiler${File.separator}FilMedFeilUtbetalDato.txt")
-            FileParser(feilIDatoKrav)
-                .parseKravLinjer()
-                .filter { linje ->
-                    linje.utbetalDato == LineValidationRules.errorDate
-                }.run {
-                    get(0).linjenummer shouldBe 7
-                    get(1).linjenummer shouldBe 9
-                }
+        test("Ugyldig BigDecimal skal kaste ParseException") {
+            shouldThrow<ParseException> {
+                FileParser(
+                    getFileContent("FeilIParsingBigDecimal.txt"),
+                ).parseKravLinjer()
+            }
+        }
+
+        test("Ugyldig Int skal kaste ParseException") {
+            shouldThrow<ParseException> {
+                FileParser(
+                    getFileContent("FeiliParsingAvInt.txt"),
+                ).parseKontrollLinjeFooter()
+            }
         }
 
         test("Feil encoded Ø skal erstattes med Ø") {
-            val kravMedFeilEncoding = fileAsList("${File.separator}FtpFiler${File.separator}FA_FO_Feilencoding.txt")
+            val kravMedFeilEncoding = getFileContent("FA_FO_Feilencoding.txt")
             FileParser(kravMedFeilEncoding).parseKravLinjer().filter { linje -> linje.kravKode == "FA FØ" }.size shouldBe 1
         }
 
         test("Hvis linje ikke har fremtidig ytelse skal den settes til 0") {
-            val utenFremtidigYtelse = fileAsList("${File.separator}FtpFiler${File.separator}Fil-uten-fremtidigytelse.txt")
+            val utenFremtidigYtelse = getFileContent("Fil-uten-fremtidigytelse.txt")
             FileParser(utenFremtidigYtelse).parseKravLinjer().run {
                 first { it.saksnummerNav == "FinnesIkke" }.fremtidigYtelse shouldBe BigDecimal.ZERO
                 first { it.saksnummerNav == "Dnummer1" }.fremtidigYtelse shouldBe BigDecimal.ZERO
