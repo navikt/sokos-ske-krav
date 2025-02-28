@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - bugfix/schedulering-stopper-etter-exception
     paths-ignore:
       - '**.md'
       - 'LICENCE'
