@@ -15,8 +15,8 @@ import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import sokos.ske.krav.util.httpClient
 import java.io.File
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 
 val secureLogger = KotlinLogging.logger("secureLogger")
 
@@ -125,8 +125,7 @@ object PropertiesConfig {
 
     data object TimerConfig {
         val useTimer: Boolean = get("USE_TIMER").toBoolean()
-        val initialDelay: Long = get("TIMER_INITIAL_DELAY").toLong()
-        val intervalPeriod: Long = get("TIMER_INTERVAL_PERIOD_HOURS").toLong().toDuration(DurationUnit.HOURS).inWholeMilliseconds
+        val intervalPeriod: Duration = get("TIMER_INTERVAL_PERIOD_HOURS").toInt().hours
     }
 
     open class JwtConfig(
