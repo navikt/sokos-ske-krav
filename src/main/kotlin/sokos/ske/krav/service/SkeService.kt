@@ -66,7 +66,7 @@ class SkeService(
         if (files.isNotEmpty()) {
             val filtekst = if (files.size == 1) "fil" else "filer"
             val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"))
-            secureLogger.info("*** Starter sending av $filtekst filer $datetime***")
+            secureLogger.info("*** Starter sending av ${files.size} $filtekst $datetime***")
         } else {
             secureLogger.info("*** Ingen nye filer ***")
         }
