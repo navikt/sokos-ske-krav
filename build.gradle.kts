@@ -17,9 +17,9 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
-val ktorVersion = "3.1.0"
+val ktorVersion = "3.1.1"
 val jschVersion = "0.2.23"
-val nimbusVersion = "10.0.1"
+val nimbusVersion = "10.0.2"
 val kotlinxSerializationVersion = "1.8.0"
 val kotlinxDatetimeVersion = "0.6.2"
 
@@ -29,13 +29,13 @@ val prometheusVersion = "1.14.4"
 
 // DB
 val hikaricpVersion = "6.2.1"
-val flywayVersion = "11.3.3"
+val flywayVersion = "11.3.4"
 val postgresqlVersion = "42.7.5"
 
 // Test
 val kotestVersion = "5.9.1"
 val kotestTestContainerExtensionVersion = "2.0.2"
-val mockkVersion = "1.13.16"
+val mockkVersion = "1.13.17"
 val commonsVersion = "3.11.1"
 val testContainerVersion = "1.20.5"
 val mockFtpServerVersion = "3.2.0"
@@ -43,7 +43,7 @@ val mockFtpServerVersion = "3.2.0"
 // Logging
 val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.16"
+val logbackVersion = "1.5.17"
 val logstashVersion = "8.0"
 
 dependencies {
