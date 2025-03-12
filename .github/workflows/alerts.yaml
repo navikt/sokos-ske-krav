@@ -12,26 +12,17 @@ permissions:
   id-token: "write"
 
 jobs:
-  deploy-alerts-dev:
+  deploy-dev:
     name: Deploy alerts to dev
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Deploy to dev
-        uses: nais/deploy/actions/deploy@v2
-        env:
-          CLUSTER: dev-fss
-          RESOURCE: .nais/alerts-dev.yaml
+    uses: navikt/mob-gha-workflows/.github/workflows/nais-alert-deploy.yaml@main
+    with:
+      cluster: dev-fss
+      resource: .nais/alerts-dev.yaml
 
   deploy-alerts-prod:
     name: Deploy alerts to prod
-    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Deploy to dev
-        uses: nais/deploy/actions/deploy@v2
-        env:
-          CLUSTER: prod-fss
-          RESOURCE: .nais/alerts-prod.yaml
+    uses: navikt/mob-gha-workflows/.github/workflows/nais-alert-deploy.yaml@main
+    with:
+      cluster: prod-fss
+      resource: .nais/alerts-prod.yaml
