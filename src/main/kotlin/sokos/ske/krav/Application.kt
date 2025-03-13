@@ -6,11 +6,14 @@ import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import sokos.ske.krav.api.avstemmingRoutes
 import sokos.ske.krav.api.internalRoutes
 import sokos.ske.krav.config.PropertiesConfig
-import sokos.ske.krav.config.PropertiesConfig.TimerConfig.initialDelay
 import sokos.ske.krav.config.PropertiesConfig.TimerConfig.intervalPeriod
 import sokos.ske.krav.config.PropertiesConfig.TimerConfig.useTimer
 import sokos.ske.krav.config.commonConfig
@@ -20,8 +23,6 @@ import sokos.ske.krav.domain.StonadsType
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.Frontend
 import sokos.ske.krav.service.SkeService
-import java.util.Timer
-import kotlin.concurrent.schedule
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -50,11 +51,16 @@ private fun Application.module() {
 
     if (!useTimer) return
 
-    Timer("Krav Scheduled Run").schedule(
-        initialDelay,
-        intervalPeriod,
-    ) {
-        runBlocking { skeService.handleNewKrav() }
+    CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+        while (true) {
+            try {
+                skeService.handleNewKrav()
+                delay(intervalPeriod)
+            } catch (e: Exception) {
+                println("Error in scheduled task: ${e.message}")
+                delay(intervalPeriod / 2)
+            }
+        }
     }
 }
 

@@ -153,7 +153,21 @@ tasks {
                 filters {
                     excludes {
                         // exclusion rules - classes to exclude from report
-                        classes("sokos.ske.krav.api*", "sokos.ske.krav.domain.maskinporten.*", "sokos.ske.krav.security.*", "sokos.ske.krav.config.*", "*Application*", "sokos.ske.krav.ApplicationState", "sokos.ske.krav.database.PostgresDataSource")
+                        classes(
+                            "sokos.ske.krav.api*",
+                            "sokos.ske.krav.domain.maskinporten.*",
+                            "sokos.ske.krav.security.*",
+                            "sokos.ske.krav.config.*",
+                            "*Application*",
+                            "sokos.ske.krav.ApplicationState",
+                            "sokos.ske.krav.database.PostgresDataSource",
+                            "sokos.ske.krav.frontend.*",
+                            "sokos.ske.krav.metrics.*",
+                            "sokos.ske.krav.domain.slack",
+                            "sokos.ske.krav.service.RapportService",
+                            "sokos.ske.krav.service.RapportType",
+                            "sokos.ske.krav.service.Directories",
+                        )
                     }
                 }
             }
