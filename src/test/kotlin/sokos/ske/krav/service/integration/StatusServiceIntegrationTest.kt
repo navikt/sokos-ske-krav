@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
+import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
@@ -11,6 +12,7 @@ import io.mockk.spyk
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.client.SlackService
+import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.security.MaskinportenAccessTokenClient
 import sokos.ske.krav.service.DatabaseService
@@ -31,8 +33,10 @@ internal class StatusServiceIntegrationTest :
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
             val slackServiceSpy = spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
             val skeClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true))
-            val statusService = StatusService(skeClient, databaseService, slackServiceSpy)
-            return Triple(slackClientSpy, slackServiceSpy, statusService)
+            val statusServiceSpy = spyk(StatusService(skeClient, databaseService, slackServiceSpy), recordPrivateCalls = true)
+            coJustRun { statusServiceSpy["checkDateForAlert"](any<List<KravTable>>()) }
+
+            return Triple(slackClientSpy, slackServiceSpy, statusServiceSpy)
         }
 
         Given("Mottaksstatus er RESKONTROFOERT") {
