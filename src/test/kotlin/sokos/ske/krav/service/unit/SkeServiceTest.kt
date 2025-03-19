@@ -9,8 +9,8 @@ import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.client.SlackService
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.service.DatabaseService
-import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.util.MockHttpClient
+import sokos.ske.krav.util.setupSkeServiceMock
 import java.time.LocalDateTime
 
 class SkeServiceTest :
@@ -50,9 +50,8 @@ class SkeServiceTest :
 
             Then("Skal Slack alert sendes") {
                 val slackServiceSpy = spyk(SlackService(SlackClient(client = MockHttpClient().getSlackClient())), recordPrivateCalls = true)
-                val skeServiceSpy = spyk(SkeService(databaseService = databaseServiceMock, slackService = slackServiceSpy))
 
-                skeServiceSpy.checkKravDateForAlert()
+                setupSkeServiceMock(databaseService = databaseServiceMock, slackService = slackServiceSpy).checkKravDateForAlert()
                 coVerify(exactly = 3) {
                     slackServiceSpy.addError("Testfil", "Krav har blitt forsøkt resendt for lenge", any<Pair<String, String>>())
                 }
