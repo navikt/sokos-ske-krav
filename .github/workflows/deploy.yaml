@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - dev
-      - feature/alarm-for-krav-som-ikke-blir-reskontrofort
     paths-ignore:
       - '**.md'
       - 'LICENCE'
