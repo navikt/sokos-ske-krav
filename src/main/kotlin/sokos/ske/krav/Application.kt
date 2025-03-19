@@ -53,29 +53,6 @@ private fun Application.module() {
 
     if (!useTimer) return
 
-/*    CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
-        while (true) {
-            try {
-                skeService.handleNewKrav()
-                delay(intervalPeriod)
-            } catch (e: Exception) {
-                println("Error in scheduled task: ${e.message}")
-                delay(intervalPeriod / 2)
-            }
-        }
-    }
-
-    CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
-        while (true) {
-            try {
-                skeService.checkKravDateForAlert()
-                delay(24.hours)
-            } catch (e: Exception) {
-                println("Error in scheduled task: ${e.message}")
-                delay(12.hours)
-            }
-        }
-    }*/
     launchJob(skeService::handleNewKrav, intervalPeriod)
     launchJob(skeService::checkKravDateForAlert, 24.hours)
 }
