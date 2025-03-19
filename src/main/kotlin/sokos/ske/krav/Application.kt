@@ -23,6 +23,8 @@ import sokos.ske.krav.domain.StonadsType
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.Frontend
 import sokos.ske.krav.service.SkeService
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -51,7 +53,7 @@ private fun Application.module() {
 
     if (!useTimer) return
 
-    CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+/*    CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
         while (true) {
             try {
                 skeService.handleNewKrav()
@@ -59,6 +61,37 @@ private fun Application.module() {
             } catch (e: Exception) {
                 println("Error in scheduled task: ${e.message}")
                 delay(intervalPeriod / 2)
+            }
+        }
+    }
+
+    CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+        while (true) {
+            try {
+                skeService.checkKravDateForAlert()
+                delay(24.hours)
+            } catch (e: Exception) {
+                println("Error in scheduled task: ${e.message}")
+                delay(12.hours)
+            }
+        }
+    }*/
+    launchJob(skeService::handleNewKrav, intervalPeriod)
+    launchJob(skeService::checkKravDateForAlert, 24.hours)
+}
+
+private fun launchJob(
+    function: suspend () -> Unit,
+    delayDuration: Duration,
+) {
+    CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+        while (true) {
+            try {
+                function()
+                delay(delayDuration)
+            } catch (e: Exception) {
+                println("Error in scheduled task: ${e.message}")
+                delay(delayDuration / 2)
             }
         }
     }

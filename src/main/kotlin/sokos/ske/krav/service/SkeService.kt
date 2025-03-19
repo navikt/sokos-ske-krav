@@ -14,6 +14,7 @@ import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.isOpprettKrav
 import sokos.ske.krav.util.parseTo
 import sokos.ske.krav.validation.LineValidator
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -33,6 +34,26 @@ class SkeService(
     private val ftpService: FtpService = FtpService(),
 ) {
     private var haltRun = false
+
+    fun checkKravDateForAlert() {
+        val kravListe = databaseService.getAllKravForStatusCheck()
+        kravListe
+            .filter {
+                it.tidspunktSendt?.isBefore((LocalDateTime.now().minusHours(24))) == true
+            }.forEach {
+                secureLogger.info { "Krav har blitt forsøkt resendt i over én dag" }
+                val dateDifference = Duration.between(it.tidspunktSendt, LocalDateTime.now()).toDays()
+                slackService.addError(
+                    it.filnavn,
+                    "Krav har blitt forsøkt resendt for lenge",
+                    Pair(
+                        "Krav har blitt forsøkt resendt i over 24t",
+                        "Krav med saksnummer ${it.saksnummerNAV} har blitt forsøkt resendt i $dateDifference dager.\n" +
+                            "Kravet har status ${it.status} og ble originalt sendt ${it.tidspunktSendt?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"))}",
+                    ),
+                )
+            }
+    }
 
     suspend fun handleNewKrav() {
         if (haltRun) {
