@@ -18,18 +18,18 @@ repositories {
 }
 
 val ktorVersion = "3.1.1"
-val jschVersion = "0.2.23"
+val jschVersion = "0.2.24"
 val nimbusVersion = "10.0.2"
 val kotlinxSerializationVersion = "1.8.0"
 val kotlinxDatetimeVersion = "0.6.2"
 
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
-val prometheusVersion = "1.14.4"
+val prometheusVersion = "1.14.5"
 
 // DB
 val hikaricpVersion = "6.2.1"
-val flywayVersion = "11.3.4"
+val flywayVersion = "11.4.0"
 val postgresqlVersion = "42.7.5"
 
 // Test
