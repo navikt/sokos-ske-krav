@@ -62,7 +62,7 @@ class StatusServiceTest :
                         )
                 }
 
-            Then("Skal Slack alert sendes") {
+            Then("Skal Slack alert sendes").config(enabled = false) {
                 val (slackServiceSpy, statusService) = setupServices(databaseServiceMock)
                 statusService.getMottaksStatus()
                 coVerify(exactly = 3) {

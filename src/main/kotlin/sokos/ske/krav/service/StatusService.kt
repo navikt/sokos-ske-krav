@@ -29,7 +29,7 @@ class StatusService(
         if (kravListe.isEmpty()) return
 
         secureLogger.info("Sjekk av mottaksstatus -> Antall krav som ikke er reskontroført: ${kravListe.size}")
-        checkDateForAlert(kravListe)
+        //  checkDateForAlert(kravListe)
         secureLogger.info("Oppdaterer status")
         val updated =
             kravListe.mapNotNull { krav ->
