@@ -4,8 +4,8 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    kotlin("jvm") version "2.1.10"
-    kotlin("plugin.serialization") version "2.1.10"
+    kotlin("jvm") version "2.1.20"
+    kotlin("plugin.serialization") version "2.1.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
@@ -29,7 +29,7 @@ val prometheusVersion = "1.14.5"
 
 // DB
 val hikaricpVersion = "6.2.1"
-val flywayVersion = "11.4.0"
+val flywayVersion = "11.4.1"
 val postgresqlVersion = "42.7.5"
 
 // Test
@@ -43,7 +43,7 @@ val mockFtpServerVersion = "3.2.0"
 // Logging
 val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.17"
+val logbackVersion = "1.5.18"
 val logstashVersion = "8.0"
 
 dependencies {
