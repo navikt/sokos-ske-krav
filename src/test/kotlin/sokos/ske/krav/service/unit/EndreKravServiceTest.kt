@@ -23,7 +23,7 @@ internal class EndreKravServiceTest :
 
         val databaseServiceMock =
             mockk<DatabaseService> {
-                justRun { updateSentKrav(any()) }
+                justRun { updateSentKrav(any<List<RequestResult>>()) }
             }
 
         val endreKravMock = spyk(EndreKravService(mockk<SkeClient>(), databaseServiceMock), recordPrivateCalls = true)
