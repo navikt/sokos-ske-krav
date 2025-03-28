@@ -14,7 +14,6 @@ import sokos.ske.krav.util.mockHttpResponse
 internal class DefineStatusTest :
     FunSpec(
         {
-
             suspend fun createRequestResult(
                 responseCode: Int,
                 responseBody: String = "",

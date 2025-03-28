@@ -39,12 +39,6 @@ object KravRepository {
             Status.KRAV_IKKE_SENDT.value,
         ).toKrav()
 
-    // TODO må også returnere de med valideringsfeil rapporter = true
-    // Men da må valideringsfeil tabell ha krav id
-    // Eventuelt kan vi bruke saksnummer_nav men må se på hvordan visningen blir
-    // Og hvordan blir det da med valideringsfeil for fil?
-    // Bedre kanskje å kalle denne for getAllFeilmeldingerForKrav
-    // Og så gjøre noe annet for valideringsfeil
     fun Connection.getAllKravForAvstemming() =
         executeSelect(
             """
@@ -159,7 +153,6 @@ object KravRepository {
         corrId,
     )
 
-    // Todo: Må ha samme for valideringsfeil
     fun Connection.updateStatusForAvstemtKravToReported(kravId: Int) =
         executeUpdate(
             """

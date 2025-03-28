@@ -41,10 +41,9 @@ class RapportService(
 
     private fun getFeilmeldinger(krav: KravTable): List<String> =
         if (krav.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value) {
-            // TODO: Må gjøre dette for statuser også. Forskjellige feilmeldinger gir forskjellige statuser...
             dbService.getFeilmeldingForKravId(krav.kravId).map { it.melding.splitToSequence(", mottatt").first() }
         } else {
-            emptyList() // TODO: Linjevalideringfeil
+            emptyList()
         }
 
     data class RapportObjekt(
