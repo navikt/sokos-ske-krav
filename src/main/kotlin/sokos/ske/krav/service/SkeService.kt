@@ -35,8 +35,10 @@ class SkeService(
 ) {
     private var haltRun = false
 
-    fun checkKravDateForAlert() {
+    suspend fun checkKravDateForAlert() {
+        println("Checking krav for alert")
         val kravListe = databaseService.getAllKravForStatusCheck()
+        println("antall krav for status sjekk: ${kravListe.size}")
         kravListe
             .filter {
                 it.tidspunktSendt?.isBefore((LocalDateTime.now().minusHours(24))) == true
@@ -53,6 +55,7 @@ class SkeService(
                     ),
                 )
             }
+        slackService.sendErrors()
     }
 
     suspend fun handleNewKrav() {
