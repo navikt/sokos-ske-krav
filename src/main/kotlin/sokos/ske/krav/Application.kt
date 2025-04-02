@@ -24,7 +24,7 @@ import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.Frontend
 import sokos.ske.krav.service.SkeService
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.hours
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -54,7 +54,7 @@ private fun Application.module() {
     if (!useTimer) return
 
     launchJob(skeService::handleNewKrav, intervalPeriod)
-    launchJob(skeService::checkKravDateForAlert, 30.minutes)
+    launchJob(skeService::checkKravDateForAlert, 24.hours)
 }
 
 private fun launchJob(
@@ -65,7 +65,6 @@ private fun launchJob(
         while (true) {
             try {
                 function()
-                println("Starting function")
                 delay(delayDuration)
             } catch (e: Exception) {
                 println("Error in scheduled task: ${e.message}")

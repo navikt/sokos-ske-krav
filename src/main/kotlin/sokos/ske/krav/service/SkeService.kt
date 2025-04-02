@@ -39,18 +39,17 @@ class SkeService(
         println("Checking krav for alert")
         val kravListe = databaseService.getAllKravForStatusCheck()
         println("antall krav for status sjekk: ${kravListe.size}")
+
         kravListe
-            .filter {
-                it.tidspunktSendt?.isBefore((LocalDateTime.now().minusHours(24))) == true
-            }.forEach {
-                secureLogger.info { "Krav har blitt forsøkt resendt i over én dag" }
-                val dateDifference = Duration.between(it.tidspunktSendt, LocalDateTime.now()).toDays()
+            .filter { it.tidspunktSendt?.isBefore((LocalDateTime.now().minusHours(24))) == true }
+            .also { secureLogger.info { "Krav med saksnummer ${it.joinToString { it.saksnummerNAV }} har blitt forsøkt resendt i over én dag" } }
+            .forEach {
                 slackService.addError(
                     it.filnavn,
                     "Krav har blitt forsøkt resendt for lenge",
                     Pair(
                         "Krav har blitt forsøkt resendt i over 24t",
-                        "Krav med saksnummer ${it.saksnummerNAV} har blitt forsøkt resendt i $dateDifference dager.\n" +
+                        "Krav med saksnummer ${it.saksnummerNAV} har blitt forsøkt resendt i ${Duration.between(it.tidspunktSendt, LocalDateTime.now()).toDays()} dager.\n" +
                             "Kravet har status ${it.status} og ble originalt sendt ${it.tidspunktSendt?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"))}",
                     ),
                 )
