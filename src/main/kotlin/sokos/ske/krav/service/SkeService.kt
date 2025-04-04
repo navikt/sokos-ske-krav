@@ -36,11 +36,8 @@ class SkeService(
     private var haltRun = false
 
     suspend fun checkKravDateForAlert() {
-        println("Checking krav for alert")
-        val kravListe = databaseService.getAllKravForStatusCheck()
-        println("antall krav for status sjekk: ${kravListe.size}")
-
-        kravListe
+        databaseService
+            .getAllKravForStatusCheck()
             .filter { it.tidspunktSendt?.isBefore((LocalDateTime.now().minusHours(24))) == true }
             .also { secureLogger.info { "Krav med saksnummer ${it.joinToString { it.saksnummerNAV }} har blitt forsøkt resendt i over én dag" } }
             .forEach {
