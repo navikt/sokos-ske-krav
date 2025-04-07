@@ -4,8 +4,8 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    kotlin("jvm") version "2.1.10"
-    kotlin("plugin.serialization") version "2.1.10"
+    kotlin("jvm") version "2.1.20"
+    kotlin("plugin.serialization") version "2.1.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
@@ -17,10 +17,10 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
-val ktorVersion = "3.1.1"
+val ktorVersion = "3.1.2"
 val jschVersion = "0.2.24"
-val nimbusVersion = "10.0.2"
-val kotlinxSerializationVersion = "1.8.0"
+val nimbusVersion = "10.1"
+val kotlinxSerializationVersion = "1.8.1"
 val kotlinxDatetimeVersion = "0.6.2"
 
 val vaultVersion = "1.3.10"
@@ -28,8 +28,8 @@ val konfigVersion = "1.6.10.0"
 val prometheusVersion = "1.14.5"
 
 // DB
-val hikaricpVersion = "6.2.1"
-val flywayVersion = "11.4.0"
+val hikaricpVersion = "6.3.0"
+val flywayVersion = "11.6.0"
 val postgresqlVersion = "42.7.5"
 
 // Test
@@ -43,8 +43,8 @@ val mockFtpServerVersion = "3.2.0"
 // Logging
 val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.17"
-val logstashVersion = "8.0"
+val logbackVersion = "1.5.18"
+val logstashVersion = "8.1"
 
 dependencies {
     // Ktor Server
