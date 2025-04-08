@@ -1,5 +1,6 @@
 package sokos.ske.krav.service
 
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.delay
 import sokos.ske.krav.client.SkeClient
@@ -60,6 +61,9 @@ class SkeService(
             return
         }
 
+        skeClient.getSkeKravidentifikator("12234").also { println("Ske Kravidentifikator: ${it.bodyAsText()}") }
+        skeClient.getSkeKravidentifikator("23456").also { println("Ske Kravidentifikator: ${it.bodyAsText()}") }
+        skeClient.getSkeKravidentifikator("1335").also { println("Ske Kravidentifikator: ${it.bodyAsText()}") }
         resendKrav()
         sendNewFilesToSKE()
         delay(5000)
