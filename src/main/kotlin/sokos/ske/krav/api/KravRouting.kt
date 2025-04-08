@@ -27,5 +27,11 @@ fun Routing.internalRoutes(
             statusService.getMottaksStatus()
             call.respond(HttpStatusCode.OK, "Startet oppdatering status ${Clock.System.now()}")
         }
+
+        get("dummyCalls") {
+            logger.info("API Kall: Dummy calls")
+            skeService.dummyCalls()
+            call.respond(HttpStatusCode.OK, "Dummy calls ${Clock.System.now()}")
+        }
     }
 }

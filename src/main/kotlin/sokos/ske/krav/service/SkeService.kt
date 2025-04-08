@@ -36,6 +36,12 @@ class SkeService(
 ) {
     private var haltRun = false
 
+    suspend fun dummyCalls() {
+        skeClient.getSkeKravidentifikator("12234").also { println("Ske Kravidentifikator: ${it.bodyAsText()}") }
+        skeClient.getSkeKravidentifikator("23456").also { println("Ske Kravidentifikator: ${it.bodyAsText()}") }
+        skeClient.getSkeKravidentifikator("1335").also { println("Ske Kravidentifikator: ${it.bodyAsText()}") }
+    }
+
     suspend fun checkKravDateForAlert() {
         databaseService
             .getAllKravForStatusCheck()
@@ -61,9 +67,6 @@ class SkeService(
             return
         }
 
-        skeClient.getSkeKravidentifikator("12234").also { println("Ske Kravidentifikator: ${it.bodyAsText()}") }
-        skeClient.getSkeKravidentifikator("23456").also { println("Ske Kravidentifikator: ${it.bodyAsText()}") }
-        skeClient.getSkeKravidentifikator("1335").also { println("Ske Kravidentifikator: ${it.bodyAsText()}") }
         resendKrav()
         sendNewFilesToSKE()
         delay(5000)
