@@ -56,7 +56,7 @@ spec:
     enabled: true
   env:
     - name: SKE_REST_URL
-      value: https://innkrevingsoppdrag.innkreving.skatteetaten-test.no/api/innkreving/innkrevingsoppdrag/v1/
+      value: https://api-test.sits.no/api/innkreving/innkrevingsoppdrag/v1/
     - name: SFTP_SERVER
       value: b27drvl011.preprod.local
     - name: SFTP_PORT
