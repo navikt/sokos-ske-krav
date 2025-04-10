@@ -15,9 +15,7 @@ import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.util.createKravidentifikatorPair
 import sokos.ske.krav.util.parseTo
-import java.time.Duration
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 class StatusService(
     private val skeClient: SkeClient = SkeClient(),
@@ -29,7 +27,6 @@ class StatusService(
         if (kravListe.isEmpty()) return
 
         secureLogger.info("Sjekk av mottaksstatus -> Antall krav som ikke er reskontroført: ${kravListe.size}")
-        //  checkDateForAlert(kravListe)
         secureLogger.info("Oppdaterer status")
         val updated =
             kravListe.mapNotNull { krav ->
@@ -38,25 +35,6 @@ class StatusService(
 
         secureLogger.info { "Antall reskontroførte krav: ${updated.size}" }
         slackService.sendErrors()
-    }
-
-    private fun checkDateForAlert(kravListe: List<KravTable>) {
-        kravListe
-            .filter {
-                it.tidspunktSendt?.isBefore((LocalDateTime.now().minusHours(24))) == true
-            }.forEach {
-                secureLogger.info { "Krav har blitt forsøkt resendt i over én dag" }
-                val dateDifference = Duration.between(it.tidspunktSendt, LocalDateTime.now()).toDays()
-                slackService.addError(
-                    it.filnavn,
-                    "Krav har blitt forsøkt resendt for lenge",
-                    Pair(
-                        "Krav har blitt forsøkt resendt i over 24t",
-                        "Krav med saksnummer ${it.saksnummerNAV} har blitt forsøkt resendt i $dateDifference dager.\n" +
-                            "Kravet har status ${it.status} og ble originalt sendt ${it.tidspunktSendt?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"))}",
-                    ),
-                )
-            }
     }
 
     private suspend fun processKravStatus(krav: KravTable): MottaksStatusResponse? {

@@ -14,29 +14,30 @@ import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.defineStatus
 import sokos.ske.krav.util.mockHttpResponse
 
-class StoppKravServiceTest : FunSpec({
+class StoppKravServiceTest :
+    FunSpec({
 
-    test("sendAllStoppKrav skal returnere liste av innsendte stopp av krav") {
-        val databaseServiceMock =
-            mockk<DatabaseService> {
-                justRun { updateSentKrav(any()) }
-            }
-        val kravTableMock =
-            mockk<KravTable> {
-                every { kravidentifikatorSKE } returns "foo"
-                every { saksnummerNAV } returns "bar"
-            }
-        val stoppKravMock = spyk(StoppKravService(mockk<SkeClient>(), databaseServiceMock), recordPrivateCalls = true)
+        test("sendAllStoppKrav skal returnere liste av innsendte stopp av krav") {
+            val databaseServiceMock =
+                mockk<DatabaseService> {
+                    justRun { updateSentKrav(any<List<RequestResult>>()) }
+                }
+            val kravTableMock =
+                mockk<KravTable> {
+                    every { kravidentifikatorSKE } returns "foo"
+                    every { saksnummerNAV } returns "bar"
+                }
+            val stoppKravMock = spyk(StoppKravService(mockk<SkeClient>(), databaseServiceMock), recordPrivateCalls = true)
 
-        every { stoppKravMock["sendStoppKrav"](any<KravTable>()) } returnsMany
-            listOf(
-                RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "123", defineStatus(mockHttpResponse(404))),
-                RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "456", defineStatus(mockHttpResponse(200))),
-            )
-        val result = stoppKravMock.sendAllStoppKrav(listOf(kravTableMock, kravTableMock))
+            every { stoppKravMock["sendStoppKrav"](any<KravTable>()) } returnsMany
+                listOf(
+                    RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "123", defineStatus(mockHttpResponse(404))),
+                    RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "456", defineStatus(mockHttpResponse(200))),
+                )
+            val result = stoppKravMock.sendAllStoppKrav(listOf(kravTableMock, kravTableMock))
 
-        result.size shouldBe 2
-        result.filter { it.kravidentifikator == "123" }.size shouldBe 1
-        result.filter { it.kravidentifikator == "456" }.size shouldBe 1
-    }
-})
+            result.size shouldBe 2
+            result.filter { it.kravidentifikator == "123" }.size shouldBe 1
+            result.filter { it.kravidentifikator == "456" }.size shouldBe 1
+        }
+    })

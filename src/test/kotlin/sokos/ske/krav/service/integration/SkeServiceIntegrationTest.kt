@@ -109,7 +109,7 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
-        Given("Når krav skal lagres i database") {
+        Given("Et krav skal lagres i database") {
             SftpListener.putFiles(listOf("AltOkFil.txt"), Directories.INBOUND)
 
             val skeClient =

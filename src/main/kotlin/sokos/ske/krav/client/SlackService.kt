@@ -69,6 +69,7 @@ class SlackService(
 
     suspend fun sendErrors() {
         consolidateErrors()
+        println("sending ${errorTracking.size} errors")
         errorTracking.forEach { fileErrors ->
             fileErrors.headers.forEach { header ->
                 slackClient.sendMessage(header.header, fileErrors.fileName, header.errors)

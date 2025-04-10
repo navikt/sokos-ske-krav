@@ -36,7 +36,7 @@ class OpprettKravServiceTest :
     FunSpec({
         val databaseServiceMock =
             mockk<DatabaseService> {
-                justRun { updateSentKrav(any()) }
+                justRun { updateSentKrav(any<List<RequestResult>>()) }
             }
         val kravTableMock =
             mockk<KravTable>(relaxed = true) {

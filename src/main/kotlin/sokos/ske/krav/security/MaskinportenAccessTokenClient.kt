@@ -22,6 +22,7 @@ import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.domain.maskinporten.AccessToken
 import sokos.ske.krav.domain.maskinporten.Token
 import java.util.Date
+import java.util.UUID
 
 class MaskinportenAccessTokenClient(
     private val maskinportenConfig: PropertiesConfig.MaskinportenClientConfig,
@@ -67,6 +68,7 @@ class MaskinportenAccessTokenClient(
                     ),
                 ).withIssuedAt(Date())
                 .withKeyId(maskinportenConfig.rsaKey?.keyID)
+                .withJWTId(UUID.randomUUID().toString())
                 .sign(Algorithm.RSA256(null, maskinportenConfig.rsaKey?.toRSAPrivateKey()))
         val response =
             client.post(maskinportenConfig.openIdConfiguration.tokenEndpoint) {

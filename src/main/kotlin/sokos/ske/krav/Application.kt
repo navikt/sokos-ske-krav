@@ -23,6 +23,8 @@ import sokos.ske.krav.domain.StonadsType
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.Frontend
 import sokos.ske.krav.service.SkeService
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -51,14 +53,22 @@ private fun Application.module() {
 
     if (!useTimer) return
 
+    launchJob(skeService::handleNewKrav, intervalPeriod)
+    launchJob(skeService::checkKravDateForAlert, 24.hours)
+}
+
+private fun launchJob(
+    function: suspend () -> Unit,
+    delayDuration: Duration,
+) {
     CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
         while (true) {
             try {
-                skeService.handleNewKrav()
-                delay(intervalPeriod)
+                function()
+                delay(delayDuration)
             } catch (e: Exception) {
                 println("Error in scheduled task: ${e.message}")
-                delay(intervalPeriod / 2)
+                delay(delayDuration / 2)
             }
         }
     }

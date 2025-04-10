@@ -10,7 +10,7 @@ spec:
     - name: sokos-ske-krav-alerts
       rules:
         - alert: Applikasjon nede
-          expr: kube_deployment_status_replicas_available{deployment="sokos-ske-krav"} == 0
+          expr: kube_deployment_status_replicas_available{deployment="{{ $labels.app }}"} == 0
           for: 2m
           annotations:
             action: "Sjekk hvorfor applikasjonen er nede"
@@ -22,7 +22,7 @@ spec:
             alert_type: custom
 
         - alert: Applikasjonen har restartet flere ganger de siste 5 minuttene!
-          expr: sum(increase(kube_pod_container_status_restarts_total{container=~"sokos-ske-krav"}[5m])) by (container) > 2
+          expr: sum(increase(kube_pod_container_status_restarts_total{container=~"{{ $labels.app }}"}[5m])) by (container) > 2
           for: 2m
           annotations:
             action: "Sjekk hvorfor applikasjonen ikke klarer å restarte"
@@ -38,11 +38,11 @@ spec:
             'sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-ske-krav",level="Error"}[15m])
               or vector(0)) -
               sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-ske-krav",level="Error"}[15m]
-              offset 15m) or vector(0)) > 2'
+              offset 5m) or vector(0)) > 0'
           for: 2m
           annotations:
-            action: "Sjekk error loggene i sokos-ske-krav"
-            summary: "`kubectl logs <podname> -n okonomi`"
+            action: "<https://logs.adeo.no/app/discover#/?_g=(time:(from:now-1d,to:now))&_a=(filters:!((query:(match_phrase:(application:'sokos-ske-krav'))),(query:(match_phrase:(cluster:'dev-fss'))),(query:(match_phrase:(level:'Warning')))))|Sjekk loggene>"
+            summary: "`kubectl logs -l app=sokos-ske-krav -n okonomi` for logger"
           labels:
             namespace: okonomi
             severity: danger
@@ -51,14 +51,14 @@ spec:
 
         - alert: Applikasjonen logger høy andel warnings
           expr:
-            'sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-ske-krav",level="Warning"}[15m])
+            'sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-ske-krav",level="Error"}[15m])
               or vector(0)) -
-              sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-ske-krav",level="Warning"}[15m]
-              offset 15m) or vector(0)) > 5'
+              sum(max_over_time(log_messages_errors{namespace="okonomi",app="sokos-ske-krav",level="Error"}[15m]
+              offset 5m) or vector(0)) > 5'
           for: 2m
           annotations:
-            action: "Sjekk warning loggene i sokos-ske-krav"
-            summary: "`kubectl logs <podname> -n okonomi`"
+            action: "<https://logs.adeo.no/app/discover#/?_g=(time:(from:now-1d,to:now))&_a=(filters:!((query:(match_phrase:(application:'sokos-ske-krav'))),(query:(match_phrase:(cluster:'dev-fss'))),(query:(match_phrase:(level:'Warning')))))|Sjekk loggene>"
+            summary: "`kubectl logs -l app=sokos-ske-krav -n okonomi` for logger"
           labels:
             namespace: okonomi
             severity: warning
@@ -83,9 +83,9 @@ spec:
         - apiURL:
             key: apiUrl
             name: slack-webhook
-          channel: '#team-best-alerts-dev'
+          channel: '#team-mob-alerts-dev'
           iconEmoji: ':alert:'
-          username: 'Alert dev-fss'
+          username: 'Alert dev-fss (sokos-ske-krav)'
           sendResolved: true
           title: |-
             [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
