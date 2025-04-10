@@ -343,7 +343,6 @@ internal class LineValidatorIntegrationTest :
                     validatedLines.size shouldBe ftpFil.kravLinjer.size
                     with(validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }) {
                         size shouldBe 6
-                        println(map { it.referansenummerGammelSak })
                         filter { it.kravKode == "MJ AU" }.size shouldBe 6
                         filter { it.saksnummerNav == "saksnummernav_ø" }.size shouldBe 1
                         filter { it.referansenummerGammelSak == "OB0refgammel_ø" }.size shouldBe 1

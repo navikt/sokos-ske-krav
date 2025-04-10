@@ -37,7 +37,6 @@ internal class FtpServiceIntegrationTest :
 
                 Then("Skal filen forbli i INBOUND") {
                     val successFilesInDir = ftpService.listFiles(Directories.INBOUND)
-                    println(successFilesInDir)
                     successFilesInDir.size shouldBe 3
                     successFilesInDir shouldContain FILE_OK
                     successFilesInDir shouldContain FILE_A
