@@ -15,7 +15,7 @@ import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.database.repository.toKrav
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.FeilResponse
-import sokos.ske.krav.security.MaskinportenAccessTokenClient
+import sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.EndreKravService
 import sokos.ske.krav.service.FtpService
@@ -103,7 +103,7 @@ fun setupSkeServiceMockWithMockEngine(
     ftpService: FtpService,
     databaseService: DatabaseService,
 ): SkeService {
-    val tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true)
+    val tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true)
     val slackClient = SlackClient(client = MockHttpClient().getSlackClient())
     val slackService = SlackService(slackClient)
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)

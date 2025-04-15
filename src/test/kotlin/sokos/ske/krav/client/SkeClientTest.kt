@@ -25,15 +25,15 @@ import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
 import sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.domain.ske.requests.RenteBeloep
 import sokos.ske.krav.domain.ske.requests.Skyldner
-import sokos.ske.krav.security.MaskinportenAccessTokenClient
+import sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import java.util.UUID
 
 class SkeClientTest :
     FunSpec({
         val mockToken = "mock-token"
         val mockTokenClient =
-            mockk<MaskinportenAccessTokenClient> {
-                coEvery { hentAccessToken() } returns mockToken
+            mockk<MaskinportenAccessTokenProvider> {
+                coEvery { getAccessToken() } returns mockToken
             }
 
         val mockEngine =

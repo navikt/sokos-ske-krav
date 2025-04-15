@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import io.mockk.mockk
 import sokos.ske.krav.client.SkeClient
-import sokos.ske.krav.security.MaskinportenAccessTokenClient
+import sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.OpprettKravService
 import sokos.ske.krav.util.MockHttpClientUtils
@@ -28,7 +28,7 @@ internal class OpprettKravServiceIntegrationTest :
                 val skeOKResponse = MockHttpClientUtils.Responses.nyttKravResponse(kravidentifikatorSKE)
 
                 val httpClient = setUpMockHttpClient(listOf(MockHttpClientUtils.MockRequestObj(skeOKResponse, MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.OK)))
-                val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true))
+                val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
                 OpprettKravService(skeClient, DatabaseService(testContainer.dataSource)).sendAllOpprettKrav(kravSomSkalSendes)
 
@@ -44,7 +44,7 @@ internal class OpprettKravServiceIntegrationTest :
 
             When("Response fra SKE ikke er OK") {
                 val httpClient = setUpMockHttpClient(listOf(MockHttpClientUtils.MockRequestObj("", MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.BadRequest)))
-                val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true))
+                val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
                 OpprettKravService(skeClient, DatabaseService(testContainer.dataSource)).sendAllOpprettKrav(kravSomSkalSendes)
 
