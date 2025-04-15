@@ -1,13 +1,10 @@
 package sokos.ske.krav.domain.nav
 
+import io.ktor.http.parsing.ParseException
 import sokos.ske.krav.validation.LineValidationRules
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-
-internal class ParseException(
-    message: String,
-) : Exception(message)
 
 class FileParser(
     private val content: List<String>,
