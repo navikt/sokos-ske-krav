@@ -47,12 +47,7 @@ class MaskinportenAccessTokenProvider(
             val cachedToken = tokenCache.get()
 
             if (cachedToken == null || cachedToken.expiresAt < nowPlusLimit) {
-                println("Henter nytt token fra maskinporten")
-                println("expiresAt = ${cachedToken?.expiresAt}, inLimit = $nowPlusLimit")
-
                 tokenCache.set(getMaskinportenToken())
-            } else {
-                println("alt er ok, returnerer cachet")
             }
 
             tokenCache.get()!!.token
