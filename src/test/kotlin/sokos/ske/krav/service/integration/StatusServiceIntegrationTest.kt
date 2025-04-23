@@ -12,7 +12,7 @@ import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.SlackClient
 import sokos.ske.krav.client.SlackService
 import sokos.ske.krav.domain.Status
-import sokos.ske.krav.security.MaskinportenAccessTokenClient
+import sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.StatusService
 import sokos.ske.krav.util.MockHttpClient
@@ -30,7 +30,7 @@ internal class StatusServiceIntegrationTest :
         ): Triple<SlackClient, SlackService, StatusService> {
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
             val slackServiceSpy = spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
-            val skeClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = mockk<MaskinportenAccessTokenClient>(relaxed = true))
+            val skeClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
             val statusServiceSpy = spyk(StatusService(skeClient, databaseService, slackServiceSpy), recordPrivateCalls = true)
 
             return Triple(slackClientSpy, slackServiceSpy, statusServiceSpy)

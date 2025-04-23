@@ -36,26 +36,28 @@ object LineValidationRules {
         val errorMessages =
             buildList {
                 with(krav) {
+                    checkVedtaksDato(vedtaksDato)?.let { message ->
+                        add(Pair(VEDTAKSDATO_ERROR, "$message: (Vedtaksdato: $vedtaksDato). Linje: $linjenummer"))
+                    }
+
+                    checkUtbetalingsDato(utbetalDato, vedtaksDato)?.let { message ->
+                        add(Pair(UTBETALINGSDATO_ERROR, "$message: (Vedtaksdato: $vedtaksDato). Linje: $linjenummer"))
+                    }
+
+                    checkPeriode(periodeFOM.toDate(), periodeTOM.toDate())?.let { message ->
+                        add(Pair(PERIODE_ERROR, "$message: (FOM:$periodeFOM, TOM: $periodeTOM). Linje: $linjenummer"))
+                    }
+
                     if (!saksNummerIsValid(saksnummerNav)) {
                         add(Pair(SAKSNUMMER_ERROR, "$SAKSNUMMER_WRONG_FORMAT: ($saksnummerNav). Linje: $linjenummer"))
                     }
-                    if (!vedtaksDatoIsValid(vedtaksDato)) {
-                        val message = checkVedtaksDatoRules(vedtaksDato)
-                        add(Pair(VEDTAKSDATO_ERROR, "$message: (Vedtaksdato: $vedtaksDato). Linje: $linjenummer"))
-                    }
+
                     if (!kravTypeIsValid(krav)) {
                         add(Pair(KRAVTYPE_ERROR, "$KRAVTYPE_DOES_NOT_EXIST: ($kravKode) sammen med ($kodeHjemmel). Linje: $linjenummer"))
                     }
+
                     if (!referanseNummerGammelSakIsValid(referansenummerGammelSak, isOpprettKrav())) {
                         add(Pair(REFERANSENUMMERGAMMELSAK_ERROR, "$REFERANSENUMMERGAMMELSAK_WRONG_FORMAT: ($referansenummerGammelSak). Linje: $linjenummer"))
-                    }
-                    if (!periodeIsValid(periodeFOM, periodeTOM)) {
-                        val message = checkPeriodeRules(periodeFOM.toDate(), periodeTOM.toDate())
-                        add(Pair(PERIODE_ERROR, "$message: (FOM:$periodeFOM, TOM: $periodeTOM). Linje: $linjenummer"))
-                    }
-                    if (!utbetalingsDatoIsValid(utbetalDato, vedtaksDato)) {
-                        val message = checkUtbetalingsDatoRules(utbetalDato, vedtaksDato)
-                        add(Pair(UTBETALINGSDATO_ERROR, "$message: (Utbetalingsdato:$utbetalDato, Vedtaksdato: $vedtaksDato). Linje: $linjenummer"))
                     }
                 }
             }
@@ -67,59 +69,42 @@ object LineValidationRules {
         }
     }
 
-    // Vedtaksdato kan ikke være i fremtiden
-    private fun vedtaksDatoIsValid(date: LocalDate) = !date.isInFuture()
-
-    private fun checkVedtaksDatoRules(vedtaksDato: LocalDate) =
+    // Fom-dato kan ikke være etter tom (kan være lik tom)
+    // Tom-dato kan være frem i tid, men ikke lenger frem enn inneværende måned
+    // Dvs, Tom-dato må være før neste måned
+    private fun checkPeriode(
+        periodeFOM: LocalDate,
+        periodeTOM: LocalDate,
+    ): String? =
         when {
+            !periodeFOM.isAfter(periodeTOM) && periodeTOM.isBeforeNextMonth() -> null
+            periodeFOM == errorDate -> PERIODE_FOM_WRONG_FORMAT
+            periodeTOM == errorDate -> PERIODE_TOM_WRONG_FORMAT
+            periodeFOM.isAfter(periodeTOM) -> PERIODE_FOM_IS_AFTER_PERIODE_TOM
+            !periodeTOM.isBeforeNextMonth() -> PERIODE_TOM_IS_IN_INVALID_FUTURE
+            else -> UNKNOWN_DATE_ERROR
+        }
+
+    // Vedtaksdato kan ikke være i fremtiden
+    private fun checkVedtaksDato(vedtaksDato: LocalDate): String? =
+        when {
+            !vedtaksDato.isInFuture() -> null
             vedtaksDato == errorDate -> VEDTAKSDATO_WRONG_FORMAT
             vedtaksDato.isInFuture() -> VEDTAKSDATO_IS_IN_FUTURE
             else -> UNKNOWN_DATE_ERROR
         }
 
-    // Utbetalingsdato kan aldri være lik eller etter vedtaksdato
-    private fun utbetalingsDatoIsValid(
+    // Utbetalingsdato må være før vedtaksdato
+    private fun checkUtbetalingsDato(
         utbetalingsDato: LocalDate,
         vedtaksDato: LocalDate,
-    ) = utbetalingsDato.isBefore(vedtaksDato)
-
-    private fun checkUtbetalingsDatoRules(
-        utbetalingsDato: LocalDate,
-        vedtaksDato: LocalDate,
-    ) = when {
-        utbetalingsDato == errorDate -> UTBETALINGSDATO_WRONG_FORMAT
-        utbetalingsDato.isAfter(vedtaksDato) || utbetalingsDato == vedtaksDato -> UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
-        else -> UNKNOWN_DATE_ERROR
-    }
-
-    // Periode
-    // Fom-dato kan ikke være etter tom (kan være lik tom)
-    // Tom-dato kan være frem i tid, men ikke lenger frem enn inneværende måned
-    // Dvs, Tom-dato må være før neste måned
-    private fun periodeIsValid(
-        fom: String,
-        tom: String,
-    ): Boolean {
-        val dateFrom = fom.toDate()
-        val dateTo = tom.toDate()
-
-        if (dateFrom == errorDate || dateTo == errorDate) {
-            return false
+    ): String? =
+        when {
+            utbetalingsDato.isBefore(vedtaksDato) -> null
+            utbetalingsDato == errorDate -> UTBETALINGSDATO_WRONG_FORMAT
+            utbetalingsDato.isAfter(vedtaksDato) || utbetalingsDato == vedtaksDato -> UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
+            else -> UNKNOWN_DATE_ERROR
         }
-
-        return !dateFrom.isAfter(dateTo) && dateTo.isBeforeNextMonth()
-    }
-
-    private fun checkPeriodeRules(
-        periodeFom: LocalDate,
-        periodeTom: LocalDate,
-    ) = when {
-        periodeFom == errorDate -> PERIODE_FOM_WRONG_FORMAT
-        periodeTom == errorDate -> PERIODE_TOM_WRONG_FORMAT
-        periodeFom.isAfter(periodeTom) -> PERIODE_FOM_IS_AFTER_PERIODE_TOM
-        !periodeTom.isBeforeNextMonth() -> PERIODE_TOM_IS_IN_INVALID_FUTURE
-        else -> UNKNOWN_DATE_ERROR
-    }
 
     // Saksnummer
     private fun saksNummerIsValid(navSaksnr: String) = navSaksnr.matches("^[a-zA-Z0-9-/]+$".toRegex())

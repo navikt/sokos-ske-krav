@@ -7,13 +7,7 @@ import com.natpryce.konfig.Key
 import com.natpryce.konfig.overriding
 import com.natpryce.konfig.stringType
 import com.nimbusds.jose.jwk.RSAKey
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import mu.KotlinLogging
-import sokos.ske.krav.util.httpClient
 import java.io.File
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
@@ -92,16 +86,9 @@ object PropertiesConfig {
 
     data class MaskinportenClientConfig(
         val clientId: String = get("MASKINPORTEN_CLIENT_ID"),
-        val authorityEndpoint: String = get("MASKINPORTEN_WELL_KNOWN_URL"),
+        val wellKnownUrl: String = get("MASKINPORTEN_WELL_KNOWN_URL"),
         val rsaKey: RSAKey? = RSAKey.parse(get("MASKINPORTEN_CLIENT_JWK")),
         val scopes: String = get("MASKINPORTEN_SCOPES"),
-    ) : JwtConfig(authorityEndpoint)
-
-    @Serializable
-    data class OpenIdConfiguration(
-        @SerialName("jwks_uri") val jwksUri: String,
-        @SerialName("issuer") val issuer: String,
-        @SerialName("token_endpoint") val tokenEndpoint: String,
     )
 
     data object SKEConfig {
@@ -126,15 +113,5 @@ object PropertiesConfig {
     data object TimerConfig {
         val useTimer: Boolean = get("USE_TIMER").toBoolean()
         val intervalPeriod: Duration = get("TIMER_INTERVAL_PERIOD_HOURS").toInt().hours
-    }
-
-    open class JwtConfig(
-        private val wellKnownUrl: String,
-    ) {
-        val openIdConfiguration: OpenIdConfiguration by lazy {
-            runBlocking {
-                httpClient.get(wellKnownUrl).body()
-            }
-        }
     }
 }

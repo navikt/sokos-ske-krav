@@ -3,10 +3,10 @@ package sokos.ske.krav.domain
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.ktor.http.parsing.ParseException
 import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.domain.nav.KontrollLinjeFooter
 import sokos.ske.krav.domain.nav.KontrollLinjeHeader
-import sokos.ske.krav.domain.nav.ParseException
 import sokos.ske.krav.util.FtpTestUtil.getFileContent
 import java.math.BigDecimal
 

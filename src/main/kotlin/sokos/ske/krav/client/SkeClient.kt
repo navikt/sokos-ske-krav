@@ -17,7 +17,7 @@ import sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
 import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
 import sokos.ske.krav.domain.ske.requests.NyHovedStolRequest
 import sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
-import sokos.ske.krav.security.MaskinportenAccessTokenClient
+import sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import sokos.ske.krav.util.httpClient
 import java.util.UUID
 
@@ -31,7 +31,7 @@ private const val HENT_SKE_KRAVIDENT = "innkrevingsoppdrag/%s/avstemming?kravide
 private const val KLIENT_ID = "NAV/0.1"
 
 class SkeClient(
-    private val tokenProvider: MaskinportenAccessTokenClient = MaskinportenAccessTokenClient(PropertiesConfig.MaskinportenClientConfig(), httpClient),
+    private val tokenProvider: MaskinportenAccessTokenProvider = MaskinportenAccessTokenProvider(PropertiesConfig.MaskinportenClientConfig(), httpClient),
     private val skeEndpoint: String = PropertiesConfig.SKEConfig.skeRestUrl,
     private val client: HttpClient = httpClient,
 ) {
@@ -104,7 +104,7 @@ class SkeClient(
         path: String,
         corrID: String,
     ): HttpRequestBuilder {
-        val token = tokenProvider.hentAccessToken()
+        val token = tokenProvider.getAccessToken()
         return HttpRequestBuilder().apply {
             url("$skeEndpoint$path")
             headers {
