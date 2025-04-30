@@ -25,7 +25,7 @@ val kotlinxDatetimeVersion = "0.6.2"
 
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
-val prometheusVersion = "1.14.6"
+val prometheusVersion = "1.13.6"
 
 // DB
 val hikaricpVersion = "6.3.0"
