@@ -63,9 +63,9 @@ fun Routing.internalNaisRoutes(
         get("isReady") {
             healthCheckResponse(readinessCheck(), call, "I'm ready! :)", "Wait! I'm not ready yet! :O")
         }
-    }
-    get("metrics") {
-        call.respondText(Metrics.registry.scrape())
+        get("metrics") {
+            call.respondText(Metrics.registry.scrape())
+        }
     }
 }
 

@@ -121,7 +121,7 @@ tasks {
 
     withType<ShadowJar>().configureEach {
         enabled = true
-        archiveFileName.set("sokos-ske-krav.jar")
+        archiveFileName.set("app.jar")
         manifest {
             attributes["Main-Class"] = "sokos.ske.krav.ApplicationKt"
         }
