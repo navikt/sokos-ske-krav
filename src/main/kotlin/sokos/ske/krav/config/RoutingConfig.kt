@@ -6,10 +6,13 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 import sokos.ske.krav.ApplicationState
+import sokos.ske.krav.api.avstemmingRoutes
 import sokos.ske.krav.api.internalRoutes
+import sokos.ske.krav.service.Frontend
 import sokos.ske.krav.service.SkeService
 
 
+@OptIn(Frontend::class)
 fun Application.routingConfig(
     useAuthentication: Boolean,
     applicationState: ApplicationState,
@@ -17,9 +20,9 @@ fun Application.routingConfig(
 ) {
     routing {
         internalNaisRoutes(applicationState)
+        avstemmingRoutes()
         authenticate(useAuthentication, AUTHENTICATION_NAME) {
             internalRoutes(skeService)
-            // avstemmingRoutes()
         }
     }
 }

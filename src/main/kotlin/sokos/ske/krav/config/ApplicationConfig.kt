@@ -7,8 +7,10 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
 import io.ktor.server.metrics.micrometer.MicrometerMetrics
 import io.ktor.server.plugins.callid.CallId
+import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.path
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
@@ -20,14 +22,19 @@ import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.binder.system.UptimeMetrics
 import java.util.UUID
 import kotlinx.serialization.json.Json
+import mu.KotlinLogging
+import org.slf4j.event.Level
 import sokos.ske.krav.ApplicationState
 import sokos.ske.krav.metrics.Metrics
 
+private val logger = KotlinLogging.logger {}
+
 fun Application.commonConfig() {
-    install(CallId) {
-        header("nav-call-id")
-        generate { UUID.randomUUID().toString() }
-        verify { it.isNotEmpty() }
+    install(CallLogging) {
+        logger = sokos.ske.krav.config.logger
+        level = Level.INFO
+        filter { call -> call.request.path().startsWith("/api") }
+        disableDefaultColors()
     }
     install(ContentNegotiation) {
         json(

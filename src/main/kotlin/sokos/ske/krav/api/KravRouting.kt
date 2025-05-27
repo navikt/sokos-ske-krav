@@ -2,18 +2,18 @@ package sokos.ske.krav.api
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
-import io.ktor.server.routing.Routing
+import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import kotlinx.datetime.Clock
 import sokos.ske.krav.service.SkeService
 import sokos.ske.krav.service.StatusService
 
-fun Routing.internalRoutes(
+fun Route.internalRoutes(
     skeService: SkeService,
     statusService: StatusService = StatusService(),
 ) {
-    route("krav") {
+    route("api") {
         get("hentNye") {
 
             call.respond(HttpStatusCode.OK, "Startet henting av nye ${Clock.System.now()}")

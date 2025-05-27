@@ -6,7 +6,7 @@ import io.ktor.server.http.content.staticResources
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.response.respondText
-import io.ktor.server.routing.Routing
+import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
@@ -16,7 +16,7 @@ import sokos.ske.krav.service.RapportService
 import sokos.ske.krav.service.RapportType
 
 @OptIn(Frontend::class)
-fun Routing.avstemmingRoutes(rapportService: RapportService = RapportService()) {
+fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
     staticResources("/static", "static")
 
     route("rapporter") {
