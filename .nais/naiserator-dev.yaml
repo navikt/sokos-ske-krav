@@ -18,10 +18,13 @@ spec:
     requests:
       cpu: 500m
       memory: 512Mi
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
   azure:
     application:
       enabled: true
-      allowAllUsers: false
   liveness:
     path: /internal/isAlive
     initialDelay: 10
@@ -50,8 +53,6 @@ spec:
     scopes:
       consumes:
         - name: skatteetaten:innkrevingsoppdrag
-  secureLogs:
-    enabled: true
   vault:
     enabled: true
   env:

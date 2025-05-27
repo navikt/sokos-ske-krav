@@ -1,6 +1,5 @@
 package sokos.ske.krav.database.repository
 
-import sokos.ske.krav.config.secureLogger
 import java.math.BigDecimal
 import java.sql.Connection
 import java.sql.Date
@@ -11,12 +10,18 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 object RepositoryExtensions {
-    inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R =
-        runCatching {
+    inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R {
+        val logger = mu.KotlinLogging.logger {}
+        return runCatching {
             use(block)
-        }.onFailure { secureLogger.error(it.message) }.getOrThrow()
+        }.onFailure {
+            logger.error { it.message }
+        }.getOrThrow()
+    }
+
 
     inline fun <reified T> ResultSet.getColumn(columnLabel: String): T {
+        val logger = mu.KotlinLogging.logger {}
         val columnValue =
             when (T::class) {
                 Int::class -> getInt(columnLabel)
@@ -30,13 +35,13 @@ object RepositoryExtensions {
                 LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
 
                 else -> {
-                    secureLogger.error("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
+                    logger.error { "Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}" }
                     throw SQLException("Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}")
                 }
             }
 
         if (null !is T && columnValue == null) {
-            secureLogger.error("Påkrevet kolonne '$columnLabel' er null")
+            logger.error("Påkrevet kolonne '$columnLabel' er null")
             throw SQLException("Påkrevet kolonne '$columnLabel' er null")
         }
 

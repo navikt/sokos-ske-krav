@@ -52,6 +52,7 @@ dependencies {
     implementation("io.ktor:ktor-server-call-id-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-server-status-pages:${ktorVersion}")
     implementation("io.ktor:ktor-server-html-builder:$ktorVersion")
 
     // Ktor Client

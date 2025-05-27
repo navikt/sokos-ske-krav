@@ -1,11 +1,12 @@
 package sokos.ske.krav.validation
 
 import sokos.ske.krav.client.SlackService
-import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.domain.nav.FileParser
 import sokos.ske.krav.domain.nav.KontrollLinjeFooter
 import sokos.ske.krav.domain.nav.KontrollLinjeHeader
 import sokos.ske.krav.domain.nav.KravLinje
+
+private val logger = mu.KotlinLogging.logger {}
 
 class FileValidator(
     private val slackService: SlackService = SlackService(),
@@ -31,10 +32,10 @@ class FileValidator(
                     val kravLinjer =
                         runCatching {
                             parser.parseKravLinjer()
-                        }.onFailure {
-                            val exceptionMessage = it.message ?: "Ukjent feil"
+                        }.onFailure { exception ->
+                            val exceptionMessage = exception.message ?: "Ukjent feil"
                             add(ErrorKeys.PARSE_EXCEPTION to exceptionMessage)
-                            secureLogger.error(exceptionMessage)
+                            logger.error(exception) { exceptionMessage }
                         }.getOrNull() ?: return@buildList
 
                     validateLines(lastLine, firstLine, kravLinjer)
@@ -47,7 +48,7 @@ class FileValidator(
             return ValidationResult.Success(parser.parseKravLinjer())
         }
 
-        secureLogger.warn("*** Feil i validering av fil $fileName ***")
+        logger.warn("*** Feil i validering av fil $fileName ***")
 
         slackService.addError(fileName, "Feil i validering av fil", errorMessages)
         slackService.sendErrors()

@@ -3,9 +3,9 @@ package sokos.ske.krav.service
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
+import java.time.LocalDateTime
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.SlackService
-import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.database.models.FeilmeldingTable
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.Status
@@ -15,7 +15,8 @@ import sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
 import sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
 import sokos.ske.krav.util.createKravidentifikatorPair
 import sokos.ske.krav.util.parseTo
-import java.time.LocalDateTime
+
+private val logger = mu.KotlinLogging.logger {}
 
 class StatusService(
     private val skeClient: SkeClient = SkeClient(),
@@ -26,14 +27,14 @@ class StatusService(
         val kravListe = databaseService.getAllKravForStatusCheck()
         if (kravListe.isEmpty()) return
 
-        secureLogger.info("Sjekk av mottaksstatus -> Antall krav som ikke er reskontroført: ${kravListe.size}")
-        secureLogger.info("Oppdaterer status")
+        logger.info("Sjekk av mottaksstatus -> Antall krav som ikke er reskontroført: ${kravListe.size}")
+        logger.info("Oppdaterer status")
         val updated =
             kravListe.mapNotNull { krav ->
                 processKravStatus(krav)?.takeIf { it.mottaksStatus == "RESKONTROFOERT" }?.let { Pair(krav.status, it.mottaksStatus) }
             }
 
-        secureLogger.info { "Antall reskontroførte krav: ${updated.size}" }
+        logger.info { "Antall reskontroførte krav: ${updated.size}" }
         slackService.sendErrors()
     }
 
@@ -62,10 +63,10 @@ class StatusService(
                 header = feilmeldingHeader,
                 Pair(feilmelding.title, feilmelding.detail),
             )
-            secureLogger.error { "$funksjonsKall feilet: ${feilmelding.title}" }
+            logger.error { "$funksjonsKall feilet: ${feilmelding.title}" }
         } else {
             val responseBody = response.bodyAsText()
-            secureLogger.error { "$funksjonsKall feilet: ${response.status}: $responseBody" }
+            logger.error { "$funksjonsKall feilet: ${response.status}: $responseBody" }
         }
     }
 
@@ -88,7 +89,7 @@ class StatusService(
         }
 
         val valideringsfeil = response.parseTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
-        secureLogger.error("Asynk Valideringsfeil mottatt: ${valideringsfeil.joinToString { it.error }} ")
+        logger.error("Asynk Valideringsfeil mottatt: ${valideringsfeil.joinToString { it.error }} ")
 
         valideringsfeil.forEach {
             databaseService.saveFeilmelding(

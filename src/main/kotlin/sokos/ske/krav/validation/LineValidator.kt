@@ -1,12 +1,13 @@
 package sokos.ske.krav.validation
 
 import sokos.ske.krav.client.SlackService
-import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.domain.Status
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.DatabaseService
 import sokos.ske.krav.service.FtpFil
+
+private val logger = mu.KotlinLogging.logger {}
 
 class LineValidator(
     private val slackService: SlackService = SlackService(),
@@ -24,6 +25,7 @@ class LineValidator(
                     is ValidationResult.Success -> {
                         linje.copy(status = Status.KRAV_IKKE_SENDT.value)
                     }
+
                     is ValidationResult.Error -> {
                         slackMessages.addAll(result.messages)
 
@@ -34,7 +36,7 @@ class LineValidator(
             }
 
         if (slackMessages.isNotEmpty()) {
-            secureLogger.warn("Feil i validering av linjer i fil ${file.name}: ${slackMessages.joinToString { it.second }}")
+            logger.warn("Feil i validering av linjer i fil ${file.name}: ${slackMessages.joinToString { it.second }}")
             slackService.addError(file.name, "Feil i linjevalidering", slackMessages)
         }
         slackService.sendErrors()

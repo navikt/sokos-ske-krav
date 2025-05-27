@@ -5,26 +5,24 @@ import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import io.ktor.server.routing.routing
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import sokos.ske.krav.api.avstemmingRoutes
-import sokos.ske.krav.api.internalRoutes
 import sokos.ske.krav.config.PropertiesConfig
 import sokos.ske.krav.config.PropertiesConfig.TimerConfig.intervalPeriod
 import sokos.ske.krav.config.PropertiesConfig.TimerConfig.useTimer
 import sokos.ske.krav.config.commonConfig
-import sokos.ske.krav.config.internalNaisRoutes
+import sokos.ske.krav.config.routingConfig
+import sokos.ske.krav.config.securityConfig
 import sokos.ske.krav.database.PostgresDataSource
 import sokos.ske.krav.domain.StonadsType
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.Frontend
 import sokos.ske.krav.service.SkeService
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -32,16 +30,14 @@ fun main() {
 
 @OptIn(Frontend::class)
 private fun Application.module() {
+    val useAuthentication = PropertiesConfig.Configuration().useAuthentication
     val applicationState = ApplicationState()
     val skeService = SkeService()
 
     commonConfig()
     applicationLifecycleConfig(applicationState)
-    routing {
-        internalNaisRoutes(applicationState)
-        internalRoutes(skeService)
-        avstemmingRoutes()
-    }
+    securityConfig(useAuthentication)
+    routingConfig(useAuthentication, applicationState, skeService)
 
     if (!PropertiesConfig.isLocal) {
         PostgresDataSource.migrate()
@@ -53,8 +49,8 @@ private fun Application.module() {
 
     if (!useTimer) return
 
-    launchJob(skeService::handleNewKrav, intervalPeriod)
-    launchJob(skeService::checkKravDateForAlert, 24.hours)
+//    launchJob(skeService::handleNewKrav, intervalPeriod)
+//    launchJob(skeService::checkKravDateForAlert, 24.hours)
 }
 
 private fun launchJob(

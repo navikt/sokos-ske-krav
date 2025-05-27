@@ -1,4 +1,4 @@
-package sokos.ske.krav.util
+package sokos.ske.krav.config
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache

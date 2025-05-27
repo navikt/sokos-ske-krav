@@ -7,12 +7,9 @@ import com.natpryce.konfig.Key
 import com.natpryce.konfig.overriding
 import com.natpryce.konfig.stringType
 import com.nimbusds.jose.jwk.RSAKey
-import mu.KotlinLogging
 import java.io.File
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
-
-val secureLogger = KotlinLogging.logger("secureLogger")
 
 object PropertiesConfig {
     private val defaultProperties =
@@ -20,6 +17,7 @@ object PropertiesConfig {
             mapOf(
                 "NAIS_APP_NAME" to "sokos-ske-krav",
                 "NAIS_NAMESPACE" to "okonomi",
+                "USE_AUTHENTICATION" to "true",
                 "VAULT_MOUNTPATH" to "",
                 "TEAM_BEST_SLACK_WEBHOOK_URL" to "",
                 "USE_TIMER" to "false",
@@ -33,7 +31,6 @@ object PropertiesConfig {
                 "POSTGRES_NAME" to "test",
                 "POSTGRES_USERNAME" to "test",
                 "POSTGRES_PASSWORD" to "test",
-                // "POSTGRES_HOST" to "",
             ),
         )
     private val localDevProperties =
@@ -56,9 +53,9 @@ object PropertiesConfig {
             "prod-fss" -> ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding prodProperties overriding defaultProperties
             else ->
                 ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding
-                    ConfigurationProperties.fromOptionalFile(
-                        File("defaults.properties"),
-                    ) overriding localDevProperties overriding defaultProperties
+                        ConfigurationProperties.fromOptionalFile(
+                            File("defaults.properties"),
+                        ) overriding localDevProperties overriding defaultProperties
         }
 
     enum class Profile {
@@ -74,6 +71,14 @@ object PropertiesConfig {
     data class Configuration(
         val naisAppName: String = get("NAIS_APP_NAME"),
         val profile: Profile = Profile.valueOf(this["APPLICATION_PROFILE"]),
+        val useAuthentication: Boolean = get("USE_AUTHENTICATION").toBoolean(),
+    )
+
+    data class AzureAdProperties(
+        val clientId: String = get("AZURE_APP_CLIENT_ID"),
+        val wellKnownUrl: String = get("AZURE_APP_WELL_KNOWN_URL"),
+        val tenantId: String = get("AZURE_APP_TENANT_ID"),
+        val clientSecret: String = get("AZURE_APP_CLIENT_SECRET"),
     )
 
     data class SftpProperties(

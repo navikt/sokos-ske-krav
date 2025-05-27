@@ -1,10 +1,12 @@
 package sokos.ske.krav.service
 
 import io.ktor.http.isSuccess
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.delay
 import sokos.ske.krav.client.SkeClient
 import sokos.ske.krav.client.SlackService
-import sokos.ske.krav.config.secureLogger
 import sokos.ske.krav.database.models.KravTable
 import sokos.ske.krav.domain.nav.KravLinje
 import sokos.ske.krav.domain.ske.responses.AvstemmingResponse
@@ -14,14 +16,13 @@ import sokos.ske.krav.util.RequestResult
 import sokos.ske.krav.util.isOpprettKrav
 import sokos.ske.krav.util.parseTo
 import sokos.ske.krav.validation.LineValidator
-import java.time.Duration
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRING_RENTE = "ENDRING_RENTE"
 const val ENDRING_HOVEDSTOL = "ENDRING_HOVEDSTOL"
 const val STOPP_KRAV = "STOPP_KRAV"
+
+private val logger = mu.KotlinLogging.logger {}
 
 class SkeService(
     private val skeClient: SkeClient = SkeClient(),
@@ -37,7 +38,7 @@ class SkeService(
 
     suspend fun handleNewKrav() {
         if (haltRun) {
-            secureLogger.info("*** Kjøring er blokkert ***")
+            logger.info("*** Kjøring er blokkert ***")
             return
         }
 
@@ -50,14 +51,14 @@ class SkeService(
 
         if (haltRun) {
             haltRun = false
-            secureLogger.info("*** Kjøring er ublokkert ***")
+            logger.info("*** Kjøring er ublokkert ***")
         }
     }
 
     private suspend fun resendKrav() {
         statusService.getMottaksStatus()
         databaseService.getAllKravForResending().takeIf { it.isNotEmpty() }?.let {
-            secureLogger.info("Resender ${it.size} krav")
+            logger.info("Resender ${it.size} krav")
             Metrics.numberOfKravResent.increment(sendKrav(it).size.toDouble())
         }
     }
@@ -67,9 +68,9 @@ class SkeService(
         if (files.isNotEmpty()) {
             val filtekst = if (files.size == 1) "fil" else "filer"
             val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"))
-            secureLogger.info("*** Starter sending av ${files.size} $filtekst $datetime***")
+            logger.info("*** Starter sending av ${files.size} $filtekst $datetime***")
         } else {
-            secureLogger.info("*** Ingen nye filer ***")
+            logger.info("*** Ingen nye filer ***")
         }
 
         files.forEach { file ->
@@ -79,7 +80,7 @@ class SkeService(
     }
 
     private suspend fun processFile(file: FtpFil) {
-        secureLogger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
+        logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
         val validatedLines = LineValidator().validateNewLines(file, databaseService)
 
         handleValidationResults(file, validatedLines)
@@ -91,12 +92,12 @@ class SkeService(
     }
 
     private suspend fun sendKrav(kravTableList: List<KravTable>): List<RequestResult> {
-        if (kravTableList.isNotEmpty()) secureLogger.info("Sender ${kravTableList.size}")
+        if (kravTableList.isNotEmpty()) logger.info("Sender ${kravTableList.size}")
 
         val allResponses =
             opprettKravService.sendAllOpprettKrav(kravTableList.filter { it.kravtype == NYTT_KRAV }) +
-                endreKravService.sendAllEndreKrav(kravTableList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }) +
-                stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV })
+                    endreKravService.sendAllEndreKrav(kravTableList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }) +
+                    stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV })
 
         handleErrors(allResponses, databaseService)
 
@@ -129,7 +130,7 @@ class SkeService(
                         "Saksnummer: ${krav.saksnummerNav} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
                     ),
                 )
-                secureLogger.error { "Fant ikke gyldig kravidentifikator for migrert krav:  ${krav.referansenummerGammelSak} " }
+                logger.error { "Fant ikke gyldig kravidentifikator for migrert krav:  ${krav.referansenummerGammelSak} " }
             }
         }
     }
@@ -139,10 +140,10 @@ class SkeService(
         validatedLines: List<KravLinje>,
     ) {
         if (file.kravLinjer.size > validatedLines.size) {
-            secureLogger.warn("Ved validering av linjer i fil ${file.name} har ${file.kravLinjer.size - validatedLines.size} linjer velideringsfeil ")
+            logger.warn("Ved validering av linjer i fil ${file.name} har ${file.kravLinjer.size - validatedLines.size} linjer velideringsfeil ")
         }
         if (validatedLines.size >= 1000) {
-            secureLogger.info("***Stor fil. Blokkerer kjøring***")
+            logger.info("***Stor fil. Blokkerer kjøring***")
             haltRun = true
         }
     }
@@ -172,7 +173,7 @@ class SkeService(
             .getAllKravForStatusCheck()
             .filter { it.tidspunktSendt?.isBefore((LocalDateTime.now().minusHours(24))) == true }
             .also {
-                if (it.isNotEmpty()) secureLogger.info { "Krav med saksnummer ${it.joinToString { krav -> krav.saksnummerNAV }} har blitt forsøkt resendt i over én dag" }
+                if (it.isNotEmpty()) logger.info { "Krav med saksnummer ${it.joinToString { krav -> krav.saksnummerNAV }} har blitt forsøkt resendt i over én dag" }
             }.forEach {
                 slackService.addError(
                     it.filnavn,
@@ -180,7 +181,7 @@ class SkeService(
                     Pair(
                         "Krav har blitt forsøkt resendt i over 24t",
                         "Krav med saksnummer ${it.saksnummerNAV} har blitt forsøkt resendt i ${Duration.between(it.tidspunktSendt, LocalDateTime.now()).toDays()} dager.\n" +
-                            "Kravet har status ${it.status} og ble originalt sendt ${it.tidspunktSendt?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"))}",
+                                "Kravet har status ${it.status} og ble originalt sendt ${it.tidspunktSendt?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"))}",
                     ),
                 )
             }
@@ -190,11 +191,11 @@ class SkeService(
     private fun logResult(result: List<RequestResult>) {
         val successful = result.filter { it.response.status.isSuccess() }
         val unsuccessful = result.size - successful.size
-        secureLogger.info { "Sendte ${result.size} krav${if (unsuccessful > 0) ". $unsuccessful feilet" else ""}" }
+        logger.info { "Sendte ${result.size} krav${if (unsuccessful > 0) ". $unsuccessful feilet" else ""}" }
 
         val nye = successful.count { it.kravTable.kravtype == NYTT_KRAV }
         val endringer = successful.count { it.kravTable.kravtype == ENDRING_RENTE } + successful.count { it.kravTable.kravtype == ENDRING_HOVEDSTOL }
         val stopp = successful.count { it.kravTable.kravtype == STOPP_KRAV }
-        secureLogger.info { "$nye nye, $endringer endringer, $stopp stopp" }
+        logger.info { "$nye nye, $endringer endringer, $stopp stopp" }
     }
 }

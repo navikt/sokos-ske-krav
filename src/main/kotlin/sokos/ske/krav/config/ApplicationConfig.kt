@@ -8,6 +8,7 @@ import io.ktor.server.application.install
 import io.ktor.server.metrics.micrometer.MicrometerMetrics
 import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
@@ -17,10 +18,10 @@ import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.binder.system.UptimeMetrics
+import java.util.UUID
 import kotlinx.serialization.json.Json
 import sokos.ske.krav.ApplicationState
 import sokos.ske.krav.metrics.Metrics
-import java.util.UUID
 
 fun Application.commonConfig() {
     install(CallId) {
@@ -36,6 +37,9 @@ fun Application.commonConfig() {
                 explicitNulls = false
             },
         )
+    }
+    install(StatusPages) {
+        statusPageConfig()
     }
 
     install(MicrometerMetrics) {

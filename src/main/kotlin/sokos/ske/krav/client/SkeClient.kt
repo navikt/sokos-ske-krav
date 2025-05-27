@@ -18,7 +18,7 @@ import sokos.ske.krav.domain.ske.requests.KravidentifikatorType
 import sokos.ske.krav.domain.ske.requests.NyHovedStolRequest
 import sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
 import sokos.ske.krav.security.MaskinportenAccessTokenProvider
-import sokos.ske.krav.util.httpClient
+import sokos.ske.krav.config.httpClient
 import java.util.UUID
 
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
