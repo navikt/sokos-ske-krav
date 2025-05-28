@@ -72,6 +72,8 @@ object PropertiesConfig {
         val naisAppName: String = get("NAIS_APP_NAME"),
         val profile: Profile = Profile.valueOf(this["APPLICATION_PROFILE"]),
         val useAuthentication: Boolean = get("USE_AUTHENTICATION").toBoolean(),
+        val basicUsername: String = "user",
+        val basicPassword: String = "password",
     )
 
     data class AzureAdProperties(

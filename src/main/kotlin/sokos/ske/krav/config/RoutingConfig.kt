@@ -20,7 +20,9 @@ fun Application.routingConfig(
 ) {
     routing {
         internalNaisRoutes(applicationState)
-        avstemmingRoutes()
+        authenticate(useAuthentication, BASIC_AUTH_NAME) {
+            avstemmingRoutes()
+        }
         authenticate(useAuthentication, AUTHENTICATION_NAME) {
             internalRoutes(skeService)
         }

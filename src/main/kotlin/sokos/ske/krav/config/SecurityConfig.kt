@@ -5,7 +5,9 @@ import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.server.application.Application
+import io.ktor.server.auth.UserIdPrincipal
 import io.ktor.server.auth.authentication
+import io.ktor.server.auth.basic
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import java.net.URI
@@ -17,6 +19,7 @@ import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 const val AUTHENTICATION_NAME = "azureAd"
+const val BASIC_AUTH_NAME = "basicAuth"
 
 fun Application.securityConfig(
     useAuthentication: Boolean,
@@ -51,6 +54,19 @@ fun Application.securityConfig(
                     }
                 }
             }
+
+            basic(BASIC_AUTH_NAME) {
+                realm = "Rapport Access"
+                validate { credentials ->
+                    val config = PropertiesConfig.Configuration()
+                    if (credentials.name == config.basicUsername && credentials.password == config.basicPassword) {
+                        UserIdPrincipal(credentials.name)
+                    } else {
+                        null
+                    }
+                }
+            }
+
         }
     }
 }

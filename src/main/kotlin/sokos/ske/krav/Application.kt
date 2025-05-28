@@ -23,10 +23,13 @@ import sokos.ske.krav.domain.StonadsType
 import sokos.ske.krav.metrics.Metrics
 import sokos.ske.krav.service.Frontend
 import sokos.ske.krav.service.SkeService
+import sokos.ske.krav.util.TraceUtils
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
 }
+
+private val logger = mu.KotlinLogging.logger {}
 
 @OptIn(Frontend::class)
 private fun Application.module() {
@@ -49,8 +52,8 @@ private fun Application.module() {
 
     if (!useTimer) return
 
-//    launchJob(skeService::handleNewKrav, intervalPeriod)
-//    launchJob(skeService::checkKravDateForAlert, 24.hours)
+    launchJob(skeService::handleNewKrav, intervalPeriod)
+    launchJob(skeService::checkKravDateForAlert, 24.hours)
 }
 
 private fun launchJob(
@@ -60,10 +63,12 @@ private fun launchJob(
     CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
         while (true) {
             try {
-                function()
+                TraceUtils.withTracerId {
+                    function()
+                }
                 delay(delayDuration)
             } catch (e: Exception) {
-                println("Error in scheduled task: ${e.message}")
+                logger.error(e) { "Error in scheduled task: ${e.message}" }
                 delay(delayDuration / 2)
             }
         }
