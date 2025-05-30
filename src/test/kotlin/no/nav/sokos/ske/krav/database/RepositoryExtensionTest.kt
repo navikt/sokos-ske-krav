@@ -2,15 +2,16 @@ package no.nav.sokos.ske.krav.database
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
+import java.sql.SQLException
 import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.getColumn
 import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.useAndHandleErrors
 import no.nav.sokos.ske.krav.database.repository.toFeilmelding
 import no.nav.sokos.ske.krav.util.TestContainer
-import java.sql.SQLException
 
 internal class RepositoryExtensionTest :
     FunSpec({
         val testContainer = TestContainer()
+
         test("getColumn skal kaste exception hvis den ikke kan parse datatypen") {
             shouldThrow<SQLException> {
                 testContainer.dataSource.connection.use {
