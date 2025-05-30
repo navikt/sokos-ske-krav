@@ -72,8 +72,6 @@ spec:
       value: sokos-ske-krav
     - name: VAULT_MOUNTPATH
       value: postgresql/prod-fss/
-    - name: LOG_APPENDER
-      value: CONSOLE
     - name: USE_TIMER
       value: "true"
     - name: TIMER_INITIAL_DELAY
