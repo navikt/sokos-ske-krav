@@ -128,7 +128,7 @@ tasks {
         enabled = true
         archiveFileName.set("app.jar")
         manifest {
-            attributes["Main-Class"] = "sokos.ske.krav.ApplicationKt"
+            attributes["Main-Class"] = "no.nav.sokos.ske.krav.ApplicationKt"
         }
         finalizedBy(koverHtmlReport)
         mergeServiceFiles {
