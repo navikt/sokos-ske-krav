@@ -1,46 +1,29 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
-    </appender>
-
-
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>
-                %green(%d{dd-MM-yyyy HH:mm:ss}) [%X{X-Correlation-ID}] %cyan([%-5.5t]) %boldCyan(%0.-5p) %yellow(%logger{36}) %cyan(:) %m%n
+                %green(%d{HH:mm:ss}) %cyan([%-5.5t]) %boldCyan(%0.-5p) %yellow(%logger{36}) %cyan(:) %m%n
             </pattern>
         </encoder>
     </appender>
 
-    <appender name="secureLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/secure-logs/secure.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <fileNamePattern>/secure-logs/secure.log.%i</fileNamePattern>
-            <minIndex>1</minIndex>
-            <maxIndex>1</maxIndex>
-        </rollingPolicy>
-        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>50MB</maxFileSize>
-        </triggeringPolicy>
+    <appender name="default-json" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+                <marker>TEAM_LOGS</marker>
+            </evaluator>
+            <OnMatch>DENY</OnMatch>
+            <OnMismatch>ACCEPT</OnMismatch>
+        </filter>
     </appender>
-
-
-
-    <if condition='isDefined("NAIS_CLUSTER_NAME")'>
-        <then>
-            <logger name="secureLogger" level="DEBUG" additivity="false">
-                <appender-ref ref="${LOG_APPENDER:-secureLog}"/>
-            </logger>
-        </then>
-    </if>
 
     <if condition='isDefined("NAIS_CLUSTER_NAME")'>
         <then>
             <root level="INFO">
-                <appender-ref ref="STDOUT"/>
+                <appender-ref ref="${LOG_APPENDER:-default-json}"/>
             </root>
         </then>
         <else>
@@ -51,18 +34,4 @@
     </if>
 
     <logger name="no.nav.sokos.ske.krav" level="INFO"/>
-
-    <logger name="com.jcraft.jsch" level="WARN" additivity="false"/>
-    <logger name="org.flywaydb.core.FlywayExecutor" level="WARN" additivity="false"/>
-    <logger name="org.flywaydb.core.internal.command.DbValidate" level="WARN" additivity="false"/>
-    <logger name="org.flywaydb.core.internal.command.DbMigrate" level="WARN" additivity="false"/>
-    <logger name="com.zaxxer.hikari.HikariDataSource" level="WARN" additivity="false"/>
-    <logger name="io.micrometer.core.instrument.push.PushMeterRegistry" level="WARN" additivity="false"/>
-    <logger name="io.micrometer.prometheusmetrics.PrometheusMeterRegistry" level="WARN" additivity="false"/>
-    <logger name="no.nav.vault.jdbc.hikaricp.VaultUtil" level="WARN" additivity="false"/>
-    <logger name="no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil" level="WARN" additivity="false"/>
-    <logger name="no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil" level="WARN" additivity="false"/>
-
-
-
 </configuration>

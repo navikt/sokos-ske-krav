@@ -18,10 +18,13 @@ spec:
     requests:
       cpu: 500m
       memory: 512Mi
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
   azure:
     application:
       enabled: true
-      allowAllUsers: false
   liveness:
     path: /internal/isAlive
     initialDelay: 10
@@ -42,6 +45,7 @@ spec:
       mountPath: /var/run/secrets/ske-sftp-private-key
   envFrom:
     - secret: ske-sftp-creds
+    - secret: sokos-ske-krav-basic-credentials
     - secret: team-best-slackbot-webhook
   ingresses:
     - https://sokos-ske-krav.intern.nav.no
@@ -50,8 +54,6 @@ spec:
     scopes:
       consumes:
         - name: skatteetaten:innkrevingsoppdrag
-  secureLogs:
-    enabled: true
   vault:
     enabled: true
   env:
@@ -71,8 +73,6 @@ spec:
       value: sokos-ske-krav
     - name: VAULT_MOUNTPATH
       value: postgresql/prod-fss/
-    - name: LOG_APPENDER
-      value: CONSOLE
     - name: USE_TIMER
       value: "true"
     - name: TIMER_INITIAL_DELAY

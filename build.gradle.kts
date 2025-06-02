@@ -1,12 +1,16 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import kotlinx.kover.gradle.plugin.dsl.tasks.KoverReport
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "2.1.21"
     kotlin("plugin.serialization") version "2.1.21"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("org.jlleitschuh.gradle.ktlint") version "12.3.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
 
@@ -26,6 +30,7 @@ val kotlinxDatetimeVersion = "0.6.2"
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
 val prometheusVersion = "1.15.0"
+val opentelemetryVersion = "2.16.0-alpha"
 
 // DB
 val hikaricpVersion = "6.3.0"
@@ -52,6 +57,7 @@ dependencies {
     implementation("io.ktor:ktor-server-call-id-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-html-builder:$ktorVersion")
 
     // Ktor Client
@@ -82,6 +88,9 @@ dependencies {
 
     // Config
     implementation("com.natpryce:konfig:$konfigVersion")
+
+    // Opentelemetry
+    implementation("io.opentelemetry.instrumentation:opentelemetry-ktor-3.0:$opentelemetryVersion")
 
     // metrics
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
@@ -118,12 +127,15 @@ sourceSets {
 }
 
 tasks {
+    withType<KotlinCompile>().configureEach {
+        dependsOn("ktlintFormat")
+    }
 
     withType<ShadowJar>().configureEach {
         enabled = true
         archiveFileName.set("app.jar")
         manifest {
-            attributes["Main-Class"] = "sokos.ske.krav.ApplicationKt"
+            attributes["Main-Class"] = "no.nav.sokos.ske.krav.ApplicationKt"
         }
         finalizedBy(koverHtmlReport)
         mergeServiceFiles {
@@ -176,5 +188,28 @@ tasks {
 
     withType<Wrapper> {
         gradleVersion = "8.9"
+    }
+
+    ("build") {
+        dependsOn("copyPreCommitHook")
+    }
+
+    register<Copy>("copyPreCommitHook") {
+        from(".scripts/pre-commit")
+        into(".git/hooks")
+        filePermissions {
+            user {
+                execute = true
+            }
+        }
+        doFirst {
+            println("Installing git hooks...")
+        }
+        doLast {
+            println("Git hooks installed successfully.")
+        }
+        description = "Copy pre-commit hook to .git/hooks"
+        group = "git hooks"
+        outputs.upToDateWhen { false }
     }
 }
