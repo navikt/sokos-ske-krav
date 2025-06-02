@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.database.repository
 
 import java.sql.ResultSet
+
 import no.nav.sokos.ske.krav.database.models.FeilmeldingTable
 import no.nav.sokos.ske.krav.database.models.KravTable
 import no.nav.sokos.ske.krav.database.models.ValideringsfeilTable

@@ -1,10 +1,13 @@
 package no.nav.sokos.ske.krav.service
 
-import io.ktor.http.isSuccess
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
 import kotlinx.coroutines.delay
+
+import io.ktor.http.isSuccess
+
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.database.models.KravTable
@@ -96,8 +99,8 @@ class SkeService(
 
         val allResponses =
             opprettKravService.sendAllOpprettKrav(kravTableList.filter { it.kravtype == NYTT_KRAV }) +
-                    endreKravService.sendAllEndreKrav(kravTableList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }) +
-                    stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV })
+                endreKravService.sendAllEndreKrav(kravTableList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }) +
+                stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV })
 
         handleErrors(allResponses, databaseService)
 
@@ -181,7 +184,7 @@ class SkeService(
                     Pair(
                         "Krav har blitt forsøkt resendt i over 24t",
                         "Krav med saksnummer ${it.saksnummerNAV} har blitt forsøkt resendt i ${Duration.between(it.tidspunktSendt, LocalDateTime.now()).toDays()} dager.\n" +
-                                "Kravet har status ${it.status} og ble originalt sendt ${it.tidspunktSendt?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"))}",
+                            "Kravet har status ${it.status} og ble originalt sendt ${it.tidspunktSendt?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"))}",
                     ),
                 )
             }

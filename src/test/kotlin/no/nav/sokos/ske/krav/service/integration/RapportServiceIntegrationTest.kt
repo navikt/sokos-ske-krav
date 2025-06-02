@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService

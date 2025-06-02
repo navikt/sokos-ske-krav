@@ -1,17 +1,19 @@
 package no.nav.sokos.ske.krav.service.unit
 
+import java.time.LocalDateTime
+
 import io.kotest.core.spec.style.BehaviorSpec
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
+
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.database.models.KravTable
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.util.MockHttpClient
 import no.nav.sokos.ske.krav.util.setupSkeServiceMock
-import java.time.LocalDateTime
 
 class SkeServiceTest :
     BehaviorSpec({

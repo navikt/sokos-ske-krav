@@ -5,6 +5,7 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
+
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 
@@ -123,14 +124,14 @@ internal class SlackServiceTest :
                 "Validation",
                 mapOf(
                     "DateError" to
-                            listOf(
-                                "Invalid date format on line 1",
-                                "Invalid date format on line 2",
-                                "Invalid date format on line 3",
-                                "Invalid date format on line 4",
-                                "Invalid date format on line 5",
-                                "Invalid date format on line 6",
-                            ),
+                        listOf(
+                            "Invalid date format on line 1",
+                            "Invalid date format on line 2",
+                            "Invalid date format on line 3",
+                            "Invalid date format on line 4",
+                            "Invalid date format on line 5",
+                            "Invalid date format on line 6",
+                        ),
                     "LengthError" to lengthErrorList,
                 ),
             )

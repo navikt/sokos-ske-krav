@@ -10,6 +10,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+
 import no.nav.sokos.ske.krav.frontend.RapportTemplate
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService

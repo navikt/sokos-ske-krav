@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.validation
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.domain.nav.KravLinje
 import no.nav.sokos.ske.krav.util.isOpprettKrav

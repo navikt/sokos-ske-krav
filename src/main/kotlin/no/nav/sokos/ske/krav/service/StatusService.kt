@@ -1,9 +1,11 @@
 package no.nav.sokos.ske.krav.service
 
+import java.time.LocalDateTime
+
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
-import java.time.LocalDateTime
+
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.database.models.FeilmeldingTable

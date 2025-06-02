@@ -1,6 +1,5 @@
 package no.nav.sokos.ske.krav.frontend
 
-import io.ktor.server.html.Template
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
@@ -15,6 +14,9 @@ import kotlinx.html.td
 import kotlinx.html.th
 import kotlinx.html.tr
 import kotlinx.html.ul
+
+import io.ktor.server.html.Template
+
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService

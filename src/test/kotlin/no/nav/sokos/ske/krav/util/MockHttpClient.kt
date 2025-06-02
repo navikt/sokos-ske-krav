@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.util
 
+import kotlinx.serialization.json.Json
+
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -8,7 +10,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
+
 import no.nav.sokos.ske.krav.domain.Status
 
 object MockHttpClientUtils {

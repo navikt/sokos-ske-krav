@@ -1,10 +1,12 @@
 package no.nav.sokos.ske.krav.service
 
+import java.time.LocalDateTime
+
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
-import java.time.LocalDateTime
+
 import no.nav.sokos.ske.krav.database.PostgresDataSource
 import no.nav.sokos.ske.krav.database.models.FeilmeldingTable
 import no.nav.sokos.ske.krav.database.models.KravTable

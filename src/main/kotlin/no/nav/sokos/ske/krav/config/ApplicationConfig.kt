@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.config
 
+import kotlinx.serialization.json.Json
+
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -19,11 +21,11 @@ import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.binder.system.UptimeMetrics
-import kotlinx.serialization.json.Json
 import mu.KotlinLogging
+import org.slf4j.event.Level
+
 import no.nav.sokos.ske.krav.ApplicationState
 import no.nav.sokos.ske.krav.metrics.Metrics
-import org.slf4j.event.Level
 
 private val logger = KotlinLogging.logger {}
 

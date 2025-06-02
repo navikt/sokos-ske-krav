@@ -1,11 +1,13 @@
 package no.nav.sokos.ske.krav.frontend
 
-import io.ktor.server.html.Template
 import kotlinx.html.FlowContent
 import kotlinx.html.table
 import kotlinx.html.td
 import kotlinx.html.th
 import kotlinx.html.tr
+
+import io.ktor.server.html.Template
+
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService
 import no.nav.sokos.ske.krav.service.RapportService.RapportObjekt

@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.util
 
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.isSuccess
+
 import no.nav.sokos.ske.krav.database.models.KravTable
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.ske.responses.FeilResponse

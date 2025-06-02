@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
+
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.service.DatabaseService

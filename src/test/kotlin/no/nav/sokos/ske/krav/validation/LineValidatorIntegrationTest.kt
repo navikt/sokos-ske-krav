@@ -8,6 +8,7 @@ import io.kotest.matchers.string.shouldNotContain
 import io.mockk.coVerify
 import io.mockk.slot
 import io.mockk.spyk
+
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig

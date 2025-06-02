@@ -7,6 +7,7 @@ import io.kotest.matchers.string.shouldNotContain
 import io.mockk.coVerify
 import io.mockk.slot
 import io.mockk.spyk
+
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
@@ -28,7 +29,12 @@ internal class FileValidatorIntegrationTest :
             return spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
         }
 
-        fun setupFtpService(slackServiceSpy: SlackService): FtpService = FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(slackService = slackServiceSpy), databaseService = dbService)
+        fun setupFtpService(slackServiceSpy: SlackService): FtpService =
+            FtpService(
+                SftpConfig(SftpListener.sftpProperties),
+                fileValidator = FileValidator(slackService = slackServiceSpy),
+                databaseService = dbService,
+            )
 
         Given("Fil er OK") {
             val slackServiceSpy = setupSlackService()

@@ -1,10 +1,12 @@
 package no.nav.sokos.ske.krav.validation
 
+import java.math.BigDecimal
+import java.time.LocalDate
+
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
-import java.math.BigDecimal
-import java.time.LocalDate
+
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.domain.Status
@@ -186,5 +188,11 @@ private fun getKravlinjer(): MutableList<KravLinje> {
             utbetalDato = LocalDate.now().minusDays(1),
             fagsystemId = "1234",
         )
-    return mutableListOf(okLinje, okLinje.copy(linjenummer = 2, saksnummerNav = "saksnummer2"), okLinje.copy(linjenummer = 3, saksnummerNav = "saksnummer3"), okLinje.copy(linjenummer = 4, saksnummerNav = "saksnummer4"), okLinje.copy(linjenummer = 5, saksnummerNav = "saksnummer5"))
+    return mutableListOf(
+        okLinje,
+        okLinje.copy(linjenummer = 2, saksnummerNav = "saksnummer2"),
+        okLinje.copy(linjenummer = 3, saksnummerNav = "saksnummer3"),
+        okLinje.copy(linjenummer = 4, saksnummerNav = "saksnummer4"),
+        okLinje.copy(linjenummer = 5, saksnummerNav = "saksnummer5"),
+    )
 }

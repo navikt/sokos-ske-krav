@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.service.integration
 
+import kotlinx.serialization.json.Json
+
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.body
@@ -7,7 +9,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.serialization.json.Json
+
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
@@ -63,16 +65,16 @@ internal class SkeServiceIntegrationTest :
             val skeClient =
                 mockk<SkeClient> {
                     coEvery { getSkeKravidentifikator("8888-migrert") } returns
-                            mockk<HttpResponse> {
-                                coEvery { body<AvstemmingResponse>() } returns AvstemmingResponse("avstemming8888-skeUUID")
-                                coEvery { status } returns HttpStatusCode.OK
-                            }
+                        mockk<HttpResponse> {
+                            coEvery { body<AvstemmingResponse>() } returns AvstemmingResponse("avstemming8888-skeUUID")
+                            coEvery { status } returns HttpStatusCode.OK
+                        }
 
                     coEvery { getSkeKravidentifikator("2222-migrert") } returns
-                            mockk<HttpResponse> {
-                                coEvery { body<AvstemmingResponse>() } returns AvstemmingResponse("avstemming2222-skeUUID")
-                                coEvery { status } returns HttpStatusCode.OK
-                            }
+                        mockk<HttpResponse> {
+                            coEvery { body<AvstemmingResponse>() } returns AvstemmingResponse("avstemming2222-skeUUID")
+                            coEvery { status } returns HttpStatusCode.OK
+                        }
                 }
 
             val dbService = DatabaseService(testContainer.dataSource)
@@ -115,15 +117,15 @@ internal class SkeServiceIntegrationTest :
             val skeClient =
                 mockk<SkeClient> {
                     coEvery { getSkeKravidentifikator(any()) } returns
-                            mockk<HttpResponse> {
-                                coEvery { body<AvstemmingResponse>().kravidentifikator } returns "foo"
-                                coEvery { status } returns HttpStatusCode.OK
-                            }
+                        mockk<HttpResponse> {
+                            coEvery { body<AvstemmingResponse>().kravidentifikator } returns "foo"
+                            coEvery { status } returns HttpStatusCode.OK
+                        }
                     coEvery { getMottaksStatus(any(), any()) } returns
-                            mockk<HttpResponse> {
-                                coEvery { body<MottaksStatusResponse>().mottaksStatus } returns "RESKONTROFOERT"
-                                coEvery { status } returns HttpStatusCode.OK
-                            }
+                        mockk<HttpResponse> {
+                            coEvery { body<MottaksStatusResponse>().mottaksStatus } returns "RESKONTROFOERT"
+                            coEvery { status } returns HttpStatusCode.OK
+                        }
                 }
             val dbService = DatabaseService(testContainer.dataSource)
             val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dbService, ftpService = ftpService)

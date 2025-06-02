@@ -1,9 +1,11 @@
 package no.nav.sokos.ske.krav.database
 
+import java.time.LocalDate
+
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.shouldBe
-import java.time.LocalDate
+
 import no.nav.sokos.ske.krav.database.repository.FeilmeldingRepository.getFeilmeldingForKravId
 import no.nav.sokos.ske.krav.database.repository.KravRepository.getAllKravForAvstemming
 import no.nav.sokos.ske.krav.database.repository.KravRepository.getAllKravForResending
@@ -44,7 +46,13 @@ internal class RepositoryTestKrav :
 
             kravForResending.size shouldBe 9
             kravForResending.forEach {
-                it.status.shouldBeIn(Status.KRAV_IKKE_SENDT.value, Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value, Status.HTTP500_ANNEN_SERVER_FEIL.value, Status.HTTP503_UTILGJENGELIG_TJENESTE.value, Status.HTTP500_INTERN_TJENERFEIL.value)
+                it.status.shouldBeIn(
+                    Status.KRAV_IKKE_SENDT.value,
+                    Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value,
+                    Status.HTTP500_ANNEN_SERVER_FEIL.value,
+                    Status.HTTP503_UTILGJENGELIG_TJENESTE.value,
+                    Status.HTTP500_INTERN_TJENERFEIL.value,
+                )
             }
         }
         test("getAllUnsentKrav skal returnere krav som har status KRAV_IKKE_SENDT") {

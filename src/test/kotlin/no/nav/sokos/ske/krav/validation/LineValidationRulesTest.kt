@@ -1,10 +1,12 @@
 package no.nav.sokos.ske.krav.validation
 
+import java.math.BigDecimal
+import java.time.LocalDate
+
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import java.math.BigDecimal
-import java.time.LocalDate
+
 import no.nav.sokos.ske.krav.domain.nav.KravLinje
 
 internal class LineValidationRulesTest :

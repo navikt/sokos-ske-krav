@@ -6,6 +6,7 @@ import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.spyk
+
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.database.models.KravTable
 import no.nav.sokos.ske.krav.service.DatabaseService
@@ -30,10 +31,10 @@ class StoppKravServiceTest :
             val stoppKravMock = spyk(StoppKravService(mockk<SkeClient>(), databaseServiceMock), recordPrivateCalls = true)
 
             every { stoppKravMock["sendStoppKrav"](any<KravTable>()) } returnsMany
-                    listOf(
-                        RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "123", defineStatus(mockHttpResponse(404))),
-                        RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "456", defineStatus(mockHttpResponse(200))),
-                    )
+                listOf(
+                    RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "123", defineStatus(mockHttpResponse(404))),
+                    RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "456", defineStatus(mockHttpResponse(200))),
+                )
             val result = stoppKravMock.sendAllStoppKrav(listOf(kravTableMock, kravTableMock))
 
             result.size shouldBe 2

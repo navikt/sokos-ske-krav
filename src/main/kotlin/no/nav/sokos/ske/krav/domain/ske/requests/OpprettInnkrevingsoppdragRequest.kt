@@ -3,6 +3,7 @@ package no.nav.sokos.ske.krav.domain.ske.requests
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+
 import no.nav.sokos.ske.krav.domain.StonadsType
 
 @Serializable

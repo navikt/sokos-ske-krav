@@ -1,5 +1,9 @@
 package no.nav.sokos.ske.krav.util
 
+import java.io.File
+import java.io.Reader
+import java.sql.Connection
+
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
@@ -8,9 +12,7 @@ import io.mockk.coJustRun
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
-import java.io.File
-import java.io.Reader
-import java.sql.Connection
+
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService

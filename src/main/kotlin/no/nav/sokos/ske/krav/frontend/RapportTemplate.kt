@@ -1,9 +1,5 @@
 package no.nav.sokos.ske.krav.frontend
 
-import io.ktor.server.html.Placeholder
-import io.ktor.server.html.Template
-import io.ktor.server.html.TemplatePlaceholder
-import io.ktor.server.html.insert
 import kotlinx.html.FlowContent
 import kotlinx.html.HTML
 import kotlinx.html.body
@@ -14,6 +10,12 @@ import kotlinx.html.head
 import kotlinx.html.img
 import kotlinx.html.link
 import kotlinx.html.styleLink
+
+import io.ktor.server.html.Placeholder
+import io.ktor.server.html.Template
+import io.ktor.server.html.TemplatePlaceholder
+import io.ktor.server.html.insert
+
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportType
 

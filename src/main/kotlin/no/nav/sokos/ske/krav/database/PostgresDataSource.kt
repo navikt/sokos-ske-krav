@@ -1,13 +1,15 @@
 package no.nav.sokos.ske.krav.database
 
+import java.time.Duration
+
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import java.time.Duration
 import mu.KotlinLogging
-import no.nav.sokos.ske.krav.config.PropertiesConfig
-import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration
 import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
+
+import no.nav.sokos.ske.krav.config.PropertiesConfig
+import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration
 
 object PostgresDataSource {
     private val logger = KotlinLogging.logger("secureLogger")

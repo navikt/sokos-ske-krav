@@ -1,9 +1,10 @@
 package no.nav.sokos.ske.krav.metrics
 
+import java.util.concurrent.ConcurrentHashMap
+
 import io.micrometer.core.instrument.Counter
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import java.util.concurrent.ConcurrentHashMap
 
 object Metrics {
     val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)

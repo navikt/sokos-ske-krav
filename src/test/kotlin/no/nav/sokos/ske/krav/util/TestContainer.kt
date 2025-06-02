@@ -2,13 +2,14 @@ package no.nav.sokos.ske.krav.util
 
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.extensions.testcontainers.toDataSource
-import no.nav.sokos.ske.krav.config.PropertiesConfig
-import no.nav.sokos.ske.krav.database.PostgresDataSource
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.ext.ScriptUtils
 import org.testcontainers.jdbc.JdbcDatabaseDelegate
 import org.testcontainers.utility.DockerImageName
+
+import no.nav.sokos.ske.krav.config.PropertiesConfig
+import no.nav.sokos.ske.krav.database.PostgresDataSource
 
 class TestContainer {
     private val properties = PropertiesConfig.PostgresConfig
@@ -21,11 +22,12 @@ class TestContainer {
             start()
         }
 
-    val dataSource: HikariDataSource = container.toDataSource {
-        maximumPoolSize = 100
-        minimumIdle = 1
-        isAutoCommit = false
-    }
+    val dataSource: HikariDataSource =
+        container.toDataSource {
+            maximumPoolSize = 100
+            minimumIdle = 1
+            isAutoCommit = false
+        }
 
     init {
         PostgresDataSource.migrate(dataSource)

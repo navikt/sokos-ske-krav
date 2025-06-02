@@ -1,5 +1,10 @@
 package no.nav.sokos.ske.krav.config
 
+import java.io.File
+
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+
 import com.natpryce.konfig.ConfigurationMap
 import com.natpryce.konfig.ConfigurationProperties
 import com.natpryce.konfig.EnvironmentVariables
@@ -7,9 +12,6 @@ import com.natpryce.konfig.Key
 import com.natpryce.konfig.overriding
 import com.natpryce.konfig.stringType
 import com.nimbusds.jose.jwk.RSAKey
-import java.io.File
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
 
 object PropertiesConfig {
     private val defaultProperties =
@@ -55,9 +57,9 @@ object PropertiesConfig {
             "prod-fss" -> ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding prodProperties overriding defaultProperties
             else ->
                 ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding
-                        ConfigurationProperties.fromOptionalFile(
-                            File("defaults.properties"),
-                        ) overriding localDevProperties overriding defaultProperties
+                    ConfigurationProperties.fromOptionalFile(
+                        File("defaults.properties"),
+                    ) overriding localDevProperties overriding defaultProperties
         }
 
     enum class Profile {

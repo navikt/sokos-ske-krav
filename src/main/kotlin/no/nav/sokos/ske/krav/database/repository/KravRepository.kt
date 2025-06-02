@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.database.repository
 
 import java.sql.Connection
 import java.util.UUID
+
 import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.executeSelect
 import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.executeUpdate
 import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.getColumn

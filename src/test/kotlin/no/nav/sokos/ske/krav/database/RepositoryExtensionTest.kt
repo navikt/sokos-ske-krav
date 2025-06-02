@@ -1,8 +1,10 @@
 package no.nav.sokos.ske.krav.database
 
+import java.sql.SQLException
+
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
-import java.sql.SQLException
+
 import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.getColumn
 import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.useAndHandleErrors
 import no.nav.sokos.ske.krav.database.repository.toFeilmelding

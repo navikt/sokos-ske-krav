@@ -1,5 +1,10 @@
 package no.nav.sokos.ske.krav.client
 
+import java.util.UUID
+
+import kotlinx.datetime.LocalDate
+import kotlinx.serialization.json.Json
+
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -15,8 +20,7 @@ import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.datetime.LocalDate
-import kotlinx.serialization.json.Json
+
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.domain.ske.requests.AvskrivingRequest
 import no.nav.sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
@@ -26,7 +30,6 @@ import no.nav.sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragReques
 import no.nav.sokos.ske.krav.domain.ske.requests.RenteBeloep
 import no.nav.sokos.ske.krav.domain.ske.requests.Skyldner
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
-import java.util.UUID
 
 class SkeClientTest :
     FunSpec({

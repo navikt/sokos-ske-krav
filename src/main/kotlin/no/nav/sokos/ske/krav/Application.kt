@@ -1,10 +1,5 @@
 package no.nav.sokos.ske.krav
 
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.CoroutineScope
@@ -12,6 +7,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStarted
+import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.intervalPeriod
 import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.useTimer

@@ -6,6 +6,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.httpClient
 import no.nav.sokos.ske.krav.domain.slack.createSlackMessage

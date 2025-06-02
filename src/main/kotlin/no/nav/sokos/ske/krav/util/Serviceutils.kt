@@ -1,8 +1,10 @@
 package no.nav.sokos.ske.krav.util
 
+import kotlinx.serialization.json.Json
+
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
-import kotlinx.serialization.json.Json
+
 import no.nav.sokos.ske.krav.database.models.KravTable
 import no.nav.sokos.ske.krav.domain.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.domain.ske.responses.FeilResponse

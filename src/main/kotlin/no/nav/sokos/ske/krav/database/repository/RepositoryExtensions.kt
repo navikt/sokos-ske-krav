@@ -19,7 +19,6 @@ object RepositoryExtensions {
         }.getOrThrow()
     }
 
-
     inline fun <reified T> ResultSet.getColumn(columnLabel: String): T {
         val logger = mu.KotlinLogging.logger {}
         val columnValue =

@@ -2,8 +2,10 @@ package no.nav.sokos.ske.krav.util
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
 import kotlin.math.roundToLong
 import kotlinx.datetime.toKotlinLocalDate
+
 import no.nav.sokos.ske.krav.database.models.KravTable
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.domain.nav.KravLinje

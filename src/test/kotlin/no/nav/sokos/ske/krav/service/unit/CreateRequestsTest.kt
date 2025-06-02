@@ -1,12 +1,15 @@
 package no.nav.sokos.ske.krav.service.unit
 
+import java.math.BigDecimal
+
+import kotlin.math.roundToLong
+import kotlinx.datetime.toKotlinLocalDate
+
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import java.math.BigDecimal
-import kotlin.math.roundToLong
-import kotlinx.datetime.toKotlinLocalDate
+
 import no.nav.sokos.ske.krav.database.models.KravTable
 import no.nav.sokos.ske.krav.domain.nav.KravLinje
 import no.nav.sokos.ske.krav.domain.ske.requests.AvskrivingRequest
@@ -107,16 +110,16 @@ internal class CreateRequestsTest :
             Then("Skal det dannes et EndreRenteBeloepRequest") {
                 val kravTable = kravTableMockk()
                 createEndreRenteRequest(kravTable) shouldBe
-                        EndreRenteBeloepRequest(
-                            listOf(
-                                RenteBeloep(
-                                    beloep = kravTable.belopRente.roundToLong(),
-                                    renterIlagtDato = kravTable.vedtaksDato.toKotlinLocalDate(),
-                                    valuta = Valuta.NOK,
-                                    rentetype = "STRAFFERENTE",
-                                ),
+                    EndreRenteBeloepRequest(
+                        listOf(
+                            RenteBeloep(
+                                beloep = kravTable.belopRente.roundToLong(),
+                                renterIlagtDato = kravTable.vedtaksDato.toKotlinLocalDate(),
+                                valuta = Valuta.NOK,
+                                rentetype = "STRAFFERENTE",
                             ),
-                        )
+                        ),
+                    )
             }
         }
 

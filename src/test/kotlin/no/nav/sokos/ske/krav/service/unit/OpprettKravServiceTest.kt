@@ -1,5 +1,11 @@
 package no.nav.sokos.ske.krav.service.unit
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
+import kotlin.math.roundToLong
+import kotlinx.datetime.toKotlinLocalDate
+
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.body
@@ -10,10 +16,7 @@ import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import kotlin.math.roundToLong
-import kotlinx.datetime.toKotlinLocalDate
+
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.database.models.KravTable
 import no.nav.sokos.ske.krav.domain.Status
@@ -59,10 +62,10 @@ class OpprettKravServiceTest :
             val opprettKravServiceMock =
                 spyk(OpprettKravService(mockk<SkeClient>(), databaseServiceMock))
             every { opprettKravServiceMock["sendAllOpprettKrav"](any<List<KravTable>>()) } returns
-                    listOf(
-                        RequestResult(mockk<HttpResponse>(relaxed = true), mockk<KravTable>(), "", "123", mockk<Status>(relaxed = true)),
-                        RequestResult(mockk<HttpResponse>(relaxed = true), mockk<KravTable>(), "", "456", mockk<Status>(relaxed = true)),
-                    )
+                listOf(
+                    RequestResult(mockk<HttpResponse>(relaxed = true), mockk<KravTable>(), "", "123", mockk<Status>(relaxed = true)),
+                    RequestResult(mockk<HttpResponse>(relaxed = true), mockk<KravTable>(), "", "456", mockk<Status>(relaxed = true)),
+                )
 
             val result = opprettKravServiceMock.sendAllOpprettKrav(listOf(kravTableMock, kravTableMock))
 
@@ -85,16 +88,20 @@ class OpprettKravServiceTest :
                     tilleggsInformasjon =
                         TilleggsinformasjonNav(
                             ytelserForAvregning = YtelseForAvregningBeloep(beloep = kravTableMock.fremtidigYtelse.roundToLong()),
-                            tilbakeKrevingsPeriode = TilbakeKrevingsPeriode(LocalDate.parse(kravTableMock.periodeFOM, DateTimeFormatter.ofPattern("yyyyMMdd")).toKotlinLocalDate(), LocalDate.parse(kravTableMock.periodeTOM, DateTimeFormatter.ofPattern("yyyyMMdd")).toKotlinLocalDate()),
+                            tilbakeKrevingsPeriode =
+                                TilbakeKrevingsPeriode(
+                                    LocalDate.parse(kravTableMock.periodeFOM, DateTimeFormatter.ofPattern("yyyyMMdd")).toKotlinLocalDate(),
+                                    LocalDate.parse(kravTableMock.periodeTOM, DateTimeFormatter.ofPattern("yyyyMMdd")).toKotlinLocalDate(),
+                                ),
                         ),
                 )
             val httpResponseMock =
                 mockk<HttpResponse>(relaxed = true) {
                     every { status.value } returns 200
                     coEvery { body<OpprettInnkrevingsOppdragResponse>() } returns
-                            OpprettInnkrevingsOppdragResponse(
-                                kravidentifikator = "123",
-                            )
+                        OpprettInnkrevingsOppdragResponse(
+                            kravidentifikator = "123",
+                        )
                 }
             val skeClientMock = mockk<SkeClient> { coEvery { opprettKrav(any(), any()) } returns httpResponseMock }
             val opprettKravServiceMock = spyk(OpprettKravService(skeClientMock, databaseServiceMock), recordPrivateCalls = true)

@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.database.repository
 
 import java.sql.Connection
+
 import no.nav.sokos.ske.krav.database.models.ValideringsfeilTable
 import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.executeSelect
 import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.executeUpdate

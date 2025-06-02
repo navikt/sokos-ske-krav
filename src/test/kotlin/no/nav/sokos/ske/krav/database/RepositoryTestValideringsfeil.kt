@@ -1,9 +1,11 @@
 package no.nav.sokos.ske.krav.database
 
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 import java.math.BigDecimal
 import java.time.LocalDate
+
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+
 import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.getValideringsFeilForFil
 import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.getValideringsFeilForLinje
 import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.insertFileValideringsfeil

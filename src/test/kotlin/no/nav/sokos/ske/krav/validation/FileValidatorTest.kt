@@ -3,6 +3,7 @@ package no.nav.sokos.ske.krav.validation
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
+
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 import no.nav.sokos.ske.krav.validation.FileValidator.ErrorKeys

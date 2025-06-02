@@ -8,6 +8,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
+
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService

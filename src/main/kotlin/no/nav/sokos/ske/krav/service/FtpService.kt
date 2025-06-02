@@ -1,9 +1,11 @@
 package no.nav.sokos.ske.krav.service
 
-import com.jcraft.jsch.SftpException
 import java.io.ByteArrayOutputStream
 import java.io.File
+
+import com.jcraft.jsch.SftpException
 import mu.KotlinLogging
+
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.domain.nav.KravLinje
 import no.nav.sokos.ske.krav.validation.FileValidator

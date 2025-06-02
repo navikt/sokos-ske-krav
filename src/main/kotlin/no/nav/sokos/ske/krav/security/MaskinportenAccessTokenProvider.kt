@@ -1,5 +1,16 @@
 package no.nav.sokos.ske.krav.security
 
+import java.time.Duration
+import java.time.Instant
+import java.util.Date
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicReference
+
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.client.HttpClient
@@ -8,16 +19,8 @@ import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.http.Parameters
 import io.ktor.http.isSuccess
-import java.time.Duration
-import java.time.Instant
-import java.util.Date
-import java.util.UUID
-import java.util.concurrent.atomic.AtomicReference
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import mu.KotlinLogging
+
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.util.parseTo
 
@@ -36,7 +39,7 @@ class MaskinportenAccessTokenProvider(
         val expiresAt: Instant,
     ) {
         constructor(maskinportenTokenResponse: MaskinportenTokenResponse) :
-                this(maskinportenTokenResponse.accessToken, Instant.now().plusSeconds(maskinportenTokenResponse.expiresIn))
+            this(maskinportenTokenResponse.accessToken, Instant.now().plusSeconds(maskinportenTokenResponse.expiresIn))
     }
 
     private val tokenCache = AtomicReference<AccessToken?>(null)

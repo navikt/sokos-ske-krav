@@ -3,6 +3,7 @@ package no.nav.sokos.ske.krav.domain
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
+
 import no.nav.sokos.ske.krav.util.KRAV_EKSISTERER_IKKE
 import no.nav.sokos.ske.krav.util.KRAV_ER_ALLEREDE_AVSKREVET
 import no.nav.sokos.ske.krav.util.KRAV_ER_AVSKREVET

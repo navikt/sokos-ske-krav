@@ -1,8 +1,10 @@
 package no.nav.sokos.ske.krav.database
 
+import java.time.LocalDateTime
+
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import java.time.LocalDateTime
+
 import no.nav.sokos.ske.krav.database.models.FeilmeldingTable
 import no.nav.sokos.ske.krav.database.repository.FeilmeldingRepository.getAllFeilmeldinger
 import no.nav.sokos.ske.krav.database.repository.FeilmeldingRepository.getFeilmeldingForKravId

@@ -1,5 +1,9 @@
 package no.nav.sokos.ske.krav.config
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
+
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.log
@@ -7,9 +11,6 @@ import io.ktor.server.plugins.statuspages.StatusPagesConfig
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.response.respond
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.serialization.Serializable
 
 fun StatusPagesConfig.statusPageConfig() {
     exception<Throwable> { call, cause ->

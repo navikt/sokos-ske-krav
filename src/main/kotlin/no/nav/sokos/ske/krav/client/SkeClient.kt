@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.client
 
+import java.util.UUID
+
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
@@ -11,7 +13,7 @@ import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
-import java.util.UUID
+
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.httpClient
 import no.nav.sokos.ske.krav.domain.ske.requests.AvskrivingRequest

@@ -1,9 +1,11 @@
 package no.nav.sokos.ske.krav.domain.nav
 
-import io.ktor.http.parsing.ParseException
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
+import io.ktor.http.parsing.ParseException
+
 import no.nav.sokos.ske.krav.validation.LineValidationRules
 
 class FileParser(
