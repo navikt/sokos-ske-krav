@@ -42,6 +42,8 @@ object PropertiesConfig {
             "SFTP_PRIVATE_KEY_FILE_PATH" to "privKey",
             "SFTP_SERVER" to "10.183.32.98",
             "SFTP_PORT" to "22",
+            "BASIC_AUTH_USERNAME" to "user",
+            "BASIC_AUTH_PASSWORD" to "password",
         )
 
     private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
@@ -72,8 +74,8 @@ object PropertiesConfig {
         val naisAppName: String = get("NAIS_APP_NAME"),
         val profile: Profile = Profile.valueOf(this["APPLICATION_PROFILE"]),
         val useAuthentication: Boolean = get("USE_AUTHENTICATION").toBoolean(),
-        val basicUsername: String = "user",
-        val basicPassword: String = "password",
+        val basicUsername: String = get("BASIC_AUTH_USERNAME"),
+        val basicPassword: String = get("BASIC_AUTH_PASSWORD"),
     )
 
     data class AzureAdProperties(

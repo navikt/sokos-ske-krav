@@ -45,6 +45,7 @@ spec:
       mountPath: /var/run/secrets/ske-sftp-private-key
   envFrom:
     - secret: ske-sftp-creds
+    - secret: sokos-ske-krav-basic-credentials
     - secret: team-best-slackbot-webhook
   ingresses:
     - https://sokos-ske-krav.intern.dev.nav.no
