@@ -13,9 +13,17 @@ object TraceUtils {
     suspend fun <T> withTracerId(
         tracer: Tracer = openTelemetry.getTracer(this::class.java.canonicalName),
         spanName: String = "withTracerId",
+        forceNewTrace: Boolean = false,
         block: suspend () -> T,
     ): T {
-        val span = tracer.spanBuilder(spanName).startSpan()
+        val spanBuilder = tracer.spanBuilder(spanName)
+
+        // Create a new root span with no parent context when forcing a new trace
+        if (forceNewTrace) {
+            spanBuilder.setNoParent()
+        }
+
+        val span = spanBuilder.startSpan()
         val context = span.spanContext
 
         // Make the span the current active span in the context

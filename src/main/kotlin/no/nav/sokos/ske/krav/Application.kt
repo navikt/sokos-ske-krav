@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
@@ -65,8 +66,11 @@ private fun launchJob(
     CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
         while (true) {
             try {
-                TraceUtils.withTracerId {
-                    function()
+                // Create a completely isolated coroutine for each execution
+                withContext(Dispatchers.Default.limitedParallelism(1)) {
+                    TraceUtils.withTracerId(forceNewTrace = true) {
+                        function()
+                    }
                 }
                 delay(delayDuration)
             } catch (e: Exception) {
