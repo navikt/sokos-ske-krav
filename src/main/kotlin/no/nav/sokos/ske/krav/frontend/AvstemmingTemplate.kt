@@ -75,6 +75,12 @@ class AvstemmingTemplate : Template<FlowContent> {
                     td { +it.kodeHjemmel }
                     // TODO: Status må også ha listevisning
                     td { +it.status }
+                    td { +it.stonadsType.toString() }
+                    td { +it.saksnummerNAV }
+                    td { +it.referansenummberGammelSak }
+                    td { +it.belop.toString() }
+                    td { +it.periodeFOM }
+                    td { +it.periodeTOM }
                     td {
                         classes = setOf("feilmeldinger")
                         if (it.feilmeldinger.size == 1) {

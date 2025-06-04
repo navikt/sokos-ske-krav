@@ -1,8 +1,5 @@
 package no.nav.sokos.ske.krav.domain
 
-import no.nav.sokos.ske.krav.database.models.KravTable
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
-
 enum class StonadsType(val kravKode: String, val hjemmelkode: String, val alternativHjemmelkode: String = "") {
     TILBAKEKREVING_BARNETRYGD("BA OR", "T"),
     TILBAKEKREVING_OMSORGSPENGER("BS OM", "T"),
@@ -40,21 +37,15 @@ enum class StonadsType(val kravKode: String, val hjemmelkode: String, val altern
     ;
 
     companion object {
-        fun getStonadstype(krav: KravTable): StonadsType {
+        fun getStonadstype(
+            kravkode: String,
+            kodeHjemmel: String,
+        ): StonadsType {
             return StonadsType.entries.firstOrNull {
-                krav.kravkode == it.kravKode && (krav.kodeHjemmel == it.hjemmelkode || krav.kodeHjemmel == it.alternativHjemmelkode)
+                kravkode == it.kravKode && (kodeHjemmel == it.hjemmelkode || kodeHjemmel == it.alternativHjemmelkode)
             }
                 ?: throw NotImplementedError(
-                    "Kombinasjonen kravkode=${krav.kravkode} og hjemmelkode=${krav.kodeHjemmel} gir ingen kravtype.",
-                )
-        }
-
-        fun getStonadstype(krav: KravLinje): StonadsType {
-            return StonadsType.entries.firstOrNull {
-                krav.kravKode == it.kravKode && (krav.kodeHjemmel == it.hjemmelkode || krav.kodeHjemmel == it.alternativHjemmelkode)
-            }
-                ?: throw NotImplementedError(
-                    "Kombinasjonen kravkode=${krav.kravKode} og hjemmelkode=${krav.kodeHjemmel} gir ingen kravtype.",
+                    "Kombinasjonen kravkode=$kravkode og hjemmelkode=$kodeHjemmel gir ingen kravtype.",
                 )
         }
     }
