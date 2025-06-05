@@ -77,7 +77,7 @@ class AvstemmingTemplate : Template<FlowContent> {
                     td { +it.status }
                     td { +it.stonadsType.toString() }
                     td { +it.saksnummerNAV }
-                    td { +it.referansenummberGammelSak }
+                    td { +it.referansenummerGammelSak }
                     td { +it.belop.toString() }
                     td { +it.periodeFOM }
                     td { +it.periodeTOM }
