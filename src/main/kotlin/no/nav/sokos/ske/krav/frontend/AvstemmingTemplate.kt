@@ -1,5 +1,8 @@
 package no.nav.sokos.ske.krav.frontend
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
@@ -79,8 +82,8 @@ class AvstemmingTemplate : Template<FlowContent> {
                     td { +it.saksnummerNAV }
                     td { +it.referansenummerGammelSak }
                     td { +it.belop.toString() }
-                    td { +it.periodeFOM }
-                    td { +it.periodeTOM }
+                    td { +formatPeriodeDato(it.periodeFOM) }
+                    td { +formatPeriodeDato(it.periodeTOM) }
                     td {
                         classes = setOf("feilmeldinger")
                         if (it.feilmeldinger.size == 1) {
@@ -117,4 +120,11 @@ class AvstemmingTemplate : Template<FlowContent> {
             }
         }
     }
+
+    private fun formatPeriodeDato(dato: String): String =
+        try {
+            LocalDate.parse(dato, DateTimeFormatter.ofPattern("yyyyMMdd")).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+        } catch (e: Exception) {
+            dato
+        }
 }
