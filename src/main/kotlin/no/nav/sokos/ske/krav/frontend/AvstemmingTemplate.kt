@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.frontend
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
@@ -123,7 +124,9 @@ class AvstemmingTemplate : Template<FlowContent> {
 
     private fun formatPeriodeDato(dato: String): String =
         try {
-            LocalDate.parse(dato, DateTimeFormatter.ofPattern("yyyyMMdd")).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+            val inputFormatter = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.forLanguageTag("no-NO"))
+            val outputFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.forLanguageTag("no-NO"))
+            LocalDate.parse(dato, inputFormatter).format(outputFormatter)
         } catch (e: Exception) {
             dato
         }
