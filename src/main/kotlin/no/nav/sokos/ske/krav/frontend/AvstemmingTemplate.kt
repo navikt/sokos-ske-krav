@@ -2,7 +2,6 @@ package no.nav.sokos.ske.krav.frontend
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
@@ -36,6 +35,8 @@ class AvstemmingTemplate : Template<FlowContent> {
     private val updateBtnTitle = "Sett til rapportert"
     private val csvDownloadUrl = "/rapporter/avstemming/CSVdownload"
     private val csvDownloadBtnTitle = "Last ned CSV"
+    private val inputDateFormat = DateTimeFormatter.ofPattern("yyyyMMdd")
+    private val outputDateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
     override fun FlowContent.apply() {
         table {
@@ -123,11 +124,7 @@ class AvstemmingTemplate : Template<FlowContent> {
     }
 
     private fun formatPeriodeDato(dato: String): String =
-        try {
-            val inputFormatter = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.forLanguageTag("no-NO"))
-            val outputFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.forLanguageTag("no-NO"))
-            LocalDate.parse(dato, inputFormatter).format(outputFormatter)
-        } catch (e: Exception) {
-            dato
-        }
+        runCatching {
+            LocalDate.parse(dato, inputDateFormat).format(outputDateFormat)
+        }.getOrDefault(dato)
 }
