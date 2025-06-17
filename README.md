@@ -5,7 +5,7 @@
 Applikasjonen er en tjeneste som sender tilbakekrevingskrav til Skatteetatens nye REST tjeneste, som på sikt skal
 ertstatte PAK.  
 Den henter flatfiler fra filmottakserveren, mapper de om til objekter, og sender kravene
-ihht [SKE sin kontrakt](https://app.swaggerhub.com/apis-docs/skatteetaten/oppdragsinnkreving-api).
+ihht [SKE sin kontrakt](https://app.swaggerhub.com/apis/skatteetaten/oppdragsinnkreving-api/).
 SKE sender tilbake en *kravidentifikator* som kobles til NAV sitt saksnummer for kravet og blir så lagret i database.
 Oppbygninen av flatfilene er dokumentert
 i [confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=176706565)
