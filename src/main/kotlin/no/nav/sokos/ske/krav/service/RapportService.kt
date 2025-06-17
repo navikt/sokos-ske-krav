@@ -2,6 +2,8 @@ package no.nav.sokos.ske.krav.service
 
 import no.nav.sokos.ske.krav.database.models.KravTable
 import no.nav.sokos.ske.krav.domain.Status
+import no.nav.sokos.ske.krav.domain.StonadsType
+import no.nav.sokos.ske.krav.domain.StonadsType.Companion.getStonadstype
 
 @RequiresOptIn(message = "Skal bare brukes i frontend")
 @Retention(AnnotationRetention.BINARY)
@@ -32,6 +34,12 @@ class RapportService(
                     it.kravkode,
                     it.kodeHjemmel,
                     it.status,
+                    getStonadstype(it.kravkode, it.kodeHjemmel),
+                    it.saksnummerNAV,
+                    it.referansenummerGammelSak,
+                    it.belop,
+                    it.periodeFOM,
+                    it.periodeTOM,
                     getFeilmeldinger(it),
                     with(it.tidspunktSisteStatus) {
                         "$dayOfMonth/$monthValue/$year, $hour:$minute"
@@ -56,6 +64,12 @@ class RapportService(
         val kravkode: String,
         val kodeHjemmel: String,
         val status: String,
+        val stonadsType: StonadsType,
+        val saksnummerNAV: String,
+        val referansenummerGammelSak: String,
+        val belop: Double,
+        val periodeFOM: String,
+        val periodeTOM: String,
         val feilmeldinger: List<String>,
         val tidspunktSisteStatus: String,
     ) {
@@ -72,6 +86,12 @@ class RapportService(
                     "Kravkode",
                     "Hjemmelkode",
                     "Status",
+                    "Stønadstype",
+                    "Saksnummer Nav",
+                    "Ref.nr gammel sak",
+                    "Beløp",
+                    "Periode Fom",
+                    "Periode Tom",
                     "Feilmelding",
                     "Tidspunkt siste status",
                 )
@@ -92,6 +112,12 @@ class RapportService(
                                     it.kravkode.escapeCsvField(),
                                     it.kodeHjemmel.escapeCsvField(),
                                     it.status.escapeCsvField(),
+                                    it.stonadsType.toString().escapeCsvField(),
+                                    it.saksnummerNAV.escapeCsvField(),
+                                    it.referansenummerGammelSak.escapeCsvField(),
+                                    it.belop.toString().escapeCsvField(),
+                                    it.periodeFOM.escapeCsvField(),
+                                    it.periodeTOM.escapeCsvField(),
                                     it.feilmeldinger.joinToString(";").escapeCsvField(),
                                     it.tidspunktSisteStatus.escapeCsvField(),
                                 )

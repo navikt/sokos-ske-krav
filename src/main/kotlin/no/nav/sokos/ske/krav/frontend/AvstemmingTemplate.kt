@@ -1,5 +1,8 @@
 package no.nav.sokos.ske.krav.frontend
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
@@ -32,6 +35,8 @@ class AvstemmingTemplate : Template<FlowContent> {
     private val updateBtnTitle = "Sett til rapportert"
     private val csvDownloadUrl = "/rapporter/avstemming/CSVdownload"
     private val csvDownloadBtnTitle = "Last ned CSV"
+    private val inputDateFormat = DateTimeFormatter.ofPattern("yyyyMMdd")
+    private val outputDateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
     override fun FlowContent.apply() {
         table {
@@ -75,6 +80,12 @@ class AvstemmingTemplate : Template<FlowContent> {
                     td { +it.kodeHjemmel }
                     // TODO: Status må også ha listevisning
                     td { +it.status }
+                    td { +it.stonadsType.toString() }
+                    td { +it.saksnummerNAV }
+                    td { +it.referansenummerGammelSak }
+                    td { +it.belop.toString() }
+                    td { +formatPeriodeDato(it.periodeFOM) }
+                    td { +formatPeriodeDato(it.periodeTOM) }
                     td {
                         classes = setOf("feilmeldinger")
                         if (it.feilmeldinger.size == 1) {
@@ -111,4 +122,9 @@ class AvstemmingTemplate : Template<FlowContent> {
             }
         }
     }
+
+    private fun formatPeriodeDato(dato: String): String =
+        runCatching {
+            LocalDate.parse(dato, inputDateFormat).format(outputDateFormat)
+        }.getOrDefault(dato)
 }

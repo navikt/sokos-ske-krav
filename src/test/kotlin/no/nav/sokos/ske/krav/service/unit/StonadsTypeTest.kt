@@ -56,7 +56,7 @@ internal class StonadsTypeTest :
                         every { kravkode } returns input.first
                         every { kodeHjemmel } returns input.second
                     }
-                val stonadsType = StonadsType.getStonadstype(krav)
+                val stonadsType = StonadsType.getStonadstype(krav.kravkode, krav.kodeHjemmel)
                 stonadsType shouldBe expected
             }
         }
@@ -68,7 +68,7 @@ internal class StonadsTypeTest :
                     every { kodeHjemmel } returns "UNKNOWN"
                 }
             shouldThrow<NotImplementedError> {
-                StonadsType.getStonadstype(krav)
+                StonadsType.getStonadstype(krav.kravkode, krav.kodeHjemmel)
             }
         }
     })

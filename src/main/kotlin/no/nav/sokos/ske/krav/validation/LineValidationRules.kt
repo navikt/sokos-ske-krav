@@ -118,7 +118,7 @@ object LineValidationRules {
     // Kravtype
     private fun kravTypeIsValid(krav: KravLinje): Boolean =
         try {
-            StonadsType.getStonadstype(krav)
+            StonadsType.getStonadstype(krav.kravKode, krav.kodeHjemmel)
             true
         } catch (e: NotImplementedError) {
             false

@@ -24,7 +24,7 @@ import no.nav.sokos.ske.krav.domain.ske.requests.YtelseForAvregningBeloep
 
 fun createOpprettKravRequest(krav: KravTable) =
     OpprettInnkrevingsoppdragRequest(
-        stonadstype = StonadsType.getStonadstype(krav),
+        stonadstype = StonadsType.getStonadstype(krav.kravkode, krav.kodeHjemmel),
         skyldner = createSkyldner(krav),
         hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.roundToLong()),
         renteBeloep = createRenteBelop(krav).takeIf { it.first().beloep > 0L },
