@@ -7,8 +7,8 @@ import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.1.21"
-    kotlin("plugin.serialization") version "2.1.21"
+    kotlin("jvm") version "2.2.0"
+    kotlin("plugin.serialization") version "2.2.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jlleitschuh.gradle.ktlint") version "12.3.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
@@ -24,17 +24,17 @@ repositories {
 val ktorVersion = "3.2.0"
 val jschVersion = "2.27.2"
 val nimbusVersion = "10.3"
-val kotlinxSerializationVersion = "1.8.1"
-val kotlinxDatetimeVersion = "0.6.2"
+val kotlinxSerializationVersion = "1.9.0"
+val kotlinxDatetimeVersion = "0.7.0-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
 val prometheusVersion = "1.15.1"
-val opentelemetryVersion = "2.16.0-alpha"
+val opentelemetryVersion = "2.17.0-alpha"
 
 // DB
 val hikaricpVersion = "6.3.0"
-val flywayVersion = "11.9.2"
+val flywayVersion = "11.10.0"
 val postgresqlVersion = "42.7.7"
 
 // Test
@@ -42,7 +42,7 @@ val kotestVersion = "5.9.1"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.14.4"
 val commonsVersion = "3.11.1"
-val testContainerVersion = "1.21.2"
+val testContainerVersion = "1.21.3"
 val mockFtpServerVersion = "3.2.0"
 
 // Logging
