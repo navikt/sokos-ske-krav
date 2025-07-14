@@ -7,10 +7,10 @@ import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.1.21"
-    kotlin("plugin.serialization") version "2.1.21"
+    kotlin("jvm") version "2.2.0"
+    kotlin("plugin.serialization") version "2.2.0"
     id("com.gradleup.shadow") version "8.3.8"
-    id("org.jlleitschuh.gradle.ktlint") version "12.3.0"
+    id("org.jlleitschuh.gradle.ktlint") version "13.0.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
 
@@ -21,20 +21,20 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
-val ktorVersion = "3.2.0"
+val ktorVersion = "3.2.1"
 val jschVersion = "2.27.2"
-val nimbusVersion = "10.3"
-val kotlinxSerializationVersion = "1.8.1"
-val kotlinxDatetimeVersion = "0.6.2"
+val nimbusVersion = "10.3.1"
+val kotlinxSerializationVersion = "1.9.0"
+val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
-val prometheusVersion = "1.15.1"
-val opentelemetryVersion = "2.16.0-alpha"
+val prometheusVersion = "1.15.2"
+val opentelemetryVersion = "2.17.1-alpha"
 
 // DB
 val hikaricpVersion = "6.3.0"
-val flywayVersion = "11.9.2"
+val flywayVersion = "11.10.2"
 val postgresqlVersion = "42.7.7"
 
 // Test
@@ -42,7 +42,7 @@ val kotestVersion = "5.9.1"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.14.4"
 val commonsVersion = "3.11.1"
-val testContainerVersion = "1.21.2"
+val testContainerVersion = "1.21.3"
 val mockFtpServerVersion = "3.2.0"
 
 // Logging
