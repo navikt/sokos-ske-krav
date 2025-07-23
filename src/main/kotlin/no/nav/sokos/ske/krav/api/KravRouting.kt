@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.api
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
@@ -11,6 +12,7 @@ import io.ktor.server.routing.route
 import no.nav.sokos.ske.krav.service.SkeService
 import no.nav.sokos.ske.krav.service.StatusService
 
+@OptIn(ExperimentalTime::class)
 fun Route.internalRoutes(
     skeService: SkeService,
     statusService: StatusService = StatusService(),

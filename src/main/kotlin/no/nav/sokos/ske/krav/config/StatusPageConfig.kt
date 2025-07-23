@@ -1,7 +1,9 @@
 package no.nav.sokos.ske.krav.config
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
 import io.ktor.http.HttpStatusCode
@@ -28,6 +30,7 @@ fun StatusPagesConfig.statusPageConfig() {
     }
 }
 
+@OptIn(ExperimentalTime::class)
 private fun createApiError(
     status: HttpStatusCode,
     message: String?,
@@ -44,9 +47,10 @@ private fun createApiError(
         ),
     )
 
+@OptIn(ExperimentalTime::class)
 @Serializable
 data class ApiError(
-    val timestamp: Instant,
+    val timestamp: @Contextual Instant,
     val status: Int,
     val error: String,
     val message: String?,

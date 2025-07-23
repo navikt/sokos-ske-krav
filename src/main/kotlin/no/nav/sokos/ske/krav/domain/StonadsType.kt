@@ -1,6 +1,10 @@
 package no.nav.sokos.ske.krav.domain
 
-enum class StonadsType(val kravKode: String, val hjemmelkode: String, val alternativHjemmelkode: String = "") {
+enum class StonadsType(
+    val kravKode: String,
+    val hjemmelkode: String,
+    val alternativHjemmelkode: String = "",
+) {
     TILBAKEKREVING_BARNETRYGD("BA OR", "T"),
     TILBAKEKREVING_OMSORGSPENGER("BS OM", "T"),
     TILBAKEKREVING_PLEIEPENGER_BARN("BS PN", "T"),
@@ -40,13 +44,12 @@ enum class StonadsType(val kravKode: String, val hjemmelkode: String, val altern
         fun getStonadstype(
             kravkode: String,
             kodeHjemmel: String,
-        ): StonadsType {
-            return StonadsType.entries.firstOrNull {
+        ): StonadsType =
+            StonadsType.entries.firstOrNull {
                 kravkode == it.kravKode && (kodeHjemmel == it.hjemmelkode || kodeHjemmel == it.alternativHjemmelkode)
             }
                 ?: throw NotImplementedError(
                     "Kombinasjonen kravkode=$kravkode og hjemmelkode=$kodeHjemmel gir ingen kravtype.",
                 )
-        }
     }
 }

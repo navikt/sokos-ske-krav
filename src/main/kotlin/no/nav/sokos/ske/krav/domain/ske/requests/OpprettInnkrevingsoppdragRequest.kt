@@ -39,7 +39,9 @@ data class Skyldner(
     val identifikatorType: IdentifikatorType,
     val identifikator: String,
 ) {
-    enum class IdentifikatorType(val value: String) {
+    enum class IdentifikatorType(
+        val value: String,
+    ) {
         PERSON("PERSON"),
         ORGANISASJON("ORGANISASJON"),
     }
@@ -65,6 +67,8 @@ data class TilleggsinformasjonNav(
 )
 
 @Serializable
-enum class Valuta(val value: String) {
+enum class Valuta(
+    val value: String,
+) {
     NOK("NOK"),
 }
