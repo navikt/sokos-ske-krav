@@ -20,7 +20,7 @@ repositories {
     mavenCentral()
 }
 
-val ktorVersion = "3.2.1"
+val ktorVersion = "3.2.3"
 val jschVersion = "2.27.2"
 val nimbusVersion = "10.3.1"
 val kotlinxSerializationVersion = "1.9.0"
