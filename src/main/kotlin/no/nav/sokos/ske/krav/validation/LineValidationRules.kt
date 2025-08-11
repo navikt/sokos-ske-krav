@@ -79,8 +79,8 @@ object LineValidationRules {
     ): String? =
         when {
             !periodeFOM.isAfter(periodeTOM) && periodeTOM.isBeforeNextMonth() -> null
-            periodeFOM == errorDate -> PERIODE_FOM_WRONG_FORMAT
-            periodeTOM == errorDate -> PERIODE_TOM_WRONG_FORMAT
+            periodeFOM.isEqual(errorDate) -> PERIODE_FOM_WRONG_FORMAT
+            periodeTOM.isEqual(errorDate) -> PERIODE_TOM_WRONG_FORMAT
             periodeFOM.isAfter(periodeTOM) -> PERIODE_FOM_IS_AFTER_PERIODE_TOM
             !periodeTOM.isBeforeNextMonth() -> PERIODE_TOM_IS_IN_INVALID_FUTURE
             else -> UNKNOWN_DATE_ERROR
@@ -90,7 +90,7 @@ object LineValidationRules {
     private fun checkVedtaksDato(vedtaksDato: LocalDate): String? =
         when {
             !vedtaksDato.isInFuture() -> null
-            vedtaksDato == errorDate -> VEDTAKSDATO_WRONG_FORMAT
+            vedtaksDato.isEqual(errorDate) -> VEDTAKSDATO_WRONG_FORMAT
             vedtaksDato.isInFuture() -> VEDTAKSDATO_IS_IN_FUTURE
             else -> UNKNOWN_DATE_ERROR
         }
@@ -102,8 +102,8 @@ object LineValidationRules {
     ): String? =
         when {
             utbetalingsDato.isBefore(vedtaksDato) -> null
-            utbetalingsDato == errorDate -> UTBETALINGSDATO_WRONG_FORMAT
-            utbetalingsDato.isAfter(vedtaksDato) || utbetalingsDato == vedtaksDato -> UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
+            utbetalingsDato.isEqual(errorDate) -> UTBETALINGSDATO_WRONG_FORMAT
+            utbetalingsDato.isAfter(vedtaksDato) || utbetalingsDato.isEqual(vedtaksDato) -> UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
             else -> UNKNOWN_DATE_ERROR
         }
 
@@ -120,7 +120,7 @@ object LineValidationRules {
         try {
             StonadsType.getStonadstype(krav.kravKode, krav.kodeHjemmel)
             true
-        } catch (e: NotImplementedError) {
+        } catch (_: NotImplementedError) {
             false
         }
 

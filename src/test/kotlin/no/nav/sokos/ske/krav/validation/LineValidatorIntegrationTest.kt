@@ -347,7 +347,7 @@ internal class LineValidatorIntegrationTest :
                         filter { it.kravKode == "MJ AU" }.size shouldBe 6
                         filter { it.saksnummerNav == "saksnummernav_ø" }.size shouldBe 1
                         filter { it.referansenummerGammelSak == "OB0refgammel_ø" }.size shouldBe 1
-                        filter { it.vedtaksDato == errorDate }.size shouldBe 1
+                        filter { it.vedtaksDato.isEqual(errorDate) }.size shouldBe 1
                     }
                 }
                 Then("Skal 6 feil lagres  i database ") {
