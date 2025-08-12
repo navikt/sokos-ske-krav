@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "2.2.0"
     kotlin("plugin.serialization") version "2.2.0"
-    id("com.gradleup.shadow") version "8.3.8"
+    id("com.gradleup.shadow") version "9.0.0"
     id("org.jlleitschuh.gradle.ktlint") version "13.0.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
@@ -22,7 +22,7 @@ repositories {
 
 val ktorVersion = "3.2.3"
 val jschVersion = "2.27.2"
-val nimbusVersion = "10.4"
+val nimbusVersion = "10.4.1"
 val kotlinxSerializationVersion = "1.9.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
@@ -32,8 +32,8 @@ val prometheusVersion = "1.15.2"
 val opentelemetryVersion = "2.18.1-alpha"
 
 // DB
-val hikaricpVersion = "7.0.0"
-val flywayVersion = "11.10.5"
+val hikaricpVersion = "7.0.1"
+val flywayVersion = "11.11.0"
 val postgresqlVersion = "42.7.7"
 
 // Test
@@ -137,9 +137,7 @@ tasks {
             attributes["Main-Class"] = "no.nav.sokos.ske.krav.ApplicationKt"
         }
         finalizedBy(koverHtmlReport)
-        mergeServiceFiles {
-            setPath("META-INF/services/org.flywaydb.core.extensibility.Plugin")
-        }
+        mergeServiceFiles()
     }
 
     ("jar") {
@@ -186,7 +184,7 @@ tasks {
     }
 
     withType<Wrapper> {
-        gradleVersion = "8.9"
+        gradleVersion = "9.0.0"
     }
 
     ("build") {
