@@ -12,6 +12,22 @@ const val KRAV_ER_AVSKREVET = "innkrevingsoppdrag-er-avskrevet"
 const val KRAV_ER_ALLEREDE_AVSKREVET = "innkrevingsoppdrag-er-allerede-avskrevet"
 const val KRAV_EKSISTERER_IKKE = "innkrevingsoppdrag-eksisterer-ikke"
 
+sealed class HttpResult {
+    data class Success(
+        val result: RequestResult,
+    ) : HttpResult()
+
+    data class Failed(
+        val result: FailedRequestResult,
+    ) : HttpResult()
+}
+
+data class FailedRequestResult(
+    val request: String,
+    val kravTable: KravTable,
+    val status: Status,
+)
+
 data class RequestResult(
     val response: HttpResponse,
     val kravTable: KravTable,

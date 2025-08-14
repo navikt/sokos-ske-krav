@@ -34,6 +34,12 @@ object KravRepository {
             Status.HTTP500_INTERN_TJENERFEIL.value,
         ).toKrav()
 
+    fun Connection.getFailedHttpKrav() =
+        executeSelect(
+            """select * from krav where status = ?""",
+            Status.EXCEPTION_I_INNSENDING_AV_NYTT_KRAV.value,
+        ).toKrav()
+
     fun Connection.getAllUnsentKrav() =
         executeSelect(
             """select * from krav where status = ?""",
@@ -174,6 +180,23 @@ object KravRepository {
         where 
             saksnummer_nav = ? and
             kravtype <> ?
+        """,
+        skeKravident,
+        saksnummerNav,
+        NYTT_KRAV,
+    )
+
+    // TODO: STatus til KRAV_SENDT
+    fun Connection.updateNyttKravWithSkeKravIdentifikator(
+        saksnummerNav: String,
+        skeKravident: String,
+    ) = executeUpdate(
+        """
+        update krav 
+            set kravidentifikator_ske = ? 
+        where 
+            saksnummer_nav = ? and
+            kravtype = ?
         """,
         skeKravident,
         saksnummerNav,

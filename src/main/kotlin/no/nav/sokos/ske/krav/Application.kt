@@ -10,8 +10,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.application.ServerReady
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 
@@ -82,7 +82,7 @@ private fun launchJob(
 }
 
 fun Application.applicationLifecycleConfig(applicationState: ApplicationState) {
-    monitor.subscribe(ApplicationStarted) {
+    monitor.subscribe(ServerReady) {
         applicationState.ready = true
     }
 

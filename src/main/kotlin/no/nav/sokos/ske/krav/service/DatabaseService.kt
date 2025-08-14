@@ -18,11 +18,13 @@ import no.nav.sokos.ske.krav.database.repository.KravRepository.getAllKravForAvs
 import no.nav.sokos.ske.krav.database.repository.KravRepository.getAllKravForResending
 import no.nav.sokos.ske.krav.database.repository.KravRepository.getAllKravForStatusCheck
 import no.nav.sokos.ske.krav.database.repository.KravRepository.getAllUnsentKrav
+import no.nav.sokos.ske.krav.database.repository.KravRepository.getFailedHttpKrav
 import no.nav.sokos.ske.krav.database.repository.KravRepository.getKravTableIdFromCorrelationId
 import no.nav.sokos.ske.krav.database.repository.KravRepository.getPreviousReferansenummer
 import no.nav.sokos.ske.krav.database.repository.KravRepository.getSkeKravidentifikator
 import no.nav.sokos.ske.krav.database.repository.KravRepository.insertAllNewKrav
 import no.nav.sokos.ske.krav.database.repository.KravRepository.updateEndringWithSkeKravIdentifikator
+import no.nav.sokos.ske.krav.database.repository.KravRepository.updateNyttKravWithSkeKravIdentifikator
 import no.nav.sokos.ske.krav.database.repository.KravRepository.updateSentKrav
 import no.nav.sokos.ske.krav.database.repository.KravRepository.updateStatus
 import no.nav.sokos.ske.krav.database.repository.KravRepository.updateStatusForAvstemtKravToReported
@@ -39,6 +41,11 @@ import no.nav.sokos.ske.krav.util.parseTo
 class DatabaseService(
     private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
 ) {
+    fun getFailedHttpKrav() =
+        dataSource.connection.useAndHandleErrors { con ->
+            con.getFailedHttpKrav()
+        }
+
     fun getSkeKravidentifikator(navref: String): String =
         dataSource.connection.useAndHandleErrors {
             it.getSkeKravidentifikator(navref).ifBlank {
@@ -121,14 +128,14 @@ class DatabaseService(
 
     suspend fun saveErrorMessage(
         request: String,
-        response: HttpResponse,
+        response: HttpResponse?,
         krav: KravTable,
         kravidentifikator: String,
     ) {
         val skeKravidentifikator =
             if (kravidentifikator == krav.saksnummerNAV || kravidentifikator == krav.referansenummerGammelSak) "" else kravidentifikator
 
-        val feilResponse = response.parseTo<FeilResponse>() ?: return
+        val feilResponse = response?.parseTo<FeilResponse>() ?: return
         val feilmelding =
             FeilmeldingTable(
                 0L,
@@ -170,6 +177,13 @@ class DatabaseService(
         skeKravidentifikator: String,
     ) = dataSource.connection.useAndHandleErrors {
         it.updateEndringWithSkeKravIdentifikator(navsaksnummer, skeKravidentifikator)
+    }
+
+    fun updateNyttKravWithSkeKravIdentifikator(
+        navsaksnummer: String,
+        skeKravidentifikator: String,
+    ) = dataSource.connection.useAndHandleErrors {
+        it.updateNyttKravWithSkeKravIdentifikator(navsaksnummer, skeKravidentifikator)
     }
 
     private fun incrementMetrics(results: List<RequestResult>) {

@@ -48,6 +48,7 @@ class SkeService(
         resendKrav()
         sendNewFilesToSKE()
         delay(5000)
+        oppdaterKrav()
         resendKrav()
 
         slackService.sendErrors()
@@ -60,9 +61,18 @@ class SkeService(
 
     private suspend fun resendKrav() {
         statusService.getMottaksStatus()
-        databaseService.getAllKravForResending().takeIf { it.isNotEmpty() }?.let {
-            logger.info("Resender ${it.size} krav")
-            Metrics.numberOfKravResent.increment(sendKrav(it).size.toDouble())
+        val kravForResending = databaseService.getAllKravForResending()
+        if (kravForResending.isEmpty()) return
+
+        logger.info("Resender ${kravForResending.size} krav")
+        Metrics.numberOfKravResent.increment(sendKrav(kravForResending).size.toDouble())
+    }
+
+    private fun oppdaterKrav() {
+        val kravForOppdatering = databaseService.getFailedHttpKrav()
+        logger.info("Oppdaterer ${kravForOppdatering.size} krav")
+        kravForOppdatering.forEach {
+            databaseService.updateNyttKravWithSkeKravIdentifikator(it.saksnummerNAV, it.kravidentifikatorSKE)
         }
     }
 
