@@ -14,7 +14,7 @@ i [confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=176706565
 
 ### Forutsetninger
 
-* Java 17
+* Java 21
 * Gradle
 * [Kotest](https://plugins.jetbrains.com/plugin/14080-kotest) plugin for å kjøre Kotest tester
 * [vault](https://github.com/navikt/utvikling/blob/main/docs/teknisk/Vault.md) for å kjøre `setupLocalEnvironment.sh`
@@ -37,6 +37,21 @@ For å kjøre applikasjonen må du gjøre følgende:
   Denne vil opprette [default.properties](defaults.properties) med alle environment variabler (bortsett fra
   POSTGRES_USERNAME og POSTGRES_PASSWORD, som må hentes manuelt fra vault) du trenger for å kjøre
   applikasjonen som er definert i [PropertiesConfig](src/main/kotlin/sokos/ske/krav/config/PropertiesConfig.kt).
+
+### Alarmer
+
+Applikasjonen bruker [Grafana Alerting](https://grafana.nav.cloud.nais.io/alerting/) for overvåkning og varsling.
+Dette er konfigurert via NAIS sin [alerting-integrasjon](https://doc.nais.io/observability/alerts).
+
+Alarmene overvåker metrics som:
+
+- HTTP-feilrater
+- JVM-metrikker
+
+Varsler blir sendt til følgende Slack-kanaler:
+
+- Dev-miljø: [#team-mob-alerts-dev](https://nav-it.slack.com/archives/C042SF2FEQM)
+- Prod-miljø: [#team-mob-alerts-prod](https://nav-it.slack.com/archives/C042ESY71GX)
 
 # 3. Programvarearkitektur
 
@@ -111,7 +126,6 @@ LoggFeil --> lagAlarm
 
 }
 ```
-
 
 # 4. Deployment
 

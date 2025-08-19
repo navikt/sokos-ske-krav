@@ -13,9 +13,6 @@ on:
       - 'setupLocalEnvironment.sh'
       - '.github/workflows/build-pr.yaml'
       - '.github/workflows/codeql.yaml'
-      - '.github/workflows/alerts.yaml'
-      - '.nais/alerts-dev.yaml'
-      - '.nais/alerts-prod.yaml'
       - '.github/dependabot.yaml'
 env:
   TZ: Europe/Oslo
