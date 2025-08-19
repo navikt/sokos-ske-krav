@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "2.2.0"
     kotlin("plugin.serialization") version "2.2.0"
-    id("com.gradleup.shadow") version "9.0.0"
+    id("com.gradleup.shadow") version "9.0.2"
     id("org.jlleitschuh.gradle.ktlint") version "13.0.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
@@ -137,6 +137,7 @@ tasks {
             attributes["Main-Class"] = "no.nav.sokos.ske.krav.ApplicationKt"
         }
         finalizedBy(koverHtmlReport)
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
         mergeServiceFiles()
     }
 
