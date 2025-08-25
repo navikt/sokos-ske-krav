@@ -13,7 +13,7 @@ internal class StonadsTypeTest :
     FunSpec({
 
         test("getStonadstype skal returnere korrekt StonadsType for alle kombinasjoner") {
-            val kravMap =
+            val stonadsTypeMap =
                 mapOf(
                     Pair("BA OR", "T") to StonadsType.TILBAKEKREVING_BARNETRYGD,
                     Pair("BS OM", "T") to StonadsType.TILBAKEKREVING_OMSORGSPENGER,
@@ -48,9 +48,17 @@ internal class StonadsTypeTest :
                     Pair("PE FP", "T") to StonadsType.TILBAKEKREVING_TIDLIGERE_FAMILIEPLEIER_PENSJON,
                     Pair("PE GY", "T") to StonadsType.TILBAKEKREVING_GAMMEL_YRKESSKADEPENSJON,
                     Pair("OM OM", "T") to StonadsType.TILBAKEKREVING_OMSTILLINGSSTOENAD,
+                    Pair("AAP AAP", "T") to StonadsType.TILBAKEKREVING_ARBEIDSAVKLARINGSPENGER,
+                    Pair("DP DP", "T") to StonadsType.TILBAKEKREVING_DAGPENGER,
+                    Pair("TS TS", "T") to StonadsType.TILBAKEKREVING_TILLEGGSTOENAD,
+                    Pair("TP TP", "T") to StonadsType.TILBAKEKREVING_TILTAKSPENGER,
+                    Pair("UNG", "T") to StonadsType.TILBAKEKREVING_UNGDOMSPROGRAMYTELSEN,
+                    Pair("OM OM", "EO") to StonadsType.TILBAKEKREVING_OMSTILLINGSSTOENAD_ETTEROPPGJOER,
                 )
 
-            kravMap.forEach { (input, expected) ->
+            stonadsTypeMap.size shouldBe StonadsType.entries.size
+
+            stonadsTypeMap.forEach { (input, expected) ->
                 val krav =
                     mockk<KravTable> {
                         every { kravkode } returns input.first
