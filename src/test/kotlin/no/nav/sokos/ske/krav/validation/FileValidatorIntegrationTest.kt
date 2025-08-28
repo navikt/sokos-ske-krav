@@ -204,4 +204,44 @@ internal class FileValidatorIntegrationTest :
                 }
             }
         }
+        Given("Fil fra Arena") {
+            val slackServiceSpy = setupSlackService()
+            val ftpService = setupFtpService(slackServiceSpy)
+            val fileName = "ArenaFil.txt"
+            SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
+
+            When("Filen valideres") {
+                ftpService.getValidatedFiles()
+
+                Then("Skal ingen feil lagres i database") {
+                    dbService.getFileValidationMessage(fileName).size shouldBe 0
+                }
+
+                And("Alert skal ikke sendes") {
+                    coVerify(exactly = 0) {
+                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
+                    }
+                }
+            }
+        }
+        Given("Fil fra Pesys") {
+            val slackServiceSpy = setupSlackService()
+            val ftpService = setupFtpService(slackServiceSpy)
+            val fileName = "PesysFil.txt"
+            SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
+
+            When("Filen valideres") {
+                ftpService.getValidatedFiles()
+
+                Then("Skal ingen feil lagres i database") {
+                    dbService.getFileValidationMessage(fileName).size shouldBe 0
+                }
+
+                And("Alert skal ikke sendes") {
+                    coVerify(exactly = 0) {
+                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
+                    }
+                }
+            }
+        }
     })
