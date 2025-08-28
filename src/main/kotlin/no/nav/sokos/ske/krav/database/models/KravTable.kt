@@ -31,4 +31,5 @@ data class KravTable(
     val tidspunktSendt: LocalDateTime?,
     val tidspunktSisteStatus: LocalDateTime,
     val tidspunktOpprettet: LocalDateTime,
+    val tilleggsfristEtterForeldelsesloven: LocalDate?,
 )

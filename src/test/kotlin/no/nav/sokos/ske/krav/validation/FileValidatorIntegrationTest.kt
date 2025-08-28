@@ -244,4 +244,25 @@ internal class FileValidatorIntegrationTest :
                 }
             }
         }
+
+        Given("Fil med tilleggsfrist") {
+            val slackServiceSpy = setupSlackService()
+            val ftpService = setupFtpService(slackServiceSpy)
+            val fileName = "FilMedTilleggsfrist.txt"
+            SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
+
+            When("Filen valideres") {
+                ftpService.getValidatedFiles()
+
+                Then("Skal ingen feil lagres i database") {
+                    dbService.getFileValidationMessage(fileName).size shouldBe 0
+                }
+
+                And("Alert skal ikke sendes") {
+                    coVerify(exactly = 0) {
+                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
+                    }
+                }
+            }
+        }
     })

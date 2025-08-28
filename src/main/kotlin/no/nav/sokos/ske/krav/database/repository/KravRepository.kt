@@ -209,8 +209,9 @@ object KravRepository {
                 kravtype,
                 corr_id,
                 filnavn,
-                linjenummer
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?, ?)
+                linjenummer,
+                tilleggsfrist_etter_foreldelsesloven
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?, ?, ?)
                 """,
             )
 
@@ -246,6 +247,7 @@ object KravRepository {
                     UUID.randomUUID().toString(),
                     filnavn,
                     krav.linjenummer,
+                    krav.tilleggsfristEtterForeldelsesloven,
                 ).addBatch()
 
             if (type == ENDRING_HOVEDSTOL) {
@@ -273,6 +275,7 @@ object KravRepository {
                         UUID.randomUUID().toString(),
                         filnavn,
                         krav.linjenummer,
+                        krav.tilleggsfristEtterForeldelsesloven,
                     ).addBatch()
             }
         }

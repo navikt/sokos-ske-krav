@@ -1,0 +1,1 @@
+alter table krav add tilleggsfrist_etter_foreldelsesloven date;

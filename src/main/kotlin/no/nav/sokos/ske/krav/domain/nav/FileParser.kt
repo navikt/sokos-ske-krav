@@ -52,6 +52,7 @@ class FileParser(
                 fremtidigYtelse = getBigDecimal(start = 151, end = 162),
                 utbetalDato = getDate(start = 162, end = 170),
                 fagsystemId = getString(start = 170, end = 200),
+                tilleggsfristEtterForeldelsesloven = getDate(start = 200, end = 208),
             )
         }
 

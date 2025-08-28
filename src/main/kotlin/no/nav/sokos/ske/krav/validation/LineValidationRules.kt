@@ -107,6 +107,9 @@ object LineValidationRules {
             else -> UNKNOWN_DATE_ERROR
         }
 
+    // Datoen kan ikke være lengre tilbake i tid enn 10 måneder fra dagens dato
+    private fun checkTilleggsfristDato() {}
+
     // Saksnummer
     private fun saksNummerIsValid(navSaksnr: String) = navSaksnr.matches("^[a-zA-Z0-9-/]+$".toRegex())
 
