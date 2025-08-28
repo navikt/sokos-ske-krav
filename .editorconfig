@@ -1,0 +1,17 @@
+# Top-most EditorConfig file
+root = true
+
+# All files
+[*]
+max_line_length = 200
+
+[*.{kt,kts}]
+ij_kotlin_imports_layout = java.**, javax.**, |, kotlin.**, kotlinx.**, |, *, |, ^, no.nav.**
+
+# Exclude .txt files from formatting
+[*.txt]
+max_line_length = off
+trim_trailing_whitespace = false
+
+[**/generated/**/*]
+ktlint = disabled

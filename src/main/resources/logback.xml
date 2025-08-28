@@ -1,0 +1,37 @@
+<configuration>
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>
+                %green(%d{HH:mm:ss}) %cyan([%-5.5t]) %boldCyan(%0.-5p) %yellow(%logger{36}) %cyan(:) %m%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender name="default-json" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+                <marker>TEAM_LOGS</marker>
+            </evaluator>
+            <OnMatch>DENY</OnMatch>
+            <OnMismatch>ACCEPT</OnMismatch>
+        </filter>
+    </appender>
+
+    <if condition='isDefined("NAIS_CLUSTER_NAME")'>
+        <then>
+            <root level="INFO">
+                <appender-ref ref="${LOG_APPENDER:-default-json}"/>
+            </root>
+        </then>
+        <else>
+            <root level="INFO">
+                <appender-ref ref="CONSOLE"/>
+            </root>
+        </else>
+    </if>
+
+    <logger name="no.nav.sokos.ske.krav" level="INFO"/>
+</configuration>

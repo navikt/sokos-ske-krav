@@ -1,0 +1,24 @@
+name: Build/test PR
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'LICENCE'
+      - 'CODEOWNERS'
+      - '.gitignore'
+      - '.editorconfig'
+      - 'setupLocalEnvironment.sh'
+      - 'dokumentasjon/**'
+      - '.github/workflows/deploy.yaml'
+      - '.github/workflows/manual-deploy.yaml'
+      - '.github/workflows/codeql.yaml'
+      - '.github/workflows/alerts.yaml'
+      - '.nais/alerts-dev.yaml'
+      - '.nais/alerts-prod.yaml'
+      - '.github/dependabot.yaml'
+
+jobs:
+  build-pr:
+    name: Build and test
+    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-pr.yaml@main

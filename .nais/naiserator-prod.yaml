@@ -1,0 +1,80 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: sokos-ske-krav
+  namespace: okonomi
+  labels:
+    team: okonomi
+spec:
+  image: {{image}}
+  port: 8080
+  replicas:
+    min: 1
+    max: 1
+  resources:
+    limits:
+      memory: 4096Mi
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+  azure:
+    application:
+      enabled: true
+  liveness:
+    path: /internal/isAlive
+    initialDelay: 10
+    timeout: 5
+    periodSeconds: 5
+    failureThreshold: 30
+  readiness:
+    path: /internal/isReady
+    initialDelay: 10
+    periodSeconds: 5
+    timeout: 5
+  webproxy: true
+  prometheus:
+    enabled: true
+    path: /internal/metrics
+  filesFrom:
+    - secret: ske-sftp-private-key
+      mountPath: /var/run/secrets/ske-sftp-private-key
+  envFrom:
+    - secret: ske-sftp-creds
+    - secret: sokos-ske-krav-basic-credentials
+    - secret: team-best-slackbot-webhook
+  ingresses:
+    - https://sokos-ske-krav.intern.nav.no
+  maskinporten:
+    enabled: true
+    scopes:
+      consumes:
+        - name: skatteetaten:innkrevingsoppdrag
+  vault:
+    enabled: true
+  env:
+    - name: SKE_REST_URL
+      value: https://api.skatteetaten.no/api/innkreving/innkrevingsoppdrag/v1/
+    - name: SFTP_SERVER
+      value: filmottak.adeo.no
+    - name: SFTP_PORT
+      value: "22"
+    - name: SFTP_PRIVATE_KEY_FILE_PATH
+      value: /var/run/secrets/ske-sftp-private-key/ske-sftp-private-key
+    - name: POSTGRES_HOST
+      value: A01DBVL037.adeo.no
+    - name: POSTGRES_PORT
+      value: "5432"
+    - name: POSTGRES_NAME
+      value: sokos-ske-krav
+    - name: VAULT_MOUNTPATH
+      value: postgresql/prod-fss/
+    - name: USE_TIMER
+      value: "true"
+    - name: TIMER_INITIAL_DELAY
+      value: "500"
+    - name: TIMER_INTERVAL_PERIOD_HOURS
+      value: "4"

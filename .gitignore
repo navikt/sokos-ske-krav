@@ -1,0 +1,23 @@
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+.classpath
+.factorypath
+.project
+.settings
+.idea
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+privateKey
+src/test/resources/privateKey
+.kotlin
+/defaults.properties
+/privKey
+/.run/Tests in 'sokos-ske-krav.test'.run.xml

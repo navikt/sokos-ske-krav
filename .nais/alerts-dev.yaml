@@ -1,0 +1,104 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: sokos-ske-krav
+  namespace: okonomi
+  labels:
+    team: okonomi
+spec:
+  groups:
+    - name: sokos-ske-krav-alerts
+      rules:
+        - alert: Applikasjon nede
+          expr: kube_deployment_status_replicas_available{deployment="{{ $labels.app }}"} == 0
+          for: 2m
+          annotations:
+            action: "Sjekk hvorfor applikasjonen er nede"
+            summary: "App {{ $labels.deployment }} er nede i namespace {{ $labels.namespace }}"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_ske_krav_type: sokos-ske-krav
+            alert_type: custom
+
+        - alert: Applikasjonen har restartet flere ganger de siste 5 minuttene!
+          expr: sum(increase(kube_pod_container_status_restarts_total{container=~"{{ $labels.app }}"}[5m])) by (container) > 2
+          for: 2m
+          annotations:
+            action: "Sjekk hvorfor applikasjonen ikke klarer å restarte"
+            summary: "App {{ $labels.container }} restarter mange ganger"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_ske_krav_type: sokos-ske-krav
+            alert_type: custom
+
+        - alert: Applikasjonen logger høy andel errors
+          expr: |
+            max_over_time((sum(loki:service:loglevel:count1m{service_name="sokos-ske-krav", detected_level="error"}) / sum(loki:service:loglevel:count1m{service_name="sokos-ske-krav"}))[15m:]) > 0.05
+          for: 2m
+          annotations:
+            action: "<https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/sokos-ske-krav/logs?patterns=%5B%5D&from=now-24h&to=now&var-filters=service_name%7C%3D%7Csokos-ske-krav&var-ds=dev-gcp-loki&var-levels=detected_level%7C%3D%7Cerror|Sjekk loggene>"
+            summary: "`kubectl logs -l app=sokos-ske-krav -n okonomi` for logger"
+          labels:
+            namespace: okonomi
+            severity: danger
+            sokos_ske_krav_type: sokos-ske-krav
+            alert_type: custom
+
+        - alert: Applikasjonen logger høy andel warnings
+          expr: |
+            max_over_time((sum(loki:service:loglevel:count1m{service_name="sokos-ske-krav", detected_level="warn"}) / sum(loki:service:loglevel:count1m{service_name="sokos-ske-krav"}))[15m:]) > 0.05
+          for: 2m
+          annotations:
+            action: "<https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/sokos-ske-krav/logs?patterns=%5B%5D&from=now-24h&to=now&var-filters=service_name%7C%3D%7Csokos-ske-krav&var-ds=dev-gcp-loki&var-levels=detected_level%7C%3D%7Cwarn|Sjekk loggene>"
+            summary: "`kubectl logs -l app=sokos-ske-krav -n okonomi` for logger"
+          labels:
+            namespace: okonomi
+            severity: warning
+            sokos_ske_krav_type: sokos-ske-krav
+            alert_type: custom
+
+---
+
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: sokos-ske-krav-slack
+  namespace: okonomi
+  labels:
+    alertmanagerConfig: sokos-ske-krav-slack
+spec:
+  receivers:
+    - name: sokos-ske-krav-receiver
+      slackConfigs:
+        - apiURL:
+            key: apiUrl
+            name: slack-webhook
+          channel: '#team-mob-alerts-dev'
+          iconEmoji: ':alert:'
+          username: 'Alert dev-fss (sokos-ske-krav)'
+          sendResolved: true
+          title: |-
+            [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
+          text: >-
+            {{ range .Alerts }}
+            {{ if or .Annotations.summary .Annotations.message }}
+            {{ or .Annotations.summary .Annotations.message }}
+            {{ println " " }}
+            {{- end }}
+            {{- if .Annotations.action }}
+            • *action*: {{ .Annotations.action }} {{ println " " }}
+            {{- end }}
+            {{ end }}
+  route:
+    groupBy:
+      - alertname
+    matchers:
+      - name: "sokos_ske_krav_type"
+        matchType: "="
+        value: "sokos-ske-krav"
+    groupInterval: 10s
+    groupWait: 5s
+    receiver: sokos-ske-krav-receiver
+    repeatInterval: 2m
