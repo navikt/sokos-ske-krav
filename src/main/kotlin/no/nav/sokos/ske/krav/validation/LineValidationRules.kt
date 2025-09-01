@@ -10,6 +10,7 @@ import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.KRAVTYPE_E
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.PERIODE_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.SAKSNUMMER_ERROR
+import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.TILLEGGSFRISTDATO_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.UTBETALINGSDATO_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.VEDTAKSDATO_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
@@ -19,6 +20,8 @@ import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIOD
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIODE_TOM_WRONG_FORMAT
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD
+import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.UNKNOWN_DATE_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
@@ -47,6 +50,10 @@ object LineValidationRules {
 
                     checkPeriode(periodeFOM.toDate(), periodeTOM.toDate())?.let { message ->
                         add(Pair(PERIODE_ERROR, "$message: (FOM:$periodeFOM, TOM: $periodeTOM). Linje: $linjenummer"))
+                    }
+
+                    checkTilleggsfristDato(tilleggsfristEtterForeldelsesloven)?.let { message ->
+                        add(Pair(TILLEGGSFRISTDATO_ERROR, message))
                     }
 
                     if (!saksNummerIsValid(saksnummerNav)) {
@@ -108,7 +115,13 @@ object LineValidationRules {
         }
 
     // Datoen kan ikke være lengre tilbake i tid enn 10 måneder fra dagens dato
-    private fun checkTilleggsfristDato() {}
+    private fun checkTilleggsfristDato(tilleggsFristDato: LocalDate?): String? =
+        when {
+            tilleggsFristDato == null -> null
+            tilleggsFristDato.isEqual(errorDate) -> TILLEGGSFRISTDATO_WRONG_FORMAT
+            tilleggsFristDato.isBefore(LocalDate.now().minusMonths(10)) -> TILLEGGSFRISTDATO_TOO_OLD
+            else -> null
+        }
 
     // Saksnummer
     private fun saksNummerIsValid(navSaksnr: String) = navSaksnr.matches("^[a-zA-Z0-9-/]+$".toRegex())
@@ -144,13 +157,15 @@ object LineValidationRules {
         const val UTBETALINGSDATO_WRONG_FORMAT = "Utbetalingsdato er feil formattert i fil"
         const val UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO = "Utbetalingsdato må være tidligere enn vedtaksdato"
         const val PERIODE_FOM_WRONG_FORMAT = "FOM er feil formattert i fil"
-        const val PERIODE_TOM_WRONG_FORMAT = "FOM er feil formattert i fil"
+        const val PERIODE_TOM_WRONG_FORMAT = "TOM er feil formattert i fil"
         const val PERIODE_FOM_IS_AFTER_PERIODE_TOM = "Periode FOM kan ikke være etter TOM"
         const val PERIODE_TOM_IS_IN_INVALID_FUTURE = "Periode TOM kan ikke være etter inneværende måned"
         const val UNKNOWN_DATE_ERROR = "Ukjent datofeil"
         const val SAKSNUMMER_WRONG_FORMAT = "Saksnummer er feil formattert i fil"
         const val REFERANSENUMMERGAMMELSAK_WRONG_FORMAT = "ReferanseNummerGammelSak er feil formattert i fil"
         const val KRAVTYPE_DOES_NOT_EXIST = "Kravtype finnes ikke definert for oversending til skatt"
+        const val TILLEGGSFRISTDATO_TOO_OLD = "Tilleggsfristdato kan ikke være lengre tilbake i tid enn 10 måneder fra dagens dato"
+        const val TILLEGGSFRISTDATO_WRONG_FORMAT = "Tilleggsfristdato er feil formattert i fil"
     }
 
     object ErrorKeys {
@@ -160,6 +175,7 @@ object LineValidationRules {
         const val SAKSNUMMER_ERROR = "Feil med saksnummer"
         const val REFERANSENUMMERGAMMELSAK_ERROR = "Feil med ReferanseNummerGammelSak"
         const val KRAVTYPE_ERROR = "Kravtype finnes ikke definert for oversending til skatt"
+        const val TILLEGGSFRISTDATO_ERROR = "Feil med tilleggsfristdato"
     }
 
     private fun String.toDate() =

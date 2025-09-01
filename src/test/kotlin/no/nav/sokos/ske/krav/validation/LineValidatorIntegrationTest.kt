@@ -106,6 +106,8 @@ internal class LineValidatorIntegrationTest :
                             shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR)
                             shouldNotContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
                             shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
+                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
+                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
                         }
                     }
                 }
@@ -187,6 +189,8 @@ internal class LineValidatorIntegrationTest :
                             shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
                             shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR)
                             shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
+                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
+                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
                         }
                     }
                 }
@@ -280,6 +284,8 @@ internal class LineValidatorIntegrationTest :
                             !it.feilmelding.contains(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
                             !it.feilmelding.contains(ErrorMessages.UNKNOWN_DATE_ERROR)
                             !it.feilmelding.contains(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
+                            !it.feilmelding.contains(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
+                            !it.feilmelding.contains(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
                         } shouldBe true
                     }
                 }

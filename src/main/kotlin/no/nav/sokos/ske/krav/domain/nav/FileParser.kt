@@ -52,7 +52,7 @@ class FileParser(
                 fremtidigYtelse = getBigDecimal(start = 151, end = 162),
                 utbetalDato = getDate(start = 162, end = 170),
                 fagsystemId = getString(start = 170, end = 200),
-                tilleggsfristEtterForeldelsesloven = getDate(start = 200, end = 208),
+                tilleggsfristEtterForeldelsesloven = getOptionalDate(start = 200, end = 208),
             )
         }
 
@@ -95,4 +95,20 @@ class FileParser(
         runCatching {
             LocalDate.parse(getString(start, end), DateTimeFormatter.ofPattern("yyyyMMdd"))
         }.getOrDefault(LineValidationRules.errorDate)
+
+    private fun String.getOptionalDate(
+        start: Int,
+        end: Int,
+    ): LocalDate? =
+        runCatching {
+            val dateString = getString(start, end)
+            if (dateString.isBlank()) {
+                null
+            } else {
+                LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yyyyMMdd"))
+            }
+        }.getOrElse {
+            val dateString = getString(start, end)
+            if (dateString.isBlank()) null else LineValidationRules.errorDate
+        }
 }
