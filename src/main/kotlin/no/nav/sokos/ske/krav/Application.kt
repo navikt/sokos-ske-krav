@@ -15,13 +15,13 @@ import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 
+import no.nav.sokos.ske.krav.config.DatabaseConfig
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.intervalPeriod
 import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.useTimer
 import no.nav.sokos.ske.krav.config.commonConfig
 import no.nav.sokos.ske.krav.config.routingConfig
 import no.nav.sokos.ske.krav.config.securityConfig
-import no.nav.sokos.ske.krav.database.PostgresDataSource
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.service.Frontend
@@ -41,21 +41,18 @@ private fun Application.module() {
     val skeService = SkeService()
 
     commonConfig()
-    applicationLifecycleConfig(applicationState)
     securityConfig(useAuthentication)
     routingConfig(useAuthentication, applicationState, skeService)
 
-    if (!PropertiesConfig.isLocal) {
-        PostgresDataSource.migrate()
-    }
-
+    DatabaseConfig.migrate()
     StonadsType.entries.forEach {
         Metrics.incrementKravKodeSendtMetric(it.kravKode)
     }
 
-    if (!useTimer) return
+    applicationLifecycleConfig(applicationState)
 
-    launchJob(skeService::handleNewKrav, intervalPeriod)
+    if (!useTimer) return
+    launchJob(skeService::behandleSkeKrav, intervalPeriod)
     launchJob(skeService::checkKravDateForAlert, 24.hours)
 }
 

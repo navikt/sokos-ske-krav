@@ -7,7 +7,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
+import no.nav.sokos.ske.krav.dto.nav.KravLinje
 
 internal class LineValidationRulesTest :
     BehaviorSpec({

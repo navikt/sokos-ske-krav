@@ -70,7 +70,7 @@ class AvstemmingTemplate : Template<FlowContent> {
 
             data.forEach {
                 tr {
-                    td { +it.kravID }
+                    td { +it.kravId }
                     td { +it.filnavn }
                     td { +it.linjenummer }
                     td { +it.vedtaksId }
@@ -109,7 +109,7 @@ class AvstemmingTemplate : Template<FlowContent> {
                                 input {
                                     type = InputType.hidden
                                     name = "kravid"
-                                    value = it.kravID
+                                    value = it.kravId
                                 }
                                 button {
                                     classes = setOf("btn")

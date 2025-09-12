@@ -1,9 +1,15 @@
 package no.nav.sokos.ske.krav.service
 
-import no.nav.sokos.ske.krav.database.models.KravTable
+import com.zaxxer.hikari.HikariDataSource
+
+import no.nav.sokos.ske.krav.config.DatabaseConfig
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.domain.StonadsType.Companion.getStonadstype
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
+import no.nav.sokos.ske.krav.repository.KravRepository
+import no.nav.sokos.ske.krav.util.SQLUtils.transaction
 
 @RequiresOptIn(message = "Skal bare brukes i frontend")
 @Retention(AnnotationRetention.BINARY)
@@ -14,48 +20,54 @@ enum class RapportType { AVSTEMMING, RESENDING }
 
 @Frontend
 class RapportService(
-    private val dbService: DatabaseService = DatabaseService(),
+    private val dataSource: HikariDataSource = DatabaseConfig.dataSource,
+    private val kravRepository: KravRepository = KravRepository(dataSource),
+    private val feilmeldingRepository: FeilmeldingRepository = FeilmeldingRepository(dataSource),
 ) {
-    val kravSomSkalAvstemmes by lazy { mapToRapportObjekt(dbService.getAllKravForAvstemming()) }
-    val kravSomSkalResendes by lazy { mapToRapportObjekt(dbService.getAllKravForResending()) }
+    val kravSomSkalAvstemmes by lazy { mapToRapportObjekt(kravRepository.getAllKravForAvstemming()) }
+    val kravSomSkalResendes by lazy { mapToRapportObjekt(kravRepository.getAllKravForResending()) }
 
-    fun oppdaterStatusTilRapportert(kravId: Int) = dbService.updateStatusForAvstemtKravToReported(kravId)
+    suspend fun oppdaterStatusTilRapportert(kravId: Int) {
+        dataSource.transaction { session ->
+            kravRepository.updateStatusForAvstemtKravToReported(kravId, session)
+        }
+    }
 
-    private fun mapToRapportObjekt(liste: List<KravTable>) =
-        liste
-            .map {
+    private fun mapToRapportObjekt(kravListe: List<Krav>) =
+        kravListe
+            .map { krav ->
                 RapportObjekt(
-                    it.kravId.toString(),
-                    it.filnavn,
-                    it.linjenummer.toString(),
-                    it.saksnummerNAV,
-                    it.vedtaksDato.toString(),
-                    it.fagsystemId,
-                    it.kravkode,
-                    it.kodeHjemmel,
-                    it.status,
-                    getStonadstype(it.kravkode, it.kodeHjemmel),
-                    it.saksnummerNAV,
-                    it.referansenummerGammelSak,
-                    it.belop,
-                    it.periodeFOM,
-                    it.periodeTOM,
-                    getFeilmeldinger(it),
-                    with(it.tidspunktSisteStatus) {
+                    krav.kravId.toString(),
+                    krav.filnavn,
+                    krav.linjenummer.toString(),
+                    krav.saksnummerNAV,
+                    krav.vedtaksDato.toString(),
+                    krav.fagsystemId,
+                    krav.kravkode,
+                    krav.kodeHjemmel,
+                    krav.status,
+                    getStonadstype(krav.kravkode, krav.kodeHjemmel),
+                    krav.saksnummerNAV,
+                    krav.referansenummerGammelSak,
+                    krav.belop,
+                    krav.periodeFOM,
+                    krav.periodeTOM,
+                    getFeilmeldinger(krav),
+                    with(krav.tidspunktSisteStatus) {
                         "$dayOfMonth/$monthValue/$year, $hour:$minute"
                     },
                 )
-            }.distinctBy { it.kravID }
+            }.distinctBy { it.kravId }
 
-    private fun getFeilmeldinger(krav: KravTable): List<String> =
+    private fun getFeilmeldinger(krav: Krav): List<String> =
         if (krav.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value) {
-            dbService.getFeilmeldingForKravId(krav.kravId).map { it.melding.splitToSequence(", mottatt").first() }
+            feilmeldingRepository.getFeilmeldingForKravId(krav.kravId).map { it.melding.splitToSequence(", mottatt").first() }
         } else {
             emptyList()
         }
 
     data class RapportObjekt(
-        val kravID: String,
+        val kravId: String,
         val filnavn: String,
         val linjenummer: String,
         val vedtaksId: String,
@@ -103,7 +115,7 @@ class RapportService(
                         data.forEach {
                             val fields =
                                 listOf(
-                                    it.kravID.escapeCsvField(),
+                                    it.kravId.escapeCsvField(),
                                     it.filnavn.escapeCsvField(),
                                     it.linjenummer.escapeCsvField(),
                                     it.vedtaksId.escapeCsvField(),

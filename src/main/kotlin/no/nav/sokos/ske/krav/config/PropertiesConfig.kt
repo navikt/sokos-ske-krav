@@ -112,6 +112,8 @@ object PropertiesConfig {
         val name: String = get("POSTGRES_NAME")
         val username: String = get("POSTGRES_USERNAME").trim()
         val password: String = get("POSTGRES_PASSWORD").trim()
+        val adminUsername: String = get("POSTGRES_ADMIN_USERNAME")
+        val adminPassword: String = get("POSTGRES_ADMIN_PASSWORD")
         val vaultMountPath: String = get("VAULT_MOUNTPATH")
         val adminUser = "$name-admin"
         val user = "$name-user"

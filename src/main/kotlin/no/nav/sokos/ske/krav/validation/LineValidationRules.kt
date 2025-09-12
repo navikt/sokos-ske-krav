@@ -4,8 +4,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import no.nav.sokos.ske.krav.domain.StonadsType
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
-import no.nav.sokos.ske.krav.util.isOpprettKrav
+import no.nav.sokos.ske.krav.dto.nav.KravLinje
+import no.nav.sokos.ske.krav.dto.nav.isOpprettKrav
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.KRAVTYPE_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.PERIODE_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
@@ -33,10 +33,10 @@ import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.VEDTAK
 
 */
 object LineValidationRules {
-    fun runValidation(krav: KravLinje): ValidationResult {
+    fun runValidation(kravLinje: KravLinje): ValidationResult {
         val errorMessages =
             buildList {
-                with(krav) {
+                with(kravLinje) {
                     checkVedtaksDato(vedtaksDato)?.let { message ->
                         add(Pair(VEDTAKSDATO_ERROR, "$message: (Vedtaksdato: $vedtaksDato). Linje: $linjenummer"))
                     }
@@ -53,7 +53,7 @@ object LineValidationRules {
                         add(Pair(SAKSNUMMER_ERROR, "$SAKSNUMMER_WRONG_FORMAT: ($saksnummerNav). Linje: $linjenummer"))
                     }
 
-                    if (!kravTypeIsValid(krav)) {
+                    if (!kravTypeIsValid(kravLinje)) {
                         add(Pair(KRAVTYPE_ERROR, "$KRAVTYPE_DOES_NOT_EXIST: ($kravKode) sammen med ($kodeHjemmel). Linje: $linjenummer"))
                     }
 
@@ -66,7 +66,7 @@ object LineValidationRules {
         return if (errorMessages.isNotEmpty()) {
             ValidationResult.Error(errorMessages)
         } else {
-            ValidationResult.Success(listOf(krav))
+            ValidationResult.Success(listOf(kravLinje))
         }
     }
 
@@ -116,9 +116,9 @@ object LineValidationRules {
     ) = if (!isOpprettKrav) saksNummerIsValid(referansenummerGammelSak) else true
 
     // Kravtype
-    private fun kravTypeIsValid(krav: KravLinje): Boolean =
+    private fun kravTypeIsValid(kravLinje: KravLinje): Boolean =
         try {
-            StonadsType.getStonadstype(krav.kravKode, krav.kodeHjemmel)
+            StonadsType.getStonadstype(kravLinje.kravKode, kravLinje.kodeHjemmel)
             true
         } catch (_: NotImplementedError) {
             false

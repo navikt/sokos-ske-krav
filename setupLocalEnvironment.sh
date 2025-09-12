@@ -16,7 +16,7 @@ envValue=$(kubectl exec -it $(kubectl get pods | grep sokos-ske-krav | cut -f1 -
 PRIVATE_KEY=$(vault read -field=privateKey kv/preprod/fss/sokos-ske-krav/okonomi/sftp)
 
 POSTGRES_USER=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-ske-krav-user)
-#POSTGRES_ADMIN=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-ske-krav-admin)
+POSTGRES_ADMIN=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-ske-krav-admin)
 
 username=$(echo "$POSTGRES_USER" | awk -F 'username:' '{print $2}' | awk '{print $1}' | sed 's/]$//')
 password=$(echo "$POSTGRES_USER" | awk -F 'password:' '{print $2}' | awk '{print $1}' | sed 's/]$//')
@@ -26,7 +26,10 @@ echo "$envValue" > defaults.properties
 echo "POSTGRES_USERNAME=$username" >> defaults.properties
 echo "POSTGRES_PASSWORD=$password" >> defaults.properties
 
-
+username=$(echo "$POSTGRES_ADMIN" | awk -F 'username:' '{print $2}' | awk '{print $1}' | sed 's/]$//')
+password=$(echo "$POSTGRES_ADMIN" | awk -F 'password:' '{print $2}' | awk '{print $1}' | sed 's/]$//')
+echo "POSTGRES_ADMIN_USERNAME=$username" >> defaults.properties
+echo "POSTGRES_ADMIN_PASSWORD=$password" >> defaults.properties
 
 rm -f privKey
 echo "$PRIVATE_KEY" > privKey

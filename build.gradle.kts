@@ -3,7 +3,6 @@ import kotlinx.kover.gradle.plugin.dsl.tasks.KoverReport
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -35,14 +34,15 @@ val opentelemetryVersion = "2.18.1-alpha"
 val hikaricpVersion = "7.0.1"
 val flywayVersion = "11.11.0"
 val postgresqlVersion = "42.7.7"
+val kotliqueryVersion = "1.9.1"
 
 // Test
 val kotestVersion = "5.9.1"
-val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.14.5"
 val commonsVersion = "3.12.0"
 val testContainerVersion = "1.21.3"
 val mockFtpServerVersion = "3.2.0"
+val wiremockVersion = "3.13.1"
 
 // Logging
 val janinoVersion = "3.1.12"
@@ -73,6 +73,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:$hikaricpVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("no.nav:vault-jdbc:$vaultVersion")
+    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")
@@ -103,13 +104,13 @@ dependencies {
 
     // Test
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
-    testImplementation("io.kotest.extensions:kotest-extensions-testcontainers:$kotestTestContainerExtensionVersion")
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion")
     testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
     testImplementation("io.mockk:mockk-jvm:$mockkVersion")
     testImplementation("org.testcontainers:postgresql:$testContainerVersion")
     testImplementation("commons-net:commons-net:$commonsVersion")
     testImplementation("org.mockftpserver:MockFtpServer:$mockFtpServerVersion")
+    testImplementation("org.wiremock:wiremock:$wiremockVersion")
 }
 
 kotlin {

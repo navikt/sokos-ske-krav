@@ -7,9 +7,6 @@ import com.jcraft.jsch.SftpException
 import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.SftpConfig
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
-import no.nav.sokos.ske.krav.validation.FileValidator
-import no.nav.sokos.ske.krav.validation.ValidationResult
 
 enum class Directories(
     val value: String,
@@ -19,24 +16,11 @@ enum class Directories(
     FAILED("/inbound/feilfiler"),
 }
 
-data class FtpFil(
-    val name: String,
-    val content: List<String>,
-    val kravLinjer: List<KravLinje>,
-)
+private val logger = KotlinLogging.logger("secureLogger")
 
 class FtpService(
     private val sftpConfig: SftpConfig = SftpConfig(),
-    private val fileValidator: FileValidator = FileValidator(),
-    private val databaseService: DatabaseService = DatabaseService(),
 ) {
-    private val logger = KotlinLogging.logger("secureLogger")
-
-    fun listFiles(directory: Directories = Directories.INBOUND): List<String> =
-        sftpConfig.channel { con ->
-            con.ls(directory.value).filterNot { it.attrs.isDir }.map { it.filename }
-        }
-
     fun moveFile(
         fileName: String,
         from: Directories,
@@ -57,7 +41,7 @@ class FtpService(
         }
     }
 
-    private fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> =
+    fun downloadFiles(directory: Directories = Directories.INBOUND): Map<String, List<String>> =
         sftpConfig.channel { con ->
             try {
                 listFiles(directory)
@@ -74,30 +58,8 @@ class FtpService(
             }
         }
 
-    suspend fun getValidatedFiles(directory: Directories = Directories.INBOUND): List<FtpFil> {
-        val files = downloadFiles(directory)
-        if (files.isEmpty()) return emptyList()
-
-        return files.mapNotNull { (fileName, fileContent) ->
-            when (val validationResult = fileValidator.validateFile(fileContent, fileName)) {
-                is ValidationResult.Success -> FtpFil(fileName, fileContent, validationResult.kravLinjer)
-
-                is ValidationResult.Error -> {
-                    handleValidationError(fileName, validationResult.messages, directory)
-                    null
-                }
-            }
+    fun listFiles(directory: Directories = Directories.INBOUND): List<String> =
+        sftpConfig.channel { con ->
+            con.ls(directory.value).filterNot { it.attrs.isDir }.map { it.filename }
         }
-    }
-
-    private fun handleValidationError(
-        fileName: String,
-        errorMessages: List<Pair<String, String>>,
-        directory: Directories,
-    ) {
-        moveFile(fileName, directory, Directories.FAILED)
-        errorMessages.forEach { message ->
-            databaseService.saveFileValidationError(fileName, "${message.first}: ${message.second}")
-        }
-    }
 }

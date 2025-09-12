@@ -3,9 +3,9 @@ package no.nav.sokos.ske.krav.util
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.isSuccess
 
-import no.nav.sokos.ske.krav.database.models.KravTable
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
-import no.nav.sokos.ske.krav.domain.ske.responses.FeilResponse
+import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 
 const val KRAV_IKKE_RESKONTROFORT_RESEND = "innkrevingsoppdrag-er-ikke-reskontrofoert"
 const val KRAV_ER_AVSKREVET = "innkrevingsoppdrag-er-avskrevet"
@@ -14,7 +14,7 @@ const val KRAV_EKSISTERER_IKKE = "innkrevingsoppdrag-eksisterer-ikke"
 
 data class RequestResult(
     val response: HttpResponse,
-    val kravTable: KravTable,
+    val krav: Krav,
     val request: String,
     val kravidentifikator: String,
     val status: Status,

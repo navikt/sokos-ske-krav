@@ -2,9 +2,16 @@ package no.nav.sokos.ske.krav.metrics
 
 import java.util.concurrent.ConcurrentHashMap
 
+import io.ktor.http.isSuccess
 import io.micrometer.core.instrument.Counter
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+
+import no.nav.sokos.ske.krav.domain.ENDRING_HOVEDSTOL
+import no.nav.sokos.ske.krav.domain.ENDRING_RENTE
+import no.nav.sokos.ske.krav.domain.NYTT_KRAV
+import no.nav.sokos.ske.krav.domain.STOPP_KRAV
+import no.nav.sokos.ske.krav.util.RequestResult
 
 object Metrics {
     val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
@@ -29,6 +36,14 @@ object Metrics {
                     .tag("kravkode", kravkode)
                     .register(registry)
             }.increment()
+    }
+
+    fun incrementMetrics(results: List<RequestResult>) {
+        numberOfKravSent.increment(results.size.toDouble())
+        numberOfKravFeilet.increment(results.filter { !it.response.status.isSuccess() }.size.toDouble())
+        numberOfNyeKrav.increment(results.filter { it.krav.kravtype == NYTT_KRAV }.size.toDouble())
+        numberOfEndringerAvKrav.increment(results.filter { it.krav.kravtype == ENDRING_RENTE || it.krav.kravtype == ENDRING_HOVEDSTOL }.size.toDouble())
+        numberOfStoppAvKrav.increment(results.filter { it.krav.kravtype == STOPP_KRAV }.size.toDouble())
     }
 
     private fun counter(

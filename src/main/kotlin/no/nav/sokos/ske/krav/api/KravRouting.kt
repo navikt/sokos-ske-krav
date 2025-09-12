@@ -20,7 +20,7 @@ fun Route.internalRoutes(
     route("api") {
         get("hentNye") {
             call.respond(HttpStatusCode.OK, "Startet henting av nye ${Clock.System.now()}")
-            skeService.handleNewKrav()
+            skeService.behandleSkeKrav()
         }
         get("hentStatus") {
             statusService.getMottaksStatus()

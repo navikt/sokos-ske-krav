@@ -60,16 +60,7 @@ class ServiceutilsTest :
 
         test("parseTo skal returnere null og logge error når T er FeilResponse") {
             runBlocking {
-                val errorResponse =
-                    """
-                    {
-                        "type": "error-type",
-                        "title": "Error Title",
-                        "status": 404,
-                        "detail": "Error detail message",
-                        "instance": "/test/error"
-                    }
-                    """.trimIndent()
+                val errorResponse = TestData.feilResponse()
                 val client = createMockClient(errorResponse, HttpStatusCode.NotFound)
                 val response = client.get("/test")
 

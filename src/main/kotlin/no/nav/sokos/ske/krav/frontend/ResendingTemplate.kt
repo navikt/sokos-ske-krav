@@ -27,7 +27,7 @@ class ResendingTemplate : Template<FlowContent> {
 
             data.forEach {
                 tr {
-                    td { +it.kravID }
+                    td { +it.kravId }
                     td { +it.filnavn }
                     td { +it.linjenummer }
                     td { +it.vedtaksId }

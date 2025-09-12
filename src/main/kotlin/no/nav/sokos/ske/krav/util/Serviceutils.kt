@@ -5,25 +5,26 @@ import kotlinx.serialization.json.Json
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 
-import no.nav.sokos.ske.krav.database.models.KravTable
-import no.nav.sokos.ske.krav.domain.ske.requests.KravidentifikatorType
-import no.nav.sokos.ske.krav.domain.ske.responses.FeilResponse
-import no.nav.sokos.ske.krav.service.NYTT_KRAV
+import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.domain.NYTT_KRAV
+import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
+import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 
-fun createKravidentifikatorPair(it: KravTable): Pair<String, KravidentifikatorType> {
-    var kravIdentifikator = it.kravidentifikatorSKE
+val logger = mu.KotlinLogging.logger {}
+
+fun createKravidentifikatorPair(krav: Krav): Pair<String, KravidentifikatorType> {
+    var kravIdentifikator = krav.kravidentifikatorSKE
     var kravIdentifikatorType = KravidentifikatorType.SKATTEETATENSKRAVIDENTIFIKATOR
 
-    if (kravIdentifikator.isEmpty() && it.kravtype != NYTT_KRAV) {
-        kravIdentifikator = it.referansenummerGammelSak
+    if (kravIdentifikator.isEmpty() && krav.kravtype != NYTT_KRAV) {
+        kravIdentifikator = krav.referansenummerGammelSak
         kravIdentifikatorType = KravidentifikatorType.OPPDRAGSGIVERSKRAVIDENTIFIKATOR
     }
     return Pair(kravIdentifikator, kravIdentifikatorType)
 }
 
-suspend inline fun <reified T> HttpResponse.parseTo(): T? {
-    val logger = mu.KotlinLogging.logger {}
-    return try {
+suspend inline fun <reified T> HttpResponse.parseTo(): T? =
+    try {
         body<T>()
     } catch (e: Exception) {
         try {
@@ -35,13 +36,10 @@ suspend inline fun <reified T> HttpResponse.parseTo(): T? {
             null
         }
     }
-}
 
-inline fun <reified T> T.encodeToString(): String {
-    val logger = mu.KotlinLogging.logger {}
-    return runCatching {
+inline fun <reified T> T.encodeToString(): String =
+    runCatching {
         Json.encodeToString(this)
     }.onFailure { exception ->
         logger.error(exception) { "Error encoding JSON to ${T::class.simpleName}: ${exception.message}" }
     }.getOrDefault("Error encoding JSON to ${T::class.simpleName}")
-}

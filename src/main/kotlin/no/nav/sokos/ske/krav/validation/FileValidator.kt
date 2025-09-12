@@ -1,57 +1,44 @@
 package no.nav.sokos.ske.krav.validation
 
-import no.nav.sokos.ske.krav.client.SlackService
-import no.nav.sokos.ske.krav.domain.nav.FileParser
-import no.nav.sokos.ske.krav.domain.nav.KontrollLinjeFooter
-import no.nav.sokos.ske.krav.domain.nav.KontrollLinjeHeader
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
+import mu.KotlinLogging
 
-private val logger = mu.KotlinLogging.logger {}
+import no.nav.sokos.ske.krav.dto.nav.KontrollLinjeFooter
+import no.nav.sokos.ske.krav.dto.nav.KontrollLinjeHeader
+import no.nav.sokos.ske.krav.dto.nav.KravLinje
+import no.nav.sokos.ske.krav.util.FileParser
 
-class FileValidator(
-    private val slackService: SlackService = SlackService(),
-) {
-    object ErrorKeys {
-        const val PARSE_EXCEPTION = "Exception i parsing av fil"
-        const val FEIL_I_ANTALL = "Antall krav stemmer ikke med antallet i siste linje"
-        const val FEIL_I_SUM = "Sum alle linjer stemmer ikke med sum i siste linje"
-        const val FEIL_I_DATO = "Dato sendt er avvikende mellom første og siste linje fra OS"
-    }
+private val logger = KotlinLogging.logger {}
 
-    suspend fun validateFile(
-        content: List<String>,
-        fileName: String,
-    ): ValidationResult {
-        val parser = FileParser(content)
+const val PARSE_EXCEPTION = "Exception i parsing av fil"
+const val FEIL_I_ANTALL = "Antall krav stemmer ikke med antallet i siste linje"
+const val FEIL_I_SUM = "Sum alle linjer stemmer ikke med sum i siste linje"
+const val FEIL_I_DATO = "Dato sendt er avvikende mellom første og siste linje fra OS"
 
+object FileValidator {
+    fun validateFile(content: List<String>): ValidationResult {
         val errorMessages =
             buildList {
                 runCatching {
-                    val lastLine = parser.parseKontrollLinjeFooter()
-                    val firstLine = parser.parseKontrollLinjeHeader()
+                    val lastLine = FileParser.parseKontrollLinjeFooter(content)
+                    val firstLine = FileParser.parseKontrollLinjeHeader(content)
                     val kravLinjer =
                         runCatching {
-                            parser.parseKravLinjer()
+                            FileParser.parseKravLinjer(content)
                         }.onFailure { exception ->
                             val exceptionMessage = exception.message ?: "Ukjent feil"
-                            add(ErrorKeys.PARSE_EXCEPTION to exceptionMessage)
+                            add(PARSE_EXCEPTION to exceptionMessage)
                             logger.error(exception) { exceptionMessage }
                         }.getOrNull() ?: return@buildList
 
                     validateLines(lastLine, firstLine, kravLinjer)
                 }.onFailure {
-                    add(ErrorKeys.PARSE_EXCEPTION to (it.message ?: "Ukjent feil"))
+                    add(PARSE_EXCEPTION to (it.message ?: "Ukjent feil"))
                 }
             }
 
         if (errorMessages.isEmpty()) {
-            return ValidationResult.Success(parser.parseKravLinjer())
+            return ValidationResult.Success(FileParser.parseKravLinjer(content))
         }
-
-        logger.warn("*** Feil i validering av fil $fileName ***")
-
-        slackService.addError(fileName, "Feil i validering av fil", errorMessages)
-        slackService.sendErrors()
 
         return ValidationResult.Error(messages = errorMessages)
     }
@@ -62,13 +49,13 @@ class FileValidator(
         kravLinjer: List<KravLinje>,
     ) {
         if (lastLine.antallTransaksjoner != kravLinjer.size) {
-            add(ErrorKeys.FEIL_I_ANTALL to "Antall krav: ${kravLinjer.size}, Antall i siste linje: ${lastLine.antallTransaksjoner}\n")
+            add(FEIL_I_ANTALL to "Antall krav: ${kravLinjer.size}, Antall i siste linje: ${lastLine.antallTransaksjoner}\n")
         }
         if (kravLinjer.sumOf { it.belop + it.belopRente } != lastLine.sumAlleTransaksjoner) {
-            add(ErrorKeys.FEIL_I_SUM to "Sum alle linjer: ${kravLinjer.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAlleTransaksjoner}\n")
+            add(FEIL_I_SUM to "Sum alle linjer: ${kravLinjer.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAlleTransaksjoner}\n")
         }
         if (firstLine.transaksjonsDato != lastLine.transaksjonTimestamp) {
-            add(ErrorKeys.FEIL_I_DATO to "Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonTimestamp}\n")
+            add(FEIL_I_DATO to "Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonTimestamp}\n")
         }
     }
 }

@@ -16,20 +16,20 @@ import io.ktor.http.contentType
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.httpClient
-import no.nav.sokos.ske.krav.domain.ske.requests.AvskrivingRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.KravidentifikatorType
-import no.nav.sokos.ske.krav.domain.ske.requests.NyHovedStolRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.AvskrivingRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.EndreRenteBeloepRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
+import no.nav.sokos.ske.krav.dto.ske.requests.NyHovedStolRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.OpprettInnkrevingsoppdragRequest
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 
-private const val OPPRETT_KRAV = "innkrevingsoppdrag"
-private const val ENDRE_RENTER = "innkrevingsoppdrag/%s/renter?kravidentifikatortype=%s"
-private const val ENDRE_HOVESTOL = "innkrevingsoppdrag/%s/hovedstol?kravidentifikatortype=%s"
-private const val STOPP_KRAV = "innkrevingsoppdrag/avskriving"
-private const val MOTTAKSSTATUS = "innkrevingsoppdrag/%s/mottaksstatus?kravidentifikatortype=%s"
-private const val VALIDERINGSFEIL = "innkrevingsoppdrag/%s/valideringsfeil?kravidentifikatortype=%s"
-private const val HENT_SKE_KRAVIDENT = "innkrevingsoppdrag/%s/avstemming?kravidentifikatortype=OPPDRAGSGIVERS_KRAVIDENTIFIKATOR"
+const val OPPRETT_KRAV_URL = "innkrevingsoppdrag"
+const val ENDRE_RENTER_URL = "innkrevingsoppdrag/%s/renter?kravidentifikatortype=%s"
+const val ENDRE_HOVESTOL_URL = "innkrevingsoppdrag/%s/hovedstol?kravidentifikatortype=%s"
+const val STOPP_KRAV_URL = "innkrevingsoppdrag/avskriving"
+const val MOTTAKSSTATUS_URL = "innkrevingsoppdrag/%s/mottaksstatus?kravidentifikatortype=%s"
+const val VALIDERINGSFEIL_URL = "innkrevingsoppdrag/%s/valideringsfeil?kravidentifikatortype=%s"
+const val HENT_SKE_KRAVIDENT_URL = "innkrevingsoppdrag/%s/avstemming?kravidentifikatortype=OPPDRAGSGIVERS_KRAVIDENTIFIKATOR"
 private const val KLIENT_ID = "NAV/0.1"
 
 class SkeClient(
@@ -42,36 +42,36 @@ class SkeClient(
         kravidentifikator: String,
         kravidentifikatorType: KravidentifikatorType,
         corrID: String,
-    ) = doPut(String.format(ENDRE_RENTER, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
+    ) = doPut(String.format(ENDRE_RENTER_URL, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
 
     suspend fun endreHovedstol(
         request: NyHovedStolRequest,
         kravidentifikator: String,
         kravidentifikatorType: KravidentifikatorType,
         corrID: String,
-    ) = doPut(String.format(ENDRE_HOVESTOL, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
+    ) = doPut(String.format(ENDRE_HOVESTOL_URL, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
 
     suspend fun opprettKrav(
         request: OpprettInnkrevingsoppdragRequest,
         corrID: String,
-    ) = doPost(OPPRETT_KRAV, request, corrID)
+    ) = doPost(OPPRETT_KRAV_URL, request, corrID)
 
     suspend fun stoppKrav(
         request: AvskrivingRequest,
         corrID: String,
-    ) = doPost(STOPP_KRAV, request, corrID)
+    ) = doPost(STOPP_KRAV_URL, request, corrID)
 
     suspend fun getMottaksStatus(
         kravid: String,
         kravidentifikatorType: KravidentifikatorType,
-    ) = doGet(String.format(MOTTAKSSTATUS, kravid, kravidentifikatorType.value), UUID.randomUUID().toString())
+    ) = doGet(String.format(MOTTAKSSTATUS_URL, kravid, kravidentifikatorType.value), UUID.randomUUID().toString())
 
     suspend fun getValideringsfeil(
         kravid: String,
         kravidentifikatorType: KravidentifikatorType,
-    ) = doGet(String.format(VALIDERINGSFEIL, kravid, kravidentifikatorType.value), UUID.randomUUID().toString())
+    ) = doGet(String.format(VALIDERINGSFEIL_URL, kravid, kravidentifikatorType.value), UUID.randomUUID().toString())
 
-    suspend fun getSkeKravidentifikator(referanse: String) = doGet(String.format(HENT_SKE_KRAVIDENT, referanse), UUID.randomUUID().toString())
+    suspend fun getSkeKravidentifikator(referanse: String) = doGet(String.format(HENT_SKE_KRAVIDENT_URL, referanse), UUID.randomUUID().toString())
 
     private suspend inline fun <reified T> doPost(
         path: String,
