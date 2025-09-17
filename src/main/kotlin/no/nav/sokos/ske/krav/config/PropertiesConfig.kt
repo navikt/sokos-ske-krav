@@ -33,6 +33,8 @@ object PropertiesConfig {
                 "POSTGRES_NAME" to "test",
                 "POSTGRES_USERNAME" to "test",
                 "POSTGRES_PASSWORD" to "test",
+                "POSTGRES_ADMIN_USERNAME" to "test-admin",
+                "POSTGRES_ADMIN_PASSWORD" to "test-admin",
             ),
         )
     private val localDevProperties =
