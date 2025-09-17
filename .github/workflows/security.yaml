@@ -1,18 +1,15 @@
-name: "CodeQL Advanced"
+name: Security
+
 on:
-  push:
-    branches: [ "main", "dev" ]
-  pull_request:
-    branches: [ "main" ]
   schedule:
     - cron: '0 6 * * 1'
   workflow_dispatch:
 
 permissions:
-  actions: read
   contents: "read"
   id-token: "write"
   security-events: write
+
 jobs:
   security-analyze:
     name: Security analyze

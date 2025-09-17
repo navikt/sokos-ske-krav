@@ -1,4 +1,4 @@
-package no.nav.sokos.ske.krav.validation
+package no.nav.sokos.ske.krav.service
 
 import java.time.LocalDate
 
@@ -10,7 +10,6 @@ import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.nav.FtpFilDTO
 import no.nav.sokos.ske.krav.listener.PostgresListener
-import no.nav.sokos.ske.krav.service.LineValidatorService
 import no.nav.sokos.ske.krav.util.TestData
 import no.nav.sokos.ske.krav.validation.LineValidationRules.errorDate
 

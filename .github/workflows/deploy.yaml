@@ -1,19 +1,22 @@
-name: Deploy
+name: Deploy application
 
 on:
   push:
     branches:
       - main
-      - dev
     paths-ignore:
       - '**.md'
       - 'LICENCE'
       - 'CODEOWNERS'
       - '.gitignore'
+      - '.editorconfig'
       - 'setupLocalEnvironment.sh'
+      - 'dokumentasjon/**'
       - '.github/workflows/build-pr.yaml'
-      - '.github/workflows/codeql.yaml'
+      - '.github/workflows/manual-deploy.yaml'
+      - '.github/workflows/security.yaml'
       - '.github/dependabot.yaml'
+
 env:
   TZ: Europe/Oslo
 
@@ -37,9 +40,8 @@ jobs:
       image: ${{ needs.build.outputs.image }}
 
   deploy-prod:
+    needs: [ build, deploy-dev ]
     name: Deploy to prod-fss
-    needs: [ build , deploy-dev ]
-    if: github.ref == 'refs/heads/main'
     uses: navikt/mob-gha-workflows/.github/workflows/nais-app-deploy.yaml@main
     with:
       cluster: prod-fss

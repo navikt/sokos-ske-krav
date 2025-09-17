@@ -12,10 +12,11 @@ on:
       - 'dokumentasjon/**'
       - '.github/workflows/deploy.yaml'
       - '.github/workflows/manual-deploy.yaml'
-      - '.github/workflows/codeql.yaml'
+      - '.github/workflows/security.yaml'
       - '.github/dependabot.yaml'
 
 jobs:
   build-pr:
     name: Build and test
     uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-pr.yaml@main
+
