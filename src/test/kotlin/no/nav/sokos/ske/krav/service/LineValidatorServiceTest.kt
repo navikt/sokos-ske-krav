@@ -1,6 +1,5 @@
 package no.nav.sokos.ske.krav.validation
 
-import java.math.BigDecimal
 import java.time.LocalDate
 
 import io.kotest.core.spec.style.BehaviorSpec
@@ -10,9 +9,9 @@ import io.mockk.mockk
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.nav.FtpFilDTO
-import no.nav.sokos.ske.krav.dto.nav.KravLinje
 import no.nav.sokos.ske.krav.listener.PostgresListener
 import no.nav.sokos.ske.krav.service.LineValidatorService
+import no.nav.sokos.ske.krav.util.TestData
 import no.nav.sokos.ske.krav.validation.LineValidationRules.errorDate
 
 internal class LineValidatorServiceTest :
@@ -25,7 +24,7 @@ internal class LineValidatorServiceTest :
         }
 
         Given("Alle linjer er ok") {
-            val kravLinjer = getKravlinjer()
+            val kravLinjer = TestData.getKravlinjerTestData()
             val fileName = this.testCase.name.testName
 
             When("Linjer valideres") {
@@ -46,7 +45,7 @@ internal class LineValidatorServiceTest :
         }
 
         Given("1 linje har har 1 feil") {
-            val okKrav = getKravlinjer()
+            val okKrav = TestData.getKravlinjerTestData()
             val ikkeOkKrav = listOf(okKrav[0].copy(linjenummer = 6, kravKode = "MJ AU"))
 
             val kravLinjer = okKrav + ikkeOkKrav
@@ -73,7 +72,7 @@ internal class LineValidatorServiceTest :
         }
 
         Given("1 linje har 3 forskjellige feil") {
-            val okKrav = getKravlinjer()
+            val okKrav = TestData.getKravlinjerTestData()
             val ikkeOkKrav =
                 listOf(
                     okKrav[0].copy(linjenummer = 6, kravKode = "MJ AU", vedtaksDato = LocalDate.now().plusMonths(1), saksnummerNav = "saksnummer_ø"),
@@ -101,7 +100,7 @@ internal class LineValidatorServiceTest :
         }
 
         Given("6 linjer har samme type feil") {
-            val okKrav = getKravlinjer()
+            val okKrav = TestData.getKravlinjerTestData()
             val ikkeOkKrav =
                 listOf(
                     okKrav[0].copy(linjenummer = 6, kravKode = "MJ AU"),
@@ -167,34 +166,3 @@ internal class LineValidatorServiceTest :
             }
         }
     })
-
-private fun getKravlinjer(): MutableList<KravLinje> {
-    val okLinje =
-        KravLinje(
-            linjenummer = 1,
-            saksnummerNav = "saksnummer",
-            belop = BigDecimal.ONE,
-            vedtaksDato = LocalDate.now(),
-            gjelderId = "gjelderID",
-            periodeFOM = "20231201",
-            periodeTOM = "20231212",
-            kravKode = "KS KS",
-            referansenummerGammelSak = "refgammelsak",
-            transaksjonsDato = "20230112",
-            enhetBosted = "bosted",
-            enhetBehandlende = "beh",
-            kodeHjemmel = "T",
-            kodeArsak = "arsak",
-            belopRente = BigDecimal.ONE,
-            fremtidigYtelse = BigDecimal.ONE,
-            utbetalDato = LocalDate.now().minusDays(1),
-            fagsystemId = "1234",
-        )
-    return mutableListOf(
-        okLinje,
-        okLinje.copy(linjenummer = 2, saksnummerNav = "saksnummer2"),
-        okLinje.copy(linjenummer = 3, saksnummerNav = "saksnummer3"),
-        okLinje.copy(linjenummer = 4, saksnummerNav = "saksnummer4"),
-        okLinje.copy(linjenummer = 5, saksnummerNav = "saksnummer5"),
-    )
-}

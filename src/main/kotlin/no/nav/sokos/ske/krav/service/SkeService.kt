@@ -103,19 +103,6 @@ class SkeService(
         }
     }
 
-    private fun handleValidationResults(
-        ftpFilDTO: FtpFilDTO,
-        kravLinjeListe: List<KravLinje>,
-    ) {
-        if (ftpFilDTO.kravLinjer.size > kravLinjeListe.size) {
-            logger.warn("Ved validering av linjer i fil ${ftpFilDTO.name} har ${ftpFilDTO.kravLinjer.size - kravLinjeListe.size} linjer velideringsfeil ")
-        }
-        if (kravLinjeListe.size >= 1000) {
-            logger.info("***Stor fil. Blokkerer kjøring***")
-            haltRun = true
-        }
-    }
-
     suspend fun checkKravDateForAlert() {
         kravService
             .getKravListe(KRAV_FOR_STATUS_CHECK)
@@ -134,6 +121,19 @@ class SkeService(
                 )
             }
         slackService.sendErrors()
+    }
+
+    private fun handleValidationResults(
+        ftpFilDTO: FtpFilDTO,
+        kravLinjeListe: List<KravLinje>,
+    ) {
+        if (ftpFilDTO.kravLinjer.size > kravLinjeListe.size) {
+            logger.warn("Ved validering av linjer i fil ${ftpFilDTO.name} har ${ftpFilDTO.kravLinjer.size - kravLinjeListe.size} linjer velideringsfeil ")
+        }
+        if (kravLinjeListe.size >= 1000) {
+            logger.info("***Stor fil. Blokkerer kjøring***")
+            haltRun = true
+        }
     }
 
     private fun logResult(result: List<RequestResult>) {

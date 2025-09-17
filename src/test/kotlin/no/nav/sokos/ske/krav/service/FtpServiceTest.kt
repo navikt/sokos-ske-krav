@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.listener.SftpListener
+import no.nav.sokos.ske.krav.listener.SftpListener.clearAllDirectories
 
 private const val FILE_A = "Fil-A.txt"
 private const val FILE_B = "Fil-B.txt"
@@ -55,9 +56,3 @@ class FtpServiceTest :
             }
         }
     })
-
-private fun clearAllDirectories() {
-    Directories.entries.forEach { directory ->
-        SftpListener.clearDirectory(directory)
-    }
-}

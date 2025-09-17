@@ -13,8 +13,10 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.mockk
 
 import no.nav.sokos.ske.krav.client.OPPRETT_KRAV_URL
+import no.nav.sokos.ske.krav.client.STOPP_KRAV_URL
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
+import no.nav.sokos.ske.krav.domain.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.responses.OpprettInnkrevingsOppdragResponse
 import no.nav.sokos.ske.krav.listener.PostgresListener
@@ -94,6 +96,7 @@ class KravServiceTest :
         }
 
         Given("sendKrav med sendAllEndreKrav - to endringskrav (rente + hovedstol) suksess") {
+            PostgresListener.resetDatabase()
             PostgresListener.migrate("SQLscript/2EndringsKrav.sql")
 
             val endringsKrav = kravRepository.getAllKrav()
@@ -103,7 +106,7 @@ class KravServiceTest :
             When("Begge endringskall returnerer 200") {
                 WiremockListener.wiremock.stubFor(
                     WireMock
-                        .post(urlEqualTo("/endre/hovedstol"))
+                        .put(WireMock.urlMatching(".*/hovedstol.*"))
                         .willReturn(
                             aResponse()
                                 .withHeader(HttpHeaders.ContentType, ContentTypes.APPLICATION_JSON)
@@ -112,7 +115,7 @@ class KravServiceTest :
                 )
                 WiremockListener.wiremock.stubFor(
                     WireMock
-                        .post(urlEqualTo("/endre/renter"))
+                        .put(WireMock.urlMatching(".*/renter.*"))
                         .willReturn(
                             aResponse()
                                 .withHeader(HttpHeaders.ContentType, ContentTypes.APPLICATION_JSON)
@@ -134,7 +137,7 @@ class KravServiceTest :
                 WiremockListener.wiremock.resetAll()
                 WiremockListener.wiremock.stubFor(
                     WireMock
-                        .post(urlEqualTo("/endre/hovedstol"))
+                        .put(WireMock.urlMatching(".*/hovedstol.*"))
                         .willReturn(
                             aResponse()
                                 .withHeader(HttpHeaders.ContentType, ContentTypes.APPLICATION_JSON)
@@ -143,7 +146,7 @@ class KravServiceTest :
                 )
                 WiremockListener.wiremock.stubFor(
                     WireMock
-                        .post(urlEqualTo("/endre/renter"))
+                        .put(WireMock.urlMatching(".*/renter.*"))
                         .willReturn(
                             aResponse()
                                 .withHeader(HttpHeaders.ContentType, ContentTypes.APPLICATION_JSON)
@@ -154,14 +157,18 @@ class KravServiceTest :
                 kravService.sendKrav(kravRepository.getAllKrav())
 
                 Then("Begge endringskrav harmoniseres til FEIL_SENDT") {
-                    kravRepository.getAllKrav().forEach {
-                        it.status shouldBe Status.KRAV_SENDT.value
+                    kravRepository.getAllKrav().forEach { krav ->
+                        when {
+                            krav.kravtype == ENDRING_HOVEDSTOL -> krav.status shouldBe Status.HTTP404_ANNEN_IKKE_FUNNET.value
+                            else -> krav.status shouldBe Status.KRAV_SENDT.value
+                        }
                     }
                 }
             }
         }
 
         Given("sendKrav med sendAllStoppKrav - suksess og feil") {
+            PostgresListener.resetDatabase()
             PostgresListener.migrate("SQLscript/1StoppKrav.sql")
 
             val stoppKrav = kravRepository.getAllKrav()
@@ -170,7 +177,7 @@ class KravServiceTest :
             When("Stopp-endepunkt returnerer 200") {
                 WiremockListener.wiremock.stubFor(
                     WireMock
-                        .post(urlEqualTo("/stopp"))
+                        .post(urlEqualTo("/$STOPP_KRAV_URL"))
                         .willReturn(
                             aResponse()
                                 .withHeader(HttpHeaders.ContentType, ContentTypes.APPLICATION_JSON)
@@ -189,10 +196,11 @@ class KravServiceTest :
                 WiremockListener.wiremock.resetAll()
                 WiremockListener.wiremock.stubFor(
                     WireMock
-                        .post(urlEqualTo("/stopp"))
+                        .post(urlEqualTo("/$STOPP_KRAV_URL"))
                         .willReturn(
                             aResponse()
                                 .withHeader(HttpHeaders.ContentType, ContentTypes.APPLICATION_JSON)
+                                .withBody(TestData.feilResponse())
                                 .withStatus(HttpStatusCode.BadRequest.value),
                         ),
                 )
@@ -200,7 +208,7 @@ class KravServiceTest :
                 kravService.sendKrav(kravRepository.getAllKrav())
 
                 Then("Status blir FEIL_SENDT") {
-                    kravRepository.getAllKrav().first().status shouldBe Status.KRAV_SENDT.value
+                    kravRepository.getAllKrav().first().status shouldBe Status.HTTP400_UGYLDIG_FORESPORSEL.value
                 }
             }
         }
@@ -212,14 +220,15 @@ class KravServiceTest :
             val krav = kravRepository.getAllKrav()
             krav.size shouldBe 2
 
-            When("Første forsøk feiler (400)") {
+            When("Første forsøk feiler (500)") {
                 WiremockListener.wiremock.stubFor(
                     WireMock
                         .post(urlEqualTo("/$OPPRETT_KRAV_URL"))
                         .willReturn(
                             aResponse()
                                 .withHeader(HttpHeaders.ContentType, ContentTypes.APPLICATION_JSON)
-                                .withStatus(HttpStatusCode.BadRequest.value),
+                                .withBody(TestData.feilResponse())
+                                .withStatus(HttpStatusCode.InternalServerError.value),
                         ),
                 )
 
@@ -227,7 +236,7 @@ class KravServiceTest :
 
                 Then("Status settes til FEIL_SENDT og ingen kravidentifikator lagres") {
                     kravRepository.getAllKrav().forEach {
-                        it.status shouldBe Status.KRAV_SENDT.value
+                        it.status shouldBe Status.HTTP500_INTERN_TJENERFEIL.value
                         it.kravidentifikatorSKE shouldBe ""
                     }
                 }
@@ -236,16 +245,20 @@ class KravServiceTest :
             When("resendKrav - andre forsøk lykkes (201)") {
                 val kravidentifikator = "998877"
                 WiremockListener.wiremock.resetAll()
+
+                val mottaksStatusResponse = TestData.mottaksStatusResponse(status = Status.RESKONTROFOERT.value)
+
                 WiremockListener.wiremock.stubFor(
                     WireMock
-                        .get(WireMock.urlMatching(".*"))
+                        .get(WireMock.urlMatching(".*/mottaksstatus.*"))
                         .willReturn(
                             aResponse()
                                 .withHeader(HttpHeaders.ContentType, ContentTypes.APPLICATION_JSON)
-                                .withBody("{}")
+                                .withBody(mottaksStatusResponse)
                                 .withStatus(HttpStatusCode.OK.value),
                         ),
                 )
+
                 WiremockListener.wiremock.stubFor(
                     WireMock
                         .post(urlEqualTo("/$OPPRETT_KRAV_URL"))
@@ -264,6 +277,58 @@ class KravServiceTest :
                         it.status shouldBe Status.KRAV_SENDT.value
                         it.kravidentifikatorSKE shouldBe kravidentifikator
                     }
+                }
+            }
+        }
+
+        Given("getKravListe returns unsent krav") {
+            PostgresListener.resetDatabase()
+            PostgresListener.migrate("SQLscript/2IkkeSentKrav.sql")
+
+            When("calling getKravListe with IKKE_SENT_KRAV") {
+                val result = kravService.getKravListe(IKKE_SENT_KRAV)
+                Then("should return unsent krav") {
+                    result.size shouldBe 2
+                    result.all { it.status != "KRAV_SENDT" } shouldBe true
+                }
+            }
+        }
+
+        Given("opprettKravFraFilOgOppdatereStatus inserts krav and updates status") {
+            val kravlinje = TestData.getKravlinjerTestData()
+            val fileName = "NyeKrav.txt"
+
+            When("calling opprettKravFraFilOgOppdatereStatus med skeKravidentifikator ikke funnet") {
+                PostgresListener.resetDatabase()
+                WiremockListener.wiremock.resetAll()
+                WiremockListener.wiremock.stubFor(
+                    WireMock
+                        .get(WireMock.urlMatching(".*/avstemming.*"))
+                        .willReturn(
+                            aResponse()
+                                .withHeader(HttpHeaders.ContentType, ContentTypes.APPLICATION_JSON)
+                                .withBody(TestData.avstemmingReponse())
+                                .withStatus(HttpStatusCode.OK.value),
+                        ),
+                )
+
+                kravService.opprettKravFraFilOgOppdatereStatus(kravlinje, fileName)
+                Then("should update krav with SKE kravidentifikator") {
+                    val krav = kravRepository.getAllKrav().first { it.saksnummerNAV == "saksnummer" }
+                    krav.kravidentifikatorSKE shouldBe "1234"
+                }
+            }
+
+            When("calling opprettKravFraFilOgOppdatereStatus med skeKravidentifikator funnet") {
+                PostgresListener.resetDatabase()
+                PostgresListener.migrate("SQLscript/gamleKrav.sql")
+
+                WiremockListener.wiremock.resetAll()
+
+                kravService.opprettKravFraFilOgOppdatereStatus(kravlinje, "")
+                Then("should update krav with SKE kravidentifikator") {
+                    val krav = kravRepository.getAllKrav().first { it.saksnummerNAV == "saksnummer" }
+                    krav.kravidentifikatorSKE shouldBe "abc"
                 }
             }
         }

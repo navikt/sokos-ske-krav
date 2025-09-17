@@ -1,6 +1,10 @@
 package no.nav.sokos.ske.krav.util
 
+import java.math.BigDecimal
+import java.time.LocalDate
+
 import no.nav.sokos.ske.krav.domain.Status
+import no.nav.sokos.ske.krav.dto.nav.KravLinje
 
 object TestData {
     //language=json
@@ -32,6 +36,8 @@ object TestData {
             "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/avskriving"
         }
         """.trimIndent()
+
+    fun avstemmingReponse(kravIdentifikator: String = "1234") = """{"kravidentifikator": "$kravIdentifikator"}"""
 
     //language=json
     fun valideringsfeilResponse(
@@ -65,4 +71,35 @@ object TestData {
             "instance": "/test/error"
         }
         """.trimIndent()
+
+    fun getKravlinjerTestData(): MutableList<KravLinje> {
+        val okLinje =
+            KravLinje(
+                linjenummer = 1,
+                saksnummerNav = "saksnummer",
+                belop = BigDecimal.ONE,
+                vedtaksDato = LocalDate.now(),
+                gjelderId = "gjelderID",
+                periodeFOM = "20231201",
+                periodeTOM = "20231212",
+                kravKode = "KS KS",
+                referansenummerGammelSak = "refgammelsak",
+                transaksjonsDato = "20230112",
+                enhetBosted = "bost",
+                enhetBehandlende = "beh",
+                kodeHjemmel = "T",
+                kodeArsak = "arsak",
+                belopRente = BigDecimal.ONE,
+                fremtidigYtelse = BigDecimal.ONE,
+                utbetalDato = LocalDate.now().minusDays(1),
+                fagsystemId = "1234",
+            )
+        return mutableListOf(
+            okLinje,
+            okLinje.copy(linjenummer = 2, saksnummerNav = "saksnummer2"),
+            okLinje.copy(linjenummer = 3, saksnummerNav = "saksnummer3"),
+            okLinje.copy(linjenummer = 4, saksnummerNav = "saksnummer4"),
+            okLinje.copy(linjenummer = 5, saksnummerNav = "saksnummer5"),
+        )
+    }
 }

@@ -49,6 +49,26 @@ object SftpListener : TestListener {
         }
     }
 
+    fun clearAllDirectories() {
+        Directories.entries.forEach { directory ->
+            SftpListener.clearDirectory(directory)
+        }
+    }
+
+    fun putFiles(
+        fileNames: List<String>,
+        directory: Directories = Directories.INBOUND,
+    ) = sftpConfig.channel { con ->
+
+        fileNames.forEach { fileName ->
+
+            con.put(
+                TestUtilFunctions.fileAsString("/FtpFiler/$fileName").toByteArray().inputStream(),
+                "${directory.value}/$fileName",
+            )
+        }
+    }
+
     private fun setupSftpTestContainer(publicKey: AsymmetricKeyParameter): GenericContainer<*> {
         val publicKeyAsBytes = convertToByteArray(publicKey)
         return GenericContainer("atmoz/sftp:alpine")
@@ -95,21 +115,7 @@ object SftpListener : TestListener {
         return "ssh-ed25519 $base64EncodedPublicKey".toByteArray(StandardCharsets.UTF_8)
     }
 
-    fun putFiles(
-        fileNames: List<String>,
-        directory: Directories = Directories.INBOUND,
-    ) = sftpConfig.channel { con ->
-
-        fileNames.forEach { fileName ->
-
-            con.put(
-                TestUtilFunctions.fileAsString("/FtpFiler/$fileName").toByteArray().inputStream(),
-                "${directory.value}/$fileName",
-            )
-        }
-    }
-
-    fun clearDirectory(directory: Directories) {
+    private fun clearDirectory(directory: Directories) {
         sftpConfig.channel { con ->
             val files = con.ls(directory.value).filter { !it.attrs.isDir }.map { it.filename }
             files.forEach { file ->

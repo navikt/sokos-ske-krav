@@ -85,15 +85,6 @@ class KravService(
             else -> emptyList()
         }
 
-    fun getSkeKravidentifikator(navref: String): String =
-        kravRepository.getSkeKravidentifikator(navref).ifBlank {
-            kravRepository
-                .getPreviousReferansenummer(navref)
-                .takeIf { it.isNotBlank() }
-                ?.let { kravRepository.getSkeKravidentifikator(it) }
-                ?: ""
-        }
-
     suspend fun opprettKravFraFilOgOppdatereStatus(
         kravlinjeListe: List<KravLinje>,
         fileName: String,
@@ -131,6 +122,15 @@ class KravService(
         }
     }
 
+    private fun getSkeKravidentifikator(navref: String): String =
+        kravRepository.getSkeKravidentifikator(navref).ifBlank {
+            kravRepository
+                .getPreviousReferansenummer(navref)
+                .takeIf { it.isNotBlank() }
+                ?.let { kravRepository.getSkeKravidentifikator(it) }
+                ?: ""
+        }
+
     private suspend fun sendAllOpprettKrav(
         kravList: List<Krav>,
         session: Session,
@@ -143,7 +143,7 @@ class KravService(
                     kravRepository.updateSentKravStatusMedKravIdentifikator(
                         corrId = result.krav.corrId,
                         skeKravidentifikator = result.kravidentifikator,
-                        responseStatus = result.krav.status,
+                        responseStatus = result.status.value,
                         session = session,
                     )
                     Metrics.incrementKravKodeSendtMetric(result.krav.kravkode)
