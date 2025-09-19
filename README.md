@@ -22,7 +22,7 @@ i [confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=176706565
 
 ### Bygge prosjekt
 
-`./gradlew build shadowjar`
+`./gradlew build installDist`
 
 ### Lokal utvikling
 
