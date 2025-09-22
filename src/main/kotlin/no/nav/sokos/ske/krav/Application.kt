@@ -53,7 +53,9 @@ private fun Application.module() {
         Metrics.incrementKravKodeSendtMetric(it.kravKode)
     }
 
-    if (!useTimer) return
+    if (!useTimer) {
+        return
+    }
 
     launchJob(skeService::handleNewKrav, intervalPeriod)
     launchJob(skeService::checkKravDateForAlert, 24.hours)
