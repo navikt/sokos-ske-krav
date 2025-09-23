@@ -28,7 +28,6 @@ private val logger = mu.KotlinLogging.logger {}
 class SkeService(
     private val dataSource: HikariDataSource = DatabaseConfig.dataSource,
     private val kravService: KravService = KravService(dataSource),
-    private val valideringsfeilRepository: ValideringsfeilRepository = ValideringsfeilRepository(dataSource),
     private val slackService: SlackService = SlackService(),
     private val lineValidatorService: LineValidatorService = LineValidatorService(dataSource, slackService = slackService),
     private val ftpService: FtpService = FtpService(),
@@ -93,7 +92,7 @@ class SkeService(
                         validationResult.messages.forEach { (first, second) ->
                             slackService.addError(fileName, "Feil i validering av fil", validationResult.messages)
                             slackService.sendErrors()
-                            valideringsfeilRepository.insertFileValideringsfeil(fileName, "$first: $second", session)
+                            ValideringsfeilRepository.insertFileValideringsfeil(session, fileName, "$first: $second")
                         }
                     }
 

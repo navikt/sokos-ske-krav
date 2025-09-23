@@ -3,7 +3,11 @@ package no.nav.sokos.ske.krav.listener
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
+import io.kotest.core.test.TestCase
+import io.kotest.core.test.TestResult
+import kotliquery.Session
 import kotliquery.queryOf
+import kotliquery.sessionOf
 import mu.KotlinLogging
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
@@ -13,9 +17,6 @@ import org.testcontainers.jdbc.JdbcDatabaseDelegate
 import org.testcontainers.utility.DockerImageName
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig
-import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
-import no.nav.sokos.ske.krav.repository.KravRepository
-import no.nav.sokos.ske.krav.repository.ValideringsfeilRepository
 import no.nav.sokos.ske.krav.util.SQLUtils.transaction
 
 private val logger = KotlinLogging.logger("secureLogger")
@@ -41,16 +42,17 @@ object PostgresListener : TestListener {
         }
     }
 
-    val kravRepository: KravRepository by lazy {
-        KravRepository(PostgresListener.dataSource)
+    lateinit var session: Session
+
+    override suspend fun beforeTest(testCase: TestCase) {
+        session = sessionOf(dataSource)
     }
 
-    val valideringsfeilRepository: ValideringsfeilRepository by lazy {
-        ValideringsfeilRepository(PostgresListener.dataSource)
-    }
-
-    val feilmeldingRepository: FeilmeldingRepository by lazy {
-        FeilmeldingRepository(PostgresListener.dataSource)
+    override suspend fun afterTest(
+        testCase: TestCase,
+        result: TestResult,
+    ) {
+        session.close()
     }
 
     override suspend fun afterSpec(spec: Spec) {

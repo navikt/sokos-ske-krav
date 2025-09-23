@@ -30,8 +30,10 @@ import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.dto.ske.responses.OpprettInnkrevingsOppdragResponse
 import no.nav.sokos.ske.krav.listener.PostgresListener
+import no.nav.sokos.ske.krav.listener.PostgresListener.session
 import no.nav.sokos.ske.krav.listener.SftpListener
 import no.nav.sokos.ske.krav.listener.WiremockListener
+import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.TestData
 
 class SkeServiceTest :
@@ -187,7 +189,7 @@ class SkeServiceTest :
                 runBlocking { skeService.behandleNyeKravFraFiler() }
 
                 Then("krav are created and sent, file moved to OUTBOUND") {
-                    PostgresListener.kravRepository.getAllKrav().size shouldBe 10
+                    KravRepository.getAllKrav(session).size shouldBe 10
                     ftpService.downloadFiles(Directories.OUTBOUND) shouldNotBe beEmpty()
                     WiremockListener.wiremock.verify(10, WireMock.postRequestedFor(urlEqualTo("/$OPPRETT_KRAV_URL")))
                     WiremockListener.wiremock.verify(10, WireMock.getRequestedFor(urlMatching(".*/avstemming.*")))
@@ -248,7 +250,7 @@ class SkeServiceTest :
                 runBlocking { skeService.behandleNyeKravFraFiler() }
 
                 Then("errors are logged, slack notified and file moved to FAILED") {
-                    PostgresListener.kravRepository.getAllKrav().size shouldBe 11
+                    KravRepository.getAllKrav(session).size shouldBe 11
                     ftpService.downloadFiles(Directories.OUTBOUND) shouldNotBe beEmpty()
 
                     WiremockListener.wiremock.verify(7, WireMock.postRequestedFor(urlEqualTo("/$OPPRETT_KRAV_URL")))

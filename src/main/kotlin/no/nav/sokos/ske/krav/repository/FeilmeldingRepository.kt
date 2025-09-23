@@ -1,48 +1,42 @@
 package no.nav.sokos.ske.krav.repository
 
-import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
 import kotliquery.Session
+import kotliquery.TransactionalSession
 import kotliquery.queryOf
-import kotliquery.sessionOf
-import kotliquery.using
 
-import no.nav.sokos.ske.krav.config.DatabaseConfig
 import no.nav.sokos.ske.krav.domain.Feilmelding
 
-class FeilmeldingRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.dataSource,
-) {
-    fun getAllFeilmeldinger(): List<Feilmelding> =
-        using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    select * from feilmelding
-                    """.trimIndent(),
-                ),
-                mapToFeilmelding,
-            )
-        }
+object FeilmeldingRepository {
+    fun getAllFeilmeldinger(session: Session): List<Feilmelding> =
+        session.list(
+            queryOf(
+                """
+                select * from feilmelding
+                """.trimIndent(),
+            ),
+            mapToFeilmelding,
+        )
 
-    fun getFeilmeldingForKravId(kravId: Long): List<Feilmelding> =
-        using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    select * from feilmelding
-                    where krav_id = ?
-                    """.trimIndent(),
-                    kravId,
-                ),
-                mapToFeilmelding,
-            )
-        }
+    fun getFeilmeldingForKravId(
+        session: Session,
+        kravId: Long,
+    ): List<Feilmelding> =
+        session.list(
+            queryOf(
+                """
+                select * from feilmelding
+                where krav_id = ?
+                """.trimIndent(),
+                kravId,
+            ),
+            mapToFeilmelding,
+        )
 
     fun insertFeilmeldinger(
+        tx: TransactionalSession,
         feilmeldinger: List<Feilmelding>,
-        session: Session,
-    ) = session.batchPreparedStatement(
+    ) = tx.batchPreparedStatement(
         """
         insert into feilmelding (
             krav_id, 

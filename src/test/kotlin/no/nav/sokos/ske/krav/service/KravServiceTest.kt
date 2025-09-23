@@ -20,8 +20,9 @@ import no.nav.sokos.ske.krav.domain.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.responses.OpprettInnkrevingsOppdragResponse
 import no.nav.sokos.ske.krav.listener.PostgresListener
-import no.nav.sokos.ske.krav.listener.PostgresListener.kravRepository
+import no.nav.sokos.ske.krav.listener.PostgresListener.session
 import no.nav.sokos.ske.krav.listener.WiremockListener
+import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.TestData
 
 class KravServiceTest :
@@ -44,7 +45,7 @@ class KravServiceTest :
             val kravidentifikator = "456789"
             PostgresListener.migrate("SQLscript/2NyeKrav.sql")
 
-            val kravSomSkalSendes = kravRepository.getAllKrav()
+            val kravSomSkalSendes = KravRepository.getAllKrav(session)
             kravSomSkalSendes.size shouldBe 2
 
             When("Response fra SKE er OK") {
@@ -62,7 +63,7 @@ class KravServiceTest :
                 kravService.sendKrav(kravSomSkalSendes)
 
                 Then("Skal kravene oppdateres med SKE kravidentifikator") {
-                    kravRepository.getAllKrav().forEach { krav ->
+                    KravRepository.getAllKrav(session).forEach { krav ->
                         krav.status shouldBe Status.KRAV_SENDT.value
                         krav.kravidentifikatorSKE shouldBe kravidentifikator
                     }
@@ -85,7 +86,7 @@ class KravServiceTest :
 
                 Then("Skal kravene ikke oppdateres") {
 
-                    kravRepository.getAllKrav().run {
+                    KravRepository.getAllKrav(session).run {
                         size shouldBe 2
                         filter { it.saksnummerNAV == "1111-navsaksnr" }.size shouldBe 1
                         filter { it.saksnummerNAV == "2222-navsaksnr" }.size shouldBe 1
@@ -99,7 +100,7 @@ class KravServiceTest :
             PostgresListener.resetDatabase()
             PostgresListener.migrate("SQLscript/2EndringsKrav.sql")
 
-            val endringsKrav = kravRepository.getAllKrav()
+            val endringsKrav = KravRepository.getAllKrav(session)
             endringsKrav.size shouldBe 2
             val originalIds = endringsKrav.associate { it.corrId to it.kravidentifikatorSKE }
 
@@ -126,7 +127,7 @@ class KravServiceTest :
                 kravService.sendKrav(endringsKrav)
 
                 Then("Status blir KRAV_SENDT for begge og kravidentifikator uendret") {
-                    kravRepository.getAllKrav().forEach {
+                    KravRepository.getAllKrav(session).forEach {
                         it.status shouldBe Status.KRAV_SENDT.value
                         it.kravidentifikatorSKE shouldBe originalIds[it.corrId]
                     }
@@ -154,10 +155,10 @@ class KravServiceTest :
                         ),
                 )
 
-                kravService.sendKrav(kravRepository.getAllKrav())
+                kravService.sendKrav(KravRepository.getAllKrav(session))
 
                 Then("Begge endringskrav harmoniseres til FEIL_SENDT") {
-                    kravRepository.getAllKrav().forEach { krav ->
+                    KravRepository.getAllKrav(session).forEach { krav ->
                         when {
                             krav.kravtype == ENDRING_HOVEDSTOL -> krav.status shouldBe Status.HTTP404_ANNEN_IKKE_FUNNET.value
                             else -> krav.status shouldBe Status.KRAV_SENDT.value
@@ -171,7 +172,7 @@ class KravServiceTest :
             PostgresListener.resetDatabase()
             PostgresListener.migrate("SQLscript/1StoppKrav.sql")
 
-            val stoppKrav = kravRepository.getAllKrav()
+            val stoppKrav = KravRepository.getAllKrav(session)
             stoppKrav.size shouldBe 1
 
             When("Stopp-endepunkt returnerer 200") {
@@ -188,7 +189,7 @@ class KravServiceTest :
                 kravService.sendKrav(stoppKrav)
 
                 Then("Status blir KRAV_SENDT") {
-                    kravRepository.getAllKrav().first().status shouldBe Status.KRAV_SENDT.value
+                    KravRepository.getAllKrav(session).first().status shouldBe Status.KRAV_SENDT.value
                 }
             }
 
@@ -205,10 +206,10 @@ class KravServiceTest :
                         ),
                 )
 
-                kravService.sendKrav(kravRepository.getAllKrav())
+                kravService.sendKrav(KravRepository.getAllKrav(session))
 
                 Then("Status blir FEIL_SENDT") {
-                    kravRepository.getAllKrav().first().status shouldBe Status.HTTP400_UGYLDIG_FORESPORSEL.value
+                    KravRepository.getAllKrav(session).first().status shouldBe Status.HTTP400_UGYLDIG_FORESPORSEL.value
                 }
             }
         }
@@ -217,7 +218,7 @@ class KravServiceTest :
             PostgresListener.resetDatabase()
             PostgresListener.migrate("SQLscript/2NyeKrav.sql")
 
-            val krav = kravRepository.getAllKrav()
+            val krav = KravRepository.getAllKrav(session)
             krav.size shouldBe 2
 
             When("Første forsøk feiler (500)") {
@@ -235,7 +236,7 @@ class KravServiceTest :
                 kravService.sendKrav(krav)
 
                 Then("Status settes til FEIL_SENDT og ingen kravidentifikator lagres") {
-                    kravRepository.getAllKrav().forEach {
+                    KravRepository.getAllKrav(session).forEach {
                         it.status shouldBe Status.HTTP500_INTERN_TJENERFEIL.value
                         it.kravidentifikatorSKE shouldBe ""
                     }
@@ -273,7 +274,7 @@ class KravServiceTest :
                 kravService.resendKrav()
 
                 Then("Begge krav får status KRAV_SENDT og får ny kravidentifikator") {
-                    kravRepository.getAllKrav().forEach {
+                    KravRepository.getAllKrav(session).forEach {
                         it.status shouldBe Status.KRAV_SENDT.value
                         it.kravidentifikatorSKE shouldBe kravidentifikator
                     }
@@ -314,7 +315,7 @@ class KravServiceTest :
 
                 kravService.opprettKravFraFilOgOppdatereStatus(kravlinje, fileName)
                 Then("should update krav with SKE kravidentifikator") {
-                    val krav = kravRepository.getAllKrav().first { it.saksnummerNAV == "saksnummer" }
+                    val krav = KravRepository.getAllKrav(session).first { it.saksnummerNAV == "saksnummer" }
                     krav.kravidentifikatorSKE shouldBe "1234"
                 }
             }
@@ -327,7 +328,7 @@ class KravServiceTest :
 
                 kravService.opprettKravFraFilOgOppdatereStatus(kravlinje, "")
                 Then("should update krav with SKE kravidentifikator") {
-                    val krav = kravRepository.getAllKrav().first { it.saksnummerNAV == "saksnummer" }
+                    val krav = KravRepository.getAllKrav(session).first { it.saksnummerNAV == "saksnummer" }
                     krav.kravidentifikatorSKE shouldBe "abc"
                 }
             }

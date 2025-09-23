@@ -1,6 +1,8 @@
 package no.nav.sokos.ske.krav.service
 
 import com.zaxxer.hikari.HikariDataSource
+import kotliquery.sessionOf
+import kotliquery.using
 
 import no.nav.sokos.ske.krav.config.DatabaseConfig
 import no.nav.sokos.ske.krav.domain.Krav
@@ -21,15 +23,13 @@ enum class RapportType { AVSTEMMING, RESENDING }
 @Frontend
 class RapportService(
     private val dataSource: HikariDataSource = DatabaseConfig.dataSource,
-    private val kravRepository: KravRepository = KravRepository(dataSource),
-    private val feilmeldingRepository: FeilmeldingRepository = FeilmeldingRepository(dataSource),
 ) {
-    val kravSomSkalAvstemmes by lazy { mapToRapportObjekt(kravRepository.getAllKravForAvstemming()) }
-    val kravSomSkalResendes by lazy { mapToRapportObjekt(kravRepository.getAllKravForResending()) }
+    val kravSomSkalAvstemmes by lazy { mapToRapportObjekt(using(sessionOf(dataSource)) { KravRepository.getAllKravForAvstemming(it) }) }
+    val kravSomSkalResendes by lazy { mapToRapportObjekt(using(sessionOf(dataSource)) { KravRepository.getAllKravForResending(it) }) }
 
     suspend fun oppdaterStatusTilRapportert(kravId: Int) {
         dataSource.transaction { session ->
-            kravRepository.updateStatusForAvstemtKravToReported(kravId, session)
+            KravRepository.updateStatusForAvstemtKravToReported(session, kravId)
         }
     }
 
@@ -61,7 +61,9 @@ class RapportService(
 
     private fun getFeilmeldinger(krav: Krav): List<String> =
         if (krav.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value) {
-            feilmeldingRepository.getFeilmeldingForKravId(krav.kravId).map { it.melding.splitToSequence(", mottatt").first() }
+            using(sessionOf(dataSource)) { session ->
+                FeilmeldingRepository.getFeilmeldingForKravId(session, krav.kravId).map { it.melding.splitToSequence(", mottatt").first() }
+            }
         } else {
             emptyList()
         }

@@ -6,7 +6,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
-import kotliquery.Session
+import kotliquery.TransactionalSession
 import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.client.SkeClient
@@ -46,10 +46,8 @@ const val KRAV_FOR_STATUS_CHECK = "KRAV_FOR_STATUS_CHECK"
 
 class KravService(
     private val dataSource: HikariDataSource = DatabaseConfig.dataSource,
-    private val kravRepository: KravRepository = KravRepository(dataSource),
-    private val feilmeldingRepository: FeilmeldingRepository = FeilmeldingRepository(dataSource),
     private val skeClient: SkeClient = SkeClient(),
-    private val statusService: StatusService = StatusService(dataSource, skeClient, kravRepository),
+    private val statusService: StatusService = StatusService(dataSource, skeClient),
     private val slackService: SlackService = SlackService(),
 ) {
     suspend fun sendKrav(kravListe: List<Krav>): List<RequestResult> {
@@ -68,21 +66,25 @@ class KravService(
 
     suspend fun resendKrav() {
         statusService.getMottaksStatus()
-        kravRepository
-            .getAllKravForResending()
-            .takeIf { kravListe -> kravListe.isNotEmpty() }
-            ?.let { kravListe ->
-                logger.info("Resender ${kravListe.size} krav")
-                val requestResultList = sendKrav(kravListe)
-                Metrics.numberOfKravResent.increment(requestResultList.size.toDouble())
-            }
+        dataSource.transaction { session ->
+            KravRepository
+                .getAllKravForResending(session)
+                .takeIf { kravListe -> kravListe.isNotEmpty() }
+                ?.let { kravListe ->
+                    logger.info("Resender ${kravListe.size} krav")
+                    val requestResultList = sendKrav(kravListe)
+                    Metrics.numberOfKravResent.increment(requestResultList.size.toDouble())
+                }
+        }
     }
 
-    fun getKravListe(kravType: String): List<Krav> =
-        when (kravType) {
-            IKKE_SENT_KRAV -> kravRepository.getAllUnsentKrav()
-            KRAV_FOR_STATUS_CHECK -> kravRepository.getAllKravForStatusCheck()
-            else -> emptyList()
+    suspend fun getKravListe(kravType: String): List<Krav> =
+        dataSource.transaction { session ->
+            when (kravType) {
+                IKKE_SENT_KRAV -> KravRepository.getAllUnsentKrav(session)
+                KRAV_FOR_STATUS_CHECK -> KravRepository.getAllKravForStatusCheck(session)
+                else -> emptyList()
+            }
         }
 
     suspend fun opprettKravFraFilOgOppdatereStatus(
@@ -90,61 +92,61 @@ class KravService(
         fileName: String,
     ) {
         dataSource.transaction { session ->
-            kravRepository.insertAllNewKrav(kravlinjeListe, fileName, session)
-        }
+            KravRepository.insertAllNewKrav(session, kravlinjeListe, fileName)
+            kravlinjeListe.forEach { krav ->
+                val skeKravidentifikator = getSkeKravidentifikator(krav.referansenummerGammelSak, session)
+                var skeKravidentifikatorSomSkalLagres = skeKravidentifikator
 
-        kravlinjeListe.forEach { krav ->
-            val skeKravidentifikator = getSkeKravidentifikator(krav.referansenummerGammelSak)
-            var skeKravidentifikatorSomSkalLagres = skeKravidentifikator
-
-            if (skeKravidentifikatorSomSkalLagres.isBlank()) {
-                val httpResponse = skeClient.getSkeKravidentifikator(krav.referansenummerGammelSak)
-                if (httpResponse.status.isSuccess()) {
-                    skeKravidentifikatorSomSkalLagres = httpResponse.parseTo<AvstemmingResponse>()?.kravidentifikator ?: ""
+                if (skeKravidentifikatorSomSkalLagres.isBlank()) {
+                    val httpResponse = skeClient.getSkeKravidentifikator(krav.referansenummerGammelSak)
+                    if (httpResponse.status.isSuccess()) {
+                        skeKravidentifikatorSomSkalLagres = httpResponse.parseTo<AvstemmingResponse>()?.kravidentifikator ?: ""
+                    }
                 }
-            }
 
-            if (skeKravidentifikatorSomSkalLagres.isNotBlank()) {
-                dataSource.transaction { session ->
-                    kravRepository.updateEndringWithSkeKravIdentifikator(krav.saksnummerNav, skeKravidentifikatorSomSkalLagres, session)
-                }
-            } else {
-                slackService.addError(
-                    fileName,
-                    "Fant ikke gyldig kravidentifikator for migrert krav",
-                    Pair(
+                if (skeKravidentifikatorSomSkalLagres.isNotBlank()) {
+                    KravRepository.updateEndringWithSkeKravIdentifikator(session, krav.saksnummerNav, skeKravidentifikatorSomSkalLagres)
+                } else {
+                    slackService.addError(
+                        fileName,
                         "Fant ikke gyldig kravidentifikator for migrert krav",
-                        "Saksnummer: ${krav.saksnummerNav} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
-                    ),
-                )
-                logger.error { "Fant ikke gyldig kravidentifikator for migrert krav:  ${krav.referansenummerGammelSak} " }
+                        Pair(
+                            "Fant ikke gyldig kravidentifikator for migrert krav",
+                            "Saksnummer: ${krav.saksnummerNav} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
+                        ),
+                    )
+                    logger.error { "Fant ikke gyldig kravidentifikator for migrert krav:  ${krav.referansenummerGammelSak} " }
+                }
             }
         }
     }
 
-    private fun getSkeKravidentifikator(navref: String): String =
-        kravRepository.getSkeKravidentifikator(navref).ifBlank {
-            kravRepository
-                .getPreviousReferansenummer(navref)
+    private fun getSkeKravidentifikator(
+        navref: String,
+        session: TransactionalSession,
+    ): String =
+        KravRepository.getSkeKravidentifikator(session, navref).ifBlank {
+            KravRepository
+                .getPreviousReferansenummer(session, navref)
                 .takeIf { it.isNotBlank() }
-                ?.let { kravRepository.getSkeKravidentifikator(it) }
+                ?.let { KravRepository.getSkeKravidentifikator(session, it) }
                 ?: ""
         }
 
     private suspend fun sendAllOpprettKrav(
         kravList: List<Krav>,
-        session: Session,
+        session: TransactionalSession,
     ): List<RequestResult> =
         kravList
             .map { krav -> sendOpprettKrav(krav) }
             .also { results ->
                 incrementMetrics(results)
                 results.forEach { result ->
-                    kravRepository.updateSentKravStatusMedKravIdentifikator(
+                    KravRepository.updateSentKravStatusMedKravIdentifikator(
+                        tx = session,
                         corrId = result.krav.corrId,
                         skeKravidentifikator = result.kravidentifikator,
                         responseStatus = result.status.value,
-                        session = session,
                     )
                     Metrics.incrementKravKodeSendtMetric(result.krav.kravkode)
                 }
@@ -152,7 +154,7 @@ class KravService(
 
     private suspend fun sendAllEndreKrav(
         kravList: List<Krav>,
-        session: Session,
+        session: TransactionalSession,
     ): List<RequestResult> =
         kravList
             .groupBy { it.kravidentifikatorSKE + it.saksnummerNAV }
@@ -166,28 +168,28 @@ class KravService(
             }.also { results ->
                 incrementMetrics(results)
                 results.forEach { result ->
-                    kravRepository.updateSentKravStatus(result.krav.corrId, result.status.value, session)
+                    KravRepository.updateSentKravStatus(session, result.krav.corrId, result.status.value)
                     Metrics.incrementKravKodeSendtMetric(result.krav.kravkode)
                 }
             }
 
     private suspend fun sendAllStoppKrav(
         kravList: List<Krav>,
-        session: Session,
+        session: TransactionalSession,
     ): List<RequestResult> =
         kravList
             .map { krav -> sendStoppKrav(krav) }
             .also { results ->
                 incrementMetrics(results)
                 results.forEach { result ->
-                    kravRepository.updateSentKravStatus(result.krav.corrId, result.status.value, session)
+                    KravRepository.updateSentKravStatus(session, result.krav.corrId, result.status.value)
                     Metrics.incrementKravKodeSendtMetric(result.krav.kravkode)
                 }
             }
 
     private suspend fun handleErrors(
         responses: List<RequestResult>,
-        session: Session,
+        session: TransactionalSession,
     ) {
         responses
             .filterNot { it.response.status.isSuccess() }
@@ -202,7 +204,7 @@ class KravService(
                 val feilResponse = result.response.parseTo<FeilResponse>() ?: return
                 Feilmelding(
                     0L,
-                    kravRepository.getKravTableIdFromCorrelationId(result.krav.corrId),
+                    KravRepository.getKravTableIdFromCorrelationId(session, result.krav.corrId),
                     result.krav.corrId,
                     result.krav.saksnummerNAV,
                     skeKravidentifikator,
@@ -214,7 +216,7 @@ class KravService(
                 )
             }.takeIf { it.isNotEmpty() }
             ?.run {
-                feilmeldingRepository.insertFeilmeldinger(this, session)
+                FeilmeldingRepository.insertFeilmeldinger(session, this)
 
                 responses.forEach { result ->
                     result.response.parseTo<FeilResponse>()?.let { feilResponse ->

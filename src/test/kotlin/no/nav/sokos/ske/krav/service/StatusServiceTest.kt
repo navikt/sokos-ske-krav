@@ -17,9 +17,10 @@ import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.PostgresListener
-import no.nav.sokos.ske.krav.listener.PostgresListener.feilmeldingRepository
-import no.nav.sokos.ske.krav.listener.PostgresListener.kravRepository
+import no.nav.sokos.ske.krav.listener.PostgresListener.session
 import no.nav.sokos.ske.krav.listener.WiremockListener
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
+import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.TestData
 
 class StatusServiceTest :
@@ -56,12 +57,12 @@ class StatusServiceTest :
             )
 
             Then("Skal mottaksstatus settes til RESKONTROFOERT i database") {
-                val allKravBeforeUpdate = kravRepository.getAllKrav()
+                val allKravBeforeUpdate = KravRepository.getAllKrav(session)
                 allKravBeforeUpdate.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 3
 
                 statusService.getMottaksStatus()
 
-                val allKravAfterUpdate = kravRepository.getAllKrav()
+                val allKravAfterUpdate = KravRepository.getAllKrav(session)
                 allKravAfterUpdate.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 8
             }
 
@@ -101,13 +102,13 @@ class StatusServiceTest :
                     ),
             )
 
-            feilmeldingRepository.getAllFeilmeldinger().size shouldBe 0
-            kravRepository.getAllKravForStatusCheck().size shouldBe 5
+            FeilmeldingRepository.getAllFeilmeldinger(session).size shouldBe 0
+            KravRepository.getAllKravForStatusCheck(session).size shouldBe 5
 
             statusService.getMottaksStatus()
 
             Then("Skal feilmelding lagres i Feilmelding tabell") {
-                val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
+                val feilmeldinger = FeilmeldingRepository.getAllFeilmeldinger(session)
                 feilmeldinger.size shouldBe 5
                 feilmeldinger.forEach {
                     it.error shouldBe status
@@ -116,8 +117,8 @@ class StatusServiceTest :
             }
 
             Then("Mottaksstatus skal settes til VALIDERINGSFEIL i database") {
-                kravRepository
-                    .getAllKrav()
+                KravRepository
+                    .getAllKrav(session)
                     .filter { it.status == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value }
                     .distinctBy { it.corrId }
                     .size shouldBe 5

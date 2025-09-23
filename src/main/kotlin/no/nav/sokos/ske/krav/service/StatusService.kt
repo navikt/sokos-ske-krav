@@ -6,7 +6,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
-import kotliquery.Session
+import kotliquery.TransactionalSession
 import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.client.SkeClient
@@ -30,12 +30,10 @@ private val logger = KotlinLogging.logger {}
 class StatusService(
     private val dataSource: HikariDataSource = DatabaseConfig.dataSource,
     private val skeClient: SkeClient = SkeClient(),
-    private val kravRepository: KravRepository = KravRepository(dataSource),
-    private val feilmeldingRepository: FeilmeldingRepository = FeilmeldingRepository(dataSource),
     private val slackService: SlackService = SlackService(),
 ) {
     suspend fun getMottaksStatus() {
-        val kravListe = kravRepository.getAllKravForStatusCheck()
+        val kravListe = dataSource.transaction { KravRepository.getAllKravForStatusCheck(it) }
         if (kravListe.isEmpty()) return
 
         logger.info("Sjekk av mottaksstatus -> Antall krav som ikke er reskontroført: ${kravListe.size}")
@@ -92,7 +90,7 @@ class StatusService(
         krav: Krav,
     ) {
         dataSource.transaction { session ->
-            kravRepository.updateStatus(mottaksstatus.mottaksStatus, krav.corrId, session).also {
+            KravRepository.updateStatus(session, mottaksstatus.mottaksStatus, krav.corrId).also {
                 if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value) {
                     handleValideringsFeil(kravIdentifikatorPair, krav, session)
                 }
@@ -103,7 +101,7 @@ class StatusService(
     private suspend fun handleValideringsFeil(
         kravIdentifikatorPair: Pair<String, KravidentifikatorType>,
         krav: Krav,
-        session: Session,
+        session: TransactionalSession,
     ) {
         val response = skeClient.getValideringsfeil(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
         if (!response.status.isSuccess()) {
@@ -114,7 +112,8 @@ class StatusService(
         val valideringsfeil = response.parseTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
         logger.error("Asynk Valideringsfeil mottatt: ${valideringsfeil.joinToString { it.error }} ")
 
-        feilmeldingRepository.insertFeilmeldinger(
+        FeilmeldingRepository.insertFeilmeldinger(
+            tx = session,
             feilmeldinger =
                 valideringsfeil.map { feil ->
                     slackService.addError(krav.filnavn, "Asynk valideringsfeil", Pair(feil.error, feil.message))
@@ -131,7 +130,6 @@ class StatusService(
                         tidspunktOpprettet = LocalDateTime.now(),
                     )
                 },
-            session,
         )
     }
 }

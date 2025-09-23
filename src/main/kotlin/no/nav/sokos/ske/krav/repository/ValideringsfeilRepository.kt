@@ -1,57 +1,52 @@
 package no.nav.sokos.ske.krav.repository
 
-import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
 import kotliquery.Session
+import kotliquery.TransactionalSession
 import kotliquery.queryOf
-import kotliquery.sessionOf
-import kotliquery.using
 
-import no.nav.sokos.ske.krav.config.DatabaseConfig
 import no.nav.sokos.ske.krav.domain.Valideringsfeil
 import no.nav.sokos.ske.krav.dto.nav.KravLinje
 
-class ValideringsfeilRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.dataSource,
-) {
+object ValideringsfeilRepository {
     fun getValideringsFeilForLinje(
+        session: Session,
         filNavn: String,
         linjeNummer: Int,
     ): List<Valideringsfeil> =
-        using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    select * from valideringsfeil
-                    where filnavn = ? and linjenummer = ?
-                    """.trimIndent(),
-                    filNavn,
-                    linjeNummer,
-                ),
-                mapToValideringsfeil,
-            )
-        }
+        session.list(
+            queryOf(
+                """
+                select * from valideringsfeil
+                where filnavn = ? and linjenummer = ?
+                """.trimIndent(),
+                filNavn,
+                linjeNummer,
+            ),
+            mapToValideringsfeil,
+        )
 
-    fun getValideringsFeilForFil(filNavn: String): List<Valideringsfeil> =
-        using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    select * from valideringsfeil
-                    where filnavn = ?
-                    """.trimIndent(),
-                    filNavn,
-                ),
-                mapToValideringsfeil,
-            )
-        }
+    fun getValideringsFeilForFil(
+        session: Session,
+        filNavn: String,
+    ): List<Valideringsfeil> =
+        session.list(
+            queryOf(
+                """
+                select * from valideringsfeil
+                where filnavn = ?
+                """.trimIndent(),
+                filNavn,
+            ),
+            mapToValideringsfeil,
+        )
 
     fun insertFileValideringsfeil(
+        tx: TransactionalSession,
         filnavn: String,
         feilmelding: String,
-        session: Session,
     ) {
-        session.run(
+        tx.run(
             queryOf(
                 """
                 insert into valideringsfeil (filnavn, feilmelding)
@@ -64,12 +59,12 @@ class ValideringsfeilRepository(
     }
 
     fun insertLineValideringsfeil(
+        tx: TransactionalSession,
         filnavn: String,
         kravlinje: KravLinje,
         feilmelding: String,
-        session: Session,
     ) {
-        session.update(
+        tx.update(
             queryOf(
                 """
                 insert into valideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)

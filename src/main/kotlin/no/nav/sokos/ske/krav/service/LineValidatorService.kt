@@ -18,7 +18,6 @@ private val logger = KotlinLogging.logger {}
 
 class LineValidatorService(
     private val dataSource: HikariDataSource = DatabaseConfig.dataSource,
-    private val valideringsfeilRepository: ValideringsfeilRepository = ValideringsfeilRepository(dataSource),
     private val slackService: SlackService = SlackService(),
 ) {
     suspend fun validateNewLines(ftpFilDTO: FtpFilDTO): List<KravLinje> {
@@ -37,7 +36,7 @@ class LineValidatorService(
                             slackMessages.addAll(result.messages)
 
                             dataSource.transaction { session ->
-                                valideringsfeilRepository.insertLineValideringsfeil(ftpFilDTO.name, linje, result.messages.joinToString { pair -> pair.second }, session)
+                                ValideringsfeilRepository.insertLineValideringsfeil(session, ftpFilDTO.name, linje, result.messages.joinToString { pair -> pair.second })
                             }
                             linje.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
                         }

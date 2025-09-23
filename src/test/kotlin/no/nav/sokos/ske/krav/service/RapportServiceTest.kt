@@ -4,6 +4,8 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 import no.nav.sokos.ske.krav.listener.PostgresListener
+import no.nav.sokos.ske.krav.listener.PostgresListener.session
+import no.nav.sokos.ske.krav.repository.KravRepository
 
 @OptIn(Frontend::class)
 internal class RapportServiceTest :
@@ -19,6 +21,6 @@ internal class RapportServiceTest :
             PostgresListener.migrate("SQLscript/FeilmeldingerSomSkalAvstemmes.sql")
 
             rapportService.oppdaterStatusTilRapportert(1)
-            PostgresListener.kravRepository.getAllKravForAvstemming().size shouldBe 2
+            KravRepository.getAllKravForAvstemming(session).size shouldBe 2
         }
     })

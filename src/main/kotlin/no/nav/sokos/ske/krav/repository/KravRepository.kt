@@ -2,14 +2,11 @@ package no.nav.sokos.ske.krav.repository
 
 import java.util.UUID
 
-import com.zaxxer.hikari.HikariDataSource
-import kotliquery.LoanPattern.using
 import kotliquery.Row
 import kotliquery.Session
+import kotliquery.TransactionalSession
 import kotliquery.queryOf
-import kotliquery.sessionOf
 
-import no.nav.sokos.ske.krav.config.DatabaseConfig
 import no.nav.sokos.ske.krav.domain.ENDRING_RENTE
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.NYTT_KRAV
@@ -18,120 +15,113 @@ import no.nav.sokos.ske.krav.dto.nav.KravLinje
 import no.nav.sokos.ske.krav.dto.nav.isEndring
 import no.nav.sokos.ske.krav.dto.nav.type
 
-class KravRepository(
-    private val dataSource: HikariDataSource = DatabaseConfig.dataSource,
-) {
-    fun getAllKravForStatusCheck(): List<Krav> =
-        using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    select * from krav where status in (?, ?)    
-                    """.trimIndent(),
-                    Status.KRAV_SENDT.value,
-                    Status.MOTTATT_UNDERBEHANDLING.value,
-                ),
-                mapToKrav,
-            )
-        }
+object KravRepository {
+    fun getAllKravForStatusCheck(session: Session): List<Krav> =
+        session.list(
+            queryOf(
+                """
+                select * from krav where status in (?, ?)    
+                """.trimIndent(),
+                Status.KRAV_SENDT.value,
+                Status.MOTTATT_UNDERBEHANDLING.value,
+            ),
+            mapToKrav,
+        )
 
-    fun getAllKravForResending(): List<Krav> =
-        using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    select * from krav where status in (?, ?, ?, ?, ?)
-                    """.trimIndent(),
-                    Status.KRAV_IKKE_SENDT.value,
-                    Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value,
-                    Status.HTTP500_ANNEN_SERVER_FEIL.value,
-                    Status.HTTP503_UTILGJENGELIG_TJENESTE.value,
-                    Status.HTTP500_INTERN_TJENERFEIL.value,
-                ),
-                mapToKrav,
-            )
-        }
+    fun getAllKravForResending(session: Session): List<Krav> =
+        session.list(
+            queryOf(
+                """
+                select * from krav where status in (?, ?, ?, ?, ?)
+                """.trimIndent(),
+                Status.KRAV_IKKE_SENDT.value,
+                Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value,
+                Status.HTTP500_ANNEN_SERVER_FEIL.value,
+                Status.HTTP503_UTILGJENGELIG_TJENESTE.value,
+                Status.HTTP500_INTERN_TJENERFEIL.value,
+            ),
+            mapToKrav,
+        )
 
-    fun getAllUnsentKrav(): List<Krav> =
-        using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    select * from krav where status = ?
-                    """.trimIndent(),
-                    Status.KRAV_IKKE_SENDT.value,
-                ),
-                mapToKrav,
-            )
-        }
+    fun getAllUnsentKrav(session: Session): List<Krav> =
+        session.list(
+            queryOf(
+                """
+                select * from krav where status = ?
+                """.trimIndent(),
+                Status.KRAV_IKKE_SENDT.value,
+            ),
+            mapToKrav,
+        )
 
-    fun getAllKravForAvstemming(): List<Krav> =
-        using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf(
-                    """
-                    select k.* from krav k
-                    join feilmelding f on k.id=f.krav_id
-                    where k.status not in ( ?, ?) 
-                    and f.rapporter = true 
-                    order by k.id
-                    """.trimIndent(),
-                    Status.RESKONTROFOERT.value,
-                    Status.MIGRERT.value,
-                ),
-                mapToKrav,
-            )
-        }
+    fun getAllKravForAvstemming(session: Session): List<Krav> =
+        session.list(
+            queryOf(
+                """
+                select k.* from krav k
+                join feilmelding f on k.id=f.krav_id
+                where k.status not in ( ?, ?) 
+                and f.rapporter = true 
+                order by k.id
+                """.trimIndent(),
+                Status.RESKONTROFOERT.value,
+                Status.MIGRERT.value,
+            ),
+            mapToKrav,
+        )
 
-    fun getSkeKravidentifikator(navref: String): String =
-        using(sessionOf(dataSource)) { session ->
-            session.single(
-                queryOf(
-                    """
-                    select min(tidspunkt_opprettet) as opprettet, kravidentifikator_ske from krav
-                    where (saksnummer_nav = ? or referansenummergammelsak = ?) 
-                    and (kravidentifikator_ske is not null and kravidentifikator_ske != '') 
-                    group by kravidentifikator_ske limit 1
-                    """.trimIndent(),
-                    navref,
-                    navref,
-                ),
-            ) { row -> row.stringOrNull("kravidentifikator_ske") } ?: ""
-        }
+    fun getSkeKravidentifikator(
+        session: Session,
+        navref: String,
+    ): String =
+        session.single(
+            queryOf(
+                """
+                select min(tidspunkt_opprettet) as opprettet, kravidentifikator_ske from krav
+                where (saksnummer_nav = ? or referansenummergammelsak = ?) 
+                and (kravidentifikator_ske is not null and kravidentifikator_ske != '') 
+                group by kravidentifikator_ske limit 1
+                """.trimIndent(),
+                navref,
+                navref,
+            ),
+        ) { row -> row.stringOrNull("kravidentifikator_ske") } ?: ""
 
-    fun getPreviousReferansenummer(navref: String): String =
-        using(sessionOf(dataSource)) { session ->
-            session.single(
-                queryOf(
-                    """
-                    select referansenummergammelsak from krav
-                    where saksnummer_nav = ? and referansenummergammelsak != saksnummer_nav
-                    order by id limit 1
-                    """.trimIndent(),
-                    navref,
-                ),
-            ) { row -> row.stringOrNull("referansenummergammelsak") } ?: navref
-        }
+    fun getPreviousReferansenummer(
+        session: Session,
+        navref: String,
+    ): String =
+        session.single(
+            queryOf(
+                """
+                select referansenummergammelsak from krav
+                where saksnummer_nav = ? and referansenummergammelsak != saksnummer_nav
+                order by id limit 1
+                """.trimIndent(),
+                navref,
+            ),
+        ) { row -> row.stringOrNull("referansenummergammelsak") } ?: navref
 
-    fun getKravTableIdFromCorrelationId(corrID: String): Long =
-        using(sessionOf(dataSource)) { session ->
-            session.single(
-                queryOf(
-                    """
-                    select id from krav
-                    where corr_id = ? order by id limit 1
-                    """.trimIndent(),
-                    corrID,
-                ),
-            ) { row -> row.longOrNull("id") ?: 0L } ?: 0L
-        }
+    fun getKravTableIdFromCorrelationId(
+        session: Session,
+        corrID: String,
+    ): Long =
+        session.single(
+            queryOf(
+                """
+                select id from krav
+                where corr_id = ? order by id limit 1
+                """.trimIndent(),
+                corrID,
+            ),
+        ) { row -> row.longOrNull("id") ?: 0L } ?: 0L
 
     fun updateSentKravStatus(
+        tx: TransactionalSession,
         corrId: String,
         responseStatus: String,
-        session: Session,
     ) {
-        session.update(
+        tx.update(
             queryOf(
                 """
                 update krav 
@@ -148,12 +138,12 @@ class KravRepository(
     }
 
     fun updateSentKravStatusMedKravIdentifikator(
+        tx: TransactionalSession,
         corrId: String,
         skeKravidentifikator: String,
         responseStatus: String,
-        session: Session,
     ) {
-        session.update(
+        tx.update(
             queryOf(
                 """
                 update krav 
@@ -172,11 +162,11 @@ class KravRepository(
     }
 
     fun updateStatus(
+        tx: TransactionalSession,
         mottakStatus: String,
         corrId: String,
-        session: Session,
     ) {
-        session.update(
+        tx.update(
             queryOf(
                 """
                 update krav 
@@ -191,10 +181,10 @@ class KravRepository(
     }
 
     fun updateStatusForAvstemtKravToReported(
+        tx: TransactionalSession,
         kravId: Int,
-        session: Session,
     ) {
-        session.update(
+        tx.update(
             queryOf(
                 """
                 update feilmelding 
@@ -207,11 +197,11 @@ class KravRepository(
     }
 
     fun updateEndringWithSkeKravIdentifikator(
+        tx: TransactionalSession,
         saksnummerNav: String,
         skeKravident: String,
-        session: Session,
     ) {
-        session.update(
+        tx.update(
             queryOf(
                 """
                 update krav 
@@ -228,11 +218,11 @@ class KravRepository(
     }
 
     fun insertAllNewKrav(
+        tx: TransactionalSession,
         kravLinjeListe: List<KravLinje>,
         filnavn: String,
-        session: Session,
     ) {
-        session.batchPreparedStatement(
+        tx.batchPreparedStatement(
             """
             insert into krav (
             saksnummer_nav,
@@ -299,13 +289,11 @@ class KravRepository(
         )
     }
 
-    fun getAllKrav(): List<Krav> =
-        using(sessionOf(dataSource)) { session ->
-            session.list(
-                queryOf("select * from krav"),
-                mapToKrav,
-            )
-        }
+    fun getAllKrav(session: Session): List<Krav> =
+        session.list(
+            queryOf("select * from krav"),
+            mapToKrav,
+        )
 
     private val mapToKrav: (Row) -> Krav = { row ->
         Krav(
