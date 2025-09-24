@@ -140,24 +140,6 @@ tasks {
         dependsOn("ktlintFormat")
     }
 
-    ("jar") {
-        enabled = false
-    }
-
-    withType<Test>().configureEach {
-        useJUnitPlatform()
-        testLogging {
-            showExceptions = true
-            showStackTraces = true
-            exceptionFormat = FULL
-            events = setOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
-        }
-
-        reports.forEach { report -> report.required.value(false) }
-
-        finalizedBy(koverHtmlReport)
-    }
-
     withType<KoverReport>().configureEach {
         kover {
             reports {
@@ -183,6 +165,20 @@ tasks {
                 }
             }
         }
+    }
+
+    withType<Test>().configureEach {
+        useJUnitPlatform()
+        testLogging {
+            showExceptions = true
+            showStackTraces = true
+            exceptionFormat = FULL
+            events = setOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
+        }
+
+        reports.forEach { report -> report.required.value(false) }
+
+        finalizedBy(koverHtmlReport)
     }
 
     withType<Wrapper> {
