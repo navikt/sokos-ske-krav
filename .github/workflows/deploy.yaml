@@ -12,7 +12,9 @@ on:
       - '.gitignore'
       - 'setupLocalEnvironment.sh'
       - '.github/workflows/build-pr.yaml'
-      - '.github/workflows/codeql.yaml'
+      - '.github/workflows/manual-deploy.yaml'
+      - '.github/workflows/codeql.yml'
+      - '.github/workflows/enforce-dev-source.yml'
       - '.github/dependabot.yaml'
 env:
   TZ: Europe/Oslo
