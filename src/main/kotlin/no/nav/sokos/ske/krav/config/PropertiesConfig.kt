@@ -46,7 +46,6 @@ object PropertiesConfig {
             "SFTP_PORT" to "22",
             "BASIC_AUTH_USERNAME" to "user",
             "BASIC_AUTH_PASSWORD" to "password",
-            "USE_AUTHENTICATION" to "false",
         )
 
     private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
