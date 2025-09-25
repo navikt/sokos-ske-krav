@@ -1,11 +1,12 @@
-# .github/workflows/require-merged-to-dev-first.yml
-name: require-merged-to-dev-first
+# .github/workflows/dev-first-gate.yml
+name: Må merges til dev først
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ main ]   # run only on PRs targeting main
 
 jobs:
-  check-merged-into-dev:
+  check:
+    name: must-merge-into-dev-first
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
@@ -14,22 +15,31 @@ jobs:
         with:
           script: |
             const pr = context.payload.pull_request;
-            const headRef = pr.head.ref;         // feature branch name
+            const headRef = pr.head.ref;          // source branch of this PR
             const owner = context.repo.owner;
-            const repo = context.repo.repo;
+            const repo  = context.repo.repo;
 
-            // Search for PRs from this branch into dev that are merged
+            // 1) Exempt dev -> main (allow immediately)
+            const DEV_BRANCHES = ['dev', 'develop']; // adjust if you use a different name
+            if (DEV_BRANCHES.includes(headRef)) {
+              core.info(`Exempt: '${headRef}' → 'main' is allowed.`);
+              return;
+            }
+
+            // 2) For any other branch, require proof it was merged into dev first
             const { data: prs } = await github.rest.pulls.list({
               owner, repo,
               state: 'closed',
-              base: 'dev',
+              base: DEV_BRANCHES[0],  // primary dev branch to check against
               head: `${owner}:${headRef}`,
               per_page: 100
             });
 
             const merged = prs.find(p => p.merged_at);
             if (!merged) {
-              core.setFailed(`This PR to 'main' can only merge after '${headRef}' has been merged into 'dev'.`);
+              core.setFailed(
+                `Blocked: Branch '${headRef}' must be merged into '${DEV_BRANCHES[0]}' before merging to 'main'.`
+              );
             } else {
-              core.info(`OK: Found merged PR #${merged.number} into 'dev' at ${merged.merged_at}.`);
+              core.info(`OK: Found merged PR #${merged.number} into '${DEV_BRANCHES[0]}' at ${merged.merged_at}.`);
             }
