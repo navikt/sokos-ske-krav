@@ -42,7 +42,7 @@ object LineValidationRules {
                     }
 
                     checkUtbetalingsDato(utbetalDato, vedtaksDato)?.let { message ->
-                        add(Pair(UTBETALINGSDATO_ERROR, "$message: (Utbetalingsdato: $utbetalDato). Linje: $linjenummer"))
+                        add(Pair(UTBETALINGSDATO_ERROR, "$message: (Vedtaksdato: $vedtaksDato). Linje: $linjenummer"))
                     }
 
                     checkPeriode(periodeFOM.toDate(), periodeTOM.toDate())?.let { message ->
@@ -64,8 +64,6 @@ object LineValidationRules {
             }
 
         return if (errorMessages.isNotEmpty()) {
-            println("FEIL I KRAVLINJE $krav")
-            println(errorMessages)
             ValidationResult.Error(errorMessages)
         } else {
             ValidationResult.Success(listOf(krav))
