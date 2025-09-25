@@ -58,11 +58,11 @@ jobs:
       image: ${{ needs.assemble-build-push-image-dev.outputs.image }}
 
   deploy-prod:
+    needs: [ assemble-build-push-image-prod, deploy-dev ]
     name: Deploy to prod-fss
-    needs: [ build , deploy-dev ]
     if: github.ref == 'refs/heads/main'
     uses: navikt/mob-gha-workflows/.github/workflows/nais-app-deploy.yaml@main
     with:
       cluster: prod-fss
-      resource: .nais/naiserator-prod.yaml
-      image: ${{ needs.build.outputs.image }}
+      resource: .nais/prod/naiserator-prod.yaml
+      image: ${{ needs.assemble-build-push-image-prod.outputs.image }}
