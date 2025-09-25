@@ -21,8 +21,8 @@ repositories {
 }
 
 val ktorVersion = "3.2.3"
-val jschVersion = "2.27.3"
-val nimbusVersion = "10.4.1"
+val jschVersion = "2.27.2"
+val nimbusVersion = "10.4"
 val kotlinxSerializationVersion = "1.9.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
