@@ -1,11 +1,11 @@
-# .github/workflows/require-merged-to-dev-first.yml
-name: require-merged-to-dev-first
+name: Dev-first check
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ main ]   # runs on PRs targeting main
 
 jobs:
-  check-merged-into-dev:
+  check:
+    name: must-merge-into-dev-first
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
@@ -14,11 +14,11 @@ jobs:
         with:
           script: |
             const pr = context.payload.pull_request;
-            const headRef = pr.head.ref;         // feature branch name
+            const headRef = pr.head.ref;                 // feature branch name
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            // Search for PRs from this branch into dev that are merged
+            // Find a merged PR from this branch into 'dev'
             const { data: prs } = await github.rest.pulls.list({
               owner, repo,
               state: 'closed',
@@ -29,7 +29,7 @@ jobs:
 
             const merged = prs.find(p => p.merged_at);
             if (!merged) {
-              core.setFailed(`This PR to 'main' can only merge after '${headRef}' has been merged into 'dev'.`);
+              core.setFailed(`Blocked: '${headRef}' must be merged into 'dev' before it can merge to 'main'.`);
             } else {
-              core.info(`OK: Found merged PR #${merged.number} into 'dev' at ${merged.merged_at}.`);
+              core.info(`OK: Found merged PR #${merged.number} into 'dev' on ${merged.merged_at}.`);
             }
