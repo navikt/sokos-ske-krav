@@ -1,6 +1,6 @@
 package no.nav.sokos.ske.krav.validation
 
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
+import no.nav.sokos.ske.krav.dto.nav.KravLinje
 
 sealed class ValidationResult {
     data class Success(

@@ -1,9 +1,9 @@
-package no.nav.sokos.ske.krav.database.models
+package no.nav.sokos.ske.krav.domain
 
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class KravTable(
+data class Krav(
     val kravId: Long,
     val filnavn: String,
     val linjenummer: Int,

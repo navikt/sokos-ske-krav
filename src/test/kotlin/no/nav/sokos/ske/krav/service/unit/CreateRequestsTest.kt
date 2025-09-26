@@ -10,17 +10,17 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 
-import no.nav.sokos.ske.krav.database.models.KravTable
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
-import no.nav.sokos.ske.krav.domain.ske.requests.AvskrivingRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.HovedstolBeloep
-import no.nav.sokos.ske.krav.domain.ske.requests.KravidentifikatorType
-import no.nav.sokos.ske.krav.domain.ske.requests.NyHovedStolRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.RenteBeloep
-import no.nav.sokos.ske.krav.domain.ske.requests.Skyldner
-import no.nav.sokos.ske.krav.domain.ske.requests.Valuta
-import no.nav.sokos.ske.krav.domain.ske.requests.YtelseForAvregningBeloep
+import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.dto.nav.KravLinje
+import no.nav.sokos.ske.krav.dto.ske.requests.AvskrivingRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.EndreRenteBeloepRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.HovedstolBeloep
+import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
+import no.nav.sokos.ske.krav.dto.ske.requests.NyHovedStolRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.RenteBeloep
+import no.nav.sokos.ske.krav.dto.ske.requests.Skyldner
+import no.nav.sokos.ske.krav.dto.ske.requests.Valuta
+import no.nav.sokos.ske.krav.dto.ske.requests.YtelseForAvregningBeloep
 import no.nav.sokos.ske.krav.util.createEndreHovedstolRequest
 import no.nav.sokos.ske.krav.util.createEndreRenteRequest
 import no.nav.sokos.ske.krav.util.createOpprettKravRequest
@@ -215,7 +215,7 @@ fun kravTableMockk(
     fremtidigytelse: Double = 10.0,
     periodeFom: String = "20010101",
     periodeTom: String = "20020202",
-) = mockk<KravTable>(relaxed = true) {
+) = mockk<Krav>(relaxed = true) {
     every { kravkode } returns kravKode
     every { kodeHjemmel } returns kodehjemmel
     every { gjelderId } returns gjelderID

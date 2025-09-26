@@ -1,15 +1,15 @@
-package no.nav.sokos.ske.krav.database.repository
+package no.nav.sokos.ske.krav.repository
 
 import java.sql.ResultSet
 
-import no.nav.sokos.ske.krav.database.models.FeilmeldingTable
-import no.nav.sokos.ske.krav.database.models.KravTable
-import no.nav.sokos.ske.krav.database.models.ValideringsfeilTable
-import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.getColumn
+import no.nav.sokos.ske.krav.domain.Feilmelding
+import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.domain.Valideringsfeil
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.getColumn
 
 fun ResultSet.toKrav() =
     toList {
-        KravTable(
+        Krav(
             kravId = getColumn("id"),
             filnavn = getColumn("filnavn"),
             linjenummer = getColumn<Int>("linjenummer"),
@@ -42,7 +42,7 @@ fun ResultSet.toKrav() =
 
 fun ResultSet.toFeilmelding() =
     toList {
-        FeilmeldingTable(
+        Feilmelding(
             feilmeldingId = getColumn("id"),
             kravId = getColumn("krav_id"),
             corrId = getColumn("corr_id"),
@@ -59,7 +59,7 @@ fun ResultSet.toFeilmelding() =
 
 fun ResultSet.toValideringsfeil() =
     toList {
-        ValideringsfeilTable(
+        Valideringsfeil(
             valideringsfeilId = getColumn("id"),
             filnavn = getColumn("filnavn"),
             linjenummer = getColumn("linjenummer"),

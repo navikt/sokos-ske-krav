@@ -7,9 +7,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.parsing.ParseException
 
-import no.nav.sokos.ske.krav.domain.nav.FileParser
-import no.nav.sokos.ske.krav.domain.nav.KontrollLinjeFooter
-import no.nav.sokos.ske.krav.domain.nav.KontrollLinjeHeader
+import no.nav.sokos.ske.krav.dto.nav.FileParser
+import no.nav.sokos.ske.krav.dto.nav.KontrollLinjeFooter
+import no.nav.sokos.ske.krav.dto.nav.KontrollLinjeHeader
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 
 internal class FileParserTest :

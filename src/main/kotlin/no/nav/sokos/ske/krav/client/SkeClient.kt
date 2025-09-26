@@ -16,11 +16,11 @@ import io.ktor.http.contentType
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.httpClient
-import no.nav.sokos.ske.krav.domain.ske.requests.AvskrivingRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.KravidentifikatorType
-import no.nav.sokos.ske.krav.domain.ske.requests.NyHovedStolRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.AvskrivingRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.EndreRenteBeloepRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
+import no.nav.sokos.ske.krav.dto.ske.requests.NyHovedStolRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.OpprettInnkrevingsoppdragRequest
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"

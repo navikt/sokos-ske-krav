@@ -1,8 +1,8 @@
-package no.nav.sokos.ske.krav.database.models
+package no.nav.sokos.ske.krav.domain
 
 import java.time.LocalDateTime
 
-data class ValideringsfeilTable(
+data class Valideringsfeil(
     val valideringsfeilId: Long,
     val filnavn: String,
     val linjenummer: Int,

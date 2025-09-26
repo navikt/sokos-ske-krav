@@ -1,17 +1,17 @@
-package no.nav.sokos.ske.krav.database.repository
+package no.nav.sokos.ske.krav.repository
 
 import java.sql.Connection
 
-import no.nav.sokos.ske.krav.database.models.ValideringsfeilTable
-import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.executeSelect
-import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.executeUpdate
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
+import no.nav.sokos.ske.krav.domain.Valideringsfeil
+import no.nav.sokos.ske.krav.dto.nav.KravLinje
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeSelect
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeUpdate
 
 object ValideringsfeilRepository {
     fun Connection.getValideringsFeilForLinje(
         filNavn: String,
         linjeNummer: Int,
-    ): List<ValideringsfeilTable> =
+    ): List<Valideringsfeil> =
         executeSelect(
             """
             select * from valideringsfeil
@@ -21,7 +21,7 @@ object ValideringsfeilRepository {
             linjeNummer,
         ).toValideringsfeil()
 
-    fun Connection.getValideringsFeilForFil(filNavn: String): List<ValideringsfeilTable> =
+    fun Connection.getValideringsFeilForFil(filNavn: String): List<Valideringsfeil> =
         executeSelect(
             """
             select * from valideringsfeil

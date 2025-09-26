@@ -6,23 +6,23 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
 import kotlinx.datetime.toKotlinLocalDate
 
-import no.nav.sokos.ske.krav.database.models.KravTable
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.StonadsType
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
-import no.nav.sokos.ske.krav.domain.ske.requests.AvskrivingRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.HovedstolBeloep
-import no.nav.sokos.ske.krav.domain.ske.requests.KravidentifikatorType
-import no.nav.sokos.ske.krav.domain.ske.requests.NyHovedStolRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.RenteBeloep
-import no.nav.sokos.ske.krav.domain.ske.requests.Skyldner
-import no.nav.sokos.ske.krav.domain.ske.requests.TilbakeKrevingsPeriode
-import no.nav.sokos.ske.krav.domain.ske.requests.TilleggsinformasjonNav
-import no.nav.sokos.ske.krav.domain.ske.requests.Valuta
-import no.nav.sokos.ske.krav.domain.ske.requests.YtelseForAvregningBeloep
+import no.nav.sokos.ske.krav.dto.nav.KravLinje
+import no.nav.sokos.ske.krav.dto.ske.requests.AvskrivingRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.EndreRenteBeloepRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.HovedstolBeloep
+import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
+import no.nav.sokos.ske.krav.dto.ske.requests.NyHovedStolRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.OpprettInnkrevingsoppdragRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.RenteBeloep
+import no.nav.sokos.ske.krav.dto.ske.requests.Skyldner
+import no.nav.sokos.ske.krav.dto.ske.requests.TilbakeKrevingsPeriode
+import no.nav.sokos.ske.krav.dto.ske.requests.TilleggsinformasjonNav
+import no.nav.sokos.ske.krav.dto.ske.requests.Valuta
+import no.nav.sokos.ske.krav.dto.ske.requests.YtelseForAvregningBeloep
 
-fun createOpprettKravRequest(krav: KravTable) =
+fun createOpprettKravRequest(krav: Krav) =
     OpprettInnkrevingsoppdragRequest(
         stonadstype = StonadsType.getStonadstype(krav.kravkode, krav.kodeHjemmel),
         skyldner = createSkyldner(krav),
@@ -35,12 +35,12 @@ fun createOpprettKravRequest(krav: KravTable) =
         tilleggsInformasjon = createTilleggsinformasjonNav(krav),
     )
 
-fun createEndreRenteRequest(krav: KravTable) =
+fun createEndreRenteRequest(krav: Krav) =
     EndreRenteBeloepRequest(
         createRenteBelop(krav),
     )
 
-fun createEndreHovedstolRequest(krav: KravTable): NyHovedStolRequest = NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.roundToLong()))
+fun createEndreHovedstolRequest(krav: Krav): NyHovedStolRequest = NyHovedStolRequest(HovedstolBeloep(beloep = krav.belop.roundToLong()))
 
 fun createStoppKravRequest(
     kravidentifikator: String,
@@ -53,7 +53,7 @@ fun KravLinje.isEndring() = (referansenummerGammelSak.isNotEmpty() && !isStopp()
 
 fun KravLinje.isStopp() = (belop.toDouble().roundToLong() == 0L)
 
-private fun createRenteBelop(krav: KravTable): List<RenteBeloep> =
+private fun createRenteBelop(krav: Krav): List<RenteBeloep> =
     listOf(
         RenteBeloep(
             beloep = krav.belopRente.roundToLong(),
@@ -61,7 +61,7 @@ private fun createRenteBelop(krav: KravTable): List<RenteBeloep> =
         ),
     )
 
-private fun createSkyldner(krav: KravTable) =
+private fun createSkyldner(krav: Krav) =
     if (krav.gjelderId.startsWith("00")) {
         Skyldner(
             Skyldner.IdentifikatorType.ORGANISASJON,
@@ -71,7 +71,7 @@ private fun createSkyldner(krav: KravTable) =
         Skyldner(Skyldner.IdentifikatorType.PERSON, krav.gjelderId)
     }
 
-private fun createTilleggsinformasjonNav(krav: KravTable): TilleggsinformasjonNav {
+private fun createTilleggsinformasjonNav(krav: Krav): TilleggsinformasjonNav {
     val kravFremtidigYtelse = krav.fremtidigYtelse.roundToLong()
     val dtf = DateTimeFormatter.ofPattern("yyyyMMdd")
     return TilleggsinformasjonNav(

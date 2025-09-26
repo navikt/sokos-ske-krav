@@ -10,7 +10,7 @@ import io.mockk.spyk
 
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
-import no.nav.sokos.ske.krav.database.models.KravTable
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.util.MockHttpClient
 import no.nav.sokos.ske.krav.util.setupSkeServiceMock
@@ -23,25 +23,25 @@ class SkeServiceTest :
                 mockk<DatabaseService> {
                     every { getAllKravForStatusCheck() } returns
                         listOf(
-                            mockk<KravTable>(relaxed = true) {
+                            mockk<Krav>(relaxed = true) {
                                 every { filnavn } returns "Testfil"
                                 every { saksnummerNAV } returns "123"
                                 every { status } returns "MOTTATT_UNDER_BEHANDLING"
                                 every { tidspunktSendt } returns LocalDateTime.now().minusDays(2)
                             },
-                            mockk<KravTable>(relaxed = true) {
+                            mockk<Krav>(relaxed = true) {
                                 every { filnavn } returns "Testfil"
                                 every { saksnummerNAV } returns "456"
                                 every { status } returns "KRAV_SENDT"
                                 every { tidspunktSendt } returns LocalDateTime.now().minusHours(2)
                             },
-                            mockk<KravTable>(relaxed = true) {
+                            mockk<Krav>(relaxed = true) {
                                 every { filnavn } returns "Testfil"
                                 every { saksnummerNAV } returns "789"
                                 every { status } returns "KRAV_SENDT"
                                 every { tidspunktSendt } returns LocalDateTime.now().minusHours(24)
                             },
-                            mockk<KravTable>(relaxed = true) {
+                            mockk<Krav>(relaxed = true) {
                                 every { filnavn } returns "Testfil"
                                 every { saksnummerNAV } returns "101112"
                                 every { status } returns "MOTTATT_UNDER_BEHANDLING"

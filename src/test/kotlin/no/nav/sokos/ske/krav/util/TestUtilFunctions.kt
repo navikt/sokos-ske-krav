@@ -16,10 +16,10 @@ import io.mockk.mockk
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
-import no.nav.sokos.ske.krav.database.models.KravTable
-import no.nav.sokos.ske.krav.database.repository.toKrav
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
-import no.nav.sokos.ske.krav.domain.ske.responses.FeilResponse
+import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.dto.nav.KravLinje
+import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
+import no.nav.sokos.ske.krav.repository.toKrav
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.EndreKravService
@@ -134,4 +134,4 @@ fun mockHttpResponse(
     coEvery { body<FeilResponse>().type } returns feilResponseType
 }
 
-fun Connection.getAllKrav(): List<KravTable> = prepareStatement("""select * from krav""").executeQuery().toKrav()
+fun Connection.getAllKrav(): List<Krav> = prepareStatement("""select * from krav""").executeQuery().toKrav()

@@ -6,12 +6,12 @@ import java.time.LocalDate
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.getValideringsFeilForFil
-import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.getValideringsFeilForLinje
-import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.insertFileValideringsfeil
-import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.insertLineValideringsfeil
-import no.nav.sokos.ske.krav.database.repository.toValideringsfeil
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
+import no.nav.sokos.ske.krav.dto.nav.KravLinje
+import no.nav.sokos.ske.krav.repository.ValideringsfeilRepository.getValideringsFeilForFil
+import no.nav.sokos.ske.krav.repository.ValideringsfeilRepository.getValideringsFeilForLinje
+import no.nav.sokos.ske.krav.repository.ValideringsfeilRepository.insertFileValideringsfeil
+import no.nav.sokos.ske.krav.repository.ValideringsfeilRepository.insertLineValideringsfeil
+import no.nav.sokos.ske.krav.repository.toValideringsfeil
 import no.nav.sokos.ske.krav.util.TestContainer
 
 internal class RepositoryTestValideringsfeil :

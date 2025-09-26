@@ -1,4 +1,4 @@
-package no.nav.sokos.ske.krav.database.repository
+package no.nav.sokos.ske.krav.repository
 
 import java.math.BigDecimal
 import java.sql.Connection
@@ -9,9 +9,11 @@ import java.sql.SQLException
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+import mu.KotlinLogging
+
 object RepositoryExtensions {
     inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R {
-        val logger = mu.KotlinLogging.logger {}
+        val logger = KotlinLogging.logger {}
         return runCatching {
             use(block)
         }.onFailure {
@@ -20,7 +22,7 @@ object RepositoryExtensions {
     }
 
     inline fun <reified T> ResultSet.getColumn(columnLabel: String): T {
-        val logger = mu.KotlinLogging.logger {}
+        val logger = KotlinLogging.logger {}
         val columnValue =
             when (T::class) {
                 Int::class -> getInt(columnLabel)
