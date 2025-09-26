@@ -49,6 +49,8 @@ private fun Application.module() {
         Metrics.incrementKravKodeSendtMetric(it.kravKode)
     }
 
+    RuntimeDiag.logAndValidate()
+
     if (!useTimer) {
         return
     }
