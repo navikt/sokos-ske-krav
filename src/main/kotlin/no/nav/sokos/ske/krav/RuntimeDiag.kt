@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav
 
+private val logger = mu.KotlinLogging.logger {}
+
 object RuntimeDiag {
     fun logAndValidate() {
         val host =
@@ -13,10 +15,10 @@ object RuntimeDiag {
                     ?: "0"
             ).toInt()
 
-        println("RuntimeDiag external.host=$host external.port=$port wd=${System.getProperty("user.dir")}")
+        logger.info("RuntimeDiag external.host=$host external.port=$port wd=${System.getProperty("user.dir")}")
 
         if (host == "MISSING" || port == 0) {
-            error("External service host/port not configured")
+            logger.error("External service host/port not configured")
         }
 
         try {
@@ -25,7 +27,7 @@ object RuntimeDiag {
             }
             println("RuntimeDiag connectivity OK")
         } catch (e: Exception) {
-            error("Cannot reach $host:$port before starting scheduled tasks: ${e.message}")
+            logger.error("Cannot reach $host:$port before starting scheduled tasks: ${e.message}")
         }
     }
 }
