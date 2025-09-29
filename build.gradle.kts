@@ -2,14 +2,13 @@ import kotlinx.kover.gradle.plugin.dsl.tasks.KoverReport
 
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.2.0"
-    kotlin("plugin.serialization") version "2.2.0"
-    id("org.jlleitschuh.gradle.ktlint") version "13.0.0"
-    id("org.jetbrains.kotlinx.kover") version "0.9.1"
+    kotlin("jvm") version "2.2.20"
+    kotlin("plugin.serialization") version "2.2.20"
+    id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
+    id("org.jetbrains.kotlinx.kover") version "0.9.2"
 
     application
 }
@@ -20,24 +19,24 @@ repositories {
     mavenCentral()
 }
 
-val ktorVersion = "3.2.3"
-val jschVersion = "2.27.2"
-val nimbusVersion = "10.4.1"
+val ktorVersion = "3.3.0"
+val jschVersion = "2.27.3"
+val nimbusVersion = "10.5"
 val kotlinxSerializationVersion = "1.9.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
-val prometheusVersion = "1.15.2"
-val opentelemetryVersion = "2.18.1-alpha"
+val prometheusVersion = "1.15.4"
+val opentelemetryVersion = "2.20.0-alpha"
 
 // DB
-val hikaricpVersion = "7.0.1"
-val flywayVersion = "11.11.0"
-val postgresqlVersion = "42.7.7"
+val hikaricpVersion = "7.0.2"
+val flywayVersion = "11.13.1"
+val postgresqlVersion = "42.7.8"
 
 // Test
-val kotestVersion = "5.9.1"
+val kotestVersion = "6.0.3"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.14.5"
 val commonsVersion = "3.12.0"

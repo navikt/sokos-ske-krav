@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - dev
     paths-ignore:
       - '**.md'
       - 'LICENCE'
@@ -14,10 +13,10 @@ on:
       - 'setupLocalEnvironment.sh'
       - 'dokumentasjon/**'
       - '.github/workflows/build-pr.yaml'
-      - '.github/workflows/manual-deploy.yaml'
       - '.github/workflows/codeql.yml'
-      - '.github/workflows/enforce-dev-source.yml'
+      - '.github/workflows/manual-deploy.yaml'
       - '.github/dependabot.yaml'
+
 env:
   TZ: Europe/Oslo
 
@@ -41,7 +40,6 @@ jobs:
 
   assemble-build-push-image-prod:
     needs: [ run-application-tests ]
-    if: github.ref == 'refs/heads/main'
     name: Assemble application & build/push prod image
     uses: navikt/mob-gha-workflows/.github/workflows/gradle-assemble-build-push-image.yaml@new_workflow_release
     secrets: inherit
@@ -60,7 +58,6 @@ jobs:
   deploy-prod:
     needs: [ assemble-build-push-image-prod, deploy-dev ]
     name: Deploy to prod-fss
-    if: github.ref == 'refs/heads/main'
     uses: navikt/mob-gha-workflows/.github/workflows/nais-app-deploy.yaml@main
     with:
       cluster: prod-fss
