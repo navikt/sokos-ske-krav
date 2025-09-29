@@ -1,8 +1,6 @@
 package no.nav.sokos.ske.krav.service.unit
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.data.blocking.forAll
-import io.kotest.data.row
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.justRun
@@ -34,14 +32,21 @@ internal class EndreKravServiceTest :
                 every { saksnummerNAV } returns "bar"
             }
 
-        forAll(
-            row("404 and 422", 404, 422, Status.HTTP404_ANNEN_IKKE_FUNNET, Status.HTTP404_ANNEN_IKKE_FUNNET),
-            row("409 and 422", 409, 422, Status.HTTP422_VALIDERINGSFEIL, Status.HTTP422_VALIDERINGSFEIL),
-            row("409 and 404", 409, 404, Status.HTTP404_ANNEN_IKKE_FUNNET, Status.HTTP404_ANNEN_IKKE_FUNNET),
-            row("409 and 200", 409, 200, Status.HTTP409_ANNEN_KONFLIKT, Status.HTTP409_ANNEN_KONFLIKT),
-            row("200 and 422", 200, 422, Status.HTTP422_VALIDERINGSFEIL, Status.HTTP422_VALIDERINGSFEIL),
-            row("102 and 102", 102, 102, Status.UKJENT_STATUS, Status.UKJENT_STATUS),
-        ) { _, firstStatus, secondStatus, expectedFirstStatus, expectedSecondStatus ->
+        data class TestCase(
+            val description: String,
+            val firstStatus: Int,
+            val secondStatus: Int,
+            val expectedFirstStatus: Status,
+            val expectedSecondStatus: Status,
+        )
+        listOf(
+            TestCase("404 and 422", 404, 422, Status.HTTP404_ANNEN_IKKE_FUNNET, Status.HTTP404_ANNEN_IKKE_FUNNET),
+            TestCase("409 and 422", 409, 422, Status.HTTP422_VALIDERINGSFEIL, Status.HTTP422_VALIDERINGSFEIL),
+            TestCase("409 and 404", 409, 404, Status.HTTP404_ANNEN_IKKE_FUNNET, Status.HTTP404_ANNEN_IKKE_FUNNET),
+            TestCase("409 and 200", 409, 200, Status.HTTP409_ANNEN_KONFLIKT, Status.HTTP409_ANNEN_KONFLIKT),
+            TestCase("200 and 422", 200, 422, Status.HTTP422_VALIDERINGSFEIL, Status.HTTP422_VALIDERINGSFEIL),
+            TestCase("102 and 102", 102, 102, Status.UKJENT_STATUS, Status.UKJENT_STATUS),
+        ).forEach { (description: String, firstStatus: Int, secondStatus: Int, expectedFirstStatus: Status, expectedSecondStatus: Status) ->
 
             test("If first status is $firstStatus and second status is $secondStatus, both should be set to $expectedFirstStatus") {
 

@@ -56,6 +56,8 @@ spec:
   vault:
     enabled: true
   env:
+    - name: JDK_JAVA_OPTIONS
+      value: -XX:MaxRAMPercentage=75 $(JAVA_PROXY_OPTIONS)
     - name: SKE_REST_URL
       value: https://api-test.sits.no/api/innkreving/innkrevingsoppdrag/v1/
     - name: SFTP_SERVER
