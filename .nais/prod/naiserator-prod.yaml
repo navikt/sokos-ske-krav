@@ -56,6 +56,10 @@ spec:
   vault:
     enabled: true
   env:
+    - name: JDK_JAVA_OPTIONS
+      value: -XX:MaxRAMPercentage=75 $(JAVA_PROXY_OPTIONS)
+    - name: USE_AUTHENTICATION
+      value: "true"
     - name: SKE_REST_URL
       value: https://api.skatteetaten.no/api/innkreving/innkrevingsoppdrag/v1/
     - name: SFTP_SERVER
