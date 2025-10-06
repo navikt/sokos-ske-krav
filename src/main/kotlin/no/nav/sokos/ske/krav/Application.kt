@@ -3,11 +3,8 @@ package no.nav.sokos.ske.krav
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
@@ -26,7 +23,6 @@ import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.SkeService
-import no.nav.sokos.ske.krav.util.TraceUtils
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -53,33 +49,50 @@ private fun Application.module() {
         Metrics.incrementKravKodeSendtMetric(it.kravKode)
     }
 
-    if (!useTimer) return
+    if (!useTimer) {
+        return
+    }
 
     launchJob(skeService::handleNewKrav, intervalPeriod)
     launchJob(skeService::checkKravDateForAlert, 24.hours)
 }
 
-private fun launchJob(
+private fun CoroutineScope.launchJob(
     function: suspend () -> Unit,
     delayDuration: Duration,
-) {
-    CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
-        while (true) {
-            try {
-                // Create a completely isolated coroutine for each execution
-                withContext(Dispatchers.Default.limitedParallelism(1)) {
-                    TraceUtils.withTracerId(forceNewTrace = true) {
-                        function()
-                    }
-                }
-                delay(delayDuration)
-            } catch (e: Exception) {
-                logger.error(e) { "Error in scheduled task: ${e.message}" }
-                delay(delayDuration / 2)
-            }
+) = launch {
+    while (true) {
+        try {
+            function()
+            delay(delayDuration)
+        } catch (e: Exception) {
+            logger.error(e) { "Error in scheduled task: ${e.message}" }
+            delay(delayDuration / 2)
         }
     }
 }
+
+// private fun launchJob(
+//    function: suspend () -> Unit,
+//    delayDuration: Duration,
+// ) {
+//    CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+//        while (true) {
+//            try {
+//                // Create a completely isolated coroutine for each execution
+//                withContext(Dispatchers.Default.limitedParallelism(1)) {
+//                    TraceUtils.withTracerId(forceNewTrace = true) {
+//                        function()
+//                    }
+//                }
+//                delay(delayDuration)
+//            } catch (e: Exception) {
+//                logger.error(e) { "Error in scheduled task: ${e.message}" }
+//                delay(delayDuration / 2)
+//            }
+//        }
+//    }
+// }
 
 fun Application.applicationLifecycleConfig(applicationState: ApplicationState) {
     monitor.subscribe(ApplicationStarted) {
