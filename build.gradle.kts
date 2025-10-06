@@ -28,17 +28,17 @@ val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
 val prometheusVersion = "1.15.4"
-val opentelemetryVersion = "2.20.0-alpha"
+val opentelemetryVersion = "2.20.1-alpha"
 
 // DB
 val hikaricpVersion = "7.0.2"
-val flywayVersion = "11.13.1"
+val flywayVersion = "11.13.2"
 val postgresqlVersion = "42.7.8"
 
 // Test
 val kotestVersion = "6.0.3"
 val kotestTestContainerExtensionVersion = "2.0.2"
-val mockkVersion = "1.14.5"
+val mockkVersion = "1.14.6"
 val commonsVersion = "3.12.0"
 val testContainerVersion = "1.21.3"
 val mockFtpServerVersion = "3.2.0"
@@ -46,7 +46,7 @@ val mockFtpServerVersion = "3.2.0"
 // Logging
 val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.18"
+val logbackVersion = "1.5.19"
 val logstashVersion = "8.1"
 
 dependencies {
