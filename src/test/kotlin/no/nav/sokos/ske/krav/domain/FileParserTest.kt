@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.domain
 
 import java.math.BigDecimal
+import java.time.LocalDate
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -70,5 +71,26 @@ internal class FileParserTest :
                 count { it.fremtidigYtelse == BigDecimal.ZERO } shouldBe 3
                 count { it.fremtidigYtelse != BigDecimal.ZERO } shouldBe 2
             }
+        }
+
+        test("Hvis tilleggsfrist ikke finnes skal vi få null på feltet") {
+            val kravLinjer = altOkParser.parseKravLinjer()
+            val linjerUtenTilleggsfrist = kravLinjer.filter { it.tilleggsfristEtterForeldelsesloven == null }
+
+            linjerUtenTilleggsfrist.size shouldBe 95
+        }
+
+        test("Hvis tilleggsfrist finnes, skal vi få riktig dato utledet fra feltet") {
+            val kravLinjer = altOkParser.parseKravLinjer()
+            val linjerMedTilleggsfrist = kravLinjer.filter { it.tilleggsfristEtterForeldelsesloven != null }
+
+            linjerMedTilleggsfrist.size shouldBe 6
+
+            linjerMedTilleggsfrist[0].tilleggsfristEtterForeldelsesloven shouldBe LocalDate.of(2024, 12, 31)
+            linjerMedTilleggsfrist[1].tilleggsfristEtterForeldelsesloven shouldBe LocalDate.of(2025, 6, 30)
+            linjerMedTilleggsfrist[2].tilleggsfristEtterForeldelsesloven shouldBe LocalDate.of(2025, 4, 15)
+            linjerMedTilleggsfrist[3].tilleggsfristEtterForeldelsesloven shouldBe LocalDate.of(2025, 2, 28)
+            linjerMedTilleggsfrist[4].tilleggsfristEtterForeldelsesloven shouldBe LocalDate.of(2024, 12, 8)
+            linjerMedTilleggsfrist[5].tilleggsfristEtterForeldelsesloven shouldBe LocalDate.of(2025, 2, 10)
         }
     })

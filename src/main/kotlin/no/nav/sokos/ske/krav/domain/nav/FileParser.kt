@@ -100,15 +100,9 @@ class FileParser(
         start: Int,
         end: Int,
     ): LocalDate? =
-        runCatching {
-            val dateString = getString(start, end)
-            if (dateString.isBlank()) {
-                null
-            } else {
-                LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yyyyMMdd"))
-            }
-        }.getOrElse {
-            val dateString = getString(start, end)
-            if (dateString.isBlank()) null else LineValidationRules.errorDate
+        if (getString(start, end).isBlank()) {
+            null
+        } else {
+            getDate(start, end)
         }
 }
