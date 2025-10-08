@@ -13,17 +13,17 @@ import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.domain.Status
+import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.StatusService
 import no.nav.sokos.ske.krav.util.MockHttpClient
 import no.nav.sokos.ske.krav.util.MockHttpClientUtils
-import no.nav.sokos.ske.krav.util.TestContainer
 import no.nav.sokos.ske.krav.util.getAllKrav
 
 internal class StatusServiceIntegrationTest :
     BehaviorSpec({
-        val testContainer = TestContainer()
+        val dbListener = DBListener()
 
         fun setupServices(
             client: HttpClient,
@@ -38,19 +38,19 @@ internal class StatusServiceIntegrationTest :
         }
 
         Given("Mottaksstatus er RESKONTROFOERT") {
-            testContainer.migrate("SQLscript/KravSomSkalOppdateres.sql")
+            dbListener.migrate("SQLscript/KravSomSkalOppdateres.sql")
             val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse(status = Status.RESKONTROFOERT.value)
             val httpClient = mottaksStatusMockHttpClient(mottaksStatusResponse)
-            val dbService = DatabaseService(testContainer.dataSource)
+            val dbService = DatabaseService(dbListener.dataSource)
             val (slackClientSpy, _, statusService) = setupServices(httpClient, dbService)
 
             Then("Skal mottaksstatus settes til RESKONTROFOERT i database") {
-                val allKravBeforeUpdate = testContainer.dataSource.connection.use { con -> con.getAllKrav() }
+                val allKravBeforeUpdate = dbListener.dataSource.connection.use { con -> con.getAllKrav() }
                 allKravBeforeUpdate.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 3
 
                 statusService.getMottaksStatus()
 
-                val allKravAfterUpdate = testContainer.dataSource.connection.use { con -> con.getAllKrav() }
+                val allKravAfterUpdate = dbListener.dataSource.connection.use { con -> con.getAllKrav() }
                 allKravAfterUpdate.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 8
             }
             Then("Alert skal ikke sendes") {
@@ -61,12 +61,12 @@ internal class StatusServiceIntegrationTest :
         }
         Given("Mottaksstatus er VALIDERINGSFEIL") {
             val fileName = "KravSomSkalOppdateres.sql"
-            testContainer.migrate("SQLscript/$fileName")
+            dbListener.migrate("SQLscript/$fileName")
             val status = "ORGANISASJONSNUMMER_FINNES_IKKE"
             val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse(status = Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value)
             val valideringsFeilRespons = MockHttpClientUtils.Responses.valideringsfeilResponse(status, "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke")
             val httpClient = mottaksStatusMockHttpClient(mottaksStatusResponse, valideringsFeilRespons)
-            val dbService = DatabaseService(testContainer.dataSource)
+            val dbService = DatabaseService(dbListener.dataSource)
             val (slackClientSpy, slackServiceSpy, statusService) = setupServices(httpClient, dbService)
 
             dbService.getAllFeilmeldinger().size shouldBe 0
@@ -84,7 +84,7 @@ internal class StatusServiceIntegrationTest :
             }
 
             Then("Mottaksstatus skal settes til VALIDERINGSFEIL i database") {
-                testContainer.dataSource.connection
+                dbListener.dataSource.connection
                     .use { con -> con.getAllKrav() }
                     .filter { it.status == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value }
                     .distinctBy { it.corrId }

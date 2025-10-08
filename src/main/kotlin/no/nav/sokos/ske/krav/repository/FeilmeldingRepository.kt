@@ -1,25 +1,43 @@
 package no.nav.sokos.ske.krav.repository
 
-import java.sql.Connection
+import kotliquery.Row
+import kotliquery.Session
+import kotliquery.TransactionalSession
+import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.domain.Feilmelding
-import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeSelect
-import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeUpdate
 
 object FeilmeldingRepository {
-    fun Connection.getAllFeilmeldinger() = prepareStatement("""select * from feilmelding""").executeQuery().toFeilmelding()
+    fun getAllFeilmeldinger(session: Session): List<Feilmelding> =
+        session.list(
+            queryOf(
+                """
+                select * from feilmelding
+                """.trimIndent(),
+            ),
+            mapToFeilmelding,
+        )
 
-    fun Connection.getFeilmeldingForKravId(kravId: Long): List<Feilmelding> =
-        executeSelect(
-            """
-            select * from feilmelding
-            where krav_id = ?
-            """,
-            kravId,
-        ).toFeilmelding()
+    fun getFeilmeldingForKravId(
+        session: Session,
+        kravId: Long,
+    ): List<Feilmelding> =
+        session.list(
+            queryOf(
+                """
+                select * from feilmelding
+                where krav_id = ?
+                """.trimIndent(),
+                kravId,
+            ),
+            mapToFeilmelding,
+        )
 
-    fun Connection.insertFeilmelding(feilmelding: Feilmelding) =
-        executeUpdate(
+    fun insertFeilmelding(
+        tx: TransactionalSession,
+        feilmelding: Feilmelding,
+    ) = tx.update(
+        queryOf(
             """
             insert into feilmelding (
                 krav_id,
@@ -32,7 +50,7 @@ object FeilmeldingRepository {
                 ske_response
             ) 
             values (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
+            """.trimIndent(),
             feilmelding.kravId,
             feilmelding.saksnummerNav,
             feilmelding.kravidentifikatorSKE,
@@ -41,5 +59,22 @@ object FeilmeldingRepository {
             feilmelding.melding,
             feilmelding.navRequest,
             feilmelding.skeResponse,
+        ),
+    )
+
+    private val mapToFeilmelding: (Row) -> Feilmelding = { row ->
+        Feilmelding(
+            feilmeldingId = row.long("id"),
+            kravId = row.long("krav_id"),
+            corrId = row.string("corr_id"),
+            saksnummerNav = row.string("saksnummer_nav"),
+            kravidentifikatorSKE = row.stringOrNull("kravidentifikator_ske"),
+            error = row.string("error"),
+            melding = row.string("melding"),
+            navRequest = row.string("nav_request"),
+            skeResponse = row.string("ske_response"),
+            tidspunktOpprettet = row.localDateTime("tidspunkt_opprettet"),
+            rapporter = row.boolean("rapporter"),
         )
+    }
 }

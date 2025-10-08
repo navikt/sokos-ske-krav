@@ -34,6 +34,7 @@ val opentelemetryVersion = "2.20.0-alpha"
 val hikaricpVersion = "7.0.2"
 val flywayVersion = "11.13.1"
 val postgresqlVersion = "42.7.8"
+val kotliqueryVersion = "1.9.1"
 
 // Test
 val kotestVersion = "6.0.3"
@@ -72,6 +73,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:$hikaricpVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("no.nav:vault-jdbc:$vaultVersion")
+    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")

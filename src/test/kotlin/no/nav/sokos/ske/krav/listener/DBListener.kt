@@ -1,6 +1,7 @@
-package no.nav.sokos.ske.krav.util
+package no.nav.sokos.ske.krav.listener
 
 import com.zaxxer.hikari.HikariDataSource
+import io.kotest.core.listeners.TestListener
 import io.kotest.extensions.testcontainers.toDataSource
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
@@ -11,11 +12,12 @@ import org.testcontainers.utility.DockerImageName
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.database.PostgresDataSource
 
-class TestContainer {
+private const val DOCKER_IMAGE_NAME = "postgres:latest"
+
+class DBListener : TestListener {
     private val properties = PropertiesConfig.PostgresConfig
-    private val dockerImageName = "postgres:latest"
     private val container =
-        PostgreSQLContainer<Nothing>(DockerImageName.parse(dockerImageName)).apply {
+        PostgreSQLContainer<Nothing>(DockerImageName.parse(DOCKER_IMAGE_NAME)).apply {
             withReuse(false)
             withUsername(properties.adminUser)
             waitingFor(Wait.defaultWaitStrategy())

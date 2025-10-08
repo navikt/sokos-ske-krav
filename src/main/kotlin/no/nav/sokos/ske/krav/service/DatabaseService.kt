@@ -6,6 +6,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
+import kotliquery.TransactionalSession
 
 import no.nav.sokos.ske.krav.database.PostgresDataSource
 import no.nav.sokos.ske.krav.domain.Feilmelding
@@ -14,9 +15,7 @@ import no.nav.sokos.ske.krav.domain.Valideringsfeil
 import no.nav.sokos.ske.krav.dto.nav.KravLinje
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.metrics.Metrics
-import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.getAllFeilmeldinger
-import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.getFeilmeldingForKravId
-import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.insertFeilmelding
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForAvstemming
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForResending
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForStatusCheck
@@ -74,15 +73,15 @@ class DatabaseService(
         it.insertAllNewKrav(kravLinjer, filnavn)
     }
 
-    fun getAllFeilmeldinger(): List<Feilmelding> =
-        dataSource.connection.useAndHandleErrors {
-            it.getAllFeilmeldinger()
-        }
+//    fun getAllFeilmeldinger(): List<Feilmelding> =
+//        dataSource.connection.useAndHandleErrors {
+//            it.getAllFeilmeldinger()
+//        }
 
-    fun saveFeilmelding(feilMelding: Feilmelding) =
-        dataSource.connection.useAndHandleErrors {
-            it.insertFeilmelding(feilMelding)
-        }
+//    fun saveFeilmelding(feilMelding: Feilmelding) =
+//        dataSource.connection.useAndHandleErrors {
+//            it.insertFeilmelding(feilMelding)
+//        }
 
     fun saveLineValidationError(
         filnavn: String,
@@ -120,6 +119,7 @@ class DatabaseService(
     }
 
     suspend fun saveErrorMessage(
+        tx: TransactionalSession,
         request: String,
         response: HttpResponse,
         krav: Krav,
@@ -143,14 +143,14 @@ class DatabaseService(
                 LocalDateTime.now(),
             )
 
-        saveFeilmelding(feilmelding)
+        FeilmeldingRepository.insertFeilmelding(tx, feilmelding)
     }
 
     fun getAllKravForStatusCheck(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForStatusCheck() }
 
     fun getAllKravForAvstemming(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForAvstemming() }
 
-    fun getFeilmeldingForKravId(kravId: Long): List<Feilmelding> = dataSource.connection.useAndHandleErrors { it.getFeilmeldingForKravId(kravId) }
+//    fun getFeilmeldingForKravId(kravId: Long): List<Feilmelding> = dataSource.connection.useAndHandleErrors { it.getFeilmeldingForKravId(kravId) }
 
     fun getFileValidationMessage(filNavn: String): List<Valideringsfeil> = dataSource.connection.useAndHandleErrors { it.getValideringsFeilForFil(filNavn) }
 

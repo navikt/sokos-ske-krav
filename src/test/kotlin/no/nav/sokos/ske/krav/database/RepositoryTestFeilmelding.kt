@@ -6,22 +6,22 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 import no.nav.sokos.ske.krav.domain.Feilmelding
+import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.getAllFeilmeldinger
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.getFeilmeldingForKravId
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.insertFeilmelding
-import no.nav.sokos.ske.krav.util.TestContainer
 
 internal class RepositoryTestFeilmelding :
     FunSpec({
-        val testContainer = TestContainer()
-        testContainer.migrate("SQLscript/Feilmeldinger.sql")
+        val dbListener = DBListener()
+        dbListener.migrate("SQLscript/Feilmeldinger.sql")
 
         test("getAllFeilmeldinger skal returnere alle feilmeldinger ") {
-            testContainer.dataSource.connection.use { it.getAllFeilmeldinger().size shouldBe 4 }
+            dbListener.dataSource.connection.use { it.getAllFeilmeldinger().size shouldBe 4 }
         }
 
         test("getFeilmeldingForKravId skal returnere en liste med feilmeldinger for angitt kravid") {
-            testContainer.dataSource.connection.use { con ->
+            dbListener.dataSource.connection.use { con ->
                 val feilmelding1 = con.getFeilmeldingForKravId(1)
                 feilmelding1.size shouldBe 1
                 feilmelding1.first().corrId shouldBe "CORR856"
@@ -54,7 +54,7 @@ internal class RepositoryTestFeilmelding :
                     false,
                 )
 
-            testContainer.dataSource.connection.use { con ->
+            dbListener.dataSource.connection.use { con ->
                 val feilmeldingerBefore = con.getAllFeilmeldinger()
                 con.insertFeilmelding(feilmelding)
 
