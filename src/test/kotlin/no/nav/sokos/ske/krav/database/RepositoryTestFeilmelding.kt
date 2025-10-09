@@ -7,35 +7,33 @@ import io.kotest.matchers.shouldBe
 
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.getAllFeilmeldinger
-import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.getFeilmeldingForKravId
-import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.insertFeilmelding
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
 internal class RepositoryTestFeilmelding :
     FunSpec({
-        val dbListener = DBListener()
-        dbListener.migrate("SQLscript/Feilmeldinger.sql")
+        extensions(DBListener)
+
+        DBListener.migrate("SQLscript/Feilmeldinger.sql")
 
         test("getAllFeilmeldinger skal returnere alle feilmeldinger ") {
-            dbListener.dataSource.connection.use { it.getAllFeilmeldinger().size shouldBe 4 }
+            FeilmeldingRepository.getAllFeilmeldinger(DBListener.session).size shouldBe 4
         }
 
         test("getFeilmeldingForKravId skal returnere en liste med feilmeldinger for angitt kravid") {
-            dbListener.dataSource.connection.use { con ->
-                val feilmelding1 = con.getFeilmeldingForKravId(1)
-                feilmelding1.size shouldBe 1
-                feilmelding1.first().corrId shouldBe "CORR856"
+            val feilmelding1 = FeilmeldingRepository.getFeilmeldingForKravId(DBListener.session, 1)
+            feilmelding1.size shouldBe 1
+            feilmelding1.first().corrId shouldBe "CORR856"
 
-                val feilmelding2 = con.getFeilmeldingForKravId(2)
-                feilmelding2.size shouldBe 2
-                feilmelding2.filter { it.error == "404" }.size shouldBe 2
-                feilmelding2.map { it.corrId shouldBe "CORR658" }
+            val feilmelding2 = FeilmeldingRepository.getFeilmeldingForKravId(DBListener.session, 2)
+            feilmelding2.size shouldBe 2
+            feilmelding2.filter { it.error == "404" }.size shouldBe 2
+            feilmelding2.map { it.corrId shouldBe "CORR658" }
 
-                val feilmelding3 = con.getFeilmeldingForKravId(3)
-                feilmelding3.size shouldBe 1
-                feilmelding3.filter { it.error == "500" }.size shouldBe 1
-                feilmelding3.first().corrId shouldBe "CORR457389"
-            }
+            val feilmelding3 = FeilmeldingRepository.getFeilmeldingForKravId(DBListener.session, 3)
+            feilmelding3.size shouldBe 1
+            feilmelding3.filter { it.error == "500" }.size shouldBe 1
+            feilmelding3.first().corrId shouldBe "CORR457389"
         }
 
         test("insertFeilmelding skal lagre feilmelding") {
@@ -54,11 +52,11 @@ internal class RepositoryTestFeilmelding :
                     false,
                 )
 
-            dbListener.dataSource.connection.use { con ->
-                val feilmeldingerBefore = con.getAllFeilmeldinger()
-                con.insertFeilmelding(feilmelding)
+            DBListener.dataSource.transaction { session ->
+                val feilmeldingerBefore = FeilmeldingRepository.getAllFeilmeldinger(session)
+                FeilmeldingRepository.insertFeilmeldinger(session, listOf(feilmelding))
 
-                val feilmeldinger = con.getAllFeilmeldinger()
+                val feilmeldinger = FeilmeldingRepository.getAllFeilmeldinger(session)
                 feilmeldinger.size shouldBe 1 + feilmeldingerBefore.size
                 with(feilmeldinger.filter { it.corrId == feilmelding.corrId }) {
                     size shouldBe 1

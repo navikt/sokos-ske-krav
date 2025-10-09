@@ -33,33 +33,34 @@ object FeilmeldingRepository {
             mapToFeilmelding,
         )
 
-    fun insertFeilmelding(
+    fun insertFeilmeldinger(
         tx: TransactionalSession,
-        feilmelding: Feilmelding,
-    ) = tx.update(
-        queryOf(
-            """
-            insert into feilmelding (
-                krav_id,
-                saksnummer_nav,
-                kravidentifikator_ske,
-                corr_id,
-                error,
-                melding,
-                nav_request,
-                ske_response
-            ) 
-            values (?, ?, ?, ?, ?, ?, ?, ?)
-            """.trimIndent(),
-            feilmelding.kravId,
-            feilmelding.saksnummerNav,
-            feilmelding.kravidentifikatorSKE,
-            feilmelding.corrId,
-            feilmelding.error,
-            feilmelding.melding,
-            feilmelding.navRequest,
-            feilmelding.skeResponse,
-        ),
+        feilmeldinger: List<Feilmelding>,
+    ) = tx.batchPreparedStatement(
+        """
+        insert into feilmelding (
+            krav_id, 
+            saksnummer_nav, 
+            kravidentifikator_ske, 
+            corr_id, 
+            error, 
+            melding, 
+            nav_request, 
+            ske_response
+        ) values (?, ?, ?, ?, ?, ?, ?, ?)
+        """.trimIndent(),
+        feilmeldinger.map { feilmelding ->
+            listOf(
+                feilmelding.kravId,
+                feilmelding.saksnummerNav,
+                feilmelding.kravidentifikatorSKE,
+                feilmelding.corrId,
+                feilmelding.error,
+                feilmelding.melding,
+                feilmelding.navRequest,
+                feilmelding.skeResponse,
+            )
+        },
     )
 
     private val mapToFeilmelding: (Row) -> Feilmelding = { row ->

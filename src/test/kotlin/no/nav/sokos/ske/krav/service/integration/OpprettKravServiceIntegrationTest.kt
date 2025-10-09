@@ -16,12 +16,12 @@ import no.nav.sokos.ske.krav.util.setUpMockHttpClient
 
 internal class OpprettKravServiceIntegrationTest :
     BehaviorSpec({
-        val dbListener = DBListener()
+        extensions(DBListener)
 
         Given("2 Nye krav skal opprettes ") {
-            dbListener.migrate("SQLscript/2NyeKrav.sql")
+            DBListener.migrate("SQLscript/2NyeKrav.sql")
 
-            val kravSomSkalSendes = dbListener.dataSource.connection.getAllKrav()
+            val kravSomSkalSendes = DBListener.dataSource.connection.getAllKrav()
             kravSomSkalSendes.size shouldBe 2
 
             When("Response fra SKE er OK") {
@@ -31,10 +31,10 @@ internal class OpprettKravServiceIntegrationTest :
                 val httpClient = setUpMockHttpClient(listOf(MockHttpClientUtils.MockRequestObj(skeOKResponse, MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.OK)))
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
-                OpprettKravService(skeClient, DatabaseService(dbListener.dataSource)).sendAllOpprettKrav(kravSomSkalSendes)
+                OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)).sendAllOpprettKrav(kravSomSkalSendes)
 
                 Then("Skal kravene oppdateres med SKE kravidentifikator") {
-                    dbListener.dataSource.connection.getAllKrav().run {
+                    DBListener.dataSource.connection.getAllKrav().run {
                         size shouldBe 2
                         filter { it.saksnummerNAV == "1111-navsaksnr" }.size shouldBe 1
                         filter { it.saksnummerNAV == "2222-navsaksnr" }.size shouldBe 1
@@ -47,10 +47,10 @@ internal class OpprettKravServiceIntegrationTest :
                 val httpClient = setUpMockHttpClient(listOf(MockHttpClientUtils.MockRequestObj("", MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.BadRequest)))
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
-                OpprettKravService(skeClient, DatabaseService(dbListener.dataSource)).sendAllOpprettKrav(kravSomSkalSendes)
+                OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)).sendAllOpprettKrav(kravSomSkalSendes)
 
                 Then("Skal kravene ikke oppdateres") {
-                    dbListener.dataSource.connection.getAllKrav().run {
+                    DBListener.dataSource.connection.getAllKrav().run {
                         size shouldBe 2
                         filter { it.saksnummerNAV == "1111-navsaksnr" }.size shouldBe 1
                         filter { it.saksnummerNAV == "2222-navsaksnr" }.size shouldBe 1

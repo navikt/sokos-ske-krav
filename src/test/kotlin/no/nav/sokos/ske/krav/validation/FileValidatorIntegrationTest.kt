@@ -21,8 +21,8 @@ import no.nav.sokos.ske.krav.validation.FileValidator.ErrorKeys
 
 internal class FileValidatorIntegrationTest :
     BehaviorSpec({
-        extensions(SftpListener)
-        val dbService = DatabaseService(DBListener().dataSource)
+        extensions(SftpListener, DBListener)
+        val dbService = DatabaseService(DBListener.dataSource)
 
         fun setupSlackService(): SlackService {
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))

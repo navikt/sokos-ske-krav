@@ -21,10 +21,9 @@ private const val FILE_ERROR = "FilMedFeilAntallKrav.txt"
 
 internal class FtpServiceIntegrationTest :
     BehaviorSpec({
+        extensions(SftpListener, DBListener)
 
-        extensions(SftpListener)
-        val dbListener = DBListener()
-        val dbService = DatabaseService(dbListener.dataSource)
+        val dbService = DatabaseService(DBListener.dataSource)
         val ftpService: FtpService by lazy {
             FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = dbService)
         }

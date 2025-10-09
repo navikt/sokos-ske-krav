@@ -11,16 +11,16 @@ import no.nav.sokos.ske.krav.service.RapportService
 @OptIn(Frontend::class)
 internal class RapportServiceIntegrationTest :
     FunSpec({
+        extensions(DBListener)
 
         test("oppdaterAvstemtKravTilRapportert skal sette status til rapportert og hente tabelldata på nytt") {
-            val dbListener = DBListener()
-            dbListener.migrate("SQLscript/KravSomSkalAvstemmes.sql")
-            dbListener.migrate("SQLscript/FeilmeldingerSomSkalAvstemmes.sql")
+            DBListener.migrate("SQLscript/KravSomSkalAvstemmes.sql")
+            DBListener.migrate("SQLscript/FeilmeldingerSomSkalAvstemmes.sql")
 
-            val dbService = DatabaseService(dbListener.dataSource)
+            val dbService = DatabaseService(DBListener.dataSource)
             dbService.getAllKravForAvstemming().size shouldBe 3
 
-            val rapportService = RapportService(dbService)
+            val rapportService = RapportService(dataSource = DBListener.dataSource, dbService = dbService)
             rapportService.oppdaterStatusTilRapportert(1)
             dbService.getAllKravForAvstemming().size shouldBe 2
         }

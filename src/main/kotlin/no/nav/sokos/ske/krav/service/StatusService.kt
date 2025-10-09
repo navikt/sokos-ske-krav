@@ -2,12 +2,14 @@ package no.nav.sokos.ske.krav.service
 
 import java.time.LocalDateTime
 
+import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
+import no.nav.sokos.ske.krav.config.PostgresConfig
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
@@ -15,12 +17,15 @@ import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.dto.ske.responses.MottaksStatusResponse
 import no.nav.sokos.ske.krav.dto.ske.responses.ValideringsFeilResponse
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.util.createKravidentifikatorPair
 import no.nav.sokos.ske.krav.util.parseTo
 
 private val logger = mu.KotlinLogging.logger {}
 
 class StatusService(
+    private val dataSource: HikariDataSource = PostgresConfig.dataSource,
     private val skeClient: SkeClient = SkeClient(),
     private val databaseService: DatabaseService = DatabaseService(),
     private val slackService: SlackService = SlackService(),
@@ -90,26 +95,30 @@ class StatusService(
             return
         }
 
-        val valideringsfeil = response.parseTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
-        logger.error("Asynk Valideringsfeil mottatt: ${valideringsfeil.joinToString { it.error }} ")
+        val valideringsfeilListe = response.parseTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
+        logger.error("Asynk Valideringsfeil mottatt: ${valideringsfeilListe.joinToString { it.error }} ")
 
-        valideringsfeil.forEach {
-            databaseService.saveFeilmelding(
-                Feilmelding(
-                    0,
-                    krav.kravId,
-                    krav.corrId,
-                    krav.saksnummerNAV,
-                    krav.kravidentifikatorSKE,
-                    it.error,
-                    it.message,
-                    "",
-                    "",
-                    LocalDateTime.now(),
-                ),
+        dataSource.transaction { session ->
+            FeilmeldingRepository.insertFeilmeldinger(
+                tx = session,
+                feilmeldinger =
+                    valideringsfeilListe.map { valideringsFeil ->
+                        slackService.addError(krav.filnavn, "Asynk valideringsfeil", Pair(valideringsFeil.error, valideringsFeil.message))
+
+                        Feilmelding(
+                            0,
+                            krav.kravId,
+                            krav.corrId,
+                            krav.saksnummerNAV,
+                            krav.kravidentifikatorSKE,
+                            valideringsFeil.error,
+                            valideringsFeil.message,
+                            "",
+                            "",
+                            LocalDateTime.now(),
+                        )
+                    },
             )
-
-            slackService.addError(krav.filnavn, "Asynk valideringsfeil", Pair(it.error, it.message))
         }
     }
 }

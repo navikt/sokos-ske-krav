@@ -16,18 +16,18 @@ import no.nav.sokos.ske.krav.repository.toValideringsfeil
 
 internal class RepositoryTestValideringsfeil :
     FunSpec({
-        val dbListener = DBListener()
-        dbListener.migrate("SQLscript/ValideringsFeil.sql")
+        extensions(DBListener)
+        DBListener.migrate("SQLscript/ValideringsFeil.sql")
 
         test("getValideringsFeilForFil skal returnere valideringsfeil basert på filnavn") {
-            dbListener.dataSource.connection.use { con ->
+            DBListener.dataSource.connection.use { con ->
                 con.getValideringsFeilForFil("Fil1.txt").size shouldBe 1
                 con.getValideringsFeilForFil("Fil2.txt").size shouldBe 2
                 con.getValideringsFeilForFil("Fil3.txt").size shouldBe 3
             }
         }
         test("insertFileValideringsfeil skal inserte ny valideringsfeil med filnanvn og feilmelding") {
-            dbListener.dataSource.connection.use { con ->
+            DBListener.dataSource.connection.use { con ->
                 con.insertFileValideringsfeil("Fil4.txt", "Test validation error insert")
 
                 val inserted = con.getValideringsFeilForFil("Fil4.txt")
@@ -66,7 +66,7 @@ internal class RepositoryTestValideringsfeil :
                     "NYTT_KRAV",
                 )
 
-            dbListener.dataSource.connection.use { con ->
+            DBListener.dataSource.connection.use { con ->
                 val feilMelding = "Test validation error insert med non-null kravlinje"
                 val fileName = "Non-null test"
 
@@ -90,7 +90,7 @@ internal class RepositoryTestValideringsfeil :
 
         test("getValideringsFeilForLinje skal returnere en liste av ValideringsFeil knyttet til gitt filnavn og linjenummer") {
 
-            dbListener.dataSource.connection.use { con ->
+            DBListener.dataSource.connection.use { con ->
                 with(con.getValideringsFeilForLinje("Fil1.txt", 1)) {
                     size shouldBe 1
                     with(first()) {
@@ -104,7 +104,7 @@ internal class RepositoryTestValideringsfeil :
                 }
             }
 
-            dbListener.dataSource.connection.use { con ->
+            DBListener.dataSource.connection.use { con ->
                 with(con.getValideringsFeilForLinje("Fil2.txt", 2)) {
                     size shouldBe 2
                     with(get(0)) {
@@ -125,7 +125,7 @@ internal class RepositoryTestValideringsfeil :
                     }
                 }
             }
-            dbListener.dataSource.connection.use { con ->
+            DBListener.dataSource.connection.use { con ->
                 with(con.getValideringsFeilForLinje("Fil3.txt", 3)) {
                     size shouldBe 3
                     with(get(0)) {

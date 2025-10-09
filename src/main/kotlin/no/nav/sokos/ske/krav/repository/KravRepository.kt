@@ -3,6 +3,9 @@ package no.nav.sokos.ske.krav.repository
 import java.sql.Connection
 import java.util.UUID
 
+import kotliquery.Session
+import kotliquery.queryOf
+
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.nav.KravLinje
 import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeSelect
@@ -89,21 +92,19 @@ object KravRepository {
         }
     }
 
-    fun Connection.getKravTableIdFromCorrelationId(corrID: String): Long {
-        val rs =
-            executeSelect(
+    fun getKravTableIdFromCorrelationId(
+        session: Session,
+        corrID: String,
+    ): Long =
+        session.single(
+            queryOf(
                 """
                 select id from krav
                 where corr_id = ? order by id limit 1
-                """,
+                """.trimIndent(),
                 corrID,
-            )
-        return if (rs.next()) {
-            rs.getColumn("id")
-        } else {
-            0
-        }
-    }
+            ),
+        ) { row -> row.longOrNull("id") ?: 0L } ?: 0L
 
     fun Connection.updateSentKrav(
         corrID: String,

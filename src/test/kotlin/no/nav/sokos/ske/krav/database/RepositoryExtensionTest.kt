@@ -12,11 +12,11 @@ import no.nav.sokos.ske.krav.repository.toFeilmelding
 
 internal class RepositoryExtensionTest :
     FunSpec({
-        val dbListener = DBListener()
+        extensions(DBListener)
 
         test("getColumn skal kaste exception hvis den ikke kan parse datatypen") {
             shouldThrow<SQLException> {
-                dbListener.dataSource.connection.use {
+                DBListener.dataSource.connection.use {
                     val rs = it.prepareStatement("""select * from feilmelding""").executeQuery()
                     rs.getColumn("any")
                 }
@@ -25,7 +25,7 @@ internal class RepositoryExtensionTest :
 
         test("resultset getcolumn skal kaste exception hvis den ikke finner kolonne med det gitte navnet") {
             shouldThrow<SQLException> {
-                dbListener.dataSource.connection.use {
+                DBListener.dataSource.connection.use {
                     val rs = it.prepareStatement("""select * from feilmelding""").executeQuery()
                     rs.getColumn("foo")
                 }
@@ -33,7 +33,7 @@ internal class RepositoryExtensionTest :
         }
         test("resultset getcolumn skal kaste exception hvis påkrevd column er null") {
             shouldThrow<SQLException> {
-                dbListener.dataSource.connection.use {
+                DBListener.dataSource.connection.use {
                     it
                         .prepareStatement(
                             """
@@ -48,7 +48,7 @@ internal class RepositoryExtensionTest :
         }
         test("useAndHandleErrors skal kaste exception oppover") {
             shouldThrow<SQLException> {
-                dbListener.dataSource.connection.useAndHandleErrors {
+                DBListener.dataSource.connection.useAndHandleErrors {
                     it.prepareStatement("""insert into foo values(1,2)""").execute()
                 }
             }
