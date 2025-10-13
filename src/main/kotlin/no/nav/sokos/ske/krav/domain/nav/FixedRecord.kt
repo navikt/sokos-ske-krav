@@ -23,7 +23,7 @@ data class KravLinje(
     val utbetalDato: LocalDate,
     val fagsystemId: String,
     val status: String? = null,
-    val tilleggsfristEtterForeldelsesloven: LocalDate? = null,
+    val tilleggsfrist: LocalDate? = null,
 )
 
 data class KontrollLinjeHeader(

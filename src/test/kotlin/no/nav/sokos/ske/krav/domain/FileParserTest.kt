@@ -75,22 +75,22 @@ internal class FileParserTest :
 
         test("Hvis tilleggsfrist ikke finnes skal vi få null på feltet") {
             val kravLinjer = altOkParser.parseKravLinjer()
-            val linjerUtenTilleggsfrist = kravLinjer.filter { it.tilleggsfristEtterForeldelsesloven == null }
+            val linjerUtenTilleggsfrist = kravLinjer.filter { it.tilleggsfrist == null }
 
             linjerUtenTilleggsfrist.size shouldBe 95
         }
 
         test("Hvis tilleggsfrist finnes, skal vi få riktig dato utledet fra feltet") {
             val kravLinjer = altOkParser.parseKravLinjer()
-            val linjerMedTilleggsfrist = kravLinjer.filter { it.tilleggsfristEtterForeldelsesloven != null }
+            val linjerMedTilleggsfrist = kravLinjer.filter { it.tilleggsfrist != null }
 
             linjerMedTilleggsfrist.size shouldBe 6
 
-            linjerMedTilleggsfrist[0].tilleggsfristEtterForeldelsesloven shouldBe LocalDate.of(2024, 12, 31)
-            linjerMedTilleggsfrist[1].tilleggsfristEtterForeldelsesloven shouldBe LocalDate.of(2025, 6, 30)
-            linjerMedTilleggsfrist[2].tilleggsfristEtterForeldelsesloven shouldBe LocalDate.of(2025, 4, 15)
-            linjerMedTilleggsfrist[3].tilleggsfristEtterForeldelsesloven shouldBe LocalDate.of(2025, 2, 28)
-            linjerMedTilleggsfrist[4].tilleggsfristEtterForeldelsesloven shouldBe LocalDate.of(2024, 12, 8)
-            linjerMedTilleggsfrist[5].tilleggsfristEtterForeldelsesloven shouldBe LocalDate.of(2025, 2, 10)
+            linjerMedTilleggsfrist[0].tilleggsfrist shouldBe LocalDate.of(2024, 12, 31)
+            linjerMedTilleggsfrist[1].tilleggsfrist shouldBe LocalDate.of(2025, 6, 30)
+            linjerMedTilleggsfrist[2].tilleggsfrist shouldBe LocalDate.of(2025, 4, 15)
+            linjerMedTilleggsfrist[3].tilleggsfrist shouldBe LocalDate.of(2025, 2, 28)
+            linjerMedTilleggsfrist[4].tilleggsfrist shouldBe LocalDate.of(2025, 2, 8)
+            linjerMedTilleggsfrist[5].tilleggsfrist shouldBe LocalDate.of(2025, 2, 10)
         }
     })

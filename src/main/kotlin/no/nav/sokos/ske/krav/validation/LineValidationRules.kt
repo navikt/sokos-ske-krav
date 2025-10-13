@@ -52,7 +52,7 @@ object LineValidationRules {
                         add(Pair(PERIODE_ERROR, "$message: (FOM:$periodeFOM, TOM: $periodeTOM). Linje: $linjenummer"))
                     }
 
-                    checkTilleggsfristDato(tilleggsfristEtterForeldelsesloven)?.let { message ->
+                    checkTilleggsfristDato(tilleggsfrist)?.let { message ->
                         add(Pair(TILLEGGSFRISTDATO_ERROR, message))
                     }
 

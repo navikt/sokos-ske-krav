@@ -32,7 +32,7 @@ internal class LineValidationRulesTest :
                 fremtidigYtelse = BigDecimal.ONE,
                 utbetalDato = LocalDate.now().minusDays(5),
                 fagsystemId = "1234",
-                tilleggsfristEtterForeldelsesloven = LocalDate.now().minusMonths(1),
+                tilleggsfrist = LocalDate.now().minusMonths(1),
             )
 
         Given("Et krav har ingen feil") {
@@ -176,7 +176,7 @@ internal class LineValidationRulesTest :
         Given("Tilleggsfristdato skal valideres") {
             When("Tilleggsfristdato er ikke eldre enn 10 måneder") {
                 val tilleggsfristDato = LocalDate.now().minusMonths(5)
-                val krav = okLinje.copy(tilleggsfristEtterForeldelsesloven = tilleggsfristDato)
+                val krav = okLinje.copy(tilleggsfrist = tilleggsfristDato)
                 val validationResult: ValidationResult = LineValidationRules.runValidation(krav)
                 Then("Skal ValidationResult være success") {
                     (validationResult is ValidationResult.Success) shouldBe true
@@ -190,7 +190,7 @@ internal class LineValidationRulesTest :
             }
             When("Tilleggsfristdato er eldre enn 10 måneder") {
                 val tilleggsfristDato = LocalDate.now().minusMonths(11)
-                val krav = okLinje.copy(tilleggsfristEtterForeldelsesloven = tilleggsfristDato)
+                val krav = okLinje.copy(tilleggsfrist = tilleggsfristDato)
                 val validationResult: ValidationResult = LineValidationRules.runValidation(krav)
 
                 Then("Skal validationResult være error") {

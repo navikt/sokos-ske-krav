@@ -56,7 +56,7 @@ class OpprettKravServiceTest :
                 every { periodeFOM } returns "20210101"
                 every { periodeTOM } returns "20210102"
                 every { fremtidigYtelse } returns 10.0
-                every { tilleggsfristEtterForeldelsesloven } returns LocalDate.now().plusYears(3)
+                every { tilleggsfrist } returns LocalDate.now().plusYears(3)
             }
 
         test("sendAllOpprettKrav skal returnere liste av innsendte nye krav") {
@@ -95,7 +95,7 @@ class OpprettKravServiceTest :
                                     LocalDate.parse(kravTableMock.periodeTOM, DateTimeFormatter.ofPattern("yyyyMMdd")).toKotlinLocalDate(),
                                 ),
                         ),
-                    tilleggsfristEtterForeldelsesloven = kravTableMock.tilleggsfristEtterForeldelsesloven?.toKotlinLocalDate(),
+                    tilleggsfrist = kravTableMock.tilleggsfrist?.toKotlinLocalDate(),
                 )
             val httpResponseMock =
                 mockk<HttpResponse>(relaxed = true) {

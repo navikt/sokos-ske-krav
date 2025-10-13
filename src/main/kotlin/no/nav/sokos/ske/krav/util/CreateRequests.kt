@@ -32,7 +32,7 @@ fun createOpprettKravRequest(krav: KravTable) =
         oppdragsgiversKravIdentifikator = krav.saksnummerNAV,
         fastsettelsesDato = krav.vedtaksDato.toKotlinLocalDate(),
         foreldelsesFristensUtgangspunkt = krav.utbetalDato.toKotlinLocalDate(),
-        tilleggsfristEtterForeldelsesloven = krav.tilleggsfristEtterForeldelsesloven?.toKotlinLocalDate(),
+        tilleggsfrist = krav.tilleggsfrist?.toKotlinLocalDate(),
         tilleggsInformasjon = createTilleggsinformasjonNav(krav),
     )
 
