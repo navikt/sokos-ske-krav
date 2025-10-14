@@ -4,20 +4,42 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### STS ###
+.apt_generated
 .classpath
 .factorypath
 .project
 .settings
-.idea
+.springBeans
+.sts4-cache
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
-privateKey
-src/test/resources/privateKey
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### OS ###
+.DS_Store
+
+### Custom ###
+defaults.properties
 .kotlin
-/defaults.properties
-/privKey
-/.run/Tests in 'sokos-ske-krav.test'.run.xml
+privKey
+privateKey
