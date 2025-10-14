@@ -91,7 +91,7 @@ class StatusService(
         }
 
         val valideringsfeil = response.parseTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
-        logger.error("Asynk Valideringsfeil mottatt: ${valideringsfeil.joinToString { it.error }} ")
+        logger.error("Asynk Valideringsfeil mottatt: ${valideringsfeil.joinToString { "${it.error}: ${it.message} "}} ")
 
         valideringsfeil.forEach {
             databaseService.saveFeilmelding(
