@@ -12,7 +12,7 @@ import io.mockk.spyk
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
-import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.getValideringsFeilForFil
+import no.nav.sokos.ske.krav.database.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Directories
@@ -55,7 +55,7 @@ internal class LineValidatorIntegrationTest :
 
                 Then("Skal ingen feil lagres i database") {
                     testContainer.dataSource.connection
-                        .getValideringsFeilForFil(fileName)
+                        .getFilValideringsFeilForFil(fileName)
                         .size shouldBe 0
                 }
                 Then("Ingen linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
@@ -91,7 +91,7 @@ internal class LineValidatorIntegrationTest :
                 lineValidatorSpy.validateNewLines(ftpFil, dbService)
 
                 Then("Skal én feil lagres i database") {
-                    with(testContainer.dataSource.connection.getValideringsFeilForFil(fileName)) {
+                    with(testContainer.dataSource.connection.getFilValideringsFeilForFil(fileName)) {
                         size shouldBe 1
                         with(first().feilmelding) {
                             shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
@@ -150,7 +150,6 @@ internal class LineValidatorIntegrationTest :
         }
 
         Given("1 linje har 3 forskjellige feil") {
-            testContainer.migrate()
             val dbService = DatabaseService(testContainer.dataSource)
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
             val ftpService = setupFtpService(dbService, slackServiceSpy)
@@ -171,7 +170,7 @@ internal class LineValidatorIntegrationTest :
                     }
                 }
                 Then("Skal 3 feil lagres som én feilmelding i database") {
-                    with(testContainer.dataSource.connection.getValideringsFeilForFil(fileName)) {
+                    with(testContainer.dataSource.connection.getFilValideringsFeilForFil(fileName)) {
                         size shouldBe 1
                         with(first().feilmelding) {
                             shouldContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
@@ -265,7 +264,7 @@ internal class LineValidatorIntegrationTest :
                 }
 
                 Then("Skal 6 feil lagres i database") {
-                    with(testContainer.dataSource.connection.getValideringsFeilForFil(fileName)) {
+                    with(testContainer.dataSource.connection.getFilValideringsFeilForFil(fileName)) {
                         size shouldBe 6
                         all {
                             it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
@@ -351,7 +350,7 @@ internal class LineValidatorIntegrationTest :
                     }
                 }
                 Then("Skal 6 feil lagres  i database ") {
-                    with(testContainer.dataSource.connection.getValideringsFeilForFil(fileName)) {
+                    with(testContainer.dataSource.connection.getFilValideringsFeilForFil(fileName)) {
                         size shouldBe 6
                         filter { it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.size shouldBe 6
                         filter { it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT) }.size shouldBe 1

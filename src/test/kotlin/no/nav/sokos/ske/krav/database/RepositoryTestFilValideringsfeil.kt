@@ -6,31 +6,31 @@ import java.time.LocalDate
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.getValideringsFeilForFil
-import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.getValideringsFeilForLinje
-import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.insertFileValideringsfeil
-import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.insertLineValideringsfeil
+import no.nav.sokos.ske.krav.database.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
+import no.nav.sokos.ske.krav.database.repository.FilValideringsfeilRepository.getFilValideringsFeilForLinje
+import no.nav.sokos.ske.krav.database.repository.FilValideringsfeilRepository.insertFileValideringsfeil
+import no.nav.sokos.ske.krav.database.repository.FilValideringsfeilRepository.insertLineFilValideringsfeil
 import no.nav.sokos.ske.krav.database.repository.toValideringsfeil
 import no.nav.sokos.ske.krav.domain.nav.KravLinje
 import no.nav.sokos.ske.krav.util.TestContainer
 
-internal class RepositoryTestValideringsfeil :
+internal class RepositoryTestFilValideringsfeil :
     FunSpec({
         val testContainer = TestContainer()
-        testContainer.migrate("SQLscript/ValideringsFeil.sql")
+        testContainer.loadInitScript("SQLscript/FilValideringsFeil.sql")
 
-        test("getValideringsFeilForFil skal returnere valideringsfeil basert på filnavn") {
+        test("getFilValideringsFeilForFil skal returnere filvalideringsfeil basert på filnavn") {
             testContainer.dataSource.connection.use { con ->
-                con.getValideringsFeilForFil("Fil1.txt").size shouldBe 1
-                con.getValideringsFeilForFil("Fil2.txt").size shouldBe 2
-                con.getValideringsFeilForFil("Fil3.txt").size shouldBe 3
+                con.getFilValideringsFeilForFil("Fil1.txt").size shouldBe 1
+                con.getFilValideringsFeilForFil("Fil2.txt").size shouldBe 2
+                con.getFilValideringsFeilForFil("Fil3.txt").size shouldBe 3
             }
         }
-        test("insertFileValideringsfeil skal inserte ny valideringsfeil med filnanvn og feilmelding") {
+        test("insertFileValideringsfeil skal inserte ny filvalideringsfeil med filnanvn og feilmelding") {
             testContainer.dataSource.connection.use { con ->
                 con.insertFileValideringsfeil("Fil4.txt", "Test validation error insert")
 
-                val inserted = con.getValideringsFeilForFil("Fil4.txt")
+                val inserted = con.getFilValideringsFeilForFil("Fil4.txt")
                 inserted.size shouldBe 1
                 inserted.first().run {
                     filnavn shouldBe "Fil4.txt"
@@ -42,7 +42,7 @@ internal class RepositoryTestValideringsfeil :
             }
         }
 
-        test("insertLineValideringsfeil skal inserte ny valideringsfeil med filnanvn, linjenummer, saksnummerNav, kravlinje, og feilmelding") {
+        test("insertLineFilValideringsfeil skal inserte ny filvalideringsfeil med filnanvn, linjenummer, saksnummerNav, kravlinje, og feilmelding") {
             val linje =
                 KravLinje(
                     55,
@@ -70,13 +70,13 @@ internal class RepositoryTestValideringsfeil :
                 val feilMelding = "Test validation error insert med non-null kravlinje"
                 val fileName = "Non-null test"
 
-                val valideringsFeilBefore = con.prepareStatement("""select * from valideringsfeil""").executeQuery().toValideringsfeil()
+                val filvalideringsFeilBefore = con.prepareStatement("""select * from filvalideringsfeil""").executeQuery().toValideringsfeil()
 
-                con.insertLineValideringsfeil(fileName, linje, feilMelding)
+                con.insertLineFilValideringsfeil(fileName, linje, feilMelding)
 
-                val valideringsFeil = con.prepareStatement("""select * from valideringsfeil""").executeQuery().toValideringsfeil()
-                valideringsFeil.size shouldBe valideringsFeilBefore.size + 1
-                valideringsFeil.filter { it.filnavn == fileName }.run {
+                val filvalideringsFeil = con.prepareStatement("""select * from filvalideringsfeil""").executeQuery().toValideringsfeil()
+                filvalideringsFeil.size shouldBe filvalideringsFeilBefore.size + 1
+                filvalideringsFeil.filter { it.filnavn == fileName }.run {
                     size shouldBe 1
                     with(first()) {
                         linjenummer shouldBe linje.linjenummer
@@ -88,10 +88,10 @@ internal class RepositoryTestValideringsfeil :
             }
         }
 
-        test("getValideringsFeilForLinje skal returnere en liste av ValideringsFeil knyttet til gitt filnavn og linjenummer") {
+        test("getValideringsFeilForLinje skal returnere en liste av FilValideringsFeil knyttet til gitt filnavn og linjenummer") {
 
             testContainer.dataSource.connection.use { con ->
-                with(con.getValideringsFeilForLinje("Fil1.txt", 1)) {
+                with(con.getFilValideringsFeilForLinje("Fil1.txt", 1)) {
                     size shouldBe 1
                     with(first()) {
                         valideringsfeilId shouldBe 11
@@ -105,7 +105,7 @@ internal class RepositoryTestValideringsfeil :
             }
 
             testContainer.dataSource.connection.use { con ->
-                with(con.getValideringsFeilForLinje("Fil2.txt", 2)) {
+                with(con.getFilValideringsFeilForLinje("Fil2.txt", 2)) {
                     size shouldBe 2
                     with(get(0)) {
                         valideringsfeilId shouldBe 21
@@ -126,7 +126,7 @@ internal class RepositoryTestValideringsfeil :
                 }
             }
             testContainer.dataSource.connection.use { con ->
-                with(con.getValideringsFeilForLinje("Fil3.txt", 3)) {
+                with(con.getFilValideringsFeilForLinje("Fil3.txt", 3)) {
                     size shouldBe 3
                     with(get(0)) {
                         valideringsfeilId shouldBe 31

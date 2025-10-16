@@ -1,0 +1,1 @@
+ALTER TABLE valideringsfeil RENAME TO filvalideringsfeil;

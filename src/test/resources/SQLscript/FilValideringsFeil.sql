@@ -1,4 +1,4 @@
-insert into valideringsfeil (id, filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding, tidspunkt_opprettet)
+insert into filvalideringsfeil (id, filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding, tidspunkt_opprettet)
 values
     (11, 'Fil1.txt', 1, '111', 'linje1', 'feilmelding1', NOW()),
     (21, 'Fil2.txt', 2, '222', 'linje2.1', 'feilmelding2.1', NOW()),

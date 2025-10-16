@@ -38,7 +38,7 @@ internal class StatusServiceIntegrationTest :
         }
 
         Given("Mottaksstatus er RESKONTROFOERT") {
-            testContainer.migrate("SQLscript/KravSomSkalOppdateres.sql")
+            testContainer.loadInitScript("SQLscript/KravSomSkalOppdateres.sql")
             val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse(status = Status.RESKONTROFOERT.value)
             val httpClient = mottaksStatusMockHttpClient(mottaksStatusResponse)
             val dbService = DatabaseService(testContainer.dataSource)
@@ -61,7 +61,7 @@ internal class StatusServiceIntegrationTest :
         }
         Given("Mottaksstatus er VALIDERINGSFEIL") {
             val fileName = "KravSomSkalOppdateres.sql"
-            testContainer.migrate("SQLscript/$fileName")
+            testContainer.loadInitScript("SQLscript/$fileName")
             val status = "ORGANISASJONSNUMMER_FINNES_IKKE"
             val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse(status = Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value)
             val valideringsFeilRespons = MockHttpClientUtils.Responses.valideringsfeilResponse(status, "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke")

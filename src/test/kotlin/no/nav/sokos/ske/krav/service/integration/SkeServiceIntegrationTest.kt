@@ -46,7 +46,7 @@ internal class SkeServiceIntegrationTest :
             FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = mockk<DatabaseService>())
         }
         val testContainer = TestContainer()
-        testContainer.migrate("SQLscript/10NyeKrav.sql")
+        testContainer.loadInitScript("SQLscript/10NyeKrav.sql")
 
         Given("Det finnes en fil i INBOUND") {
             SftpListener.putFiles(listOf("10NyeKrav.txt"), Directories.INBOUND)
@@ -197,7 +197,7 @@ internal class SkeServiceIntegrationTest :
         }
 
         Given("Et krav har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500") {
-            testContainer.migrate("SQLscript/KravSomSkalResendes.sql")
+            testContainer.loadInitScript("SQLscript/KravSomSkalResendes.sql")
 
             testContainer.dataSource.connection.use { con ->
                 con.getAllKrav().also { kravBefore ->

@@ -14,7 +14,7 @@ import no.nav.sokos.ske.krav.util.TestContainer
 internal class RepositoryTestFeilmelding :
     FunSpec({
         val testContainer = TestContainer()
-        testContainer.migrate("SQLscript/Feilmeldinger.sql")
+        testContainer.loadInitScript("SQLscript/Feilmeldinger.sql")
 
         test("getAllFeilmeldinger skal returnere alle feilmeldinger ") {
             testContainer.dataSource.connection.use { it.getAllFeilmeldinger().size shouldBe 4 }
