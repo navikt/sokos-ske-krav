@@ -8,13 +8,13 @@ import io.ktor.http.isSuccess
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
-import no.nav.sokos.ske.krav.database.models.FeilmeldingTable
-import no.nav.sokos.ske.krav.database.models.KravTable
+import no.nav.sokos.ske.krav.domain.Feilmelding
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
-import no.nav.sokos.ske.krav.domain.ske.requests.KravidentifikatorType
-import no.nav.sokos.ske.krav.domain.ske.responses.FeilResponse
-import no.nav.sokos.ske.krav.domain.ske.responses.MottaksStatusResponse
-import no.nav.sokos.ske.krav.domain.ske.responses.ValideringsFeilResponse
+import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
+import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
+import no.nav.sokos.ske.krav.dto.ske.responses.MottaksStatusResponse
+import no.nav.sokos.ske.krav.dto.ske.responses.ValideringsFeilResponse
 import no.nav.sokos.ske.krav.util.createKravidentifikatorPair
 import no.nav.sokos.ske.krav.util.parseTo
 
@@ -40,7 +40,7 @@ class StatusService(
         slackService.sendErrors()
     }
 
-    private suspend fun processKravStatus(krav: KravTable): MottaksStatusResponse? {
+    private suspend fun processKravStatus(krav: Krav): MottaksStatusResponse? {
         val (kravidentifikator, kravidentifikatorType) = createKravidentifikatorPair(krav)
         val response = skeClient.getMottaksStatus(kravidentifikator, kravidentifikatorType)
 
@@ -54,7 +54,7 @@ class StatusService(
 
     private suspend fun handleFailedStatusResponse(
         response: HttpResponse,
-        krav: KravTable,
+        krav: Krav,
         feilmeldingHeader: String,
         funksjonsKall: String,
     ) {
@@ -75,32 +75,32 @@ class StatusService(
     private suspend fun updateMottaksStatus(
         mottaksstatus: MottaksStatusResponse,
         kravIdentifikatorPair: Pair<String, KravidentifikatorType>,
-        krav: KravTable,
+        krav: Krav,
     ) = databaseService.updateStatus(mottaksstatus.mottaksStatus, krav.corrId).also {
         if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value) handleValideringsFeil(kravIdentifikatorPair, krav)
     }
 
     private suspend fun handleValideringsFeil(
         kravIdentifikatorPair: Pair<String, KravidentifikatorType>,
-        kravTable: KravTable,
+        krav: Krav,
     ) {
         val response = skeClient.getValideringsfeil(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
         if (!response.status.isSuccess()) {
-            handleFailedStatusResponse(response, kravTable, "Feil i henting av filvalideringsfeil", "getValideringsfeil")
+            handleFailedStatusResponse(response, krav, "Feil i henting av filvalideringsfeil", "getValideringsfeil")
             return
         }
 
         val valideringsfeil = response.parseTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
-        logger.error("Asynk Valideringsfeil mottatt: ${valideringsfeil.joinToString { "${it.error}: ${it.message} "}} ")
+        logger.error("Asynk Valideringsfeil mottatt: ${valideringsfeil.joinToString { "${it.error}: ${it.message} " }} ")
 
         valideringsfeil.forEach {
             databaseService.saveFeilmelding(
-                FeilmeldingTable(
+                Feilmelding(
                     0,
-                    kravTable.kravId,
-                    kravTable.corrId,
-                    kravTable.saksnummerNAV,
-                    kravTable.kravidentifikatorSKE,
+                    krav.kravId,
+                    krav.corrId,
+                    krav.saksnummerNAV,
+                    krav.kravidentifikatorSKE,
                     it.error,
                     it.message,
                     "",
@@ -109,7 +109,7 @@ class StatusService(
                 ),
             )
 
-            slackService.addError(kravTable.filnavn, "Asynk valideringsfeil", Pair(it.error, it.message))
+            slackService.addError(krav.filnavn, "Asynk valideringsfeil", Pair(it.error, it.message))
         }
     }
 }

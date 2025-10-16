@@ -5,9 +5,9 @@ import java.sql.SQLException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 
-import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.getColumn
-import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.useAndHandleErrors
-import no.nav.sokos.ske.krav.database.repository.toFeilmelding
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.getColumn
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.useAndHandleErrors
+import no.nav.sokos.ske.krav.repository.toFeilmelding
 import no.nav.sokos.ske.krav.util.TestContainer
 
 internal class RepositoryExtensionTest :

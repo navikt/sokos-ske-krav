@@ -9,7 +9,7 @@ import io.ktor.http.contentType
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.httpClient
-import no.nav.sokos.ske.krav.domain.slack.createSlackMessage
+import no.nav.sokos.ske.krav.dto.slack.createSlackMessage
 
 class SlackClient(
     private val slackEndpoint: String = PropertiesConfig.SlackConfig.url,

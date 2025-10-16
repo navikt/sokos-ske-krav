@@ -1,4 +1,4 @@
-package no.nav.sokos.ske.krav.domain.slack
+package no.nav.sokos.ske.krav.dto.slack
 
 import java.time.LocalDate
 

@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 
-import no.nav.sokos.ske.krav.database.models.KravTable
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.StonadsType
 
 internal class StonadsTypeTest :
@@ -60,7 +60,7 @@ internal class StonadsTypeTest :
 
             stonadsTypeMap.forEach { (input, expected) ->
                 val krav =
-                    mockk<KravTable> {
+                    mockk<Krav> {
                         every { kravkode } returns input.first
                         every { kodeHjemmel } returns input.second
                     }
@@ -71,7 +71,7 @@ internal class StonadsTypeTest :
 
         test("getStonadstypes skal kaste NotImplementedError for ukjent kombinasjon") {
             val krav =
-                mockk<KravTable> {
+                mockk<Krav> {
                     every { kravkode } returns "UNKNOWN"
                     every { kodeHjemmel } returns "UNKNOWN"
                 }

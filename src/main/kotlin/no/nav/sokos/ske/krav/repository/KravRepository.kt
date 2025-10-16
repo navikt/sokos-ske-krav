@@ -1,14 +1,14 @@
-package no.nav.sokos.ske.krav.database.repository
+package no.nav.sokos.ske.krav.repository
 
 import java.sql.Connection
 import java.util.UUID
 
-import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.executeSelect
-import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.executeUpdate
-import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.getColumn
-import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.withParameters
+import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Status
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeSelect
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeUpdate
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.getColumn
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.withParameters
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.NYTT_KRAV

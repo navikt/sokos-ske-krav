@@ -1,10 +1,10 @@
 package no.nav.sokos.ske.krav.validation
 
 import no.nav.sokos.ske.krav.client.SlackService
-import no.nav.sokos.ske.krav.domain.nav.FileParser
-import no.nav.sokos.ske.krav.domain.nav.KontrollLinjeFooter
-import no.nav.sokos.ske.krav.domain.nav.KontrollLinjeHeader
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
+import no.nav.sokos.ske.krav.copybook.FileParser
+import no.nav.sokos.ske.krav.copybook.KontrollLinjeFooter
+import no.nav.sokos.ske.krav.copybook.KontrollLinjeHeader
+import no.nav.sokos.ske.krav.copybook.KravLinje
 
 private val logger = mu.KotlinLogging.logger {}
 
