@@ -86,7 +86,7 @@ class StatusService(
     ) {
         val response = skeClient.getValideringsfeil(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
         if (!response.status.isSuccess()) {
-            handleFailedStatusResponse(response, kravTable, "Feil i henting av valideringsfeil", "getValideringsfeil")
+            handleFailedStatusResponse(response, kravTable, "Feil i henting av filvalideringsfeil", "getValideringsfeil")
             return
         }
 

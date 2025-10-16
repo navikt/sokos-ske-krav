@@ -22,15 +22,15 @@ class TestContainer {
             start()
         }
 
-    val dataSource: HikariDataSource =
-        container.toDataSource {
-            maximumPoolSize = 100
-            minimumIdle = 1
-            isAutoCommit = false
-        }
-
-    init {
-        PostgresDataSource.migrate(dataSource)
+    val dataSource: HikariDataSource by lazy {
+        container
+            .toDataSource {
+                maximumPoolSize = 100
+                minimumIdle = 1
+                isAutoCommit = false
+            }.apply {
+                PostgresDataSource.migrate(this)
+            }
     }
 
     fun migrate(script: String = "") {
