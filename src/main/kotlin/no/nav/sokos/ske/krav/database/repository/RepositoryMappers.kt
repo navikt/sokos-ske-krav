@@ -3,8 +3,8 @@ package no.nav.sokos.ske.krav.database.repository
 import java.sql.ResultSet
 
 import no.nav.sokos.ske.krav.database.models.FeilmeldingTable
+import no.nav.sokos.ske.krav.database.models.FilValideringsfeilTable
 import no.nav.sokos.ske.krav.database.models.KravTable
-import no.nav.sokos.ske.krav.database.models.ValideringsfeilTable
 import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.getColumn
 
 fun ResultSet.toKrav() =
@@ -59,7 +59,7 @@ fun ResultSet.toFeilmelding() =
 
 fun ResultSet.toValideringsfeil() =
     toList {
-        ValideringsfeilTable(
+        FilValideringsfeilTable(
             valideringsfeilId = getColumn("id"),
             filnavn = getColumn("filnavn"),
             linjenummer = getColumn("linjenummer"),

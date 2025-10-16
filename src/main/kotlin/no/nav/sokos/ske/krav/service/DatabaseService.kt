@@ -1,5 +1,4 @@
 package no.nav.sokos.ske.krav.service
-
 import java.time.LocalDateTime
 
 import com.zaxxer.hikari.HikariDataSource
@@ -9,11 +8,14 @@ import io.ktor.http.isSuccess
 
 import no.nav.sokos.ske.krav.database.PostgresDataSource
 import no.nav.sokos.ske.krav.database.models.FeilmeldingTable
+import no.nav.sokos.ske.krav.database.models.FilValideringsfeilTable
 import no.nav.sokos.ske.krav.database.models.KravTable
-import no.nav.sokos.ske.krav.database.models.ValideringsfeilTable
 import no.nav.sokos.ske.krav.database.repository.FeilmeldingRepository.getAllFeilmeldinger
 import no.nav.sokos.ske.krav.database.repository.FeilmeldingRepository.getFeilmeldingForKravId
 import no.nav.sokos.ske.krav.database.repository.FeilmeldingRepository.insertFeilmelding
+import no.nav.sokos.ske.krav.database.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
+import no.nav.sokos.ske.krav.database.repository.FilValideringsfeilRepository.insertFileValideringsfeil
+import no.nav.sokos.ske.krav.database.repository.FilValideringsfeilRepository.insertLineFilValideringsfeil
 import no.nav.sokos.ske.krav.database.repository.KravRepository.getAllKravForAvstemming
 import no.nav.sokos.ske.krav.database.repository.KravRepository.getAllKravForResending
 import no.nav.sokos.ske.krav.database.repository.KravRepository.getAllKravForStatusCheck
@@ -27,9 +29,6 @@ import no.nav.sokos.ske.krav.database.repository.KravRepository.updateSentKrav
 import no.nav.sokos.ske.krav.database.repository.KravRepository.updateStatus
 import no.nav.sokos.ske.krav.database.repository.KravRepository.updateStatusForAvstemtKravToReported
 import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.useAndHandleErrors
-import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.getValideringsFeilForFil
-import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.insertFileValideringsfeil
-import no.nav.sokos.ske.krav.database.repository.ValideringsfeilRepository.insertLineValideringsfeil
 import no.nav.sokos.ske.krav.domain.nav.KravLinje
 import no.nav.sokos.ske.krav.domain.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.metrics.Metrics
@@ -84,12 +83,12 @@ class DatabaseService(
             it.insertFeilmelding(feilMelding)
         }
 
-    fun saveLineValidationError(
+    fun saveLineFilValidationError(
         filnavn: String,
         kravlinje: KravLinje,
         feilmelding: String,
     ) = dataSource.connection.useAndHandleErrors {
-        it.insertLineValideringsfeil(filnavn, kravlinje, feilmelding)
+        it.insertLineFilValideringsfeil(filnavn, kravlinje, feilmelding)
     }
 
     fun saveFileValidationError(
@@ -152,7 +151,7 @@ class DatabaseService(
 
     fun getFeilmeldingForKravId(kravId: Long): List<FeilmeldingTable> = dataSource.connection.useAndHandleErrors { it.getFeilmeldingForKravId(kravId) }
 
-    fun getFileValidationMessage(filNavn: String): List<ValideringsfeilTable> = dataSource.connection.useAndHandleErrors { it.getValideringsFeilForFil(filNavn) }
+    fun getFileValidationMessage(filNavn: String): List<FilValideringsfeilTable> = dataSource.connection.useAndHandleErrors { it.getFilValideringsFeilForFil(filNavn) }
 
     fun updateStatus(
         mottakStatus: String,

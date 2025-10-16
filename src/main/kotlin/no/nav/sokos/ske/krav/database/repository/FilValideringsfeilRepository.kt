@@ -2,29 +2,29 @@ package no.nav.sokos.ske.krav.database.repository
 
 import java.sql.Connection
 
-import no.nav.sokos.ske.krav.database.models.ValideringsfeilTable
+import no.nav.sokos.ske.krav.database.models.FilValideringsfeilTable
 import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.executeSelect
 import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.executeUpdate
 import no.nav.sokos.ske.krav.domain.nav.KravLinje
 
-object ValideringsfeilRepository {
-    fun Connection.getValideringsFeilForLinje(
+object FilValideringsfeilRepository {
+    fun Connection.getFilValideringsFeilForLinje(
         filNavn: String,
         linjeNummer: Int,
-    ): List<ValideringsfeilTable> =
+    ): List<FilValideringsfeilTable> =
         executeSelect(
             """
-            select * from valideringsfeil
+            select * from filvalideringsfeil
             where filnavn = ? and linjenummer = ?
             """,
             filNavn,
             linjeNummer,
         ).toValideringsfeil()
 
-    fun Connection.getValideringsFeilForFil(filNavn: String): List<ValideringsfeilTable> =
+    fun Connection.getFilValideringsFeilForFil(filNavn: String): List<FilValideringsfeilTable> =
         executeSelect(
             """
-            select * from valideringsfeil
+            select * from filvalideringsfeil
             where filnavn = ?
             """,
             filNavn,
@@ -35,20 +35,20 @@ object ValideringsfeilRepository {
         feilmelding: String,
     ) = executeUpdate(
         """
-            insert into valideringsfeil (filnavn, feilmelding)
+            insert into filvalideringsfeil (filnavn, feilmelding)
             values (?, ?)
             """,
         filnavn,
         feilmelding,
     )
 
-    fun Connection.insertLineValideringsfeil(
+    fun Connection.insertLineFilValideringsfeil(
         filnavn: String,
         kravlinje: KravLinje,
         feilmelding: String,
     ) = executeUpdate(
         """
-            insert into valideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
+            insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
             values (?, ?, ?, ?, ? )
             """,
         filnavn,

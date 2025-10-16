@@ -29,7 +29,7 @@ class LineValidator(
                     is ValidationResult.Error -> {
                         slackMessages.addAll(result.messages)
 
-                        dbService.saveLineValidationError(file.name, linje, result.messages.joinToString { pair -> pair.second })
+                        dbService.saveLineFilValidationError(file.name, linje, result.messages.joinToString { pair -> pair.second })
                         linje.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
                     }
                 }
