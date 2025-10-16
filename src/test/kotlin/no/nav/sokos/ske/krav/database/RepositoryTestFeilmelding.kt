@@ -5,10 +5,10 @@ import java.time.LocalDateTime
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-import no.nav.sokos.ske.krav.database.models.FeilmeldingTable
-import no.nav.sokos.ske.krav.database.repository.FeilmeldingRepository.getAllFeilmeldinger
-import no.nav.sokos.ske.krav.database.repository.FeilmeldingRepository.getFeilmeldingForKravId
-import no.nav.sokos.ske.krav.database.repository.FeilmeldingRepository.insertFeilmelding
+import no.nav.sokos.ske.krav.domain.Feilmelding
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.getAllFeilmeldinger
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.getFeilmeldingForKravId
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.insertFeilmelding
 import no.nav.sokos.ske.krav.util.TestContainer
 
 internal class RepositoryTestFeilmelding :
@@ -40,7 +40,7 @@ internal class RepositoryTestFeilmelding :
 
         test("insertFeilmelding skal lagre feilmelding") {
             val feilmelding =
-                FeilmeldingTable(
+                Feilmelding(
                     2L,
                     999L,
                     "CORR456",

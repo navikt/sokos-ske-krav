@@ -1,6 +1,6 @@
 package no.nav.sokos.ske.krav.service
 
-import no.nav.sokos.ske.krav.database.models.KravTable
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.domain.StonadsType.Companion.getStonadstype
@@ -21,7 +21,7 @@ class RapportService(
 
     fun oppdaterStatusTilRapportert(kravId: Int) = dbService.updateStatusForAvstemtKravToReported(kravId)
 
-    private fun mapToRapportObjekt(liste: List<KravTable>) =
+    private fun mapToRapportObjekt(liste: List<Krav>) =
         liste
             .map {
                 RapportObjekt(
@@ -47,7 +47,7 @@ class RapportService(
                 )
             }.distinctBy { it.kravID }
 
-    private fun getFeilmeldinger(krav: KravTable): List<String> =
+    private fun getFeilmeldinger(krav: Krav): List<String> =
         if (krav.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value) {
             dbService.getFeilmeldingForKravId(krav.kravId).map { it.melding.splitToSequence(", mottatt").first() }
         } else {

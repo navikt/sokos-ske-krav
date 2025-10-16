@@ -10,10 +10,10 @@ import io.ktor.http.isSuccess
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
-import no.nav.sokos.ske.krav.database.models.KravTable
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
-import no.nav.sokos.ske.krav.domain.ske.responses.AvstemmingResponse
-import no.nav.sokos.ske.krav.domain.ske.responses.FeilResponse
+import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.dto.ske.responses.AvstemmingResponse
+import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.isOpprettKrav
@@ -94,13 +94,13 @@ class SkeService(
         updateAllEndringerAndStopp(file.name, validatedLines.filterNot { it.isOpprettKrav() })
     }
 
-    private suspend fun sendKrav(kravTableList: List<KravTable>): List<RequestResult> {
-        if (kravTableList.isNotEmpty()) logger.info("Sender ${kravTableList.size}")
+    private suspend fun sendKrav(kravList: List<Krav>): List<RequestResult> {
+        if (kravList.isNotEmpty()) logger.info("Sender ${kravList.size}")
 
         val allResponses =
-            opprettKravService.sendAllOpprettKrav(kravTableList.filter { it.kravtype == NYTT_KRAV }) +
-                endreKravService.sendAllEndreKrav(kravTableList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }) +
-                stoppKravService.sendAllStoppKrav(kravTableList.filter { it.kravtype == STOPP_KRAV })
+            opprettKravService.sendAllOpprettKrav(kravList.filter { it.kravtype == NYTT_KRAV }) +
+                endreKravService.sendAllEndreKrav(kravList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }) +
+                stoppKravService.sendAllStoppKrav(kravList.filter { it.kravtype == STOPP_KRAV })
 
         handleErrors(allResponses, databaseService)
 
@@ -161,12 +161,12 @@ class SkeService(
                 databaseService.saveErrorMessage(
                     result.request,
                     result.response,
-                    result.kravTable,
+                    result.krav,
                     result.kravidentifikator,
                 )
                 result.response.parseTo<FeilResponse>()?.let { feilResponse ->
                     val errorPair = Pair(feilResponse.title, feilResponse.detail)
-                    slackService.addError(result.kravTable.filnavn, "Feil fra SKE", errorPair)
+                    slackService.addError(result.krav.filnavn, "Feil fra SKE", errorPair)
                 }
             }
     }
@@ -196,9 +196,9 @@ class SkeService(
         val unsuccessful = result.size - successful.size
         logger.info { "Sendte ${result.size} krav${if (unsuccessful > 0) ". $unsuccessful feilet" else ""}" }
 
-        val nye = successful.count { it.kravTable.kravtype == NYTT_KRAV }
-        val endringer = successful.count { it.kravTable.kravtype == ENDRING_RENTE } + successful.count { it.kravTable.kravtype == ENDRING_HOVEDSTOL }
-        val stopp = successful.count { it.kravTable.kravtype == STOPP_KRAV }
+        val nye = successful.count { it.krav.kravtype == NYTT_KRAV }
+        val endringer = successful.count { it.krav.kravtype == ENDRING_RENTE } + successful.count { it.krav.kravtype == ENDRING_HOVEDSTOL }
+        val stopp = successful.count { it.krav.kravtype == STOPP_KRAV }
         logger.info { "$nye nye, $endringer endringer, $stopp stopp" }
     }
 }

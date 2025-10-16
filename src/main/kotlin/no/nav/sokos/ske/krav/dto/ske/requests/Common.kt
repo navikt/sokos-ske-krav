@@ -1,4 +1,4 @@
-package no.nav.sokos.ske.krav.domain.ske.requests
+package no.nav.sokos.ske.krav.dto.ske.requests
 
 import kotlinx.serialization.Serializable
 

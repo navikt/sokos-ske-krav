@@ -1,4 +1,5 @@
 package no.nav.sokos.ske.krav.service
+
 import java.time.LocalDateTime
 
 import com.zaxxer.hikari.HikariDataSource
@@ -6,32 +7,32 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 
+import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.database.PostgresDataSource
-import no.nav.sokos.ske.krav.database.models.FeilmeldingTable
-import no.nav.sokos.ske.krav.database.models.FilValideringsfeilTable
-import no.nav.sokos.ske.krav.database.models.KravTable
-import no.nav.sokos.ske.krav.database.repository.FeilmeldingRepository.getAllFeilmeldinger
-import no.nav.sokos.ske.krav.database.repository.FeilmeldingRepository.getFeilmeldingForKravId
-import no.nav.sokos.ske.krav.database.repository.FeilmeldingRepository.insertFeilmelding
-import no.nav.sokos.ske.krav.database.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
-import no.nav.sokos.ske.krav.database.repository.FilValideringsfeilRepository.insertFileValideringsfeil
-import no.nav.sokos.ske.krav.database.repository.FilValideringsfeilRepository.insertLineFilValideringsfeil
-import no.nav.sokos.ske.krav.database.repository.KravRepository.getAllKravForAvstemming
-import no.nav.sokos.ske.krav.database.repository.KravRepository.getAllKravForResending
-import no.nav.sokos.ske.krav.database.repository.KravRepository.getAllKravForStatusCheck
-import no.nav.sokos.ske.krav.database.repository.KravRepository.getAllUnsentKrav
-import no.nav.sokos.ske.krav.database.repository.KravRepository.getKravTableIdFromCorrelationId
-import no.nav.sokos.ske.krav.database.repository.KravRepository.getPreviousReferansenummer
-import no.nav.sokos.ske.krav.database.repository.KravRepository.getSkeKravidentifikator
-import no.nav.sokos.ske.krav.database.repository.KravRepository.insertAllNewKrav
-import no.nav.sokos.ske.krav.database.repository.KravRepository.updateEndringWithSkeKravIdentifikator
-import no.nav.sokos.ske.krav.database.repository.KravRepository.updateSentKrav
-import no.nav.sokos.ske.krav.database.repository.KravRepository.updateStatus
-import no.nav.sokos.ske.krav.database.repository.KravRepository.updateStatusForAvstemtKravToReported
-import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.useAndHandleErrors
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
-import no.nav.sokos.ske.krav.domain.ske.responses.FeilResponse
+import no.nav.sokos.ske.krav.domain.Feilmelding
+import no.nav.sokos.ske.krav.domain.FilValideringsfeil
+import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.metrics.Metrics
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.getAllFeilmeldinger
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.getFeilmeldingForKravId
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.insertFeilmelding
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertFileValideringsfeil
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertLineFilValideringsfeil
+import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForAvstemming
+import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForResending
+import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForStatusCheck
+import no.nav.sokos.ske.krav.repository.KravRepository.getAllUnsentKrav
+import no.nav.sokos.ske.krav.repository.KravRepository.getKravTableIdFromCorrelationId
+import no.nav.sokos.ske.krav.repository.KravRepository.getPreviousReferansenummer
+import no.nav.sokos.ske.krav.repository.KravRepository.getSkeKravidentifikator
+import no.nav.sokos.ske.krav.repository.KravRepository.insertAllNewKrav
+import no.nav.sokos.ske.krav.repository.KravRepository.updateEndringWithSkeKravIdentifikator
+import no.nav.sokos.ske.krav.repository.KravRepository.updateSentKrav
+import no.nav.sokos.ske.krav.repository.KravRepository.updateStatus
+import no.nav.sokos.ske.krav.repository.KravRepository.updateStatusForAvstemtKravToReported
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.useAndHandleErrors
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.parseTo
 
@@ -73,12 +74,12 @@ class DatabaseService(
         it.insertAllNewKrav(kravLinjer, filnavn)
     }
 
-    fun getAllFeilmeldinger(): List<FeilmeldingTable> =
+    fun getAllFeilmeldinger(): List<Feilmelding> =
         dataSource.connection.useAndHandleErrors {
             it.getAllFeilmeldinger()
         }
 
-    fun saveFeilmelding(feilMelding: FeilmeldingTable) =
+    fun saveFeilmelding(feilMelding: Feilmelding) =
         dataSource.connection.useAndHandleErrors {
             it.insertFeilmelding(feilMelding)
         }
@@ -101,17 +102,17 @@ class DatabaseService(
     fun updateSentKrav(results: List<RequestResult>) {
         incrementMetrics(results)
         results.forEach {
-            Metrics.incrementKravKodeSendtMetric(it.kravTable.kravkode)
+            Metrics.incrementKravKodeSendtMetric(it.krav.kravkode)
 
-            if (it.kravTable.kravtype == NYTT_KRAV) {
+            if (it.krav.kravtype == NYTT_KRAV) {
                 updateSentKrav(
                     it.kravidentifikator,
-                    it.kravTable.corrId,
+                    it.krav.corrId,
                     it.status.value,
                 )
             } else {
                 updateSentKrav(
-                    it.kravTable.corrId,
+                    it.krav.corrId,
                     it.status.value,
                 )
             }
@@ -121,7 +122,7 @@ class DatabaseService(
     suspend fun saveErrorMessage(
         request: String,
         response: HttpResponse,
-        krav: KravTable,
+        krav: Krav,
         kravidentifikator: String,
     ) {
         val skeKravidentifikator =
@@ -129,7 +130,7 @@ class DatabaseService(
 
         val feilResponse = response.parseTo<FeilResponse>() ?: return
         val feilmelding =
-            FeilmeldingTable(
+            Feilmelding(
                 0L,
                 getKravTableIdFromCorrelationId(krav.corrId),
                 krav.corrId,
@@ -145,13 +146,13 @@ class DatabaseService(
         saveFeilmelding(feilmelding)
     }
 
-    fun getAllKravForStatusCheck(): List<KravTable> = dataSource.connection.useAndHandleErrors { it.getAllKravForStatusCheck() }
+    fun getAllKravForStatusCheck(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForStatusCheck() }
 
-    fun getAllKravForAvstemming(): List<KravTable> = dataSource.connection.useAndHandleErrors { it.getAllKravForAvstemming() }
+    fun getAllKravForAvstemming(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForAvstemming() }
 
-    fun getFeilmeldingForKravId(kravId: Long): List<FeilmeldingTable> = dataSource.connection.useAndHandleErrors { it.getFeilmeldingForKravId(kravId) }
+    fun getFeilmeldingForKravId(kravId: Long): List<Feilmelding> = dataSource.connection.useAndHandleErrors { it.getFeilmeldingForKravId(kravId) }
 
-    fun getFileValidationMessage(filNavn: String): List<FilValideringsfeilTable> = dataSource.connection.useAndHandleErrors { it.getFilValideringsFeilForFil(filNavn) }
+    fun getFileValidationMessage(filNavn: String): List<FilValideringsfeil> = dataSource.connection.useAndHandleErrors { it.getFilValideringsFeilForFil(filNavn) }
 
     fun updateStatus(
         mottakStatus: String,
@@ -160,9 +161,9 @@ class DatabaseService(
 
     fun updateStatusForAvstemtKravToReported(kravId: Int) = dataSource.connection.useAndHandleErrors { it.updateStatusForAvstemtKravToReported(kravId) }
 
-    fun getAllKravForResending(): List<KravTable> = dataSource.connection.useAndHandleErrors { it.getAllKravForResending() }
+    fun getAllKravForResending(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForResending() }
 
-    fun getAllUnsentKrav(): List<KravTable> = dataSource.connection.useAndHandleErrors { it.getAllUnsentKrav() }
+    fun getAllUnsentKrav(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllUnsentKrav() }
 
     fun updateEndringWithSkeKravIdentifikator(
         navsaksnummer: String,
@@ -174,8 +175,8 @@ class DatabaseService(
     private fun incrementMetrics(results: List<RequestResult>) {
         Metrics.numberOfKravSent.increment(results.size.toDouble())
         Metrics.numberOfKravFeilet.increment(results.filter { !it.response.status.isSuccess() }.size.toDouble())
-        Metrics.numberOfNyeKrav.increment(results.filter { it.kravTable.kravtype == NYTT_KRAV }.size.toDouble())
-        Metrics.numberOfEndringerAvKrav.increment(results.filter { it.kravTable.kravtype == ENDRING_RENTE || it.kravTable.kravtype == ENDRING_HOVEDSTOL }.size.toDouble())
-        Metrics.numberOfStoppAvKrav.increment(results.filter { it.kravTable.kravtype == STOPP_KRAV }.size.toDouble())
+        Metrics.numberOfNyeKrav.increment(results.filter { it.krav.kravtype == NYTT_KRAV }.size.toDouble())
+        Metrics.numberOfEndringerAvKrav.increment(results.filter { it.krav.kravtype == ENDRING_RENTE || it.krav.kravtype == ENDRING_HOVEDSTOL }.size.toDouble())
+        Metrics.numberOfStoppAvKrav.increment(results.filter { it.krav.kravtype == STOPP_KRAV }.size.toDouble())
     }
 }

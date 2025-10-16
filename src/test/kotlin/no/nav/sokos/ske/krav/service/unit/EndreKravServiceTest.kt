@@ -8,9 +8,9 @@ import io.mockk.mockk
 import io.mockk.spyk
 
 import no.nav.sokos.ske.krav.client.SkeClient
-import no.nav.sokos.ske.krav.database.models.KravTable
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
-import no.nav.sokos.ske.krav.domain.ske.requests.KravidentifikatorType
+import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.EndreKravService
 import no.nav.sokos.ske.krav.util.RequestResult
@@ -26,8 +26,8 @@ internal class EndreKravServiceTest :
             }
 
         val endreKravMock = spyk(EndreKravService(mockk<SkeClient>(), databaseServiceMock), recordPrivateCalls = true)
-        val kravTableMock =
-            mockk<KravTable> {
+        val kravMock =
+            mockk<Krav> {
                 every { kravidentifikatorSKE } returns "foo"
                 every { saksnummerNAV } returns "bar"
             }
@@ -51,21 +51,21 @@ internal class EndreKravServiceTest :
             test("If first status is $firstStatus and second status is $secondStatus, both should be set to $expectedFirstStatus") {
 
                 every {
-                    endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<KravTable>())
+                    endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<Krav>())
                 } returnsMany
                     if (firstStatus == 102 && secondStatus == 102) {
                         listOf(
-                            RequestResult(mockHttpResponse(102), mockk<KravTable>(), "", "", Status.HTTP409_KRAV_ER_AVSKREVET),
-                            RequestResult(mockHttpResponse(102), mockk<KravTable>(), "", "", Status.HTTP500_ANNEN_SERVER_FEIL),
+                            RequestResult(mockHttpResponse(102), mockk<Krav>(), "", "", Status.HTTP409_KRAV_ER_AVSKREVET),
+                            RequestResult(mockHttpResponse(102), mockk<Krav>(), "", "", Status.HTTP500_ANNEN_SERVER_FEIL),
                         )
                     } else {
                         listOf(
-                            RequestResult(mockHttpResponse(firstStatus), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(firstStatus))),
-                            RequestResult(mockHttpResponse(secondStatus), mockk<KravTable>(), "", "", defineStatus(mockHttpResponse(secondStatus))),
+                            RequestResult(mockHttpResponse(firstStatus), mockk<Krav>(), "", "", defineStatus(mockHttpResponse(firstStatus))),
+                            RequestResult(mockHttpResponse(secondStatus), mockk<Krav>(), "", "", defineStatus(mockHttpResponse(secondStatus))),
                         )
                     }
 
-                val result = endreKravMock.sendAllEndreKrav(listOf(kravTableMock, kravTableMock))
+                val result = endreKravMock.sendAllEndreKrav(listOf(kravMock, kravMock))
 
                 result[0].status shouldBe expectedFirstStatus
                 result[1].status shouldBe expectedSecondStatus

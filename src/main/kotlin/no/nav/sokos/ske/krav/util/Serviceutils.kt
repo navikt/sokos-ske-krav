@@ -5,12 +5,12 @@ import kotlinx.serialization.json.Json
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 
-import no.nav.sokos.ske.krav.database.models.KravTable
-import no.nav.sokos.ske.krav.domain.ske.requests.KravidentifikatorType
-import no.nav.sokos.ske.krav.domain.ske.responses.FeilResponse
+import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
+import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 
-fun createKravidentifikatorPair(it: KravTable): Pair<String, KravidentifikatorType> {
+fun createKravidentifikatorPair(it: Krav): Pair<String, KravidentifikatorType> {
     var kravIdentifikator = it.kravidentifikatorSKE
     var kravIdentifikatorType = KravidentifikatorType.SKATTEETATENSKRAVIDENTIFIKATOR
 

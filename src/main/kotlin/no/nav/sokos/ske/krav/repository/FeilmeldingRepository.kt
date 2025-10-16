@@ -1,15 +1,15 @@
-package no.nav.sokos.ske.krav.database.repository
+package no.nav.sokos.ske.krav.repository
 
 import java.sql.Connection
 
-import no.nav.sokos.ske.krav.database.models.FeilmeldingTable
-import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.executeSelect
-import no.nav.sokos.ske.krav.database.repository.RepositoryExtensions.executeUpdate
+import no.nav.sokos.ske.krav.domain.Feilmelding
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeSelect
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeUpdate
 
 object FeilmeldingRepository {
     fun Connection.getAllFeilmeldinger() = prepareStatement("""select * from feilmelding""").executeQuery().toFeilmelding()
 
-    fun Connection.getFeilmeldingForKravId(kravId: Long): List<FeilmeldingTable> =
+    fun Connection.getFeilmeldingForKravId(kravId: Long): List<Feilmelding> =
         executeSelect(
             """
             select * from feilmelding
@@ -18,7 +18,7 @@ object FeilmeldingRepository {
             kravId,
         ).toFeilmelding()
 
-    fun Connection.insertFeilmelding(feilmelding: FeilmeldingTable) =
+    fun Connection.insertFeilmelding(feilmelding: Feilmelding) =
         executeUpdate(
             """
             insert into feilmelding (

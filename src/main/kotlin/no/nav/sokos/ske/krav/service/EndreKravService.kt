@@ -3,9 +3,9 @@ package no.nav.sokos.ske.krav.service
 import io.ktor.http.HttpStatusCode
 
 import no.nav.sokos.ske.krav.client.SkeClient
-import no.nav.sokos.ske.krav.database.models.KravTable
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
-import no.nav.sokos.ske.krav.domain.ske.requests.KravidentifikatorType
+import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.createEndreHovedstolRequest
 import no.nav.sokos.ske.krav.util.createEndreRenteRequest
@@ -17,7 +17,7 @@ class EndreKravService(
     private val skeClient: SkeClient,
     private val databaseService: DatabaseService,
 ) {
-    suspend fun sendAllEndreKrav(kravList: List<KravTable>): List<RequestResult> =
+    suspend fun sendAllEndreKrav(kravList: List<Krav>): List<RequestResult> =
         kravList
             .groupBy { it.kravidentifikatorSKE + it.saksnummerNAV }
             .flatMap { (_, groupedKrav) ->
@@ -61,7 +61,7 @@ class EndreKravService(
     private suspend fun sendEndreKrav(
         kravidentifikator: String,
         kravidentifikatorType: KravidentifikatorType,
-        krav: KravTable,
+        krav: Krav,
     ): RequestResult {
         val (response, request) =
             if (krav.kravtype == ENDRING_RENTE) {
@@ -77,7 +77,7 @@ class EndreKravService(
         return RequestResult(
             response = response,
             request = request,
-            kravTable = krav,
+            krav = krav,
             kravidentifikator = "",
             status = defineStatus(response),
         )

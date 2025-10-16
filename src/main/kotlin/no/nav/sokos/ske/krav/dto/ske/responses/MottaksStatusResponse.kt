@@ -1,4 +1,4 @@
-package no.nav.sokos.ske.krav.domain.ske.responses
+package no.nav.sokos.ske.krav.dto.ske.responses
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

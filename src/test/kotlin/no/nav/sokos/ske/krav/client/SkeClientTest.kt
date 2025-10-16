@@ -22,13 +22,13 @@ import io.mockk.coEvery
 import io.mockk.mockk
 
 import no.nav.sokos.ske.krav.domain.StonadsType
-import no.nav.sokos.ske.krav.domain.ske.requests.AvskrivingRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.EndreRenteBeloepRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.HovedstolBeloep
-import no.nav.sokos.ske.krav.domain.ske.requests.KravidentifikatorType
-import no.nav.sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.RenteBeloep
-import no.nav.sokos.ske.krav.domain.ske.requests.Skyldner
+import no.nav.sokos.ske.krav.dto.ske.requests.AvskrivingRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.EndreRenteBeloepRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.HovedstolBeloep
+import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
+import no.nav.sokos.ske.krav.dto.ske.requests.OpprettInnkrevingsoppdragRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.RenteBeloep
+import no.nav.sokos.ske.krav.dto.ske.requests.Skyldner
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 
 class SkeClientTest :
@@ -59,6 +59,7 @@ class SkeClientTest :
                             headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                         )
                     }
+
                     request.url.encodedPath.contains("/renter") -> {
                         request.headers["kravidentifikator"] shouldNotBe null
                         respond(
@@ -67,6 +68,7 @@ class SkeClientTest :
                             headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                         )
                     }
+
                     request.url.encodedPath.contains("/hovedstol") -> {
                         request.headers["kravidentifikator"] shouldNotBe null
                         respond(
@@ -75,6 +77,7 @@ class SkeClientTest :
                             headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                         )
                     }
+
                     request.url.encodedPath.contains("/avskriving") -> {
                         respond(
                             content = "{}",
@@ -82,24 +85,28 @@ class SkeClientTest :
                             headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                         )
                     }
+
                     request.url.encodedPath.contains("/mottaksstatus") -> {
                         respond(
                             content = """{"status": "MOTTATT"}""",
                             headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                         )
                     }
+
                     request.url.encodedPath.contains("/valideringsfeil") -> {
                         respond(
                             content = """{"feil": []}""",
                             headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                         )
                     }
+
                     request.url.encodedPath.contains("/avstemming") -> {
                         respond(
                             content = """{"kravidentifikator": "123"}""",
                             headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                         )
                     }
+
                     else ->
                         respond(
                             content = "Not Found",

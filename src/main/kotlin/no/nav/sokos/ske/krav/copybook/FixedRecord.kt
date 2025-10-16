@@ -1,4 +1,4 @@
-package no.nav.sokos.ske.krav.domain.nav
+package no.nav.sokos.ske.krav.copybook
 
 import java.math.BigDecimal
 import java.time.LocalDate
