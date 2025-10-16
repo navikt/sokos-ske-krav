@@ -28,14 +28,10 @@ class TestContainer {
                 maximumPoolSize = 100
                 minimumIdle = 1
                 isAutoCommit = false
-            }.apply {
-                PostgresDataSource.migrate(this)
             }
+    }.apply {
+        PostgresDataSource.migrate(this.value)
     }
 
-    fun migrate(script: String = "") {
-        if (script.isNotEmpty()) loadInitScript(script)
-    }
-
-    private fun loadInitScript(name: String) = ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)
+    fun loadInitScript(name: String) = ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)
 }

@@ -19,7 +19,7 @@ internal class OpprettKravServiceIntegrationTest :
         val testContainer = TestContainer()
 
         Given("2 Nye krav skal opprettes ") {
-            testContainer.migrate("SQLscript/2NyeKrav.sql")
+            testContainer.loadInitScript("SQLscript/2NyeKrav.sql")
 
             val kravSomSkalSendes = testContainer.dataSource.connection.getAllKrav()
             kravSomSkalSendes.size shouldBe 2

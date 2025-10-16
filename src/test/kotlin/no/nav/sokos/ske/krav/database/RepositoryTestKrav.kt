@@ -33,8 +33,8 @@ internal class RepositoryTestKrav :
     FunSpec({
 
         val testContainer = TestContainer()
-        testContainer.migrate("SQLscript/KravForRepositoryBehaviourTestScript.sql")
-        testContainer.migrate("SQLscript/Feilmeldinger.sql")
+        testContainer.loadInitScript("SQLscript/KravForRepositoryBehaviourTestScript.sql")
+        testContainer.loadInitScript("SQLscript/Feilmeldinger.sql")
 
         test("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING") {
             testContainer.dataSource.connection.use { it.getAllKravForStatusCheck().size shouldBe 5 }

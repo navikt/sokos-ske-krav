@@ -17,7 +17,7 @@ import no.nav.sokos.ske.krav.util.TestContainer
 internal class RepositoryTestFilValideringsfeil :
     FunSpec({
         val testContainer = TestContainer()
-        testContainer.migrate("SQLscript/FilValideringsFeil.sql")
+        testContainer.loadInitScript("SQLscript/FilValideringsFeil.sql")
 
         test("getFilValideringsFeilForFil skal returnere filvalideringsfeil basert på filnavn") {
             testContainer.dataSource.connection.use { con ->

@@ -14,8 +14,8 @@ internal class RapportServiceIntegrationTest :
 
         test("oppdaterAvstemtKravTilRapportert skal sette status til rapportert og hente tabelldata på nytt") {
             val testContainer = TestContainer()
-            testContainer.migrate("SQLscript/KravSomSkalAvstemmes.sql")
-            testContainer.migrate("SQLscript/FeilmeldingerSomSkalAvstemmes.sql")
+            testContainer.loadInitScript("SQLscript/KravSomSkalAvstemmes.sql")
+            testContainer.loadInitScript("SQLscript/FeilmeldingerSomSkalAvstemmes.sql")
 
             val dbService = DatabaseService(testContainer.dataSource)
             dbService.getAllKravForAvstemming().size shouldBe 3

@@ -150,7 +150,6 @@ internal class LineValidatorIntegrationTest :
         }
 
         Given("1 linje har 3 forskjellige feil") {
-            testContainer.migrate()
             val dbService = DatabaseService(testContainer.dataSource)
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
             val ftpService = setupFtpService(dbService, slackServiceSpy)
