@@ -11,18 +11,18 @@ import io.mockk.spyk
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
+import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.listener.SftpListener
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.util.MockHttpClient
-import no.nav.sokos.ske.krav.util.SftpListener
-import no.nav.sokos.ske.krav.util.TestContainer
 import no.nav.sokos.ske.krav.validation.FileValidator.ErrorKeys
 
 internal class FileValidatorIntegrationTest :
     BehaviorSpec({
-        extensions(SftpListener)
-        val dbService = DatabaseService(TestContainer().dataSource)
+        extensions(SftpListener, DBListener)
+        val dbService = DatabaseService(DBListener.dataSource)
 
         fun setupSlackService(): SlackService {
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))

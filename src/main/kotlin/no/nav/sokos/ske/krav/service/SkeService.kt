@@ -6,15 +6,23 @@ import java.time.format.DateTimeFormatter
 
 import kotlinx.coroutines.delay
 
+import com.zaxxer.hikari.HikariDataSource
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
+import no.nav.sokos.ske.krav.config.PostgresConfig
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.dto.ske.responses.AvstemmingResponse
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.metrics.Metrics
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
+import no.nav.sokos.ske.krav.repository.KravRepository
+import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaksjon
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.isOpprettKrav
 import no.nav.sokos.ske.krav.util.parseTo
@@ -28,9 +36,10 @@ const val STOPP_KRAV = "STOPP_KRAV"
 private val logger = mu.KotlinLogging.logger {}
 
 class SkeService(
+    private val dataSource: HikariDataSource = PostgresConfig.dataSource,
     private val skeClient: SkeClient = SkeClient(),
     private val databaseService: DatabaseService = DatabaseService(),
-    private val statusService: StatusService = StatusService(skeClient, databaseService),
+    private val statusService: StatusService = StatusService(skeClient = skeClient, databaseService = databaseService),
     private val stoppKravService: StoppKravService = StoppKravService(skeClient, databaseService),
     private val endreKravService: EndreKravService = EndreKravService(skeClient, databaseService),
     private val opprettKravService: OpprettKravService = OpprettKravService(skeClient, databaseService),
@@ -102,7 +111,7 @@ class SkeService(
                 endreKravService.sendAllEndreKrav(kravList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }) +
                 stoppKravService.sendAllStoppKrav(kravList.filter { it.kravtype == STOPP_KRAV })
 
-        handleErrors(allResponses, databaseService)
+        handleErrors(allResponses)
 
         return allResponses
     }
@@ -151,14 +160,11 @@ class SkeService(
         }
     }
 
-    private suspend fun handleErrors(
-        responses: List<RequestResult>,
-        databaseService: DatabaseService,
-    ) {
+    private suspend fun handleErrors(responses: List<RequestResult>) {
         responses
             .filterNot { it.response.status.isSuccess() }
             .forEach { result ->
-                databaseService.saveErrorMessage(
+                saveErrorMessage(
                     result.request,
                     result.response,
                     result.krav,
@@ -169,6 +175,35 @@ class SkeService(
                     slackService.addError(result.krav.filnavn, "Feil fra SKE", errorPair)
                 }
             }
+    }
+
+    private suspend fun saveErrorMessage(
+        request: String,
+        response: HttpResponse,
+        krav: Krav,
+        kravidentifikator: String,
+    ) {
+        val skeKravidentifikator =
+            if (kravidentifikator == krav.saksnummerNAV || kravidentifikator == krav.referansenummerGammelSak) "" else kravidentifikator
+
+        val feilResponse = response.parseTo<FeilResponse>() ?: return
+
+        dataSource.asyncTransaksjon { session ->
+            val feilmelding =
+                Feilmelding(
+                    0L,
+                    KravRepository.getKravTableIdFromCorrelationId(session, krav.corrId),
+                    krav.corrId,
+                    krav.saksnummerNAV,
+                    skeKravidentifikator,
+                    feilResponse.status.toString(),
+                    feilResponse.detail,
+                    request,
+                    response.bodyAsText(),
+                    LocalDateTime.now(),
+                )
+            FeilmeldingRepository.insertFeilmeldinger(session, listOf(feilmelding))
+        }
     }
 
     suspend fun checkKravDateForAlert() {

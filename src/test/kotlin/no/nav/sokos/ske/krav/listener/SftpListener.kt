@@ -1,4 +1,4 @@
-package no.nav.sokos.ske.krav.util
+package no.nav.sokos.ske.krav.listener
 
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -26,6 +26,7 @@ import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemWriter
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.service.Directories
+import no.nav.sokos.ske.krav.util.FtpTestUtil
 
 object SftpListener : TestListener {
     private val keyPair = generateKeyPair()
@@ -43,11 +44,9 @@ object SftpListener : TestListener {
     private val sftpConfig = SftpConfig(sftpProperties)
 
     override suspend fun beforeSpec(spec: Spec) {
-        genericContainer.start()
-    }
-
-    override suspend fun afterSpec(spec: Spec) {
-        genericContainer.stop()
+        if (!genericContainer.isRunning) {
+            genericContainer.start()
+        }
     }
 
     private fun setupSftpTestContainer(publicKey: AsymmetricKeyParameter): GenericContainer<*> {

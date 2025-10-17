@@ -7,27 +7,28 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForLinje
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertFileValideringsfeil
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertLineFilValideringsfeil
 import no.nav.sokos.ske.krav.repository.toValideringsfeil
-import no.nav.sokos.ske.krav.util.TestContainer
 
 internal class RepositoryTestFilValideringsfeil :
     FunSpec({
-        val testContainer = TestContainer()
-        testContainer.loadInitScript("SQLscript/FilValideringsFeil.sql")
+        extensions(DBListener)
 
-        test("getFilValideringsFeilForFil skal returnere filvalideringsfeil basert på filnavn") {
-            testContainer.dataSource.connection.use { con ->
+        DBListener.loadInitScript("SQLscript/FilValideringsFeil.sql")
+
+        test("getValideringsFeilForFil skal returnere valideringsfeil basert på filnavn") {
+            DBListener.dataSource.connection.use { con ->
                 con.getFilValideringsFeilForFil("Fil1.txt").size shouldBe 1
                 con.getFilValideringsFeilForFil("Fil2.txt").size shouldBe 2
                 con.getFilValideringsFeilForFil("Fil3.txt").size shouldBe 3
             }
         }
-        test("insertFileValideringsfeil skal inserte ny filvalideringsfeil med filnanvn og feilmelding") {
-            testContainer.dataSource.connection.use { con ->
+        test("insertFileValideringsfeil skal inserte ny valideringsfeil med filnanvn og feilmelding") {
+            DBListener.dataSource.connection.use { con ->
                 con.insertFileValideringsfeil("Fil4.txt", "Test validation error insert")
 
                 val inserted = con.getFilValideringsFeilForFil("Fil4.txt")
@@ -42,7 +43,7 @@ internal class RepositoryTestFilValideringsfeil :
             }
         }
 
-        test("insertLineFilValideringsfeil skal inserte ny filvalideringsfeil med filnanvn, linjenummer, saksnummerNav, kravlinje, og feilmelding") {
+        test("insertLineValideringsfeil skal inserte ny valideringsfeil med filnanvn, linjenummer, saksnummerNav, kravlinje, og feilmelding") {
             val linje =
                 KravLinje(
                     55,
@@ -66,17 +67,17 @@ internal class RepositoryTestFilValideringsfeil :
                     "NYTT_KRAV",
                 )
 
-            testContainer.dataSource.connection.use { con ->
+            DBListener.dataSource.connection.use { con ->
                 val feilMelding = "Test validation error insert med non-null kravlinje"
                 val fileName = "Non-null test"
 
-                val filvalideringsFeilBefore = con.prepareStatement("""select * from filvalideringsfeil""").executeQuery().toValideringsfeil()
+                val valideringsFeilBefore = con.prepareStatement("""select * from filvalideringsfeil""").executeQuery().toValideringsfeil()
 
                 con.insertLineFilValideringsfeil(fileName, linje, feilMelding)
 
-                val filvalideringsFeil = con.prepareStatement("""select * from filvalideringsfeil""").executeQuery().toValideringsfeil()
-                filvalideringsFeil.size shouldBe filvalideringsFeilBefore.size + 1
-                filvalideringsFeil.filter { it.filnavn == fileName }.run {
+                val valideringsFeil = con.prepareStatement("""select * from filvalideringsfeil""").executeQuery().toValideringsfeil()
+                valideringsFeil.size shouldBe valideringsFeilBefore.size + 1
+                valideringsFeil.filter { it.filnavn == fileName }.run {
                     size shouldBe 1
                     with(first()) {
                         linjenummer shouldBe linje.linjenummer
@@ -88,9 +89,9 @@ internal class RepositoryTestFilValideringsfeil :
             }
         }
 
-        test("getValideringsFeilForLinje skal returnere en liste av FilValideringsFeil knyttet til gitt filnavn og linjenummer") {
+        test("getValideringsFeilForLinje skal returnere en liste av ValideringsFeil knyttet til gitt filnavn og linjenummer") {
 
-            testContainer.dataSource.connection.use { con ->
+            DBListener.dataSource.connection.use { con ->
                 with(con.getFilValideringsFeilForLinje("Fil1.txt", 1)) {
                     size shouldBe 1
                     with(first()) {
@@ -104,7 +105,7 @@ internal class RepositoryTestFilValideringsfeil :
                 }
             }
 
-            testContainer.dataSource.connection.use { con ->
+            DBListener.dataSource.connection.use { con ->
                 with(con.getFilValideringsFeilForLinje("Fil2.txt", 2)) {
                     size shouldBe 2
                     with(get(0)) {
@@ -125,7 +126,7 @@ internal class RepositoryTestFilValideringsfeil :
                     }
                 }
             }
-            testContainer.dataSource.connection.use { con ->
+            DBListener.dataSource.connection.use { con ->
                 with(con.getFilValideringsFeilForLinje("Fil3.txt", 3)) {
                     size shouldBe 3
                     with(get(0)) {

@@ -1,4 +1,4 @@
-package no.nav.sokos.ske.krav.database
+package no.nav.sokos.ske.krav.config
 
 import java.time.Duration
 
@@ -8,27 +8,29 @@ import mu.KotlinLogging
 import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
 
-import no.nav.sokos.ske.krav.config.PropertiesConfig
-import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration
+import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 
-object PostgresDataSource {
-    private val logger = KotlinLogging.logger("secureLogger")
+private val logger = KotlinLogging.logger {}
+
+object PostgresConfig {
     val dataSource: HikariDataSource by lazy {
         dataSource()
     }
 
     fun migrate(dataSource: HikariDataSource = dataSource(role = PropertiesConfig.PostgresConfig.adminUser)) {
-        logger.info { "Flyway migration" }
-        Flyway
-            .configure()
-            .dataSource(dataSource)
-            .initSql("""SET ROLE "${PropertiesConfig.PostgresConfig.adminUser}"""")
-            .lockRetryCount(-1)
-            .validateMigrationNaming(true)
-            .load()
-            .migrate()
-            .migrationsExecuted
-        logger.info { "Migration finished" }
+        dataSource.use { hikariDataSource ->
+            logger.info { "Flyway migration" }
+            Flyway
+                .configure()
+                .dataSource(dataSource)
+                .initSql("""SET ROLE "${PropertiesConfig.PostgresConfig.adminUser}"""")
+                .lockRetryCount(-1)
+                .validateMigrationNaming(true)
+                .load()
+                .migrate()
+                .migrationsExecuted
+            logger.info { "Migration finished" }
+        }
     }
 
     private fun dataSource(
@@ -38,7 +40,7 @@ object PostgresDataSource {
         if (PropertiesConfig.isLocal) {
             HikariDataSource(hikariConfig)
         } else {
-            createHikariDataSourceWithVaultIntegration(
+            HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
                 hikariConfig,
                 PropertiesConfig.PostgresConfig.vaultMountPath,
                 role,
