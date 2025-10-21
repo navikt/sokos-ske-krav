@@ -13,7 +13,7 @@ import org.testcontainers.utility.DockerImageName
 
 import no.nav.sokos.ske.krav.config.PostgresConfig
 import no.nav.sokos.ske.krav.config.PropertiesConfig
-import no.nav.sokos.ske.krav.util.DBUtils.transaksjon
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
 object DBListener : TestListener {
     private val dockerImageName = "postgres:latest"
@@ -39,7 +39,7 @@ object DBListener : TestListener {
     fun loadInitScript(name: String) = ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)
 
     override suspend fun afterSpec(spec: Spec) {
-        dataSource.transaksjon { session ->
+        dataSource.transaction { session ->
             val tables = mutableListOf<String>()
             // Collect all public tables except Flyway history
             session.list(

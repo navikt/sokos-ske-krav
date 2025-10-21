@@ -22,7 +22,7 @@ import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
-import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaksjon
+import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.isOpprettKrav
 import no.nav.sokos.ske.krav.util.parseTo
@@ -188,7 +188,7 @@ class SkeService(
 
         val feilResponse = response.parseTo<FeilResponse>() ?: return
 
-        dataSource.asyncTransaksjon { session ->
+        dataSource.asyncTransaction { session ->
             val feilmelding =
                 Feilmelding(
                     0L,

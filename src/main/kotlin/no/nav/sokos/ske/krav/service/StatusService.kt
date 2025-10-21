@@ -18,7 +18,7 @@ import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.dto.ske.responses.MottaksStatusResponse
 import no.nav.sokos.ske.krav.dto.ske.responses.ValideringsFeilResponse
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
-import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaksjon
+import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.createKravidentifikatorPair
 import no.nav.sokos.ske.krav.util.parseTo
 
@@ -96,9 +96,9 @@ class StatusService(
         }
 
         val valideringsfeilListe = response.parseTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
-        logger.error("Asynk Valideringsfeil mottatt: ${valideringsfeilListe.joinToString { it.error }} ")
+        logger.error("Asynk Valideringsfeil mottatt: ${valideringsfeilListe.joinToString { "${it.error}: ${it.message} " }} ")
 
-        dataSource.asyncTransaksjon { session ->
+        dataSource.asyncTransaction { session ->
             FeilmeldingRepository.insertFeilmeldinger(
                 tx = session,
                 feilmeldinger =

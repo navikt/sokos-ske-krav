@@ -26,7 +26,7 @@ import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
-import no.nav.sokos.ske.krav.util.DBUtils.transaksjon
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 import no.nav.sokos.ske.krav.util.getAllKrav
 
@@ -90,7 +90,7 @@ internal class RepositoryTestKrav :
         }
 
         test("getKravTableIdFromCorrelationId skal returnere krav_id basert på corr_id") {
-            DBListener.dataSource.transaksjon { tx ->
+            DBListener.dataSource.transaction { tx ->
                 KravRepository.getKravTableIdFromCorrelationId(tx, "CORR456") shouldBe 1
                 KravRepository.getKravTableIdFromCorrelationId(tx, "CORR789") shouldBe 2
                 KravRepository.getKravTableIdFromCorrelationId(tx, "CORR987") shouldBe 3
@@ -165,7 +165,7 @@ internal class RepositoryTestKrav :
             val kravForAvstemmingAfterUpdate = DBListener.dataSource.connection.use { it.getAllKravForAvstemming() }
             kravForAvstemmingAfterUpdate.size shouldBe kravForAvstemmingBeforeUpdate.size - 2
 
-            DBListener.dataSource.transaksjon { tx ->
+            DBListener.dataSource.transaction { tx ->
                 val feilmelding1 = FeilmeldingRepository.getFeilmeldingForKravId(tx, firstKrav.kravId)
                 val feilmelding2 = FeilmeldingRepository.getFeilmeldingForKravId(tx, lastKrav.kravId)
 

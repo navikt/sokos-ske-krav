@@ -3,31 +3,25 @@ package no.nav.sokos.ske.krav.util
 import kotlin.reflect.full.memberProperties
 
 import com.zaxxer.hikari.HikariDataSource
-import kotliquery.Row
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import kotliquery.using
 
 object DBUtils {
-    inline fun <reified T : Any> Row.optionalOrNull(columnLabel: String): T? =
-        runCatching {
-            this.any(columnLabel) as? T
-        }.getOrNull()
-
     inline fun <reified T : Any> T.asMap(): Map<String, Any?> {
         val props = T::class.memberProperties.associateBy { it.name }
         return props.keys.associateWith { props[it]?.get(this) }
     }
 
-    suspend fun <A> HikariDataSource.asyncTransaksjon(operation: suspend (TransactionalSession) -> A): A =
+    suspend fun <A> HikariDataSource.asyncTransaction(operation: suspend (TransactionalSession) -> A): A =
         sessionOf(this, returnGeneratedKey = true).use { session ->
             session.suspendTransaction { tx ->
                 operation(tx)
             }
         }
 
-    fun <A> HikariDataSource.transaksjon(operation: (TransactionalSession) -> A): A =
+    fun <A> HikariDataSource.transaction(operation: (TransactionalSession) -> A): A =
         using(sessionOf(this, returnGeneratedKey = true)) { tx ->
             tx.transaction { tx ->
                 operation(tx)

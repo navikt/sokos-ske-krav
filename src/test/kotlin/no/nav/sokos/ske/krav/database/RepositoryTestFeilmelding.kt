@@ -8,7 +8,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
-import no.nav.sokos.ske.krav.util.DBUtils.transaksjon
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
 internal class RepositoryTestFeilmelding :
     FunSpec({
@@ -17,13 +17,13 @@ internal class RepositoryTestFeilmelding :
         DBListener.loadInitScript("SQLscript/Feilmeldinger.sql")
 
         test("getAllFeilmeldinger skal returnere alle feilmeldinger ") {
-            DBListener.dataSource.transaksjon { tx ->
+            DBListener.dataSource.transaction { tx ->
                 FeilmeldingRepository.getAllFeilmeldinger(tx).size shouldBe 4
             }
         }
 
         test("getFeilmeldingForKravId skal returnere en liste med feilmeldinger for angitt kravid") {
-            DBListener.dataSource.transaksjon { tx ->
+            DBListener.dataSource.transaction { tx ->
                 val feilmelding1 = FeilmeldingRepository.getFeilmeldingForKravId(tx, 1)
                 feilmelding1.size shouldBe 1
                 feilmelding1.first().corrId shouldBe "CORR856"
@@ -56,7 +56,7 @@ internal class RepositoryTestFeilmelding :
                     false,
                 )
 
-            DBListener.dataSource.transaksjon { tx ->
+            DBListener.dataSource.transaction { tx ->
                 val feilmeldingerBefore = FeilmeldingRepository.getAllFeilmeldinger(tx)
                 FeilmeldingRepository.insertFeilmeldinger(tx, listOf(feilmelding))
 

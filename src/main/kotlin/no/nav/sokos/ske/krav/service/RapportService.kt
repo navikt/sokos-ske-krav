@@ -8,7 +8,7 @@ import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.domain.StonadsType.Companion.getStonadstype
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
-import no.nav.sokos.ske.krav.util.DBUtils.transaksjon
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
 @RequiresOptIn(message = "Skal bare brukes i frontend")
 @Retention(AnnotationRetention.BINARY)
@@ -55,7 +55,7 @@ class RapportService(
 
     private fun getFeilmeldinger(krav: Krav): List<String> =
         if (krav.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value) {
-            dataSource.transaksjon { tx ->
+            dataSource.transaction { tx ->
                 FeilmeldingRepository
                     .getFeilmeldingForKravId(tx, krav.kravId)
                     .map { it.melding.splitToSequence(", mottatt").first() }

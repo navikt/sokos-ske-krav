@@ -36,11 +36,6 @@ class DatabaseService(
             }
         }
 
-//    private fun getKravTableIdFromCorrelationId(corrID: String): Long =
-//        dataSource.connection.useAndHandleErrors {
-//            it.getKravTableIdFromCorrelationId(corrID)
-//        }
-
     private fun updateSentKrav(
         skeKravidentifikator: String,
         corrID: String,
@@ -62,16 +57,6 @@ class DatabaseService(
     ) = dataSource.connection.useAndHandleErrors {
         it.insertAllNewKrav(kravLinjer, filnavn)
     }
-
-//    fun getAllFeilmeldinger(): List<Feilmelding> =
-//        dataSource.connection.useAndHandleErrors {
-//            it.getAllFeilmeldinger()
-//        }
-
-//    fun saveFeilmelding(feilMelding: Feilmelding) =
-//        dataSource.connection.useAndHandleErrors {
-//            it.insertFeilmelding(feilMelding)
-//        }
 
     fun saveLineValidationError(
         filnavn: String,
@@ -111,8 +96,6 @@ class DatabaseService(
     fun getAllKravForStatusCheck(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForStatusCheck() }
 
     fun getAllKravForAvstemming(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForAvstemming() }
-
-//    fun getFeilmeldingForKravId(kravId: Long): List<Feilmelding> = dataSource.connection.useAndHandleErrors { it.getFeilmeldingForKravId(kravId) }
 
     fun getFileValidationMessage(filNavn: String): List<FilValideringsfeil> = dataSource.connection.useAndHandleErrors { it.getFilValideringsFeilForFil(filNavn) }
 

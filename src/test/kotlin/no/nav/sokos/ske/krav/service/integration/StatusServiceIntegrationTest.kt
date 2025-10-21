@@ -18,7 +18,7 @@ import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.StatusService
-import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaksjon
+import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.MockHttpClient
 import no.nav.sokos.ske.krav.util.MockHttpClientUtils
 import no.nav.sokos.ske.krav.util.getAllKrav
@@ -72,7 +72,7 @@ internal class StatusServiceIntegrationTest :
             val dbService = DatabaseService(dataSource)
             val (slackClientSpy, slackServiceSpy, statusService) = setupServices(httpClient, dbService)
 
-            dataSource.asyncTransaksjon { tx ->
+            dataSource.asyncTransaction { tx ->
 
                 FeilmeldingRepository.getAllFeilmeldinger(tx).size shouldBe 0
                 dbService.getAllKravForStatusCheck().size shouldBe 5
