@@ -12,13 +12,13 @@ import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 
+import no.nav.sokos.ske.krav.config.PostgresConfig
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.intervalPeriod
 import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.useTimer
 import no.nav.sokos.ske.krav.config.commonConfig
 import no.nav.sokos.ske.krav.config.routingConfig
 import no.nav.sokos.ske.krav.config.securityConfig
-import no.nav.sokos.ske.krav.database.PostgresDataSource
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.service.Frontend
@@ -42,7 +42,7 @@ private fun Application.module() {
     routingConfig(useAuthentication, applicationState, skeService)
 
     if (!PropertiesConfig.isLocal) {
-        PostgresDataSource.migrate()
+        PostgresConfig.migrate()
     }
 
     StonadsType.entries.forEach {

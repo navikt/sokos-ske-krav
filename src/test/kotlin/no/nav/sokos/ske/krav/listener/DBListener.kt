@@ -1,23 +1,26 @@
-package no.nav.sokos.ske.krav.util
+package no.nav.sokos.ske.krav.listener
 
 import com.zaxxer.hikari.HikariDataSource
+import io.kotest.core.listeners.TestListener
+import io.kotest.core.spec.Spec
 import io.kotest.extensions.testcontainers.toDataSource
+import kotliquery.queryOf
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.ext.ScriptUtils
 import org.testcontainers.jdbc.JdbcDatabaseDelegate
 import org.testcontainers.utility.DockerImageName
 
+import no.nav.sokos.ske.krav.config.PostgresConfig
 import no.nav.sokos.ske.krav.config.PropertiesConfig
-import no.nav.sokos.ske.krav.database.PostgresDataSource
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
-class TestContainer {
-    private val properties = PropertiesConfig.PostgresConfig
+object DBListener : TestListener {
     private val dockerImageName = "postgres:latest"
     private val container =
         PostgreSQLContainer<Nothing>(DockerImageName.parse(dockerImageName)).apply {
             withReuse(false)
-            withUsername(properties.adminUser)
+            withUsername(PropertiesConfig.PostgresConfig.adminUser)
             waitingFor(Wait.defaultWaitStrategy())
             start()
         }
@@ -30,8 +33,22 @@ class TestContainer {
                 isAutoCommit = false
             }
     }.apply {
-        PostgresDataSource.migrate(this.value)
+        PostgresConfig.migrate(container.toDataSource())
     }
 
     fun loadInitScript(name: String) = ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)
+
+    override suspend fun afterSpec(spec: Spec) {
+        dataSource.transaction { session ->
+            val tables = mutableListOf<String>()
+            // Collect all public tables except Flyway history
+            session.list(
+                queryOf("SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename <> 'flyway_schema_history'"),
+            ) { rs -> tables += rs.string("tablename") }
+
+            if (tables.isNotEmpty()) {
+                session.execute(queryOf("TRUNCATE TABLE ${tables.joinToString(", ")} RESTART IDENTITY CASCADE"))
+            }
+        }
+    }
 }
