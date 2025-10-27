@@ -95,7 +95,7 @@ class OpprettKravServiceTest :
                                     LocalDate.parse(kravMock.periodeTOM, DateTimeFormatter.ofPattern("yyyyMMdd")).toKotlinLocalDate(),
                                 ),
                         ),
-                    tilleggsfrist = kravTableMock.tilleggsfrist?.toKotlinLocalDate(),
+                    tilleggsfrist = kravMock.tilleggsfrist?.toKotlinLocalDate(),
                 )
             val httpResponseMock =
                 mockk<HttpResponse>(relaxed = true) {
