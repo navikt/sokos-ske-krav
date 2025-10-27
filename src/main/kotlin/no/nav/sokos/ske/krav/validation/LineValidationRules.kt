@@ -3,8 +3,8 @@ package no.nav.sokos.ske.krav.validation
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.StonadsType
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
 import no.nav.sokos.ske.krav.util.isOpprettKrav
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.KRAVTYPE_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.PERIODE_ERROR
@@ -45,7 +45,7 @@ object LineValidationRules {
                     }
 
                     checkUtbetalingsDato(utbetalDato, vedtaksDato)?.let { message ->
-                        add(Pair(UTBETALINGSDATO_ERROR, "$message: (Vedtaksdato: $vedtaksDato). Linje: $linjenummer"))
+                        add(Pair(UTBETALINGSDATO_ERROR, "$message: (Utbetalingsdato: $utbetalDato). Linje: $linjenummer"))
                     }
 
                     checkPeriode(periodeFOM.toDate(), periodeTOM.toDate())?.let { message ->
@@ -71,6 +71,8 @@ object LineValidationRules {
             }
 
         return if (errorMessages.isNotEmpty()) {
+            println("FEIL I KRAVLINJE $krav")
+            println(errorMessages)
             ValidationResult.Error(errorMessages)
         } else {
             ValidationResult.Success(listOf(krav))

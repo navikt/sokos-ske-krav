@@ -8,7 +8,7 @@ import io.mockk.mockk
 import io.mockk.spyk
 
 import no.nav.sokos.ske.krav.client.SkeClient
-import no.nav.sokos.ske.krav.database.models.KravTable
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.StoppKravService
 import no.nav.sokos.ske.krav.util.RequestResult
@@ -23,19 +23,19 @@ class StoppKravServiceTest :
                 mockk<DatabaseService> {
                     justRun { updateSentKrav(any<List<RequestResult>>()) }
                 }
-            val kravTableMock =
-                mockk<KravTable> {
+            val kravMock =
+                mockk<Krav> {
                     every { kravidentifikatorSKE } returns "foo"
                     every { saksnummerNAV } returns "bar"
                 }
             val stoppKravMock = spyk(StoppKravService(mockk<SkeClient>(), databaseServiceMock), recordPrivateCalls = true)
 
-            every { stoppKravMock["sendStoppKrav"](any<KravTable>()) } returnsMany
+            every { stoppKravMock["sendStoppKrav"](any<Krav>()) } returnsMany
                 listOf(
-                    RequestResult(mockHttpResponse(404), mockk<KravTable>(), "", "123", defineStatus(mockHttpResponse(404))),
-                    RequestResult(mockHttpResponse(200), mockk<KravTable>(), "", "456", defineStatus(mockHttpResponse(200))),
+                    RequestResult(mockHttpResponse(404), mockk<Krav>(), "", "123", defineStatus(mockHttpResponse(404))),
+                    RequestResult(mockHttpResponse(200), mockk<Krav>(), "", "456", defineStatus(mockHttpResponse(200))),
                 )
-            val result = stoppKravMock.sendAllStoppKrav(listOf(kravTableMock, kravTableMock))
+            val result = stoppKravMock.sendAllStoppKrav(listOf(kravMock, kravMock))
 
             result.size shouldBe 2
             result.filter { it.kravidentifikator == "123" }.size shouldBe 1

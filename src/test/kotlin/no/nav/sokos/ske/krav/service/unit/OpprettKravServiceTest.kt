@@ -18,18 +18,18 @@ import io.mockk.spyk
 import io.mockk.verify
 
 import no.nav.sokos.ske.krav.client.SkeClient
-import no.nav.sokos.ske.krav.database.models.KravTable
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.StonadsType
-import no.nav.sokos.ske.krav.domain.ske.requests.HovedstolBeloep
-import no.nav.sokos.ske.krav.domain.ske.requests.OpprettInnkrevingsoppdragRequest
-import no.nav.sokos.ske.krav.domain.ske.requests.RenteBeloep
-import no.nav.sokos.ske.krav.domain.ske.requests.Skyldner
-import no.nav.sokos.ske.krav.domain.ske.requests.TilbakeKrevingsPeriode
-import no.nav.sokos.ske.krav.domain.ske.requests.TilleggsinformasjonNav
-import no.nav.sokos.ske.krav.domain.ske.requests.Valuta
-import no.nav.sokos.ske.krav.domain.ske.requests.YtelseForAvregningBeloep
-import no.nav.sokos.ske.krav.domain.ske.responses.OpprettInnkrevingsOppdragResponse
+import no.nav.sokos.ske.krav.dto.ske.requests.HovedstolBeloep
+import no.nav.sokos.ske.krav.dto.ske.requests.OpprettInnkrevingsoppdragRequest
+import no.nav.sokos.ske.krav.dto.ske.requests.RenteBeloep
+import no.nav.sokos.ske.krav.dto.ske.requests.Skyldner
+import no.nav.sokos.ske.krav.dto.ske.requests.TilbakeKrevingsPeriode
+import no.nav.sokos.ske.krav.dto.ske.requests.TilleggsinformasjonNav
+import no.nav.sokos.ske.krav.dto.ske.requests.Valuta
+import no.nav.sokos.ske.krav.dto.ske.requests.YtelseForAvregningBeloep
+import no.nav.sokos.ske.krav.dto.ske.responses.OpprettInnkrevingsOppdragResponse
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.OpprettKravService
 import no.nav.sokos.ske.krav.util.RequestResult
@@ -41,8 +41,8 @@ class OpprettKravServiceTest :
             mockk<DatabaseService> {
                 justRun { updateSentKrav(any<List<RequestResult>>()) }
             }
-        val kravTableMock =
-            mockk<KravTable>(relaxed = true) {
+        val kravMock =
+            mockk<Krav>(relaxed = true) {
                 every { kravidentifikatorSKE } returns "foo"
                 every { saksnummerNAV } returns "bar"
                 every { gjelderId } returns "12131456789"
@@ -62,13 +62,13 @@ class OpprettKravServiceTest :
         test("sendAllOpprettKrav skal returnere liste av innsendte nye krav") {
             val opprettKravServiceMock =
                 spyk(OpprettKravService(mockk<SkeClient>(), databaseServiceMock))
-            every { opprettKravServiceMock["sendAllOpprettKrav"](any<List<KravTable>>()) } returns
+            every { opprettKravServiceMock["sendAllOpprettKrav"](any<List<Krav>>()) } returns
                 listOf(
-                    RequestResult(mockk<HttpResponse>(relaxed = true), mockk<KravTable>(), "", "123", mockk<Status>(relaxed = true)),
-                    RequestResult(mockk<HttpResponse>(relaxed = true), mockk<KravTable>(), "", "456", mockk<Status>(relaxed = true)),
+                    RequestResult(mockk<HttpResponse>(relaxed = true), mockk<Krav>(), "", "123", mockk<Status>(relaxed = true)),
+                    RequestResult(mockk<HttpResponse>(relaxed = true), mockk<Krav>(), "", "456", mockk<Status>(relaxed = true)),
                 )
 
-            val result = opprettKravServiceMock.sendAllOpprettKrav(listOf(kravTableMock, kravTableMock))
+            val result = opprettKravServiceMock.sendAllOpprettKrav(listOf(kravMock, kravMock))
 
             result.size shouldBe 2
             result.filter { it.kravidentifikator == "123" }.size shouldBe 1
@@ -79,20 +79,20 @@ class OpprettKravServiceTest :
             val opprettInnkrevingOppdragRequest =
                 OpprettInnkrevingsoppdragRequest(
                     stonadstype = StonadsType.TILBAKEKREVING_BARNETRYGD,
-                    skyldner = Skyldner(Skyldner.IdentifikatorType.PERSON, kravTableMock.gjelderId),
-                    hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = kravTableMock.belop.roundToLong()),
-                    renteBeloep = listOf(RenteBeloep(beloep = kravTableMock.belopRente.roundToLong(), renterIlagtDato = kravTableMock.vedtaksDato.toKotlinLocalDate())),
-                    oppdragsgiversReferanse = kravTableMock.fagsystemId,
-                    oppdragsgiversKravIdentifikator = kravTableMock.saksnummerNAV,
-                    fastsettelsesDato = kravTableMock.vedtaksDato.toKotlinLocalDate(),
-                    foreldelsesFristensUtgangspunkt = kravTableMock.utbetalDato.toKotlinLocalDate(),
+                    skyldner = Skyldner(Skyldner.IdentifikatorType.PERSON, kravMock.gjelderId),
+                    hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = kravMock.belop.roundToLong()),
+                    renteBeloep = listOf(RenteBeloep(beloep = kravMock.belopRente.roundToLong(), renterIlagtDato = kravMock.vedtaksDato.toKotlinLocalDate())),
+                    oppdragsgiversReferanse = kravMock.fagsystemId,
+                    oppdragsgiversKravIdentifikator = kravMock.saksnummerNAV,
+                    fastsettelsesDato = kravMock.vedtaksDato.toKotlinLocalDate(),
+                    foreldelsesFristensUtgangspunkt = kravMock.utbetalDato.toKotlinLocalDate(),
                     tilleggsInformasjon =
                         TilleggsinformasjonNav(
-                            ytelserForAvregning = YtelseForAvregningBeloep(beloep = kravTableMock.fremtidigYtelse.roundToLong()),
+                            ytelserForAvregning = YtelseForAvregningBeloep(beloep = kravMock.fremtidigYtelse.roundToLong()),
                             tilbakeKrevingsPeriode =
                                 TilbakeKrevingsPeriode(
-                                    LocalDate.parse(kravTableMock.periodeFOM, DateTimeFormatter.ofPattern("yyyyMMdd")).toKotlinLocalDate(),
-                                    LocalDate.parse(kravTableMock.periodeTOM, DateTimeFormatter.ofPattern("yyyyMMdd")).toKotlinLocalDate(),
+                                    LocalDate.parse(kravMock.periodeFOM, DateTimeFormatter.ofPattern("yyyyMMdd")).toKotlinLocalDate(),
+                                    LocalDate.parse(kravMock.periodeTOM, DateTimeFormatter.ofPattern("yyyyMMdd")).toKotlinLocalDate(),
                                 ),
                         ),
                     tilleggsfrist = kravTableMock.tilleggsfrist?.toKotlinLocalDate(),
@@ -108,16 +108,16 @@ class OpprettKravServiceTest :
             val skeClientMock = mockk<SkeClient> { coEvery { opprettKrav(any(), any()) } returns httpResponseMock }
             val opprettKravServiceMock = spyk(OpprettKravService(skeClientMock, databaseServiceMock), recordPrivateCalls = true)
 
-            val reqResult = opprettKravServiceMock.sendAllOpprettKrav(listOf(kravTableMock))
+            val reqResult = opprettKravServiceMock.sendAllOpprettKrav(listOf(kravMock))
             verify(exactly = 1) {
-                opprettKravServiceMock["sendOpprettKrav"](any<KravTable>())
+                opprettKravServiceMock["sendOpprettKrav"](any<Krav>())
             }
 
             reqResult.size shouldBe 1
             with(reqResult.first()) {
                 response shouldBe httpResponseMock
                 request shouldBe opprettInnkrevingOppdragRequest.encodeToString()
-                kravTable shouldBe kravTableMock
+                krav shouldBe kravMock
                 kravidentifikator shouldBe "123"
                 status shouldBe Status.KRAV_SENDT
             }

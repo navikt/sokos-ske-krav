@@ -4,6 +4,7 @@ import java.io.File
 import java.io.Reader
 import java.sql.Connection
 
+import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
@@ -16,10 +17,10 @@ import io.mockk.mockk
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
-import no.nav.sokos.ske.krav.database.models.KravTable
-import no.nav.sokos.ske.krav.database.repository.toKrav
-import no.nav.sokos.ske.krav.domain.nav.KravLinje
-import no.nav.sokos.ske.krav.domain.ske.responses.FeilResponse
+import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
+import no.nav.sokos.ske.krav.repository.toKrav
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.EndreKravService
@@ -88,6 +89,7 @@ fun setupSkeServiceMock(
     ftpService: FtpService = ftpServiceMock,
     slackService: SlackService = SlackService(SlackClient(client = MockHttpClient().getSlackClient())),
 ) = SkeService(
+    dataSource = mockk<HikariDataSource>(),
     skeClient = skeClient,
     stoppKravService = stoppKravService,
     endreKravService = endreKravService,
@@ -101,6 +103,7 @@ fun setupSkeServiceMock(
 fun setUpMockHttpClient(endepunktTyper: List<MockHttpClientUtils.MockRequestObj>) = MockHttpClient().getClient(endepunktTyper)
 
 fun setupSkeServiceMockWithMockEngine(
+    dataSource: HikariDataSource,
     httpClient: HttpClient,
     ftpService: FtpService,
     databaseService: DatabaseService,
@@ -111,10 +114,11 @@ fun setupSkeServiceMockWithMockEngine(
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
     val endreKravService = EndreKravService(skeClient, databaseService)
     val opprettKravService = OpprettKravService(skeClient, databaseService)
-    val statusService = StatusService(skeClient, databaseService, slackService)
+    val statusService = StatusService(dataSource, skeClient, databaseService, slackService)
     val stoppKravService = StoppKravService(skeClient, databaseService)
 
     return SkeService(
+        dataSource = dataSource,
         skeClient = skeClient,
         stoppKravService = stoppKravService,
         endreKravService = endreKravService,
@@ -134,4 +138,4 @@ fun mockHttpResponse(
     coEvery { body<FeilResponse>().type } returns feilResponseType
 }
 
-fun Connection.getAllKrav(): List<KravTable> = prepareStatement("""select * from krav""").executeQuery().toKrav()
+fun Connection.getAllKrav(): List<Krav> = prepareStatement("""select * from krav""").executeQuery().toKrav()

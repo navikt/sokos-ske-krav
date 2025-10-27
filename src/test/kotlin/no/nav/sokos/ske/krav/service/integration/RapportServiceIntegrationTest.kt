@@ -3,24 +3,24 @@ package no.nav.sokos.ske.krav.service.integration
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
+import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService
-import no.nav.sokos.ske.krav.util.TestContainer
 
 @OptIn(Frontend::class)
 internal class RapportServiceIntegrationTest :
     FunSpec({
+        extensions(DBListener)
 
         test("oppdaterAvstemtKravTilRapportert skal sette status til rapportert og hente tabelldata på nytt") {
-            val testContainer = TestContainer()
-            testContainer.migrate("SQLscript/KravSomSkalAvstemmes.sql")
-            testContainer.migrate("SQLscript/FeilmeldingerSomSkalAvstemmes.sql")
+            DBListener.loadInitScript("SQLscript/KravSomSkalAvstemmes.sql")
+            DBListener.loadInitScript("SQLscript/FeilmeldingerSomSkalAvstemmes.sql")
 
-            val dbService = DatabaseService(testContainer.dataSource)
+            val dbService = DatabaseService(DBListener.dataSource)
             dbService.getAllKravForAvstemming().size shouldBe 3
 
-            val rapportService = RapportService(dbService)
+            val rapportService = RapportService(dataSource = DBListener.dataSource, dbService = dbService)
             rapportService.oppdaterStatusTilRapportert(1)
             dbService.getAllKravForAvstemming().size shouldBe 2
         }

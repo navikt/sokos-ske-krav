@@ -1,9 +1,14 @@
 package no.nav.sokos.ske.krav.service
 
-import no.nav.sokos.ske.krav.database.models.KravTable
+import com.zaxxer.hikari.HikariDataSource
+
+import no.nav.sokos.ske.krav.config.PostgresConfig
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.domain.StonadsType.Companion.getStonadstype
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
 @RequiresOptIn(message = "Skal bare brukes i frontend")
 @Retention(AnnotationRetention.BINARY)
@@ -14,6 +19,7 @@ enum class RapportType { AVSTEMMING, RESENDING }
 
 @Frontend
 class RapportService(
+    private val dataSource: HikariDataSource = PostgresConfig.dataSource,
     private val dbService: DatabaseService = DatabaseService(),
 ) {
     val kravSomSkalAvstemmes by lazy { mapToRapportObjekt(dbService.getAllKravForAvstemming()) }
@@ -21,7 +27,7 @@ class RapportService(
 
     fun oppdaterStatusTilRapportert(kravId: Int) = dbService.updateStatusForAvstemtKravToReported(kravId)
 
-    private fun mapToRapportObjekt(liste: List<KravTable>) =
+    private fun mapToRapportObjekt(liste: List<Krav>) =
         liste
             .map {
                 RapportObjekt(
@@ -47,9 +53,13 @@ class RapportService(
                 )
             }.distinctBy { it.kravID }
 
-    private fun getFeilmeldinger(krav: KravTable): List<String> =
+    private fun getFeilmeldinger(krav: Krav): List<String> =
         if (krav.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value) {
-            dbService.getFeilmeldingForKravId(krav.kravId).map { it.melding.splitToSequence(", mottatt").first() }
+            dataSource.transaction { tx ->
+                FeilmeldingRepository
+                    .getFeilmeldingForKravId(tx, krav.kravId)
+                    .map { it.melding.splitToSequence(", mottatt").first() }
+            }
         } else {
             emptyList()
         }
