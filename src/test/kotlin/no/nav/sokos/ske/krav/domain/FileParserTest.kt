@@ -93,4 +93,13 @@ internal class FileParserTest :
             linjerMedTilleggsfrist[4].tilleggsfrist shouldBe LocalDate.of(2025, 2, 8)
             linjerMedTilleggsfrist[5].tilleggsfrist shouldBe LocalDate.of(2025, 2, 10)
         }
+
+        test("Tilleggsfrist håndteres korrekt i FilMedTilleggsfrist.txt") {
+            val kravLinjer =
+                FileParser(
+                    getFileContent("FilMedTilleggsfrist.txt"),
+                ).parseKravLinjer()
+
+            kravLinjer.first().tilleggsfrist shouldBe LocalDate.of(2025, 3, 1)
+        }
     })

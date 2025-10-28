@@ -21,7 +21,7 @@ data class OpprettInnkrevingsoppdragRequest(
     val fastsettelsesDato: LocalDate,
     @SerialName("foreldelsesfristensUtgangspunkt")
     val foreldelsesFristensUtgangspunkt: LocalDate? = null,
-    @SerialName("tilleggsfrist")
+    @SerialName("tilleggsfristEtterForeldelsesloven")
     val tilleggsfrist: LocalDate? = null,
     @SerialName("tilleggsinformasjon")
     val tilleggsInformasjon: TilleggsinformasjonNav? = null,
