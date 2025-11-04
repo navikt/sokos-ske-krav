@@ -50,12 +50,13 @@ class OpprettKravServiceTest :
                 every { kodeHjemmel } returns "T"
                 every { belop } returns 100.0
                 every { belopRente } returns 10.0
-                every { vedtaksDato } returns LocalDate.now()
+                every { vedtaksDato } returns LocalDate.now().plusDays(30)
                 every { utbetalDato } returns LocalDate.now()
                 every { fagsystemId } returns "123"
                 every { periodeFOM } returns "20210101"
                 every { periodeTOM } returns "20210102"
                 every { fremtidigYtelse } returns 10.0
+                every { tilleggsfrist } returns null
             }
 
         test("sendAllOpprettKrav skal returnere liste av innsendte nye krav") {
@@ -116,6 +117,70 @@ class OpprettKravServiceTest :
                 response shouldBe httpResponseMock
                 request shouldBe opprettInnkrevingOppdragRequest.encodeToString()
                 krav shouldBe kravMock
+                kravidentifikator shouldBe "123"
+                status shouldBe Status.KRAV_SENDT
+            }
+        }
+
+        test("sendOpprettKrav skal returnere RequestResult når tilleggsfrist er satt") {
+            val kravMockMedTilleggsfrist =
+                mockk<Krav>(relaxed = true) {
+                    every { kravidentifikatorSKE } returns "foo"
+                    every { saksnummerNAV } returns "bar"
+                    every { gjelderId } returns "12131456789"
+                    every { kravkode } returns "BA OR"
+                    every { kodeHjemmel } returns "T"
+                    every { belop } returns 100.0
+                    every { belopRente } returns 10.0
+                    every { vedtaksDato } returns LocalDate.now()
+                    every { utbetalDato } returns LocalDate.now().plusDays(5)
+                    every { fagsystemId } returns "123"
+                    every { periodeFOM } returns "20210101"
+                    every { periodeTOM } returns "20210102"
+                    every { fremtidigYtelse } returns 10.0
+                    every { tilleggsfrist } returns LocalDate.now().plusYears(3)
+                }
+
+            val opprettInnkrevingOppdragRequest =
+                OpprettInnkrevingsoppdragRequest(
+                    stonadstype = StonadsType.TILBAKEKREVING_BARNETRYGD,
+                    skyldner = Skyldner(Skyldner.IdentifikatorType.PERSON, kravMockMedTilleggsfrist.gjelderId),
+                    hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = kravMockMedTilleggsfrist.belop.roundToLong()),
+                    renteBeloep = listOf(RenteBeloep(beloep = kravMockMedTilleggsfrist.belopRente.roundToLong(), renterIlagtDato = kravMockMedTilleggsfrist.vedtaksDato.toKotlinLocalDate())),
+                    oppdragsgiversReferanse = kravMockMedTilleggsfrist.fagsystemId,
+                    oppdragsgiversKravIdentifikator = kravMockMedTilleggsfrist.saksnummerNAV,
+                    fastsettelsesDato = kravMockMedTilleggsfrist.vedtaksDato.toKotlinLocalDate(),
+                    foreldelsesFristensUtgangspunkt = null,
+                    tilleggsfrist = kravMockMedTilleggsfrist.tilleggsfrist?.toKotlinLocalDate(),
+                    tilleggsInformasjon =
+                        TilleggsinformasjonNav(
+                            ytelserForAvregning = YtelseForAvregningBeloep(beloep = kravMockMedTilleggsfrist.fremtidigYtelse.roundToLong()),
+                            tilbakeKrevingsPeriode =
+                                TilbakeKrevingsPeriode(
+                                    LocalDate.parse(kravMockMedTilleggsfrist.periodeFOM, DateTimeFormatter.ofPattern("yyyyMMdd")).toKotlinLocalDate(),
+                                    LocalDate.parse(kravMockMedTilleggsfrist.periodeTOM, DateTimeFormatter.ofPattern("yyyyMMdd")).toKotlinLocalDate(),
+                                ),
+                        ),
+                )
+
+            val httpResponseMock =
+                mockk<HttpResponse>(relaxed = true) {
+                    every { status.value } returns 200
+                    coEvery { body<OpprettInnkrevingsOppdragResponse>() } returns
+                        OpprettInnkrevingsOppdragResponse(
+                            kravidentifikator = "123",
+                        )
+                }
+            val skeClientMock = mockk<SkeClient> { coEvery { opprettKrav(any(), any()) } returns httpResponseMock }
+            val opprettKravServiceMock = spyk(OpprettKravService(skeClientMock, databaseServiceMock), recordPrivateCalls = true)
+
+            val reqResult = opprettKravServiceMock.sendAllOpprettKrav(listOf(kravMockMedTilleggsfrist))
+
+            reqResult.size shouldBe 1
+            with(reqResult.first()) {
+                response shouldBe httpResponseMock
+                request shouldBe opprettInnkrevingOppdragRequest.encodeToString()
+                krav shouldBe kravMockMedTilleggsfrist
                 kravidentifikator shouldBe "123"
                 status shouldBe Status.KRAV_SENDT
             }

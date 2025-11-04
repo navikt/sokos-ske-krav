@@ -52,6 +52,7 @@ class FileParser(
                 fremtidigYtelse = getBigDecimal(start = 151, end = 162),
                 utbetalDato = getDate(start = 162, end = 170),
                 fagsystemId = getString(start = 170, end = 200),
+                tilleggsfrist = getOptionalDate(start = 200, end = 208),
             )
         }
 
@@ -94,4 +95,14 @@ class FileParser(
         runCatching {
             LocalDate.parse(getString(start, end), DateTimeFormatter.ofPattern("yyyyMMdd"))
         }.getOrDefault(LineValidationRules.errorDate)
+
+    private fun String.getOptionalDate(
+        start: Int,
+        end: Int,
+    ): LocalDate? =
+        if (getString(start, end).isBlank()) {
+            null
+        } else {
+            getDate(start, end)
+        }
 }

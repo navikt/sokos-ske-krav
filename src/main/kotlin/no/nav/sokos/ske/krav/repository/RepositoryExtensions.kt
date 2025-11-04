@@ -6,6 +6,7 @@ import java.sql.Date
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.SQLException
+import java.sql.Types
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -54,6 +55,7 @@ object RepositoryExtensions {
             parameters.forEachIndexed { index, param ->
                 val idx = index + 1
                 when (param) {
+                    null -> setNull(idx, Types.NULL)
                     is Int -> setInt(idx, param)
                     is Long -> setLong(idx, param)
                     is String -> setString(idx, param)
