@@ -86,12 +86,12 @@ internal class FileParserTest :
 
             linjerMedTilleggsfrist.size shouldBe 6
 
-            linjerMedTilleggsfrist[0].tilleggsfrist shouldBe LocalDate.of(2024, 12, 31)
-            linjerMedTilleggsfrist[1].tilleggsfrist shouldBe LocalDate.of(2025, 6, 30)
-            linjerMedTilleggsfrist[2].tilleggsfrist shouldBe LocalDate.of(2025, 4, 15)
-            linjerMedTilleggsfrist[3].tilleggsfrist shouldBe LocalDate.of(2025, 2, 28)
-            linjerMedTilleggsfrist[4].tilleggsfrist shouldBe LocalDate.of(2025, 2, 8)
-            linjerMedTilleggsfrist[5].tilleggsfrist shouldBe LocalDate.of(2025, 2, 10)
+            linjerMedTilleggsfrist[0].tilleggsfrist shouldBe LocalDate.of(2040, 12, 31)
+            linjerMedTilleggsfrist[1].tilleggsfrist shouldBe LocalDate.of(2040, 6, 30)
+            linjerMedTilleggsfrist[2].tilleggsfrist shouldBe LocalDate.of(2040, 4, 15)
+            linjerMedTilleggsfrist[3].tilleggsfrist shouldBe LocalDate.of(2040, 2, 28)
+            linjerMedTilleggsfrist[4].tilleggsfrist shouldBe LocalDate.of(2040, 2, 8)
+            linjerMedTilleggsfrist[5].tilleggsfrist shouldBe LocalDate.of(2040, 2, 10)
         }
 
         test("Tilleggsfrist håndteres korrekt i FilMedTilleggsfrist.txt") {
