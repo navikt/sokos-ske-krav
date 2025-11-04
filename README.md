@@ -20,10 +20,6 @@ i [confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=176706565
 * [vault](https://github.com/navikt/utvikling/blob/main/docs/teknisk/Vault.md) for å kjøre `setupLocalEnvironment.sh`
 * [jq](https://github.com/stedolan/jq) for å kjøre `setupLocalEnvironment.sh`
 
-### Bygge prosjekt
-
-`./gradlew build shadowjar`
-
 ### Lokal utvikling
 
 NB! Du må ha [naisdevice](https://docs.nais.io/device/) kjørende på maskinen.
