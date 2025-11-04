@@ -210,8 +210,9 @@ object KravRepository {
                 kravtype,
                 corr_id,
                 filnavn,
-                linjenummer
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?, ?)
+                linjenummer,
+                tilleggsfrist
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?, ?, ?)
                 """,
             )
 
@@ -247,6 +248,7 @@ object KravRepository {
                     UUID.randomUUID().toString(),
                     filnavn,
                     krav.linjenummer,
+                    krav.tilleggsfrist,
                 ).addBatch()
 
             if (type == ENDRING_HOVEDSTOL) {
@@ -274,6 +276,7 @@ object KravRepository {
                         UUID.randomUUID().toString(),
                         filnavn,
                         krav.linjenummer,
+                        krav.tilleggsfrist,
                     ).addBatch()
             }
         }

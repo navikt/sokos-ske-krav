@@ -100,7 +100,15 @@ internal class CreateRequestsTest :
                     oppdragsgiversReferanse shouldBe kravTable.fagsystemId
                     oppdragsgiversKravIdentifikator shouldBe kravTable.saksnummerNAV
                     fastsettelsesDato shouldBe kravTable.vedtaksDato.toKotlinLocalDate()
-                    foreldelsesFristensUtgangspunkt shouldBe kravTable.utbetalDato.toKotlinLocalDate()
+
+                    if (kravTable.tilleggsfrist != null) {
+                        foreldelsesFristensUtgangspunkt shouldBe null
+                        tilleggsfrist shouldBe kravTable.tilleggsfrist.toKotlinLocalDate()
+                    } else {
+                        foreldelsesFristensUtgangspunkt shouldBe kravTable.utbetalDato.toKotlinLocalDate()
+                        tilleggsfrist shouldBe null
+                    }
+
                     tilleggsInformasjon!!.ytelserForAvregning shouldBe YtelseForAvregningBeloep(beloep = kravTable.fremtidigYtelse.roundToLong())
                 }
             }

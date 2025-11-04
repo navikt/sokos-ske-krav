@@ -21,6 +21,7 @@ import no.nav.sokos.ske.krav.dto.ske.requests.TilbakeKrevingsPeriode
 import no.nav.sokos.ske.krav.dto.ske.requests.TilleggsinformasjonNav
 import no.nav.sokos.ske.krav.dto.ske.requests.Valuta
 import no.nav.sokos.ske.krav.dto.ske.requests.YtelseForAvregningBeloep
+import no.nav.sokos.ske.krav.validation.LineValidationRules
 
 fun createOpprettKravRequest(krav: Krav) =
     OpprettInnkrevingsoppdragRequest(
@@ -31,7 +32,18 @@ fun createOpprettKravRequest(krav: Krav) =
         oppdragsgiversReferanse = krav.fagsystemId,
         oppdragsgiversKravIdentifikator = krav.saksnummerNAV,
         fastsettelsesDato = krav.vedtaksDato.toKotlinLocalDate(),
-        foreldelsesFristensUtgangspunkt = krav.utbetalDato.toKotlinLocalDate(),
+        foreldelsesFristensUtgangspunkt =
+            if (krav.tilleggsfrist != null) {
+                null
+            } else {
+                krav.utbetalDato
+                    .toKotlinLocalDate()
+                    .takeIf {
+                        it != LineValidationRules.errorDate.toKotlinLocalDate() &&
+                            it != krav.vedtaksDato.toKotlinLocalDate()
+                    }
+            },
+        tilleggsfrist = krav.tilleggsfrist?.toKotlinLocalDate(),
         tilleggsInformasjon = createTilleggsinformasjonNav(krav),
     )
 
