@@ -33,6 +33,7 @@ internal class LineValidationRulesTest :
                 utbetalDato = LocalDate.now().minusDays(5),
                 fagsystemId = "1234",
                 tilleggsfrist = LocalDate.now().minusMonths(1),
+                avsender = "OB04",
             )
 
         Given("Et krav har ingen feil") {

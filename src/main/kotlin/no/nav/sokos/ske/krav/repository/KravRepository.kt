@@ -211,8 +211,9 @@ object KravRepository {
                 corr_id,
                 filnavn,
                 linjenummer,
-                tilleggsfrist
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?, ?, ?)
+                tilleggsfrist,
+                avsender
+                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?, ?, ?, ?)
                 """,
             )
 
@@ -249,6 +250,7 @@ object KravRepository {
                     filnavn,
                     krav.linjenummer,
                     krav.tilleggsfrist,
+                    krav.avsender,
                 ).addBatch()
 
             if (type == ENDRING_HOVEDSTOL) {
@@ -277,6 +279,7 @@ object KravRepository {
                         filnavn,
                         krav.linjenummer,
                         krav.tilleggsfrist,
+                        krav.avsender,
                     ).addBatch()
             }
         }

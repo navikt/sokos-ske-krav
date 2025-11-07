@@ -65,6 +65,8 @@ internal class RepositoryTestFilValideringsfeil :
                     LocalDate.now(),
                     "fagid",
                     "NYTT_KRAV",
+                    null,
+                    "OB04",
                 )
 
             DBListener.dataSource.connection.use { con ->

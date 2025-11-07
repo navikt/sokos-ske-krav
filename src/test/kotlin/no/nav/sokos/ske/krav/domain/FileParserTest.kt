@@ -19,7 +19,11 @@ internal class FileParserTest :
         val altOkParser = FileParser(altOkFil)
 
         test("Alle linjer skal være av type KravLinje") {
-            altOkParser.parseKravLinjer().size shouldBe 101
+            val kravLinjer = altOkParser.parseKravLinjer()
+            kravLinjer.size shouldBe 101
+            kravLinjer.forEach { kravLinje ->
+                kravLinje.avsender shouldBe "OB04"
+            }
         }
 
         test("startlinje skal være av type KontrollLinjeHeader") {

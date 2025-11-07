@@ -187,6 +187,7 @@ private fun getKravlinjer(): MutableList<KravLinje> {
             fremtidigYtelse = BigDecimal.ONE,
             utbetalDato = LocalDate.now().minusDays(1),
             fagsystemId = "1234",
+            avsender = "OB04",
         )
     return mutableListOf(
         okLinje,
