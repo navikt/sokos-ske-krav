@@ -23,6 +23,7 @@ import no.nav.sokos.ske.krav.dto.ske.requests.Valuta
 import no.nav.sokos.ske.krav.dto.ske.requests.YtelseForAvregningBeloep
 import no.nav.sokos.ske.krav.validation.LineValidationRules
 
+// https://app.swaggerhub.com/apis-docs/skatteetaten/oppdragsinnkreving-api/1.15.115#/OpprettInnkrevingsoppdragRequest
 fun createOpprettKravRequest(krav: Krav) =
     OpprettInnkrevingsoppdragRequest(
         stonadstype = StonadsType.getStonadstype(krav.kravkode, krav.kodeHjemmel),
@@ -40,7 +41,8 @@ fun createOpprettKravRequest(krav: Krav) =
                     .toKotlinLocalDate()
                     .takeIf {
                         it != LineValidationRules.errorDate.toKotlinLocalDate() &&
-                            it != krav.vedtaksDato.toKotlinLocalDate()
+                            it != krav.vedtaksDato.toKotlinLocalDate() &&
+                            it < krav.vedtaksDato.toKotlinLocalDate()
                     }
             },
         tilleggsfrist = krav.tilleggsfrist?.toKotlinLocalDate(),
