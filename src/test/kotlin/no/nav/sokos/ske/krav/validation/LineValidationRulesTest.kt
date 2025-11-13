@@ -157,18 +157,30 @@ internal class LineValidationRulesTest :
                     }
                 }
             }
-            When("Utbetalingsdato er feil formattert i fil") {
-                val krav = okLinje.copy(utbetalDato = LineValidationRules.errorDate)
+            When("Utbetalingsdato er ikke oppgitt (error date) for OB04 skal gi feil") {
+                val krav = okLinje.copy(utbetalDato = LineValidationRules.errorDate, avsender = "OB04")
                 val validationResult: ValidationResult = LineValidationRules.runValidation(krav)
                 Then("Skal validationResult være error") {
                     (validationResult is ValidationResult.Error) shouldBe true
                 }
-
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe LineValidationRules.ErrorKeys.UTBETALINGSDATO_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
+                    }
+                }
+            }
+            When("Utbetalingsdato er ikke oppgitt (error date) for Arena skal være ok") {
+                val krav = okLinje.copy(utbetalDato = LineValidationRules.errorDate, avsender = "ARENA")
+                val validationResult: ValidationResult = LineValidationRules.runValidation(krav)
+                Then("Skal ValidationResult være success") {
+                    (validationResult is ValidationResult.Success) shouldBe true
+                }
+                And("Linje skal returneres") {
+                    with((validationResult as ValidationResult.Success).kravLinjer) {
+                        size shouldBe 1
+                        first() shouldBe krav
                     }
                 }
             }

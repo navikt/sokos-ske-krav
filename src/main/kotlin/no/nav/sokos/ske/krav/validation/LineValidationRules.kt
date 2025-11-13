@@ -24,7 +24,6 @@ import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.TILLEG
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.UNKNOWN_DATE_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
 
@@ -33,7 +32,6 @@ import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.VEDTAK
 * https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler
 * utbetalingsDato = foreldelsesfristensUtgangspunkt
 * vedtaksdato = fastsettelsesdato
-
 */
 object LineValidationRules {
     fun runValidation(krav: KravLinje): ValidationResult {
@@ -44,7 +42,7 @@ object LineValidationRules {
                         add(Pair(VEDTAKSDATO_ERROR, "$message: (Vedtaksdato: $vedtaksDato). Linje: $linjenummer"))
                     }
 
-                    checkUtbetalingsDato(utbetalDato, vedtaksDato)?.let { message ->
+                    checkUtbetalingsDato(utbetalDato, vedtaksDato, avsender)?.let { message ->
                         add(Pair(UTBETALINGSDATO_ERROR, "$message: (Utbetalingsdato: $utbetalDato). Linje: $linjenummer"))
                     }
 
@@ -104,15 +102,17 @@ object LineValidationRules {
             else -> UNKNOWN_DATE_ERROR
         }
 
-    // Utbetalingsdato må være før vedtaksdato
+    // Tillater tom utbetalingsdato for Arena, Pesys, Infotryd. Ellers må den være før vedtaksdato
     private fun checkUtbetalingsDato(
         utbetalingsDato: LocalDate,
         vedtaksDato: LocalDate,
+        avsender: String,
     ): String? =
         when {
+            avsender.trim() == "OB04" && utbetalingsDato.isEqual(errorDate) -> ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
+            utbetalingsDato.isEqual(errorDate) -> null
             utbetalingsDato.isBefore(vedtaksDato) -> null
-            utbetalingsDato.isEqual(errorDate) -> UTBETALINGSDATO_WRONG_FORMAT
-            utbetalingsDato.isAfter(vedtaksDato) || utbetalingsDato.isEqual(vedtaksDato) -> UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
+            utbetalingsDato.isEqual(vedtaksDato) || utbetalingsDato.isAfter(vedtaksDato) -> UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
             else -> UNKNOWN_DATE_ERROR
         }
 
