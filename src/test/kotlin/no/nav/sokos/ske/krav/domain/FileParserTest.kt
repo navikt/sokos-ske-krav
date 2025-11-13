@@ -22,7 +22,7 @@ internal class FileParserTest :
             val kravLinjer = altOkParser.parseKravLinjer()
             kravLinjer.size shouldBe 101
             kravLinjer.forEach { kravLinje ->
-                kravLinje.avsender shouldBe "OB04"
+                kravLinje.avsender shouldBe Avsender.OB04
             }
         }
 
@@ -30,7 +30,7 @@ internal class FileParserTest :
             altOkParser.parseKontrollLinjeHeader() shouldBe
                 KontrollLinjeHeader(
                     transaksjonsDato = "20230526221340",
-                    avsender = "OB04",
+                    avsender = Avsender.OB04,
                 )
         }
 
@@ -38,7 +38,7 @@ internal class FileParserTest :
             altOkParser.parseKontrollLinjeFooter() shouldBe
                 KontrollLinjeFooter(
                     transaksjonTimestamp = "20230526221340",
-                    avsender = "OB04",
+                    avsender = Avsender.OB04,
                     antallTransaksjoner = 101,
                     sumAlleTransaksjoner = "2645917.40".toBigDecimal(),
                 )
@@ -111,12 +111,12 @@ internal class FileParserTest :
             val arenaFil = getFileContent("ArenaFil.txt")
             val arenaParser = FileParser(arenaFil)
 
-            arenaParser.parseKontrollLinjeHeader().avsender shouldBe "ARENA"
-            arenaParser.parseKontrollLinjeFooter().avsender shouldBe "ARENA"
+            arenaParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.ARENA
+            arenaParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.ARENA
 
             val kravLinjer = arenaParser.parseKravLinjer()
             kravLinjer.forEach { kravLinje ->
-                kravLinje.avsender shouldBe "ARENA"
+                kravLinje.avsender shouldBe Avsender.ARENA
             }
         }
 
@@ -124,12 +124,12 @@ internal class FileParserTest :
             val infotrygdFil = getFileContent("InfotrygdFil.txt")
             val infotrygdParser = FileParser(infotrygdFil)
 
-            infotrygdParser.parseKontrollLinjeHeader().avsender shouldBe "INFOTRYGD"
-            infotrygdParser.parseKontrollLinjeFooter().avsender shouldBe "INFOTRYGD"
+            infotrygdParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.INFOTRYGD
+            infotrygdParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.INFOTRYGD
 
             val kravLinjer = infotrygdParser.parseKravLinjer()
             kravLinjer.forEach { kravLinje ->
-                kravLinje.avsender shouldBe "INFOTRYGD"
+                kravLinje.avsender shouldBe Avsender.INFOTRYGD
             }
         }
 
@@ -137,12 +137,12 @@ internal class FileParserTest :
             val pesysFil = getFileContent("PesysFil.txt")
             val pesysParser = FileParser(pesysFil)
 
-            pesysParser.parseKontrollLinjeHeader().avsender shouldBe "PESYS"
-            pesysParser.parseKontrollLinjeFooter().avsender shouldBe "PESYS"
+            pesysParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.PESYS
+            pesysParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.PESYS
 
             val kravLinjer = pesysParser.parseKravLinjer()
             kravLinjer.forEach { kravLinje ->
-                kravLinje.avsender shouldBe "PESYS"
+                kravLinje.avsender shouldBe Avsender.PESYS
             }
         }
     })

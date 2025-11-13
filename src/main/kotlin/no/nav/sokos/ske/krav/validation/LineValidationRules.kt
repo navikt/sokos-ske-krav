@@ -4,6 +4,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.util.isOpprettKrav
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.KRAVTYPE_ERROR
@@ -109,7 +110,7 @@ object LineValidationRules {
         avsender: String,
     ): String? =
         when {
-            avsender.trim() == "OB04" && utbetalingsDato.isEqual(errorDate) -> ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
+            avsender.trim() == Avsender.OB04 && utbetalingsDato.isEqual(errorDate) -> ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
             utbetalingsDato.isEqual(errorDate) -> null
             utbetalingsDato.isBefore(vedtaksDato) -> null
             utbetalingsDato.isEqual(vedtaksDato) || utbetalingsDato.isAfter(vedtaksDato) -> UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO

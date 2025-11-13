@@ -7,6 +7,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForLinje
@@ -66,7 +67,7 @@ internal class RepositoryTestFilValideringsfeil :
                     "fagid",
                     "NYTT_KRAV",
                     null,
-                    "OB04",
+                    Avsender.OB04,
                 )
 
             DBListener.dataSource.connection.use { con ->
