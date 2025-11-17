@@ -10,6 +10,7 @@ import io.mockk.mockk
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.FtpFil
@@ -187,6 +188,7 @@ private fun getKravlinjer(): MutableList<KravLinje> {
             fremtidigYtelse = BigDecimal.ONE,
             utbetalDato = LocalDate.now().minusDays(1),
             fagsystemId = "1234",
+            avsender = Avsender.OB04,
         )
     return mutableListOf(
         okLinje,

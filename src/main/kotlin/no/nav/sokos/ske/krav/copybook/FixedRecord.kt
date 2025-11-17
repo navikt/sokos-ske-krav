@@ -24,6 +24,7 @@ data class KravLinje(
     val fagsystemId: String,
     val status: String? = null,
     val tilleggsfrist: LocalDate? = null,
+    val avsender: String,
 )
 
 data class KontrollLinjeHeader(
