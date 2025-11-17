@@ -32,4 +32,5 @@ data class Krav(
     val tidspunktSisteStatus: LocalDateTime,
     val tidspunktOpprettet: LocalDateTime,
     val tilleggsfrist: LocalDate?,
+    val avsender: String,
 )
