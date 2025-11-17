@@ -19,14 +19,18 @@ internal class FileParserTest :
         val altOkParser = FileParser(altOkFil)
 
         test("Alle linjer skal være av type KravLinje") {
-            altOkParser.parseKravLinjer().size shouldBe 101
+            val kravLinjer = altOkParser.parseKravLinjer()
+            kravLinjer.size shouldBe 101
+            kravLinjer.forEach { kravLinje ->
+                kravLinje.avsender shouldBe Avsender.OB04
+            }
         }
 
         test("startlinje skal være av type KontrollLinjeHeader") {
             altOkParser.parseKontrollLinjeHeader() shouldBe
                 KontrollLinjeHeader(
                     transaksjonsDato = "20230526221340",
-                    avsender = "OB04",
+                    avsender = Avsender.OB04,
                 )
         }
 
@@ -34,7 +38,7 @@ internal class FileParserTest :
             altOkParser.parseKontrollLinjeFooter() shouldBe
                 KontrollLinjeFooter(
                     transaksjonTimestamp = "20230526221340",
-                    avsender = "OB04",
+                    avsender = Avsender.OB04,
                     antallTransaksjoner = 101,
                     sumAlleTransaksjoner = "2645917.40".toBigDecimal(),
                 )
@@ -101,5 +105,44 @@ internal class FileParserTest :
                 ).parseKravLinjer()
 
             kravLinjer.first().tilleggsfrist shouldBe LocalDate.of(2025, 3, 1)
+        }
+
+        test("Arena fil skal ha riktig avsender") {
+            val arenaFil = getFileContent("ArenaFil.txt")
+            val arenaParser = FileParser(arenaFil)
+
+            arenaParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.ARENA
+            arenaParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.ARENA
+
+            val kravLinjer = arenaParser.parseKravLinjer()
+            kravLinjer.forEach { kravLinje ->
+                kravLinje.avsender shouldBe Avsender.ARENA
+            }
+        }
+
+        test("Infotrygd fil skal ha riktig avsender") {
+            val infotrygdFil = getFileContent("InfotrygdFil.txt")
+            val infotrygdParser = FileParser(infotrygdFil)
+
+            infotrygdParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.INFOTRYGD
+            infotrygdParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.INFOTRYGD
+
+            val kravLinjer = infotrygdParser.parseKravLinjer()
+            kravLinjer.forEach { kravLinje ->
+                kravLinje.avsender shouldBe Avsender.INFOTRYGD
+            }
+        }
+
+        test("Pesys fil skal ha riktig avsender") {
+            val pesysFil = getFileContent("PesysFil.txt")
+            val pesysParser = FileParser(pesysFil)
+
+            pesysParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.PESYS
+            pesysParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.PESYS
+
+            val kravLinjer = pesysParser.parseKravLinjer()
+            kravLinjer.forEach { kravLinje ->
+                kravLinje.avsender shouldBe Avsender.PESYS
+            }
         }
     })

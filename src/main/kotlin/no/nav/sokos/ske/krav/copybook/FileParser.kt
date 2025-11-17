@@ -15,7 +15,10 @@ class FileParser(
 
     fun parseKontrollLinjeFooter() = kontrollLinjeFooterParser(content.last())
 
-    fun parseKravLinjer() = content.subList(1, content.lastIndex).map { kravLinjeParser(it) }
+    fun parseKravLinjer(): List<KravLinje> {
+        val header = parseKontrollLinjeHeader()
+        return content.subList(1, content.lastIndex).map { linje -> kravLinjeParser(linje, header.avsender) }
+    }
 
     private fun kontrollLinjeHeaderParser(linje: String): KontrollLinjeHeader =
         KontrollLinjeHeader(
@@ -31,30 +34,33 @@ class FileParser(
             sumAlleTransaksjoner = linje.getBigDecimal(start = 35, end = 50),
         )
 
-    private fun kravLinjeParser(linje: String) =
-        with(linje) {
-            KravLinje(
-                linjenummer = getInt(start = 4, end = 11),
-                saksnummerNav = getString(start = 11, end = 29),
-                belop = getBigDecimal(start = 29, end = 40),
-                vedtaksDato = getDate(start = 40, end = 48),
-                gjelderId = getString(start = 48, end = 59),
-                periodeFOM = getString(start = 59, end = 67),
-                periodeTOM = getString(start = 67, end = 75),
-                kravKode = getString(start = 75, end = 83).replace(0xFFFD.toChar(), 'Ø'),
-                referansenummerGammelSak = getString(start = 83, end = 101),
-                transaksjonsDato = getString(start = 101, end = 109),
-                enhetBosted = getString(start = 109, end = 113),
-                enhetBehandlende = getString(start = 113, end = 117),
-                kodeHjemmel = getString(start = 117, end = 119),
-                kodeArsak = getString(start = 119, end = 131),
-                belopRente = getBigDecimal(start = 131, end = 151),
-                fremtidigYtelse = getBigDecimal(start = 151, end = 162),
-                utbetalDato = getDate(start = 162, end = 170),
-                fagsystemId = getString(start = 170, end = 200),
-                tilleggsfrist = getOptionalDate(start = 200, end = 208),
-            )
-        }
+    private fun kravLinjeParser(
+        linje: String,
+        avsender: String,
+    ) = with(linje) {
+        KravLinje(
+            linjenummer = getInt(start = 4, end = 11),
+            saksnummerNav = getString(start = 11, end = 29),
+            belop = getBigDecimal(start = 29, end = 40),
+            vedtaksDato = getDate(start = 40, end = 48),
+            gjelderId = getString(start = 48, end = 59),
+            periodeFOM = getString(start = 59, end = 67),
+            periodeTOM = getString(start = 67, end = 75),
+            kravKode = getString(start = 75, end = 83).replace(0xFFFD.toChar(), 'Ø'),
+            referansenummerGammelSak = getString(start = 83, end = 101),
+            transaksjonsDato = getString(start = 101, end = 109),
+            enhetBosted = getString(start = 109, end = 113),
+            enhetBehandlende = getString(start = 113, end = 117),
+            kodeHjemmel = getString(start = 117, end = 119),
+            kodeArsak = getString(start = 119, end = 131),
+            belopRente = getBigDecimal(start = 131, end = 151),
+            fremtidigYtelse = getBigDecimal(start = 151, end = 162),
+            utbetalDato = getDate(start = 162, end = 170),
+            fagsystemId = getString(start = 170, end = 200),
+            tilleggsfrist = getOptionalDate(start = 200, end = 208),
+            avsender = avsender,
+        )
+    }
 
     private fun String.getString(
         start: Int,

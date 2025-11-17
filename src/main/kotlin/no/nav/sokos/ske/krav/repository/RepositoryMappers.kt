@@ -38,6 +38,7 @@ fun ResultSet.toKrav() =
             tidspunktSisteStatus = getColumn("tidspunkt_siste_status"),
             tidspunktOpprettet = getColumn("tidspunkt_opprettet"),
             tilleggsfrist = getColumn("tilleggsfrist"),
+            avsender = getColumn("avsender"),
         )
     }
 
