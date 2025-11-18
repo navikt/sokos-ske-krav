@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "2.2.21"
     kotlin("plugin.serialization") version "2.2.21"
-    id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
     id("org.jetbrains.kotlinx.kover") version "0.9.3"
 
     application
@@ -19,20 +19,20 @@ repositories {
     mavenCentral()
 }
 
-val ktorVersion = "3.3.1"
-val jschVersion = "2.27.4"
-val nimbusVersion = "10.5"
+val ktorVersion = "3.3.2"
+val jschVersion = "2.27.6"
+val nimbusVersion = "10.6"
 val kotlinxSerializationVersion = "1.9.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
-val prometheusVersion = "1.15.5"
+val prometheusVersion = "1.16.0"
 val opentelemetryVersion = "2.21.0-alpha"
 
 // DB
 val hikaricpVersion = "7.0.2"
-val flywayVersion = "11.15.0"
+val flywayVersion = "11.17.0"
 val postgresqlVersion = "42.7.8"
 val kotliqueryVersion = "1.9.1"
 
@@ -47,7 +47,7 @@ val mockFtpServerVersion = "3.2.0"
 // Logging
 val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.20"
+val logbackVersion = "1.5.21"
 val logstashVersion = "9.0"
 
 dependencies {
