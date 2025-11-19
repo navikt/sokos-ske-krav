@@ -46,6 +46,7 @@ object PropertiesConfig {
             "SFTP_PORT" to "22",
             "BASIC_AUTH_USERNAME" to "user",
             "BASIC_AUTH_PASSWORD" to "password",
+            "USE_AUTHENTICATION" to "false",
         )
 
     private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
@@ -69,14 +70,13 @@ object PropertiesConfig {
     }
 
     val isLocal = Configuration().profile == Profile.LOCAL
-    val isProd = Configuration().profile == Profile.PROD
 
     operator fun get(key: String): String = config[Key(key, stringType)]
 
     data class Configuration(
         val naisAppName: String = get("NAIS_APP_NAME"),
         val profile: Profile = Profile.valueOf(this["APPLICATION_PROFILE"]),
-        val useAuthentication: Boolean = if (isProd) get("USE_AUTHENTICATION").toBoolean() else false,
+        val useAuthentication: Boolean = get("USE_AUTHENTICATION").toBoolean(),
         val basicUsername: String = get("BASIC_AUTH_USERNAME"),
         val basicPassword: String = get("BASIC_AUTH_PASSWORD"),
     )
