@@ -1,0 +1,1 @@
+update krav set avsender = 'OB04' where avsender is null;
