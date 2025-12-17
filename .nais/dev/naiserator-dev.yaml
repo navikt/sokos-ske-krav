@@ -24,6 +24,12 @@ spec:
   azure:
     application:
       enabled: true
+  accessPolicy:
+    inbound:
+      rules:
+        - application: azure-token-generator
+          namespace: nais
+          cluster: dev-gcp
   liveness:
     path: /internal/isAlive
     initialDelay: 10
@@ -57,7 +63,7 @@ spec:
     enabled: true
   env:
     - name: JDK_JAVA_OPTIONS
-      value: -XX:MaxRAMPercentage=75 $(JAVA_PROXY_OPTIONS)
+      value: -XX:MaxRAMPercentage=75 --enable-native-access=ALL-UNNAMED $(JAVA_PROXY_OPTIONS)
     - name: SKE_REST_URL
       value: https://api-test.sits.no/api/innkreving/innkrevingsoppdrag/v1/
     - name: SFTP_SERVER

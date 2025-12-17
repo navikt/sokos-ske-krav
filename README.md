@@ -14,7 +14,7 @@ i [confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=176706565
 
 ### Forutsetninger
 
-* Java 21
+* Java 25
 * Gradle
 * [Kotest](https://plugins.jetbrains.com/plugin/14080-kotest) plugin for å kjøre Kotest tester
 * [vault](https://github.com/navikt/utvikling/blob/main/docs/teknisk/Vault.md) for å kjøre `setupLocalEnvironment.sh`
@@ -45,21 +45,6 @@ Host og port finner man i [PropertiesConfig](https://github.com/navikt/sokos-ske
 På MacOS kan den be om en ```.ppk``` nøkkel. Isåfall la FileZilla automatisk konvertere privatnøkkelen til .ppk og referer til denne.
 
 For å teste manuelt i dev når man er logget på, legger man en testfil i ``ìnbound`` mappen. Kjøring kan trigges med endepunktet [https://sokos-ske-krav.intern.dev.nav.no/api/hentNye](https://sokos-ske-krav.intern.dev.nav.no/api/hentNye)
-
-### Alarmer
-
-Applikasjonen bruker [Grafana Alerting](https://grafana.nav.cloud.nais.io/alerting/) for overvåkning og varsling.
-Dette er konfigurert via NAIS sin [alerting-integrasjon](https://doc.nais.io/observability/alerts).
-
-Alarmene overvåker metrics som:
-
-- HTTP-feilrater
-- JVM-metrikker
-
-Varsler blir sendt til følgende Slack-kanaler:
-
-- Dev-miljø: [#team-mob-alerts-dev](https://nav-it.slack.com/archives/C042SF2FEQM)
-- Prod-miljø: [#team-mob-alerts-prod](https://nav-it.slack.com/archives/C042ESY71GX)
 
 # 3. Programvarearkitektur
 
@@ -140,19 +125,59 @@ LoggFeil --> lagAlarm
 Distribusjon av tjenesten er gjort med bruk av Github Actions.
 [sokos-ske-krav CI / CD](https://github.com/navikt/sokos-ske-krav/actions)
 
-Push/merge til master branche vil teste, bygge og deploye til produksjonsmiljø og testmiljø.
+Push/merge til main branch direkte er ikke mulig. Det må opprettes PR og godkjennes før merge til main branch.
+Når PR er merged til main branch vil Github Actions bygge og deploye til dev-fss og prod-fss.
+Har også mulighet for å deploye manuelt til testmiljø ved å deploye PR.
 
-# 5. Drift og støtte
+# 5. Autentisering
+Applikasjonen bruker [AzureAD](https://docs.nais.io/security/auth/azure-ad/) for å sikre at kun autoriserte brukere har tilgang til tjenesten.
+
+
+# 6. Drift og støtte
 
 ### Logging
 
-TODO
+Feilmeldinger og infomeldinger som ikke innheholder sensitive data logges til [Grafana Loki](https://docs.nais.io/observability/logging/#grafana-loki).  
+Sensitive meldinger logges til [Team Logs](https://doc.nais.io/observability/logging/how-to/team-logs/).
+
+### Kubectl
+
+For dev-fss:
+
+```shell script
+kubectl config use-context dev-fss
+kubectl get pods -n okonomi | grep sokos-ske-krav
+kubectl logs -f sokos-ske-krav-<POD-ID> --namespace okonomi -c sokos-ske-krav
+```
+
+For prod-fss:
+
+```shell script
+kubectl config use-context prod-fss
+kubectl get pods -n okonomi | grep sokos-ske-krav
+kubectl logs -f sokos-ske-krav-<POD-ID> --namespace okonomi -c sokos-ske-krav
+```
+
+### Alarmer
+
+Applikasjonen bruker [Grafana Alerting](https://grafana.nav.cloud.nais.io/alerting/) for overvåkning og varsling.
+Dette er konfigurert via NAIS sin [alerting-integrasjon](https://doc.nais.io/observability/alerts).
+
+Alarmene overvåker metrics som:
+
+- HTTP-feilrater
+- JVM-metrikker
+
+Varsler blir sendt til følgende Slack-kanaler:
+
+- Dev-miljø: [#team-mob-alerts-dev](https://nav-it.slack.com/archives/C042SF2FEQM)
+- Prod-miljø: [#team-mob-alerts-prod](https://nav-it.slack.com/archives/C042ESY71GX)
 
 ### Grafana
 
-[prod-fss](https://grafana.nav.cloud.nais.io/goto/KzX7VOkDg?orgId=1)
+[sokos-ske-krav](https://grafana.nav.cloud.nais.io/goto/KzX7VOkDg?orgId=1)
 
-# 6. Henvendelser og tilgang
+# 7. Henvendelser
 
-Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på Github.\
-Interne henvendelser kan sendes via Slack i kanalen `#utbetaling`
+Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på Github.
+Interne henvendelser kan sendes via Slack i kanalen [#utbetaling](https://nav-it.slack.com/archives/CKZADNFBP)
