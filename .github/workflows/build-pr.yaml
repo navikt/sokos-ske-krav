@@ -25,5 +25,4 @@ jobs:
     uses: navikt/mob-gha-workflows/.github/workflows/gradle-run-test.yaml@main
     with:
       gradle-task: './gradlew build installDist --configuration-cache'
-      java-version: '25'
 
