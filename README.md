@@ -1,5 +1,13 @@
 # sokos-ske-krav
 
+* [1. Funksjonelle krav](#1-funksjonelle-krav)
+* [2. Utviklingsmiljø](#2-utviklingsmiljø)
+* [3. Programvarearkitektur](#3-programvarearkitektur)
+* [4. Deployment](#4-deployment)
+* [5. Autentisering](#5-Autentisering)
+* [6. Drift og støtte](#6-drift-og-støtte)
+* [7. Henvendelser](#7-henvendelser)
+
 # 1. Funksjonelle Krav
 
 Applikasjonen er en tjeneste som sender tilbakekrevingskrav til Skatteetatens nye REST tjeneste, som på sikt skal
