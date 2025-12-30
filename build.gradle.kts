@@ -47,7 +47,7 @@ val mockFtpServerVersion = "3.2.0"
 // Logging
 val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.22"
+val logbackVersion = "1.5.23"
 val logstashVersion = "9.0"
 
 dependencies {
@@ -108,7 +108,7 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion")
     testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
     testImplementation("io.mockk:mockk-jvm:$mockkVersion")
-    testImplementation("net.bytebuddy:byte-buddy:1.18.2") // TEMP: Needed for mockk 1.14.6 with java25. Remove when Mockk is updated and bytebuddy is no longer needed.
+    testImplementation("net.bytebuddy:byte-buddy:1.18.3") // TEMP: Needed for mockk 1.14.6 with java25. Remove when Mockk is updated and bytebuddy is no longer needed.
     testImplementation("org.testcontainers:postgresql:$testContainerVersion")
     testImplementation("commons-net:commons-net:$commonsVersion")
     testImplementation("org.mockftpserver:MockFtpServer:$mockFtpServerVersion")
