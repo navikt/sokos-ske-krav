@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -65,34 +66,15 @@ private fun CoroutineScope.launchJob(
         try {
             function()
             delay(delayDuration)
+        } catch (e: CancellationException) {
+            logger.info { "Scheduled task cancelled: ${e.message}" }
+            break // Exit the loop on cancellation
         } catch (e: Exception) {
             logger.error(e) { "Error in scheduled task: ${e.message}" }
             delay(delayDuration / 2)
         }
     }
 }
-
-// private fun launchJob(
-//    function: suspend () -> Unit,
-//    delayDuration: Duration,
-// ) {
-//    CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
-//        while (true) {
-//            try {
-//                // Create a completely isolated coroutine for each execution
-//                withContext(Dispatchers.Default.limitedParallelism(1)) {
-//                    TraceUtils.withTracerId(forceNewTrace = true) {
-//                        function()
-//                    }
-//                }
-//                delay(delayDuration)
-//            } catch (e: Exception) {
-//                logger.error(e) { "Error in scheduled task: ${e.message}" }
-//                delay(delayDuration / 2)
-//            }
-//        }
-//    }
-// }
 
 fun Application.applicationLifecycleConfig(applicationState: ApplicationState) {
     monitor.subscribe(ApplicationStarted) {
