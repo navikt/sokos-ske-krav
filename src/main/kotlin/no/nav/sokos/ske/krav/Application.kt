@@ -2,17 +2,14 @@ package no.nav.sokos.ske.krav
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-
 import no.nav.sokos.ske.krav.config.PostgresConfig
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.intervalPeriod
@@ -66,11 +63,12 @@ private fun CoroutineScope.launchJob(
         try {
             function()
             delay(delayDuration)
-        } catch (e: CancellationException) {
-            logger.info { "Scheduled task cancelled: ${e.message}" }
-            break // Exit the loop on cancellation
         } catch (e: Exception) {
-            logger.error(e) { "Error in scheduled task: ${e.message}" }
+            if (e.stackTraceToString().contains("kotlinx.coroutines.JobCancellationException: Job was cancelled")) {
+                logger.info { "Scheduled task cancelled: ${e.message}" }
+            } else {
+                logger.error(e) { "Error in scheduled task: ${e.message}" }
+            }
             delay(delayDuration / 2)
         }
     }
