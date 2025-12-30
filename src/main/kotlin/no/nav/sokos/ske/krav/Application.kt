@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -63,6 +64,9 @@ private fun CoroutineScope.launchJob(
         try {
             function()
             delay(delayDuration)
+        } catch (e: CancellationException) {
+            logger.info { "Scheduled task cancelled: ${e.message}" }
+            break // Exit the loop on cancellation
         } catch (e: Exception) {
             if (e.stackTraceToString().contains("kotlinx.coroutines.JobCancellationException: Job was cancelled")) {
                 logger.info { "Scheduled task cancelled: ${e.message}" }
