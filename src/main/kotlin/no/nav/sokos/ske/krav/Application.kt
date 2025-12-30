@@ -70,7 +70,11 @@ private fun CoroutineScope.launchJob(
             logger.info { "Scheduled task cancelled: ${e.message}" }
             break // Exit the loop on cancellation
         } catch (e: Exception) {
-            logger.error(e) { "Error in scheduled task: ${e.message}" }
+            if (e.stackTraceToString().contains("kotlinx.coroutines.JobCancellationException: Job was cancelled")) {
+                logger.info { "Scheduled task cancelled: ${e.message}" }
+            } else {
+                logger.error(e) { "Error in scheduled task: ${e.message}" }
+            }
             delay(delayDuration / 2)
         }
     }
