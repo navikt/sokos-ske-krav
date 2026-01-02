@@ -3,6 +3,7 @@ package no.nav.sokos.ske.krav.util
 import java.io.File
 import java.io.Reader
 import java.sql.Connection
+import javax.sql.DataSource
 
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.HttpClient
@@ -65,13 +66,14 @@ private val opprettServiceMock =
         coEvery { sendAllOpprettKrav(any()) } returns emptyList()
     }
 
-private val statusServiceMock =
-    mockk<StatusService> {
+private fun createStatusServiceMock(): StatusService =
+    mockk {
         coJustRun { getMottaksStatus() }
     }
 
 private val ftpServiceMock = mockk<FtpService>()
-private val dataSourceMock =
+
+private fun createDatabaseServiceMock(): DatabaseService =
     mockk<DatabaseService> {
         every { getAllUnsentKrav() } returns emptyList()
         every { getAllKravForResending() } returns emptyList()
@@ -84,12 +86,13 @@ fun setupSkeServiceMock(
     stoppKravService: StoppKravService = stoppServiceMock,
     endreKravService: EndreKravService = endreServiceMock,
     opprettKravService: OpprettKravService = opprettServiceMock,
-    statusService: StatusService = statusServiceMock,
-    databaseService: DatabaseService = dataSourceMock,
+    statusService: StatusService = createStatusServiceMock(),
+    databaseService: DatabaseService = createDatabaseServiceMock(),
     ftpService: FtpService = ftpServiceMock,
     slackService: SlackService = SlackService(SlackClient(client = MockHttpClient().getSlackClient())),
+    dataSource: DataSource = mockk<HikariDataSource>(relaxed = true),
 ) = SkeService(
-    dataSource = mockk<HikariDataSource>(),
+    dataSource = dataSource,
     skeClient = skeClient,
     stoppKravService = stoppKravService,
     endreKravService = endreKravService,
@@ -103,7 +106,7 @@ fun setupSkeServiceMock(
 fun setUpMockHttpClient(endepunktTyper: List<MockHttpClientUtils.MockRequestObj>) = MockHttpClient().getClient(endepunktTyper)
 
 fun setupSkeServiceMockWithMockEngine(
-    dataSource: HikariDataSource,
+    dataSource: DataSource,
     httpClient: HttpClient,
     ftpService: FtpService,
     databaseService: DatabaseService,

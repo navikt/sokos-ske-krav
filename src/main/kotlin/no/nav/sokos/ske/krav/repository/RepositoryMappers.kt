@@ -3,7 +3,6 @@ package no.nav.sokos.ske.krav.repository
 import java.sql.ResultSet
 
 import no.nav.sokos.ske.krav.domain.Feilmelding
-import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.repository.RepositoryExtensions.getColumn
 
@@ -54,20 +53,6 @@ fun ResultSet.toFeilmelding() =
             melding = getColumn("melding"),
             navRequest = getColumn("nav_request"),
             skeResponse = getColumn("ske_response"),
-            tidspunktOpprettet = getColumn("tidspunkt_opprettet"),
-            rapporter = getColumn("rapporter"),
-        )
-    }
-
-fun ResultSet.toValideringsfeil() =
-    toList {
-        FilValideringsfeil(
-            valideringsfeilId = getColumn("id"),
-            filnavn = getColumn("filnavn"),
-            linjenummer = getColumn("linjenummer"),
-            saksnummerNav = getColumn("saksnummer_nav"),
-            kravLinje = getColumn("kravlinje"),
-            feilmelding = getColumn("feilmelding"),
             tidspunktOpprettet = getColumn("tidspunkt_opprettet"),
             rapporter = getColumn("rapporter"),
         )

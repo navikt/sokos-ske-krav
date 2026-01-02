@@ -9,9 +9,10 @@ import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.SftpListener
-import no.nav.sokos.ske.krav.service.DatabaseService
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.validation.FileValidator
 
 private const val FILE_A = "Fil-A.txt"
@@ -23,9 +24,12 @@ internal class FtpServiceIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener, DBListener)
 
-        val dbService = DatabaseService(DBListener.dataSource)
         val ftpService: FtpService by lazy {
-            FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = dbService)
+            FtpService(
+                sftpConfig = SftpConfig(SftpListener.sftpProperties),
+                fileValidator = FileValidator(mockk<SlackService>(relaxed = true)),
+                dataSource = DBListener.dataSource,
+            )
         }
 
         Given("det finnes ubehandlede filer i \"inbound\" på FTP-serveren ") {
@@ -50,9 +54,11 @@ internal class FtpServiceIntegrationTest :
                     failedFilesInDir[0] shouldBe FILE_ERROR
                 }
                 And("Feilmelding skal lagres i database") {
-                    dbService.getFileValidationMessage(FILE_ERROR).run {
-                        size shouldBe 1
-                        first().feilmelding shouldBe "${FileValidator.ErrorKeys.FEIL_I_ANTALL}: Antall krav: 16, Antall i siste linje: 101"
+                    DBListener.dataSource.transaction { tx ->
+                        with(FilValideringsfeilRepository.getFilValideringsFeilForFil(tx, FILE_ERROR)) {
+                            size shouldBe 1
+                            first().feilmelding shouldBe "${FileValidator.ErrorKeys.FEIL_I_ANTALL}: Antall krav: 16, Antall i siste linje: 101\n"
+                        }
                     }
                 }
             }

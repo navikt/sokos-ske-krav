@@ -2,12 +2,16 @@ package no.nav.sokos.ske.krav.service
 
 import java.io.ByteArrayOutputStream
 import java.io.File
+import javax.sql.DataSource
 
 import com.jcraft.jsch.SftpException
 import mu.KotlinLogging
 
+import no.nav.sokos.ske.krav.config.PostgresConfig
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.validation.FileValidator
 import no.nav.sokos.ske.krav.validation.ValidationResult
 
@@ -28,7 +32,7 @@ data class FtpFil(
 class FtpService(
     private val sftpConfig: SftpConfig = SftpConfig(),
     private val fileValidator: FileValidator = FileValidator(),
-    private val databaseService: DatabaseService = DatabaseService(),
+    private val dataSource: DataSource = PostgresConfig.dataSource,
 ) {
     private val logger = KotlinLogging.logger("secureLogger")
 
@@ -97,7 +101,9 @@ class FtpService(
     ) {
         moveFile(fileName, directory, Directories.FAILED)
         errorMessages.forEach { message ->
-            databaseService.saveFileValidationError(fileName, "${message.first}: ${message.second}")
+            dataSource.transaction { tx ->
+                FilValideringsfeilRepository.insertFileValideringsfeil(tx, fileName, "${message.first}: ${message.second}")
+            }
         }
     }
 }

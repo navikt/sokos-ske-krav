@@ -3,10 +3,10 @@ package no.nav.sokos.ske.krav.service
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.sql.DataSource
 
 import kotlinx.coroutines.delay
 
-import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
@@ -36,7 +36,7 @@ const val STOPP_KRAV = "STOPP_KRAV"
 private val logger = mu.KotlinLogging.logger {}
 
 class SkeService(
-    private val dataSource: HikariDataSource = PostgresConfig.dataSource,
+    private val dataSource: DataSource = PostgresConfig.dataSource,
     private val skeClient: SkeClient = SkeClient(),
     private val databaseService: DatabaseService = DatabaseService(),
     private val statusService: StatusService = StatusService(skeClient = skeClient, databaseService = databaseService),
@@ -93,7 +93,10 @@ class SkeService(
 
     private suspend fun processFile(file: FtpFil) {
         logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
-        val validatedLines = LineValidator().validateNewLines(file, databaseService)
+        val validatedLines =
+            dataSource.asyncTransaction { tx ->
+                LineValidator().validateNewLines(tx, file)
+            }
 
         handleValidationResults(file, validatedLines)
 

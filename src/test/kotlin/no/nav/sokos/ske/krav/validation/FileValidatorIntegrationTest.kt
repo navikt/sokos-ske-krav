@@ -11,18 +11,19 @@ import io.mockk.spyk
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
+import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.SftpListener
-import no.nav.sokos.ske.krav.service.DatabaseService
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.util.MockHttpClient
 import no.nav.sokos.ske.krav.validation.FileValidator.ErrorKeys
 
 internal class FileValidatorIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener, DBListener)
-        val dbService = DatabaseService(DBListener.dataSource)
 
         fun setupSlackService(): SlackService {
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
@@ -31,10 +32,15 @@ internal class FileValidatorIntegrationTest :
 
         fun setupFtpService(slackServiceSpy: SlackService): FtpService =
             FtpService(
-                SftpConfig(SftpListener.sftpProperties),
+                sftpConfig = SftpConfig(SftpListener.sftpProperties),
                 fileValidator = FileValidator(slackService = slackServiceSpy),
-                databaseService = dbService,
+                dataSource = DBListener.dataSource,
             )
+
+        fun getFileValidationMessage(filNavn: String): List<FilValideringsfeil> =
+            DBListener.dataSource.transaction { tx ->
+                FilValideringsfeilRepository.getFilValideringsFeilForFil(tx, filNavn)
+            }
 
         Given("Fil er OK") {
             val slackServiceSpy = setupSlackService()
@@ -46,7 +52,7 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal ingen feil lagres i database") {
-                    dbService.getFileValidationMessage(fileName).size shouldBe 0
+                    getFileValidationMessage(fileName).size shouldBe 0
                 }
 
                 And("Alert skal ikke sendes") {
@@ -67,7 +73,7 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal feilen lagres i database") {
-                    with(dbService.getFileValidationMessage(fileName)) {
+                    with(getFileValidationMessage(fileName)) {
                         size shouldBe 1
                         with(first()) {
                             filnavn shouldBe fileName
@@ -104,7 +110,7 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal feilen lagres i database ") {
-                    with(dbService.getFileValidationMessage(fileName)) {
+                    with(getFileValidationMessage(fileName)) {
                         size shouldBe 1
                         with(first()) {
                             filnavn shouldBe fileName
@@ -141,7 +147,7 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal feilen lagres i database ") {
-                    with(dbService.getFileValidationMessage(fileName)) {
+                    with(getFileValidationMessage(fileName)) {
                         size shouldBe 1
                         with(first()) {
                             filnavn shouldBe fileName
@@ -178,7 +184,7 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal feilene lagres i database ") {
-                    with(dbService.getFileValidationMessage(fileName)) {
+                    with(getFileValidationMessage(fileName)) {
                         size shouldBe 3
                         count { it.filnavn == fileName } shouldBe 3
                         count { it.feilmelding.contains(ErrorKeys.FEIL_I_DATO) } shouldBe 1
@@ -214,7 +220,7 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal ingen feil lagres i database") {
-                    dbService.getFileValidationMessage(fileName).size shouldBe 0
+                    getFileValidationMessage(fileName).size shouldBe 0
                 }
 
                 And("Alert skal ikke sendes") {
@@ -234,7 +240,7 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal ingen feil lagres i database") {
-                    dbService.getFileValidationMessage(fileName).size shouldBe 0
+                    getFileValidationMessage(fileName).size shouldBe 0
                 }
 
                 And("Alert skal ikke sendes") {
@@ -255,7 +261,7 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal ingen feil lagres i database") {
-                    dbService.getFileValidationMessage(fileName).size shouldBe 0
+                    getFileValidationMessage(fileName).size shouldBe 0
                 }
 
                 And("Alert skal ikke sendes") {

@@ -44,13 +44,22 @@ internal class SkeServiceIntegrationTest :
         extensions(SftpListener, DBListener)
 
         val ftpService: FtpService by lazy {
-            FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = mockk<DatabaseService>())
+            FtpService(
+                sftpConfig = SftpConfig(SftpListener.sftpProperties),
+                fileValidator = FileValidator(mockk<SlackService>(relaxed = true)),
+                dataSource = DBListener.dataSource,
+            )
         }
         DBListener.loadInitScript("SQLscript/10NyeKrav.sql")
 
         Given("Det finnes en fil i INBOUND") {
             SftpListener.putFiles(listOf("10NyeKrav.txt"), Directories.INBOUND)
-            val skeService = setupSkeServiceMock(databaseService = DatabaseService(DBListener.dataSource), ftpService = ftpService)
+            val skeService =
+                setupSkeServiceMock(
+                    databaseService = DatabaseService(DBListener.dataSource),
+                    ftpService = ftpService,
+                    dataSource = DBListener.dataSource,
+                )
 
             Then("Skal alle validerte linjer lagres i database") {
                 val kravbefore = DBListener.dataSource.connection.use { it.getAllKrav() }

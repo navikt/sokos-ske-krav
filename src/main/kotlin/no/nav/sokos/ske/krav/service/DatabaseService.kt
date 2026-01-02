@@ -1,16 +1,13 @@
 package no.nav.sokos.ske.krav.service
 
-import com.zaxxer.hikari.HikariDataSource
+import javax.sql.DataSource
+
 import io.ktor.http.isSuccess
 
 import no.nav.sokos.ske.krav.config.PostgresConfig
 import no.nav.sokos.ske.krav.copybook.KravLinje
-import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.metrics.Metrics
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertFileValideringsfeil
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertLineFilValideringsfeil
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForAvstemming
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForResending
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForStatusCheck
@@ -26,7 +23,7 @@ import no.nav.sokos.ske.krav.repository.RepositoryExtensions.useAndHandleErrors
 import no.nav.sokos.ske.krav.util.RequestResult
 
 class DatabaseService(
-    private val dataSource: HikariDataSource = PostgresConfig.dataSource,
+    private val dataSource: DataSource = PostgresConfig.dataSource,
 ) {
     fun getSkeKravidentifikator(navref: String): String =
         dataSource.connection.useAndHandleErrors {
@@ -58,21 +55,6 @@ class DatabaseService(
         it.insertAllNewKrav(kravLinjer, filnavn)
     }
 
-    fun saveLineValidationError(
-        filnavn: String,
-        kravlinje: KravLinje,
-        feilmelding: String,
-    ) = dataSource.connection.useAndHandleErrors {
-        it.insertLineFilValideringsfeil(filnavn, kravlinje, feilmelding)
-    }
-
-    fun saveFileValidationError(
-        filnavn: String,
-        feilmelding: String,
-    ) = dataSource.connection.useAndHandleErrors {
-        it.insertFileValideringsfeil(filnavn, feilmelding)
-    }
-
     fun updateSentKrav(results: List<RequestResult>) {
         incrementMetrics(results)
         results.forEach {
@@ -96,8 +78,6 @@ class DatabaseService(
     fun getAllKravForStatusCheck(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForStatusCheck() }
 
     fun getAllKravForAvstemming(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForAvstemming() }
-
-    fun getFileValidationMessage(filNavn: String): List<FilValideringsfeil> = dataSource.connection.useAndHandleErrors { it.getFilValideringsFeilForFil(filNavn) }
 
     fun updateStatus(
         mottakStatus: String,

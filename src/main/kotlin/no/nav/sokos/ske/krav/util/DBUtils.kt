@@ -1,8 +1,9 @@
 package no.nav.sokos.ske.krav.util
 
+import javax.sql.DataSource
+
 import kotlin.reflect.full.memberProperties
 
-import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
@@ -14,14 +15,14 @@ object DBUtils {
         return props.keys.associateWith { props[it]?.get(this) }
     }
 
-    suspend fun <A> HikariDataSource.asyncTransaction(operation: suspend (TransactionalSession) -> A): A =
+    suspend fun <A> DataSource.asyncTransaction(operation: suspend (TransactionalSession) -> A): A =
         sessionOf(this, returnGeneratedKey = true).use { session ->
             session.suspendTransaction { tx ->
                 operation(tx)
             }
         }
 
-    fun <A> HikariDataSource.transaction(operation: (TransactionalSession) -> A): A =
+    fun <A> DataSource.transaction(operation: (TransactionalSession) -> A): A =
         using(sessionOf(this, returnGeneratedKey = true)) { tx ->
             tx.transaction { tx ->
                 operation(tx)

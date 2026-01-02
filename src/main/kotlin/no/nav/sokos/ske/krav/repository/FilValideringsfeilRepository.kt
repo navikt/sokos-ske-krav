@@ -1,60 +1,100 @@
 package no.nav.sokos.ske.krav.repository
 
-import java.sql.Connection
+import kotliquery.Row
+import kotliquery.TransactionalSession
+import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.FilValideringsfeil
-import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeSelect
-import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeUpdate
 
 object FilValideringsfeilRepository {
-    fun Connection.getFilValideringsFeilForLinje(
+    fun getAllFilValideringsFeil(tx: TransactionalSession): List<FilValideringsfeil> =
+        tx.list(
+            queryOf(
+                """
+                select * from filvalideringsfeil
+                """.trimIndent(),
+            ),
+            extractor = mapToFilValideringsfeil,
+        )
+
+    fun getFilValideringsFeilForLinje(
+        tx: TransactionalSession,
         filNavn: String,
         linjeNummer: Int,
     ): List<FilValideringsfeil> =
-        executeSelect(
-            """
-            select * from filvalideringsfeil
-            where filnavn = ? and linjenummer = ?
-            """,
-            filNavn,
-            linjeNummer,
-        ).toValideringsfeil()
+        tx.list(
+            queryOf(
+                """
+                select * from filvalideringsfeil
+                where filnavn = ? and linjenummer = ?
+                """.trimIndent(),
+                filNavn,
+                linjeNummer,
+            ),
+            extractor = mapToFilValideringsfeil,
+        )
 
-    fun Connection.getFilValideringsFeilForFil(filNavn: String): List<FilValideringsfeil> =
-        executeSelect(
-            """
-            select * from filvalideringsfeil
-            where filnavn = ?
-            """,
-            filNavn,
-        ).toValideringsfeil()
+    fun getFilValideringsFeilForFil(
+        tx: TransactionalSession,
+        filNavn: String,
+    ): List<FilValideringsfeil> =
+        tx.list(
+            queryOf(
+                """
+                select * from filvalideringsfeil
+                where filnavn = ?
+                """.trimIndent(),
+                filNavn,
+            ),
+            extractor = mapToFilValideringsfeil,
+        )
 
-    fun Connection.insertFileValideringsfeil(
+    fun insertFileValideringsfeil(
+        tx: TransactionalSession,
         filnavn: String,
         feilmelding: String,
-    ) = executeUpdate(
-        """
-            insert into filvalideringsfeil (filnavn, feilmelding)
-            values (?, ?)
-            """,
-        filnavn,
-        feilmelding,
-    )
+    ): Long? =
+        tx.updateAndReturnGeneratedKey(
+            queryOf(
+                """
+                insert into filvalideringsfeil (filnavn, feilmelding)
+                values (?, ?)
+                """.trimIndent(),
+                filnavn,
+                feilmelding,
+            ),
+        )
 
-    fun Connection.insertLineFilValideringsfeil(
+    fun insertLineFilValideringsfeil(
+        tx: TransactionalSession,
         filnavn: String,
         kravlinje: KravLinje,
         feilmelding: String,
-    ) = executeUpdate(
-        """
+    ) = tx.update(
+        queryOf(
+            """
             insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
             values (?, ?, ?, ?, ? )
-            """,
-        filnavn,
-        kravlinje.linjenummer,
-        kravlinje.saksnummerNav,
-        kravlinje.toString(),
-        feilmelding,
+            """.trimIndent(),
+            filnavn,
+            kravlinje.linjenummer,
+            kravlinje.saksnummerNav,
+            kravlinje.toString(),
+            feilmelding,
+        ),
     )
+
+    private val mapToFilValideringsfeil: (Row) -> FilValideringsfeil = { row ->
+        FilValideringsfeil(
+            valideringsfeilId = row.long("id"),
+            filnavn = row.string("filnavn"),
+            linjenummer = row.intOrNull("linjenummer") ?: 0,
+            saksnummerNav = row.stringOrNull("saksnummer_nav") ?: "",
+            kravLinje = row.stringOrNull("kravlinje") ?: "",
+            feilmelding = row.string("feilmelding"),
+            tidspunktOpprettet = row.localDateTime("tidspunkt_opprettet"),
+            rapporter = row.boolean("rapporter"),
+        )
+    }
 }

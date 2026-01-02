@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.listener
 
-import com.zaxxer.hikari.HikariDataSource
+import javax.sql.DataSource
+
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
 import io.kotest.extensions.testcontainers.toDataSource
@@ -25,7 +26,7 @@ object DBListener : TestListener {
             start()
         }
 
-    val dataSource: HikariDataSource by lazy {
+    val dataSource: DataSource by lazy {
         container
             .toDataSource {
                 maximumPoolSize = 100

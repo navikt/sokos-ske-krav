@@ -6,19 +6,19 @@ import java.time.LocalDate
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
+import kotliquery.TransactionalSession
 
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.Status
-import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.FtpFil
 import no.nav.sokos.ske.krav.validation.LineValidationRules.errorDate
 
 internal class LineValidatorTest :
     BehaviorSpec({
-        val dbService = mockk<DatabaseService>(relaxed = true)
+        val transactionSession = mockk<TransactionalSession>(relaxed = true)
 
         fun ftpFile(
             name: String,
@@ -31,7 +31,7 @@ internal class LineValidatorTest :
 
             When("Linjer valideres") {
                 val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
-                val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
+                val validatedLines = lineValidator.validateNewLines(transactionSession, ftpFile(fileName, kravLinjer))
 
                 Then("Skal validering returnere ${kravLinjer.size} ok kravlinjer") {
                     val updatedLines = kravLinjer.map { it.copy(status = Status.KRAV_IKKE_SENDT.value) }
@@ -55,7 +55,7 @@ internal class LineValidatorTest :
             val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
 
             When("Linjer valideres") {
-                val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
+                val validatedLines = lineValidator.validateNewLines(transactionSession, ftpFile(fileName, kravLinjer))
 
                 Then("Skal validering returnere ${okKrav.size} ok kravlinjer") {
                     val updatedLines = okKrav.map { it.copy(status = Status.KRAV_IKKE_SENDT.value) }
@@ -85,7 +85,7 @@ internal class LineValidatorTest :
             val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
 
             When("Linjer valideres") {
-                val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
+                val validatedLines = lineValidator.validateNewLines(transactionSession, ftpFile(fileName, kravLinjer))
                 Then("Skal validering returnere ${okKrav.size} ok kravlinjer") {
                     val updatedLines = okKrav.map { it.copy(status = Status.KRAV_IKKE_SENDT.value) }
                     val validated = validatedLines.filter { it.status == Status.KRAV_IKKE_SENDT.value }
@@ -117,7 +117,7 @@ internal class LineValidatorTest :
                 val kravLinjer = okKrav + ikkeOkKrav
                 val fileName = this.testCase.name.name
                 val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
-                val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
+                val validatedLines = lineValidator.validateNewLines(transactionSession, ftpFile(fileName, kravLinjer))
 
                 Then("Skal validering returnere ${okKrav.size} ok kravlinjer") {
                     val updatedLines = okKrav.map { it.copy(status = Status.KRAV_IKKE_SENDT.value) }
@@ -148,7 +148,7 @@ internal class LineValidatorTest :
                     val kravLinjer = okKrav + ikkeOkKravMedUlikeFeil
                     val fileName = this.testCase.name.name
                     val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
-                    val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
+                    val validatedLines = lineValidator.validateNewLines(transactionSession, ftpFile(fileName, kravLinjer))
 
                     Then("Skal validering returnere ${okKrav.size} ok kravlinjer") {
                         val updatedLines = okKrav.map { it.copy(status = Status.KRAV_IKKE_SENDT.value) }

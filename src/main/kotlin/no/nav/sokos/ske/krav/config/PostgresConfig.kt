@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.config
 
 import java.time.Duration
+import javax.sql.DataSource
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -13,7 +14,7 @@ import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 private val logger = KotlinLogging.logger {}
 
 object PostgresConfig {
-    val dataSource: HikariDataSource by lazy {
+    val dataSource: DataSource by lazy {
         dataSource()
     }
 

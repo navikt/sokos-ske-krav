@@ -1,10 +1,12 @@
 package no.nav.sokos.ske.krav.validation
 
+import kotliquery.TransactionalSession
+
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.metrics.Metrics
-import no.nav.sokos.ske.krav.service.DatabaseService
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.service.FtpFil
 
 private val logger = mu.KotlinLogging.logger {}
@@ -13,8 +15,8 @@ class LineValidator(
     private val slackService: SlackService = SlackService(),
 ) {
     suspend fun validateNewLines(
+        tx: TransactionalSession,
         file: FtpFil,
-        dbService: DatabaseService,
     ): List<KravLinje> {
         val slackMessages = mutableListOf<Pair<String, String>>()
         val returnLines =
@@ -29,7 +31,7 @@ class LineValidator(
                     is ValidationResult.Error -> {
                         slackMessages.addAll(result.messages)
 
-                        dbService.saveLineValidationError(file.name, linje, result.messages.joinToString { pair -> pair.second })
+                        FilValideringsfeilRepository.insertFileValideringsfeil(tx, file.name, result.messages.joinToString { pair -> pair.second })
                         linje.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
                     }
                 }

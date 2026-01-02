@@ -1,8 +1,8 @@
 package no.nav.sokos.ske.krav.service
 
 import java.time.LocalDateTime
+import javax.sql.DataSource
 
-import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
@@ -25,7 +25,7 @@ import no.nav.sokos.ske.krav.util.parseTo
 private val logger = mu.KotlinLogging.logger {}
 
 class StatusService(
-    private val dataSource: HikariDataSource = PostgresConfig.dataSource,
+    private val dataSource: DataSource = PostgresConfig.dataSource,
     private val skeClient: SkeClient = SkeClient(),
     private val databaseService: DatabaseService = DatabaseService(),
     private val slackService: SlackService = SlackService(),

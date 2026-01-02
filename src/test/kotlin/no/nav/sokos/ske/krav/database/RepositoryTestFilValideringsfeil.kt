@@ -9,11 +9,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForLinje
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertFileValideringsfeil
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertLineFilValideringsfeil
-import no.nav.sokos.ske.krav.repository.toValideringsfeil
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
 internal class RepositoryTestFilValideringsfeil :
     FunSpec({
@@ -22,17 +19,17 @@ internal class RepositoryTestFilValideringsfeil :
         DBListener.loadInitScript("SQLscript/FilValideringsFeil.sql")
 
         test("getValideringsFeilForFil skal returnere valideringsfeil basert på filnavn") {
-            DBListener.dataSource.connection.use { con ->
-                con.getFilValideringsFeilForFil("Fil1.txt").size shouldBe 1
-                con.getFilValideringsFeilForFil("Fil2.txt").size shouldBe 2
-                con.getFilValideringsFeilForFil("Fil3.txt").size shouldBe 3
+            DBListener.dataSource.transaction { tx ->
+                FilValideringsfeilRepository.getFilValideringsFeilForFil(tx, "Fil1.txt").size shouldBe 1
+                FilValideringsfeilRepository.getFilValideringsFeilForFil(tx, "Fil2.txt").size shouldBe 2
+                FilValideringsfeilRepository.getFilValideringsFeilForFil(tx, "Fil3.txt").size shouldBe 3
             }
         }
         test("insertFileValideringsfeil skal inserte ny valideringsfeil med filnanvn og feilmelding") {
-            DBListener.dataSource.connection.use { con ->
-                con.insertFileValideringsfeil("Fil4.txt", "Test validation error insert")
+            DBListener.dataSource.transaction { tx ->
+                FilValideringsfeilRepository.insertFileValideringsfeil(tx, "Fil4.txt", "Test validation error insert")
 
-                val inserted = con.getFilValideringsFeilForFil("Fil4.txt")
+                val inserted = FilValideringsfeilRepository.getFilValideringsFeilForFil(tx, "Fil4.txt")
                 inserted.size shouldBe 1
                 inserted.first().run {
                     filnavn shouldBe "Fil4.txt"
@@ -70,15 +67,15 @@ internal class RepositoryTestFilValideringsfeil :
                     Avsender.OB04,
                 )
 
-            DBListener.dataSource.connection.use { con ->
+            DBListener.dataSource.transaction { tx ->
                 val feilMelding = "Test validation error insert med non-null kravlinje"
                 val fileName = "Non-null test"
 
-                val valideringsFeilBefore = con.prepareStatement("""select * from filvalideringsfeil""").executeQuery().toValideringsfeil()
+                val valideringsFeilBefore = FilValideringsfeilRepository.getAllFilValideringsFeil(tx)
 
-                con.insertLineFilValideringsfeil(fileName, linje, feilMelding)
+                FilValideringsfeilRepository.insertLineFilValideringsfeil(tx, fileName, linje, feilMelding)
 
-                val valideringsFeil = con.prepareStatement("""select * from filvalideringsfeil""").executeQuery().toValideringsfeil()
+                val valideringsFeil = FilValideringsfeilRepository.getAllFilValideringsFeil(tx)
                 valideringsFeil.size shouldBe valideringsFeilBefore.size + 1
                 valideringsFeil.filter { it.filnavn == fileName }.run {
                     size shouldBe 1
@@ -94,8 +91,8 @@ internal class RepositoryTestFilValideringsfeil :
 
         test("getValideringsFeilForLinje skal returnere en liste av ValideringsFeil knyttet til gitt filnavn og linjenummer") {
 
-            DBListener.dataSource.connection.use { con ->
-                with(con.getFilValideringsFeilForLinje("Fil1.txt", 1)) {
+            DBListener.dataSource.transaction { tx ->
+                with(FilValideringsfeilRepository.getFilValideringsFeilForLinje(tx, "Fil1.txt", 1)) {
                     size shouldBe 1
                     with(first()) {
                         valideringsfeilId shouldBe 11
@@ -108,8 +105,8 @@ internal class RepositoryTestFilValideringsfeil :
                 }
             }
 
-            DBListener.dataSource.connection.use { con ->
-                with(con.getFilValideringsFeilForLinje("Fil2.txt", 2)) {
+            DBListener.dataSource.transaction { tx ->
+                with(FilValideringsfeilRepository.getFilValideringsFeilForLinje(tx, "Fil2.txt", 2)) {
                     size shouldBe 2
                     with(get(0)) {
                         valideringsfeilId shouldBe 21
@@ -129,8 +126,8 @@ internal class RepositoryTestFilValideringsfeil :
                     }
                 }
             }
-            DBListener.dataSource.connection.use { con ->
-                with(con.getFilValideringsFeilForLinje("Fil3.txt", 3)) {
+            DBListener.dataSource.transaction { tx ->
+                with(FilValideringsfeilRepository.getFilValideringsFeilForLinje(tx, "Fil3.txt", 3)) {
                     size shouldBe 3
                     with(get(0)) {
                         valideringsfeilId shouldBe 31
