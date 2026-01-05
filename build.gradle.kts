@@ -32,7 +32,7 @@ val opentelemetryVersion = "2.23.0-alpha"
 
 // DB
 val hikaricpVersion = "7.0.2"
-val flywayVersion = "11.19.1"
+val flywayVersion = "11.20.0"
 val postgresqlVersion = "42.7.8"
 val kotliqueryVersion = "1.9.1"
 
