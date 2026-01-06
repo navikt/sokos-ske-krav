@@ -15,6 +15,16 @@ internal class StonadsTypeTest :
         test("getStonadstype skal returnere korrekt StonadsType for alle kombinasjoner") {
             val stonadsTypeMap =
                 mapOf(
+                    Pair("AE AA", "AT") to StonadsType.TILBAKEKREVING_ARBEIDSAVKLARINGSPENGER,
+                    Pair("AE AP", "AT") to StonadsType.TILBAKEKREVING_ATTFOERINGSPENGER,
+                    Pair("AE AY", "AT") to StonadsType.TILBAKEKREVING_ATTFOERINGSYTELSER,
+                    Pair("AE DP", "AT") to StonadsType.TILBAKEKREVING_DAGPENGER,
+                    Pair("AE IS", "AT") to StonadsType.TILBAKEKREVING_TILTAKSPENGER,
+                    Pair("AE MS", "AT") to StonadsType.TILBAKEKREVING_MOBILITETSFREMMENDE_STOENADER,
+                    Pair("AE SU", "AT") to StonadsType.TILBAKEKREVING_SPESIALUTBETALING,
+                    Pair("AE TA", "AT") to StonadsType.TILBAKEKREVING_TILLEGGSTOENAD,
+                    Pair("AE TT", "AT") to StonadsType.TILBAKEKREVING_TILLEGGSTOENAD,
+                    Pair("AE TS", "AT") to StonadsType.TILBAKEKREVING_TILLEGGSTOENADER,
                     Pair("BA OR", "T") to StonadsType.TILBAKEKREVING_BARNETRYGD,
                     Pair("BS OM", "T") to StonadsType.TILBAKEKREVING_OMSORGSPENGER,
                     Pair("BS PN", "T") to StonadsType.TILBAKEKREVING_PLEIEPENGER_BARN,
@@ -56,7 +66,7 @@ internal class StonadsTypeTest :
                     Pair("OM OM", "EO") to StonadsType.TILBAKEKREVING_OMSTILLINGSSTOENAD_ETTEROPPGJOER,
                 )
 
-            stonadsTypeMap.size shouldBe StonadsType.entries.size
+            stonadsTypeMap.values.toSet().size shouldBe StonadsType.entries.size
 
             stonadsTypeMap.forEach { (input, expected) ->
                 val krav =
