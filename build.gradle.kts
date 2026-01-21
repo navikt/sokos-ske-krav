@@ -47,7 +47,7 @@ val mockFtpServerVersion = "3.2.0"
 // Logging
 val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.23"
+val logbackVersion = "1.5.24"
 val logstashVersion = "9.0"
 
 dependencies {
@@ -179,7 +179,7 @@ tasks {
     }
 
     withType<Wrapper> {
-        gradleVersion = "9.2.1"
+        gradleVersion = "9.3.0"
     }
 
     ("build") {
