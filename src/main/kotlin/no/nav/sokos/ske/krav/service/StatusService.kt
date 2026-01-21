@@ -72,8 +72,7 @@ class StatusService(
             )
             logger.error { "$funksjonsKall feilet: ${feilmelding.title}" }
         } else {
-            val responseBody = response.bodyAsText()
-            logger.error { "$funksjonsKall feilet: ${response.status}: $responseBody" }
+            response.bodyAsText()
         }
     }
 
@@ -96,7 +95,7 @@ class StatusService(
         }
 
         val valideringsfeilListe = response.parseTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
-        logger.error("Asynk Valideringsfeil mottatt: ${valideringsfeilListe.joinToString { "${it.error}" }} ")
+        logger.info("Asynk Valideringsfeil mottatt ")
 
         dataSource.asyncTransaction { session ->
             FeilmeldingRepository.insertFeilmeldinger(

@@ -5,6 +5,7 @@ import kotlinx.serialization.json.Json
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 
+import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
@@ -25,13 +26,14 @@ suspend inline fun <reified T> HttpResponse.parseTo(): T? {
     val logger = mu.KotlinLogging.logger {}
     return try {
         body<T>()
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         try {
             val feilResponse = body<FeilResponse>()
             logger.warn { "Valideringsfeil mottatt: ${feilResponse.title}" }
             null
-        } catch (e2: Exception) {
-            logger.error(e2) { "Error decoding JSON to ${T::class.simpleName} and failed to parse error response" }
+        } catch (e: Exception) {
+            logger.error { "Error decoding JSON to ${T::class.simpleName} and failed to parse error response" }
+            logger.error(marker = TEAM_LOGS_MARKER) { "Error decoding JSON to ${T::class.simpleName} and failed to parse error response: ${e.message}" }
             null
         }
     }

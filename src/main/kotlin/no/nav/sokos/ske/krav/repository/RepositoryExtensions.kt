@@ -12,6 +12,8 @@ import java.time.LocalDateTime
 
 import mu.KotlinLogging
 
+import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
+
 object RepositoryExtensions {
     inline fun <R> Connection.useAndHandleErrors(block: (Connection) -> R): R {
         val logger = KotlinLogging.logger {}
@@ -19,6 +21,7 @@ object RepositoryExtensions {
             use(block)
         }.onFailure {
             logger.error { "Feil i databaseoperasjon" }
+            logger.error(marker = TEAM_LOGS_MARKER) { "Feil i databaseoperasjon: ${it.message}" }
         }.getOrThrow()
     }
 
