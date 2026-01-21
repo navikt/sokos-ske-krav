@@ -73,7 +73,7 @@ class MaskinportenAccessTokenProvider(
         return if (response.status.isSuccess()) {
             AccessToken(response.body<MaskinportenTokenResponse>())
         } else {
-            logger.error("Kunne ikke hente accessToken, se sikker log for meldingen som string")
+            logger.error("Kunne ikke hente accessToken,")
             val feilmelding = response.parseTo<TokenError>()
             secureLogger.error("Feil fra tokenprovider, Token: $jwtAssertion, Feilmelding: $feilmelding")
             throw Exception("Feil fra tokenprovider, Token: $jwtAssertion, Feilmelding: $feilmelding")

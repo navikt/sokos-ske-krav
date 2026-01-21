@@ -67,10 +67,10 @@ private fun CoroutineScope.launchJob(
             function()
             delay(delayDuration)
         } catch (e: CancellationException) {
-            logger.info { "Scheduled task cancelled: ${e.message}" }
+            logger.info { "Scheduled task cancelled" }
             break // Exit the loop on cancellation
         } catch (e: Exception) {
-            logger.error(e) { "Error in scheduled task: ${e.message}" }
+            logger.error(e) { "Error in scheduled task" }
             delay(delayDuration / 2)
         }
     }

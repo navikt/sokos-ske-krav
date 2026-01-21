@@ -96,7 +96,7 @@ class StatusService(
         }
 
         val valideringsfeilListe = response.parseTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
-        logger.error("Asynk Valideringsfeil mottatt: ${valideringsfeilListe.joinToString { "${it.error}: ${it.message} " }} ")
+        logger.error("Asynk Valideringsfeil mottatt: ${valideringsfeilListe.joinToString { "${it.error}" }} ")
 
         dataSource.asyncTransaction { session ->
             FeilmeldingRepository.insertFeilmeldinger(

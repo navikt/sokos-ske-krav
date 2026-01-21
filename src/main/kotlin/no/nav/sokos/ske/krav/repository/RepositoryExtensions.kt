@@ -18,7 +18,7 @@ object RepositoryExtensions {
         return runCatching {
             use(block)
         }.onFailure {
-            logger.error { it.message }
+            logger.error { "Feil i databaseoperasjon" }
         }.getOrThrow()
     }
 
@@ -26,15 +26,41 @@ object RepositoryExtensions {
         val logger = KotlinLogging.logger {}
         val columnValue =
             when (T::class) {
-                Int::class -> getInt(columnLabel)
-                Long::class -> getLong(columnLabel)
-                Char::class -> getString(columnLabel)?.get(0) ?: ' '
-                Double::class -> getDouble(columnLabel)
-                String::class -> getString(columnLabel)?.trim() ?: ""
-                Boolean::class -> getBoolean(columnLabel)
-                BigDecimal::class -> getBigDecimal(columnLabel)
-                LocalDate::class -> getDate(columnLabel)?.toLocalDate()
-                LocalDateTime::class -> getTimestamp(columnLabel)?.toLocalDateTime()
+                Int::class -> {
+                    getInt(columnLabel)
+                }
+
+                Long::class -> {
+                    getLong(columnLabel)
+                }
+
+                Char::class -> {
+                    getString(columnLabel)?.get(0) ?: ' '
+                }
+
+                Double::class -> {
+                    getDouble(columnLabel)
+                }
+
+                String::class -> {
+                    getString(columnLabel)?.trim() ?: ""
+                }
+
+                Boolean::class -> {
+                    getBoolean(columnLabel)
+                }
+
+                BigDecimal::class -> {
+                    getBigDecimal(columnLabel)
+                }
+
+                LocalDate::class -> {
+                    getDate(columnLabel)?.toLocalDate()
+                }
+
+                LocalDateTime::class -> {
+                    getTimestamp(columnLabel)?.toLocalDateTime()
+                }
 
                 else -> {
                     logger.error { "Kunne ikke mappe fra resultatsett til datafelt av type ${T::class.simpleName}" }

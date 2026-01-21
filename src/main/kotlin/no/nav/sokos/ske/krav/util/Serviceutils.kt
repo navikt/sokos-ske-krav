@@ -28,10 +28,10 @@ suspend inline fun <reified T> HttpResponse.parseTo(): T? {
     } catch (e: Exception) {
         try {
             val feilResponse = body<FeilResponse>()
-            logger.error { "Valideringsfeil mottatt: ${feilResponse.title}" }
+            logger.warn { "Valideringsfeil mottatt: ${feilResponse.title}" }
             null
         } catch (e2: Exception) {
-            logger.error(e2) { "Error decoding JSON to ${T::class.simpleName} and failed to parse error response: ${e2.message}" }
+            logger.error(e2) { "Error decoding JSON to ${T::class.simpleName} and failed to parse error response" }
             null
         }
     }
@@ -42,6 +42,6 @@ inline fun <reified T> T.encodeToString(): String {
     return runCatching {
         Json.encodeToString(this)
     }.onFailure { exception ->
-        logger.error(exception) { "Error encoding JSON to ${T::class.simpleName}: ${exception.message}" }
+        logger.error(exception) { "Error encoding JSON to ${T::class.simpleName}" }
     }.getOrDefault("Error encoding JSON to ${T::class.simpleName}")
 }
