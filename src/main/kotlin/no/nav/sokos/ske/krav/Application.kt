@@ -46,8 +46,10 @@ private fun Application.module() {
         PostgresConfig.migrate()
     }
 
-    StonadsType.entries.forEach {
-        Metrics.incrementKravKodeSendtMetric(it.kravKode)
+    StonadsType.entries.forEach { stonadsType ->
+        stonadsType.kravKoder.forEach { kravKode ->
+            Metrics.incrementKravKodeSendtMetric(kravKode)
+        }
     }
 
     if (!useTimer) {

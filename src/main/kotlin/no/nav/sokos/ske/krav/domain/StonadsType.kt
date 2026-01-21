@@ -62,7 +62,7 @@ enum class StonadsType(
     TILBAKEKREVING_UTDANNINGSSTOENAD(Identifikator("EF UT", "T")),
     ;
 
-    val kravKode: String get() = identifikatorer.first().kravKode
+    val kravKoder: List<String> get() = identifikatorer.map { it.kravKode }
 
     data class Identifikator(
         val kravKode: String,

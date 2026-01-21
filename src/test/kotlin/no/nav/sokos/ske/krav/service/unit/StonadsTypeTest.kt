@@ -89,4 +89,22 @@ internal class StonadsTypeTest :
                 StonadsType.getStonadstype(krav.kravkode, krav.kodeHjemmel)
             }
         }
+
+        test("kravKoder getter skal returnere alle kravkoder fra Identifikatorene") {
+            val stonadsType = StonadsType.TILBAKEKREVING_TILLEGGSTOENAD
+
+            val result = stonadsType.kravKoder
+
+            result.size shouldBe 3
+            result shouldBe listOf("TS TS", "AE TA", "AE TT")
+        }
+
+        test("kravKoder getter skal returnere riktig kravkode når Identifikator inneholder kun 1") {
+            val stonadsType = StonadsType.TILBAKEKREVING_UFOERETRYGD
+
+            val result = stonadsType.kravKoder
+
+            result.size shouldBe 1
+            result shouldBe listOf("PE UT")
+        }
     })
