@@ -18,7 +18,7 @@ class MetricsTest :
                     .tag("kravkode", kravkode)
                     .counter()
 
-            counter?.count()?.shouldBeExactly(0.0)
+            counter!!.count().shouldBeExactly(0.0)
         }
 
         test("incrementKravKodeSendtMetric should increment counter") {
@@ -33,7 +33,7 @@ class MetricsTest :
                     .tag("kravkode", kravkode)
                     .counter()
 
-            counter?.count()?.shouldBeExactly(2.0)
+            counter!!.count().shouldBeExactly(2.0)
         }
 
         test("getCounter should return same instance for same kravkode") {
@@ -44,17 +44,17 @@ class MetricsTest :
                 Metrics.registry
                     .find("sokos_ske_krav_kode_krav_sendt")
                     .tag("kravkode", kravkode)
-                    .counter()
-                    ?.count()
+                    .counter()!!
+                    .count()
 
             Metrics.incrementKravKodeSendtMetric(kravkode)
             val count2 =
                 Metrics.registry
                     .find("sokos_ske_krav_kode_krav_sendt")
                     .tag("kravkode", kravkode)
-                    .counter()
-                    ?.count()
+                    .counter()!!
+                    .count()
 
-            count2 shouldBe (count1?.plus(1.0))
+            count2 shouldBe (count1.plus(1.0))
         }
     })

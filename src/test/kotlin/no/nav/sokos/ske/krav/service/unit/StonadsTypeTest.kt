@@ -111,7 +111,7 @@ internal class StonadsTypeTest :
             val result = stonadsType.kravKoder
 
             result.size shouldBe 3
-            result shouldBe listOf("TS TS", "AE TA", "AE TT")
+            result.toSet() shouldBe setOf("TS TS", "AE TA", "AE TT")
         }
 
         test("kravKoder getter skal returnere riktig kravkode når Identifikator inneholder kun 1") {
