@@ -20,9 +20,8 @@ internal class PesysFileParserTest :
                 kravLinje.avsender shouldBe Avsender.PESYS
             }
 
-            val gjenlevende = kravLinjer.find { it.kravKode == "PE GP" }
-            if (gjenlevende != null) {
-                StonadsType.getStonadstype(gjenlevende.kravKode, gjenlevende.kodeHjemmel) shouldBe StonadsType.TILBAKEKREVING_GJENLEVENDE_PENSJON
-            }
+            val gjenlevende = kravLinjer.first { it.kravKode == "PE GP" }
+
+            StonadsType.getStonadstype(gjenlevende.kravKode, gjenlevende.kodeHjemmel) shouldBe StonadsType.TILBAKEKREVING_GJENLEVENDE_PENSJON
         }
     })
