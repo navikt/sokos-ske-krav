@@ -7,6 +7,7 @@ import com.jcraft.jsch.SftpException
 import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.SftpConfig
+import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.validation.FileValidator
 import no.nav.sokos.ske.krav.validation.ValidationResult
@@ -30,7 +31,7 @@ class FtpService(
     private val fileValidator: FileValidator = FileValidator(),
     private val databaseService: DatabaseService = DatabaseService(),
 ) {
-    private val logger = KotlinLogging.logger("secureLogger")
+    private val logger = KotlinLogging.logger { }
 
     fun listFiles(directory: Directories = Directories.INBOUND): List<String> =
         sftpConfig.channel { con ->
@@ -69,7 +70,8 @@ class FtpService(
                         }
                     }
             } catch (e: SftpException) {
-                logger.error { "Filer i ${directory.value} ble ikke hentet. Feilmelding: ${e.message}" }
+                logger.error { "Filer i ${directory.value} ble ikke hentet" }
+                logger.error(marker = TEAM_LOGS_MARKER) { "Filer i ${directory.value} ble ikke hentet. Feilmelding: ${e.message}" }
                 throw e
             }
         }
@@ -80,7 +82,9 @@ class FtpService(
 
         return files.mapNotNull { (fileName, fileContent) ->
             when (val validationResult = fileValidator.validateFile(fileContent, fileName)) {
-                is ValidationResult.Success -> FtpFil(fileName, fileContent, validationResult.kravLinjer)
+                is ValidationResult.Success -> {
+                    FtpFil(fileName, fileContent, validationResult.kravLinjer)
+                }
 
                 is ValidationResult.Error -> {
                     handleValidationError(fileName, validationResult.messages, directory)

@@ -5,12 +5,10 @@ import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Logger
 import com.jcraft.jsch.Session
 import mu.KotlinLogging
-import org.slf4j.LoggerFactory
 
 class SftpConfig(
     private val sftpProperties: PropertiesConfig.SftpProperties = PropertiesConfig.SftpProperties(),
 ) {
-    private val logger = KotlinLogging.logger("secureLogger")
     private val jsch: JSch =
         JSch().apply {
             JSch.setLogger(JSchLogger())
@@ -37,7 +35,7 @@ class SftpConfig(
 }
 
 class JSchLogger : Logger {
-    private val logger = LoggerFactory.getLogger(JSch::class.java)
+    private val logger = KotlinLogging.logger(JSch::class.java.name)
 
     override fun isEnabled(level: Int): Boolean = level == Logger.DEBUG && logger.isDebugEnabled
 
@@ -46,11 +44,8 @@ class JSchLogger : Logger {
         message: String,
     ) {
         when (level) {
-            Logger.DEBUG -> logger.debug(message)
-            Logger.INFO -> logger.info(message)
-            Logger.WARN -> logger.warn(message)
-            Logger.ERROR -> logger.error(message)
-            Logger.FATAL -> logger.error(message)
+            Logger.ERROR -> logger.error(marker = TEAM_LOGS_MARKER) { message }
+            Logger.FATAL -> logger.error(marker = TEAM_LOGS_MARKER) { message }
         }
     }
 }
