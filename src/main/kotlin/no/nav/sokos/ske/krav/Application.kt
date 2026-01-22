@@ -17,6 +17,7 @@ import no.nav.sokos.ske.krav.config.PostgresConfig
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.intervalPeriod
 import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.useTimer
+import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.config.commonConfig
 import no.nav.sokos.ske.krav.config.routingConfig
 import no.nav.sokos.ske.krav.config.securityConfig
@@ -66,11 +67,12 @@ private fun CoroutineScope.launchJob(
         try {
             function()
             delay(delayDuration)
-        } catch (e: CancellationException) {
-            logger.info { "Scheduled task cancelled: ${e.message}" }
+        } catch (_: CancellationException) {
+            logger.info { "Scheduled task cancelled" }
             break // Exit the loop on cancellation
         } catch (e: Exception) {
-            logger.error(e) { "Error in scheduled task: ${e.message}" }
+            logger.error { "Error in scheduled task" }
+            logger.error(marker = TEAM_LOGS_MARKER) { "Error in scheduled task ${e.message}" }
             delay(delayDuration / 2)
         }
     }
