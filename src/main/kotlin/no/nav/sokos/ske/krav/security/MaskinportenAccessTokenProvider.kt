@@ -22,6 +22,7 @@ import io.ktor.http.isSuccess
 import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig
+import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.util.parseTo
 
 class MaskinportenAccessTokenProvider(
@@ -29,7 +30,6 @@ class MaskinportenAccessTokenProvider(
     private val client: HttpClient,
 ) {
     private val logger = KotlinLogging.logger {}
-    private val secureLogger = KotlinLogging.logger("secureLogger")
     private val mutex = Mutex()
 
     private val timeLimit = Duration.ofSeconds(60)
@@ -73,9 +73,11 @@ class MaskinportenAccessTokenProvider(
         return if (response.status.isSuccess()) {
             AccessToken(response.body<MaskinportenTokenResponse>())
         } else {
-            logger.error("Kunne ikke hente accessToken, se sikker log for meldingen som string")
+            logger.error("Kunne ikke hente accessToken,")
             val feilmelding = response.parseTo<TokenError>()
-            secureLogger.error("Feil fra tokenprovider, Token: $jwtAssertion, Feilmelding: $feilmelding")
+            logger.error(marker = TEAM_LOGS_MARKER) {
+                "Feil fra tokenprovider, Token: $jwtAssertion, Feilmelding: $feilmelding"
+            }
             throw Exception("Feil fra tokenprovider, Token: $jwtAssertion, Feilmelding: $feilmelding")
         }
     }
