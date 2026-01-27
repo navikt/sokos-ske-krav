@@ -37,7 +37,7 @@ val postgresqlVersion = "42.7.9"
 val kotliqueryVersion = "1.9.1"
 
 // Test
-val kotestVersion = "6.0.7"
+val kotestVersion = "6.1.0"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.14.7"
 val commonsVersion = "3.12.0"
