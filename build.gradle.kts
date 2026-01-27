@@ -19,7 +19,7 @@ repositories {
     mavenCentral()
 }
 
-val ktorVersion = "3.3.3"
+val ktorVersion = "3.4.0"
 val jschVersion = "2.27.7"
 val nimbusVersion = "10.7"
 val kotlinxSerializationVersion = "1.9.0"
@@ -62,7 +62,7 @@ dependencies {
     // Ktor Client
     implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-core-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-client-apache-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-client-apache5-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
     // Security
