@@ -19,21 +19,21 @@ repositories {
     mavenCentral()
 }
 
-val ktorVersion = "3.3.3"
+val ktorVersion = "3.4.0"
 val jschVersion = "2.27.7"
-val nimbusVersion = "10.6"
+val nimbusVersion = "10.7"
 val kotlinxSerializationVersion = "1.9.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
-val prometheusVersion = "1.16.1"
-val opentelemetryVersion = "2.23.0-alpha"
+val prometheusVersion = "1.16.2"
+val opentelemetryVersion = "2.24.0-alpha"
 
 // DB
 val hikaricpVersion = "7.0.2"
-val flywayVersion = "11.20.0"
-val postgresqlVersion = "42.7.8"
+val flywayVersion = "11.20.2"
+val postgresqlVersion = "42.7.9"
 val kotliqueryVersion = "1.9.1"
 
 // Test
@@ -47,7 +47,7 @@ val mockFtpServerVersion = "3.2.0"
 // Logging
 val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.24"
+val logbackVersion = "1.5.25"
 val logstashVersion = "9.0"
 
 dependencies {
@@ -62,7 +62,7 @@ dependencies {
     // Ktor Client
     implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-core-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-client-apache-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-client-apache5-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
     // Security
@@ -108,7 +108,7 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion")
     testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
     testImplementation("io.mockk:mockk-jvm:$mockkVersion")
-    testImplementation("net.bytebuddy:byte-buddy:1.18.3") // TEMP: Needed for mockk 1.14.6 with java25. Remove when Mockk is updated and bytebuddy is no longer needed.
+    testImplementation("net.bytebuddy:byte-buddy:1.18.4") // TEMP: Needed for mockk 1.14.6 with java25. Remove when Mockk is updated and bytebuddy is no longer needed.
     testImplementation("org.testcontainers:postgresql:$testContainerVersion")
     testImplementation("commons-net:commons-net:$commonsVersion")
     testImplementation("org.mockftpserver:MockFtpServer:$mockFtpServerVersion")
