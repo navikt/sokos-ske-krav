@@ -78,7 +78,7 @@ enum class StonadsType(
                 type.identifikatorer.any { it.kravKode == kravkode && it.kodeHjemmel == kodeHjemmel }
             }
                 ?: throw NotImplementedError(
-                    "Kombinasjonen kravkode=$kravkode og hjemmelkode=$kodeHjemmel gir ingen kravtype.",
+                    "Kombinasjonen kravkode=$kravkode og hjemmelkode=$kodeHjemmel gir ingen stønadstype.",
                 )
     }
 }
