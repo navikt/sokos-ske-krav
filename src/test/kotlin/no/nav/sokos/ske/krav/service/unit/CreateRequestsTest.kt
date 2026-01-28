@@ -209,8 +209,8 @@ internal class CreateRequestsTest :
                     createOpprettKravRequest(kravTable).run {
                         tilleggsInformasjon!!.tilbakeKrevingsPeriode shouldBe
                             TilbakeKrevingsPeriode(
-                                fom = LocalDate.of(2022, 1, 15).toKotlinLocalDate(),
-                                tom = LocalDate.of(2022, 6, 30).toKotlinLocalDate(),
+                                fraDato = LocalDate.of(2022, 1, 15).toKotlinLocalDate(),
+                                tilDato = LocalDate.of(2022, 6, 30).toKotlinLocalDate(),
                             )
                     }
                 }
