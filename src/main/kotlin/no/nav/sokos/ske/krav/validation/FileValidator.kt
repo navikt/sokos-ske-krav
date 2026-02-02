@@ -35,7 +35,7 @@ class FileValidator(
                         }.onFailure { exception ->
                             val exceptionMessage = exception.message ?: "Ukjent feil"
                             add(ErrorKeys.PARSE_EXCEPTION to exceptionMessage)
-                            logger.error(exception) { exceptionMessage }
+                            logger.warn(exception) { "Feil i parsing av kravlinjer" }
                         }.getOrNull() ?: return@buildList
 
                     validateLines(lastLine, firstLine, kravLinjer)

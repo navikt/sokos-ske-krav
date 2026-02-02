@@ -22,12 +22,16 @@ import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.binder.system.UptimeMetrics
 import mu.KotlinLogging
+import org.slf4j.Marker
+import org.slf4j.MarkerFactory
 import org.slf4j.event.Level
 
 import no.nav.sokos.ske.krav.ApplicationState
 import no.nav.sokos.ske.krav.metrics.Metrics
 
 private val logger = KotlinLogging.logger {}
+
+val TEAM_LOGS_MARKER: Marker = MarkerFactory.getMarker("TEAM_LOGS")
 
 fun Application.commonConfig() {
     install(CallLogging) {

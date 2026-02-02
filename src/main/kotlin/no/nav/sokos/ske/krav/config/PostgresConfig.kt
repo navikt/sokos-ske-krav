@@ -19,7 +19,7 @@ object PostgresConfig {
     }
 
     fun migrate(dataSource: HikariDataSource = dataSource(role = PropertiesConfig.PostgresConfig.adminUser)) {
-        dataSource.use { hikariDataSource ->
+        dataSource.use {
             logger.info { "Flyway migration" }
             Flyway
                 .configure()
