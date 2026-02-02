@@ -22,7 +22,7 @@ repositories {
 val ktorVersion = "3.4.0"
 val jschVersion = "2.27.7"
 val nimbusVersion = "10.7"
-val kotlinxSerializationVersion = "1.9.0"
+val kotlinxSerializationVersion = "1.10.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
@@ -37,7 +37,7 @@ val postgresqlVersion = "42.7.9"
 val kotliqueryVersion = "1.9.1"
 
 // Test
-val kotestVersion = "6.0.7"
+val kotestVersion = "6.1.0"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.14.7"
 val commonsVersion = "3.12.0"
