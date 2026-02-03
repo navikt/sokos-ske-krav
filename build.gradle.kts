@@ -108,7 +108,6 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion")
     testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
     testImplementation("io.mockk:mockk-jvm:$mockkVersion")
-    testImplementation("net.bytebuddy:byte-buddy:1.18.4") // TEMP: Needed for mockk 1.14.6 with java25. Remove when Mockk is updated and bytebuddy is no longer needed.
     testImplementation("org.testcontainers:postgresql:$testContainerVersion")
     testImplementation("commons-net:commons-net:$commonsVersion")
     testImplementation("org.mockftpserver:MockFtpServer:$mockFtpServerVersion")
