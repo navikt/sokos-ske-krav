@@ -31,7 +31,7 @@ class LineValidator(
                     is ValidationResult.Error -> {
                         slackMessages.addAll(result.messages)
 
-                        FilValideringsfeilRepository.insertFileValideringsfeil(tx, file.name, result.messages.joinToString { pair -> pair.second })
+                        FilValideringsfeilRepository.insertLineFilValideringsfeil(tx, file.name, linje, result.messages.joinToString { pair -> pair.second })
                         linje.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
                     }
                 }

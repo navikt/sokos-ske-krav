@@ -71,19 +71,20 @@ object FilValideringsfeilRepository {
         filnavn: String,
         kravlinje: KravLinje,
         feilmelding: String,
-    ) = tx.update(
-        queryOf(
-            """
-            insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
-            values (?, ?, ?, ?, ? )
-            """.trimIndent(),
-            filnavn,
-            kravlinje.linjenummer,
-            kravlinje.saksnummerNav,
-            kravlinje.toString(),
-            feilmelding,
-        ),
-    )
+    ): Int =
+        tx.update(
+            queryOf(
+                """
+                insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
+                values (?, ?, ?, ?, ? )
+                """.trimIndent(),
+                filnavn,
+                kravlinje.linjenummer,
+                kravlinje.saksnummerNav,
+                kravlinje.toString(),
+                feilmelding,
+            ),
+        )
 
     private val mapToFilValideringsfeil: (Row) -> FilValideringsfeil = { row ->
         FilValideringsfeil(
