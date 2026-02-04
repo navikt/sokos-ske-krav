@@ -9,6 +9,7 @@ import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.PostgresConfig
 import no.nav.sokos.ske.krav.config.SftpConfig
+import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.util.DBUtils.transaction
@@ -34,7 +35,7 @@ class FtpService(
     private val fileValidator: FileValidator = FileValidator(),
     private val dataSource: DataSource = PostgresConfig.dataSource,
 ) {
-    private val logger = KotlinLogging.logger("secureLogger")
+    private val logger = KotlinLogging.logger { }
 
     fun listFiles(directory: Directories = Directories.INBOUND): List<String> =
         sftpConfig.channel { con ->
@@ -73,7 +74,8 @@ class FtpService(
                         }
                     }
             } catch (e: SftpException) {
-                logger.error { "Filer i ${directory.value} ble ikke hentet. Feilmelding: ${e.message}" }
+                logger.error { "Filer i ${directory.value} ble ikke hentet" }
+                logger.error(marker = TEAM_LOGS_MARKER) { "Filer i ${directory.value} ble ikke hentet. Feilmelding: ${e.message}" }
                 throw e
             }
         }
@@ -84,7 +86,9 @@ class FtpService(
 
         return files.mapNotNull { (fileName, fileContent) ->
             when (val validationResult = fileValidator.validateFile(fileContent, fileName)) {
-                is ValidationResult.Success -> FtpFil(fileName, fileContent, validationResult.kravLinjer)
+                is ValidationResult.Success -> {
+                    FtpFil(fileName, fileContent, validationResult.kravLinjer)
+                }
 
                 is ValidationResult.Error -> {
                     handleValidationError(fileName, validationResult.messages, directory)
