@@ -57,7 +57,7 @@ internal class FtpServiceIntegrationTest :
                     DBListener.dataSource.transaction { tx ->
                         with(FilValideringsfeilRepository.getFilValideringsFeilForFil(tx, FILE_ERROR)) {
                             size shouldBe 1
-                            first().feilmelding shouldBe "${FileValidator.ErrorKeys.FEIL_I_ANTALL}: Antall krav: 16, Antall i siste linje: 101\n"
+                            first().feilmelding shouldBe "${FileValidator.ErrorKeys.FEIL_I_ANTALL}: Antall krav: 16, Antall i siste linje: 101"
                         }
                     }
                 }
