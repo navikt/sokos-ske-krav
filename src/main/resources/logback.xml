@@ -39,6 +39,7 @@
         <then>
             <root level="INFO">
                 <appender-ref ref="${LOG_APPENDER:-default-json}"/>
+                <appender-ref ref="${LOG_APPENDER:-team-logs}"/>
             </root>
         </then>
         <else>
