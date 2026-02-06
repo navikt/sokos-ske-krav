@@ -20,16 +20,22 @@ object Metrics {
 
     private val kodeKravSendtCounters = ConcurrentHashMap<String, Counter>()
 
-    fun incrementKravKodeSendtMetric(kravkode: String) {
-        kodeKravSendtCounters
-            .computeIfAbsent(kravkode) {
-                Counter
-                    .builder("${NAMESPACE}_kode_krav_sendt")
-                    .description("type krav sendt til endepunkt")
-                    .tag("kravkode", kravkode)
-                    .register(registry)
-            }.increment()
+    fun registerKravKodeCounter(kravkode: String) {
+        getCounter(kravkode)
     }
+
+    fun incrementKravKodeSendtMetric(kravkode: String) {
+        getCounter(kravkode).increment()
+    }
+
+    private fun getCounter(kravkode: String): Counter =
+        kodeKravSendtCounters.computeIfAbsent(kravkode) {
+            Counter
+                .builder("${NAMESPACE}_kode_krav_sendt")
+                .description("type krav sendt til endepunkt")
+                .tag("kravkode", kravkode)
+                .register(registry)
+        }
 
     private fun counter(
         name: String,

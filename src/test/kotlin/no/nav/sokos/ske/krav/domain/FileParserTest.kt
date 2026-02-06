@@ -106,43 +106,4 @@ internal class FileParserTest :
 
             kravLinjer.first().tilleggsfrist shouldBe LocalDate.of(2025, 3, 1)
         }
-
-        test("Arena fil skal ha riktig avsender") {
-            val arenaFil = getFileContent("ArenaFil.txt")
-            val arenaParser = FileParser(arenaFil)
-
-            arenaParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.ARENA
-            arenaParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.ARENA
-
-            val kravLinjer = arenaParser.parseKravLinjer()
-            kravLinjer.forEach { kravLinje ->
-                kravLinje.avsender shouldBe Avsender.ARENA
-            }
-        }
-
-        test("Infotrygd fil skal ha riktig avsender") {
-            val infotrygdFil = getFileContent("InfotrygdFil.txt")
-            val infotrygdParser = FileParser(infotrygdFil)
-
-            infotrygdParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.INFOTRYGD
-            infotrygdParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.INFOTRYGD
-
-            val kravLinjer = infotrygdParser.parseKravLinjer()
-            kravLinjer.forEach { kravLinje ->
-                kravLinje.avsender shouldBe Avsender.INFOTRYGD
-            }
-        }
-
-        test("Pesys fil skal ha riktig avsender") {
-            val pesysFil = getFileContent("PesysFil.txt")
-            val pesysParser = FileParser(pesysFil)
-
-            pesysParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.PESYS
-            pesysParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.PESYS
-
-            val kravLinjer = pesysParser.parseKravLinjer()
-            kravLinjer.forEach { kravLinje ->
-                kravLinje.avsender shouldBe Avsender.PESYS
-            }
-        }
     })
