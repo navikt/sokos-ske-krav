@@ -1,6 +1,12 @@
 <configuration>
     <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
-
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>
+                %green(%d{HH:mm:ss}) %cyan([%-5.5t]) %boldCyan(%0.-5p) %yellow(%logger{36}) %cyan(:) %m%n
+            </pattern>
+        </encoder>
+    </appender>
     <!--
     The "team-logs" and "default-json" appenders are intended to be mutually exclusive;
     no single log call should end up appending to both of them.
@@ -39,6 +45,7 @@
         <then>
             <root level="INFO">
                 <appender-ref ref="${LOG_APPENDER:-default-json}"/>
+                <appender-ref ref="${LOG_APPENDER:-team-logs}"/>
             </root>
         </then>
         <else>

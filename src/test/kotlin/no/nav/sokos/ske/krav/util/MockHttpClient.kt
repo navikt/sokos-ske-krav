@@ -22,7 +22,6 @@ object MockHttpClientUtils {
         ENDRE_RENTER("/renter"),
         ENDRE_HOVEDSTOL("/hovedstol"),
         AVSKRIVING("/avskriving"),
-        ENDRE_REFERANSE("/oppdragsgiversreferanse"),
         HENT_VALIDERINGSFEIL("/valideringsfeil"),
     }
 
@@ -83,6 +82,16 @@ object MockHttpClientUtils {
             {
             "valideringsfeil": []
             }
+            """.trimMargin()
+
+        //language=json
+        val httpErrorResponse =
+            """
+           {
+  "status": 403,
+  "error": "Forbidden",
+  "message": "You do not have permission to access this resource. Please check your API token or authentication details."
+}
             """.trimMargin()
     }
 }
