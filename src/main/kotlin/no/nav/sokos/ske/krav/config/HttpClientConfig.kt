@@ -9,7 +9,6 @@ import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner
@@ -24,8 +23,6 @@ val httpClient =
             validateResponse { response ->
                 when (response.status) {
                     HttpStatusCode.Forbidden, HttpStatusCode.InternalServerError -> {
-                        val body = response.bodyAsText()
-                        logger.error(marker = TEAM_LOGS_MARKER) { "Received error status ${response.status} with body $body" }
                         logger.error("Received error status ${response.status}")
                     }
 
