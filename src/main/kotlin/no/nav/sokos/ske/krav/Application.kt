@@ -71,8 +71,7 @@ private fun CoroutineScope.launchJob(
             logger.info { "Scheduled task cancelled" }
             break // Exit the loop on cancellation
         } catch (e: Exception) {
-            logger.error { "Error in scheduled task" }
-            logger.error(marker = TEAM_LOGS_MARKER) { "Error in scheduled task ${e.message}" }
+            logger.error(marker = TEAM_LOGS_MARKER) { "Unhandled exception in scheduled task ${e.message}" }
             delay(delayDuration / 2)
         }
     }
