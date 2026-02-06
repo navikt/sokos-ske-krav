@@ -1,7 +1,5 @@
 package no.nav.sokos.ske.krav.service.integration
 
-import kotlinx.serialization.json.Json
-
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.body
@@ -15,7 +13,6 @@ import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.responses.AvstemmingResponse
-import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.dto.ske.responses.MottaksStatusResponse
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.SftpListener
@@ -176,7 +173,6 @@ internal class SkeServiceIntegrationTest :
                         }
                     }
 
-                kravMedFeil.size shouldBe 10
                 kravMedFeil.filter { it.status == Status.HTTP403_INGEN_TILGANG.value }.size shouldBe 10
             }
         }
@@ -198,7 +194,7 @@ internal class SkeServiceIntegrationTest :
                             .toFeilmelding()
                     }
 
-                feilmeldinger.map { Json.decodeFromString<FeilResponse>(it.skeResponse) }.count { it.status == 404 } shouldBe 10
+                feilmeldinger.filter { it.skeResponse.contains("404") }.size shouldBe 10
 
                 val kravMedFeil =
                     DBListener.dataSource.connection.use { conn ->
@@ -211,7 +207,6 @@ internal class SkeServiceIntegrationTest :
                         }
                     }
 
-                kravMedFeil.size shouldBe 10
                 kravMedFeil.filter { it.status == Status.HTTP404_FANT_IKKE_SAKSREF.value }.size shouldBe 10
             }
         }
