@@ -186,7 +186,7 @@ class SkeService(
         val skeKravidentifikator =
             if (kravidentifikator == krav.saksnummerNAV || kravidentifikator == krav.referansenummerGammelSak) "" else kravidentifikator
 
-        val feilResponse = response.parseTo<FeilResponse>() ?: FeilResponse("egendefinert", "Feil i parsing av http respons", 400, response.bodyAsText(), "")
+        val feilResponse = response.parseTo<FeilResponse>() ?: FeilResponse("egendefinert", "Feil i parsing av http respons", response.status.value, response.bodyAsText(), "")
 
         dataSource.asyncTransaction { session ->
             val feilmelding =
