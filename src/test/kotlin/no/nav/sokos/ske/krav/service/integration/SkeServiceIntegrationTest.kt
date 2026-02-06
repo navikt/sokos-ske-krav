@@ -146,25 +146,47 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
+        Given("Vi mottar 403") {
+            SftpListener.putFiles(listOf("10NyeKrav.txt"), Directories.INBOUND)
+            val nyttKravKall = MockRequestObj(Responses.httpErrorResponse, EndepunktType.OPPRETT, HttpStatusCode.Forbidden)
+
+            val httpClient = setUpMockHttpClient(listOf(nyttKravKall))
+            setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
+            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
+
+            Then("Skal feilen lagres i feilmeldingtabell") {
+                skeService.handleNewKrav()
+                val feilmeldinger =
+                    DBListener.dataSource.connection.use {
+                        it
+                            .prepareStatement("SELECT * FROM feilmelding")
+                            .executeQuery()
+                            .toFeilmelding()
+                    }
+
+                feilmeldinger.filter { it.skeResponse.contains("403") }.size shouldBe 10
+                val kravMedFeil =
+                    DBListener.dataSource.connection.use { conn ->
+                        feilmeldinger.flatMap { feilmelding ->
+                            conn
+                                .prepareStatement("""select * from krav where corr_id = ?""")
+                                .withParameters(feilmelding.corrId)
+                                .executeQuery()
+                                .toKrav()
+                        }
+                    }
+
+                kravMedFeil.size shouldBe 10
+                kravMedFeil.filter { it.status == Status.HTTP403_INGEN_TILGANG.value }.size shouldBe 10
+            }
+        }
+
         Given("Et krav feiler ") {
             SftpListener.putFiles(listOf("10NyeKrav.txt"), Directories.INBOUND)
             val nyttKravKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.OPPRETT, HttpStatusCode.NotFound)
-            val avskrivKravKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.NotFound)
-            val endreRenterKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.NotFound)
-            val endreHovedstolKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.NotFound)
-            val endreReferanseKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.ENDRE_REFERANSE, HttpStatusCode.NotFound)
-            val mottaksstatusKall = MockRequestObj(Responses.mottaksStatusResponse(), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
 
-            val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall, mottaksstatusKall))
+            val httpClient = setUpMockHttpClient(listOf(nyttKravKall))
             val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
-
-            val feilmeldingerBefore =
-                DBListener.dataSource.connection.use {
-                    it
-                        .prepareStatement("SELECT * FROM feilmelding")
-                        .executeQuery()
-                        .toFeilmelding()
-                }
 
             Then("skal det lagres i feilmeldingtabell") {
                 skeService.handleNewKrav()
@@ -176,8 +198,7 @@ internal class SkeServiceIntegrationTest :
                             .toFeilmelding()
                     }
 
-                feilmeldinger.size shouldBe 10 + feilmeldingerBefore.size
-                feilmeldinger.map { Json.decodeFromString<FeilResponse>(it.skeResponse).status == 404 }.size shouldBe 10
+                feilmeldinger.map { Json.decodeFromString<FeilResponse>(it.skeResponse) }.count { it.status == 404 } shouldBe 10
 
                 val kravMedFeil =
                     DBListener.dataSource.connection.use { conn ->
@@ -212,10 +233,9 @@ internal class SkeServiceIntegrationTest :
             val avskrivKravKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.OK)
             val endreRenterKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
             val endreHovedstolKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
-            val endreReferanseKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_REFERANSE, HttpStatusCode.OK)
             val mottaksstatusKall = MockRequestObj(Responses.mottaksStatusResponse(), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
 
-            val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, endreReferanseKall, mottaksstatusKall))
+            val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, mottaksstatusKall))
             val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
 
             Then("skal kravet resendes") {

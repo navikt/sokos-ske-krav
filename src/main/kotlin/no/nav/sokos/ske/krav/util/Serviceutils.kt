@@ -11,6 +11,8 @@ import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 
+val logger = mu.KotlinLogging.logger {}
+
 fun createKravidentifikatorPair(it: Krav): Pair<String, KravidentifikatorType> {
     var kravIdentifikator = it.kravidentifikatorSKE
     var kravIdentifikatorType = KravidentifikatorType.SKATTEETATENSKRAVIDENTIFIKATOR
@@ -22,28 +24,20 @@ fun createKravidentifikatorPair(it: Krav): Pair<String, KravidentifikatorType> {
     return Pair(kravIdentifikator, kravIdentifikatorType)
 }
 
-suspend inline fun <reified T> HttpResponse.parseTo(): T? {
-    val logger = mu.KotlinLogging.logger {}
-    return try {
-        body<T>()
-    } catch (_: Exception) {
-        try {
-            val feilResponse = body<FeilResponse>()
-            logger.warn { "Valideringsfeil mottatt: ${feilResponse.title}" }
-            null
-        } catch (e: Exception) {
-            logger.error { "Error decoding JSON to ${T::class.simpleName} and failed to parse error response" }
-            logger.error(marker = TEAM_LOGS_MARKER) { "Error decoding JSON to ${T::class.simpleName} and failed to parse error response: ${e.message}" }
-            null
-        }
-    }
-}
+suspend inline fun <reified T> HttpResponse.parseTo(): T? =
+    runCatching {
+        val response = body<T>()
+        if (T::class == FeilResponse::class) logger.warn("Valideringsfeil mottatt: ${(response as FeilResponse).title}")
+        response
+    }.onFailure { e ->
+        logger.error { "Error decoding JSON to ${T::class.simpleName}" }
+        logger.error(marker = TEAM_LOGS_MARKER) { "Error decoding JSON to ${T::class.simpleName}: ${e.message}" }
+    }.getOrNull()
 
-inline fun <reified T> T.encodeToString(): String {
-    val logger = mu.KotlinLogging.logger {}
-    return runCatching {
+inline fun <reified T> T.encodeToString(): String =
+    runCatching {
         Json.encodeToString(this)
-    }.onFailure { exception ->
-        logger.error(exception) { "Error encoding JSON to ${T::class.simpleName}" }
-    }.getOrDefault("Error encoding JSON to ${T::class.simpleName}")
-}
+    }.onFailure { e ->
+        logger.error { "Error encoding JSON to ${T::class.simpleName}" }
+        logger.error(marker = TEAM_LOGS_MARKER) { "Error encoding JSON to ${T::class.simpleName}: ${e.message}" }
+    }.getOrThrow()
