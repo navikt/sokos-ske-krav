@@ -133,7 +133,7 @@ fun setupSkeServiceMockWithMockEngine(
 fun mockHttpResponse(
     code: Int,
     feilResponseType: String = "",
-) = mockk<HttpResponse> {
+) = mockk<HttpResponse>(relaxed = true) {
     every { status.value } returns code
     coEvery { body<FeilResponse>().type } returns feilResponseType
 }
