@@ -70,8 +70,6 @@ object LineValidationRules {
             }
 
         return if (errorMessages.isNotEmpty()) {
-            println("FEIL I KRAVLINJE $krav")
-            println(errorMessages)
             ValidationResult.Error(errorMessages)
         } else {
             ValidationResult.Success(listOf(krav))
