@@ -27,7 +27,9 @@ fun createKravidentifikatorPair(it: Krav): Pair<String, KravidentifikatorType> {
 suspend inline fun <reified T> HttpResponse.parseTo(): T? =
     runCatching {
         val response = body<T>()
-        if (T::class == FeilResponse::class) logger.warn("Valideringsfeil mottatt: ${(response as FeilResponse).title}")
+        if (T::class == FeilResponse::class) {
+            logger.warn { "Valideringsfeil mottatt: ${(response as FeilResponse).title}" }
+        }
         response
     }.onFailure { e ->
         logger.error { "Error decoding JSON to ${T::class.simpleName}" }
