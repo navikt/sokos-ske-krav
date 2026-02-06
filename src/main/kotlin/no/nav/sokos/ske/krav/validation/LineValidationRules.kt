@@ -3,6 +3,8 @@ package no.nav.sokos.ske.krav.validation
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import mu.KotlinLogging
+
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.StonadsType
@@ -35,6 +37,8 @@ import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.VEDTAK
 * vedtaksdato = fastsettelsesdato
 */
 object LineValidationRules {
+    private val logger = KotlinLogging.logger {}
+
     fun runValidation(krav: KravLinje): ValidationResult {
         val errorMessages =
             buildList {
@@ -70,8 +74,8 @@ object LineValidationRules {
             }
 
         return if (errorMessages.isNotEmpty()) {
-            println("FEIL I KRAVLINJE $krav")
-            println(errorMessages)
+            logger.error { "FEIL I KRAVLINJE $krav" }
+            logger.error { errorMessages.toString() }
             ValidationResult.Error(errorMessages)
         } else {
             ValidationResult.Success(listOf(krav))

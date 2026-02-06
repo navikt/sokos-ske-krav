@@ -53,7 +53,7 @@ class MaskinportenAccessTokenProvider(
                 tokenCache.set(getMaskinportenToken())
             }
 
-            tokenCache.get()!!.token
+            tokenCache.get()?.token ?: throw IllegalStateException("Failed to obtain access token")
         }
 
     private suspend fun getMaskinportenToken(): AccessToken {
@@ -76,9 +76,9 @@ class MaskinportenAccessTokenProvider(
             logger.error("Kunne ikke hente accessToken,")
             val feilmelding = response.parseTo<TokenError>()
             logger.error(marker = TEAM_LOGS_MARKER) {
-                "Feil fra tokenprovider, Token: $jwtAssertion, Feilmelding: $feilmelding"
+                "Feil fra tokenprovider. Feilmelding: $feilmelding"
             }
-            throw Exception("Feil fra tokenprovider, Token: $jwtAssertion, Feilmelding: $feilmelding")
+            throw MaskinportenTokenException("Feil fra tokenprovider. Feilmelding: $feilmelding")
         }
     }
 
@@ -122,3 +122,7 @@ class MaskinportenAccessTokenProvider(
         @SerialName("token_endpoint") val tokenEndpoint: String,
     )
 }
+
+class MaskinportenTokenException(
+    message: String,
+) : RuntimeException(message)
