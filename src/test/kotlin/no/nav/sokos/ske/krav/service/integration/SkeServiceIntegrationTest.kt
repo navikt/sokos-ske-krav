@@ -148,7 +148,6 @@ internal class SkeServiceIntegrationTest :
             val nyttKravKall = MockRequestObj(Responses.httpErrorResponse, EndepunktType.OPPRETT, HttpStatusCode.Forbidden)
 
             val httpClient = setUpMockHttpClient(listOf(nyttKravKall))
-            setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
             val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
 
             Then("Skal feilen lagres i feilmeldingtabell") {
