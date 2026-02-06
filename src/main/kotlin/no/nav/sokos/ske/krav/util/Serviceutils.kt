@@ -42,4 +42,4 @@ inline fun <reified T> T.encodeToString(): String =
     }.onFailure { e ->
         logger.error { "Error encoding JSON to ${T::class.simpleName}" }
         logger.error(marker = TEAM_LOGS_MARKER) { "Error encoding JSON to ${T::class.simpleName}: ${e.message}" }
-    }.getOrThrow()
+    }.getOrDefault("")
