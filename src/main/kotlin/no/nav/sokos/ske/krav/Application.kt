@@ -7,13 +7,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 
+import no.nav.sokos.ske.krav.config.ApplicationState
 import no.nav.sokos.ske.krav.config.PropertiesConfigNew
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
+import no.nav.sokos.ske.krav.config.applicationLifecycleConfig
 import no.nav.sokos.ske.krav.config.mergeWithEnv
 import no.nav.sokos.ske.krav.service.Frontend
 
@@ -29,11 +29,11 @@ private fun Application.module() {
 
     val useAuthentication = PropertiesConfigNew.applicationProperties.useAuthentication
 
-//    val applicationState = ApplicationState()
+    val applicationState = ApplicationState()
 //    val skeService = SkeService()
 //
 //    commonConfig()
-//    applicationLifecycleConfig(applicationState)
+    applicationLifecycleConfig(applicationState)
 //    securityConfig(useAuthentication)
 //    routingConfig(useAuthentication, applicationState, skeService)
 //
@@ -73,19 +73,3 @@ private fun CoroutineScope.launchJob(
         }
     }
 }
-
-fun Application.applicationLifecycleConfig(applicationState: ApplicationState) {
-    monitor.subscribe(ApplicationStarted) {
-        applicationState.ready = true
-    }
-
-    monitor.subscribe(ApplicationStopped) {
-        applicationState.ready = false
-    }
-}
-
-// TODO: Switch to default false
-class ApplicationState(
-    var ready: Boolean = true,
-    var alive: Boolean = true,
-)
