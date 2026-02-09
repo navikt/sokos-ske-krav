@@ -8,7 +8,7 @@ plugins {
     kotlin("jvm") version "2.3.0"
     kotlin("plugin.serialization") version "2.3.0"
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
-    id("org.jetbrains.kotlinx.kover") version "0.9.4"
+    id("org.jetbrains.kotlinx.kover") version "0.9.5"
 
     application
 }
@@ -47,7 +47,7 @@ val mockFtpServerVersion = "3.2.0"
 // Logging
 val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.26"
+val logbackVersion = "1.5.27"
 val logstashVersion = "9.0"
 
 dependencies {
