@@ -80,17 +80,7 @@ object PropertiesConfig {
         PROD,
     }
 
-    val isLocal = Configuration().profile == Profile.LOCAL
-
     operator fun get(key: String): String = config[Key(key, stringType)]
-
-    data class Configuration(
-        val naisAppName: String = get("NAIS_APP_NAME"),
-        val profile: Profile = Profile.valueOf(this["APPLICATION_PROFILE"]),
-        val useAuthentication: Boolean = get("USE_AUTHENTICATION").toBoolean(),
-        val basicUsername: String = get("BASIC_AUTH_USERNAME"),
-        val basicPassword: String = get("BASIC_AUTH_PASSWORD"),
-    )
 
     data class AzureAdProperties(
         val clientId: String = get("AZURE_APP_CLIENT_ID"),

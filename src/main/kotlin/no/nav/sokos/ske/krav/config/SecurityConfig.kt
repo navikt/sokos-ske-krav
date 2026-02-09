@@ -34,7 +34,7 @@ fun Application.securityConfig(
 
         authentication {
             jwt(AUTHENTICATION_NAME) {
-                realm = PropertiesConfig.Configuration().naisAppName
+                realm = PropertiesConfigNew.applicationProperties.appName
                 verifier(
                     jwkProvider = jwkProvider,
                     issuer = openIdMetadata.issuer,
@@ -60,8 +60,8 @@ fun Application.securityConfig(
             basic(BASIC_AUTH_NAME) {
                 realm = "Rapport Access"
                 validate { credentials ->
-                    val config = PropertiesConfig.Configuration()
-                    if (credentials.name == config.basicUsername && credentials.password == config.basicPassword) {
+                    val properties = PropertiesConfigNew.applicationProperties
+                    if (credentials.name == properties.basicUsername && credentials.password == properties.basicPassword) {
                         UserIdPrincipal(credentials.name)
                     } else {
                         null

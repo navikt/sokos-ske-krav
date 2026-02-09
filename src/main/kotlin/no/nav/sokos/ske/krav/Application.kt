@@ -1,7 +1,6 @@
 package no.nav.sokos.ske.krav
 
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -13,18 +12,10 @@ import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 
-import no.nav.sokos.ske.krav.config.PostgresConfig
-import no.nav.sokos.ske.krav.config.PropertiesConfig
-import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.schedulerIntervalPeriod
-import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.useTimer
+import no.nav.sokos.ske.krav.config.PropertiesConfigNew
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
-import no.nav.sokos.ske.krav.config.commonConfig
-import no.nav.sokos.ske.krav.config.routingConfig
-import no.nav.sokos.ske.krav.config.securityConfig
-import no.nav.sokos.ske.krav.domain.StonadsType
-import no.nav.sokos.ske.krav.metrics.Metrics
+import no.nav.sokos.ske.krav.config.mergeWithEnv
 import no.nav.sokos.ske.krav.service.Frontend
-import no.nav.sokos.ske.krav.service.SkeService
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -34,32 +25,35 @@ private val logger = mu.KotlinLogging.logger {}
 
 @OptIn(Frontend::class)
 private fun Application.module() {
-    val useAuthentication = PropertiesConfig.Configuration().useAuthentication
-    val applicationState = ApplicationState()
-    val skeService = SkeService()
+    PropertiesConfigNew.load(environment.config.mergeWithEnv())
 
-    commonConfig()
-    applicationLifecycleConfig(applicationState)
-    securityConfig(useAuthentication)
-    routingConfig(useAuthentication, applicationState, skeService)
+    val useAuthentication = PropertiesConfigNew.applicationProperties.useAuthentication
 
-    if (!PropertiesConfig.isLocal) {
-        PostgresConfig.migrate()
-    }
-
-    StonadsType.entries
-        .flatMap { it.kravKoder }
-        .distinct()
-        .forEach { kravKode ->
-            Metrics.registerKravKodeCounter(kravKode)
-        }
-
-    if (!useTimer) {
-        return
-    }
-
-    launchJob(skeService::handleNewKrav, schedulerIntervalPeriod)
-    launchJob(skeService::checkKravDateForAlert, 24.hours)
+//    val applicationState = ApplicationState()
+//    val skeService = SkeService()
+//
+//    commonConfig()
+//    applicationLifecycleConfig(applicationState)
+//    securityConfig(useAuthentication)
+//    routingConfig(useAuthentication, applicationState, skeService)
+//
+//    if (!PropertiesConfigNew.isLocal) {
+//        PostgresConfig.migrate()
+//    }
+//
+//    StonadsType.entries
+//        .flatMap { it.kravKoder }
+//        .distinct()
+//        .forEach { kravKode ->
+//            Metrics.registerKravKodeCounter(kravKode)
+//        }
+//
+//    if (!useTimer) {
+//        return
+//    }
+//
+//    launchJob(skeService::handleNewKrav, schedulerIntervalPeriod)
+//    launchJob(skeService::checkKravDateForAlert, 24.hours)
 }
 
 private fun CoroutineScope.launchJob(
@@ -90,6 +84,7 @@ fun Application.applicationLifecycleConfig(applicationState: ApplicationState) {
     }
 }
 
+// TODO: Switch to default false
 class ApplicationState(
     var ready: Boolean = true,
     var alive: Boolean = true,

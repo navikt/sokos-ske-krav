@@ -37,7 +37,7 @@ object PostgresConfig {
         hikariConfig: HikariConfig = hikariConfig(),
         role: String = PropertiesConfig.PostgresConfig.user,
     ): HikariDataSource =
-        if (PropertiesConfig.isLocal) {
+        if (PropertiesConfigNew.isLocal) {
             HikariDataSource(hikariConfig)
         } else {
             HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
@@ -55,7 +55,7 @@ object PostgresConfig {
             isAutoCommit = false
             dataSource =
                 PGSimpleDataSource().apply {
-                    if (PropertiesConfig.isLocal) {
+                    if (PropertiesConfigNew.isLocal) {
                         user = postgresConfig.username
                         password = postgresConfig.password
                     }
