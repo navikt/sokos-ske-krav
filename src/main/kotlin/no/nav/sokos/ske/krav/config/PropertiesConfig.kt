@@ -82,13 +82,6 @@ object PropertiesConfig {
 
     operator fun get(key: String): String = config[Key(key, stringType)]
 
-    data class AzureAdProperties(
-        val clientId: String = get("AZURE_APP_CLIENT_ID"),
-        val wellKnownUrl: String = get("AZURE_APP_WELL_KNOWN_URL"),
-        val tenantId: String = get("AZURE_APP_TENANT_ID"),
-        val clientSecret: String = get("AZURE_APP_CLIENT_SECRET"),
-    )
-
     data class SftpProperties(
         val host: String = get("SFTP_SERVER"),
         val username: String = get("SKE_SFTP_USERNAME").trim(),

@@ -19,6 +19,10 @@ object PropertiesConfigNew {
         config.property("application").getAs<ApplicationProperties>()
     }
 
+    val azureAdProperties by lazy {
+        config.property("azureAd").getAs<AzureAdProperties>()
+    }
+
     fun load(applicationConfig: ApplicationConfig) {
         if (!::config.isInitialized) {
             config = applicationConfig
@@ -57,3 +61,11 @@ data class ApplicationProperties(
 ) {
     val isLocal = profile == Profile.LOCAL
 }
+
+@Serializable
+data class AzureAdProperties(
+    val clientId: String,
+    val wellKnownUrl: String,
+    val tenantId: String,
+    val clientSecret: String,
+)

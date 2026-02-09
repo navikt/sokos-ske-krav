@@ -25,7 +25,7 @@ const val BASIC_AUTH_NAME = "basicAuth"
 
 fun Application.securityConfig(
     useAuthentication: Boolean,
-    azureAdProperties: PropertiesConfig.AzureAdProperties = PropertiesConfig.AzureAdProperties(),
+    azureAdProperties: AzureAdProperties = PropertiesConfigNew.azureAdProperties,
 ) {
     logger.info { "Use authentication: $useAuthentication" }
     if (useAuthentication) {
