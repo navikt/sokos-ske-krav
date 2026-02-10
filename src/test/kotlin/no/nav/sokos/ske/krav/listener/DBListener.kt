@@ -11,7 +11,7 @@ import org.testcontainers.ext.ScriptUtils
 import org.testcontainers.jdbc.JdbcDatabaseDelegate
 import org.testcontainers.utility.DockerImageName
 
-import no.nav.sokos.ske.krav.config.PostgresConfig
+import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
@@ -33,7 +33,7 @@ object DBListener : TestListener {
                 isAutoCommit = false
             }
     }.apply {
-        PostgresConfig.migrate(container.toDataSource())
+        PostgresDataSource.migrate(container.toDataSource())
     }
 
     fun loadInitScript(name: String) = ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)

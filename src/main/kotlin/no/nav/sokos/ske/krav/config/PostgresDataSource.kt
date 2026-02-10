@@ -12,7 +12,7 @@ import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 
 private val logger = KotlinLogging.logger {}
 
-object PostgresConfig {
+object PostgresDataSource {
     val dataSource: HikariDataSource by lazy {
         dataSource()
     }
