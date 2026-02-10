@@ -28,6 +28,10 @@ object PropertiesConfigNew {
         config.property("maskinportenClient").getAs<MaskinportenClientConfig>()
     }
 
+    val skeRestConfig by lazy {
+        config.property("skeConfig").getAs<SkeConfig>()
+    }
+
     fun load(applicationConfig: ApplicationConfig) {
         if (!::config.isInitialized) {
             config = applicationConfig
@@ -86,3 +90,8 @@ data class MaskinportenClientConfig(
         RSAKey.parse(rsaKeyString)
     }
 }
+
+@Serializable
+data class SkeConfig(
+    val skeRestUrl: String,
+)

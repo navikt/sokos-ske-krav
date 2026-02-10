@@ -89,10 +89,6 @@ object PropertiesConfig {
         val port: Int = get("SFTP_PORT").toInt(),
     )
 
-    data object SKEConfig {
-        val skeRestUrl: String = get("SKE_REST_URL")
-    }
-
     data object PostgresConfig {
         val host: String = get("POSTGRES_HOST")
         val port: String = get("POSTGRES_PORT")
