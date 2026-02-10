@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.config
 
 import kotlinx.serialization.Serializable
 
+import com.nimbusds.jose.jwk.RSAKey
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.HoconApplicationConfig
@@ -21,6 +22,10 @@ object PropertiesConfigNew {
 
     val azureAdProperties by lazy {
         config.property("azureAd").getAs<AzureAdProperties>()
+    }
+
+    val maskinportenClientProperties by lazy {
+        config.property("maskinportenClient").getAs<MaskinportenClientConfig>()
     }
 
     fun load(applicationConfig: ApplicationConfig) {
@@ -69,3 +74,15 @@ data class AzureAdProperties(
     val tenantId: String,
     val clientSecret: String,
 )
+
+@Serializable
+data class MaskinportenClientConfig(
+    val clientId: String,
+    val wellKnownUrl: String,
+    val rsaKeyString: String,
+    val scopes: String,
+) {
+    val rsaKey: RSAKey? by lazy {
+        RSAKey.parse(rsaKeyString)
+    }
+}

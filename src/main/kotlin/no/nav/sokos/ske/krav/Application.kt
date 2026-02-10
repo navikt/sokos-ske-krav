@@ -28,7 +28,6 @@ private fun Application.module() {
     PropertiesConfigNew.load(environment.config.mergeWithEnv())
 
     val useAuthentication = PropertiesConfigNew.applicationProperties.useAuthentication
-
     val applicationState = ApplicationState()
 //    val skeService = SkeService()
 //

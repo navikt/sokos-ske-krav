@@ -11,7 +11,6 @@ import com.natpryce.konfig.EnvironmentVariables
 import com.natpryce.konfig.Key
 import com.natpryce.konfig.overriding
 import com.natpryce.konfig.stringType
-import com.nimbusds.jose.jwk.RSAKey
 
 object PropertiesConfig {
     private val defaultProperties =
@@ -88,13 +87,6 @@ object PropertiesConfig {
         val privateKeyPassword: String = get("SKE_SFTP_PASSWORD").trim(),
         val privateKey: String = get("SFTP_PRIVATE_KEY_FILE_PATH"),
         val port: Int = get("SFTP_PORT").toInt(),
-    )
-
-    data class MaskinportenClientConfig(
-        val clientId: String = get("MASKINPORTEN_CLIENT_ID"),
-        val wellKnownUrl: String = get("MASKINPORTEN_WELL_KNOWN_URL"),
-        val rsaKey: RSAKey? = RSAKey.parse(get("MASKINPORTEN_CLIENT_JWK")),
-        val scopes: String = get("MASKINPORTEN_SCOPES"),
     )
 
     data object SKEConfig {
