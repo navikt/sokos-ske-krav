@@ -32,6 +32,10 @@ object PropertiesConfigNew {
         config.property("skeConfig").getAs<SkeConfig>()
     }
 
+    val slackConfig by lazy {
+        config.property("slackConfig").getAs<SlackConfig>()
+    }
+
     fun load(applicationConfig: ApplicationConfig) {
         if (!::config.isInitialized) {
             config = applicationConfig
@@ -94,4 +98,9 @@ data class MaskinportenClientConfig(
 @Serializable
 data class SkeConfig(
     val skeRestUrl: String,
+)
+
+@Serializable
+data class SlackConfig(
+    val url: String,
 )

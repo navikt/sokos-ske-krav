@@ -3,13 +3,18 @@ package no.nav.sokos.ske.krav.service.unit
 import java.time.LocalDateTime
 
 import io.kotest.core.spec.style.BehaviorSpec
+import io.ktor.server.config.ApplicationConfig
+import io.mockk.clearAllMocks
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.spyk
+import io.mockk.unmockkObject
 
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
+import no.nav.sokos.ske.krav.config.PropertiesConfigNew
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.util.MockHttpClient
@@ -17,6 +22,10 @@ import no.nav.sokos.ske.krav.util.setupSkeServiceMock
 
 class SkeServiceTest :
     BehaviorSpec({
+        beforeSpec {
+            mockkObject(PropertiesConfigNew)
+            every { PropertiesConfigNew.config } returns ApplicationConfig("application-test.conf")
+        }
 
         Given("Det finnes krav som ikke er reskontroført etter 24t") {
             val databaseServiceMock =
@@ -58,5 +67,10 @@ class SkeServiceTest :
                     slackServiceSpy.addError("Testfil", "Krav har blitt forsøkt resendt for lenge", any<Pair<String, String>>())
                 }
             }
+        }
+
+        afterSpec {
+            clearAllMocks()
+            unmockkObject(PropertiesConfigNew)
         }
     })

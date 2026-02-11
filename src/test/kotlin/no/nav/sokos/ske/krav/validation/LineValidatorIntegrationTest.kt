@@ -5,12 +5,18 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import io.ktor.server.config.ApplicationConfig
+import io.mockk.clearAllMocks
 import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockkObject
 import io.mockk.slot
 import io.mockk.spyk
+import io.mockk.unmockkObject
 
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
+import no.nav.sokos.ske.krav.config.PropertiesConfigNew
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
@@ -39,6 +45,11 @@ internal class LineValidatorIntegrationTest :
             dbService: DatabaseService,
             slackServiceSpy: SlackService,
         ): FtpService = FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(slackService = slackServiceSpy), databaseService = dbService)
+
+        beforeSpec {
+            mockkObject(PropertiesConfigNew)
+            every { PropertiesConfigNew.config } returns ApplicationConfig("application-test.conf")
+        }
 
         Given("Alle linjer er ok") {
             val dbService = DatabaseService(DBListener.dataSource)
@@ -425,5 +436,10 @@ internal class LineValidatorIntegrationTest :
                     }
                 }
             }
+        }
+
+        afterSpec {
+            clearAllMocks()
+            unmockkObject(PropertiesConfigNew)
         }
     })

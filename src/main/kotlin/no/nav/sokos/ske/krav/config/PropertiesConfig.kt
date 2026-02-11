@@ -100,10 +100,6 @@ object PropertiesConfig {
         val user = "$name-user"
     }
 
-    data object SlackConfig {
-        val url: String = get("TEAM_BEST_SLACK_WEBHOOK_URL").trim()
-    }
-
     data object CircuitBreakerConfig {
         val waitDurationInOpenState: Long = get("CIRCUIT_BREAKER_WAIT_DURATION_IN_OPEN_STATE_IN_HOURS").toLong()
         const val SLIDING_WINDOW_SIZE: Int = 1
