@@ -8,6 +8,7 @@ import mu.KotlinLogging
 import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
 
+import no.nav.sokos.ske.krav.config.PropertiesConfigNew.postgresConfig
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 
 private val logger = KotlinLogging.logger {}
@@ -17,13 +18,13 @@ object PostgresDataSource {
         dataSource()
     }
 
-    fun migrate(dataSource: HikariDataSource = dataSource(role = PropertiesConfig.PostgresConfig.adminUser)) {
+    fun migrate(dataSource: HikariDataSource = dataSource(role = postgresConfig.adminUser)) {
         dataSource.use {
             logger.info { "Flyway migration" }
             Flyway
                 .configure()
                 .dataSource(dataSource)
-                .initSql("""SET ROLE "${PropertiesConfig.PostgresConfig.adminUser}"""")
+                .initSql("""SET ROLE "${postgresConfig.adminUser}"""")
                 .lockRetryCount(-1)
                 .validateMigrationNaming(true)
                 .load()
@@ -35,21 +36,20 @@ object PostgresDataSource {
 
     private fun dataSource(
         hikariConfig: HikariConfig = hikariConfig(),
-        role: String = PropertiesConfig.PostgresConfig.user,
+        role: String = postgresConfig.user,
     ): HikariDataSource =
         if (PropertiesConfigNew.isLocal) {
             HikariDataSource(hikariConfig)
         } else {
             HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
                 hikariConfig,
-                PropertiesConfig.PostgresConfig.vaultMountPath,
+                postgresConfig.vaultMountPath,
                 role,
             )
         }
 
-    private fun hikariConfig(): HikariConfig {
-        val postgresConfig = PropertiesConfig.PostgresConfig
-        return HikariConfig().apply {
+    private fun hikariConfig(): HikariConfig =
+        HikariConfig().apply {
             maximumPoolSize = 5
             minimumIdle = 1
             isAutoCommit = false
@@ -67,5 +67,4 @@ object PostgresDataSource {
                     initializationFailTimeout = Duration.ofMinutes(30).toMillis()
                 }
         }
-    }
 }

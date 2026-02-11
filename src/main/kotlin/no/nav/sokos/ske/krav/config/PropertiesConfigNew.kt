@@ -36,6 +36,10 @@ object PropertiesConfigNew {
         config.property("skeConfig").getAs<SkeConfig>()
     }
 
+    val postgresConfig by lazy {
+        config.property("postgres").getAs<PostgresConfig>()
+    }
+
     val slackConfig by lazy {
         config.property("slackConfig").getAs<SlackConfig>()
     }
@@ -112,6 +116,19 @@ data class MaskinportenClientConfig(
 data class SkeConfig(
     val skeRestUrl: String,
 )
+
+@Serializable
+data class PostgresConfig(
+    val host: String,
+    val port: String,
+    val name: String,
+    val username: String,
+    val password: String,
+    val vaultMountPath: String,
+) {
+    val adminUser = "$name-admin"
+    val user = "$name-user"
+}
 
 @Serializable
 data class SlackConfig(

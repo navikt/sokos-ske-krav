@@ -81,17 +81,6 @@ object PropertiesConfig {
 
     operator fun get(key: String): String = config[Key(key, stringType)]
 
-    data object PostgresConfig {
-        val host: String = get("POSTGRES_HOST")
-        val port: String = get("POSTGRES_PORT")
-        val name: String = get("POSTGRES_NAME")
-        val username: String = get("POSTGRES_USERNAME").trim()
-        val password: String = get("POSTGRES_PASSWORD").trim()
-        val vaultMountPath: String = get("VAULT_MOUNTPATH")
-        val adminUser = "$name-admin"
-        val user = "$name-user"
-    }
-
     data object CircuitBreakerConfig {
         val waitDurationInOpenState: Long = get("CIRCUIT_BREAKER_WAIT_DURATION_IN_OPEN_STATE_IN_HOURS").toLong()
         const val SLIDING_WINDOW_SIZE: Int = 1
