@@ -24,6 +24,10 @@ object PropertiesConfigNew {
         config.property("azureAd").getAs<AzureAdProperties>()
     }
 
+    val sftpProperties by lazy {
+        config.property("sftp").getAs<SftpProperties>()
+    }
+
     val maskinportenClientProperties by lazy {
         config.property("maskinportenClient").getAs<MaskinportenClientConfig>()
     }
@@ -81,6 +85,15 @@ data class AzureAdProperties(
     val wellKnownUrl: String,
     val tenantId: String,
     val clientSecret: String,
+)
+
+@Serializable
+data class SftpProperties(
+    val host: String,
+    val username: String,
+    val privateKeyPassword: String,
+    val privateKey: String,
+    val port: Int,
 )
 
 @Serializable

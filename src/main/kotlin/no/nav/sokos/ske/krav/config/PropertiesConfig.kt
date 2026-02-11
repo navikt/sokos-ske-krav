@@ -81,14 +81,6 @@ object PropertiesConfig {
 
     operator fun get(key: String): String = config[Key(key, stringType)]
 
-    data class SftpProperties(
-        val host: String = get("SFTP_SERVER"),
-        val username: String = get("SKE_SFTP_USERNAME").trim(),
-        val privateKeyPassword: String = get("SKE_SFTP_PASSWORD").trim(),
-        val privateKey: String = get("SFTP_PRIVATE_KEY_FILE_PATH"),
-        val port: Int = get("SFTP_PORT").toInt(),
-    )
-
     data object PostgresConfig {
         val host: String = get("POSTGRES_HOST")
         val port: String = get("POSTGRES_PORT")

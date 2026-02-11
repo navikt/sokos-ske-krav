@@ -7,7 +7,7 @@ import com.jcraft.jsch.Session
 import mu.KotlinLogging
 
 class SftpConfig(
-    private val sftpProperties: PropertiesConfig.SftpProperties = PropertiesConfig.SftpProperties(),
+    private val sftpProperties: SftpProperties = PropertiesConfigNew.sftpProperties,
 ) {
     private val jsch: JSch =
         JSch().apply {
