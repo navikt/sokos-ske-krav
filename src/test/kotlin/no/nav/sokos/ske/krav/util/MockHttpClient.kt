@@ -23,6 +23,7 @@ object MockHttpClientUtils {
         ENDRE_HOVEDSTOL("/hovedstol"),
         AVSKRIVING("/avskriving"),
         HENT_VALIDERINGSFEIL("/valideringsfeil"),
+        AVSTEMMING("/avstemming"),
     }
 
     data class MockRequestObj(
@@ -142,6 +143,8 @@ class MockHttpClient {
             "/innkrevingsoppdrag/OB040000479803$baseUrl",
             "/innkrevingsoppdrag/OB040000595755$baseUrl",
             "/innkrevingsoppdrag/2220-navsaksnummer$baseUrl",
+            "/innkrevingsoppdrag/2222-navsaksnr$baseUrl",
+            "/innkrevingsoppdrag/8888-navsaksnr$baseUrl",
             "/innkrevingsoppdrag/1110-skeUUID$baseUrl",
             "/innkrevingsoppdrag/1111-skeUUID$baseUrl",
             "/innkrevingsoppdrag/1112-skeUUID$baseUrl",
@@ -156,6 +159,8 @@ class MockHttpClient {
             "/innkrevingsoppdrag/8888-skeUUID$baseUrl",
             "/innkrevingsoppdrag/9999-skeUUID$baseUrl",
             "/innkrevingsoppdrag/1010-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/2222-migrert$baseUrl",
+            "/innkrevingsoppdrag/8888-migrert$baseUrl",
             "/innkrevingsoppdrag/$baseUrl",
             "/innkrevingsoppdrag$baseUrl",
             baseUrl,

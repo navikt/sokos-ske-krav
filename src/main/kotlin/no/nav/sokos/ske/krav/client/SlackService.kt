@@ -14,6 +14,7 @@ class SlackService(
     private val slackClient: SlackClient = SlackClient(),
 ) {
     private val errorTracking: MutableList<FileErrors> = mutableListOf()
+    val feilFraSkeHeader = "Feil fra SKE"
 
     fun addError(
         fileName: String,

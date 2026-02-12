@@ -13,6 +13,7 @@ import io.mockk.coJustRun
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
+import io.mockk.spyk
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
@@ -107,10 +108,12 @@ fun setupSkeServiceMockWithMockEngine(
     httpClient: HttpClient,
     ftpService: FtpService,
     databaseService: DatabaseService,
+    slackClient: SlackClient = SlackClient(client = MockHttpClient().getSlackClient()),
+    slackService: SlackService = SlackService(slackClient),
 ): SkeService {
     val tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true)
-    val slackClient = SlackClient(client = MockHttpClient().getSlackClient())
-    val slackService = SlackService(slackClient)
+    SlackClient(client = MockHttpClient().getSlackClient())
+    val slackService = slackService
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
     val endreKravService = EndreKravService(skeClient, databaseService)
     val opprettKravService = OpprettKravService(skeClient, databaseService)
@@ -128,6 +131,11 @@ fun setupSkeServiceMockWithMockEngine(
         ftpService = ftpService,
         slackService = slackService,
     )
+}
+
+fun setupSlackService(): SlackService {
+    val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
+    return spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
 }
 
 fun mockHttpResponse(

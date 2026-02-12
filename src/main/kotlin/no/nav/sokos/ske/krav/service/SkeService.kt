@@ -17,6 +17,7 @@ import no.nav.sokos.ske.krav.config.PostgresConfig
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.responses.AvstemmingResponse
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.metrics.Metrics
@@ -24,7 +25,7 @@ import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.RequestResult
-import no.nav.sokos.ske.krav.util.isOpprettKrav
+import no.nav.sokos.ske.krav.util.defineStatus
 import no.nav.sokos.ske.krav.util.parseTo
 import no.nav.sokos.ske.krav.validation.LineValidator
 
@@ -100,7 +101,7 @@ class SkeService(
         databaseService.saveAllNewKrav(validatedLines, file.name)
         ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
 
-        updateAllEndringerAndStopp(file.name, validatedLines.filterNot { it.isOpprettKrav() })
+        updateSkeKravidentifikatorForEndringerAndStopp()
     }
 
     private suspend fun sendKrav(kravList: List<Krav>): List<RequestResult> {
@@ -116,35 +117,75 @@ class SkeService(
         return allResponses
     }
 
-    private suspend fun updateAllEndringerAndStopp(
-        fileName: String,
-        kravLinjer: List<KravLinje>,
-    ) {
-        kravLinjer.forEach { krav ->
-            val skeKravidentifikator = databaseService.getSkeKravidentifikator(krav.referansenummerGammelSak)
-            var skeKravidentifikatorSomSkalLagres = skeKravidentifikator
+    /*
+     * Når vi sender inn endringer til SKE så vil de at vi skal sende inn kravidentifikatoren deres for det opprinnelige kravet, eller det OPPRINNELIGE Nav saksnummeret
+     * Dersom det opprinnelige kravet har gått gjennom denne applikasjonen så er alt OK
+     * Hvis ikke, så må vi spørre mot skatteetatens avstemmingAPI
+     * Skatteetaten "migrerte" krav for ett år tilbake i tid da denne applikasjonen gikk i produksjon, og disse kravene kan vi finne via avstemmmingAPIet
+     * Men noen ganger får vi inn en endring på en endring av et krav som ikke finnes i vårt system og som skatteetaten ikke kan finne frem til
+     * Dette er pga måten skatteetaten bruker saksnummer vs hvordan Nav bruker saksnummer
+     * Når det skjer så kaller vi det "dobbel endring på migrert krav" og det må håndteres manuelt
+     *
+     * Denne funksjonen leter i vår database, så spør den avstemmingAPI til SKE, og dersom de ikke har det så sendes en alarm til slack
+     * */
+    private suspend fun updateSkeKravidentifikatorForEndringerAndStopp() {
+        val krav = databaseService.getAllUnsentEndringerAndStopp()
+        val requestResults = mutableListOf<RequestResult>()
+        val slackErrorsHandled = mutableListOf<String>()
 
-            if (skeKravidentifikator.isBlank()) {
-                val httpResponse = skeClient.getSkeKravidentifikator(krav.referansenummerGammelSak)
-                if (httpResponse.status.isSuccess()) {
-                    skeKravidentifikatorSomSkalLagres = httpResponse.parseTo<AvstemmingResponse>()?.kravidentifikator ?: ""
+        krav.forEach { krav ->
+            // Sjekke om vi har det opprinnelige kravet i vår database
+            val skeKravidentifikator = databaseService.getSkeKravidentifikator(krav.referansenummerGammelSak)
+            if (skeKravidentifikator.isNotBlank()) {
+                databaseService.updateEndringWithSkeKravIdentifikator(krav.saksnummerNAV, skeKravidentifikator)
+                return@forEach
+            }
+
+            // Spørre mot skatteetatens avstemmingendepunkt
+            val requestResult = findKravidentifikatorForKrav(krav)
+
+            // Feil som 403, 500 osv skal håndteres som normalt
+            if (requestResult.status != Status.HTTP404_FANT_IKKE_SAKSREF) requestResults.add(requestResult)
+
+            if (requestResult.kravidentifikator.isNotBlank()) {
+                // Oppdatere raden i database med kravidentifikatoren vi fant
+                databaseService.updateEndringWithSkeKravIdentifikator(krav.saksnummerNAV, requestResult.kravidentifikator)
+            } else {
+                databaseService.updateStatus(requestResult.status.value, krav.corrId)
+
+                // Tidlig return siden endringer er to requests og vi vil ikke ha to identiske alarmer for det samme saksnummeret
+                if (slackErrorsHandled.contains(krav.saksnummerNAV)) return@forEach
+
+                // Fra SKE vil vi få feilmeldingen "innkrevingsoppdrag eksisterer ikke" men vi ønsker mer tydelig informasjon samt informasjonen vi trenger for å kunne følge det opp manuelt
+                if (requestResult.status == Status.HTTP404_FANT_IKKE_SAKSREF) {
+                    handleError(
+                        requestResult,
+                        FeilResponse(
+                            type = requestResult.response.parseTo<FeilResponse>()?.type ?: FeilResponse.CustomTypes.FANT_IKKE_GYLDIG_KRAVIDENT,
+                            title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENT,
+                            status = requestResult.response.status.value,
+                            detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
+                            instance = "custom",
+                        ),
+                    )
+                    logger.warn { "Fant ikke gyldig kravidentifikator for ReferansenummerGammelSak med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
+                    slackErrorsHandled.add(krav.saksnummerNAV)
                 }
             }
-
-            if (skeKravidentifikatorSomSkalLagres.isNotBlank()) {
-                databaseService.updateEndringWithSkeKravIdentifikator(krav.saksnummerNav, skeKravidentifikatorSomSkalLagres)
-            } else {
-                slackService.addError(
-                    fileName,
-                    "Fant ikke gyldig kravidentifikator for migrert krav",
-                    Pair(
-                        "Fant ikke gyldig kravidentifikator for migrert krav",
-                        "Saksnummer: ${krav.saksnummerNav} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
-                    ),
-                )
-                logger.warn { "Fant ikke gyldig kravidentifikator for migrert krav:  ${krav.referansenummerGammelSak} " }
-            }
         }
+        handleErrors(requestResults)
+    }
+
+    private suspend fun findKravidentifikatorForKrav(krav: Krav): RequestResult {
+        val responseAvstemmingSkatt = skeClient.getSkeKravidentifikator(krav.referansenummerGammelSak)
+
+        return RequestResult(
+            response = responseAvstemmingSkatt,
+            request = krav.referansenummerGammelSak,
+            krav = krav,
+            kravidentifikator = responseAvstemmingSkatt.parseTo<AvstemmingResponse>()?.kravidentifikator ?: "",
+            status = defineStatus(responseAvstemmingSkatt),
+        )
     }
 
     private fun handleValidationResults(
@@ -160,20 +201,29 @@ class SkeService(
         }
     }
 
+    private suspend fun handleError(
+        requestResult: RequestResult,
+        feilResponse: FeilResponse?,
+    ) {
+        // Dette sørger for at HTTP feil ikke blir sendt til slack. Kun feil fra SKE blir sendt.
+        feilResponse?.let {
+            val errorPair = Pair(feilResponse.title, feilResponse.detail)
+            slackService.addError(requestResult.krav.filnavn, slackService.feilFraSkeHeader, errorPair)
+        }
+
+        saveErrorMessage(
+            requestResult.request,
+            requestResult.response,
+            requestResult.krav,
+            requestResult.kravidentifikator,
+        )
+    }
+
     private suspend fun handleErrors(responses: List<RequestResult>) {
         responses
             .filterNot { it.response.status.isSuccess() }
             .forEach { result ->
-                saveErrorMessage(
-                    result.request,
-                    result.response,
-                    result.krav,
-                    result.kravidentifikator,
-                )
-                result.response.parseTo<FeilResponse>()?.let { feilResponse ->
-                    val errorPair = Pair(feilResponse.title, feilResponse.detail)
-                    slackService.addError(result.krav.filnavn, "Feil fra SKE", errorPair)
-                }
+                handleError(result, result.response.parseTo<FeilResponse>())
             }
     }
 

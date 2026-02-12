@@ -28,12 +28,19 @@ suspend inline fun <reified T> HttpResponse.parseTo(): T? =
     runCatching {
         val response = body<T>()
         if (T::class == FeilResponse::class) {
-            logger.warn { "Valideringsfeil mottatt: ${(response as FeilResponse).title}" }
+            logger.warn { "Feil mottatt: ${(response as FeilResponse).title}" }
         }
+
         response
     }.onFailure { e ->
-        logger.error { "Error decoding JSON to ${T::class.simpleName}" }
-        logger.error(marker = TEAM_LOGS_MARKER) { "Error decoding JSON to ${T::class.simpleName}: ${e.message}" }
+        runCatching {
+            val response = body<FeilResponse>()
+            logger.warn { "Feil mottatt: ${response.title}" }
+            response
+        }.onFailure {
+            logger.error { "Error decoding JSON to ${T::class.simpleName}" }
+            logger.error(marker = TEAM_LOGS_MARKER) { "Error decoding JSON to ${T::class.simpleName}: ${e.message}" }
+        }.getOrNull()
     }.getOrNull()
 
 inline fun <reified T> T.encodeToString(): String =
@@ -41,5 +48,5 @@ inline fun <reified T> T.encodeToString(): String =
         Json.encodeToString(this)
     }.onFailure { e ->
         logger.error { "Error encoding JSON to ${T::class.simpleName}" }
-        logger.error(marker = TEAM_LOGS_MARKER) { "Error encoding JSON to ${T::class.simpleName}: ${e.message}" }
+        logger.error(marker = TEAM_LOGS_MARKER) { "Error encoding from ${T::class.simpleName} to String: ${e.message}" }
     }.getOrDefault("")

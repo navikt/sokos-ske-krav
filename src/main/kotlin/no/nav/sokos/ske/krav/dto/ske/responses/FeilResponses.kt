@@ -20,4 +20,12 @@ data class FeilResponse(
     val status: Int,
     val detail: String,
     val instance: String,
-)
+) {
+    object CustomTitles {
+        const val FANT_IKKE_GYLDIG_KRAVIDENT = "Fant ikke gyldig kravidentifikator for migrert krav"
+    }
+
+    object CustomTypes {
+        const val FANT_IKKE_GYLDIG_KRAVIDENT = "404 fant ikke kravidentifikator"
+    }
+}
