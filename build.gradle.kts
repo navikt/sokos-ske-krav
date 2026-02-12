@@ -5,10 +5,10 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.3.0"
-    kotlin("plugin.serialization") version "2.3.0"
+    kotlin("jvm") version "2.3.10"
+    kotlin("plugin.serialization") version "2.3.10"
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
-    id("org.jetbrains.kotlinx.kover") version "0.9.5"
+    id("org.jetbrains.kotlinx.kover") version "0.9.6"
 
     application
 }
@@ -37,7 +37,7 @@ val postgresqlVersion = "42.7.9"
 val kotliqueryVersion = "1.9.1"
 
 // Test
-val kotestVersion = "6.1.2"
+val kotestVersion = "6.1.3"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.14.9"
 val commonsVersion = "3.12.0"
