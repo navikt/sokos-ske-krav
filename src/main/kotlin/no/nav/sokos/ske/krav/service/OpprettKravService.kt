@@ -1,22 +1,36 @@
 package no.nav.sokos.ske.krav.service
 
 import no.nav.sokos.ske.krav.client.SkeClient
+import no.nav.sokos.ske.krav.config.CircuitBreakerManager.guardCall
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.dto.ske.responses.OpprettInnkrevingsOppdragResponse
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.createOpprettKravRequest
 import no.nav.sokos.ske.krav.util.defineStatus
 import no.nav.sokos.ske.krav.util.encodeToString
+import no.nav.sokos.ske.krav.util.logger
 import no.nav.sokos.ske.krav.util.parseTo
 
 class OpprettKravService(
     private val skeClient: SkeClient,
     private val databaseService: DatabaseService,
 ) {
-    suspend fun sendAllOpprettKrav(kravList: List<Krav>): List<RequestResult> =
-        kravList
-            .map { sendOpprettKrav(it) }
-            .also { databaseService.updateSentKrav(it) }
+    suspend fun sendAllOpprettKrav(kravList: List<Krav>): List<RequestResult> {
+        val results = mutableListOf<RequestResult>()
+
+        for (krav in kravList) {
+            runCatching {
+                results.add(guardCall { sendOpprettKrav(krav) })
+            }.onFailure {
+                logger.info { "Error sending OpprettKravRequest for krav: ${krav.kravidentifikatorSKE} - ${it.message}" }
+                break
+            }
+        }
+
+        logger.info { "Oppdaterer $results.size " }
+        databaseService.updateSentKrav(results)
+        return results
+    }
 
     private suspend fun sendOpprettKrav(krav: Krav): RequestResult {
         val opprettKravRequest = createOpprettKravRequest(krav)

@@ -5,7 +5,6 @@ import kotlinx.serialization.json.Json
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 
-import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
@@ -33,7 +32,6 @@ suspend inline fun <reified T> HttpResponse.parseTo(): T? =
         response
     }.onFailure { e ->
         logger.error { "Error decoding JSON to ${T::class.simpleName}" }
-        logger.error(marker = TEAM_LOGS_MARKER) { "Error decoding JSON to ${T::class.simpleName}: ${e.message}" }
     }.getOrNull()
 
 inline fun <reified T> T.encodeToString(): String =
@@ -41,5 +39,4 @@ inline fun <reified T> T.encodeToString(): String =
         Json.encodeToString(this)
     }.onFailure { e ->
         logger.error { "Error encoding JSON to ${T::class.simpleName}" }
-        logger.error(marker = TEAM_LOGS_MARKER) { "Error encoding JSON to ${T::class.simpleName}: ${e.message}" }
     }.getOrDefault("")

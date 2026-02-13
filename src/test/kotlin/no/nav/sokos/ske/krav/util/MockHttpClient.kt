@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 
+import no.nav.sokos.ske.krav.config.CircuitBreakerPlugin
 import no.nav.sokos.ske.krav.domain.Status
 
 object MockHttpClientUtils {
@@ -58,6 +59,18 @@ object MockHttpClientUtils {
                 "type":"tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-eksisterer-ikke",
                 "title":"Innkrevingsoppdrag eksisterer ikke",
                 "status":404,
+                "detail":"Innkrevingsoppdrag med oppdragsgiversKravidentifikator=$kravIdentifikator eksisterer ikke",
+                "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/avskriving"
+            }
+            """.trimIndent()
+
+        fun genericFeilResponse(kravIdentifikator: String = "1234") =
+            //language=json
+            """      
+            {
+                "type":"tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-eksisterer-ikke",
+                "title":"Innkrevingsoppdrag eksisterer ikke",
+                "status":422,
                 "detail":"Innkrevingsoppdrag med oppdragsgiversKravidentifikator=$kravIdentifikator eksisterer ikke",
                 "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/avskriving"
             }
@@ -119,6 +132,7 @@ class MockHttpClient {
     fun getClient(kall: List<MockHttpClientUtils.MockRequestObj>) =
         HttpClient(MockEngine) {
             install(ContentNegotiation) { json(jsonConfig) }
+            install(CircuitBreakerPlugin)
             engine {
                 addHandler { request ->
                     val handler =
