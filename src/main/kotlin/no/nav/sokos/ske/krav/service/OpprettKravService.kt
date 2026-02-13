@@ -8,7 +8,6 @@ import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.createOpprettKravRequest
 import no.nav.sokos.ske.krav.util.defineStatus
 import no.nav.sokos.ske.krav.util.encodeToString
-import no.nav.sokos.ske.krav.util.logger
 import no.nav.sokos.ske.krav.util.parseTo
 
 class OpprettKravService(
@@ -22,12 +21,10 @@ class OpprettKravService(
             runCatching {
                 results.add(guardCall { sendOpprettKrav(krav) })
             }.onFailure {
-                logger.info { "Error sending OpprettKravRequest for krav: ${krav.kravidentifikatorSKE} - ${it.message}" }
                 break
             }
         }
 
-        logger.info { "Oppdaterer $results.size " }
         databaseService.updateSentKrav(results)
         return results
     }

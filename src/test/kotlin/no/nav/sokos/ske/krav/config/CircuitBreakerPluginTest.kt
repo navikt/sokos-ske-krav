@@ -151,10 +151,6 @@ class CircuitBreakerPluginTest :
 
             circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
 
-            shouldThrow<CircuitBreakerStateException> {
-                client.get("https://example.com/api")
-            }
-
             client.close()
         }
     })

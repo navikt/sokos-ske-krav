@@ -17,27 +17,18 @@ val CircuitBreakerPlugin =
             try {
                 circuitBreaker.executeSupplier {
                     if (response.isFailure()) {
-                        logger.error {
-                            "Circuit breaker recording failure: ${response.status.value} for ${response.request.url}"
-                        }
+                        logger.error { "Circuit breaker recording failure: ${response.status.value} for ${response.request.url}" }
 
-                        throw CircuitBreakerException(
-                            "HTTP ${response.status.value}: ${response.status.description}",
-                        )
+                        throw CircuitBreakerException("HTTP ${response.status.value}: ${response.status.description}")
                     }
                     response
                 }
-            } catch (e: CallNotPermittedException) {
+            } catch (_: CallNotPermittedException) {
                 logger.warn { "Circuit breaker state is ${circuitBreaker.state} - call not permitted" }
-                throw CircuitBreakerStateException("Circuit breaker state is ${circuitBreaker.state} - call not permitted")
             }
         }
     }
 
 class CircuitBreakerException(
-    message: String,
-) : Exception(message)
-
-class CircuitBreakerStateException(
     message: String,
 ) : Exception(message)
