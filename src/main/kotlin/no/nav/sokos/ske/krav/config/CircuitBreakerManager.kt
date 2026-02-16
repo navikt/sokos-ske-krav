@@ -18,7 +18,7 @@ object CircuitBreakerManager {
             .slidingWindowSize(1)
             .minimumNumberOfCalls(1)
             .failureRateThreshold(100.0f)
-            .waitDurationInOpenState(Duration.ofHours(3L)) // TODO: Juster denne verdien basert på forventet nedetid
+            .waitDurationInOpenState(Duration.ofHours(PropertiesConfig.TimerConfig.circuitBreakerIntervalPeriod)) // TODO: Juster denne verdien basert på forventet nedetid
             .permittedNumberOfCallsInHalfOpenState(1)
             .automaticTransitionFromOpenToHalfOpenEnabled(true)
             .build()
