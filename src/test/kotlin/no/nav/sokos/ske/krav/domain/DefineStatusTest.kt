@@ -56,7 +56,7 @@ internal class DefineStatusTest :
                 createRequestResult(404).status shouldBe Status.HTTP404_ANNEN_IKKE_FUNNET
             }
 
-            test("Når responsekode er 404 og typen inneholder KRAV_ER_IKKE_RESKONTROFORT skal krav ha status Status.HTTP404_KRAV_ER_IKKE_RESKONTROFORT") {
+            test("Når responsekode er 404 og typen inneholder KRAV_ER_IKKE_RESKONTROFOERT skal krav ha status Status.HTTP404_KRAV_ER_IKKE_RESKONTROFORT") {
                 createRequestResult(404, "test $KRAV_ER_IKKE_RESKONTROFOERT").status shouldBe Status.HTTP404_KRAV_ER_IKKE_RESKONTROFORT
             }
 
@@ -69,11 +69,11 @@ internal class DefineStatusTest :
                 createRequestResult(409, "test $KRAV_ER_ALLEREDE_AVSKREVET").status shouldBe Status.HTTP409_KRAV_ER_AVSKREVET
             }
 
-            test("Når responsekode er 409 og typen inneholder AVSKREVET_KAN_IKKE_ENDRES skal krav ha status Status.HTTP409_AVSKREVET_KAN_IKKE_ENDRES") {
+            test("Når responsekode er 409 og typen inneholder AVSKREVET_KRAV_KAN_IKKE_ENDRES skal krav ha status Status.HTTP409_AVSKREVET_KRAV_KAN_IKKE_ENDRES") {
                 createRequestResult(409, "test $AVSKREVET_KRAV_KAN_IKKE_ENDRES").status shouldBe Status.HTTP409_AVSKREVET_KRAV_KAN_IKKE_ENDRES
             }
 
-            test("Når responsekode er 409 og typen inneholder AVSKREVET_KAN_IKKE_AVSKRIVES skal krav ha status Status.HTTP409_AVSKREVET_KAN_IKKE_AVSKRIVES") {
+            test("Når responsekode er 409 og typen inneholder AVSKREVET_KRAV_KAN_IKKE_AVSKRIVES skal krav ha status Status.HTTP409_AVSKREVET_KRAV_KAN_IKKE_AVSKRIVES") {
                 createRequestResult(409, "test $AVSKREVET_KRAV_KAN_IKKE_AVSKRIVES").status shouldBe Status.HTTP409_AVSKREVET_KRAV_KAN_IKKE_AVSKRIVES
             }
 
@@ -81,7 +81,7 @@ internal class DefineStatusTest :
                 createRequestResult(409, "test $OPPDRAGSGIVERS_KRAVIDENTIFIKATOR_EKSISTERER").status shouldBe Status.HTTP409_KRAVIDENTIFIKATOR_EKSISTERER
             }
 
-            test("Når responsekode er 409 og typen inneholder KRAV_ER_IKKE_RESKONTROFORT_RESEND skal krav ha status Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND") {
+            test("Når responsekode er 409 og typen inneholder KRAV_ER_IKKE_RESKONTROFOERT skal krav ha status Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND") {
                 createRequestResult(409, "test $KRAV_ER_IKKE_RESKONTROFOERT").status shouldBe Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND
             }
 
