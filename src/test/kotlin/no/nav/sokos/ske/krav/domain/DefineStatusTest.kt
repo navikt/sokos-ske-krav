@@ -4,11 +4,16 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 
+import no.nav.sokos.ske.krav.util.AVSKREVET_KRAV_KAN_IKKE_AVSKRIVES
+import no.nav.sokos.ske.krav.util.AVSKREVET_KRAV_KAN_IKKE_ENDRES
 import no.nav.sokos.ske.krav.util.KRAV_EKSISTERER_IKKE
 import no.nav.sokos.ske.krav.util.KRAV_ER_ALLEREDE_AVSKREVET
 import no.nav.sokos.ske.krav.util.KRAV_ER_AVSKREVET
-import no.nav.sokos.ske.krav.util.KRAV_IKKE_RESKONTROFORT_RESEND
+import no.nav.sokos.ske.krav.util.KRAV_ER_IKKE_RESKONTROFOERT
+import no.nav.sokos.ske.krav.util.OPPDRAGSGIVERS_KRAVIDENTIFIKATOR_EKSISTERER
 import no.nav.sokos.ske.krav.util.RequestResult
+import no.nav.sokos.ske.krav.util.UGYLDIG_KRAVIDENTIFIKATOR
+import no.nav.sokos.ske.krav.util.UGYLDIG_TILLEGGSINFORMASJON
 import no.nav.sokos.ske.krav.util.defineStatus
 import no.nav.sokos.ske.krav.util.mockHttpResponse
 
@@ -27,6 +32,14 @@ internal class DefineStatusTest :
                 createRequestResult(400).status shouldBe Status.HTTP400_UGYLDIG_FORESPORSEL
             }
 
+            test("Når responsekode er 400 og typen inneholder UGYLDIG_KRAVIDENTIFIKATOR skal krav ha status Status.HTTP400_UGYLDIG_KRAVIDENTIFIKATOR") {
+                createRequestResult(400, "test $UGYLDIG_KRAVIDENTIFIKATOR").status shouldBe Status.HTTP400_UGYLDIG_KRAVIDENTIFIKATOR
+            }
+
+            test("Når responsekode er 400 og typen inneholder UGYLDIG_TILLEGGSINFORMASJON skal krav ha status Status.HTTP400_UGYLDIG_TILLEGGSINFORMASJON") {
+                createRequestResult(400, "test $UGYLDIG_TILLEGGSINFORMASJON").status shouldBe Status.HTTP400_UGYLDIG_TILLEGGSINFORMASJON
+            }
+
             test("Når responsekode er 401 skal krav ha status Status.FEIL_AUTENTISERING_401") {
                 createRequestResult(401).status shouldBe Status.HTTP401_FEIL_AUTENTISERING
             }
@@ -43,17 +56,33 @@ internal class DefineStatusTest :
                 createRequestResult(404).status shouldBe Status.HTTP404_ANNEN_IKKE_FUNNET
             }
 
-            test("Når responsekode er 406 skal krav ha status Status.FEIL_MEDIETYPE_406") {
-                createRequestResult(406).status shouldBe Status.HTTP406_FEIL_MEDIETYPE
+            test("Når responsekode er 404 og typen inneholder KRAV_ER_IKKE_RESKONTROFOERT skal krav ha status Status.HTTP404_KRAV_ER_IKKE_RESKONTROFORT") {
+                createRequestResult(404, "test $KRAV_ER_IKKE_RESKONTROFOERT").status shouldBe Status.HTTP404_KRAV_ER_IKKE_RESKONTROFORT
             }
 
-            test("Når responsekode er 409 og typen inneholder KRAV_IKKE_RESKONTROFORT_RESEND skal krav ha status Status.IKKE_RESKONTROFORT_RESEND") {
-                createRequestResult(409, "test $KRAV_IKKE_RESKONTROFORT_RESEND").status shouldBe Status.HTTP409_IKKE_RESKONTROFORT_RESEND
+            test("Når responsekode er 406 skal krav ha status Status.FEIL_MEDIETYPE_406") {
+                createRequestResult(406).status shouldBe Status.HTTP406_FEIL_MEDIETYPE
             }
 
             test("Når responsekode er 409 og typen inneholder KRAV_ER_AVSKREVET eller KRAV_ER_ALLEREDE_AVSKREVET skal krav ha status Status.KRAV_ER_AVSKREVET_409") {
                 createRequestResult(409, "test $KRAV_ER_AVSKREVET").status shouldBe Status.HTTP409_KRAV_ER_AVSKREVET
                 createRequestResult(409, "test $KRAV_ER_ALLEREDE_AVSKREVET").status shouldBe Status.HTTP409_KRAV_ER_AVSKREVET
+            }
+
+            test("Når responsekode er 409 og typen inneholder AVSKREVET_KRAV_KAN_IKKE_ENDRES skal krav ha status Status.HTTP409_AVSKREVET_KRAV_KAN_IKKE_ENDRES") {
+                createRequestResult(409, "test $AVSKREVET_KRAV_KAN_IKKE_ENDRES").status shouldBe Status.HTTP409_AVSKREVET_KRAV_KAN_IKKE_ENDRES
+            }
+
+            test("Når responsekode er 409 og typen inneholder AVSKREVET_KRAV_KAN_IKKE_AVSKRIVES skal krav ha status Status.HTTP409_AVSKREVET_KRAV_KAN_IKKE_AVSKRIVES") {
+                createRequestResult(409, "test $AVSKREVET_KRAV_KAN_IKKE_AVSKRIVES").status shouldBe Status.HTTP409_AVSKREVET_KRAV_KAN_IKKE_AVSKRIVES
+            }
+
+            test("Når responsekode er 409 og typen inneholder OPPDRAGSGIVERS_KRAVIDENTIFIKATOR_EKSISTERER skal krav ha status Status.HTTP409_KRAVIDENTIFIKATOR_EKSISTERER") {
+                createRequestResult(409, "test $OPPDRAGSGIVERS_KRAVIDENTIFIKATOR_EKSISTERER").status shouldBe Status.HTTP409_KRAVIDENTIFIKATOR_EKSISTERER
+            }
+
+            test("Når responsekode er 409 og typen inneholder KRAV_ER_IKKE_RESKONTROFOERT skal krav ha status Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND") {
+                createRequestResult(409, "test $KRAV_ER_IKKE_RESKONTROFOERT").status shouldBe Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND
             }
 
             test("Når responsekode er 409 og typen ikke gjenkjennes skal krav ha status Status.ANNEN_KONFLIKT_409") {
