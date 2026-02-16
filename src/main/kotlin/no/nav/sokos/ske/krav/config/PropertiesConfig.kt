@@ -48,6 +48,7 @@ object PropertiesConfig {
             "BASIC_AUTH_USERNAME" to "user",
             "BASIC_AUTH_PASSWORD" to "password",
             "USE_AUTHENTICATION" to "false",
+            "CIRCUIT_BREAKER_WAIT_DURATION_IN_OPEN_STATE_IN_HOURS" to "4",
         )
 
     private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
