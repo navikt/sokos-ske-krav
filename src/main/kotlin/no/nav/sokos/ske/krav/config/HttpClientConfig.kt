@@ -15,6 +15,13 @@ import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner
 
 private val logger = mu.KotlinLogging.logger {}
 
+val jsonConfig =
+    Json {
+        prettyPrint = true
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+        explicitNulls = false
+    }
 val httpClient =
     HttpClient(Apache5) {
         expectSuccess = false
@@ -38,12 +45,7 @@ val httpClient =
 
         install(ContentNegotiation) {
             json(
-                Json {
-                    prettyPrint = true
-                    ignoreUnknownKeys = true
-                    encodeDefaults = true
-                    explicitNulls = false
-                },
+                jsonConfig,
             )
         }
 

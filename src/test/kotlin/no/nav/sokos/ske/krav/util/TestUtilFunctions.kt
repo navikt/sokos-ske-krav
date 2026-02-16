@@ -112,7 +112,6 @@ fun setupSkeServiceMockWithMockEngine(
     slackService: SlackService = SlackService(slackClient),
 ): SkeService {
     val tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true)
-    SlackClient(client = MockHttpClient().getSlackClient())
     val slackService = slackService
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
     val endreKravService = EndreKravService(skeClient, databaseService)

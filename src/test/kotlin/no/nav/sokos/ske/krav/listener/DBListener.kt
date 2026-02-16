@@ -53,16 +53,6 @@ object DBListener : TestListener {
     }
 
     override suspend fun afterSpec(spec: Spec) {
-        dataSource.transaction { session ->
-            val tables = mutableListOf<String>()
-            // Collect all public tables except Flyway history
-            session.list(
-                queryOf("SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename <> 'flyway_schema_history'"),
-            ) { rs -> tables += rs.string("tablename") }
-
-            if (tables.isNotEmpty()) {
-                session.execute(queryOf("TRUNCATE TABLE ${tables.joinToString(", ")} RESTART IDENTITY CASCADE"))
-            }
-        }
+        clearDB()
     }
 }
