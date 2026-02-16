@@ -10,12 +10,13 @@ import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 
+import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
+
 class CircuitBreakerPluginTest :
     FunSpec({
-        val circuitBreaker = CircuitBreakerManager.circuitBreaker
 
         beforeEach {
-            CircuitBreakerManager.reset()
+            circuitBreaker.reset()
         }
 
         test("circuit breaker should remain closed on successful requests") {

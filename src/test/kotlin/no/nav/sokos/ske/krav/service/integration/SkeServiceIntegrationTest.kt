@@ -41,7 +41,7 @@ internal class SkeServiceIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener, DBListener)
         beforeEach {
-            CircuitBreakerManager.reset()
+            CircuitBreakerManager.circuitBreaker.reset()
         }
         val ftpService: FtpService by lazy {
             FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = mockk<DatabaseService>())

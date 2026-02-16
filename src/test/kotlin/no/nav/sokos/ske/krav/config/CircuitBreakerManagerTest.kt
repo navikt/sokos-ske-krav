@@ -9,6 +9,8 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
+import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
+
 class CircuitBreakerManagerTest :
     FunSpec({
         fun waitUntil(
@@ -25,11 +27,11 @@ class CircuitBreakerManagerTest :
         }
 
         beforeEach {
-            CircuitBreakerManager.reset()
+            circuitBreaker.reset()
         }
 
         test("config should enable automatic transition from OPEN to HALF_OPEN") {
-            val config = CircuitBreakerManager.circuitBreaker.circuitBreakerConfig
+            val config = circuitBreaker.circuitBreakerConfig
             config.isAutomaticTransitionFromOpenToHalfOpenEnabled shouldBe true
         }
 
@@ -74,52 +76,45 @@ class CircuitBreakerManagerTest :
         }
 
         test("reset should close the circuit breaker") {
-            val circuitBreaker = CircuitBreakerManager.circuitBreaker
 
             circuitBreaker.transitionToOpenState()
-            CircuitBreakerManager.state shouldBe CircuitBreaker.State.OPEN
+            circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
 
-            CircuitBreakerManager.reset()
-            CircuitBreakerManager.state shouldBe CircuitBreaker.State.CLOSED
+            circuitBreaker.reset()
+            circuitBreaker.state shouldBe CircuitBreaker.State.CLOSED
         }
 
         test("state should transition from OPEN to HALF_OPEN") {
-            val circuitBreaker = CircuitBreakerManager.circuitBreaker
-
             circuitBreaker.transitionToOpenState()
-            CircuitBreakerManager.state shouldBe CircuitBreaker.State.OPEN
+            circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
 
             circuitBreaker.transitionToHalfOpenState()
-            CircuitBreakerManager.state shouldBe CircuitBreaker.State.HALF_OPEN
+            circuitBreaker.state shouldBe CircuitBreaker.State.HALF_OPEN
         }
 
         test("state should transition from HALF_OPEN to CLOSED") {
-            val circuitBreaker = CircuitBreakerManager.circuitBreaker
-
             circuitBreaker.transitionToOpenState()
-            CircuitBreakerManager.state shouldBe CircuitBreaker.State.OPEN
+            circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
 
             circuitBreaker.transitionToHalfOpenState()
-            CircuitBreakerManager.state shouldBe CircuitBreaker.State.HALF_OPEN
+            circuitBreaker.state shouldBe CircuitBreaker.State.HALF_OPEN
 
             circuitBreaker.transitionToClosedState()
-            CircuitBreakerManager.state shouldBe CircuitBreaker.State.CLOSED
+            circuitBreaker.state shouldBe CircuitBreaker.State.CLOSED
         }
 
         test("successful call in HALF_OPEN should close circuit") {
-            val circuitBreaker = CircuitBreakerManager.circuitBreaker
-
             circuitBreaker.transitionToOpenState()
-            CircuitBreakerManager.state shouldBe CircuitBreaker.State.OPEN
+            circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
 
             circuitBreaker.transitionToHalfOpenState()
-            CircuitBreakerManager.state shouldBe CircuitBreaker.State.HALF_OPEN
+            circuitBreaker.state shouldBe CircuitBreaker.State.HALF_OPEN
 
             shouldNotThrowAny {
                 circuitBreaker.onSuccess(0, TimeUnit.NANOSECONDS)
             }
 
             circuitBreaker.transitionToClosedState()
-            CircuitBreakerManager.state shouldBe CircuitBreaker.State.CLOSED
+            circuitBreaker.state shouldBe CircuitBreaker.State.CLOSED
         }
     })

@@ -20,7 +20,7 @@ internal class OpprettKravServiceIntegrationTest :
     BehaviorSpec({
         extensions(DBListener)
         beforeEach {
-            CircuitBreakerManager.reset()
+            CircuitBreakerManager.circuitBreaker.reset()
         }
         Given("2 Nye krav skal opprettes ") {
             DBListener.loadInitScript("SQLscript/2NyeKrav.sql")
