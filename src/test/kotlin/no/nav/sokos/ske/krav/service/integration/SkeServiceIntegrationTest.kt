@@ -49,7 +49,6 @@ internal class SkeServiceIntegrationTest :
         val ftpService: FtpService by lazy {
             FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = mockk<DatabaseService>())
         }
-        //  DBListener.loadInitScript("SQLscript/10NyeKrav.sql")
 
         Given("Det finnes en fil i INBOUND") {
             SftpListener.putFiles(listOf("10NyeKrav.txt"), Directories.INBOUND)
@@ -141,7 +140,7 @@ internal class SkeServiceIntegrationTest :
             DBListener.dataSource.connection.use { con ->
                 con.getAllKrav().also { kravBefore ->
                     kravBefore.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 3
-                    kravBefore.filter { it.status == Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 3
+                    kravBefore.filter { it.status == Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 3
                     kravBefore.filter { it.status == Status.HTTP500_ANNEN_SERVER_FEIL.value }.size shouldBe 1
                     kravBefore.filter { it.status == Status.HTTP503_UTILGJENGELIG_TJENESTE.value }.size shouldBe 1
                     kravBefore.filter { it.status == Status.HTTP500_INTERN_TJENERFEIL.value }.size shouldBe 1
@@ -162,7 +161,7 @@ internal class SkeServiceIntegrationTest :
                 DBListener.dataSource.connection.use { con ->
                     con.getAllKrav().also { kravAfter ->
                         kravAfter.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 0
-                        kravAfter.filter { it.status == Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 0
+                        kravAfter.filter { it.status == Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 0
                         kravAfter.filter { it.status == Status.HTTP500_ANNEN_SERVER_FEIL.value }.size shouldBe 0
                         kravAfter.filter { it.status == Status.HTTP503_UTILGJENGELIG_TJENESTE.value }.size shouldBe 0
                         kravAfter.filter { it.status == Status.HTTP500_INTERN_TJENERFEIL.value }.size shouldBe 0
