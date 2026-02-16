@@ -1,7 +1,6 @@
 package no.nav.sokos.ske.krav.service
 
 import no.nav.sokos.ske.krav.client.SkeClient
-import no.nav.sokos.ske.krav.config.CircuitBreakerManager.guardCall
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.dto.ske.responses.OpprettInnkrevingsOppdragResponse
 import no.nav.sokos.ske.krav.util.RequestResult
@@ -15,16 +14,7 @@ class OpprettKravService(
     private val databaseService: DatabaseService,
 ) {
     suspend fun sendAllOpprettKrav(kravList: List<Krav>): List<RequestResult> {
-        val results = mutableListOf<RequestResult>()
-
-        for (krav in kravList) {
-            runCatching {
-                results.add(guardCall { sendOpprettKrav(krav) })
-            }.onFailure {
-                break
-            }
-        }
-
+        val results = kravList.map { sendOpprettKrav(it) }
         databaseService.updateSentKrav(results)
         return results
     }

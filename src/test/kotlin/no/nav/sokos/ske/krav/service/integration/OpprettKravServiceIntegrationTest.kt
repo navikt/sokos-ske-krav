@@ -30,7 +30,7 @@ internal class OpprettKravServiceIntegrationTest :
 
             When("Response fra SKE ikke er OK") {
                 val httpClient =
-                    setUpMockHttpClient(listOf(MockHttpClientUtils.MockRequestObj(Responses.httpErrorResponse, MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.InternalServerError)))
+                    setUpMockHttpClient(listOf(MockHttpClientUtils.MockRequestObj(Responses.genericFeilResponse(), MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.InternalServerError)))
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
                 OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)).sendAllOpprettKrav(kravSomSkalSendes)

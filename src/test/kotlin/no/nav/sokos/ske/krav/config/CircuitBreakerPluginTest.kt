@@ -1,7 +1,6 @@
 package no.nav.sokos.ske.krav.config
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
@@ -56,9 +55,7 @@ class CircuitBreakerPluginTest :
 
             val client = HttpClient(mockEngine) { install(CircuitBreakerPlugin) }
 
-            shouldThrow<CircuitBreakerException> {
-                client.get("https://example.com/api")
-            }
+            client.get("https://example.com/api")
 
             circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
 
@@ -77,9 +74,7 @@ class CircuitBreakerPluginTest :
 
             val client = HttpClient(mockEngine) { install(CircuitBreakerPlugin) }
 
-            shouldThrow<CircuitBreakerException> {
-                client.get("https://example.com/api")
-            }
+            client.get("https://example.com/api")
 
             circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
 
@@ -98,9 +93,7 @@ class CircuitBreakerPluginTest :
 
             val client = HttpClient(mockEngine) { install(CircuitBreakerPlugin) }
 
-            shouldThrow<CircuitBreakerException> {
-                client.get("https://example.com/api")
-            }
+            client.get("https://example.com/api")
 
             circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
 
@@ -145,9 +138,7 @@ class CircuitBreakerPluginTest :
 
             val client = HttpClient(mockEngine) { install(CircuitBreakerPlugin) }
 
-            shouldThrow<CircuitBreakerException> {
-                client.get("https://example.com/api")
-            }
+            client.get("https://example.com/api")
 
             circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
 

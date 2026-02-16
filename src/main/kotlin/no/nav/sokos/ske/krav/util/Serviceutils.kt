@@ -31,7 +31,9 @@ suspend inline fun <reified T> HttpResponse.parseTo(): T? =
         }
         response
     }.onFailure { e ->
-        logger.error { "Error decoding JSON to ${T::class.simpleName}" }
+        runCatching { body<FeilResponse>() }.getOrElse {
+            logger.error { "Error decoding JSON to ${T::class.simpleName}" }
+        }
     }.getOrNull()
 
 inline fun <reified T> T.encodeToString(): String =
