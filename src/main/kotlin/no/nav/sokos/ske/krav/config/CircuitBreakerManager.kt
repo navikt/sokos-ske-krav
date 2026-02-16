@@ -11,15 +11,15 @@ private val logger = KotlinLogging.logger {}
 
 object CircuitBreakerManager {
     private const val CIRCUIT_BREAKER_NAME = "http-client-breaker"
-
+    private val configProperties = PropertiesConfig.CircuitBreakerConfig
     private val config =
         CircuitBreakerConfig
             .custom()
-            .slidingWindowSize(1)
-            .minimumNumberOfCalls(1)
-            .failureRateThreshold(100.0f)
-            .waitDurationInOpenState(Duration.ofHours(PropertiesConfig.TimerConfig.circuitBreakerIntervalPeriod)) // TODO: Juster denne verdien basert på forventet nedetid
-            .permittedNumberOfCallsInHalfOpenState(1)
+            .slidingWindowSize(configProperties.SLIDING_WINDOW_SIZE)
+            .minimumNumberOfCalls(configProperties.MINIMUM_NUMBER_OF_CALLS)
+            .failureRateThreshold(configProperties.FAILURE_RATE_THRESHOLD)
+            .waitDurationInOpenState(Duration.ofHours(configProperties.waitDurationInOpenState)) // TODO: Juster denne verdien basert på forventet nedetid
+            .permittedNumberOfCallsInHalfOpenState(configProperties.PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE)
             .automaticTransitionFromOpenToHalfOpenEnabled(true)
             .build()
 
@@ -32,16 +32,6 @@ object CircuitBreakerManager {
                     }
                 }
         }
-
-    // Brukes bare midlertidig i test
-    val state: CircuitBreaker.State
-        get() = circuitBreaker.state
-
-    // Brukes bare midlertidig i test
-    fun reset() {
-        circuitBreaker.reset()
-        logger.info { "Circuit breaker reset to CLOSED" }
-    }
 
     suspend fun <T> guardCall(block: suspend () -> T): T = circuitBreaker.decorateSuspendFunction(block)()
 }
