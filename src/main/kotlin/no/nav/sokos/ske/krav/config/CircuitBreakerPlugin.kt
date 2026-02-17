@@ -37,7 +37,6 @@ val CircuitBreakerPlugin =
                 }
             } catch (_: CallNotPermittedException) {
                 // Breaker is OPEN: we log, but we don't fail the request here since the response already exists.
-                // (If you want fail-fast when OPEN, move circuit breaker enforcement to HttpSend instead.)
                 logger.warn { "Circuit breaker state is ${circuitBreaker.state} - call not permitted" }
             } catch (e: Exception) {
                 // Defensive: we never want the plugin itself to break response handling.
