@@ -27,7 +27,7 @@ data class RequestResult(
 
 suspend fun defineStatus(response: HttpResponse): Status {
     if (response.status.isSuccess()) return Status.KRAV_SENDT
-    val errorType = response.parseTo<FeilResponse>()?.type ?: "FEIL_FRA_SERVER"
+    val errorType = response.parseTo<FeilResponse>()?.type ?: FeilResponse.CustomTypes.FEIL_FRA_SERVER
 
     return when (response.status.value) {
         400 -> handleBadRequestError(errorType)

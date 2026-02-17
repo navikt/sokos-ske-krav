@@ -142,7 +142,7 @@ class SkeService(
             }
 
             // Spørre mot skatteetatens avstemmingendepunkt
-            val requestResult = findKravidentifikatorForKrav(krav)
+            val requestResult = getKravidentifikatorFromSkatt(krav)
 
             // Feil som 403, 500 osv skal håndteres som normalt
             if (requestResult.status != Status.HTTP404_FANT_IKKE_SAKSREF) requestResults.add(requestResult)
@@ -158,14 +158,16 @@ class SkeService(
 
                 // Fra SKE vil vi få feilmeldingen "innkrevingsoppdrag eksisterer ikke" men vi ønsker mer tydelig informasjon samt informasjonen vi trenger for å kunne følge det opp manuelt
                 if (requestResult.status == Status.HTTP404_FANT_IKKE_SAKSREF) {
+                    // Den vil aldri være null når vi er i denne branchen
+                    val feilResponse = requestResult.response.parseTo<FeilResponse>()!!
                     handleError(
                         requestResult,
                         FeilResponse(
-                            type = requestResult.response.parseTo<FeilResponse>()?.type ?: FeilResponse.CustomTypes.FANT_IKKE_GYLDIG_KRAVIDENT,
+                            type = feilResponse.type,
                             title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENT,
                             status = requestResult.response.status.value,
                             detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
-                            instance = "custom",
+                            instance = feilResponse.instance,
                         ),
                     )
                     logger.warn { "Fant ikke gyldig kravidentifikator for ReferansenummerGammelSak med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
@@ -176,7 +178,7 @@ class SkeService(
         handleErrors(requestResults)
     }
 
-    private suspend fun findKravidentifikatorForKrav(krav: Krav): RequestResult {
+    private suspend fun getKravidentifikatorFromSkatt(krav: Krav): RequestResult {
         val responseAvstemmingSkatt = skeClient.getSkeKravidentifikator(krav.referansenummerGammelSak)
 
         return RequestResult(
