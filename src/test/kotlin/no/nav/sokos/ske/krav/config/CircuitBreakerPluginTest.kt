@@ -1,16 +1,20 @@
 package no.nav.sokos.ske.krav.config
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.HttpSend
+import io.ktor.client.plugins.plugin
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
+import no.nav.sokos.ske.krav.config.CircuitBreakerManager.guardCall
 
 class CircuitBreakerPluginTest :
     FunSpec({
@@ -18,6 +22,15 @@ class CircuitBreakerPluginTest :
         beforeEach {
             circuitBreaker.reset()
         }
+
+        fun guardedClient(engine: MockEngine) =
+            HttpClient(engine) {
+                install(CircuitBreakerPlugin)
+            }.apply {
+                plugin(HttpSend).intercept {
+                    guardCall { execute(it) }
+                }
+            }
 
         test("circuit breaker should remain closed on successful requests") {
             var requestCount = 0
@@ -32,7 +45,7 @@ class CircuitBreakerPluginTest :
                     )
                 }
 
-            val client = HttpClient(mockEngine) { install(CircuitBreakerPlugin) }
+            val client = guardedClient(mockEngine)
 
             repeat(3) {
                 client.get("https://example.com/api")
@@ -54,9 +67,11 @@ class CircuitBreakerPluginTest :
                     )
                 }
 
-            val client = HttpClient(mockEngine) { install(CircuitBreakerPlugin) }
+            val client = guardedClient(mockEngine)
 
-            client.get("https://example.com/api")
+            shouldThrow<CircuitBreakerException> {
+                client.get("https://example.com/api")
+            }
 
             circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
 
@@ -73,9 +88,11 @@ class CircuitBreakerPluginTest :
                     )
                 }
 
-            val client = HttpClient(mockEngine) { install(CircuitBreakerPlugin) }
+            val client = guardedClient(mockEngine)
 
-            client.get("https://example.com/api")
+            shouldThrow<CircuitBreakerException> {
+                client.get("https://example.com/api")
+            }
 
             circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
 
@@ -92,9 +109,11 @@ class CircuitBreakerPluginTest :
                     )
                 }
 
-            val client = HttpClient(mockEngine) { install(CircuitBreakerPlugin) }
+            val client = guardedClient(mockEngine)
 
-            client.get("https://example.com/api")
+            shouldThrow<CircuitBreakerException> {
+                client.get("https://example.com/api")
+            }
 
             circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
 
@@ -114,7 +133,7 @@ class CircuitBreakerPluginTest :
                     )
                 }
 
-            val client = HttpClient(mockEngine) { install(CircuitBreakerPlugin) }
+            val client = guardedClient(mockEngine)
 
             repeat(3) {
                 client.get("https://example.com/api")
@@ -127,7 +146,6 @@ class CircuitBreakerPluginTest :
         }
 
         test("circuit breaker should fail after response when OPEN") {
-
             val mockEngine =
                 MockEngine { _ ->
                     respond(
@@ -137,9 +155,11 @@ class CircuitBreakerPluginTest :
                     )
                 }
 
-            val client = HttpClient(mockEngine) { install(CircuitBreakerPlugin) }
+            val client = guardedClient(mockEngine)
 
-            client.get("https://example.com/api")
+            shouldThrow<CircuitBreakerException> {
+                client.get("https://example.com/api")
+            }
 
             circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
 

@@ -14,7 +14,11 @@ class OpprettKravService(
     private val databaseService: DatabaseService,
 ) {
     suspend fun sendAllOpprettKrav(kravList: List<Krav>): List<RequestResult> {
-        val results = kravList.map { sendOpprettKrav(it) }
+        val results = mutableListOf<RequestResult>()
+
+        for (krav in kravList) {
+            runCatching { results.add(sendOpprettKrav(krav)) }.onFailure { break }
+        }
         databaseService.updateSentKrav(results)
         return results
     }

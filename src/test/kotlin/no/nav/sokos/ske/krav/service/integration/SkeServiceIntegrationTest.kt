@@ -10,7 +10,7 @@ import io.mockk.mockk
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
-import no.nav.sokos.ske.krav.config.CircuitBreakerManager
+import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.responses.AvstemmingResponse
@@ -41,7 +41,7 @@ internal class SkeServiceIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener, DBListener)
         beforeEach {
-            CircuitBreakerManager.circuitBreaker.reset()
+            circuitBreaker.reset()
         }
         val ftpService: FtpService by lazy {
             FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = mockk<DatabaseService>())
@@ -156,7 +156,7 @@ internal class SkeServiceIntegrationTest :
             val httpClient = setUpMockHttpClient(listOf(nyttKravKall))
             val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
 
-            Then("Skal feilen ikke lagres i feilmeldingtabell") {
+            Then("Skal ingen feil lagres i feilmeldingtabell") {
                 skeService.handleNewKrav()
                 val feilmeldinger =
                     DBListener.dataSource.connection.use {
@@ -166,7 +166,7 @@ internal class SkeServiceIntegrationTest :
                             .toFeilmelding()
                     }
 
-                feilmeldinger.filter { it.skeResponse.contains("403") }.size shouldBe 10
+                feilmeldinger.filter { it.skeResponse.contains("403") }.size shouldBe 0
                 val kravMedFeil =
                     DBListener.dataSource.connection.use { conn ->
                         feilmeldinger.flatMap { feilmelding ->
@@ -178,7 +178,7 @@ internal class SkeServiceIntegrationTest :
                         }
                     }
 
-                kravMedFeil.filter { it.status == Status.HTTP403_INGEN_TILGANG.value }.size shouldBe 10
+                kravMedFeil.filter { it.status == Status.HTTP403_INGEN_TILGANG.value }.size shouldBe 0
             }
         }
         Given("Et krav feiler ") {

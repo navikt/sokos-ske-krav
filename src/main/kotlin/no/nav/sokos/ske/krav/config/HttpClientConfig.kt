@@ -14,8 +14,6 @@ import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner
 
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager.guardCall
 
-private val logger = mu.KotlinLogging.logger {}
-
 val httpClient =
     HttpClient(Apache5) {
         expectSuccess = false

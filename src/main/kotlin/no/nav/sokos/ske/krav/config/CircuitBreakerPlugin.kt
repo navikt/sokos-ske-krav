@@ -1,7 +1,5 @@
 package no.nav.sokos.ske.krav.config
 
-import java.util.concurrent.TimeUnit
-
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.statement.HttpResponse
@@ -18,18 +16,19 @@ fun HttpResponse.isFailure() =
 val CircuitBreakerPlugin =
     createClientPlugin("CircuitBreakerPlugin") {
         val circuitBreaker = CircuitBreakerManager.circuitBreaker
-            if (response.isFailure()) {
-                logger.error {
-                    "Circuit breaker recording failure: ${response.status.value} for ${response.request.url}. " +
-                        "Circuit breaker state is ${circuitBreaker.state}"
+        onResponse { response ->
+            try {
+                if (response.isFailure()) {
+                    logger.error {
+                        "Circuit breaker treating response as failure: ${response.status.value} for ${response.request.url}. " +
+                            "Circuit breaker state is ${circuitBreaker.state}"
+                    }
+                    // Important: don't call circuitBreaker.onError/onSuccess here.
+                    // We rely on CircuitBreakerManager.guardCall (HttpSend intercept) to record outcome based on exceptions.
+                    throw CircuitBreakerException("HTTP ${response.status.value}: ${response.status.description} from ${response.request.url}")
                 }
-                circuitBreaker.onError(
-                    0L,
-                    TimeUnit.MILLISECONDS,
-                    CircuitBreakerException("HTTP ${response.status.value}: ${response.status.description}"),
-                )
-            } else {
-                circuitBreaker.onSuccess(0L, TimeUnit.MILLISECONDS)
+            } catch (_: CallNotPermittedException) {
+                logger.warn { "Circuit breaker state is ${circuitBreaker.state} - call not permitted" }
             }
         }
     }
