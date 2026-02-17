@@ -24,6 +24,7 @@ import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
+import no.nav.sokos.ske.krav.util.KRAV_EKSISTERER_IKKE
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.defineStatusWithError
 import no.nav.sokos.ske.krav.util.parseTo
@@ -172,10 +173,21 @@ class SkeService(
                             ),
                         )
                         logger.warn { "Fant ikke gyldig kravidentifikator for ReferansenummerGammelSak med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
-                        slackErrorsHandled.add(krav.saksnummerNAV)
                     } else {
+                        // Unexpected case where feilResponse is null for a 404 - use default error response
                         logger.error { "Unexpected null feilResponse for HTTP404_FANT_IKKE_SAKSREF. Saksnummer: ${krav.saksnummerNAV}, ReferansenummerGammelSak: ${krav.referansenummerGammelSak}" }
+                        handleError(
+                            requestResult,
+                            FeilResponse(
+                                type = KRAV_EKSISTERER_IKKE,
+                                title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENT,
+                                status = requestResult.response.status.value,
+                                detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
+                                instance = "unknown",
+                            ),
+                        )
                     }
+                    slackErrorsHandled.add(krav.saksnummerNAV)
                 }
             }
         }
