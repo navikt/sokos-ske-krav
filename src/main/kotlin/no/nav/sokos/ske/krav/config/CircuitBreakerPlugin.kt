@@ -18,29 +18,18 @@ fun HttpResponse.isFailure() =
 val CircuitBreakerPlugin =
     createClientPlugin("CircuitBreakerPlugin") {
         val circuitBreaker = CircuitBreakerManager.circuitBreaker
-        onResponse { response ->
-            try {
-                circuitBreaker.acquirePermission()
-
-                if (response.isFailure()) {
-                    logger.error {
-                        "Circuit breaker recording failure: ${response.status.value} for ${response.request.url}. " +
-                            "Circuit breaker state is ${circuitBreaker.state}"
-                    }
-                    circuitBreaker.onError(
-                        0L,
-                        TimeUnit.MILLISECONDS,
-                        CircuitBreakerException("HTTP ${response.status.value}: ${response.status.description}"),
-                    )
-                } else {
-                    circuitBreaker.onSuccess(0L, TimeUnit.MILLISECONDS)
+            if (response.isFailure()) {
+                logger.error {
+                    "Circuit breaker recording failure: ${response.status.value} for ${response.request.url}. " +
+                        "Circuit breaker state is ${circuitBreaker.state}"
                 }
-            } catch (_: CallNotPermittedException) {
-                // Breaker is OPEN: we log, but we don't fail the request here since the response already exists.
-                logger.warn { "Circuit breaker state is ${circuitBreaker.state} - call not permitted" }
-            } catch (e: Exception) {
-                // Defensive: we never want the plugin itself to break response handling.
-                logger.warn(e) { "Circuit breaker plugin failed to record outcome" }
+                circuitBreaker.onError(
+                    0L,
+                    TimeUnit.MILLISECONDS,
+                    CircuitBreakerException("HTTP ${response.status.value}: ${response.status.description}"),
+                )
+            } else {
+                circuitBreaker.onSuccess(0L, TimeUnit.MILLISECONDS)
             }
         }
     }
