@@ -5,12 +5,15 @@ import kotlinx.serialization.json.Json
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.HttpSend
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.plugin
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 
+import no.nav.sokos.ske.krav.config.CircuitBreakerManager.guardCall
 import no.nav.sokos.ske.krav.config.CircuitBreakerPlugin
 import no.nav.sokos.ske.krav.domain.Status
 
@@ -145,6 +148,10 @@ class MockHttpClient {
                         error("Ikke implementert: ${request.url.encodedPath}")
                     }
                 }
+            }
+        }.apply {
+            plugin(HttpSend).intercept {
+                guardCall { execute(it) }
             }
         }
 

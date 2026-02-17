@@ -20,11 +20,8 @@ val CircuitBreakerPlugin =
             try {
                 if (response.isFailure()) {
                     logger.error {
-                        "Circuit breaker treating response as failure: ${response.status.value} for ${response.request.url}. " +
-                            "Circuit breaker state is ${circuitBreaker.state}"
+                        "Circuit breaker treating response as failure: ${response.status.value} for ${response.request.url} "
                     }
-                    // Important: don't call circuitBreaker.onError/onSuccess here.
-                    // We rely on CircuitBreakerManager.guardCall (HttpSend intercept) to record outcome based on exceptions.
                     throw CircuitBreakerException("HTTP ${response.status.value}: ${response.status.description} from ${response.request.url}")
                 }
             } catch (_: CallNotPermittedException) {
