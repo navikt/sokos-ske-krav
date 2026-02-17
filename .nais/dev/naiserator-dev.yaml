@@ -87,4 +87,4 @@ spec:
     - name: TIMER_INTERVAL_PERIOD_HOURS
       value: "4"
     - name: CIRCUIT_BREAKER_WAIT_DURATION_IN_OPEN_STATE_IN_HOURS
-      value: "4"
+      value: "2"
