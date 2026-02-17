@@ -111,7 +111,6 @@ class SkeService(
                 endreKravService.sendAllEndreKrav(kravList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }) +
                 stoppKravService.sendAllStoppKrav(kravList.filter { it.kravtype == STOPP_KRAV })
 
-        println("HANDLER ${allResponses.size}")
         handleErrors(allResponses)
 
         return allResponses
@@ -172,7 +171,6 @@ class SkeService(
                     result.kravidentifikator,
                 )
                 result.response.parseTo<FeilResponse>()?.let { feilResponse ->
-                    println("FEILRESPONSE: $feilResponse")
                     val errorPair = Pair(feilResponse.title, feilResponse.detail)
                     slackService.addError(result.krav.filnavn, "Feil fra SKE", errorPair)
                 }
