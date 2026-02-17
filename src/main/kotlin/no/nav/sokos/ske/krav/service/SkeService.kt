@@ -173,6 +173,8 @@ class SkeService(
                         )
                         logger.warn { "Fant ikke gyldig kravidentifikator for ReferansenummerGammelSak med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
                         slackErrorsHandled.add(krav.saksnummerNAV)
+                    } else {
+                        logger.error { "Unexpected null feilResponse for HTTP404_FANT_IKKE_SAKSREF. Saksnummer: ${krav.saksnummerNAV}, ReferansenummerGammelSak: ${krav.referansenummerGammelSak}" }
                     }
                 }
             }
