@@ -25,7 +25,7 @@ import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.RequestResult
-import no.nav.sokos.ske.krav.util.defineStatus
+import no.nav.sokos.ske.krav.util.defineStatusWithError
 import no.nav.sokos.ske.krav.util.parseTo
 import no.nav.sokos.ske.krav.validation.LineValidator
 
@@ -158,20 +158,22 @@ class SkeService(
 
                 // Fra SKE vil vi få feilmeldingen "innkrevingsoppdrag eksisterer ikke" men vi ønsker mer tydelig informasjon samt informasjonen vi trenger for å kunne følge det opp manuelt
                 if (requestResult.status == Status.HTTP404_FANT_IKKE_SAKSREF) {
-                    // Den vil aldri være null når vi er i denne branchen
-                    val feilResponse = requestResult.response.parseTo<FeilResponse>()!!
-                    handleError(
-                        requestResult,
-                        FeilResponse(
-                            type = feilResponse.type,
-                            title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENT,
-                            status = requestResult.response.status.value,
-                            detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
-                            instance = feilResponse.instance,
-                        ),
-                    )
-                    logger.warn { "Fant ikke gyldig kravidentifikator for ReferansenummerGammelSak med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
-                    slackErrorsHandled.add(krav.saksnummerNAV)
+                    // Use the feilResponse that was already parsed in getKravidentifikatorFromSkatt
+                    val feilResponse = requestResult.feilResponse
+                    if (feilResponse != null) {
+                        handleError(
+                            requestResult,
+                            FeilResponse(
+                                type = feilResponse.type,
+                                title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENT,
+                                status = requestResult.response.status.value,
+                                detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
+                                instance = feilResponse.instance,
+                            ),
+                        )
+                        logger.warn { "Fant ikke gyldig kravidentifikator for ReferansenummerGammelSak med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
+                        slackErrorsHandled.add(krav.saksnummerNAV)
+                    }
                 }
             }
         }
@@ -180,13 +182,15 @@ class SkeService(
 
     private suspend fun getKravidentifikatorFromSkatt(krav: Krav): RequestResult {
         val responseAvstemmingSkatt = skeClient.getSkeKravidentifikator(krav.referansenummerGammelSak)
+        val (status, feilResponse) = defineStatusWithError(responseAvstemmingSkatt)
 
         return RequestResult(
             response = responseAvstemmingSkatt,
             request = krav.referansenummerGammelSak,
             krav = krav,
             kravidentifikator = responseAvstemmingSkatt.parseTo<AvstemmingResponse>()?.kravidentifikator ?: "",
-            status = defineStatus(responseAvstemmingSkatt),
+            status = status,
+            feilResponse = feilResponse,
         )
     }
 
