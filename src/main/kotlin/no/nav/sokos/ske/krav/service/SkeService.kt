@@ -161,31 +161,27 @@ class SkeService(
                 if (requestResult.status == Status.HTTP404_FANT_IKKE_SAKSREF) {
                     // Use the feilResponse that was already parsed in getKravidentifikatorFromSkatt
                     val feilResponse = requestResult.feilResponse
+                    val (type, instance) =
+                        if (feilResponse != null) {
+                            Pair(feilResponse.type, feilResponse.instance)
+                        } else {
+                            // Unexpected case where feilResponse is null for a 404 - use defaults
+                            logger.error { "Unexpected null feilResponse for HTTP404_FANT_IKKE_SAKSREF. Saksnummer: ${krav.saksnummerNAV}, ReferansenummerGammelSak: ${krav.referansenummerGammelSak}" }
+                            Pair(KRAV_EKSISTERER_IKKE, "unknown")
+                        }
+
+                    handleError(
+                        requestResult,
+                        FeilResponse(
+                            type = type,
+                            title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENT,
+                            status = requestResult.response.status.value,
+                            detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
+                            instance = instance,
+                        ),
+                    )
                     if (feilResponse != null) {
-                        handleError(
-                            requestResult,
-                            FeilResponse(
-                                type = feilResponse.type,
-                                title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENT,
-                                status = requestResult.response.status.value,
-                                detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
-                                instance = feilResponse.instance,
-                            ),
-                        )
                         logger.warn { "Fant ikke gyldig kravidentifikator for ReferansenummerGammelSak med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
-                    } else {
-                        // Unexpected case where feilResponse is null for a 404 - use default error response
-                        logger.error { "Unexpected null feilResponse for HTTP404_FANT_IKKE_SAKSREF. Saksnummer: ${krav.saksnummerNAV}, ReferansenummerGammelSak: ${krav.referansenummerGammelSak}" }
-                        handleError(
-                            requestResult,
-                            FeilResponse(
-                                type = KRAV_EKSISTERER_IKKE,
-                                title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENT,
-                                status = requestResult.response.status.value,
-                                detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
-                                instance = "unknown",
-                            ),
-                        )
                     }
                     slackErrorsHandled.add(krav.saksnummerNAV)
                 }
