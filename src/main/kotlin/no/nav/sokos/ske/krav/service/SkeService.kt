@@ -193,12 +193,13 @@ class SkeService(
     private suspend fun getKravidentifikatorFromSkatt(krav: Krav): RequestResult {
         val responseAvstemmingSkatt = skeClient.getSkeKravidentifikator(krav.referansenummerGammelSak)
         val (status, feilResponse) = defineStatusWithError(responseAvstemmingSkatt)
+        val kravidentifikator = feilResponse?.let { "" } ?: responseAvstemmingSkatt.parseTo<AvstemmingResponse>()?.kravidentifikator ?: ""
 
         return RequestResult(
             response = responseAvstemmingSkatt,
             request = krav.referansenummerGammelSak,
             krav = krav,
-            kravidentifikator = responseAvstemmingSkatt.parseTo<AvstemmingResponse>()?.kravidentifikator ?: "",
+            kravidentifikator = kravidentifikator,
             status = status,
             feilResponse = feilResponse,
         )
