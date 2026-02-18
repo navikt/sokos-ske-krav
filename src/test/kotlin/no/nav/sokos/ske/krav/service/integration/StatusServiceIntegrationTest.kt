@@ -12,6 +12,7 @@ import io.mockk.spyk
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
+import no.nav.sokos.ske.krav.config.CircuitBreakerManager
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
@@ -22,10 +23,13 @@ import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.MockHttpClient
 import no.nav.sokos.ske.krav.util.MockHttpClientUtils
 import no.nav.sokos.ske.krav.util.getAllKrav
+import no.nav.sokos.ske.krav.util.setUpMockHttpClient
 
 internal class StatusServiceIntegrationTest :
     BehaviorSpec({
         extensions(DBListener)
+        beforeEach { CircuitBreakerManager.circuitBreaker.reset() }
+        val dbService = DatabaseService(DBListener.dataSource)
 
         fun setupServices(
             client: HttpClient,
@@ -39,21 +43,37 @@ internal class StatusServiceIntegrationTest :
             return Triple(slackClientSpy, slackServiceSpy, statusServiceSpy)
         }
 
-        Given("Mottaksstatus er RESKONTROFOERT") {
+        Given("Mottaksstatus trigger circuit breaker") {
+            DBListener.clearDB()
             DBListener.loadInitScript("SQLscript/KravSomSkalOppdateres.sql")
+            val avskrivKravKall = MockHttpClientUtils.MockRequestObj(MockHttpClientUtils.Responses.genericFeilResponse(), MockHttpClientUtils.EndepunktType.MOTTAKSSTATUS, HttpStatusCode.Forbidden)
+
+            val httpClient =
+                setUpMockHttpClient(listOf(avskrivKravKall))
+            val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
+
+            dbService.getAllKravForStatusCheck().size shouldBe 5
+
+            StatusService(DBListener.dataSource, skeClient, dbService, mockk<SlackService>(relaxed = true)).getMottaksStatus()
+            Then("Skal krav ikke oppdateres") {
+                dbService.getAllKravForStatusCheck().size shouldBe 5
+            }
+            CircuitBreakerManager.circuitBreaker.reset()
+        }
+
+        Given("Mottaksstatus er RESKONTROFOERT") {
             val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse(status = Status.RESKONTROFOERT.value)
             val httpClient = mottaksStatusMockHttpClient(mottaksStatusResponse)
-            val dbService = DatabaseService(DBListener.dataSource)
             val (slackClientSpy, _, statusService) = setupServices(httpClient, dbService)
 
             Then("Skal mottaksstatus settes til RESKONTROFOERT i database") {
                 val allKravBeforeUpdate = DBListener.dataSource.connection.use { con -> con.getAllKrav() }
-                allKravBeforeUpdate.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 3
+                allKravBeforeUpdate.count { it.status == Status.RESKONTROFOERT.value } shouldBe 3
 
                 statusService.getMottaksStatus()
 
                 val allKravAfterUpdate = DBListener.dataSource.connection.use { con -> con.getAllKrav() }
-                allKravAfterUpdate.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe 8
+                allKravAfterUpdate.count { it.status == Status.RESKONTROFOERT.value } shouldBe 8
             }
             Then("Alert skal ikke sendes") {
                 coVerify(exactly = 0) {
@@ -62,17 +82,17 @@ internal class StatusServiceIntegrationTest :
             }
         }
         Given("Mottaksstatus er VALIDERINGSFEIL") {
+            DBListener.clearDB()
             val fileName = "KravSomSkalOppdateres.sql"
             DBListener.loadInitScript("SQLscript/$fileName")
-            val dataSource = DBListener.dataSource
             val status = "ORGANISASJONSNUMMER_FINNES_IKKE"
             val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse(status = Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value)
             val valideringsFeilRespons = MockHttpClientUtils.Responses.valideringsfeilResponse(status, "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke")
             val httpClient = mottaksStatusMockHttpClient(mottaksStatusResponse, valideringsFeilRespons)
-            val dbService = DatabaseService(dataSource)
+
             val (slackClientSpy, slackServiceSpy, statusService) = setupServices(httpClient, dbService)
 
-            dataSource.asyncTransaction { tx ->
+            DBListener.dataSource.asyncTransaction { tx ->
 
                 FeilmeldingRepository.getAllFeilmeldinger(tx).size shouldBe 0
                 dbService.getAllKravForStatusCheck().size shouldBe 5

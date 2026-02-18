@@ -19,16 +19,18 @@ import no.nav.sokos.ske.krav.util.setUpMockHttpClient
 internal class OpprettKravServiceIntegrationTest :
     BehaviorSpec({
         extensions(DBListener)
-        beforeEach {
-            CircuitBreakerManager.circuitBreaker.reset()
-        }
+        beforeEach { CircuitBreakerManager.circuitBreaker.reset() }
+
+        val dbService = DatabaseService(DBListener.dataSource)
+
         Given("2 Nye krav skal opprettes ") {
+            DBListener.clearDB()
             DBListener.loadInitScript("SQLscript/2NyeKrav.sql")
 
-            val kravSomSkalSendes = DBListener.dataSource.connection.use { it.getAllKrav() }
+            val kravSomSkalSendes = dbService.getAllUnsentKrav()
             kravSomSkalSendes.size shouldBe 2
 
-            When("Response fra SKE ikke er OK") {
+            When("Response fra SKE  trigger circuit breaker") {
                 val httpClient =
                     setUpMockHttpClient(listOf(MockHttpClientUtils.MockRequestObj(Responses.genericFeilResponse(), MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.InternalServerError)))
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
@@ -36,19 +38,21 @@ internal class OpprettKravServiceIntegrationTest :
                 OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)).sendAllOpprettKrav(kravSomSkalSendes)
 
                 Then("Skal kravene ikke oppdateres") {
-                    DBListener.dataSource.connection.use { conn ->
-                        conn.getAllKrav().run {
-                            size shouldBe 2
-                            filter { it.saksnummerNAV == "1111-navsaksnr" }.size shouldBe 1
-                            filter { it.saksnummerNAV == "2222-navsaksnr" }.size shouldBe 1
-                            filter { it.kravidentifikatorSKE == "" }.size shouldBe 2
+                    val krav =
+                        DBListener.dataSource.connection.use { con ->
+                            con.getAllKrav()
                         }
-                    }
+                    krav.size shouldBe 2
+                    krav.count { it.saksnummerNAV == "1111-navsaksnr" } shouldBe 1
+                    krav.count { it.saksnummerNAV == "2222-navsaksnr" } shouldBe 1
+                    krav.count { it.kravidentifikatorSKE.isBlank() } shouldBe 2
                 }
+
+                dbService.getAllUnsentKrav().size shouldBe 2
             }
 
             When("Response fra SKE er OK") {
-
+                CircuitBreakerManager.circuitBreaker.reset()
                 val kravidentifikatorSKE = "4321"
                 val skeOKResponse = Responses.nyttKravResponse(kravidentifikatorSKE)
 
@@ -58,15 +62,17 @@ internal class OpprettKravServiceIntegrationTest :
                 OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)).sendAllOpprettKrav(kravSomSkalSendes)
 
                 Then("Skal kravene oppdateres med SKE kravidentifikator") {
-                    DBListener.dataSource.connection.use { conn ->
-                        conn.getAllKrav().run {
-                            size shouldBe 2
-                            filter { it.saksnummerNAV == "1111-navsaksnr" }.size shouldBe 1
-                            filter { it.saksnummerNAV == "2222-navsaksnr" }.size shouldBe 1
-                            filter { it.kravidentifikatorSKE == kravidentifikatorSKE }.size shouldBe 2
+                    val krav =
+                        DBListener.dataSource.connection.use { con ->
+                            con.getAllKrav()
                         }
-                    }
+                    krav.size shouldBe 2
+                    krav.count { it.saksnummerNAV == "1111-navsaksnr" } shouldBe 1
+                    krav.count { it.saksnummerNAV == "2222-navsaksnr" } shouldBe 1
+                    krav.count { it.kravidentifikatorSKE == kravidentifikatorSKE } shouldBe 2
                 }
+
+                dbService.getAllUnsentKrav().size shouldBe 0
             }
         }
     })

@@ -13,12 +13,12 @@ class StoppKravService(
     private val databaseService: DatabaseService,
 ) {
     suspend fun sendAllStoppKrav(kravList: List<Krav>): List<RequestResult> {
-        val resultList =
-            kravList.map {
-                sendStoppKrav(it)
-            }
-        databaseService.updateSentKrav(resultList)
-        return resultList
+        val requestResults = mutableListOf<RequestResult>()
+        for (krav in kravList) {
+            runCatching { requestResults.add(sendStoppKrav(krav)) }.onFailure { break } // TODO: Også lagre feilmelding?
+        }
+        databaseService.updateSentKrav(requestResults)
+        return requestResults
     }
 
     private suspend fun sendStoppKrav(krav: Krav): RequestResult {

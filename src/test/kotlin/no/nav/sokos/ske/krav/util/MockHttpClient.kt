@@ -1,7 +1,5 @@
 package no.nav.sokos.ske.krav.util
 
-import kotlinx.serialization.json.Json
-
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -15,6 +13,7 @@ import io.ktor.serialization.kotlinx.json.json
 
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager.guardCall
 import no.nav.sokos.ske.krav.config.CircuitBreakerPlugin
+import no.nav.sokos.ske.krav.config.jsonConfig
 import no.nav.sokos.ske.krav.domain.Status
 
 object MockHttpClientUtils {
@@ -54,6 +53,8 @@ object MockHttpClientUtils {
         fun nyttKravResponse(kravIdentifikator: String = "1234") = """{"kravidentifikator": "$kravIdentifikator"}"""
 
         fun nyEndringResponse(transaksjonsId: String = "791e5955-af86-42fe-b609-d4fc2754e35e") = """{"transaksjonsid": "$transaksjonsId"}"""
+
+        fun avskrivKravResponse(transaksjonsId: String = "791e5955-af86-42fe-b609-d4fc2754e35e") = """{"transaksjonsid": "$transaksjonsId"}"""
 
         fun innkrevingsOppdragEksistererIkkeResponse(kravIdentifikator: String = "1234") =
             //language=json
@@ -114,13 +115,6 @@ object MockHttpClientUtils {
 
 class MockHttpClient {
     private val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
-    private val jsonConfig =
-        Json {
-            prettyPrint = true
-            ignoreUnknownKeys = true
-            encodeDefaults = true
-            explicitNulls = false
-        }
 
     fun getSlackClient() =
         HttpClient(MockEngine) {
@@ -132,6 +126,33 @@ class MockHttpClient {
             }
         }
 
+    fun guardedClient(engine: MockEngine) =
+        HttpClient(engine) {
+            install(ContentNegotiation) { json(jsonConfig) }
+            install(CircuitBreakerPlugin)
+        }.apply {
+            plugin(HttpSend).intercept {
+                guardCall { execute(it) }
+            }
+        }
+
+    fun getClient(kall: List<MockHttpClientUtils.MockRequestObj>): HttpClient {
+        val mockEngine =
+            MockEngine { request ->
+                val handler =
+                    kall.singleOrNull {
+                        generateUrls(it.type.url).contains(request.url.encodedPath)
+                    }
+                if (handler != null) {
+                    respond(handler.response, handler.statusCode, responseHeaders)
+                } else {
+                    error("Ikke implementert: ${request.url.encodedPath}")
+                }
+            }
+
+        return guardedClient(mockEngine)
+    }
+/*
     fun getClient(kall: List<MockHttpClientUtils.MockRequestObj>) =
         HttpClient(MockEngine) {
             install(ContentNegotiation) { json(jsonConfig) }
@@ -153,7 +174,7 @@ class MockHttpClient {
             plugin(HttpSend).intercept {
                 guardCall { execute(it) }
             }
-        }
+        }*/
 
     private fun generateUrls(baseUrl: String) =
         listOf(
@@ -177,6 +198,8 @@ class MockHttpClient {
             "/innkrevingsoppdrag/8888-skeUUID$baseUrl",
             "/innkrevingsoppdrag/9999-skeUUID$baseUrl",
             "/innkrevingsoppdrag/1010-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/kravidske1$baseUrl",
+            "/innkrevingsoppdrag/kravidske2$baseUrl",
             "/innkrevingsoppdrag/$baseUrl",
             "/innkrevingsoppdrag$baseUrl",
             baseUrl,

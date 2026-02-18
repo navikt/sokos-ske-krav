@@ -12,6 +12,7 @@ import no.nav.sokos.ske.krav.service.NYTT_KRAV
 
 val logger = mu.KotlinLogging.logger {}
 
+// TODO: Refaktorer? Uklart navn
 fun createKravidentifikatorPair(it: Krav): Pair<String, KravidentifikatorType> {
     var kravIdentifikator = it.kravidentifikatorSKE
     var kravIdentifikatorType = KravidentifikatorType.SKATTEETATENSKRAVIDENTIFIKATOR

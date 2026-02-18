@@ -14,6 +14,13 @@ import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner
 
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager.guardCall
 
+val jsonConfig =
+    Json {
+        prettyPrint = true
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+        explicitNulls = false
+    }
 val httpClient =
     HttpClient(Apache5) {
         expectSuccess = false
@@ -21,14 +28,7 @@ val httpClient =
         install(CircuitBreakerPlugin)
 
         install(ContentNegotiation) {
-            json(
-                Json {
-                    prettyPrint = true
-                    ignoreUnknownKeys = true
-                    encodeDefaults = true
-                    explicitNulls = false
-                },
-            )
+            json(jsonConfig)
         }
 
         engine {

@@ -14,13 +14,13 @@ class OpprettKravService(
     private val databaseService: DatabaseService,
 ) {
     suspend fun sendAllOpprettKrav(kravList: List<Krav>): List<RequestResult> {
-        val results = mutableListOf<RequestResult>()
+        val requestResults = mutableListOf<RequestResult>()
 
         for (krav in kravList) {
-            runCatching { results.add(sendOpprettKrav(krav)) }.onFailure { break }
+            runCatching { requestResults.add(sendOpprettKrav(krav)) }.onFailure { break } // TODO: Også lagre feilmelding?
         }
-        databaseService.updateSentKrav(results)
-        return results
+        databaseService.updateSentKrav(requestResults)
+        return requestResults
     }
 
     private suspend fun sendOpprettKrav(krav: Krav): RequestResult {
