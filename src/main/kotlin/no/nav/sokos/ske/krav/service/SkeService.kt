@@ -180,9 +180,7 @@ class SkeService(
                             instance = instance,
                         ),
                     )
-                    if (feilResponse != null) {
-                        logger.warn { "Fant ikke gyldig kravidentifikator for ReferansenummerGammelSak med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
-                    }
+                    logger.warn { "Fant ikke gyldig kravidentifikator for ReferansenummerGammelSak med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
                     slackErrorsHandled.add(krav.saksnummerNAV)
                 }
             }
