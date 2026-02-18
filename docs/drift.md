@@ -18,8 +18,8 @@ Dette gjøres med et python skript (`.scripts/ErstattSaksnummer.py`).
 
 - Installer python3 (MACOS og brew: `brew install python`) (Linux: `sudo apt install python3`)
 - Kjør f.eks `python3 ErstattSaksnummer.py ../src/test/resources/FtpFiler/AltOkFil.txt` (PS: revert disse endringene før eventuelle commits)
-- Logg inn på SFTP serveren ved å følge instruksjonene fra [README(sftp)](../README.md#sftp-tilkobling)
-- Filen legges i `/inbound`
+- Logg inn på SFTP serveren ved å følge instruksjonene over.
+- Filen legges i `/inbound` mappen
 - Vi har to måter å trigge innlesing av filen på:
 
   1. Enten trigging av endepunktet [hentNye](https://sokos-ske-krav.intern.dev.nav.no/api/hentNye). Dette kan gjøres med en klient som Bruno.
