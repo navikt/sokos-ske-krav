@@ -24,8 +24,9 @@ import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
+import no.nav.sokos.ske.krav.util.KRAV_EKSISTERER_IKKE
 import no.nav.sokos.ske.krav.util.RequestResult
-import no.nav.sokos.ske.krav.util.defineStatus
+import no.nav.sokos.ske.krav.util.defineStatusWithError
 import no.nav.sokos.ske.krav.util.parseTo
 import no.nav.sokos.ske.krav.validation.LineValidator
 
@@ -158,16 +159,25 @@ class SkeService(
 
                 // Fra SKE vil vi få feilmeldingen "innkrevingsoppdrag eksisterer ikke" men vi ønsker mer tydelig informasjon samt informasjonen vi trenger for å kunne følge det opp manuelt
                 if (requestResult.status == Status.HTTP404_FANT_IKKE_SAKSREF) {
-                    // Den vil aldri være null når vi er i denne branchen
-                    val feilResponse = requestResult.response.parseTo<FeilResponse>()!!
+                    // Use the feilResponse that was already parsed in getKravidentifikatorFromSkatt
+                    val feilResponse = requestResult.feilResponse
+                    val (type, instance) =
+                        if (feilResponse != null) {
+                            Pair(feilResponse.type, feilResponse.instance)
+                        } else {
+                            // Unexpected case where feilResponse is null for a 404 - use defaults
+                            logger.error { "Unexpected null feilResponse for HTTP404_FANT_IKKE_SAKSREF. Saksnummer: ${krav.saksnummerNAV}, ReferansenummerGammelSak: ${krav.referansenummerGammelSak}" }
+                            Pair(KRAV_EKSISTERER_IKKE, "unknown")
+                        }
+
                     handleError(
                         requestResult,
                         FeilResponse(
-                            type = feilResponse.type,
+                            type = type,
                             title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENT,
                             status = requestResult.response.status.value,
                             detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
-                            instance = feilResponse.instance,
+                            instance = instance,
                         ),
                     )
                     logger.warn { "Fant ikke gyldig kravidentifikator for ReferansenummerGammelSak med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
@@ -180,13 +190,16 @@ class SkeService(
 
     private suspend fun getKravidentifikatorFromSkatt(krav: Krav): RequestResult {
         val responseAvstemmingSkatt = skeClient.getSkeKravidentifikator(krav.referansenummerGammelSak)
+        val (status, feilResponse) = defineStatusWithError(responseAvstemmingSkatt)
+        val kravidentifikator = feilResponse?.let { "" } ?: responseAvstemmingSkatt.parseTo<AvstemmingResponse>()?.kravidentifikator ?: ""
 
         return RequestResult(
             response = responseAvstemmingSkatt,
             request = krav.referansenummerGammelSak,
             krav = krav,
-            kravidentifikator = responseAvstemmingSkatt.parseTo<AvstemmingResponse>()?.kravidentifikator ?: "",
-            status = defineStatus(responseAvstemmingSkatt),
+            kravidentifikator = kravidentifikator,
+            status = status,
+            feilResponse = feilResponse,
         )
     }
 

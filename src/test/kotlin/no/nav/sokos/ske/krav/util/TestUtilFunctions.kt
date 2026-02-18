@@ -139,9 +139,18 @@ fun setupSlackService(): SlackService {
 fun mockHttpResponse(
     code: Int,
     feilResponseType: String = "",
+    feilResponse: FeilResponse? = null,
+    simulateParsingFailure: Boolean = false,
 ) = mockk<HttpResponse>(relaxed = true) {
     every { status.value } returns code
-    coEvery { body<FeilResponse>().type } returns feilResponseType
+    if (simulateParsingFailure) {
+        // Simulate parsing failure - parseTo will return null
+        coEvery { body<FeilResponse>() } throws Exception("Failed to parse FeilResponse")
+    } else if (feilResponse != null) {
+        coEvery { body<FeilResponse>() } returns feilResponse
+    } else {
+        coEvery { body<FeilResponse>().type } returns feilResponseType
+    }
 }
 
 fun Connection.getAllKrav(): List<Krav> = prepareStatement("""select * from krav""").executeQuery().toKrav()
