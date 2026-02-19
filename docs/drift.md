@@ -12,12 +12,15 @@ På MacOS kan den be om en `.ppk` nøkkel. Isåfall la FileZilla automatisk konv
 
 ## Testfiler på FTP
 
-FTP filer for testing kan man finne [her](../src/test/resources/FtpFiler). De er i copybook format som stormaskin/COBOL opererer med.
+FTP filer for testing kan man finne [her](../testfiler). De er i copybook format som stormaskin/COBOL opererer med.  
+Testfilene er navngitt Fil-A, Fil-B... Fil-E6. Filer med navn Fil-Ex inneholder endringer og stopp på krav som blir opprettet med Fil...A-Fil-D. Noen av filene vil gi asynkrone valideringsfeil og det er hensikten. Forventet resultat er dokumentert i (`docs/testfiler/Testfiler_forklaring.pdf`)
+
 Disse kan brukes for testing, men vi må første erstatte saksnummerene med nye så vi ikke sender inn duplikater.
-Dette gjøres med et python skript (`.scripts/ErstattSaksnummer.py`). 
+Dette gjøres med et python skript (`docs/scripts/ErstattSaksnummer.py`).
 
 - Installer python3 (MACOS og brew: `brew install python`) (Linux: `sudo apt install python3`)
-- Kjør f.eks `python3 ErstattSaksnummer.py ../src/test/resources/FtpFiler/AltOkFil.txt` (PS: revert disse endringene før eventuelle commits)
+
+- Kjør f.eks `python3 ErstattSaksnummer.py Fil-A.txt` (PS: script og fil må være i samme mappe, ellers må du endre stien i scriptet)
 - Logg inn på SFTP serveren ved å følge instruksjonene over.
 - Filen legges i `/inbound` mappen
 - Vi har to måter å trigge innlesing av filen på:
