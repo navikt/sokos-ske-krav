@@ -11,11 +11,18 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 
 import no.nav.sokos.ske.krav.config.ApplicationState
+import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.PropertiesConfigNew
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.config.applicationLifecycleConfig
+import no.nav.sokos.ske.krav.config.commonConfig
 import no.nav.sokos.ske.krav.config.mergeWithEnv
+import no.nav.sokos.ske.krav.config.routingConfig
+import no.nav.sokos.ske.krav.config.securityConfig
+import no.nav.sokos.ske.krav.domain.StonadsType
+import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.service.Frontend
+import no.nav.sokos.ske.krav.service.SkeService
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -29,28 +36,29 @@ private fun Application.module() {
 
     val useAuthentication = PropertiesConfigNew.applicationProperties.useAuthentication
     val applicationState = ApplicationState()
-//    val skeService = SkeService()
-//
-//    commonConfig()
+    val skeService = SkeService()
+
+    commonConfig()
     applicationLifecycleConfig(applicationState)
-//    securityConfig(useAuthentication)
-//    routingConfig(useAuthentication, applicationState, skeService)
-//
-//    if (!PropertiesConfigNew.isLocal) {
-//        PostgresConfig.migrate()
-//    }
-//
-//    StonadsType.entries
-//        .flatMap { it.kravKoder }
-//        .distinct()
-//        .forEach { kravKode ->
-//            Metrics.registerKravKodeCounter(kravKode)
-//        }
-//
+    securityConfig(useAuthentication)
+    routingConfig(useAuthentication, applicationState, skeService)
+
+    if (!PropertiesConfigNew.isLocal) {
+        PostgresDataSource.migrate()
+    }
+
+    StonadsType.entries
+        .flatMap { it.kravKoder }
+        .distinct()
+        .forEach { kravKode ->
+            Metrics.registerKravKodeCounter(kravKode)
+        }
+
 //    if (!useTimer) {
 //        return
 //    }
-//
+
+    // TODO: LAO10: Uncomment before merging
 //    launchJob(skeService::handleNewKrav, schedulerIntervalPeriod)
 //    launchJob(skeService::checkKravDateForAlert, 24.hours)
 }
