@@ -50,6 +50,8 @@ val kotlinLoggingVersion = "3.0.5"
 val logbackVersion = "1.5.29"
 val logstashVersion = "9.0"
 
+val resilience4jVersion = "2.2.0"
+
 dependencies {
     // Ktor Server
     implementation("io.ktor:ktor-server-call-logging-jvm:$ktorVersion")
@@ -101,6 +103,10 @@ dependencies {
     runtimeOnly("org.codehaus.janino:janino:$janinoVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
+
+    // Circuit Breaker
+    implementation("io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion")
+    implementation("io.github.resilience4j:resilience4j-kotlin:$resilience4jVersion")
 
     // Test
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")

@@ -1,16 +1,19 @@
 package no.nav.sokos.ske.krav.util
 
-import kotlinx.serialization.json.Json
-
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.HttpSend
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.plugin
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 
+import no.nav.sokos.ske.krav.config.CircuitBreakerManager.guardCall
+import no.nav.sokos.ske.krav.config.CircuitBreakerPlugin
+import no.nav.sokos.ske.krav.config.jsonConfig
 import no.nav.sokos.ske.krav.domain.Status
 
 object MockHttpClientUtils {
@@ -51,6 +54,8 @@ object MockHttpClientUtils {
 
         fun nyEndringResponse(transaksjonsId: String = "791e5955-af86-42fe-b609-d4fc2754e35e") = """{"transaksjonsid": "$transaksjonsId"}"""
 
+        fun avskrivKravResponse(transaksjonsId: String = "791e5955-af86-42fe-b609-d4fc2754e35e") = """{"transaksjonsid": "$transaksjonsId"}"""
+
         fun innkrevingsOppdragEksistererIkkeResponse(kravIdentifikator: String = "1234") =
             //language=json
             """      
@@ -58,6 +63,18 @@ object MockHttpClientUtils {
                 "type":"tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-eksisterer-ikke",
                 "title":"Innkrevingsoppdrag eksisterer ikke",
                 "status":404,
+                "detail":"Innkrevingsoppdrag med oppdragsgiversKravidentifikator=$kravIdentifikator eksisterer ikke",
+                "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/avskriving"
+            }
+            """.trimIndent()
+
+        fun genericFeilResponse(kravIdentifikator: String = "1234") =
+            //language=json
+            """      
+            {
+                "type":"tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-eksisterer-ikke",
+                "title":"Innkrevingsoppdrag eksisterer ikke",
+                "status":422,
                 "detail":"Innkrevingsoppdrag med oppdragsgiversKravidentifikator=$kravIdentifikator eksisterer ikke",
                 "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/avskriving"
             }
@@ -98,13 +115,6 @@ object MockHttpClientUtils {
 
 class MockHttpClient {
     private val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
-    private val jsonConfig =
-        Json {
-            prettyPrint = true
-            ignoreUnknownKeys = true
-            encodeDefaults = true
-            explicitNulls = false
-        }
 
     fun getSlackClient() =
         HttpClient(MockEngine) {
@@ -116,23 +126,32 @@ class MockHttpClient {
             }
         }
 
-    fun getClient(kall: List<MockHttpClientUtils.MockRequestObj>) =
-        HttpClient(MockEngine) {
+    fun guardedClient(engine: MockEngine) =
+        HttpClient(engine) {
             install(ContentNegotiation) { json(jsonConfig) }
-            engine {
-                addHandler { request ->
-                    val handler =
-                        kall.singleOrNull {
-                            generateUrls(it.type.url).contains(request.url.encodedPath)
-                        }
-                    if (handler != null) {
-                        respond(handler.response, handler.statusCode, responseHeaders)
-                    } else {
-                        error("Ikke implementert: ${request.url.encodedPath}")
-                    }
-                }
+            install(CircuitBreakerPlugin)
+        }.apply {
+            plugin(HttpSend).intercept {
+                guardCall { execute(it) }
             }
         }
+
+    fun getClient(kall: List<MockHttpClientUtils.MockRequestObj>): HttpClient {
+        val mockEngine =
+            MockEngine { request ->
+                val handler =
+                    kall.singleOrNull {
+                        generateUrls(it.type.url).contains(request.url.encodedPath)
+                    }
+                if (handler != null) {
+                    respond(handler.response, handler.statusCode, responseHeaders)
+                } else {
+                    error("Ikke implementert: ${request.url.encodedPath}")
+                }
+            }
+
+        return guardedClient(mockEngine)
+    }
 
     private fun generateUrls(baseUrl: String) =
         listOf(
@@ -156,6 +175,8 @@ class MockHttpClient {
             "/innkrevingsoppdrag/8888-skeUUID$baseUrl",
             "/innkrevingsoppdrag/9999-skeUUID$baseUrl",
             "/innkrevingsoppdrag/1010-skeUUID$baseUrl",
+            "/innkrevingsoppdrag/kravidske1$baseUrl",
+            "/innkrevingsoppdrag/kravidske2$baseUrl",
             "/innkrevingsoppdrag/$baseUrl",
             "/innkrevingsoppdrag$baseUrl",
             baseUrl,
