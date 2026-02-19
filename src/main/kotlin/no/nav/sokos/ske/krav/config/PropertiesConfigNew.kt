@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.config
 
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlinx.serialization.Serializable
 
 import com.nimbusds.jose.jwk.RSAKey
@@ -15,6 +17,9 @@ object PropertiesConfigNew {
 
     val isLocal: Boolean
         get() = applicationProperties.isLocal
+
+    val useTimer: Boolean
+        get() = timerConfig.useTimer
 
     val applicationProperties by lazy {
         config.property("application").getAs<ApplicationProperties>()
@@ -42,6 +47,9 @@ object PropertiesConfigNew {
 
     val slackConfig by lazy {
         config.property("slackConfig").getAs<SlackConfig>()
+    }
+    val timerConfig by lazy {
+        config.property("timer").getAs<TimerConfig>()
     }
 
     fun load(applicationConfig: ApplicationConfig) {
@@ -134,3 +142,11 @@ data class PostgresConfig(
 data class SlackConfig(
     val url: String,
 )
+
+@Serializable
+data class TimerConfig(
+    val useTimer: Boolean,
+    val schedulerIntervalPeriodInt: Int,
+) {
+    val schedulerIntervalPeriod: Duration = schedulerIntervalPeriodInt.hours
+}

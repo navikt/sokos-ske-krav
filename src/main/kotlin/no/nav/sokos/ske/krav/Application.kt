@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav
 
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -13,6 +14,7 @@ import io.ktor.server.netty.Netty
 import no.nav.sokos.ske.krav.config.ApplicationState
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.PropertiesConfigNew
+import no.nav.sokos.ske.krav.config.PropertiesConfigNew.timerConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.config.applicationLifecycleConfig
 import no.nav.sokos.ske.krav.config.commonConfig
@@ -54,13 +56,12 @@ private fun Application.module() {
             Metrics.registerKravKodeCounter(kravKode)
         }
 
-//    if (!useTimer) {
-//        return
-//    }
+    if (!timerConfig.useTimer) {
+        return
+    }
 
-    // TODO: LAO10: Uncomment before merging
-//    launchJob(skeService::handleNewKrav, schedulerIntervalPeriod)
-//    launchJob(skeService::checkKravDateForAlert, 24.hours)
+    launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
+    launchJob(skeService::checkKravDateForAlert, 24.hours)
 }
 
 private fun CoroutineScope.launchJob(

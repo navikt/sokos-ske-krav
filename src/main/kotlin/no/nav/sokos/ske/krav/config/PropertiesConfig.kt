@@ -2,9 +2,6 @@ package no.nav.sokos.ske.krav.config
 
 import java.io.File
 
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
-
 import com.natpryce.konfig.ConfigurationMap
 import com.natpryce.konfig.ConfigurationProperties
 import com.natpryce.konfig.EnvironmentVariables
@@ -87,10 +84,5 @@ object PropertiesConfig {
         const val MINIMUM_NUMBER_OF_CALLS: Int = 1
         const val FAILURE_RATE_THRESHOLD: Float = 100.0f
         const val PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE: Int = 1
-    }
-
-    data object TimerConfig {
-        val useTimer: Boolean = get("USE_TIMER").toBoolean()
-        val schedulerIntervalPeriod: Duration = get("TIMER_INTERVAL_PERIOD_HOURS").toInt().hours
     }
 }
