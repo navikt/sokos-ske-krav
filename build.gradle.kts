@@ -32,8 +32,8 @@ val opentelemetryVersion = "2.24.0-alpha"
 
 // DB
 val hikaricpVersion = "7.0.2"
-val flywayVersion = "12.0.0"
-val postgresqlVersion = "42.7.9"
+val flywayVersion = "12.0.1"
+val postgresqlVersion = "42.7.10"
 val kotliqueryVersion = "1.9.1"
 
 // Test
@@ -50,7 +50,7 @@ val kotlinLoggingVersion = "3.0.5"
 val logbackVersion = "1.5.29"
 val logstashVersion = "9.0"
 
-val resilience4jVersion = "2.2.0"
+val resilience4jVersion = "2.3.0"
 
 dependencies {
     // Ktor Server
