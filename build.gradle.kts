@@ -58,6 +58,7 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-html-builder:$ktorVersion")
+    implementation("io.ktor:ktor-server-double-receive:$ktorVersion")
 
     // Ktor Client
     implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
