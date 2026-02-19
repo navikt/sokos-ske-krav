@@ -317,7 +317,7 @@ internal class SkeServiceIntegrationTest :
             val avstemmingkall = MockRequestObj(innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.AVSTEMMING, HttpStatusCode.NotFound)
             val endreRenterKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
             val endreHovedStolKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
-            val mottaksstatusKall = MockRequestObj(httpErrorResponse, EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
+            val mottaksstatusKall = MockRequestObj(Responses.mottaksStatusResponse(), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
 
             val httpClient =
                 setUpMockHttpClient(
