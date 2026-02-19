@@ -127,7 +127,7 @@ class SkeService(
      * Dette er pga måten skatteetaten bruker saksnummer vs hvordan Nav bruker saksnummer
      * Når det skjer så kaller vi det "dobbel endring på migrert krav" og det må håndteres manuelt
      *
-     * Denne funksjonen leter i vår database, så spør den avstemmingAPI til SKE, og dersom de ikke har det så sendes en alarm til slack
+     * Denne funksjonen leter i vår database, så spør den avstemmingAPI til SKE, og dersom SKE svarer med 404 "krav eksisterer ikke" sendes en alarm til Slack (ikke ved andre feiltyper som 403 eller 500)
      * */
     private suspend fun updateSkeKravidentifikatorForEndringerAndStopp() {
         val krav = databaseService.getAllUnsentEndringerAndStopp()
