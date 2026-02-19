@@ -1,8 +1,10 @@
 package no.nav.sokos.ske.krav.service
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import io.ktor.http.HttpStatusCode
 
 import no.nav.sokos.ske.krav.client.SkeClient
+import no.nav.sokos.ske.krav.config.CircuitBreakerException
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
@@ -35,15 +37,21 @@ class EndreKravService(
             }
 
         // Process each group and send requests to SKE
-        val allRequestResults =
-            kravGroupedByIdentifier.flatMap { (_, groupedKrav) ->
-                processKravGroup(groupedKrav)
+        val requestResults = mutableListOf<RequestResult>()
+
+        for ((_, groupedKrav) in kravGroupedByIdentifier) {
+            runCatching { requestResults.addAll(processKravGroup(groupedKrav)) }.onFailure { e ->
+                if (e is CircuitBreakerException || e is CallNotPermittedException) {
+                    break
+                } else {
+                    throw e
+                }
             }
+        }
 
-        // Update database with all results
-        databaseService.updateSentKrav(allRequestResults)
+        databaseService.updateSentKrav(requestResults)
 
-        return allRequestResults
+        return requestResults
     }
 
     /**
@@ -54,15 +62,10 @@ class EndreKravService(
         val firstKrav = groupedKrav.first()
         val (kravidentifikator, kravidentifikatorType) = createKravidentifikatorPair(firstKrav)
 
-        val requestResults = mutableListOf<RequestResult>()
-
-        // Send individual requests for each krav in the group
-        for (krav in groupedKrav) {
-            runCatching { requestResults.add(sendEndreKrav(kravidentifikator, kravidentifikatorType, krav)) }.onFailure { break } // TODO: Også lagre feilmelding?
-        }
+        val requestResults = groupedKrav.map { krav -> sendEndreKrav(kravidentifikator, kravidentifikatorType, krav) }
 
         // Conform statuses across all requests in the group
-        return if (requestResults.isEmpty()) emptyList() else getConformedResponses(requestResults)
+        return getConformedResponses(requestResults)
     }
 
     /**
@@ -79,8 +82,8 @@ class EndreKravService(
      * 4. Other errors
      */
     private fun getConformedResponses(requestResults: List<RequestResult>): List<RequestResult> {
-        // If only one request or all have same status, no need to conform
-        if (requestResults.size == 1) return requestResults
+        // If results are empty, or if only one request, or all have same status, no need to conform
+        if (requestResults.size < 2) return requestResults
 
         val firstResult = requestResults.first()
         val lastResult = requestResults.last()

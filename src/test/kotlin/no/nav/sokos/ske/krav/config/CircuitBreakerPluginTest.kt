@@ -1,5 +1,6 @@
 package no.nav.sokos.ske.krav.config
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -150,6 +151,9 @@ class CircuitBreakerPluginTest :
             }
 
             circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
+            shouldThrow<CallNotPermittedException> {
+                client.get("https://example.com/api")
+            }
 
             client.close()
         }

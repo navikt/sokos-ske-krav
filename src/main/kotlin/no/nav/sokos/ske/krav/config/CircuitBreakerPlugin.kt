@@ -14,7 +14,6 @@ fun HttpResponse.isFailure() =
 
 val CircuitBreakerPlugin =
     createClientPlugin("CircuitBreakerPlugin") {
-        val circuitBreaker = CircuitBreakerManager.circuitBreaker
         onResponse { response ->
             if (response.isFailure()) {
                 logger.error {

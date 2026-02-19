@@ -152,29 +152,6 @@ class MockHttpClient {
 
         return guardedClient(mockEngine)
     }
-/*
-    fun getClient(kall: List<MockHttpClientUtils.MockRequestObj>) =
-        HttpClient(MockEngine) {
-            install(ContentNegotiation) { json(jsonConfig) }
-            install(CircuitBreakerPlugin)
-            engine {
-                addHandler { request ->
-                    val handler =
-                        kall.singleOrNull {
-                            generateUrls(it.type.url).contains(request.url.encodedPath)
-                        }
-                    if (handler != null) {
-                        respond(handler.response, handler.statusCode, responseHeaders)
-                    } else {
-                        error("Ikke implementert: ${request.url.encodedPath}")
-                    }
-                }
-            }
-        }.apply {
-            plugin(HttpSend).intercept {
-                guardCall { execute(it) }
-            }
-        }*/
 
     private fun generateUrls(baseUrl: String) =
         listOf(

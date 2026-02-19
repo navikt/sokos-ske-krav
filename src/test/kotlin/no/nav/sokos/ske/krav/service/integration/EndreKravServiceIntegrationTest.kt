@@ -3,11 +3,15 @@ package no.nav.sokos.ske.krav.service.integration
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
+import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.spyk
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
+import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
@@ -41,8 +45,16 @@ class EndreKravServiceIntegrationTest :
                     setUpMockHttpClient(listOf(endreRenterKall, endreHovedstolKall))
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
-                EndreKravService(skeClient, dbService).sendAllEndreKrav(kravSomSkalSendes)
-                Then("Skal krav status ikke oppdateres") {
+                val endreKravServiceSpy = spyk(EndreKravService(skeClient, dbService), recordPrivateCalls = true)
+                val requestResults = endreKravServiceSpy.sendAllEndreKrav(kravSomSkalSendes)
+
+                Then("Skal sendEndreKrav kalles kun én gang") {
+                    coVerify(exactly = 1) { endreKravServiceSpy["sendEndreKrav"](ofType<String>(), ofType<KravidentifikatorType>(), ofType<Krav>()) }
+                }
+                And("Det skal være 0 requestresults") {
+                    requestResults.size shouldBe 0
+                }
+                Then("Skal kravstatus ikke oppdateres") {
                     val krav =
                         DBListener.dataSource.connection.use { con ->
                             con.getAllKrav()

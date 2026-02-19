@@ -3,10 +3,13 @@ package no.nav.sokos.ske.krav.service.integration
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
+import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.spyk
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
@@ -39,14 +42,23 @@ class StoppKravServiceIntegrationTest :
                     setUpMockHttpClient(listOf(avskrivKravKall))
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
-                StoppKravService(skeClient, dbService).sendAllStoppKrav(kravSomSkalSendes)
+                val stoppKravServiceSpy = spyk(StoppKravService(skeClient, dbService), recordPrivateCalls = true)
 
-                Then("Skal krav ikke oppdateres med status sendt")
-
-                DBListener.dataSource.connection.use { con ->
-                    con.getAllKrav().filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 2
+                val requestResults = stoppKravServiceSpy.sendAllStoppKrav(kravSomSkalSendes)
+                Then("Skal det være 0 requestResults") {
+                    requestResults.size shouldBe 0
                 }
-                dbService.getAllUnsentKrav().size shouldBe 2
+                And("sendStoppKrav skal kalles kun én gang") {
+                    coVerify(exactly = 1) {
+                        stoppKravServiceSpy["sendStoppKrav"](ofType<Krav>())
+                    }
+                }
+                Then("Skal krav ikke oppdateres med status sendt") {
+                    DBListener.dataSource.connection.use { con ->
+                        con.getAllKrav().filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 2
+                    }
+                    dbService.getAllUnsentKrav().size shouldBe 2
+                }
             }
             When("Response fra SKE er OK") {
                 CircuitBreakerManager.circuitBreaker.reset()
@@ -63,7 +75,6 @@ class StoppKravServiceIntegrationTest :
                         DBListener.dataSource.connection.use { con ->
                             con.getAllKrav()
                         }
-                    krav.forEach { println(it.status) }
                     krav.count { it.status == Status.KRAV_SENDT.value } shouldBe 2
                     dbService.getAllUnsentKrav().size shouldBe 0
                 }

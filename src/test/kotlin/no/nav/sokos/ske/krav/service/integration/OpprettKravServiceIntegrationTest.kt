@@ -3,10 +3,13 @@ package no.nav.sokos.ske.krav.service.integration
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
+import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.spyk
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
@@ -35,8 +38,12 @@ internal class OpprettKravServiceIntegrationTest :
                     setUpMockHttpClient(listOf(MockHttpClientUtils.MockRequestObj(Responses.genericFeilResponse(), MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.InternalServerError)))
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
-                OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)).sendAllOpprettKrav(kravSomSkalSendes)
+                val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)), recordPrivateCalls = true)
+                val requestResults = opprettKravServiceSpy.sendAllOpprettKrav(kravSomSkalSendes)
 
+                Then("Skal sendOpprettKrav kalles kun én gang") {
+                    coVerify(exactly = 1) { opprettKravServiceSpy["sendOpprettKrav"](ofType<Krav>()) }
+                }
                 Then("Skal kravene ikke oppdateres") {
                     val krav =
                         DBListener.dataSource.connection.use { con ->
@@ -46,9 +53,12 @@ internal class OpprettKravServiceIntegrationTest :
                     krav.count { it.saksnummerNAV == "1111-navsaksnr" } shouldBe 1
                     krav.count { it.saksnummerNAV == "2222-navsaksnr" } shouldBe 1
                     krav.count { it.kravidentifikatorSKE.isBlank() } shouldBe 2
+                    dbService.getAllUnsentKrav().size shouldBe 2
                 }
 
-                dbService.getAllUnsentKrav().size shouldBe 2
+                And("Det skal være ingen requestresults") {
+                    requestResults.size shouldBe 0
+                }
             }
 
             When("Response fra SKE er OK") {
@@ -58,9 +68,12 @@ internal class OpprettKravServiceIntegrationTest :
 
                 val httpClient = setUpMockHttpClient(listOf(MockHttpClientUtils.MockRequestObj(skeOKResponse, MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.OK)))
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
+                val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)), recordPrivateCalls = true)
+                val requestResults = opprettKravServiceSpy.sendAllOpprettKrav(kravSomSkalSendes)
 
-                OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)).sendAllOpprettKrav(kravSomSkalSendes)
-
+                Then("Skal sendOpprettKrav kalles to ganger") {
+                    coVerify(exactly = 2) { opprettKravServiceSpy["sendOpprettKrav"](ofType<Krav>()) }
+                }
                 Then("Skal kravene oppdateres med SKE kravidentifikator") {
                     val krav =
                         DBListener.dataSource.connection.use { con ->
@@ -70,9 +83,11 @@ internal class OpprettKravServiceIntegrationTest :
                     krav.count { it.saksnummerNAV == "1111-navsaksnr" } shouldBe 1
                     krav.count { it.saksnummerNAV == "2222-navsaksnr" } shouldBe 1
                     krav.count { it.kravidentifikatorSKE == kravidentifikatorSKE } shouldBe 2
+                    dbService.getAllUnsentKrav().size shouldBe 0
                 }
-
-                dbService.getAllUnsentKrav().size shouldBe 0
+                And("Det skal være to requestResults") {
+                    requestResults.size shouldBe 2
+                }
             }
         }
     })
