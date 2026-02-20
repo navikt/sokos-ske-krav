@@ -27,16 +27,15 @@ data class RequestResult(
     val feilResponse: FeilResponse? = null,
 )
 
-suspend fun defineStatus(
+fun defineStatus(
     responseBody: String,
     httpStatus: HttpStatusCode,
 ) = defineStatusWithError(responseBody, httpStatus).first
 
-suspend fun defineStatusWithError(
+fun defineStatusWithError(
     responseBody: String,
     httpStatus: HttpStatusCode,
 ): Pair<Status, FeilResponse?> {
-    println("RESPONSE BODY: $responseBody")
     if (httpStatus.isSuccess()) return Pair(Status.KRAV_SENDT, null)
     val feilResponse = responseBody.decodeTo<FeilResponse>()
     val errorType = feilResponse?.type ?: FeilResponse.CustomTypes.FEIL_FRA_SERVER

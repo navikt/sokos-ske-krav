@@ -6,6 +6,7 @@ import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
+import no.nav.sokos.ske.krav.config.jsonConfig
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
@@ -26,14 +27,14 @@ fun createKravidentifikatorPair(it: Krav): Pair<String, KravidentifikatorType> {
 
 inline fun <reified T> String.decodeTo(): T? =
     runCatching {
-        val response = Json.decodeFromString<T>(this)
+        val response = jsonConfig.decodeFromString<T>(this)
         if (T::class == FeilResponse::class) {
             logger.warn { "Feil mottatt: ${(response as FeilResponse).title}" }
         }
         response
     }.onFailure { e ->
         runCatching {
-            val response = Json.decodeFromString<FeilResponse>(this)
+            val response = jsonConfig.decodeFromString<FeilResponse>(this)
             logger.warn { "Feil mottatt: ${response.title}" }
             response
         }.onFailure {
