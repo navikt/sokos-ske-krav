@@ -44,7 +44,7 @@ class OpprettKravService(
         val opprettKravRequest = createOpprettKravRequest(krav)
         val response: HttpResponse = skeClient.opprettKrav(opprettKravRequest, krav.corrId)
         val responseBody: String = response.bodyAsText()
-        logger.info(marker = TEAM_LOGS_MARKER) { "Response from SKE: $responseBody" }
+        logger.info(marker = TEAM_LOGS_MARKER) { "Corrid kall: ${krav.corrId} ///  Response from SKE: $responseBody" }
         val status = defineStatus(responseBody, response.status)
         val kravidentifikator =
             if (response.status.isSuccess()) {
