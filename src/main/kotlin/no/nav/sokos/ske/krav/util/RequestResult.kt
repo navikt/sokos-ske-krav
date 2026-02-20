@@ -1,8 +1,11 @@
 package no.nav.sokos.ske.krav.util
 
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 
+import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
+import no.nav.sokos.ske.krav.config.jsonConfig
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
@@ -24,6 +27,36 @@ data class RequestResult(
     val kravidentifikator: String,
     val status: Status,
 )
+
+fun defineStatus(
+    responseBody: String,
+    httpStatusCode: HttpStatusCode,
+): Status {
+    if (httpStatusCode.isSuccess()) return Status.KRAV_SENDT
+
+    val errorType =
+        try {
+            jsonConfig.decodeFromString<FeilResponse>(responseBody).type
+        } catch (e: Exception) {
+            logger.error(marker = TEAM_LOGS_MARKER) { "Error decoding JSON to $FeilResponse: ${e.message}" }
+            "FEIL_FRA_SERVER"
+        }
+    return when (httpStatusCode.value) {
+        400 -> handleBadRequestError(errorType)
+        401 -> Status.HTTP401_FEIL_AUTENTISERING
+        403 -> Status.HTTP403_INGEN_TILGANG
+        404 -> handleNotFoundError(errorType)
+        406 -> Status.HTTP406_FEIL_MEDIETYPE
+        409 -> handleConflictError(errorType)
+        422 -> Status.HTTP422_VALIDERINGSFEIL
+        500 -> Status.HTTP500_INTERN_TJENERFEIL
+        503 -> Status.HTTP503_UTILGJENGELIG_TJENESTE
+        in 300..399 -> Status.HTTP300_REDIRECTION_FEIL
+        in 400..499 -> Status.HTTP400_ANNEN_KLIENT_FEIL
+        in 500..599 -> Status.HTTP500_ANNEN_SERVER_FEIL
+        else -> Status.UKJENT_FEIL
+    }
+}
 
 suspend fun defineStatus(response: HttpResponse): Status {
     if (response.status.isSuccess()) return Status.KRAV_SENDT
