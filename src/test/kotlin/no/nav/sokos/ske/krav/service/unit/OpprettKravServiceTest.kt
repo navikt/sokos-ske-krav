@@ -182,7 +182,12 @@ class OpprettKravServiceTest :
                     coEvery { status } returns HttpStatusCode.OK
                     coEvery { bodyAsText() } returns nyttKravResponse("123")
                     coEvery { body<Source>() } returns mockk<Source>(relaxed = true)
-                    coEvery { headers } returns mockk<Headers>(relaxed = true)
+                    coEvery { headers } returns
+                        Headers.build {
+                            append("Location", "https://www.example.com/confirmation/event/123")
+                            append("Content-Type", "text/html; charset=UTF-8")
+                            append("Content-Length", "0")
+                        }
                     coEvery { body<OpprettInnkrevingsOppdragResponse>() } returns
                         OpprettInnkrevingsOppdragResponse(
                             kravidentifikator = "123",
