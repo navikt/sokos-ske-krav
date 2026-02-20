@@ -8,7 +8,7 @@ plugins {
     kotlin("jvm") version "2.3.0"
     kotlin("plugin.serialization") version "2.3.0"
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
-    id("org.jetbrains.kotlinx.kover") version "0.9.5"
+    id("org.jetbrains.kotlinx.kover") version "0.9.7"
 
     application
 }
@@ -27,7 +27,7 @@ val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
-val prometheusVersion = "1.16.2"
+val prometheusVersion = "1.16.3"
 val opentelemetryVersion = "2.24.0-alpha"
 
 // DB
@@ -37,7 +37,7 @@ val postgresqlVersion = "42.7.9"
 val kotliqueryVersion = "1.9.1"
 
 // Test
-val kotestVersion = "6.1.2"
+val kotestVersion = "6.1.3"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.14.9"
 val commonsVersion = "3.12.0"
@@ -47,8 +47,10 @@ val mockFtpServerVersion = "3.2.0"
 // Logging
 val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.27"
+val logbackVersion = "1.5.29"
 val logstashVersion = "9.0"
+
+val resilience4jVersion = "2.2.0"
 
 dependencies {
     // Ktor Server
@@ -101,6 +103,10 @@ dependencies {
     runtimeOnly("org.codehaus.janino:janino:$janinoVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
+
+    // Circuit Breaker
+    implementation("io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion")
+    implementation("io.github.resilience4j:resilience4j-kotlin:$resilience4jVersion")
 
     // Test
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")

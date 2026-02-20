@@ -33,6 +33,8 @@ object PropertiesConfig {
                 "POSTGRES_NAME" to "test",
                 "POSTGRES_USERNAME" to "test",
                 "POSTGRES_PASSWORD" to "test",
+                "CIRCUIT_BREAKER_WAIT_DURATION_IN_OPEN_STATE_IN_HOURS" to "4",
+                "TIMER_INTERVAL_PERIOD_HOURS" to "5",
             ),
         )
     private val localDevProperties =
@@ -47,6 +49,8 @@ object PropertiesConfig {
             "BASIC_AUTH_USERNAME" to "user",
             "BASIC_AUTH_PASSWORD" to "password",
             "USE_AUTHENTICATION" to "false",
+            "CIRCUIT_BREAKER_WAIT_DURATION_IN_OPEN_STATE_IN_HOURS" to "4",
+            "TIMER_INTERVAL_PERIOD_HOURS" to "5",
         )
 
     private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
@@ -54,13 +58,20 @@ object PropertiesConfig {
 
     private val config =
         when (System.getenv("NAIS_CLUSTER_NAME") ?: System.getProperty("NAIS_CLUSTER_NAME")) {
-            "dev-fss" -> ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding devProperties overriding defaultProperties
-            "prod-fss" -> ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding prodProperties overriding defaultProperties
-            else ->
+            "dev-fss" -> {
+                ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding devProperties overriding defaultProperties
+            }
+
+            "prod-fss" -> {
+                ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding prodProperties overriding defaultProperties
+            }
+
+            else -> {
                 ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding
                     ConfigurationProperties.fromOptionalFile(
                         File("defaults.properties"),
                     ) overriding localDevProperties overriding defaultProperties
+            }
         }
 
     enum class Profile {
@@ -122,8 +133,16 @@ object PropertiesConfig {
         val url: String = get("TEAM_BEST_SLACK_WEBHOOK_URL").trim()
     }
 
+    data object CircuitBreakerConfig {
+        val waitDurationInOpenState: Long = get("CIRCUIT_BREAKER_WAIT_DURATION_IN_OPEN_STATE_IN_HOURS").toLong()
+        const val SLIDING_WINDOW_SIZE: Int = 1
+        const val MINIMUM_NUMBER_OF_CALLS: Int = 1
+        const val FAILURE_RATE_THRESHOLD: Float = 100.0f
+        const val PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE: Int = 1
+    }
+
     data object TimerConfig {
         val useTimer: Boolean = get("USE_TIMER").toBoolean()
-        val intervalPeriod: Duration = get("TIMER_INTERVAL_PERIOD_HOURS").toInt().hours
+        val schedulerIntervalPeriod: Duration = get("TIMER_INTERVAL_PERIOD_HOURS").toInt().hours
     }
 }

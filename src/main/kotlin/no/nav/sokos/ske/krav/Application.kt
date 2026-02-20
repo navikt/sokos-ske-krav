@@ -15,7 +15,7 @@ import io.ktor.server.netty.Netty
 
 import no.nav.sokos.ske.krav.config.PostgresConfig
 import no.nav.sokos.ske.krav.config.PropertiesConfig
-import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.intervalPeriod
+import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.schedulerIntervalPeriod
 import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.useTimer
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.config.commonConfig
@@ -58,7 +58,7 @@ private fun Application.module() {
         return
     }
 
-    launchJob(skeService::handleNewKrav, intervalPeriod)
+    launchJob(skeService::handleNewKrav, schedulerIntervalPeriod)
     launchJob(skeService::checkKravDateForAlert, 24.hours)
 }
 

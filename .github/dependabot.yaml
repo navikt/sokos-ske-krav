@@ -4,9 +4,22 @@ updates:
     directory: "/"
     schedule:
       interval: daily
+      time: "08:00"
+      timezone: "Europe/Oslo"
     cooldown:
       default-days: 7
     groups:
-      gradle:
+      kotlin-plugins:
         patterns:
-          - "*"
+          - "jvm"
+          - "plugin.serialization"
+        update-types:
+          - minor
+          - patch
+      gradle-minor-patch:
+        update-types:
+          - minor
+          - patch
+        exclude-patterns:
+          - "jvm"
+          - "plugin.serialization"
