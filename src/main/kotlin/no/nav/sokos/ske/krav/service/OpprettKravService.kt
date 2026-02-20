@@ -7,7 +7,6 @@ import io.ktor.http.isSuccess
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.CircuitBreakerException
-import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.config.jsonConfig
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.dto.ske.responses.OpprettInnkrevingsOppdragResponse
@@ -15,7 +14,6 @@ import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.createOpprettKravRequest
 import no.nav.sokos.ske.krav.util.defineStatus
 import no.nav.sokos.ske.krav.util.encodeToString
-import no.nav.sokos.ske.krav.util.logger
 
 class OpprettKravService(
     private val skeClient: SkeClient,
@@ -43,9 +41,7 @@ class OpprettKravService(
     private suspend fun sendOpprettKrav(krav: Krav): RequestResult {
         val opprettKravRequest = createOpprettKravRequest(krav)
         val response: HttpResponse = skeClient.opprettKrav(opprettKravRequest, krav.corrId)
-        logger.info(marker = TEAM_LOGS_MARKER) { "Corrid kall: ${krav.corrId} ///  Headers from SKE: ${response.headers.entries()}" }
         val responseBody: String = response.bodyAsText()
-        logger.info(marker = TEAM_LOGS_MARKER) { "Corrid kall: ${krav.corrId} ///  Response from SKE: $responseBody" }
         val status = defineStatus(responseBody, response.status)
         val kravidentifikator =
             if (response.status.isSuccess()) {
