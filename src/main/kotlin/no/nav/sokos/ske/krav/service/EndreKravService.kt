@@ -1,5 +1,6 @@
 package no.nav.sokos.ske.krav.service
 
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 
 import no.nav.sokos.ske.krav.client.SkeClient
@@ -79,7 +80,7 @@ class EndreKravService(
             request = request,
             krav = krav,
             kravidentifikator = "",
-            status = defineStatus(response),
+            status = defineStatus(response.bodyAsText(), response.status),
         )
     }
 }

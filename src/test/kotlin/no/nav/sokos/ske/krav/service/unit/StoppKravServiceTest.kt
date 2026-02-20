@@ -29,11 +29,24 @@ class StoppKravServiceTest :
                     every { saksnummerNAV } returns "bar"
                 }
             val stoppKravMock = spyk(StoppKravService(mockk<SkeClient>(), databaseServiceMock), recordPrivateCalls = true)
-
+            val firstStatusResponse = mockHttpResponse(404)
+            val secondStatusResponse = mockHttpResponse(200)
             every { stoppKravMock["sendStoppKrav"](any<Krav>()) } returnsMany
                 listOf(
-                    RequestResult(mockHttpResponse(404), mockk<Krav>(), "", "123", defineStatus(mockHttpResponse(404))),
-                    RequestResult(mockHttpResponse(200), mockk<Krav>(), "", "456", defineStatus(mockHttpResponse(200))),
+                    RequestResult(
+                        firstStatusResponse,
+                        mockk<Krav>(),
+                        "",
+                        "123",
+                        defineStatus("body", firstStatusResponse.status),
+                    ),
+                    RequestResult(
+                        secondStatusResponse,
+                        mockk<Krav>(),
+                        "",
+                        "456",
+                        defineStatus("body", secondStatusResponse.status),
+                    ),
                 )
             val result = stoppKravMock.sendAllStoppKrav(listOf(kravMock, kravMock))
 

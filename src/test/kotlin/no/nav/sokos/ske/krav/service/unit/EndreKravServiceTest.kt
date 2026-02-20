@@ -46,7 +46,7 @@ internal class EndreKravServiceTest :
             TestCase("409 and 200", 409, 200, Status.HTTP409_ANNEN_KONFLIKT, Status.HTTP409_ANNEN_KONFLIKT),
             TestCase("200 and 422", 200, 422, Status.HTTP422_VALIDERINGSFEIL, Status.HTTP422_VALIDERINGSFEIL),
             TestCase("102 and 102", 102, 102, Status.UKJENT_STATUS, Status.UKJENT_STATUS),
-        ).forEach { (description: String, firstStatus: Int, secondStatus: Int, expectedFirstStatus: Status, expectedSecondStatus: Status) ->
+        ).forEach { (_: String, firstStatus: Int, secondStatus: Int, expectedFirstStatus: Status, expectedSecondStatus: Status) ->
 
             test("If first status is $firstStatus and second status is $secondStatus, both should be set to $expectedFirstStatus") {
 
@@ -59,9 +59,23 @@ internal class EndreKravServiceTest :
                             RequestResult(mockHttpResponse(102), mockk<Krav>(), "", "", Status.HTTP500_ANNEN_SERVER_FEIL),
                         )
                     } else {
+                        val firstStatusResponse = mockHttpResponse(firstStatus)
+                        val secondStatusResponse = mockHttpResponse(secondStatus)
                         listOf(
-                            RequestResult(mockHttpResponse(firstStatus), mockk<Krav>(), "", "", defineStatus(mockHttpResponse(firstStatus))),
-                            RequestResult(mockHttpResponse(secondStatus), mockk<Krav>(), "", "", defineStatus(mockHttpResponse(secondStatus))),
+                            RequestResult(
+                                firstStatusResponse,
+                                mockk<Krav>(),
+                                "",
+                                "",
+                                defineStatus("body", firstStatusResponse.status),
+                            ),
+                            RequestResult(
+                                secondStatusResponse,
+                                mockk<Krav>(),
+                                "",
+                                "",
+                                defineStatus("body", secondStatusResponse.status),
+                            ),
                         )
                     }
 

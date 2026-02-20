@@ -5,11 +5,14 @@ import java.time.format.DateTimeFormatter
 
 import kotlin.math.roundToLong
 import kotlinx.datetime.toKotlinLocalDate
+import kotlinx.io.Source
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.Headers
+import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.justRun
@@ -98,7 +101,9 @@ class OpprettKravServiceTest :
                 )
             val httpResponseMock =
                 mockk<HttpResponse>(relaxed = true) {
-                    every { status.value } returns 200
+                    coEvery { status } returns HttpStatusCode.OK
+                    coEvery { body<Source>() } returns mockk<Source>(relaxed = true)
+                    coEvery { headers } returns mockk<Headers>(relaxed = true)
                     coEvery { body<OpprettInnkrevingsOppdragResponse>() } returns
                         OpprettInnkrevingsOppdragResponse(
                             kravidentifikator = "123",
@@ -165,7 +170,9 @@ class OpprettKravServiceTest :
 
             val httpResponseMock =
                 mockk<HttpResponse>(relaxed = true) {
-                    every { status.value } returns 200
+                    coEvery { status } returns HttpStatusCode.OK
+                    coEvery { body<Source>() } returns mockk<Source>(relaxed = true)
+                    coEvery { headers } returns mockk<Headers>(relaxed = true)
                     coEvery { body<OpprettInnkrevingsOppdragResponse>() } returns
                         OpprettInnkrevingsOppdragResponse(
                             kravidentifikator = "123",

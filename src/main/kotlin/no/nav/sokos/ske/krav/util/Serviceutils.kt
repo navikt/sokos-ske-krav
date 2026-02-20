@@ -24,6 +24,24 @@ fun createKravidentifikatorPair(it: Krav): Pair<String, KravidentifikatorType> {
     return Pair(kravIdentifikator, kravIdentifikatorType)
 }
 
+inline fun <reified T> String.decodeTo(): T? =
+    runCatching {
+        val response = Json.decodeFromString<T>(this)
+        if (T::class == FeilResponse::class) {
+            logger.warn { "Feil mottatt: ${(response as FeilResponse).title}" }
+        }
+        response
+    }.onFailure { e ->
+        runCatching {
+            val response = Json.decodeFromString<FeilResponse>(this)
+            logger.warn { "Feil mottatt: ${response.title}" }
+            response
+        }.onFailure {
+            logger.error { "Error decoding JSON to ${T::class.simpleName}" }
+            logger.error(marker = TEAM_LOGS_MARKER) { "Error decoding JSON to ${T::class.simpleName}: ${e.message}" }
+        }.getOrNull()
+    }.getOrNull()
+
 suspend inline fun <reified T> HttpResponse.parseTo(): T? =
     runCatching {
         val response = body<T>()

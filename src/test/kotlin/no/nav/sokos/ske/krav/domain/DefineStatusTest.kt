@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.domain
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.ktor.client.statement.bodyAsText
 import io.mockk.mockk
 
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
@@ -11,12 +12,13 @@ import no.nav.sokos.ske.krav.util.KRAV_EKSISTERER_IKKE
 import no.nav.sokos.ske.krav.util.KRAV_ER_ALLEREDE_AVSKREVET
 import no.nav.sokos.ske.krav.util.KRAV_ER_AVSKREVET
 import no.nav.sokos.ske.krav.util.KRAV_ER_IKKE_RESKONTROFOERT
+import no.nav.sokos.ske.krav.util.MockHttpClientUtils.Responses.generateFeilResponse
 import no.nav.sokos.ske.krav.util.OPPDRAGSGIVERS_KRAVIDENTIFIKATOR_EKSISTERER
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.UGYLDIG_KRAVIDENTIFIKATOR
 import no.nav.sokos.ske.krav.util.UGYLDIG_TILLEGGSINFORMASJON
-import no.nav.sokos.ske.krav.util.defineStatus
 import no.nav.sokos.ske.krav.util.defineStatusWithError
+import no.nav.sokos.ske.krav.util.encodeToString
 import no.nav.sokos.ske.krav.util.mockHttpResponse
 
 internal class DefineStatusTest :
@@ -24,10 +26,17 @@ internal class DefineStatusTest :
         {
             suspend fun createRequestResult(
                 responseCode: Int,
-                responseBody: String = "",
+                feilResponsType: String = "",
             ): RequestResult {
-                val response = mockHttpResponse(responseCode, responseBody)
-                return RequestResult(response, mockk(), "", "", defineStatus(response))
+                val feilResponse = generateFeilResponse(feilResponsType, responseCode)
+                val response = mockHttpResponse(responseCode, feilResponseType = feilResponsType, body = feilResponse)
+                return RequestResult(
+                    response,
+                    mockk(),
+                    "",
+                    "",
+                    defineStatusWithError(response.bodyAsText(), response.status).first,
+                )
             }
 
             test("Når responsekode er 400 skal krav ha status Status.UGYLDIG_FORESPORSEL_400") {
@@ -35,7 +44,8 @@ internal class DefineStatusTest :
             }
 
             test("Når responsekode er 400 og typen inneholder UGYLDIG_KRAVIDENTIFIKATOR skal krav ha status Status.HTTP400_UGYLDIG_KRAVIDENTIFIKATOR") {
-                createRequestResult(400, "test $UGYLDIG_KRAVIDENTIFIKATOR").status shouldBe Status.HTTP400_UGYLDIG_KRAVIDENTIFIKATOR
+                createRequestResult(400, "test $UGYLDIG_KRAVIDENTIFIKATOR")
+                    .status shouldBe Status.HTTP400_UGYLDIG_KRAVIDENTIFIKATOR
             }
 
             test("Når responsekode er 400 og typen inneholder UGYLDIG_TILLEGGSINFORMASJON skal krav ha status Status.HTTP400_UGYLDIG_TILLEGGSINFORMASJON") {
@@ -122,8 +132,8 @@ internal class DefineStatusTest :
             // Tests for defineStatusWithError
             context("defineStatusWithError") {
                 test("Når response er success (200) skal defineStatusWithError returnere KRAV_SENDT og null FeilResponse") {
-                    val response = mockHttpResponse(200)
-                    val (status, feilResponse) = defineStatusWithError(response)
+                    val response = mockHttpResponse(200, body = "")
+                    val (status, feilResponse) = defineStatusWithError(response.bodyAsText(), response.status)
 
                     status shouldBe Status.KRAV_SENDT
                     feilResponse shouldBe null
@@ -138,8 +148,8 @@ internal class DefineStatusTest :
                             detail = "Innkrevingsoppdrag eksisterer ikke",
                             instance = "/innkrevingsoppdrag/123",
                         )
-                    val response = mockHttpResponse(404, feilResponse = expectedFeilResponse)
-                    val (status, feilResponse) = defineStatusWithError(response)
+                    val response = mockHttpResponse(404, body = expectedFeilResponse.encodeToString())
+                    val (status, feilResponse) = defineStatusWithError(response.bodyAsText(), response.status)
 
                     status shouldBe Status.HTTP404_FANT_IKKE_SAKSREF
                     feilResponse shouldBe expectedFeilResponse
@@ -154,8 +164,8 @@ internal class DefineStatusTest :
                             detail = "Ingen tilgang til ressurs",
                             instance = "/innkrevingsoppdrag/456",
                         )
-                    val response = mockHttpResponse(403, feilResponse = expectedFeilResponse)
-                    val (status, feilResponse) = defineStatusWithError(response)
+                    val response = mockHttpResponse(403, body = expectedFeilResponse.encodeToString())
+                    val (status, feilResponse) = defineStatusWithError(response.bodyAsText(), response.status)
 
                     status shouldBe Status.HTTP403_INGEN_TILGANG
                     feilResponse shouldBe expectedFeilResponse
@@ -170,8 +180,8 @@ internal class DefineStatusTest :
                             detail = "En intern feil har oppstått",
                             instance = "/innkrevingsoppdrag/789",
                         )
-                    val response = mockHttpResponse(500, feilResponse = expectedFeilResponse)
-                    val (status, feilResponse) = defineStatusWithError(response)
+                    val response = mockHttpResponse(500, body = expectedFeilResponse.encodeToString())
+                    val (status, feilResponse) = defineStatusWithError(response.bodyAsText(), response.status)
 
                     status shouldBe Status.HTTP500_INTERN_TJENERFEIL
                     feilResponse shouldBe expectedFeilResponse
@@ -186,8 +196,8 @@ internal class DefineStatusTest :
                             detail = "Ugyldig kravidentifikator",
                             instance = "/innkrevingsoppdrag/bad",
                         )
-                    val response = mockHttpResponse(400, feilResponse = expectedFeilResponse)
-                    val (status, feilResponse) = defineStatusWithError(response)
+                    val response = mockHttpResponse(400, body = expectedFeilResponse.encodeToString())
+                    val (status, feilResponse) = defineStatusWithError(response.bodyAsText(), response.status)
 
                     status shouldBe Status.HTTP400_UGYLDIG_KRAVIDENTIFIKATOR
                     feilResponse shouldBe expectedFeilResponse
@@ -202,16 +212,16 @@ internal class DefineStatusTest :
                             detail = "Krav er ikke reskontroført",
                             instance = "/innkrevingsoppdrag/conflict",
                         )
-                    val response = mockHttpResponse(409, feilResponse = expectedFeilResponse)
-                    val (status, feilResponse) = defineStatusWithError(response)
+                    val response = mockHttpResponse(409, body = expectedFeilResponse.encodeToString())
+                    val (status, feilResponse) = defineStatusWithError(response.bodyAsText(), response.status)
 
                     status shouldBe Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND
                     feilResponse shouldBe expectedFeilResponse
                 }
 
                 test("Når response er 404 uten FeilResponse (null) skal defineStatusWithError bruke default FEIL_FRA_SERVER type") {
-                    val response = mockHttpResponse(404, simulateParsingFailure = true)
-                    val (status, feilResponse) = defineStatusWithError(response)
+                    val response = mockHttpResponse(404, body = "invalid json")
+                    val (status, feilResponse) = defineStatusWithError(response.bodyAsText(), response.status)
 
                     status shouldBe Status.HTTP404_ANNEN_IKKE_FUNNET
                     feilResponse shouldBe null
@@ -226,8 +236,8 @@ internal class DefineStatusTest :
                             detail = "Valideringsfeil i request",
                             instance = "/innkrevingsoppdrag/validation",
                         )
-                    val response = mockHttpResponse(422, feilResponse = expectedFeilResponse)
-                    val (status, feilResponse) = defineStatusWithError(response)
+                    val response = mockHttpResponse(422, body = expectedFeilResponse.encodeToString())
+                    val (status, feilResponse) = defineStatusWithError(response.bodyAsText(), response.status)
 
                     status shouldBe Status.HTTP422_VALIDERINGSFEIL
                     feilResponse shouldBe expectedFeilResponse
@@ -242,9 +252,8 @@ internal class DefineStatusTest :
                             detail = "Tjenesten er midlertidig utilgjengelig",
                             instance = "/innkrevingsoppdrag/unavailable",
                         )
-                    val response = mockHttpResponse(503, feilResponse = expectedFeilResponse)
-                    val (status, feilResponse) = defineStatusWithError(response)
-
+                    val response = mockHttpResponse(503, body = expectedFeilResponse.encodeToString())
+                    val (status, feilResponse) = defineStatusWithError(response.bodyAsText(), response.status)
                     status shouldBe Status.HTTP503_UTILGJENGELIG_TJENESTE
                     feilResponse shouldBe expectedFeilResponse
                 }
@@ -258,8 +267,8 @@ internal class DefineStatusTest :
                             detail = "Avskrevet krav kan ikke endres",
                             instance = "/innkrevingsoppdrag/avskrevet",
                         )
-                    val response = mockHttpResponse(409, feilResponse = expectedFeilResponse)
-                    val (status, feilResponse) = defineStatusWithError(response)
+                    val response = mockHttpResponse(409, body = expectedFeilResponse.encodeToString())
+                    val (status, feilResponse) = defineStatusWithError(response.bodyAsText(), response.status)
 
                     status shouldBe Status.HTTP409_AVSKREVET_KRAV_KAN_IKKE_ENDRES
                     feilResponse shouldBe expectedFeilResponse
@@ -274,8 +283,8 @@ internal class DefineStatusTest :
                             detail = "Krav er ikke reskontroført",
                             instance = "/innkrevingsoppdrag/ikke-reskontrofort",
                         )
-                    val response = mockHttpResponse(404, feilResponse = expectedFeilResponse)
-                    val (status, feilResponse) = defineStatusWithError(response)
+                    val response = mockHttpResponse(404, body = expectedFeilResponse.encodeToString())
+                    val (status, feilResponse) = defineStatusWithError(response.bodyAsText(), response.status)
 
                     status shouldBe Status.HTTP404_KRAV_ER_IKKE_RESKONTROFORT
                     feilResponse shouldBe expectedFeilResponse
@@ -290,8 +299,8 @@ internal class DefineStatusTest :
                             detail = "En ukjent feil har oppstått",
                             instance = "/innkrevingsoppdrag/unknown",
                         )
-                    val response = mockHttpResponse(999, feilResponse = expectedFeilResponse)
-                    val (status, feilResponse) = defineStatusWithError(response)
+                    val response = mockHttpResponse(999, body = expectedFeilResponse.encodeToString())
+                    val (status, feilResponse) = defineStatusWithError(response.bodyAsText(), response.status)
 
                     status shouldBe Status.UKJENT_FEIL
                     feilResponse shouldBe expectedFeilResponse

@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.util
 
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 
 import no.nav.sokos.ske.krav.domain.Krav
@@ -26,18 +27,22 @@ data class RequestResult(
     val feilResponse: FeilResponse? = null,
 )
 
-suspend fun defineStatus(response: HttpResponse): Status {
-    val (status, _) = defineStatusWithError(response)
-    return status
-}
+suspend fun defineStatus(
+    responseBody: String,
+    httpStatus: HttpStatusCode,
+) = defineStatusWithError(responseBody, httpStatus).first
 
-suspend fun defineStatusWithError(response: HttpResponse): Pair<Status, FeilResponse?> {
-    if (response.status.isSuccess()) return Pair(Status.KRAV_SENDT, null)
-    val feilResponse = response.parseTo<FeilResponse>()
+suspend fun defineStatusWithError(
+    responseBody: String,
+    httpStatus: HttpStatusCode,
+): Pair<Status, FeilResponse?> {
+    println("RESPONSE BODY: $responseBody")
+    if (httpStatus.isSuccess()) return Pair(Status.KRAV_SENDT, null)
+    val feilResponse = responseBody.decodeTo<FeilResponse>()
     val errorType = feilResponse?.type ?: FeilResponse.CustomTypes.FEIL_FRA_SERVER
 
     val status =
-        when (response.status.value) {
+        when (httpStatus.value) {
             400 -> handleBadRequestError(errorType)
             401 -> Status.HTTP401_FEIL_AUTENTISERING
             403 -> Status.HTTP403_INGEN_TILGANG

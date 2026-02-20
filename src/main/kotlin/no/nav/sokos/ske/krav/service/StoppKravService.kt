@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.service
 
+import io.ktor.client.statement.bodyAsText
+
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.util.RequestResult
@@ -31,7 +33,7 @@ class StoppKravService(
             request = request.encodeToString(),
             krav = krav,
             kravidentifikator = kravidentifikatorPair.first,
-            status = defineStatus(response),
+            status = defineStatus(response.bodyAsText(), response.status),
         )
     }
 }

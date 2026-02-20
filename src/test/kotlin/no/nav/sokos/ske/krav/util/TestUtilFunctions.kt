@@ -4,10 +4,15 @@ import java.io.File
 import java.io.Reader
 import java.sql.Connection
 
+import kotlinx.io.Source
+
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.Headers
+import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.every
@@ -141,7 +146,12 @@ fun mockHttpResponse(
     feilResponseType: String = "",
     feilResponse: FeilResponse? = null,
     simulateParsingFailure: Boolean = false,
+    body: String = "",
 ) = mockk<HttpResponse>(relaxed = true) {
+    coEvery { bodyAsText() } returns body
+    coEvery { body<Source>() } returns mockk<Source>(relaxed = true)
+    coEvery { headers } returns mockk<Headers>(relaxed = true)
+    every { status } returns HttpStatusCode.fromValue(code)
     every { status.value } returns code
     if (simulateParsingFailure) {
         // Simulate parsing failure - parseTo will return null

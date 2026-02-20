@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.service
 
+import io.ktor.client.statement.bodyAsText
+
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.dto.ske.responses.OpprettInnkrevingsOppdragResponse
@@ -27,7 +29,7 @@ class OpprettKravService(
             request = opprettKravRequest.encodeToString(),
             krav = krav,
             kravidentifikator = response.parseTo<OpprettInnkrevingsOppdragResponse>()?.kravidentifikator ?: "",
-            status = defineStatus(response),
+            status = defineStatus(response.bodyAsText(), response.status),
         )
     }
 }

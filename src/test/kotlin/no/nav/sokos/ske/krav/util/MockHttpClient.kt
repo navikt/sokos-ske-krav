@@ -50,6 +50,8 @@ object MockHttpClientUtils {
 
         fun nyttKravResponse(kravIdentifikator: String = "1234") = """{"kravidentifikator": "$kravIdentifikator"}"""
 
+        fun avstemmingResponse(kravIdentifikator: String = "1234") = """{"kravidentifikator": "$kravIdentifikator"}"""
+
         fun nyEndringResponse(transaksjonsId: String = "791e5955-af86-42fe-b609-d4fc2754e35e") = """{"transaksjonsid": "$transaksjonsId"}"""
 
         fun innkrevingsOppdragEksistererIkkeResponse(kravIdentifikator: String = "1234") =
@@ -61,6 +63,20 @@ object MockHttpClientUtils {
                 "status":404,
                 "detail":"Innkrevingsoppdrag med oppdragsgiversKravidentifikator=$kravIdentifikator eksisterer ikke",
                 "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/avskriving"
+            }
+            """.trimIndent()
+
+        fun generateFeilResponse(
+            type: String,
+            statusCode: Int,
+        ) = //language=json
+            """      
+            {
+                "type":"$type",
+                "title":"tittel",
+                "status":$statusCode,
+                "detail":"details",
+                "instance":"generateFeilResponse($type, $statusCode)"
             }
             """.trimIndent()
 
