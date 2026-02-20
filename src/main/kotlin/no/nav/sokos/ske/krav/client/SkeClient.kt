@@ -15,7 +15,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig
-import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.config.httpClient
 import no.nav.sokos.ske.krav.dto.ske.requests.AvskrivingRequest
 import no.nav.sokos.ske.krav.dto.ske.requests.EndreRenteBeloepRequest
@@ -23,7 +22,6 @@ import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.dto.ske.requests.NyHovedStolRequest
 import no.nav.sokos.ske.krav.dto.ske.requests.OpprettInnkrevingsoppdragRequest
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
-import no.nav.sokos.ske.krav.util.logger
 
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
 private const val ENDRE_RENTER = "innkrevingsoppdrag/%s/renter?kravidentifikatortype=%s"
@@ -80,11 +78,10 @@ class SkeClient(
         request: T,
         corrID: String,
     ) = client.post(
-        buildHttpRequest(path, corrID)
-            .apply {
-                contentType(ContentType.Application.Json)
-                setBody(request)
-            }.also { logger.info(marker = TEAM_LOGS_MARKER) { "Posting to $path" } },
+        buildHttpRequest(path, corrID).apply {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        },
     )
 
     private suspend inline fun <reified T> doPut(
