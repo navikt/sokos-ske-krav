@@ -41,6 +41,7 @@ class OpprettKravService(
     private suspend fun sendOpprettKrav(krav: Krav): RequestResult {
         val opprettKravRequest = createOpprettKravRequest(krav)
         val response: HttpResponse = skeClient.opprettKrav(opprettKravRequest, krav.corrId)
+        logger.info(marker = TEAM_LOGS_MARKER) { "Corrid kall: ${krav.corrId} ///  Headers from SKE: ${response.headers.entries()}" }
         val responseBody: String = response.bodyAsText()
         val status = defineStatus(responseBody, response.status)
         val kravidentifikator =
