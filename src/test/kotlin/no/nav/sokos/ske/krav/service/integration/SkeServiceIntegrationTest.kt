@@ -2,20 +2,15 @@ package no.nav.sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.domain.Status
-import no.nav.sokos.ske.krav.dto.ske.responses.AvstemmingResponse
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.SftpListener
 import no.nav.sokos.ske.krav.repository.KravRepository.updateStatus
@@ -34,9 +29,7 @@ import no.nav.sokos.ske.krav.util.MockHttpClientUtils.MockRequestObj
 import no.nav.sokos.ske.krav.util.MockHttpClientUtils.Responses
 import no.nav.sokos.ske.krav.util.MockHttpClientUtils.Responses.avstemmingResponse
 import no.nav.sokos.ske.krav.util.MockHttpClientUtils.Responses.mottaksStatusResponse
-import no.nav.sokos.ske.krav.util.decodeTo
 import no.nav.sokos.ske.krav.util.getAllKrav
-import no.nav.sokos.ske.krav.util.logger
 import no.nav.sokos.ske.krav.util.mockHttpResponse
 import no.nav.sokos.ske.krav.util.setUpMockHttpClient
 import no.nav.sokos.ske.krav.util.setupSkeServiceMock
@@ -70,21 +63,13 @@ internal class SkeServiceIntegrationTest :
             DBListener.clearDB()
             DBListener.loadInitScript("SQLscript/10NyeKrav.sql")
             SftpListener.putFiles(listOf("TestEndringKravident.txt"), Directories.INBOUND)
-            mockkStatic("io.ktor.client.statement.HttpResponseKt")
-            mockkStatic("no.nav.sokos.ske.krav.util.ServiceutilsKt") { every { logger } returns mockk(relaxed = true) }
             val skeClient =
                 mockk<SkeClient> {
                     coEvery { getSkeKravidentifikator("8888-migrert") } returns
-                        mockk<HttpResponse>(relaxed = true) {
-                            every { status } returns HttpStatusCode.fromValue(200)
-                            coEvery { bodyAsText().decodeTo<AvstemmingResponse>()?.kravidentifikator } returns avstemmingResponse("avstemming8888-skeUUID")
-                        }
+                        mockHttpResponse(200, """{"kravidentifikator": "avstemming8888-skeUUID"}""")
 
                     coEvery { getSkeKravidentifikator("2222-migrert") } returns
-                        mockk<HttpResponse>(relaxed = true) {
-                            every { status } returns HttpStatusCode.fromValue(200)
-                            coEvery { bodyAsText().decodeTo<AvstemmingResponse>()?.kravidentifikator } returns avstemmingResponse("avstemming2222-skeUUID")
-                        }
+                        mockHttpResponse(200, """{"kravidentifikator": "avstemming2222-skeUUID"}""")
                 }
 
             val dbService = DatabaseService(DBListener.dataSource)

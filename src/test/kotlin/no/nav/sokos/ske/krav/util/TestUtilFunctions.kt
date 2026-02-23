@@ -4,21 +4,18 @@ import java.io.File
 import java.io.Reader
 import java.sql.Connection
 
-import kotlinx.io.Source
+import kotlinx.io.Buffer
 
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
+import io.ktor.client.call.HttpClientCall
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.Headers
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
-import io.mockk.mockkStatic
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
@@ -138,19 +135,15 @@ fun setupSkeServiceMockWithMockEngine(
 fun mockHttpResponse(
     code: Int = 200,
     body: String = "",
-): HttpResponse {
-    mockkStatic("io.ktor.client.statement.HttpResponseKt")
-    mockkStatic("no.nav.sokos.ske.krav.util.ServiceutilsKt") { every { logger } returns mockk(relaxed = true) }
-    val mock =
-        mockk<HttpResponse>(relaxed = true) {
-            coEvery { headers } returns mockk<Headers>(relaxed = true)
-            every { status } returns HttpStatusCode.fromValue(code)
-            every { status.value } returns code
-            coEvery { bodyAsText() } returns body
-            coEvery { body<Source>() } returns mockk<Source>(relaxed = true)
-        }
-
-    return mock
-}
+): HttpResponse =
+    mockk<HttpResponse>(relaxed = true) {
+        every { status } returns HttpStatusCode.fromValue(code)
+        every { call } returns
+            mockk<HttpClientCall>(relaxed = true) {
+                coEvery { bodyNullable(any()) } answers {
+                    Buffer().also { it.write(body.toByteArray()) }
+                }
+            }
+    }
 
 fun Connection.getAllKrav(): List<Krav> = prepareStatement("""select * from krav""").executeQuery().toKrav()
