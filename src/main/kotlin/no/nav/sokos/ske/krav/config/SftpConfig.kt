@@ -12,7 +12,7 @@ class SftpConfig(
     private val jsch: JSch =
         JSch().apply {
             JSch.setLogger(JSchLogger())
-            addIdentity(sftpProperties.privateKey, sftpProperties.privateKeyPassword)
+            addIdentity(sftpProperties.privateKeyFilePath, sftpProperties.privateKeyPassword)
         }
 
     fun <T> channel(operation: (ChannelSftp) -> T): T {

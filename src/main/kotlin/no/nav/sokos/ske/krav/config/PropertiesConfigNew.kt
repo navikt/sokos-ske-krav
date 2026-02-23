@@ -35,7 +35,7 @@ object PropertiesConfigNew {
     }
 
     val skeRestConfig by lazy {
-        config.property("skeConfig").getAs<SkeConfig>()
+        config.property("ske").getAs<SkeConfig>()
     }
 
     val postgresConfig by lazy {
@@ -43,7 +43,7 @@ object PropertiesConfigNew {
     }
 
     val slackConfig by lazy {
-        config.property("slackConfig").getAs<SlackConfig>()
+        config.property("slack").getAs<SlackConfig>()
     }
 
     val circuitBreakerConfig by lazy {
@@ -107,7 +107,7 @@ data class SftpProperties(
     val host: String,
     val username: String,
     val privateKeyPassword: String,
-    val privateKey: String,
+    val privateKeyFilePath: String,
     val port: Int,
 )
 

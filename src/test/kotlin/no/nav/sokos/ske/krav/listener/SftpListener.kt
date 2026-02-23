@@ -37,7 +37,7 @@ object SftpListener : TestListener {
         SftpProperties(
             host = "localhost",
             username = "foo",
-            privateKey = privateKeyFile.absolutePath,
+            privateKeyFilePath = privateKeyFile.absolutePath,
             privateKeyPassword = "pass",
             port = 5678,
         )
