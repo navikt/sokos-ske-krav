@@ -4,10 +4,15 @@ import java.io.File
 import java.io.Reader
 import java.sql.Connection
 
+import kotlinx.io.Source
+
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.Headers
+import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.every
@@ -133,9 +138,28 @@ fun setupSkeServiceMockWithMockEngine(
 fun mockHttpResponse(
     code: Int,
     feilResponseType: String = "",
-) = mockk<HttpResponse>(relaxed = true) {
-    every { status.value } returns code
-    coEvery { body<FeilResponse>().type } returns feilResponseType
+    feilResponse: FeilResponse? = null,
+    simulateParsingFailure: Boolean = false,
+    body: String = "",
+): HttpResponse {
+    val mock =
+        mockk<HttpResponse>(relaxed = true) {
+            coEvery { body<Source>() } returns mockk<Source>(relaxed = true)
+            coEvery { headers } returns mockk<Headers>(relaxed = true)
+            every { status } returns HttpStatusCode.fromValue(code)
+            every { status.value } returns code
+            if (simulateParsingFailure) {
+                // Simulate parsing failure - parseTo will return null
+                coEvery { body<FeilResponse>() } throws Exception("Failed to parse FeilResponse")
+            } else if (feilResponse != null) {
+                coEvery { body<FeilResponse>() } returns feilResponse
+            } else {
+                coEvery { body<FeilResponse>().type } returns feilResponseType
+            }
+        }
+    // bodyAsText() is an extension function and needs to be mocked outside the block
+    coEvery { mock.bodyAsText() } returns body
+    return mock
 }
 
 fun Connection.getAllKrav(): List<Krav> = prepareStatement("""select * from krav""").executeQuery().toKrav()

@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.service
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
+import io.ktor.client.statement.bodyAsText
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.CircuitBreakerException
@@ -40,7 +41,7 @@ class StoppKravService(
             request = request.encodeToString(),
             krav = krav,
             kravidentifikator = kravidentifikatorPair.first,
-            status = defineStatus(response),
+            status = defineStatus(response.bodyAsText(), response.status).first,
         )
     }
 }

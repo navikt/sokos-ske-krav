@@ -113,8 +113,32 @@ object MockHttpClientUtils {
     }
 }
 
+object MockClient {
+    fun getSimpleEngine(
+        content: String,
+        status: HttpStatusCode = HttpStatusCode.OK,
+    ) = MockEngine { _ ->
+        respond(
+            content = content,
+            status = status,
+            headers = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString())),
+        )
+    }
+
+    fun getSimpleClient(mockEngine: MockEngine) =
+        HttpClient(mockEngine) {
+            install(ContentNegotiation) {
+                json(jsonConfig)
+            }
+        }
+}
+
 class MockHttpClient {
     private val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
+
+    class SimpleClient(
+        engine: MockEngine,
+    )
 
     fun getSlackClient() =
         HttpClient(MockEngine) {
