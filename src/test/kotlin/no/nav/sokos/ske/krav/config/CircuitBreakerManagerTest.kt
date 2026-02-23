@@ -8,8 +8,14 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.ktor.server.config.ApplicationConfig
+import io.mockk.clearAllMocks
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
+import no.nav.sokos.ske.krav.config.PropertiesConfigNew.circuitBreakerConfig
 
 class CircuitBreakerManagerTest :
     FunSpec({
@@ -24,6 +30,11 @@ class CircuitBreakerManagerTest :
                 Thread.sleep(pollMs)
             }
             throw AssertionError("Condition not met within ${timeoutMs}ms")
+        }
+
+        beforeSpec {
+            mockkObject(PropertiesConfigNew)
+            every { PropertiesConfigNew.config } returns ApplicationConfig("application-test.conf")
         }
 
         beforeEach {
@@ -42,12 +53,12 @@ class CircuitBreakerManagerTest :
                     .slidingWindowSize(1)
                     .minimumNumberOfCalls(1)
                     .failureRateThreshold(100.0f)
-                    .waitDurationInOpenState(Duration.ofMillis(50))
+                    .waitDurationInOpenState(Duration.ofMillis(circuitBreakerConfig.waitDurationInOpenState))
                     .permittedNumberOfCallsInHalfOpenState(1)
                     .automaticTransitionFromOpenToHalfOpenEnabled(true)
                     .build()
             val cb = CircuitBreaker.of("auto-transition", autoConfig)
-
+            println("LAO10: ${Duration.ofMillis(50).seconds}")
             cb.transitionToOpenState()
             cb.state shouldBe CircuitBreaker.State.OPEN
 
@@ -116,5 +127,10 @@ class CircuitBreakerManagerTest :
 
             circuitBreaker.transitionToClosedState()
             circuitBreaker.state shouldBe CircuitBreaker.State.CLOSED
+        }
+
+        afterSpec {
+            clearAllMocks()
+            unmockkObject(PropertiesConfigNew)
         }
     })

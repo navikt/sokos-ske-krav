@@ -77,12 +77,4 @@ object PropertiesConfig {
     }
 
     operator fun get(key: String): String = config[Key(key, stringType)]
-
-    data object CircuitBreakerConfig {
-        val waitDurationInOpenState: Long = get("CIRCUIT_BREAKER_WAIT_DURATION_IN_OPEN_STATE_IN_HOURS").toLong()
-        const val SLIDING_WINDOW_SIZE: Int = 1
-        const val MINIMUM_NUMBER_OF_CALLS: Int = 1
-        const val FAILURE_RATE_THRESHOLD: Float = 100.0f
-        const val PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE: Int = 1
-    }
 }

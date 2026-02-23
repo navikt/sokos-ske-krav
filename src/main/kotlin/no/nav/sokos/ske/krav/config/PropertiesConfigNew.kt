@@ -48,6 +48,11 @@ object PropertiesConfigNew {
     val slackConfig by lazy {
         config.property("slackConfig").getAs<SlackConfig>()
     }
+
+    val circuitBreakerConfig by lazy {
+        config.property("circuitBreaker").getAs<CircuitBreakerConfig>()
+    }
+
     val timerConfig by lazy {
         config.property("timer").getAs<TimerConfig>()
     }
@@ -142,6 +147,18 @@ data class PostgresConfig(
 data class SlackConfig(
     val url: String,
 )
+
+@Serializable
+data class CircuitBreakerConfig(
+    val waitDurationInOpenState: Long,
+) {
+    companion object {
+        const val SLIDING_WINDOW_SIZE: Int = 1
+        const val MINIMUM_NUMBER_OF_CALLS: Int = 1
+        const val FAILURE_RATE_THRESHOLD: Float = 100.0f
+        const val PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE: Int = 1
+    }
+}
 
 @Serializable
 data class TimerConfig(
