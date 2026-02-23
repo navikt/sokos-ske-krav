@@ -39,7 +39,6 @@ inline fun <reified T> String.decodeTo(): T? =
             logger.warn { "Feil mottatt: ${response.title}" }
             response
         }.onFailure {
-            logger.error { "Error decoding JSON to ${T::class.simpleName}" }
             logger.error(marker = TEAM_LOGS_MARKER) { "Error decoding JSON to ${T::class.simpleName}: ${e.message}" }
         }.getOrNull()
     }.getOrNull()

@@ -35,13 +35,16 @@ class StoppKravService(
         val kravidentifikatorPair = createKravidentifikatorPair(krav)
         val request = createStoppKravRequest(kravidentifikatorPair.first, kravidentifikatorPair.second)
         val response = skeClient.stoppKrav(request, krav.corrId)
+        val responseBody = response.bodyAsText()
+        val definertStatus = defineStatus(responseBody, response.status)
 
         return RequestResult(
             response = response,
             request = request.encodeToString(),
             krav = krav,
             kravidentifikator = kravidentifikatorPair.first,
-            status = defineStatus(response.bodyAsText(), response.status).first,
+            status = definertStatus.first,
+            feilResponse = definertStatus.second,
         )
     }
 }
