@@ -18,9 +18,6 @@ object PropertiesConfigNew {
     val isLocal: Boolean
         get() = applicationProperties.isLocal
 
-    val useTimer: Boolean
-        get() = timerConfig.useTimer
-
     val applicationProperties by lazy {
         config.property("application").getAs<ApplicationProperties>()
     }
@@ -89,6 +86,7 @@ enum class Profile {
 data class ApplicationProperties(
     val profile: Profile,
     val appName: String,
+    val namespace: String,
     val useAuthentication: Boolean,
     val basicUsername: String,
     val basicPassword: String,
