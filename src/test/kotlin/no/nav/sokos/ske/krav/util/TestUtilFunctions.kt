@@ -25,7 +25,6 @@ import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Krav
-import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.repository.toKrav
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
@@ -137,13 +136,11 @@ fun setupSkeServiceMockWithMockEngine(
 }
 
 fun mockHttpResponse(
-    code: Int,
-    feilResponseType: String = "",
-    feilResponse: FeilResponse? = null,
-    simulateParsingFailure: Boolean = false,
+    code: Int = 200,
     body: String = "",
 ): HttpResponse {
     mockkStatic("io.ktor.client.statement.HttpResponseKt")
+    mockkStatic("no.nav.sokos.ske.krav.util.ServiceutilsKt") { every { logger } returns mockk(relaxed = true) }
     val mock =
         mockk<HttpResponse>(relaxed = true) {
             coEvery { headers } returns mockk<Headers>(relaxed = true)
@@ -151,15 +148,6 @@ fun mockHttpResponse(
             every { status.value } returns code
             coEvery { bodyAsText() } returns body
             coEvery { body<Source>() } returns mockk<Source>(relaxed = true)
-
-            if (simulateParsingFailure) {
-                // Simulate parsing failure - parseTo will return null
-                coEvery { body<FeilResponse>() } throws Exception("Failed to parse FeilResponse")
-            } else if (feilResponse != null) {
-                coEvery { body<FeilResponse>() } returns feilResponse
-            } else {
-                coEvery { body<FeilResponse>().type } returns feilResponseType
-            }
         }
 
     return mock

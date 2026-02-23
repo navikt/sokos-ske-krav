@@ -52,6 +52,8 @@ object MockHttpClientUtils {
 
         fun nyttKravResponse(kravIdentifikator: String = "1234") = """{"kravidentifikator": "$kravIdentifikator"}"""
 
+        fun avstemmingResponse(kravIdentifikator: String = "1234") = """{"kravidentifikator": "$kravIdentifikator"}"""
+
         fun nyEndringResponse(transaksjonsId: String = "791e5955-af86-42fe-b609-d4fc2754e35e") = """{"transaksjonsid": "$transaksjonsId"}"""
 
         fun avskrivKravResponse(transaksjonsId: String = "791e5955-af86-42fe-b609-d4fc2754e35e") = """{"transaksjonsid": "$transaksjonsId"}"""
@@ -111,26 +113,6 @@ object MockHttpClientUtils {
 }
             """.trimMargin()
     }
-}
-
-object MockClient {
-    fun getSimpleEngine(
-        content: String,
-        status: HttpStatusCode = HttpStatusCode.OK,
-    ) = MockEngine { _ ->
-        respond(
-            content = content,
-            status = status,
-            headers = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString())),
-        )
-    }
-
-    fun getSimpleClient(mockEngine: MockEngine) =
-        HttpClient(mockEngine) {
-            install(ContentNegotiation) {
-                json(jsonConfig)
-            }
-        }
 }
 
 class MockHttpClient {

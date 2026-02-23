@@ -7,8 +7,8 @@ import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.delay
 
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 
 import no.nav.sokos.ske.krav.client.SkeClient
@@ -24,8 +24,8 @@ import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.RequestResult
+import no.nav.sokos.ske.krav.util.decodeTo
 import no.nav.sokos.ske.krav.util.isOpprettKrav
-import no.nav.sokos.ske.krav.util.parseTo
 import no.nav.sokos.ske.krav.validation.LineValidator
 
 const val NYTT_KRAV = "NYTT_KRAV"
@@ -127,7 +127,7 @@ class SkeService(
             if (skeKravidentifikator.isBlank()) {
                 val httpResponse = skeClient.getSkeKravidentifikator(krav.referansenummerGammelSak)
                 if (httpResponse.status.isSuccess()) {
-                    skeKravidentifikatorSomSkalLagres = httpResponse.parseTo<AvstemmingResponse>()?.kravidentifikator ?: ""
+                    skeKravidentifikatorSomSkalLagres = httpResponse.bodyAsText().decodeTo<AvstemmingResponse>()?.kravidentifikator ?: ""
                 }
             }
 
@@ -164,13 +164,15 @@ class SkeService(
         responses
             .filterNot { it.response.status.isSuccess() }
             .forEach { result ->
+                val responseBody = result.response.bodyAsText()
                 saveErrorMessage(
                     result.request,
-                    result.response,
+                    responseBody,
+                    result.response.status,
                     result.krav,
                     result.kravidentifikator,
                 )
-                result.response.parseTo<FeilResponse>()?.let { feilResponse ->
+                responseBody.decodeTo<FeilResponse>()?.let { feilResponse ->
                     val errorPair = Pair(feilResponse.title, feilResponse.detail)
                     slackService.addError(result.krav.filnavn, "Feil fra SKE", errorPair)
                 }
@@ -179,15 +181,15 @@ class SkeService(
 
     private suspend fun saveErrorMessage(
         request: String,
-        response: HttpResponse,
+        response: String,
+        status: HttpStatusCode,
         krav: Krav,
         kravidentifikator: String,
     ) {
         val skeKravidentifikator =
             if (kravidentifikator == krav.saksnummerNAV || kravidentifikator == krav.referansenummerGammelSak) "" else kravidentifikator
 
-        val responseAsText = response.bodyAsText()
-        val feilResponse = response.parseTo<FeilResponse>() ?: FeilResponse("egendefinert", "Feil i parsing av http respons", response.status.value, responseAsText, "")
+        val feilResponse = response.decodeTo<FeilResponse>() ?: FeilResponse("egendefinert", "Feil i parsing av http respons", status.value, response, "")
 
         dataSource.asyncTransaction { session ->
             val feilmelding =
@@ -200,7 +202,7 @@ class SkeService(
                     feilResponse.status.toString(),
                     feilResponse.detail,
                     request,
-                    responseAsText,
+                    response,
                     LocalDateTime.now(),
                 )
             FeilmeldingRepository.insertFeilmeldinger(session, listOf(feilmelding))

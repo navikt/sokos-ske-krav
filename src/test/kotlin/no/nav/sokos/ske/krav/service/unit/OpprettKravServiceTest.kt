@@ -98,7 +98,8 @@ class OpprettKravServiceTest :
                         ),
                 )
 
-            val httpResponseMock = mockHttpResponse(200, body = nyttKravResponse("123"))
+            val httpResponseMock = mockHttpResponse(body = nyttKravResponse("123"))
+
             val skeClientMock = mockk<SkeClient> { coEvery { opprettKrav(any(), any()) } returns httpResponseMock }
             val opprettKravServiceMock = spyk(OpprettKravService(skeClientMock, databaseServiceMock), recordPrivateCalls = true)
 
@@ -159,7 +160,7 @@ class OpprettKravServiceTest :
                         ),
                 )
 
-            val httpResponseMock = mockHttpResponse(200, body = nyttKravResponse("123"))
+            val httpResponseMock = mockHttpResponse(body = nyttKravResponse("123"))
             val skeClientMock = mockk<SkeClient> { coEvery { opprettKrav(any(), any()) } returns httpResponseMock }
             val opprettKravServiceMock = spyk(OpprettKravService(skeClientMock, databaseServiceMock), recordPrivateCalls = true)
 

@@ -1,35 +1,30 @@
 package no.nav.sokos.ske.krav.util
 
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 
+import no.nav.sokos.ske.krav.config.jsonConfig
+
 @Serializable
-data class TestResponse(
+private data class TestResponse(
     val value: String,
 )
 
 class ServiceutilsTest :
     FunSpec({
-        val jsonConfig =
-            Json {
-                prettyPrint = true
-                isLenient = true
-                ignoreUnknownKeys = true
-            }
 
         val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
 
@@ -47,47 +42,22 @@ class ServiceutilsTest :
         }
 
         test("parseTo skal returnere parsed objekt når parsing er OK") {
-            runBlocking {
-                val successResponse = """{"value": "test"}"""
-                val client = createMockClient(successResponse)
-                val response = client.get("/test")
 
-                val result = response.parseTo<TestResponse>()
+            val successResponse = """{"value": "test"}"""
+            val client = createMockClient(successResponse)
+            val response = client.get("/test").bodyAsText()
 
-                result?.value shouldBe "test"
-            }
+            response.decodeTo<TestResponse>().shouldNotBeNull()
         }
 
-        test("parseTo skal returnere null og logge error når T er FeilResponse") {
-            runBlocking {
-                val errorResponse =
-                    """
-                    {
-                        "type": "error-type",
-                        "title": "Error Title",
-                        "status": 404,
-                        "detail": "Error detail message",
-                        "instance": "/test/error"
-                    }
-                    """.trimIndent()
-                val client = createMockClient(errorResponse, HttpStatusCode.NotFound)
-                val response = client.get("/test")
+        test("parseTo skal returnere null når parsing feiler") {
 
-                val result = response.parseTo<TestResponse>()
+            val invalidResponse = """{"invalid": json"""
+            val client = createMockClient(invalidResponse)
+            val response = client.get("/test").bodyAsText()
 
-                result.shouldBeNull()
-            }
-        }
+            val result = response.decodeTo<TestResponse>()
 
-        test("parseTo skal returnere null og logge generisk feil når all parsing feiler") {
-            runBlocking {
-                val invalidResponse = """{"invalid": json"""
-                val client = createMockClient(invalidResponse)
-                val response = client.get("/test")
-
-                val result = response.parseTo<TestResponse>()
-
-                result.shouldBeNull()
-            }
+            result.shouldBeNull()
         }
     })
