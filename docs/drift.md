@@ -6,7 +6,7 @@ Etter at `setupLocalEnvironment.sh` er kjørt, vil den opprette en `privKey` fil
 Scriptet vil hente brukernavn og passord til `defaults.properties` i form av variablene `SKE_SFTP_USERNAME` og `SKE_SFTP_PASSWORD`.
 
 FileZilla er en god klient for å koble seg til SFTP. Bruk `login with key file`.
-Host og port finner man i [PropertiesConfig](https://github.com/navikt/sokos-ske-krav/blob/main/src/main/kotlin/no/nav/sokos/ske/krav/config/PropertiesConfig.kt#L45-L46)
+Host og port finner man i [application-local.conf](https://github.com/navikt/sokos-ske-krav/blob/main/src/main/resources/application-local.conf#L15-L16)
 
 På MacOS kan den be om en `.ppk` nøkkel. Isåfall la FileZilla automatisk konvertere privatnøkkelen til .ppk og referer til denne.
 
@@ -47,4 +47,3 @@ For eksempel:
 
 Tilsvarende kan gjøres for feilsøking i prod. Da må man i tillegg huske på å åpne post-gres prod gatewayen i naisdevice, så skal man bli promptet med JIT side der man oppgir grunn og hvor lenge 
 man trenger tilgang.
-    
