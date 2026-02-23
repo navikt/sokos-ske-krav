@@ -136,10 +136,6 @@ object MockClient {
 class MockHttpClient {
     private val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
 
-    class SimpleClient(
-        engine: MockEngine,
-    )
-
     fun getSlackClient() =
         HttpClient(MockEngine) {
             install(ContentNegotiation) { json(jsonConfig) }
