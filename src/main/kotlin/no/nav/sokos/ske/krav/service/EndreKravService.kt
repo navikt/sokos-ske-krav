@@ -145,12 +145,15 @@ class EndreKravService(
                 Pair(response, request.encodeToString())
             }
 
+        val responseBody = response.bodyAsText()
+        val definertStatus = defineStatus(responseBody, response.status)
         return RequestResult(
             response = response,
             request = request,
             krav = krav,
             kravidentifikator = "",
-            status = defineStatus(response.bodyAsText(), response.status).first,
+            status = definertStatus.first,
+            feilResponse = definertStatus.second,
         )
     }
 }
