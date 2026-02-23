@@ -17,13 +17,13 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Parameters
-import io.ktor.http.isSuccess
 import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
-import no.nav.sokos.ske.krav.util.parseTo
+import no.nav.sokos.ske.krav.util.decodeTo
 
 class MaskinportenAccessTokenProvider(
     private val maskinportenConfig: PropertiesConfig.MaskinportenClientConfig = PropertiesConfig.MaskinportenClientConfig(),
@@ -70,11 +70,13 @@ class MaskinportenAccessTokenProvider(
                         },
                 )
 
-        return if (response.status.isSuccess()) {
-            AccessToken(response.body<MaskinportenTokenResponse>())
+        val responseBody = response.bodyAsText()
+        val tokenResponse = responseBody.decodeTo<MaskinportenTokenResponse>()
+        return if (tokenResponse != null) {
+            AccessToken(tokenResponse)
         } else {
             logger.error("Kunne ikke hente accessToken,")
-            val feilmelding = response.parseTo<TokenError>()
+            val feilmelding = responseBody.decodeTo<TokenError>()
             logger.error(marker = TEAM_LOGS_MARKER) {
                 "Feil fra tokenprovider, Token: $jwtAssertion, Feilmelding: $feilmelding"
             }
