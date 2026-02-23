@@ -18,6 +18,7 @@ import io.mockk.coJustRun
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
+import io.mockk.mockkStatic
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
@@ -142,12 +143,15 @@ fun mockHttpResponse(
     simulateParsingFailure: Boolean = false,
     body: String = "",
 ): HttpResponse {
+    mockkStatic("io.ktor.client.statement.HttpResponseKt")
     val mock =
         mockk<HttpResponse>(relaxed = true) {
-            coEvery { body<Source>() } returns mockk<Source>(relaxed = true)
             coEvery { headers } returns mockk<Headers>(relaxed = true)
             every { status } returns HttpStatusCode.fromValue(code)
             every { status.value } returns code
+            coEvery { bodyAsText() } returns body
+            coEvery { body<Source>() } returns mockk<Source>(relaxed = true)
+
             if (simulateParsingFailure) {
                 // Simulate parsing failure - parseTo will return null
                 coEvery { body<FeilResponse>() } throws Exception("Failed to parse FeilResponse")
@@ -157,8 +161,7 @@ fun mockHttpResponse(
                 coEvery { body<FeilResponse>().type } returns feilResponseType
             }
         }
-    // bodyAsText() is an extension function and needs to be mocked outside the block
-    coEvery { mock.bodyAsText() } returns body
+
     return mock
 }
 

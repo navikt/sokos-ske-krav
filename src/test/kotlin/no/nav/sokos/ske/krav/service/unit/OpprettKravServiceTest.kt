@@ -9,10 +9,12 @@ import kotlinx.datetime.toKotlinLocalDate
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.HttpResponse
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.spyk
+import io.mockk.verify
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.domain.Krav
@@ -26,13 +28,12 @@ import no.nav.sokos.ske.krav.dto.ske.requests.TilbakeKrevingsPeriode
 import no.nav.sokos.ske.krav.dto.ske.requests.TilleggsinformasjonNav
 import no.nav.sokos.ske.krav.dto.ske.requests.Valuta
 import no.nav.sokos.ske.krav.dto.ske.requests.YtelseForAvregningBeloep
-import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.OpprettKravService
-import no.nav.sokos.ske.krav.util.MockClient.getSimpleClient
-import no.nav.sokos.ske.krav.util.MockClient.getSimpleEngine
+import no.nav.sokos.ske.krav.util.MockHttpClientUtils.Responses.nyttKravResponse
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.encodeToString
+import no.nav.sokos.ske.krav.util.mockHttpResponse
 
 class OpprettKravServiceTest :
     FunSpec({
@@ -97,15 +98,18 @@ class OpprettKravServiceTest :
                         ),
                 )
 
-            val httpClient = getSimpleClient(getSimpleEngine("""{"kravidentifikator": "123"}"""))
+            val httpResponseMock = mockHttpResponse(200, body = nyttKravResponse("123"))
+            val skeClientMock = mockk<SkeClient> { coEvery { opprettKrav(any(), any()) } returns httpResponseMock }
+            val opprettKravServiceMock = spyk(OpprettKravService(skeClientMock, databaseServiceMock), recordPrivateCalls = true)
 
-            val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
-            val opprettKravService = OpprettKravService(skeClient, databaseServiceMock)
-
-            val reqResult = opprettKravService.sendAllOpprettKrav(listOf(kravMock))
+            val reqResult = opprettKravServiceMock.sendAllOpprettKrav(listOf(kravMock))
+            verify(exactly = 1) {
+                opprettKravServiceMock["sendOpprettKrav"](any<Krav>())
+            }
 
             reqResult.size shouldBe 1
             with(reqResult.first()) {
+                response shouldBe httpResponseMock
                 request shouldBe opprettInnkrevingOppdragRequest.encodeToString()
                 krav shouldBe kravMock
                 kravidentifikator shouldBe "123"
@@ -155,15 +159,15 @@ class OpprettKravServiceTest :
                         ),
                 )
 
-            val httpClient = getSimpleClient(getSimpleEngine("""{"kravidentifikator": "123"}"""))
+            val httpResponseMock = mockHttpResponse(200, body = nyttKravResponse("123"))
+            val skeClientMock = mockk<SkeClient> { coEvery { opprettKrav(any(), any()) } returns httpResponseMock }
+            val opprettKravServiceMock = spyk(OpprettKravService(skeClientMock, databaseServiceMock), recordPrivateCalls = true)
 
-            val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
-            val opprettKravService = OpprettKravService(skeClient, databaseServiceMock)
-
-            val reqResult = opprettKravService.sendAllOpprettKrav(listOf(kravMockMedTilleggsfrist))
+            val reqResult = opprettKravServiceMock.sendAllOpprettKrav(listOf(kravMockMedTilleggsfrist))
 
             reqResult.size shouldBe 1
             with(reqResult.first()) {
+                response shouldBe httpResponseMock
                 request shouldBe opprettInnkrevingOppdragRequest.encodeToString()
                 krav shouldBe kravMockMedTilleggsfrist
                 kravidentifikator shouldBe "123"

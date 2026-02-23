@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.service.unit
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.ktor.client.statement.HttpResponse
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
@@ -9,11 +10,10 @@ import io.mockk.spyk
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.StoppKravService
 import no.nav.sokos.ske.krav.util.RequestResult
-import no.nav.sokos.ske.krav.util.defineStatus
-import no.nav.sokos.ske.krav.util.mockHttpResponse
 
 class StoppKravServiceTest :
     FunSpec({
@@ -32,8 +32,8 @@ class StoppKravServiceTest :
 
             every { stoppKravMock["sendStoppKrav"](any<Krav>()) } returnsMany
                 listOf(
-                    RequestResult(mockHttpResponse(404), mockk<Krav>(), "", "123", defineStatus(mockHttpResponse(404))),
-                    RequestResult(mockHttpResponse(200), mockk<Krav>(), "", "456", defineStatus(mockHttpResponse(200))),
+                    RequestResult(mockk<HttpResponse>(relaxed = true), mockk<Krav>(), "", "123", Status.HTTP422_VALIDERINGSFEIL),
+                    RequestResult(mockk<HttpResponse>(relaxed = true), mockk<Krav>(), "", "456", Status.KRAV_SENDT),
                 )
             val result = stoppKravMock.sendAllStoppKrav(listOf(kravMock, kravMock))
 

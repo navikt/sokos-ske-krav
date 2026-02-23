@@ -36,7 +36,6 @@ private fun defineStatusWithError(
     responseBody: String,
     httpStatus: HttpStatusCode,
 ): Pair<Status, FeilResponse?> {
-    //  if (httpStatus.isSuccess()) return Pair(Status.KRAV_SENDT, null)
     val feilResponse = responseBody.decodeTo<FeilResponse>()
     val errorType = feilResponse?.type ?: FeilResponse.CustomTypes.FEIL_FRA_SERVER
 
@@ -58,27 +57,6 @@ private fun defineStatusWithError(
         }
 
     return Pair(status, feilResponse)
-}
-
-suspend fun defineStatus(response: HttpResponse): Status {
-    if (response.status.isSuccess()) return Status.KRAV_SENDT
-    val errorType = response.parseTo<FeilResponse>()?.type ?: "FEIL_FRA_SERVER"
-
-    return when (response.status.value) {
-        400 -> handleBadRequestError(errorType)
-        401 -> Status.HTTP401_FEIL_AUTENTISERING
-        403 -> Status.HTTP403_INGEN_TILGANG
-        404 -> handleNotFoundError(errorType)
-        406 -> Status.HTTP406_FEIL_MEDIETYPE
-        409 -> handleConflictError(errorType)
-        422 -> Status.HTTP422_VALIDERINGSFEIL
-        500 -> Status.HTTP500_INTERN_TJENERFEIL
-        503 -> Status.HTTP503_UTILGJENGELIG_TJENESTE
-        in 300..399 -> Status.HTTP300_REDIRECTION_FEIL
-        in 400..499 -> Status.HTTP400_ANNEN_KLIENT_FEIL
-        in 500..599 -> Status.HTTP500_ANNEN_SERVER_FEIL
-        else -> Status.UKJENT_FEIL
-    }
 }
 
 private fun handleBadRequestError(errorType: String): Status =

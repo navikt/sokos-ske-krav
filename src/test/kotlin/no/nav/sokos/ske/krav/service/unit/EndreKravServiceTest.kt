@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.service.unit
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.ktor.client.statement.bodyAsText
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
@@ -50,18 +51,20 @@ internal class EndreKravServiceTest :
 
             test("If first status is $firstStatus and second status is $secondStatus, both should be set to $expectedFirstStatus") {
 
+                val firstResponse = mockHttpResponse(firstStatus)
+                val secondResponse = mockHttpResponse(secondStatus)
                 every {
                     endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<Krav>())
                 } returnsMany
                     if (firstStatus == 102 && secondStatus == 102) {
                         listOf(
-                            RequestResult(mockHttpResponse(102), mockk<Krav>(), "", "", Status.HTTP409_KRAV_ER_AVSKREVET),
-                            RequestResult(mockHttpResponse(102), mockk<Krav>(), "", "", Status.HTTP500_ANNEN_SERVER_FEIL),
+                            RequestResult(firstResponse, mockk<Krav>(), "", "", Status.HTTP409_KRAV_ER_AVSKREVET),
+                            RequestResult(secondResponse, mockk<Krav>(), "", "", Status.HTTP500_ANNEN_SERVER_FEIL),
                         )
                     } else {
                         listOf(
-                            RequestResult(mockHttpResponse(firstStatus), mockk<Krav>(), "", "", defineStatus(mockHttpResponse(firstStatus))),
-                            RequestResult(mockHttpResponse(secondStatus), mockk<Krav>(), "", "", defineStatus(mockHttpResponse(secondStatus))),
+                            RequestResult(firstResponse, mockk<Krav>(), "", "", defineStatus(firstResponse.bodyAsText(), firstResponse.status).first),
+                            RequestResult(secondResponse, mockk<Krav>(), "", "", defineStatus(secondResponse.bodyAsText(), secondResponse.status).first),
                         )
                     }
 
