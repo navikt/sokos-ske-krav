@@ -7,6 +7,7 @@ import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.util.isOpprettKrav
+import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.FAGSYSTEMID_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.KRAVTYPE_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.PERIODE_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
@@ -14,6 +15,7 @@ import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.SAKSNUMMER
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.TILLEGGSFRISTDATO_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.UTBETALINGSDATO_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.VEDTAKSDATO_ERROR
+import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.FAGSYSTEMID_MISSING
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIODE_FOM_WRONG_FORMAT
@@ -53,6 +55,10 @@ object LineValidationRules {
 
                     checkTilleggsfristDato(tilleggsfrist)?.let { message ->
                         add(Pair(TILLEGGSFRISTDATO_ERROR, message))
+                    }
+
+                    checkFagsystemId(fagsystemId)?.let { message ->
+                        add(Pair(FAGSYSTEMID_ERROR, "$message. Linje: $linjenummer"))
                     }
 
                     if (!saksNummerIsValid(saksnummerNav)) {
@@ -124,6 +130,8 @@ object LineValidationRules {
             else -> null
         }
 
+    private fun checkFagsystemId(linje: String): String? = if (linje.isBlank()) FAGSYSTEMID_MISSING else null
+
     // Saksnummer
     private fun saksNummerIsValid(navSaksnr: String) = navSaksnr.matches("^[a-zA-Z0-9-/]+$".toRegex())
 
@@ -167,6 +175,7 @@ object LineValidationRules {
         const val KRAVTYPE_DOES_NOT_EXIST = "Kravtype finnes ikke definert for oversending til skatt"
         const val TILLEGGSFRISTDATO_TOO_OLD = "Tilleggsfristdato kan ikke være lengre tilbake i tid enn 10 måneder fra dagens dato"
         const val TILLEGGSFRISTDATO_WRONG_FORMAT = "Tilleggsfristdato er feil formattert i fil"
+        const val FAGSYSTEMID_MISSING = "fagsystemId mangler"
     }
 
     object ErrorKeys {
@@ -177,6 +186,7 @@ object LineValidationRules {
         const val REFERANSENUMMERGAMMELSAK_ERROR = "Feil med ReferanseNummerGammelSak"
         const val KRAVTYPE_ERROR = "Kravtype finnes ikke definert for oversending til skatt"
         const val TILLEGGSFRISTDATO_ERROR = "Feil med tilleggsfristdato"
+        const val FAGSYSTEMID_ERROR = "Feil med fagsystemId"
     }
 
     private fun String.toDate() =
