@@ -13,8 +13,8 @@ import io.ktor.server.netty.Netty
 
 import no.nav.sokos.ske.krav.config.ApplicationState
 import no.nav.sokos.ske.krav.config.PostgresDataSource
-import no.nav.sokos.ske.krav.config.PropertiesConfigNew
-import no.nav.sokos.ske.krav.config.PropertiesConfigNew.timerConfig
+import no.nav.sokos.ske.krav.config.PropertiesConfig
+import no.nav.sokos.ske.krav.config.PropertiesConfig.timerConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.config.applicationLifecycleConfig
 import no.nav.sokos.ske.krav.config.commonConfig
@@ -34,9 +34,9 @@ private val logger = mu.KotlinLogging.logger {}
 
 @OptIn(Frontend::class)
 private fun Application.module() {
-    PropertiesConfigNew.load(environment.config.mergeWithEnv())
+    PropertiesConfig.load(environment.config.mergeWithEnv())
 
-    val useAuthentication = PropertiesConfigNew.applicationProperties.useAuthentication
+    val useAuthentication = PropertiesConfig.applicationProperties.useAuthentication
     val applicationState = ApplicationState()
     val skeService = SkeService()
 
@@ -45,7 +45,7 @@ private fun Application.module() {
     securityConfig(useAuthentication)
     routingConfig(useAuthentication, applicationState, skeService)
 
-    if (!PropertiesConfigNew.isLocal) {
+    if (!PropertiesConfig.isLocal) {
         PostgresDataSource.migrate()
     }
 

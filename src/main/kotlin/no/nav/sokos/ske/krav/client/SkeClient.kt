@@ -14,7 +14,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 
-import no.nav.sokos.ske.krav.config.PropertiesConfigNew
+import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.httpClient
 import no.nav.sokos.ske.krav.dto.ske.requests.AvskrivingRequest
 import no.nav.sokos.ske.krav.dto.ske.requests.EndreRenteBeloepRequest
@@ -33,8 +33,8 @@ private const val HENT_SKE_KRAVIDENT = "innkrevingsoppdrag/%s/avstemming?kravide
 private const val KLIENT_ID = "NAV/0.1"
 
 class SkeClient(
-    private val tokenProvider: MaskinportenAccessTokenProvider = MaskinportenAccessTokenProvider(PropertiesConfigNew.maskinportenClientProperties, httpClient),
-    private val skeEndpoint: String = PropertiesConfigNew.skeRestConfig.skeRestUrl,
+    private val tokenProvider: MaskinportenAccessTokenProvider = MaskinportenAccessTokenProvider(PropertiesConfig.maskinportenClientProperties, httpClient),
+    private val skeEndpoint: String = PropertiesConfig.skeRestConfig.skeRestUrl,
     private val client: HttpClient = httpClient,
 ) {
     suspend fun endreRenter(

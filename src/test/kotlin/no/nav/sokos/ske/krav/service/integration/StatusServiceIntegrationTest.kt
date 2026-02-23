@@ -18,7 +18,7 @@ import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
-import no.nav.sokos.ske.krav.config.PropertiesConfigNew
+import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
@@ -50,8 +50,8 @@ internal class StatusServiceIntegrationTest :
         }
 
         beforeSpec {
-            mockkObject(PropertiesConfigNew)
-            every { PropertiesConfigNew.config } returns ApplicationConfig("application-test.conf")
+            mockkObject(PropertiesConfig)
+            every { PropertiesConfig.config } returns ApplicationConfig("application-test.conf")
         }
 
         Given("Mottaksstatus trigger circuit breaker") {
@@ -158,7 +158,7 @@ internal class StatusServiceIntegrationTest :
 
         afterSpec {
             clearAllMocks()
-            unmockkObject(PropertiesConfigNew)
+            unmockkObject(PropertiesConfig)
         }
     })
 

@@ -11,7 +11,7 @@ import no.nav.sokos.ske.krav.config.CircuitBreakerConfig.Companion.FAILURE_RATE_
 import no.nav.sokos.ske.krav.config.CircuitBreakerConfig.Companion.MINIMUM_NUMBER_OF_CALLS
 import no.nav.sokos.ske.krav.config.CircuitBreakerConfig.Companion.PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE
 import no.nav.sokos.ske.krav.config.CircuitBreakerConfig.Companion.SLIDING_WINDOW_SIZE
-import no.nav.sokos.ske.krav.config.PropertiesConfigNew.circuitBreakerConfig
+import no.nav.sokos.ske.krav.config.PropertiesConfig.circuitBreakerConfig
 
 private val logger = KotlinLogging.logger {}
 

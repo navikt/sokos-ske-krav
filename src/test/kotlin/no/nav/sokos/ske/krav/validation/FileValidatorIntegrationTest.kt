@@ -15,7 +15,7 @@ import io.mockk.unmockkObject
 
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
-import no.nav.sokos.ske.krav.config.PropertiesConfigNew
+import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.SftpListener
@@ -43,8 +43,8 @@ internal class FileValidatorIntegrationTest :
             )
 
         beforeSpec {
-            mockkObject(PropertiesConfigNew)
-            every { PropertiesConfigNew.config } returns ApplicationConfig("application-test.conf")
+            mockkObject(PropertiesConfig)
+            every { PropertiesConfig.config } returns ApplicationConfig("application-test.conf")
         }
 
         Given("Fil er OK") {
@@ -279,6 +279,6 @@ internal class FileValidatorIntegrationTest :
 
         afterSpec {
             clearAllMocks()
-            unmockkObject(PropertiesConfigNew)
+            unmockkObject(PropertiesConfig)
         }
     })

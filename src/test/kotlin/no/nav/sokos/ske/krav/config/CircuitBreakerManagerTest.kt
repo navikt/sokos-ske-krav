@@ -15,7 +15,7 @@ import io.mockk.mockkObject
 import io.mockk.unmockkObject
 
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
-import no.nav.sokos.ske.krav.config.PropertiesConfigNew.circuitBreakerConfig
+import no.nav.sokos.ske.krav.config.PropertiesConfig.circuitBreakerConfig
 
 class CircuitBreakerManagerTest :
     FunSpec({
@@ -33,8 +33,8 @@ class CircuitBreakerManagerTest :
         }
 
         beforeSpec {
-            mockkObject(PropertiesConfigNew)
-            every { PropertiesConfigNew.config } returns ApplicationConfig("application-test.conf")
+            mockkObject(PropertiesConfig)
+            every { PropertiesConfig.config } returns ApplicationConfig("application-test.conf")
         }
 
         beforeEach {
@@ -131,6 +131,6 @@ class CircuitBreakerManagerTest :
 
         afterSpec {
             clearAllMocks()
-            unmockkObject(PropertiesConfigNew)
+            unmockkObject(PropertiesConfig)
         }
     })

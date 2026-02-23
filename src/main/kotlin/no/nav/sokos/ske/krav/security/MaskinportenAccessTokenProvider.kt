@@ -22,12 +22,12 @@ import io.ktor.http.isSuccess
 import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.MaskinportenClientConfig
-import no.nav.sokos.ske.krav.config.PropertiesConfigNew
+import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.util.parseTo
 
 class MaskinportenAccessTokenProvider(
-    private val maskinportenConfig: MaskinportenClientConfig = PropertiesConfigNew.maskinportenClientProperties,
+    private val maskinportenConfig: MaskinportenClientConfig = PropertiesConfig.maskinportenClientProperties,
     private val client: HttpClient,
 ) {
     private val logger = KotlinLogging.logger {}

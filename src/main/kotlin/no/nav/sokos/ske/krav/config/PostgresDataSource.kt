@@ -8,7 +8,7 @@ import mu.KotlinLogging
 import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
 
-import no.nav.sokos.ske.krav.config.PropertiesConfigNew.postgresConfig
+import no.nav.sokos.ske.krav.config.PropertiesConfig.postgresConfig
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 
 private val logger = KotlinLogging.logger {}
@@ -38,7 +38,7 @@ object PostgresDataSource {
         hikariConfig: HikariConfig = hikariConfig(),
         role: String = postgresConfig.user,
     ): HikariDataSource =
-        if (PropertiesConfigNew.isLocal) {
+        if (PropertiesConfig.isLocal) {
             HikariDataSource(hikariConfig)
         } else {
             HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
@@ -55,7 +55,7 @@ object PostgresDataSource {
             isAutoCommit = false
             dataSource =
                 PGSimpleDataSource().apply {
-                    if (PropertiesConfigNew.isLocal) {
+                    if (PropertiesConfig.isLocal) {
                         user = postgresConfig.username
                         password = postgresConfig.password
                     }

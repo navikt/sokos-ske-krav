@@ -15,7 +15,7 @@ import org.testcontainers.jdbc.JdbcDatabaseDelegate
 import org.testcontainers.utility.DockerImageName
 
 import no.nav.sokos.ske.krav.config.PostgresDataSource
-import no.nav.sokos.ske.krav.config.PropertiesConfigNew
+import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
 object DBListener : TestListener {
@@ -23,7 +23,7 @@ object DBListener : TestListener {
     private val container by lazy {
         PostgreSQLContainer<Nothing>(DockerImageName.parse(dockerImageName)).apply {
             withReuse(false)
-            withUsername(PropertiesConfigNew.postgresConfig.adminUser)
+            withUsername(PropertiesConfig.postgresConfig.adminUser)
             waitingFor(Wait.defaultWaitStrategy())
             start()
         }
@@ -45,8 +45,8 @@ object DBListener : TestListener {
     override suspend fun beforeSpec(spec: Spec) {
         super.beforeSpec(spec)
 
-        mockkObject(PropertiesConfigNew)
-        every { PropertiesConfigNew.config } returns ApplicationConfig("application-test.conf")
+        mockkObject(PropertiesConfig)
+        every { PropertiesConfig.config } returns ApplicationConfig("application-test.conf")
     }
 
     fun clearDB() {

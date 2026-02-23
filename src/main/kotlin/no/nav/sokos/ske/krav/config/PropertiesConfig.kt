@@ -11,7 +11,7 @@ import io.ktor.server.config.HoconApplicationConfig
 import io.ktor.server.config.getAs
 import io.ktor.server.config.withFallback
 
-object PropertiesConfigNew {
+object PropertiesConfig {
     lateinit var config: ApplicationConfig
         private set
 

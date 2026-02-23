@@ -14,7 +14,7 @@ import io.mockk.unmockkObject
 
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
-import no.nav.sokos.ske.krav.config.PropertiesConfigNew
+import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.util.MockHttpClient
@@ -23,8 +23,8 @@ import no.nav.sokos.ske.krav.util.setupSkeServiceMock
 class SkeServiceTest :
     BehaviorSpec({
         beforeSpec {
-            mockkObject(PropertiesConfigNew)
-            every { PropertiesConfigNew.config } returns ApplicationConfig("application-test.conf")
+            mockkObject(PropertiesConfig)
+            every { PropertiesConfig.config } returns ApplicationConfig("application-test.conf")
         }
 
         Given("Det finnes krav som ikke er reskontroført etter 24t") {
@@ -71,6 +71,6 @@ class SkeServiceTest :
 
         afterSpec {
             clearAllMocks()
-            unmockkObject(PropertiesConfigNew)
+            unmockkObject(PropertiesConfig)
         }
     })
