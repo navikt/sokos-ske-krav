@@ -47,7 +47,7 @@ val mockFtpServerVersion = "3.2.0"
 // Logging
 val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.31"
+val logbackVersion = "1.5.32"
 val logstashVersion = "9.0"
 
 val resilience4jVersion = "2.3.0"
