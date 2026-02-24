@@ -1,6 +1,8 @@
 # Forventet resultat av kjøring av Fil-A.txt
 
-         
+ NB! Denne filen skal motta en asynkron valideringsfeil. Dvs at du må trigge sending to ganger slik at mottaksstatus blir kalt. Request og respons fra asynkron valideringsfeil vil IKKE lagres i Feilmelding. 
+
+
 ## Feil 
 | Case       | Forventet resultat                                                      | pnr/org       | Kravtype                                       | Stønadstype | Hjemmelskode |
 |------------|-------------------------------------------------------------------------|---------------|------------------------------------------------|-------------|--------------|
@@ -8,7 +10,7 @@
                             
   
 ##  Krav
-```select filnavn, saksnummer_nav, referansenummergammelsak, belop, belop_rente, fremtidig_ytelse, vedtaksdato,utbetaldato,gjelder_id, periode_fom, periode_tom, kravkode, kode_hjemmel, transaksjonsdato, enhet_bosted, enhet_behandlende, fagsystem_id, kravtype, status, tilleggsfrist, avsender from krav where filnavn = 'Fil-A.txt' and DATE(tidspunkt_opprettet) = DATE(now())```
+```select filnavn, saksnummer_nav, referansenummergammelsak, belop, belop_rente, fremtidig_ytelse, vedtaksdato,utbetaldato,gjelder_id, periode_fom, periode_tom, kravkode, kode_hjemmel, transaksjonsdato, enhet_bosted, enhet_behandlende, fagsystem_id, kravtype, status, tilleggsfrist, avsender from krav where filnavn = 'Fil-A.txt' and  tidspunkt_opprettet > '2026-02-24 13:00:00'``` (bytt ut timestamp med det som passer)
 
 
 | filnavn   | saksnummer_nav | referansenummergammelsak | belop | belop_rente | fremtidig_ytelse | vedtaksdato                | utbetaldato                | gjelder_id  | periode_fom | periode_tom | kravkode | kode_hjemmel | transaksjonsdato | enhet_bosted | enhet_behandlende | fagsystem_id    | kravtype   | status            | tilleggsfrist | avsender |

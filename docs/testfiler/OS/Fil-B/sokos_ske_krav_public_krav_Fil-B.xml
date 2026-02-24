@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data>
+<row>
+  <tidspunkt_opprettet>2026-02-24 12:39:42.682131</tidspunkt_opprettet>
+  <filnavn>Fil-B.txt</filnavn>
+  <saksnummer_nav>2146407nr</saksnummer_nav>
+  <referansenummergammelsak></referansenummergammelsak>
+  <belop>12562</belop>
+  <belop_rente>100</belop_rente>
+  <fremtidig_ytelse>100100.00</fremtidig_ytelse>
+  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-07 00:00:00.000000</utbetaldato>
+  <gjelder_id>01828896640</gjelder_id>
+  <periode_fom>20230501</periode_fom>
+  <periode_tom>20230930</periode_tom>
+  <kravkode>LK RF</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato>20240320</transaksjonsdato>
+  <enhet_bosted>4402</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-B-Test-002</fagsystem_id>
+  <kravtype>NYTT_KRAV</kravtype>
+  <status>422_VALIDERINGSFEIL</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <tidspunkt_opprettet>2026-02-24 12:39:42.682131</tidspunkt_opprettet>
+  <filnavn>Fil-B.txt</filnavn>
+  <saksnummer_nav>1432637</saksnummer_nav>
+  <referansenummergammelsak></referansenummergammelsak>
+  <belop>7000</belop>
+  <belop_rente>100</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-07 00:00:00.000000</utbetaldato>
+  <gjelder_id>45864500173</gjelder_id>
+  <periode_fom>20230501</periode_fom>
+  <periode_tom>20230930</periode_tom>
+  <kravkode>LK RF</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato>20240320</transaksjonsdato>
+  <enhet_bosted>4402</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-B-Test-004</fagsystem_id>
+  <kravtype>NYTT_KRAV</kravtype>
+  <status>422_VALIDERINGSFEIL</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <tidspunkt_opprettet>2026-02-24 12:39:42.682131</tidspunkt_opprettet>
+  <filnavn>Fil-B.txt</filnavn>
+  <saksnummer_nav>4873465kke</saksnummer_nav>
+  <referansenummergammelsak></referansenummergammelsak>
+  <belop>2500</belop>
+  <belop_rente>100</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-07 00:00:00.000000</utbetaldato>
+  <gjelder_id>29527141786</gjelder_id>
+  <periode_fom>20230501</periode_fom>
+  <periode_tom>20230930</periode_tom>
+  <kravkode>KT SP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato>20240320</transaksjonsdato>
+  <enhet_bosted>4416</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-B-Test-001</fagsystem_id>
+  <kravtype>NYTT_KRAV</kravtype>
+  <status>VALIDERINGSFEIL</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <tidspunkt_opprettet>2026-02-24 12:39:42.682131</tidspunkt_opprettet>
+  <filnavn>Fil-B.txt</filnavn>
+  <saksnummer_nav>7776149</saksnummer_nav>
+  <referansenummergammelsak></referansenummergammelsak>
+  <belop>13000</belop>
+  <belop_rente>100</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-07 00:00:00.000000</utbetaldato>
+  <gjelder_id>42827200551</gjelder_id>
+  <periode_fom>20230501</periode_fom>
+  <periode_tom>20230930</periode_tom>
+  <kravkode>EF UT</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato>20240320</transaksjonsdato>
+  <enhet_bosted>4407</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-B-Test-003</fagsystem_id>
+  <kravtype>NYTT_KRAV</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <tidspunkt_opprettet>2026-02-24 12:39:42.682131</tidspunkt_opprettet>
+  <filnavn>Fil-B.txt</filnavn>
+  <saksnummer_nav>9015040Doed</saksnummer_nav>
+  <referansenummergammelsak></referansenummergammelsak>
+  <belop>3980</belop>
+  <belop_rente>100</belop_rente>
+  <fremtidig_ytelse>250250.00</fremtidig_ytelse>
+  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-07 00:00:00.000000</utbetaldato>
+  <gjelder_id>46918300929</gjelder_id>
+  <periode_fom>20230501</periode_fom>
+  <periode_tom>20230930</periode_tom>
+  <kravkode>BA OR</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato>20240320</transaksjonsdato>
+  <enhet_bosted>4403</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-B-Test-005</fagsystem_id>
+  <kravtype>NYTT_KRAV</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+</data>

@@ -25,7 +25,7 @@ Endring av saksnummer gjøres med pythonscript (`docs/scripts/ErstattSaksnummer.
 
 - Installer python3 (MACOS og brew: `brew install python`) (Linux: `sudo apt install python3`)
 - Kopier filer og script til en mappe lokalt på din maskin
-- For Fil-A.. Fil-D kjør `python3 ErstattSaksnummer.py Fil-x.txt` Hvor x er A..D
+- For Fil-A.. Fil-D kjør `python3 ErstattSaksnummer.py Fil-x.txt` Hvor x er A..C
 - Kjør f.eks `python3 ErstattSaksnummer.py Fil-A.txt` (PS: script og fil må være i samme mappe, ellers må du endre stien i scriptet)
 - Logg inn på SFTP serveren ved å følge instruksjonene over.
 - Filen legges i `/inbound` mappen 
@@ -47,6 +47,7 @@ Saksnumrene ender med Exxx der xxx er siffer og representerer filnummeret og lin
 ## Tolkning av testresultater
 Logg inn i databasen og sjekk at de som ikke skal ha feil har status 'MOTTATT_UNDER_BEHANDLING' eller 'RESKONTROFOERT'.  
 Sjekk deretter at kravene som skal motta valideringsfeil har blitt lagret med korrekt statuskode i henhold til feilen som SKE skal returnere, og sjekk deretter at dette er lagret korrekt i Feilmelding tabellen. Se [SKE dokumentasjon for valideringsregler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler)
+ Hvis status er 'VALIDERINGSFEIL' vil det si at feilen er asynkron. '422_VALIDERINGSFEIL' betyr synkron feil.
 For kravene som skal motta valideringsfeil vil det komme en alert i Slackkanalen #team-best-slackbot-dev
 Databasedump (med SQL kommandoer) av hva resultatene skal være i databasen etter innlesning av filene er dokumentert i (`docs/testfiler/OS/Fil-A_Resultat.md`),   (`docs/testfiler/OS/Fil-B_Resultat.md`) osv slik at du kan gjøre en grundig sammenligning.
 
