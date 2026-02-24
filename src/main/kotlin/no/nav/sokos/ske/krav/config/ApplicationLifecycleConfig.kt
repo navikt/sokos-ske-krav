@@ -14,8 +14,7 @@ fun Application.applicationLifecycleConfig(applicationState: ApplicationState) {
     }
 }
 
-// TODO: Switch to default false?
 class ApplicationState(
-    var ready: Boolean = true,
-    var alive: Boolean = true, // TODO: Used but never updated. Normal?
+    var ready: Boolean = false,
+    var alive: Boolean = false, // TODO: Used but never updated. Normal?
 )
