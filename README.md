@@ -131,7 +131,7 @@ Applikasjonen bruker [AzureAD](https://docs.nais.io/security/auth/azure-ad/) for
 
 # 6. Drift og støtte
 
-Se [Drift og test](docs/drift.md) for detaljert informasjon om drift, testing og feilsøking.
+Se [Drift og test](docs/Manuell_testing.md) for detaljert informasjon om drift, testing og feilsøking.
 
 ### Logging
 
