@@ -64,7 +64,3 @@ spec:
   env:
     - name: JDK_JAVA_OPTIONS
       value: -XX:MaxRAMPercentage=75 --enable-native-access=ALL-UNNAMED $(JAVA_PROXY_OPTIONS)
-    - name: TIMER_INITIAL_DELAY
-      value: "500"
-    - name: TIMER_INTERVAL_PERIOD_HOURS
-      value: "4"
