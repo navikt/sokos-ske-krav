@@ -5,8 +5,6 @@
 | Case       | Forventet resultat                                                      | pnr/org       | Kravtype                                       | Stønadstype | Hjemmelskode |
 |------------|-------------------------------------------------------------------------|---------------|------------------------------------------------|-------------|--------------|
 | Død person | Skal få valideringsfeil. Krav kan ikke rettes mot død skydner           | 6586640023120 | TILBAKEKREVING_FORSKUTTERTE_DAGPENGER          | FO FT       | T            |
-  
-### I database: 
 
 
 ---

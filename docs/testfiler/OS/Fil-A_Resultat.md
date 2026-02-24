@@ -1,17 +1,15 @@
 # Forventet resultat av kjøring av Fil-A.txt
 
          
-## Feil: 
+## Feil 
 | Case       | Forventet resultat                                                      | pnr/org       | Kravtype                                       | Stønadstype | Hjemmelskode |
 |------------|-------------------------------------------------------------------------|---------------|------------------------------------------------|-------------|--------------|
 | Død person | Skal få valideringsfeil. Krav kan ikke rettes mot død skydner           | 6586640023120 | TILBAKEKREVING_FORSKUTTERTE_DAGPENGER          | FO FT       | T            |
                             
   
-## ```select filnavn, saksnummer_nav, referansenummergammelsak, belop, belop_rente, fremtidig_ytelse, vedtaksdato,utbetaldato,gjelder_id, periode_fom, periode_tom, kravkode, kode_hjemmel, transaksjonsdato, enhet_bosted, enhet_behandlende, fagsystem_id, kravtype, status, tilleggsfrist, avsender
-from krav where filnavn = 'Fil-A.txt' and DATE(tidspunkt_opprettet) = DATE(now())
-```
+##  Krav
+```select filnavn, saksnummer_nav, referansenummergammelsak, belop, belop_rente, fremtidig_ytelse, vedtaksdato,utbetaldato,gjelder_id, periode_fom, periode_tom, kravkode, kode_hjemmel, transaksjonsdato, enhet_bosted, enhet_behandlende, fagsystem_id, kravtype, status, tilleggsfrist, avsender from krav where filnavn = 'Fil-A.txt' and DATE(tidspunkt_opprettet) = DATE(now())```
 
-## Data fra Fil-A.txt
 
 | filnavn   | saksnummer_nav | referansenummergammelsak | belop | belop_rente | fremtidig_ytelse | vedtaksdato                | utbetaldato                | gjelder_id  | periode_fom | periode_tom | kravkode | kode_hjemmel | transaksjonsdato | enhet_bosted | enhet_behandlende | fagsystem_id    | kravtype   | status            | tilleggsfrist | avsender |
 |-----------|----------------|--------------------------|-------|-------------|------------------|----------------------------|----------------------------|-------------|-------------|-------------|----------|--------------|------------------|--------------|-------------------|-----------------|------------|-------------------|---------------|----------|
@@ -20,4 +18,13 @@ from krav where filnavn = 'Fil-A.txt' and DATE(tidspunkt_opprettet) = DATE(now()
 | Fil-A.txt | 9871724        |                          | 6500  | 56          | 350500.00        | 2024-03-18 00:00:00.000000 | 2023-12-20 00:00:00.000000 | 06895898935 | 20230601    | 20230930    | PE UT    | TA           | 20240320         | 4407         | 4819              | Fil-A-Test-003  | NYTT_KRAV  | RESKONTROFOERT    | null          | OB04     |
 | Fil-A.txt | 4667544        |                          | 4897  | 150         | 0.00             | 2024-03-18 00:00:00.000000 | 2023-12-20 00:00:00.000000 | 21876498895 | 20230601    | 20230930    | FR SN    | T            | 20240320         | 4402         | 4819              | Fil-A-Test-004  | NYTT_KRAV  | RESKONTROFOERT    | null          | OB04     |
 | Fil-A.txt | 5664645        |                          | 35478 | 900         | 0.00             | 2024-03-18 00:00:00.000000 | 2023-12-20 00:00:00.000000 | 12916999982 | 20230601    | 20230930    | KS KS    | T            | 20240320         | 4403         | 4819              | Fil-A-Test-005  | NYTT_KRAV  | RESKONTROFOERT    | null          | OB04     |
+
+## Feilmelding
+ ```select saksnummer_nav, error, melding, nav_request, ske_response from feilmelding where saksnummer_nav in (select krav.saksnummer_nav from krav where filnavn = 'Fil-A.txt' and DATE(tidspunkt_opprettet) = DATE(now()))```
+
+| saksnummer_nav | error           | melding                              | nav_request | ske_response |
+|----------------|-----------------|--------------------------------------|-------------|--------------|
+| 5080825        | PERSON_ER_DOED  | Person med fødselsdato=658664 er død |             |              |
+
+
 
