@@ -11,44 +11,78 @@ Noen ganger vil FileZilla ikke kunne koble seg til SFTP (den vil stå og "spinne
 
 På MacOS og Linux kan den be om en `.ppk` nøkkel. Isåfall la FileZilla automatisk konvertere privatnøkkelen til .ppk og referer til denne.
 
-## Testfiler på FTP
+## Testfiler på SFTP
 
-FTP filer for testing kan man finne [her](../testfiler). De er i copybook format som stormaskin/COBOL opererer med.
-For å kunne bruke disse til testing men først må man erstatte saksnummerene med nye så vi ikke sender inn duplikater.
-Noen av filene vil gi asynkrone valideringsfeil og det er litt av hensikten. Forventede feil er dokumentert i (`docs/testfiler/Testfiler_forventede_feil.md`).   
+SFTP filer for testing kan man finne [her](testfiler). De er i copybook format som stormaskin/COBOL opererer med.
+For å kunne bruke disse til testing må først må man erstatte saksnummerene med nye så vi ikke sender inn duplikater.
 
-
-### Les disse ins                                                                                                                                                                                                                                                                                                                                                                                       truksjonene nøye!!
-### Test av nye krav
-Testfilene er navngitt Fil-A, Fil-B...
-Endring av saksnummer gjøres med pythonscript (`docs/scripts/ErstattSaksnummer.py`).
-
+- Endring av saksnummer gjøres med pythonscriptet `docs/scripts/ErstattSaksnummer.py`
+- Kopiering av saksnummer til referansenummer gjøres med pythonscriptet `docs/scripts/KopierSaksnummer.py`
 - Installer python3 (MACOS og brew: `brew install python`) (Linux: `sudo apt install python3`)
-- Kopier filer og script til en mappe lokalt på din maskin
-- For Fil-A.. Fil-D kjør `python3 ErstattSaksnummer.py Fil-x.txt` Hvor x er A..D
-- Kjør f.eks `python3 ErstattSaksnummer.py Fil-A.txt` (PS: script og fil må være i samme mappe, ellers må du endre stien i scriptet)
-- Logg inn på SFTP serveren ved å følge instruksjonene over.
-- Filen legges i `/inbound` mappen 
+- Kopier scriptene og filene til en mappe lokalt på din maskin
+
+### Les disse instruksjonene nøye!
+
+Noen av filene vil gi valideringsfeil og det er litt av hensikten. Forventede feil er dokumentert i .md filen som følger med hver testfil.
+
+
+### Test av nye krav
+Testfilene er navngitt Fil-A, Fil-B, og Fil-C og organisert i mapper med testfil og resultater:
+- [Fil-A](testfiler/OS/Fil-A)
+  - Resultatfil: [Fil-A_Resultat.md](testfiler/OS/Fil-A/Fil-A_Resultat.md)
+- [Fil-B](testfiler/OS/Fil-B)
+  - Resultatfil: [Fil-B_Resultat.md](testfiler/OS/Fil-B/Fil-B_Resultat.md)
+- [Fil-C](testfiler/OS/Fil-C)
+    - Resultatfil: [Fil-C_Resultat.md](testfiler/OS/Fil-C/Fil-C_Resultat.md)
+  
+
+- Kopier filer og script (`docs/scripts/ErstattSaksnummer.py`) til en mappe lokalt på din maskin
+- For Fil-A, Fil-B og Fil-C kjør `python3 ErstattSaksnummer.py Fil-x.txt` Hvor x er A..C
+- [Logg inn på SFTP serveren](#sftp-tilkobling)
+- Legg én fil i `/inbound` mappen og [trigg innlesing](#trigge-innlesing-av-fil)
+- Sjekk resultatet, og fortsett til neste fil
 
 ### Test av endringer av krav
-Filer med navn Fil-E2, E3 og E4 inneholder endringer og stopp på kraven som opprettes i E1. E4 er stopp, mens E2 endrer på E1, og E3 endrer på E2 (dobbel endring)
-Saksnumrene ender med Exxx der xxx er siffer og representerer filnummeret og linjennummeret i filen slik at det er lett å sammenligne
-- Først må du kjøre `python3 ErstattSaksnummer.py Fil-E1.txt`, `python3 ErstattSaksnummer.py Fil-E2.txt`, `python3 ErstattSaksnummer.py Fil-E3.txt` for å gi E1-E3 nye saksnummer (Exxx beholdes). Du trenger ikke å gjøre dette for Fil-E4, da den skal stoppe kravet i Fil-E1 og dermed ikke trenger et nytt saksnummer.
-- Deretter kjører du `python3 KopierSaksnummer.py Fil-E1.txt Fil-E2.txt`, `python3 KopierSaksnummer.py Fil-E2.txt Fil-E3.txt`, og til slutt `python3 KopierSaksnummer.py Fil-E1.txt Fil-E4.txt` for å kopiere de nye saksnumrene til feltet for Referansenummergammelsak.
-- Legg én fil i `/inbound` mappen og trigg innlesing
+Testfilene er navngitt Fil-E1, Fil-E2, Fil-E3, og Fil-E4 og organisert i mapper med testfil og resultater:
+- [Fil-E1](testfiler/OS/Fil-E1)
+  - Fil E1 oppretter krav som E2, E3 og E4 skal sende inn endringer på
+  - Resultat: [Fil-E1_Resultat.md](testfiler/OS/Fil-E1/Fil-E1_Resultat.md)
+  - Kommandoer:
+    - `python3 ErstattSaksnummer.py Fil-E1.txt`
+- [Fil-E2](testfiler/OS/Fil-E2)
+  - Endrer alle kravene som E1 opprettet
+  - Resultat: [Fil-E2_Resultat.md](testfiler/OS/Fil-E2/Fil-E2_Resultat.md)
+  - Kommandoer:
+    - `python3 ErstattSaksnummer.py Fil-E2.txt`
+    -  `python3 KopierSaksnummer.py Fil-E1.txt Fil-E2.txt`
+- [Fil-E3](testfiler/OS/Fil-E3)
+  - Endrer alle kravene som E1 opprettet
+  - Resultat: [Fil-E3_Resultat.md](testfiler/OS/Fil-E3/Fil-E3_Resultat.md)
+  - Kommandoer:
+    - `python3 ErstattSaksnummer.py Fil-E3.txt`
+    -  `python3 KopierSaksnummer.py Fil-E2.txt Fil-E3.txt`
+- [Fil-E4](testfiler/OS/Fil-E4)
+  - Stopper 5 av kravene som E1 opprettet
+  - Resultat: [Fil-E4_Resultat.md](testfiler/OS/Fil-E4/Fil-E4_Resultat.md)
+- Kommandoer:
+  - `python3 ErstattSaksnummer.py Fil-E4.txt`
+  -  `python3 KopierSaksnummer.py Fil-E1.txt Fil-E4.txt`
+              
+
+Saksnumrene på kravene ender med Exxx der xxx er siffer og representerer filnummeret og linjennummeret i filen slik at det er lett å sammenligne
+
+- Legg E1 i `/inbound` mappen og [trigg innlesing](#trigge-innlesing-av-fil)
 - Sjekk resultatet, og fortsett til neste fil
                                        
-### Triggere innlesing av fil
-- Vi har to måter å trigge innlesing av filen på:
+### Trigge innlesing av fil
+ Vi har tre måter å trigge innlesing av filen på:
   1. Enten trigging av endepunktet [hentNye](https://sokos-ske-krav.intern.dev.nav.no/api/hentNye). Dette kan gjøres med en klient som Bruno.
     Vi ha med en `Authorization` token i headeren. En sånn kan genereres [her](https://azure-token-generator.intern.dev.nav.no/api/m2m?aud=dev-fss:okonomi:sokos-ske-krav)
-  2. Eller restarte den kjørende pod'en via [nais console](https://console.nav.cloud.nais.io/team/okonomi/dev-fss/app/sokos-ske-krav). Trykk på `Restart app`.
-- Alltid trigg innlesing to ganger slik at kravene får korrekt mottaksstatus (og vi henter asynkrone valideringsfeil)
+  2. Restarte den kjørende pod'en via [nais console](https://console.nav.cloud.nais.io/team/okonomi/dev-fss/app/sokos-ske-krav). Trykk på `Restart app`.
+     3. Hvis du skal teste en spesiell branch kan du bruke [workflowen for manuell deploy til dev](https://github.com/navikt/sokos-ske-krav/actions/workflows/manual-deploy.yaml)
+3. Kjøre applikasjonen lokalt 
+
+**Alltid trigg innlesing to ganger** slik at kravene får korrekt mottaksstatus (og asynkrone valideringsfeil blir hentet)
 
 ## Tolkning av testresultater
-Logg inn i databasen og sjekk at de som ikke skal ha feil har status 'MOTTATT_UNDER_BEHANDLING' eller 'RESKONTROFOERT'.  
-Sjekk deretter at kravene som skal motta valideringsfeil har blitt lagret med korrekt statuskode i henhold til feilen som SKE skal returnere, og sjekk deretter at dette er lagret korrekt i Feilmelding tabellen. Se [SKE dokumentasjon for valideringsregler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler).     
-Feil som gjelder filvalidering vil ha status 'VALIDERINGSFEIL_AV_LINJE_I_FIL'.   
-For kravene som skal få feil vil det komme en alert i Slackkanalen #team-best-slackbot-dev.   
-Databasedump (med SQL kommandoer) av hva resultatene skal være i databasen etter innlesning av filene er dokumentert i (`docs/testfiler/OS/Fil-A_Resultat.md`),   (`docs/testfiler/OS/Fil-B_Resultat.md`) osv slik at du kan gjøre en grundig sammenligning.
-    
+Databasedump (med SQL kommandoer) av hva resultatene skal være i databasen etter innlesning av filene er dokumentert i resultatfilene slik at du kan gjøre en grundig sammenligning.
