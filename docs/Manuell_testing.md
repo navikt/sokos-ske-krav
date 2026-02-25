@@ -11,6 +11,16 @@ Noen ganger vil FileZilla ikke kunne koble seg til SFTP (den vil stå og "spinne
 
 På MacOS og Linux kan den be om en `.ppk` nøkkel. Isåfall la FileZilla automatisk konvertere privatnøkkelen til .ppk og referer til denne.
 
+### Trigge innlesing av fil
+Vi har tre måter å trigge innlesing av filen på:
+1. Enten trigging av endepunktet [hentNye](https://sokos-ske-krav.intern.dev.nav.no/api/hentNye). Dette kan gjøres med en klient som Bruno.
+   Vi ha med en `Authorization` token i headeren. En sånn kan genereres [her](https://azure-token-generator.intern.dev.nav.no/api/m2m?aud=dev-fss:okonomi:sokos-ske-krav)
+2. Restarte den kjørende pod'en via [nais console](https://console.nav.cloud.nais.io/team/okonomi/dev-fss/app/sokos-ske-krav). Trykk på `Restart app`.
+    3. Hvis du skal teste en spesiell branch kan du bruke [workflowen for manuell deploy til dev](https://github.com/navikt/sokos-ske-krav/actions/workflows/manual-deploy.yaml)
+3. Kjøre applikasjonen lokalt
+
+**Alltid trigg innlesing to ganger** slik at kravene får korrekt mottaksstatus (og asynkrone valideringsfeil blir hentet)
+
 ## Testfiler på SFTP
 
 SFTP filer for testing kan man finne [her](testfiler). De er i copybook format som stormaskin/COBOL opererer med.
@@ -74,15 +84,6 @@ Saksnumrene på kravene ender med Exxx der xxx er siffer og representerer filnum
 - Legg E1 i `/inbound` mappen og [trigg innlesing](#trigge-innlesing-av-fil)
 - Sjekk resultatet, og fortsett til neste fil
                                        
-### Trigge innlesing av fil
- Vi har tre måter å trigge innlesing av filen på:
-  1. Enten trigging av endepunktet [hentNye](https://sokos-ske-krav.intern.dev.nav.no/api/hentNye). Dette kan gjøres med en klient som Bruno.
-    Vi ha med en `Authorization` token i headeren. En sånn kan genereres [her](https://azure-token-generator.intern.dev.nav.no/api/m2m?aud=dev-fss:okonomi:sokos-ske-krav)
-  2. Restarte den kjørende pod'en via [nais console](https://console.nav.cloud.nais.io/team/okonomi/dev-fss/app/sokos-ske-krav). Trykk på `Restart app`.
-     3. Hvis du skal teste en spesiell branch kan du bruke [workflowen for manuell deploy til dev](https://github.com/navikt/sokos-ske-krav/actions/workflows/manual-deploy.yaml)
-3. Kjøre applikasjonen lokalt 
-
-**Alltid trigg innlesing to ganger** slik at kravene får korrekt mottaksstatus (og asynkrone valideringsfeil blir hentet)
 
 ## Tolkning av testresultater
 Databasedump (med SQL kommandoer) av hva resultatene skal være i databasen etter innlesning av filene er dokumentert i resultatfilene slik at du kan gjøre en grundig sammenligning.
