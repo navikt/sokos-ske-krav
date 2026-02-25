@@ -4,6 +4,7 @@ enum class StonadsType(
     vararg val identifikatorer: Identifikator,
 ) {
     TILBAKEKREVING_ALDERSPENSJON(Identifikator("PE AP", "T")),
+    TILBAKEKREVING_ALDERSPENSJON_AVREGNING(Identifikator("PE AP", "TA")),
     TILBAKEKREVING_ARBEIDSAVKLARINGSPENGER(
         Identifikator("AAP AAP", "T"),
         Identifikator("AE AA", "AT"),
@@ -11,6 +12,7 @@ enum class StonadsType(
     TILBAKEKREVING_ATTFOERINGSPENGER(Identifikator("AE AP", "AT")),
     TILBAKEKREVING_ATTFOERINGSYTELSER(Identifikator("AE AY", "AT")),
     TILBAKEKREVING_AVTALEFESTET_PENSJON(Identifikator("PE XP", "T")),
+    TILBAKEKREVING_AVTALEFESTET_PENSJON_ETTEROPPGJOER(Identifikator("PE XP", "AFP")),
     TILBAKEKREVING_AVTALEFESTET_PENSJON_PRIVATSEKTOR(Identifikator("PE AF", "T")),
     TILBAKEKREVING_BARNETRYGD(Identifikator("BA OR", "T")),
     TILBAKEKREVING_BARNEPENSJON(Identifikator("PE BP", "T")),
@@ -44,6 +46,7 @@ enum class StonadsType(
     TILBAKEKREVING_SVANGERSKAPSPENGER(Identifikator("FA SV", "T")),
     TILBAKEKREVING_SYKEPENGER(Identifikator("KT SP", "T")),
     TILBAKEKREVING_TIDLIGERE_FAMILIEPLEIER_PENSJON(Identifikator("PE FP", "T")),
+    TILBAKEKREVING_TIDLIGERE_FAMILIEPLEIER_PENSJON_AVREGNING(Identifikator("PE FP", "TA")),
     TILBAKEKREVING_TILLEGGSTOENAD(
         Identifikator("TS TS", "T"),
         Identifikator("AE TA", "AT"),
@@ -55,6 +58,7 @@ enum class StonadsType(
         Identifikator("AE IS", "AT"),
     ),
     TILBAKEKREVING_UFOEREPENSJON(Identifikator("PE UP", "T")),
+    TILBAKEKREVING_UFOEREPENSJON_AVREGNING(Identifikator("PE UP", "TA")),
     TILBAKEKREVING_UFOERETRYGD(Identifikator("PE UT", "T")),
     TILBAKEKREVING_UFOERETRYGD_AVREGNING(Identifikator("PE UT", "TA")),
     TILBAKEKREVING_UFOERETRYGD_ETTEROPPGJOER(Identifikator("PE UT", "EU")),
