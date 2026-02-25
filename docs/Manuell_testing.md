@@ -35,25 +35,20 @@ Filer med navn Fil-E2, E3 og E4 inneholder endringer og stopp på kraven som opp
 Saksnumrene ender med Exxx der xxx er siffer og representerer filnummeret og linjennummeret i filen slik at det er lett å sammenligne
 - Først må du kjøre `python3 ErstattSaksnummer.py Fil-E1.txt`, `python3 ErstattSaksnummer.py Fil-E2.txt`, `python3 ErstattSaksnummer.py Fil-E3.txt` for å gi E1-E3 nye saksnummer (Exxx beholdes). Du trenger ikke å gjøre dette for Fil-E4, da den skal stoppe kravet i Fil-E1 og dermed ikke trenger et nytt saksnummer.
 - Deretter kjører du `python3 KopierSaksnummer.py Fil-E1.txt Fil-E2.txt`, `python3 KopierSaksnummer.py Fil-E2.txt Fil-E3.txt`, og til slutt `python3 KopierSaksnummer.py Fil-E1.txt Fil-E4.txt` for å kopiere de nye saksnumrene til feltet for Referansenummergammelsak.
-- Legg filen i `/inbound` mappen
+- Legg én fil i `/inbound` mappen og trigg innlesing
+- Sjekk resultatet, og fortsett til neste fil
                                        
 ### Triggere innlesing av fil
 - Vi har to måter å trigge innlesing av filen på:
   1. Enten trigging av endepunktet [hentNye](https://sokos-ske-krav.intern.dev.nav.no/api/hentNye). Dette kan gjøres med en klient som Bruno.
     Vi ha med en `Authorization` token i headeren. En sånn kan genereres [her](https://azure-token-generator.intern.dev.nav.no/api/m2m?aud=dev-fss:okonomi:sokos-ske-krav)
   2. Eller restarte den kjørende pod'en via [nais console](https://console.nav.cloud.nais.io/team/okonomi/dev-fss/app/sokos-ske-krav). Trykk på `Restart app`.
-- For å få oppdatert mottaksstatus kan du trigge hentNye igjen eller restarte podden igjen
+- Alltid trigg innlesing to ganger slik at kravene får korrekt mottaksstatus (og vi henter asynkrone valideringsfeil)
 
 ## Tolkning av testresultater
 Logg inn i databasen og sjekk at de som ikke skal ha feil har status 'MOTTATT_UNDER_BEHANDLING' eller 'RESKONTROFOERT'.  
-Sjekk deretter at kravene som skal motta valideringsfeil har blitt lagret med korrekt statuskode i henhold til feilen som SKE skal returnere, og sjekk deretter at dette er lagret korrekt i Feilmelding tabellen. Se [SKE dokumentasjon for valideringsregler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler)
- Hvis status er 'VALIDERINGSFEIL' vil det si at feilen er asynkron. 422_VALIDER
-For kravene som skal motta valideringsfeil vil det komme en alert i Slackkanalen #team-best-slackbot-dev
+Sjekk deretter at kravene som skal motta valideringsfeil har blitt lagret med korrekt statuskode i henhold til feilen som SKE skal returnere, og sjekk deretter at dette er lagret korrekt i Feilmelding tabellen. Se [SKE dokumentasjon for valideringsregler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler).     
+Feil som gjelder filvalidering vil ha status 'VALIDERINGSFEIL_AV_LINJE_I_FIL'.   
+For kravene som skal få feil vil det komme en alert i Slackkanalen #team-best-slackbot-dev.   
 Databasedump (med SQL kommandoer) av hva resultatene skal være i databasen etter innlesning av filene er dokumentert i (`docs/testfiler/OS/Fil-A_Resultat.md`),   (`docs/testfiler/OS/Fil-B_Resultat.md`) osv slik at du kan gjøre en grundig sammenligning.
-
-
-
-### Eksempel på hvordan finne informasjonen
-```select * from krav where filnavn = 'Fil-A.txt' and DATE(tidspunkt_opprettet) = DATE(now())```
-
     

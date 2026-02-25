@@ -1,243 +1,123 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <data>
-<row>
-  <linjenummer>1</linjenummer>
-  <filnavn>Fil-A.txt</filnavn>
-  <saksnummer_nav>5080825</saksnummer_nav>
-  <referansenummergammelsak></referansenummergammelsak>
-  <belop>10000</belop>
-  <belop_rente>10</belop_rente>
-  <fremtidig_ytelse>0.00</fremtidig_ytelse>
-  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
-  <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
-  <gjelder_id>65866400231</gjelder_id>
-  <periode_fom>20230601</periode_fom>
-  <periode_tom>20230930</periode_tom>
-  <kravkode>FO FT</kravkode>
-  <kode_hjemmel>FT</kode_hjemmel>
-  <transaksjonsdato>20240320</transaksjonsdato>
-  <enhet_bosted>4416</enhet_bosted>
-  <enhet_behandlende>4819</enhet_behandlende>
-  <fagsystem_id>Fil-A-Test-001</fagsystem_id>
-  <kravtype>NYTT_KRAV</kravtype>
-  <status>VALIDERINGSFEIL</status>
-  <tilleggsfrist>null</tilleggsfrist>
-  <avsender>OB04</avsender>
-</row>
-<row>
-  <linjenummer>1</linjenummer>
-  <filnavn>Fil-A.txt</filnavn>
-  <saksnummer_nav>6953324</saksnummer_nav>
-  <referansenummergammelsak></referansenummergammelsak>
-  <belop>10000</belop>
-  <belop_rente>10</belop_rente>
-  <fremtidig_ytelse>0.00</fremtidig_ytelse>
-  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
-  <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
-  <gjelder_id>65866400231</gjelder_id>
-  <periode_fom>20230601</periode_fom>
-  <periode_tom>20230930</periode_tom>
-  <kravkode>FO FT</kravkode>
-  <kode_hjemmel>FT</kode_hjemmel>
-  <transaksjonsdato>20240320</transaksjonsdato>
-  <enhet_bosted>4416</enhet_bosted>
-  <enhet_behandlende>4819</enhet_behandlende>
-  <fagsystem_id>Fil-A-Test-001</fagsystem_id>
-  <kravtype>NYTT_KRAV</kravtype>
-  <status>VALIDERINGSFEIL</status>
-  <tilleggsfrist>null</tilleggsfrist>
-  <avsender>OB04</avsender>
-</row>
-<row>
-  <linjenummer>2</linjenummer>
-  <filnavn>Fil-A.txt</filnavn>
-  <saksnummer_nav>6040915</saksnummer_nav>
-  <referansenummergammelsak></referansenummergammelsak>
-  <belop>8000</belop>
-  <belop_rente>2000</belop_rente>
-  <fremtidig_ytelse>150000.00</fremtidig_ytelse>
-  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
-  <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
-  <gjelder_id>02817398173</gjelder_id>
-  <periode_fom>20230601</periode_fom>
-  <periode_tom>20230930</periode_tom>
-  <kravkode>PE UT</kravkode>
-  <kode_hjemmel>EU</kode_hjemmel>
-  <transaksjonsdato>20240320</transaksjonsdato>
-  <enhet_bosted>4402</enhet_bosted>
-  <enhet_behandlende>4819</enhet_behandlende>
-  <fagsystem_id>Fil-A-Test-002</fagsystem_id>
-  <kravtype>NYTT_KRAV</kravtype>
-  <status>RESKONTROFOERT</status>
-  <tilleggsfrist>null</tilleggsfrist>
-  <avsender>OB04</avsender>
-</row>
-<row>
-  <linjenummer>2</linjenummer>
-  <filnavn>Fil-A.txt</filnavn>
-  <saksnummer_nav>6415824</saksnummer_nav>
-  <referansenummergammelsak></referansenummergammelsak>
-  <belop>8000</belop>
-  <belop_rente>2000</belop_rente>
-  <fremtidig_ytelse>150000.00</fremtidig_ytelse>
-  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
-  <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
-  <gjelder_id>02817398173</gjelder_id>
-  <periode_fom>20230601</periode_fom>
-  <periode_tom>20230930</periode_tom>
-  <kravkode>PE UT</kravkode>
-  <kode_hjemmel>EU</kode_hjemmel>
-  <transaksjonsdato>20240320</transaksjonsdato>
-  <enhet_bosted>4402</enhet_bosted>
-  <enhet_behandlende>4819</enhet_behandlende>
-  <fagsystem_id>Fil-A-Test-002</fagsystem_id>
-  <kravtype>NYTT_KRAV</kravtype>
-  <status>RESKONTROFOERT</status>
-  <tilleggsfrist>null</tilleggsfrist>
-  <avsender>OB04</avsender>
-</row>
-<row>
-  <linjenummer>3</linjenummer>
-  <filnavn>Fil-A.txt</filnavn>
-  <saksnummer_nav>9871724</saksnummer_nav>
-  <referansenummergammelsak></referansenummergammelsak>
-  <belop>6500</belop>
-  <belop_rente>56</belop_rente>
-  <fremtidig_ytelse>350500.00</fremtidig_ytelse>
-  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
-  <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
-  <gjelder_id>06895898935</gjelder_id>
-  <periode_fom>20230601</periode_fom>
-  <periode_tom>20230930</periode_tom>
-  <kravkode>PE UT</kravkode>
-  <kode_hjemmel>TA</kode_hjemmel>
-  <transaksjonsdato>20240320</transaksjonsdato>
-  <enhet_bosted>4407</enhet_bosted>
-  <enhet_behandlende>4819</enhet_behandlende>
-  <fagsystem_id>Fil-A-Test-003</fagsystem_id>
-  <kravtype>NYTT_KRAV</kravtype>
-  <status>RESKONTROFOERT</status>
-  <tilleggsfrist>null</tilleggsfrist>
-  <avsender>OB04</avsender>
-</row>
-<row>
-  <linjenummer>3</linjenummer>
-  <filnavn>Fil-A.txt</filnavn>
-  <saksnummer_nav>6056950</saksnummer_nav>
-  <referansenummergammelsak></referansenummergammelsak>
-  <belop>6500</belop>
-  <belop_rente>56</belop_rente>
-  <fremtidig_ytelse>350500.00</fremtidig_ytelse>
-  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
-  <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
-  <gjelder_id>06895898935</gjelder_id>
-  <periode_fom>20230601</periode_fom>
-  <periode_tom>20230930</periode_tom>
-  <kravkode>PE UT</kravkode>
-  <kode_hjemmel>TA</kode_hjemmel>
-  <transaksjonsdato>20240320</transaksjonsdato>
-  <enhet_bosted>4407</enhet_bosted>
-  <enhet_behandlende>4819</enhet_behandlende>
-  <fagsystem_id>Fil-A-Test-003</fagsystem_id>
-  <kravtype>NYTT_KRAV</kravtype>
-  <status>RESKONTROFOERT</status>
-  <tilleggsfrist>null</tilleggsfrist>
-  <avsender>OB04</avsender>
-</row>
-<row>
-  <linjenummer>4</linjenummer>
-  <filnavn>Fil-A.txt</filnavn>
-  <saksnummer_nav>7301651</saksnummer_nav>
-  <referansenummergammelsak></referansenummergammelsak>
-  <belop>4897</belop>
-  <belop_rente>150</belop_rente>
-  <fremtidig_ytelse>0.00</fremtidig_ytelse>
-  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
-  <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
-  <gjelder_id>21876498895</gjelder_id>
-  <periode_fom>20230601</periode_fom>
-  <periode_tom>20230930</periode_tom>
-  <kravkode>FR SN</kravkode>
-  <kode_hjemmel>T</kode_hjemmel>
-  <transaksjonsdato>20240320</transaksjonsdato>
-  <enhet_bosted>4402</enhet_bosted>
-  <enhet_behandlende>4819</enhet_behandlende>
-  <fagsystem_id>Fil-A-Test-004</fagsystem_id>
-  <kravtype>NYTT_KRAV</kravtype>
-  <status>RESKONTROFOERT</status>
-  <tilleggsfrist>null</tilleggsfrist>
-  <avsender>OB04</avsender>
-</row>
-<row>
-  <linjenummer>4</linjenummer>
-  <filnavn>Fil-A.txt</filnavn>
-  <saksnummer_nav>4667544</saksnummer_nav>
-  <referansenummergammelsak></referansenummergammelsak>
-  <belop>4897</belop>
-  <belop_rente>150</belop_rente>
-  <fremtidig_ytelse>0.00</fremtidig_ytelse>
-  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
-  <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
-  <gjelder_id>21876498895</gjelder_id>
-  <periode_fom>20230601</periode_fom>
-  <periode_tom>20230930</periode_tom>
-  <kravkode>FR SN</kravkode>
-  <kode_hjemmel>T</kode_hjemmel>
-  <transaksjonsdato>20240320</transaksjonsdato>
-  <enhet_bosted>4402</enhet_bosted>
-  <enhet_behandlende>4819</enhet_behandlende>
-  <fagsystem_id>Fil-A-Test-004</fagsystem_id>
-  <kravtype>NYTT_KRAV</kravtype>
-  <status>RESKONTROFOERT</status>
-  <tilleggsfrist>null</tilleggsfrist>
-  <avsender>OB04</avsender>
-</row>
-<row>
-  <linjenummer>5</linjenummer>
-  <filnavn>Fil-A.txt</filnavn>
-  <saksnummer_nav>5664645</saksnummer_nav>
-  <referansenummergammelsak></referansenummergammelsak>
-  <belop>35478</belop>
-  <belop_rente>900</belop_rente>
-  <fremtidig_ytelse>0.00</fremtidig_ytelse>
-  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
-  <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
-  <gjelder_id>12916999982</gjelder_id>
-  <periode_fom>20230601</periode_fom>
-  <periode_tom>20230930</periode_tom>
-  <kravkode>KS KS</kravkode>
-  <kode_hjemmel>T</kode_hjemmel>
-  <transaksjonsdato>20240320</transaksjonsdato>
-  <enhet_bosted>4403</enhet_bosted>
-  <enhet_behandlende>4819</enhet_behandlende>
-  <fagsystem_id>Fil-A-Test-005</fagsystem_id>
-  <kravtype>NYTT_KRAV</kravtype>
-  <status>RESKONTROFOERT</status>
-  <tilleggsfrist>null</tilleggsfrist>
-  <avsender>OB04</avsender>
-</row>
-<row>
-  <linjenummer>5</linjenummer>
-  <filnavn>Fil-A.txt</filnavn>
-  <saksnummer_nav>3408962</saksnummer_nav>
-  <referansenummergammelsak></referansenummergammelsak>
-  <belop>35478</belop>
-  <belop_rente>900</belop_rente>
-  <fremtidig_ytelse>0.00</fremtidig_ytelse>
-  <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
-  <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
-  <gjelder_id>12916999982</gjelder_id>
-  <periode_fom>20230601</periode_fom>
-  <periode_tom>20230930</periode_tom>
-  <kravkode>KS KS</kravkode>
-  <kode_hjemmel>T</kode_hjemmel>
-  <transaksjonsdato>20240320</transaksjonsdato>
-  <enhet_bosted>4403</enhet_bosted>
-  <enhet_behandlende>4819</enhet_behandlende>
-  <fagsystem_id>Fil-A-Test-005</fagsystem_id>
-  <kravtype>NYTT_KRAV</kravtype>
-  <status>RESKONTROFOERT</status>
-  <tilleggsfrist>null</tilleggsfrist>
-  <avsender>OB04</avsender>
-</row>
+    <row>
+        <linjenummer>1</linjenummer>
+        <filnavn>Fil-A.txt</filnavn>
+        <saksnummer_nav>6953324</saksnummer_nav>
+        <referansenummergammelsak></referansenummergammelsak>
+        <belop>10000</belop>
+        <belop_rente>10</belop_rente>
+        <fremtidig_ytelse>0.00</fremtidig_ytelse>
+        <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
+        <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
+        <gjelder_id>65866400231</gjelder_id>
+        <periode_fom>20230601</periode_fom>
+        <periode_tom>20230930</periode_tom>
+        <kravkode>FO FT</kravkode>
+        <kode_hjemmel>FT</kode_hjemmel>
+        <transaksjonsdato>20240320</transaksjonsdato>
+        <enhet_bosted>4416</enhet_bosted>
+        <enhet_behandlende>4819</enhet_behandlende>
+        <fagsystem_id>Fil-A-Test-001</fagsystem_id>
+        <kravtype>NYTT_KRAV</kravtype>
+        <status>VALIDERINGSFEIL</status>
+        <tilleggsfrist>null</tilleggsfrist>
+        <avsender>OB04</avsender>
+    </row>
+    <row>
+        <linjenummer>2</linjenummer>
+        <filnavn>Fil-A.txt</filnavn>
+        <saksnummer_nav>6415824</saksnummer_nav>
+        <referansenummergammelsak></referansenummergammelsak>
+        <belop>8000</belop>
+        <belop_rente>2000</belop_rente>
+        <fremtidig_ytelse>150000.00</fremtidig_ytelse>
+        <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
+        <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
+        <gjelder_id>02817398173</gjelder_id>
+        <periode_fom>20230601</periode_fom>
+        <periode_tom>20230930</periode_tom>
+        <kravkode>PE UT</kravkode>
+        <kode_hjemmel>EU</kode_hjemmel>
+        <transaksjonsdato>20240320</transaksjonsdato>
+        <enhet_bosted>4402</enhet_bosted>
+        <enhet_behandlende>4819</enhet_behandlende>
+        <fagsystem_id>Fil-A-Test-002</fagsystem_id>
+        <kravtype>NYTT_KRAV</kravtype>
+        <status>RESKONTROFOERT</status>
+        <tilleggsfrist>null</tilleggsfrist>
+        <avsender>OB04</avsender>
+    </row>
+    <row>
+        <linjenummer>3</linjenummer>
+        <filnavn>Fil-A.txt</filnavn>
+        <saksnummer_nav>6056950</saksnummer_nav>
+        <referansenummergammelsak></referansenummergammelsak>
+        <belop>6500</belop>
+        <belop_rente>56</belop_rente>
+        <fremtidig_ytelse>350500.00</fremtidig_ytelse>
+        <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
+        <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
+        <gjelder_id>06895898935</gjelder_id>
+        <periode_fom>20230601</periode_fom>
+        <periode_tom>20230930</periode_tom>
+        <kravkode>PE UT</kravkode>
+        <kode_hjemmel>TA</kode_hjemmel>
+        <transaksjonsdato>20240320</transaksjonsdato>
+        <enhet_bosted>4407</enhet_bosted>
+        <enhet_behandlende>4819</enhet_behandlende>
+        <fagsystem_id>Fil-A-Test-003</fagsystem_id>
+        <kravtype>NYTT_KRAV</kravtype>
+        <status>RESKONTROFOERT</status>
+        <tilleggsfrist>null</tilleggsfrist>
+        <avsender>OB04</avsender>
+    </row>
+    <row>
+        <linjenummer>4</linjenummer>
+        <filnavn>Fil-A.txt</filnavn>
+        <saksnummer_nav>7301651</saksnummer_nav>
+        <referansenummergammelsak></referansenummergammelsak>
+        <belop>4897</belop>
+        <belop_rente>150</belop_rente>
+        <fremtidig_ytelse>0.00</fremtidig_ytelse>
+        <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
+        <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
+        <gjelder_id>21876498895</gjelder_id>
+        <periode_fom>20230601</periode_fom>
+        <periode_tom>20230930</periode_tom>
+        <kravkode>FR SN</kravkode>
+        <kode_hjemmel>T</kode_hjemmel>
+        <transaksjonsdato>20240320</transaksjonsdato>
+        <enhet_bosted>4402</enhet_bosted>
+        <enhet_behandlende>4819</enhet_behandlende>
+        <fagsystem_id>Fil-A-Test-004</fagsystem_id>
+        <kravtype>NYTT_KRAV</kravtype>
+        <status>RESKONTROFOERT</status>
+        <tilleggsfrist>null</tilleggsfrist>
+        <avsender>OB04</avsender>
+    </row>
+    <row>
+        <linjenummer>5</linjenummer>
+        <filnavn>Fil-A.txt</filnavn>
+        <saksnummer_nav>3408962</saksnummer_nav>
+        <referansenummergammelsak></referansenummergammelsak>
+        <belop>35478</belop>
+        <belop_rente>900</belop_rente>
+        <fremtidig_ytelse>0.00</fremtidig_ytelse>
+        <vedtaksdato>2024-03-18 00:00:00.000000</vedtaksdato>
+        <utbetaldato>2023-12-20 00:00:00.000000</utbetaldato>
+        <gjelder_id>12916999982</gjelder_id>
+        <periode_fom>20230601</periode_fom>
+        <periode_tom>20230930</periode_tom>
+        <kravkode>KS KS</kravkode>
+        <kode_hjemmel>T</kode_hjemmel>
+        <transaksjonsdato>20240320</transaksjonsdato>
+        <enhet_bosted>4403</enhet_bosted>
+        <enhet_behandlende>4819</enhet_behandlende>
+        <fagsystem_id>Fil-A-Test-005</fagsystem_id>
+        <kravtype>NYTT_KRAV</kravtype>
+        <status>RESKONTROFOERT</status>
+        <tilleggsfrist>null</tilleggsfrist>
+        <avsender>OB04</avsender>
+    </row>
 </data>

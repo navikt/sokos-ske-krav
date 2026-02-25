@@ -1,21 +1,23 @@
 # Forventet resultat av kjøring av Fil-C.txt
+                                        
+11 nye krav, hvor 6 får feil. 2 av disse feilene er asynkrone 
 
-NB! Denne filen skal motta en asynkron valideringsfeil. Dvs at du må trigge sending to ganger slik at mottaksstatus blir kalt. Request og respons fra asynkron valideringsfeil vil IKKE lagres i Feilmelding.
 
-## Feil
+## Forventede Feil
 
 | Case                    | Forventet resultat                          | pnr/org     | Kravtype                          | Stønadstype | Hjemmelskode |
 |-------------------------|---------------------------------------------|-------------|-----------------------------------|-------------|--------------|
-| Org hovedenhet          | Får feil, kravtypen kan ikke mottas på org  | 00313999912 | TILBAKEKREVING_OVERGANGSSTOENAD   | EF OG       | T            |
-| Org underenhet          | Får feil, kravtypen kan ikke mottas på org  | 00311984578 | TILBAKEKREVING_SYKEPENGER         | KT SP       | T            |
+| Org hovedenhet          | Får feil, kravtypen gjelder bare person     | 00313999912 | TILBAKEKREVING_OVERGANGSSTOENAD   | EF OG       | T            |
+| Org underenhet          | Får feil,  kravtypen gjelder bare person    | 00311984578 | TILBAKEKREVING_SYKEPENGER         | KT SP       | T            |
 | Org slettet             | Får asynkron feil, organisasjon finnes ikke | 00210167722 | TILBAKEKREVING_LOENNSKOMPENSASJON | LK RF       | T            |
-| Org slettet             | Får feil, kravtypen kan ikke mottas på org  | 00313753018 | TILBAKEKREVING_SVANGERSKAPSPENGER | FASV T      | T            |
-| Org opphørt             | Får feil, kravtypen kan ikke mottas på org  | 00315064112 | TILBAKEKREVING_SVANGERSKAPSPENGER | FASV T      | T            |
+| Org slettet             | Får feil, kravtypen gjelder bare person     | 00313753018 | TILBAKEKREVING_SVANGERSKAPSPENGER | FASV T      | T            |
+| Org opphørt             | Får feil, kravtypen gjelder bare person     | 00315064112 | TILBAKEKREVING_SVANGERSKAPSPENGER | FASV T      | T            |
 | Org som ikke eksisterer | Får asynkron feil, organisasjon finnes ikke | 00999999999 | TILBAKEKREVING_LOENNSKOMPENSASJON | LK RF       | T            |
 
 
 ##  Krav
-```select linjenummer, filnavn, saksnummer_nav, referansenummergammelsak, belop, belop_rente, fremtidig_ytelse, vedtaksdato,utbetaldato,gjelder_id, periode_fom, periode_tom, kravkode, kode_hjemmel, transaksjonsdato, enhet_bosted, enhet_behandlende, fagsystem_id, kravtype, status, tilleggsfrist, avsender from krav where filnavn = 'Fil-C.txt' and  tidspunkt_opprettet > '2026-02-24 13:00:00'``` (bytt ut timestamp med det som passer, eller bruk DATE(now()))
+```select linjenummer, filnavn, saksnummer_nav, referansenummergammelsak, belop, belop_rente, fremtidig_ytelse, vedtaksdato,utbetaldato,gjelder_id, periode_fom, periode_tom, kravkode, kode_hjemmel, transaksjonsdato, enhet_bosted, enhet_behandlende, fagsystem_id, kravtype, status, tilleggsfrist, avsender from krav where filnavn = 'Fil-C.txt' and  tidspunkt_opprettet > '2026-02-24 13:00:00'``` (bytt ut timestamp med det som passer, eller bruk DATE(now()))       
+Se [sokos_ske_krav_public_krav-Fil-C.xml](sokos_ske_krav_public_krav-Fil-C.xml)  
 
 | linjenummer | filnavn   | saksnummer_nav | referansenummergammelsak | belop | belop_rente | fremtidig_ytelse | vedtaksdato | utbetaldato | gjelder_id  | periode_fom | periode_tom | kravkode | kode_hjemmel | transaksjonsdato | enhet_bosted | enhet_behandlende | fagsystem_id   | kravtype  | status              | tilleggsfrist | avsender |
 |-------------|-----------|----------------|--------------------------|-------|-------------|------------------|-------------|-------------|-------------|-------------|-------------|----------|--------------|------------------|--------------|-------------------|----------------|-----------|---------------------|---------------|----------|
@@ -32,7 +34,8 @@ NB! Denne filen skal motta en asynkron valideringsfeil. Dvs at du må trigge sen
 | 11          | Fil-C.txt | 2634242Orgnr   |                          | 35785 | 500         | 0.00             | 2024-03-16  | 2024-01-07  | 00999999999 | 20220601    | 20230531    | LK RF    | T            | 20240318         | 4402         | 4819              | Fil-C-Test-011 | NYTT_KRAV | VALIDERINGSFEIL     | null          | OB04     |
 
 ## Feilmelding
-```select saksnummer_nav, error, melding, ske_response from feilmelding where saksnummer_nav in (select krav.saksnummer_nav from krav where filnavn = 'Fil-C.txt' and DATE(tidspunkt_opprettet) = DATE(now()))``` (eller bruk timestamp)
+```select saksnummer_nav, error, melding, ske_response from feilmelding where saksnummer_nav in (select krav.saksnummer_nav from krav where filnavn = 'Fil-C.txt' and DATE(tidspunkt_opprettet) = DATE(now()))``` (eller bruk timestamp)   
+Se [sokos_ske_krav_public_feilmelding-Fil-C.xml](sokos_ske_krav_public_feilmelding-Fil-C.xml)
 
 | saksnummer_nav | error                           | melding                                                                                                                                        | ske_response                                                                                                                                                                                                                                                                                                                                                                               |
 |----------------|---------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

@@ -1,7 +1,7 @@
 # Forventet resultat av kjøring av Fil-E1.txt
 
-Denne filen skal opprette nye krav, og ett krav skal få en linjevalideringsfeil
-## Feil
+32 nye krav, hvor én får linjevalideringfeil på kravtypedefinisjon.
+## Forventede Feil
 
 | Feil                                                    | Status                         | saksnummer_nav |
 |---------------------------------------------------------|--------------------------------|----------------|
@@ -48,7 +48,8 @@ Se [sokos_ske_krav_public_krav-Fil-E1.xml](sokos_ske_krav_public_krav-Fil-E1.xml
 | 32          | Fil-E1.txt | 8622170240409-E132 |                          | 94100 | 4705        | 0.00             | 2024-02-18  | 2024-01-09  | 02866799205 | 20230819    | 20231128    | SU UF    | T            |                  | 4416         | 4819              | Fil-E1-20240409-32 | NYTT_KRAV | RESKONTROFOERT                 | null          | OB04     |
 
 ## Filvalideringsfeil
-```select filnavn, linjenummer, saksnummer_nav, feilmelding from filvalideringsfeil where filnavn = 'Fil-E1.txt'```
+```select filnavn, linjenummer, saksnummer_nav, feilmelding from filvalideringsfeil where filnavn = 'Fil-E1.txt'  and DATE(tidspunkt_opprettet) = DATE(now())```     
+Se [sokos_ske_krav_public_filvalideringsfeil-Fil-E1.xml](sokos_ske_krav_public_filvalideringsfeil-Fil-E1.xml) 
 
 | filnavn    | linjenummer | saksnummer_nav     | feilmelding                                                                                |
 |------------|-------------|--------------------|--------------------------------------------------------------------------------------------|

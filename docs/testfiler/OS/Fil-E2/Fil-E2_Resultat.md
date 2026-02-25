@@ -1,6 +1,7 @@
 # Forventet resultat av kjøring av Fil-E2.txt
+ 
+32 endringer (64 linjer i database) hvor én endring (dvs to linjer) får feilen "Fant ikke gyldig kravidentifikator for migrert krav"
 
-Denne filen inneholder kun endringer, og skal motta en feil for "Fant ikke gyldig kravidentifikator for migrert krav" på en endring (dvs at to innslag i databasen vil ha denne feilen)
 ## Feil
 
 | Feil                                                | Status                     | saksnummer_nav |
@@ -10,7 +11,7 @@ Denne filen inneholder kun endringer, og skal motta en feil for "Fant ikke gyldi
 
 
 ##  Krav
-```select linjenummer, filnavn, saksnummer_nav, referansenummergammelsak, belop, belop_rente, fremtidig_ytelse, vedtaksdato,utbetaldato,gjelder_id, periode_fom, periode_tom, kravkode, kode_hjemmel, transaksjonsdato, enhet_bosted, enhet_behandlende, fagsystem_id, kravtype, status, tilleggsfrist, avsender from krav where filnavn = 'Fil-E2.txt' and  tidspunkt_opprettet > '2026-02-24 15:00:00'``` (bytt ut timestamp med det som passer, eller bruk DATE(now()))
+```select linjenummer, filnavn, saksnummer_nav, referansenummergammelsak, belop, belop_rente, fremtidig_ytelse, vedtaksdato,utbetaldato,gjelder_id, periode_fom, periode_tom, kravkode, kode_hjemmel, transaksjonsdato, enhet_bosted, enhet_behandlende, fagsystem_id, kravtype, status, tilleggsfrist, avsender from krav where filnavn = 'Fil-E2.txt' and  tidspunkt_opprettet > '2026-02-24 15:00:00'``` (bytt ut timestamp med det som passer, eller bruk DATE(now()))  
 Se [sokos_ske_krav_public_krav-Fil-E2.xml](sokos_ske_krav_public_krav-Fil-E2.xml)
 
 | linjenummer | filnavn    | saksnummer_nav     | referansenummergammelsak | belop | belop_rente | fremtidig_ytelse | vedtaksdato | utbetaldato | gjelder_id  | periode_fom | periode_tom | kravkode | kode_hjemmel | transaksjonsdato | enhet_bosted | enhet_behandlende | fagsystem_id       | kravtype          | status                    | tilleggsfrist | avsender |
@@ -84,6 +85,7 @@ Se [sokos_ske_krav_public_krav-Fil-E2.xml](sokos_ske_krav_public_krav-Fil-E2.xml
 
 ## Feilmelding
 ```select saksnummer_nav, error, melding, ske_response from feilmelding where saksnummer_nav in (select krav.saksnummer_nav from krav where filnavn = 'Fil-E2.txt' and DATE(tidspunkt_opprettet) = DATE(now()))``` (eller bruk timestamp)
+Se [sokos_ske_krav_public_feilmelding-Fil-E2.xml](sokos_ske_krav_public_feilmelding-Fil-E2.xml)     
 
 | saksnummer_nav     | error | melding                                                                                   | ske_response                                                                                                                                                                                                                                                                                                                                                             |
 |--------------------|-------|-------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
