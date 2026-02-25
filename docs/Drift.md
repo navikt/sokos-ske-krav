@@ -44,7 +44,7 @@ Mer detaljer om feilen, inkludert fullstendig request og response, finnes i Feil
 
 ### Tekniske feil
 Hvis Skatteetaten sin tjeneste er nede eller det oppstår andre problemer i kommunikasjon med Skatteetaten vil alert komme i #team-mob-alerts-prod. Feilen meldes til Skatteetaten i slackkanalen #utbetaling-tilbakekreving-fi.  
-Når feilen er løst må vi trigge resending av kravene. Dette gjøres ved å manuelt sette status på kravet til "KRAV_IKKE_SENDT". Man må først informere prosjektleder om at man må gjøre dette og få tillatelse, og så må man opprette en oppgave i Jira.
+Når feilen er løst må vi trigge resending av kravene. Dette gjøres ved å manuelt sette status på kravet til "KRAV_IKKE_SENDT". Man må først informere produktleder om at man må gjøre dette og få tillatelse, og så må man opprette en oppgave i Jira.
 
         
 ## Testing

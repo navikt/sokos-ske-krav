@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data>
+<row>
+  <filnavn>Fil-E1.txt</filnavn>
+  <linjenummer>12</linjenummer>
+  <saksnummer_nav>3546573240409-E112</saksnummer_nav>
+  <feilmelding>Kravtype finnes ikke definert for oversending til skatt: (FO FT) sammen med (T). Linje: 12</feilmelding>
+</row>
+</data>
