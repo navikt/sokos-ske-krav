@@ -75,7 +75,6 @@ Testfilene er navngitt Fil-E1, Fil-E2, Fil-E3, og Fil-E4 og organisert i mapper 
   - Stopper 5 av kravene som E1 opprettet
   - Resultat: [Fil-E4_Resultat.md](testfiler/OS/Fil-E4/Fil-E4_Resultat.md)
 - Kommandoer:
-  - `python3 ErstattSaksnummer.py Fil-E4.txt`
   -  `python3 KopierSaksnummer.py Fil-E1.txt Fil-E4.txt`
               
 
