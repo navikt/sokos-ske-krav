@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.config.ApplicationConfig
-import io.mockk.clearAllMocks
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -157,7 +156,6 @@ internal class StatusServiceIntegrationTest :
         }
 
         afterSpec {
-            clearAllMocks()
             unmockkObject(PropertiesConfig)
         }
     })

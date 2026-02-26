@@ -4,7 +4,6 @@ import java.time.LocalDateTime
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.ktor.server.config.ApplicationConfig
-import io.mockk.clearAllMocks
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -70,7 +69,6 @@ class SkeServiceTest :
         }
 
         afterSpec {
-            clearAllMocks()
             unmockkObject(PropertiesConfig)
         }
     })

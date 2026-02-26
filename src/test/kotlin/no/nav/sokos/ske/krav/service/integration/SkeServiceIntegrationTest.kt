@@ -6,7 +6,6 @@ import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.config.ApplicationConfig
-import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -265,7 +264,6 @@ internal class SkeServiceIntegrationTest :
         }
 
         afterSpec {
-            clearAllMocks()
             unmockkObject(PropertiesConfig)
         }
     })

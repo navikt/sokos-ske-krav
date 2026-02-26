@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.ktor.server.config.ApplicationConfig
-import io.mockk.clearAllMocks
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockkObject
@@ -311,7 +310,6 @@ internal class FileValidatorIntegrationTest :
         }
 
         afterSpec {
-            clearAllMocks()
             unmockkObject(PropertiesConfig)
         }
     })

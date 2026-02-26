@@ -9,7 +9,6 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.server.config.ApplicationConfig
-import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
@@ -130,7 +129,6 @@ class CircuitBreakerManagerTest :
         }
 
         afterSpec {
-            clearAllMocks()
             unmockkObject(PropertiesConfig)
         }
     })
