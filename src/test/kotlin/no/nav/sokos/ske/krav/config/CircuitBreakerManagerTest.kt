@@ -57,7 +57,6 @@ class CircuitBreakerManagerTest :
                     .automaticTransitionFromOpenToHalfOpenEnabled(true)
                     .build()
             val cb = CircuitBreaker.of("auto-transition", autoConfig)
-            println("LAO10: ${Duration.ofMillis(50).seconds}")
             cb.transitionToOpenState()
             cb.state shouldBe CircuitBreaker.State.OPEN
 
