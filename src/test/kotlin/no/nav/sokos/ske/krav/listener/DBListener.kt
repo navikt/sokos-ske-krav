@@ -7,6 +7,7 @@ import io.kotest.extensions.testcontainers.toDataSource
 import io.ktor.server.config.ApplicationConfig
 import io.mockk.every
 import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import kotliquery.queryOf
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
@@ -65,5 +66,6 @@ object DBListener : TestListener {
 
     override suspend fun afterSpec(spec: Spec) {
         clearDB()
+        unmockkObject(PropertiesConfig)
     }
 }
