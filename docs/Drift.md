@@ -29,12 +29,13 @@ Husk at du alltid må ha tillatelse fra prosjektleder, samt en Jirasak før du g
 
 
 
-## Typiske videreutvikliongsoppgaver
+## Typiske videreutviklingsoppgaver
 - Legge ny kravkoder
 - Legge til nye felter
 - Endre navn på parametere til Skatteetaten
 
 ## Ting som kan gå galt 
+Se [Feilretting guide](Feilretting_Guide.md) for detaljer om hva som kan gå galt og hvordan vi håndterer de forskjellige scenarioene
 ### Funksjonelle feil
 De aller fleste feilene er på grunn av feil i valideringsregler mot Skatteetaten, samt asynkron validering. Se liste over valideringsregler [her](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler).  
 Feil vil bli sendt som alert til slackkanalen #team-best-slackbot-prod med informasjon om hva som gikk galt, samt filnavn og dato. 
