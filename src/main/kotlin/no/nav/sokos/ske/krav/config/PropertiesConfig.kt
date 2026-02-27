@@ -134,7 +134,7 @@ data class PostgresConfig(
     val port: String,
     val name: String,
     val username: String,
-    val password: String,
+    val password: String?,
     val vaultMountPath: String,
 ) {
     val adminUser = "$name-admin"
