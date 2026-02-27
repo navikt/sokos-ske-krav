@@ -133,7 +133,7 @@ data class PostgresConfig(
     val host: String,
     val port: String,
     val name: String,
-    val username: String,
+    val username: String?,
     val password: String?,
     val vaultMountPath: String,
 ) {
