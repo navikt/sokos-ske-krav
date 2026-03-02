@@ -8,7 +8,7 @@
 | Kravtype finnes ikke definert for oversending til skatt | VALIDERINGSFEIL_AV_LINJE_I_FIL | ....-E112      | 
 
 ##  Krav
-```select filnavn, saksnummer_nav, referansenummergammelsak, belop, belop_rente, fremtidig_ytelse, vedtaksdato,utbetaldato,gjelder_id, periode_fom, periode_tom, kravkode, kode_hjemmel, transaksjonsdato, enhet_bosted, enhet_behandlende, fagsystem_id, kravtype, status, tilleggsfrist, avsender from krav where filnavn = 'Fil-E1.txt' and  tidspunkt_opprettet > '2026-02-24 13:00:00'``` (bytt ut timestamp med det som passer, eller bruk DATE(now()))
+```select linjenummer, filnavn, saksnummer_nav, referansenummergammelsak, belop, belop_rente, fremtidig_ytelse, vedtaksdato,utbetaldato,gjelder_id, periode_fom, periode_tom, kravkode, kode_hjemmel, transaksjonsdato, enhet_bosted, enhet_behandlende, fagsystem_id, kravtype, status, tilleggsfrist, avsender from krav where filnavn = 'Fil-E1.txt' and DATE(tidspunkt_opprettet) = DATE(now()) order by linjenummer```
 
 Se [sokos_ske_krav_public_krav-Fil-E1.xml](sokos_ske_krav_public_krav-Fil-E1.xml)
 
