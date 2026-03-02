@@ -46,7 +46,8 @@ Validerer en hel kravfil etter nedlasting fra SFTP. Parser header, kravlinjer og
 ### `LineValidator`
 Itererer over alle kravlinjer i en fil og kaller `LineValidationRules.runValidation()` på hver linje. Linjer som feiler validering lagres i `filvalideringsfeil`-tabellen med status `VALIDERINGSFEIL_AV_LINJE_I_FIL`. Gyldige linjer settes til status `KRAV_IKKE_SENDT`.
 ### `LineValidationRules`
-Inneholder alle forretningsreglene for linjevalidering (se detaljert dokumentasjon). Implementert som et statisk objekt med én offentlig funksjon `runValidation()`.
+Inneholder alle forretningsreglene for linjevalidering (se [detaljert dokumentasjon](../detaljert/Validering.md)). Implementert som et statisk objekt med én offentlig funksjon `runValidation()`.
+
 ---
 ## Pakke: `client`
 ### `SkeClient`
@@ -64,6 +65,7 @@ Samler opp feilmeldinger i minnet gruppert per fil og feiltype, og sender dem sa
 Teknisk HTTP-klient mot Slack Webhook-endepunktet. Bygger opp Slack-meldingsformatet og sender via POST.
 ### `MaskinportenAccessTokenProvider`
 Håndterer OAuth2 token-flyten mot Maskinporten. Cacher access-token i minnet og fornyer det automatisk 60 sekunder før det utløper. Bruker Mutex for trådsikker tilgang.
+
 ---
 ## Pakke: `config`
 ### `CircuitBreakerManager`
@@ -76,6 +78,7 @@ Singleton som konfigurerer og holder Resilience4j CircuitBreaker-instansen. Stan
 Konfigurerer og håndterer JSch SFTP-sesjoner med RSA-nøkkelautentisering. Tilbyr en `channel { }` høyere-ordens funksjon som sikrer at sesjon og kanal alltid lukkes etter bruk.
 ### `PostgresConfig`
 Setter opp HikariCP connection pool mot PostgreSQL og kjører Flyway-migrasjoner ved oppstart (ikke i lokalt miljø).
+
 ---
 ## Pakke: `repository`
 ### `KravRepository`

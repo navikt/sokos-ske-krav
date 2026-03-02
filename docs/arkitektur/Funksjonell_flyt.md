@@ -181,6 +181,7 @@ stateDiagram-v2
     HALF_OPEN : HALF_OPEN – 1 testanrop tillates
 ```
 Når Circuit Breaker er **OPEN** stopper applikasjonen all videre sending i inneværende kjøring. Neste planlagte kjøring starter med ny sjekk av status.
+
 ---
 ## 6. Rapport og manuell oppfolging
 ```mermaid
