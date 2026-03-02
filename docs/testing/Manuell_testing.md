@@ -86,3 +86,10 @@ Saksnumrene på kravene ender med Exxx der xxx er siffer og representerer filnum
 
 ## Tolkning av testresultater
 Databasedump (med SQL kommandoer) av hva resultatene skal være i databasen etter innlesning av filene er dokumentert i resultatfilene slik at du kan gjøre en grundig sammenligning.
+
+## Testfiler for andre avsendere
+
+Mappene for Arena, Pesys og Infotrygd under `testfiler/` er foreløpig tomme. Det finnes per i dag ingen dedikerte testfiler for disse avsenderne. Dersom du skal teste integrasjoner mot disse fagsystemene må testfiler opprettes manuelt.
+
+> **Merk:** For `ARENA`, `PESYS` og `INFOTRYGD` er tom/ugyldig utbetalingsdato akseptert. Dette er den viktigste valideringsforskjellen sammenlignet med `OB04`-filer, og bør verifiseres ved manuell testing.
+

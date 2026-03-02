@@ -2,21 +2,20 @@
 
 * [1. Funksjonelle krav](#1-funksjonelle-krav)
 * [2. Utviklingsmiljø](#2-utviklingsmiljø)
-* [3. Programvarearkitektur](#3-programvarearkitektur)
+* [3. Dokumentasjon](#3-dokumentasjon)
 * [4. Deployment](#4-deployment)
-* [5. Autentisering](#5-Autentisering)
+* [5. Autentisering](#5-autentisering)
 * [6. Drift og støtte](#6-drift-og-støtte)
 * [7. Henvendelser](#7-henvendelser)
 
 # 1. Funksjonelle Krav
 
 Applikasjonen er en tjeneste som sender tilbakekrevingskrav til Skatteetatens nye REST tjeneste, som på sikt skal
-ertstatte PAK.  
+ertstatte PAK.
 Den henter flatfiler fra filmottakserveren, mapper de om til objekter, og sender kravene
 ihht [SKE sin kontrakt](https://app.swaggerhub.com/apis/skatteetaten/oppdragsinnkreving-api/).
-SKE sender tilbake en *kravidentifikator* som kobles til NAV sitt saksnummer for kravet og blir så lagret i database.
-Oppbygninen av flatfilene er dokumentert
-i [confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=176706565)
+Oppbygningen av flatfilene er dokumentert
+i [Confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=176706565)
 
 # 2. Utviklingsmiljø
 
@@ -38,83 +37,35 @@ For å kjøre applikasjonen må du gjøre følgende:
      ```
      chmod 755 setupLocalEnvironment.sh && ./setupLocalEnvironment.sh
      ```                                
-  Denne vil opprette [default.properties](defaults.properties) med alle environment variabler (bortsett fra
-  POSTGRES_USERNAME og POSTGRES_PASSWORD, som må hentes manuelt fra vault) du trenger for å kjøre
-  applikasjonen som er definert i [PropertiesConfig](src/main/kotlin/sokos/ske/krav/config/PropertiesConfig.kt).
+  Denne vil opprette [defaults.properties](defaults.properties) med alle environment variabler du trenger for å kjøre
+  applikasjonen som er definert i [PropertiesConfig](src/main/kotlin/no/nav/sokos/ske/krav/config/PropertiesConfig.kt).
 
-# 3. Programvarearkitektur
+# 3. Dokumentasjon
 
-```mermaid
-stateDiagram-v2
-    direction LR
-    state mottak {
-        direction LR
-        lesfil --> validerFil
-        validerFil --> Skriv_statusfil: valideringfeilet
-        validerFil --> valider_alle_records: valideringOk
-        valider_alle_records --> lagAlarm: validering_av_linj_feilet
-        valider_alle_records --> SendKrav: validerin_OK
-    }
-state sendKrav {
-direction LR
-SendKrav --> OpprettNyttKrav: IkkeStop_IkkeEndring
-SendKrav --> SendEndring: IkkeStopp_harGammelref
-SendKrav --> SendStopp: HovedStolEr_0,0
-OpprettNyttKrav --> [BehandleResponse]
-SendEndring --> [BehandleResponse]
-SendStopp --> [BehandleResponse]
-}
-```
+### Funksjonalitet
+| Dokument                                                                                | Beskrivelse                                             |
+|-----------------------------------------------------------------------------------------|---------------------------------------------------------|
+| [Overordnet beskrivelse](docs/løsningsbeskrivelse/overordnet/Overordnet_beskrivelse.md) | Hva applikasjonen gjør, aktører, flyt og kravtyper      |
+| [Funksjonell flyt](docs/arkitektur/Funksjonell_flyt.md)                                 | Detaljerte sekvens- og flytdiagrammer                   |
+| [Systemarkitektur](docs/arkitektur/Systemarkitektur.md)                                 | Komponent- og infrastrukturdiagrammer                   |
+| [Beskrivelse](docs/funksjonalitet/Beskrivelse.md)                                       | Detaljert beskrivelse av input, behandling og kravtyper |
+| [Begrepsforklaring](docs/funksjonalitet/Begrepsforklaring.md)                           | Ordliste – begreper i NAV vs. SKE-kontekst              |
+| [Stønadstyper](docs/funksjonalitet/Stonadstyper.md)                                     | Fullstendig kravkode + hjemmelkode-mappingtabell        |
+| [Databasestruktur](docs/funksjonalitet/Databasestruktur.md)                             | Tabeller, kolonner og migrasjonshistorikk               |
 
-```mermaid
-stateDiagram-v2
-    direction LR
-[BehandleResponse] --> responseOk
-[BehandleResponse] --> responseIkkeOk
-state BehandleResponse{
-direction LR
-responseOk --> LagreKrav
-responseIkkeOk --> LoggFeil
-LoggFeil --> lagAlarm
+### Løsningsbeskrivelse
+| Dokument                                                                                               | Beskrivelse                                       |
+|--------------------------------------------------------------------------------------------------------|---------------------------------------------------|
+| [Klassebeskrivelser](docs/løsningsbeskrivelse/overordnet/Klassebeskrivelser.md)                        | Ansvar og oppgaver for alle klasser               |
+| [Validering](docs/løsningsbeskrivelse/detaljert/Validering.md)                                         | Detaljerte valideringsregler (fil og linje)       |
+| [SKE-requests og feilhåndtering](docs/løsningsbeskrivelse/detaljert/SKE_requests_og_feilhandtering.md) | Request-oppbygging og HTTP-feilhåndtering mot SKE |
 
-}
-```
-
-```mermaid
-stateDiagram-v2
-    direction LR
-    state mottak {
-        direction LR
-        lesfil --> validerFil
-        validerFil --> Skriv_statusfil: valideringfeilet
-        validerFil --> valider_alle_records: valideringOk
-        valider_alle_records --> lagAlarm: validering_av_linj_feilet
-        valider_alle_records --> SendKrav: validerin_OK
-    }
-state sendKrav {
-direction LR
-SendKrav --> OpprettNyttKrav: IkkeStop_IkkeEndring
-SendKrav --> SendEndring: IkkeStopp_harGammelref
-SendKrav --> SendStopp: HovedStolEr_0,0
-OpprettNyttKrav --> [BehandleResponse]
-SendEndring --> [BehandleResponse]
-SendStopp --> [BehandleResponse]
-}
-```
-
-```mermaid
-stateDiagram-v2
-    direction LR
-[BehandleResponse] --> responseOk
-[BehandleResponse] --> responseIkkeOk
-state BehandleResponse{
-direction LR
-responseOk --> LagreKrav
-responseIkkeOk --> LoggFeil
-LoggFeil --> lagAlarm
-
-}
-```
+### Drift og testing
+| Dokument                                           | Beskrivelse                                           |
+|----------------------------------------------------|-------------------------------------------------------|
+| [Drift](docs/Drift.md)                             | BAU-oppgaver, nyttige SQL-kommandoer og Vault-aliaser |
+| [Feilretting Guide](docs/Feilretting_Guide.md)     | Feilscenarioer, årsaker og tiltak                     |
+| [Manuell testing](docs/testing/Manuell_testing.md) | Steg-for-steg guide for manuell testing mot dev       |
 
 # 4. Deployment
 
@@ -123,19 +74,20 @@ Distribusjon av tjenesten er gjort med bruk av Github Actions.
 
 Push/merge til main branch direkte er ikke mulig. Det må opprettes PR og godkjennes før merge til main branch.
 Når PR er merged til main branch vil Github Actions bygge og deploye til dev-fss og prod-fss.
-Har også mulighet for å deploye manuelt til testmiljø ved å deploye PR.
+Har også mulighet for å deploye manuelt til testmiljø ved å deploye en PR.
 
 # 5. Autentisering
-Applikasjonen bruker [AzureAD](https://docs.nais.io/security/auth/azure-ad/) for å sikre at kun autoriserte brukere har tilgang til tjenesten.
-
+Applikasjonen bruker to autentiseringsmekanismer:
+- **[AzureAD](https://docs.nais.io/security/auth/azure-ad/)** – beskytter API-endepunktene (`/api/*`). Krever et gyldig Azure AD JWT-token i `Authorization`-headeren.
+- **Basic Auth** – beskytter webgrensesnittet for rapporter (`/rapporter/*`). Brukernavn og passord er konfigurert via miljøvariabler.
 
 # 6. Drift og støtte
 
-Se [Drift og test](docs/Manuell_testing.md) for detaljert informasjon om drift, testing og feilsøking.
+Se [Drift](docs/Drift.md) for BAU-oppgaver og nyttige kommandoer, [Feilretting Guide](docs/Feilretting_Guide.md) for feilscenarioer, og [Manuell testing](docs/testing/Manuell_testing.md) for testing mot dev-miljøet.
 
 ### Logging
 
-Feilmeldinger og infomeldinger som ikke innheholder sensitive data logges til [Grafana Loki](https://docs.nais.io/observability/logging/#grafana-loki).  
+Feilmeldinger og infomeldinger som ikke inneholder sensitive data logges til [Grafana Loki](https://docs.nais.io/observability/logging/#grafana-loki).  
 Sensitive meldinger logges til [Team Logs](https://doc.nais.io/observability/logging/how-to/team-logs/).
 
 ### Kubectl

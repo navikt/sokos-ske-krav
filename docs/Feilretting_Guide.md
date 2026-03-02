@@ -76,7 +76,7 @@ Dersom filvalidering feiler vil en melding bli sendt til Slack og filen vil flyt
 
 
 ### Linjevalidering
-Enkeltlinjer blir validert i Linevalidator.kt i henhold til [Skatteetatens regler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler]).
+Enkeltlinjer blir validert i Linevalidator.kt i henhold til [Skatteetatens regler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler).
 
 * Saksnummer er på ugyldig format (må være "^[a-zA-Z0-9-/]+$")
 * Vedtaksdato kan ikke være i fremtiden
@@ -86,6 +86,4 @@ Enkeltlinjer blir validert i Linevalidator.kt i henhold til [Skatteetatens regle
 * Perioden FOM-TOM:
     * FOM-dato kan ikke være etter TOM (dvs FOM kan være lik TOM)
     * TOM-dato kan være frem i tid, men ikke lenger frem enn inneværende måned
-* Utbetalingsdato må vœre før vedtaksdato
-
-Begrepet "må være i fremtiden" betyr at TOM dato må være senere enn dagens dato. "Må være i fortid" betyr at FOM dato må være tidligere enn dagens dato.
+* Utbetalingsdato må være før vedtaksdato

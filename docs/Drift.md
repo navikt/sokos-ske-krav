@@ -2,13 +2,13 @@
  
 ## Nyttige lenker
 
-[Vault prod SFTP informasjon] (https://vault.adeo.no/ui/vault/secrets/kv%2Fprod%2Ffss/show/sokos-ske-krav/okonomi/sftp) (Du må først åpne po-utbetaling-prod gatwayen i naisconsole)
+[Vault prod SFTP informasjon](https://vault.adeo.no/ui/vault/secrets/kv%2Fprod%2Ffss/show/sokos-ske-krav/okonomi/sftp) (Du må først åpne po-utbetaling-prod gatwayen i naisconsole)
 Slack kanaler: #team-best-slackbot-prod, #utbetaling-tilbakekreving-fi
 Alias for .zshrc eller .bashrc:
 - `alias vaultlogin='gcloud auth login && vault login -method=oidc -no-print'`
 - `alias vaultskekravprod='vault read postgresql/prod-fss/creds/sokos-ske-krav-user'`
 - `alias vaultskekravdev='vault read postgresql/preprod-fss/creds/sokos-ske-krav-user'`
-- `alias py='python3'
+- `alias py='python3'`
 For å logge inn i prod database (prod-pg.intern.nav.no) må du åpne po-utbetaling-prod gatwayen i naisconsole. I JIT access begrunnelsen skriver du hvorfor du skal ha tilgang, og helst med referanse til en Jira sak
           
 
@@ -30,7 +30,7 @@ Husk at du alltid må ha tillatelse fra prosjektleder, samt en Jirasak før du g
 
 
 ## Typiske videreutviklingsoppgaver
-- Legge ny kravkoder
+- Legge til ny kravkoder: legg til ny entry i `StonadsType`-enumen og oppdater [Stonadstyper.md](funksjonalitet/Stonadstyper.md)
 - Legge til nye felter
 - Endre navn på parametere til Skatteetaten
 

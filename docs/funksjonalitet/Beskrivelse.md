@@ -20,13 +20,19 @@ Databasen har tre tabeller:
   - Inneholder innlest og validert data fra filen
 - Feilmelding
   - Feil fra skatteetaten 
-- Valideringsfeil
+- Filvalideringsfeil
   - Feil fra filvalideringen
  
  Databasen brukes som en state machine gjennom programmet.  
-  Alle kravlinjene som er blitt validert lagres i database med statusen "KRAV_IKKE_SENDT". Når kravene er lagret blir filen på FTP server flyttet fra /inbound til /outbound.  
-  Etter at kravene er lagret hentes ut alle krav som er endringer eller avskrivinger og vi prøver å finne den *originale* kravidentifikatoren og oppdaterer disse kravene i databasen med den.  
-  Deretter blir alle krav med status KRAV_IKKE_SENDT overført til Skatteetaten og får status KRAV_SENDT. Denne blir så oppdatert til statusen vi får fra Skatteetaten når vi kaller hent mottaksstatus (MOTTATT_UNDER_BEHANDLING og så RESKONTROFOERT eller MIGRERT). Når et krav har fått status RESKONTROFOERT eller MIGRERT er "jobben vår" ferdig.
+ 
+### Flyt 
+Alle kravlinjene som er blitt validert uten feil lagres i databasen med statusen "KRAV_IKKE_SENDT". Krav som feiler linjevalidering lagres med status "VALIDERINGSFEIL_AV_LINJE_I_FIL" og vil ikke bli sendt videre. Kun krav med status `KRAV_IKKE_SENDT` hentes ut for sending.  
+Når kravene er lagret blir filen på FTP server flyttet fra /inbound til /outbound.  
+Etter at kravene er lagret hentes ut alle krav som er endringer eller avskrivinger og vi prøver å finne den *originale* kravidentifikatoren og oppdaterer disse kravene i databasen med den.
+
+Deretter blir alle krav med status KRAV_IKKE_SENDT overført til Skatteetaten og får status KRAV_SENDT. Statusen oppdateres til det vi får fra Skatteetaten når vi kaller hent mottaksstatus (MOTTATT_UNDER_BEHANDLING og så RESKONTROFOERT eller MIGRERT). Når et krav har fått status RESKONTROFOERT eller MIGRERT er "jobben vår" ferdig.
+
+> **Merk:** Statuskoden `KRAV_INNLEST_FRA_FIL` er definert i koden som en fallback i `insertAllNewKrav`, men brukes aldri i praksis – `LineValidator` setter alltid status eksplisitt til enten `KRAV_IKKE_SENDT` eller `VALIDERINGSFEIL_AV_LINJE_I_FIL` før kravene lagres.
 
 ## Type krav
 Det finnes tre typer krav:
@@ -35,6 +41,7 @@ Det finnes tre typer krav:
 - Avskrivning/stopp
 
 *Endringer* og *avskrivinger* har i flatfilen utfyllt "Referanse gammel sak". Dette er fordi i Nav-verden anses endringer og avskrivinger å være nye vedtak, og for sporbarhet så fylles dette feltet ut.
+        
 
 ## Endringer
 Skatteetaten har designet løsningen slik at endringer skal sendes inn til to forskjellige endepunkt: Endre hovedstol, og endre rente. Problemet er at denne applikasjonen ikke vet *hva* som har endret seg når vi får inn en endring. Den vet kun at *noe* har endret seg. Så hver endring vil *alltid* sendes til begge endepunktene. Dette gjør at i databasen vil vi ha to linjer i Kravtabellen for hver endring: Én med kravtype "ENDRING_HOVEDSTOL", og én med kravtype "ENDRING_RENTE".  Og fordi vi har designet databasen slik at hver innsending har én linje ville vi uansett ha måtte "splitte" kravet. 
@@ -44,9 +51,9 @@ Skatteetaten har designet løsningen slik at endringer skal sendes inn til to fo
 I Nav bruker vi et *saksnummer* som starter med "OB04". Skatteetaten bruker en *kravidentifikator* som de genererer. Når vi sender inn et *nytt* krav vil vi få kravidentifikatoren i responsen. Vi bruker **alltid** deres kravidentifikator dersom vi har den.
 
 
-Dersom det er første endring vil "referanse gammel sak" være lik det originale saksnummeret.  
-Dersom det er *andre* endring vil "referanse gammel sak" være lik saksnummeret i den *første endringen*.  
-Skatteetaten har derimot inget forhold til dette nye saksnummeret ettersom de på sin side anser det som samme sak og det skal derfor ha samme kravidentifikator.
+Dersom det er første endring vil "referansenummer gammel sak" være lik det originale saksnummeret.  
+Dersom det er *andre* endring vil "referansenummer gammel sak" være lik saksnummeret i den *første endringen*.  
+Skatteetaten har derimot inget forhold tilvali dette nye saksnummeret ettersom de på sin side anser det som samme sak og det skal derfor ha samme kravidentifikator.
 
 ### Dobbel endring på migrerte krav
 I **PAK** har de historisk sett brukt Nav sitt *saksnummer*, og som en del av moderniseringen har de "migrert" krav for 1 år tilbake i tid hvor disse har da fått en kravidentifikator.
@@ -71,7 +78,7 @@ Det finnes da tilfeller hvor verken de eller vi vil kunne finne kravidentifikato
  Dette scenarioet kaller vi "dobbel endring på et migrert krav". Når dette skjer vil vi få en alarm i Slackkanalen #team-best-slackbot-prod og det vil følges opp manuelt av noen på fagsiden
 
 ### Kravkode + hjemmelkode = Stønadstype   (kravtype)
-SKE bruker "kravtype" som identifikator for hvilken stønad kravet gjelder. I Nav bruker vi kravkode og hjemmelkode. Kombinasjoner av kravkode + hjemmelkode mappes derfor til stønadstype på vår side.    
+SKE bruker "kravtype" som identifikator for hvilken stønad kravet gjelder. I Nav bruker vi kravkode og hjemmelkode. Kombinasjoner av kravkode + hjemmelkode mappes derfor til stønadstype på vår side. Se [fullstendig oversikt over alle stønadstyper og kravkoder](Stonadstyper.md).    
 Dersom Nav oppretter nye kravtyper må vi i Utbetalingsseksjonen koordinere med SKE for at de skal oppdatere mappingen sin.  
 Vi validerer på vår side at kravtypen finnes, så disse vil feile i validering.  
 PS. Av historiske årsaker heter "kravtype" "stønadstype" i vår domenemodell, og "kravtype" betyr typen krav (ny/endring/stopp)
