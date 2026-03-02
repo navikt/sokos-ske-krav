@@ -1,5 +1,6 @@
 # Klassebeskrivelser
-Oversikt over de viktigste klassene og deres ansvar i sokos-ske-krav.
+
+Oversikt over de viktigste klassene og deres ansvar i sokos-ske-krav. For detaljert dokumentasjon av hver serviceklasse, se [Serviceklasser](../detaljert/Serviceklasser.md).
 ## Toppnivå
 ### `Application.kt`
 Startpunktet for applikasjonen. Starter en Netty-basert Ktor-server på port 8080, setter opp alle plugins og konfigurasjoner, og starter de periodiske coroutine-jobbene:

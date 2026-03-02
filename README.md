@@ -43,20 +43,21 @@ For å kjøre applikasjonen må du gjøre følgende:
 # 3. Dokumentasjon
 
 ### Funksjonalitet
-| Dokument                                                                                | Beskrivelse                                             |
-|-----------------------------------------------------------------------------------------|---------------------------------------------------------|
+| Dokument                                                                        | Beskrivelse                                             |
+|---------------------------------------------------------------------------------|---------------------------------------------------------|
 | [Overordnet beskrivelse](docs/beskrivelse/overordnet/Overordnet_beskrivelse.md) | Hva applikasjonen gjør, aktører, flyt og kravtyper      |
-| [Funksjonell flyt](docs/arkitektur/Funksjonell_flyt.md)                                 | Detaljerte sekvens- og flytdiagrammer                   |
-| [Systemarkitektur](docs/arkitektur/Systemarkitektur.md)                                 | Komponent- og infrastrukturdiagrammer                   |
-| [Beskrivelse](docs/funksjonalitet/Beskrivelse.md)                                       | Detaljert beskrivelse av input, behandling og kravtyper |
-| [Begrepsforklaring](docs/funksjonalitet/Begrepsforklaring.md)                           | Ordliste – begreper i NAV vs. SKE-kontekst              |
-| [Stønadstyper](docs/funksjonalitet/Stonadstyper.md)                                     | Fullstendig kravkode + hjemmelkode-mappingtabell        |
-| [Databasestruktur](docs/funksjonalitet/Databasestruktur.md)                             | Tabeller, kolonner og migrasjonshistorikk               |
+| [Funksjonell flyt](docs/arkitektur/Funksjonell_flyt.md)                         | Detaljerte sekvens- og flytdiagrammer                   |
+| [Systemarkitektur](docs/arkitektur/Systemarkitektur.md)                         | Komponent- og infrastrukturdiagrammer                   |
+| [Beskrivelse](docs/funksjonalitet/Beskrivelse.md)                               | Detaljert beskrivelse av input, behandling og kravtyper |
+| [Begrepsforklaring](docs/funksjonalitet/Begrepsforklaring.md)                   | Ordliste – begreper i NAV vs. SKE-kontekst              |
+| [Stønadstyper](docs/funksjonalitet/Stonadstyper.md)                             | Fullstendig kravkode + hjemmelkode-mappingtabell        |
+| [Databasestruktur](docs/funksjonalitet/Databasestruktur.md)                     | Tabeller, kolonner og migrasjonshistorikk               |
 
 ### Løsningsbeskrivelse
-| Dokument                                                                                               | Beskrivelse                                       |
-|--------------------------------------------------------------------------------------------------------|---------------------------------------------------|
+| Dokument                                                                                       | Beskrivelse                                       |
+|------------------------------------------------------------------------------------------------|---------------------------------------------------|
 | [Klassebeskrivelser](docs/beskrivelse/overordnet/Klassebeskrivelser.md)                        | Ansvar og oppgaver for alle klasser               |
+| [Serviceklasser](docs/beskrivelse/detaljert/Serviceklasser.md)                                 | Detaljert beskrivelse av alle serviceklasser      |
 | [Validering](docs/beskrivelse/detaljert/Validering.md)                                         | Detaljerte valideringsregler (fil og linje)       |
 | [SKE-requests og feilhåndtering](docs/beskrivelse/detaljert/SKE_requests_og_feilhandtering.md) | Request-oppbygging og HTTP-feilhåndtering mot SKE |
 
