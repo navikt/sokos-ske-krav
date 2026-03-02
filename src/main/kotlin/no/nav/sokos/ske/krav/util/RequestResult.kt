@@ -7,10 +7,15 @@ import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 
-const val KRAV_IKKE_RESKONTROFORT_RESEND = "innkrevingsoppdrag-er-ikke-reskontrofoert"
 const val KRAV_ER_AVSKREVET = "innkrevingsoppdrag-er-avskrevet"
 const val KRAV_ER_ALLEREDE_AVSKREVET = "innkrevingsoppdrag-er-allerede-avskrevet"
 const val KRAV_EKSISTERER_IKKE = "innkrevingsoppdrag-eksisterer-ikke"
+const val AVSKREVET_KRAV_KAN_IKKE_ENDRES = "avskrevet-innkrevingsoppdrag-kan-ikke-endres"
+const val AVSKREVET_KRAV_KAN_IKKE_AVSKRIVES = "avskrevet-innkrevingsoppdrag-kan-ikke-avskrives"
+const val OPPDRAGSGIVERS_KRAVIDENTIFIKATOR_EKSISTERER = "oppdragsgivers-kravidentifikator-eksisterer-allerede"
+const val UGYLDIG_KRAVIDENTIFIKATOR = "ugyldig-kravidentifikator"
+const val UGYLDIG_TILLEGGSINFORMASJON = "ugyldig-tilleggsinformasjon"
+const val KRAV_ER_IKKE_RESKONTROFOERT = "innkrevingsoppdrag-er-ikke-reskontrofoert"
 
 data class RequestResult(
     val response: HttpResponse,
@@ -25,7 +30,7 @@ suspend fun defineStatus(response: HttpResponse): Status {
     val errorType = response.parseTo<FeilResponse>()?.type ?: "FEIL_FRA_SERVER"
 
     return when (response.status.value) {
-        400 -> Status.HTTP400_UGYLDIG_FORESPORSEL
+        400 -> handleBadRequestError(errorType)
         401 -> Status.HTTP401_FEIL_AUTENTISERING
         403 -> Status.HTTP403_INGEN_TILGANG
         404 -> handleNotFoundError(errorType)
@@ -41,15 +46,26 @@ suspend fun defineStatus(response: HttpResponse): Status {
     }
 }
 
+private fun handleBadRequestError(errorType: String): Status =
+    when {
+        errorType.contains(UGYLDIG_KRAVIDENTIFIKATOR) -> Status.HTTP400_UGYLDIG_KRAVIDENTIFIKATOR
+        errorType.contains(UGYLDIG_TILLEGGSINFORMASJON) -> Status.HTTP400_UGYLDIG_TILLEGGSINFORMASJON
+        else -> Status.HTTP400_UGYLDIG_FORESPORSEL
+    }
+
 private fun handleNotFoundError(errorType: String): Status =
     when {
         errorType.contains(KRAV_EKSISTERER_IKKE) -> Status.HTTP404_FANT_IKKE_SAKSREF
+        errorType.contains(KRAV_ER_IKKE_RESKONTROFOERT) -> Status.HTTP404_KRAV_ER_IKKE_RESKONTROFORT
         else -> Status.HTTP404_ANNEN_IKKE_FUNNET
     }
 
 private fun handleConflictError(errorType: String): Status =
     when {
-        errorType.contains(KRAV_IKKE_RESKONTROFORT_RESEND) -> Status.HTTP409_IKKE_RESKONTROFORT_RESEND
+        errorType.contains(KRAV_ER_IKKE_RESKONTROFOERT) -> Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND
+        errorType.contains(AVSKREVET_KRAV_KAN_IKKE_ENDRES) -> Status.HTTP409_AVSKREVET_KRAV_KAN_IKKE_ENDRES
+        errorType.contains(AVSKREVET_KRAV_KAN_IKKE_AVSKRIVES) -> Status.HTTP409_AVSKREVET_KRAV_KAN_IKKE_AVSKRIVES
         errorType.contains(KRAV_ER_AVSKREVET) || errorType.contains(KRAV_ER_ALLEREDE_AVSKREVET) -> Status.HTTP409_KRAV_ER_AVSKREVET
+        errorType.contains(OPPDRAGSGIVERS_KRAVIDENTIFIKATOR_EKSISTERER) -> Status.HTTP409_KRAVIDENTIFIKATOR_EKSISTERER
         else -> Status.HTTP409_ANNEN_KONFLIKT
     }

@@ -43,3 +43,5 @@ defaults.properties
 .kotlin
 privKey
 privateKey
+/jdtls-data/*
+/.run/

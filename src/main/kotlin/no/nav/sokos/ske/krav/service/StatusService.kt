@@ -36,12 +36,18 @@ class StatusService(
 
         logger.info("Sjekk av mottaksstatus -> Antall krav som ikke er reskontroført: ${kravListe.size}")
         logger.info("Oppdaterer status")
-        val updated =
-            kravListe.mapNotNull { krav ->
-                processKravStatus(krav)?.takeIf { it.mottaksStatus == "RESKONTROFOERT" }?.let { Pair(krav.status, it.mottaksStatus) }
-            }
 
-        logger.info { "Antall reskontroførte krav: ${updated.size}" }
+        var reskontrofoerteKravCount = 0
+        for (krav in kravListe) {
+            runCatching {
+                val mottaksStatusResponse = processKravStatus(krav)
+                if (mottaksStatusResponse?.mottaksStatus == Status.RESKONTROFOERT.value) {
+                    reskontrofoerteKravCount++
+                }
+            }.onFailure { break }
+        }
+
+        logger.info { "Antall reskontroførte krav: $reskontrofoerteKravCount" }
         slackService.sendErrors()
     }
 

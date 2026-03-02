@@ -46,7 +46,7 @@ internal class EndreKravServiceTest :
             TestCase("409 and 200", 409, 200, Status.HTTP409_ANNEN_KONFLIKT, Status.HTTP409_ANNEN_KONFLIKT),
             TestCase("200 and 422", 200, 422, Status.HTTP422_VALIDERINGSFEIL, Status.HTTP422_VALIDERINGSFEIL),
             TestCase("102 and 102", 102, 102, Status.UKJENT_STATUS, Status.UKJENT_STATUS),
-        ).forEach { (description: String, firstStatus: Int, secondStatus: Int, expectedFirstStatus: Status, expectedSecondStatus: Status) ->
+        ).forEach { (_: String, firstStatus: Int, secondStatus: Int, expectedFirstStatus: Status, expectedSecondStatus: Status) ->
 
             test("If first status is $firstStatus and second status is $secondStatus, both should be set to $expectedFirstStatus") {
 
@@ -70,5 +70,28 @@ internal class EndreKravServiceTest :
                 result[0].status shouldBe expectedFirstStatus
                 result[1].status shouldBe expectedSecondStatus
             }
+        }
+
+        test("getConformedResponses should return requestResults unchanged when size is 0") {
+            every {
+                endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<Krav>())
+            } returns RequestResult(mockHttpResponse(200), mockk<Krav>(), "", "", Status.KRAV_SENDT)
+
+            // Send empty list, which should result in empty request results
+            val result = endreKravMock.sendAllEndreKrav(emptyList())
+
+            result.size shouldBe 0
+        }
+
+        test("getConformedResponses should return requestResults unchanged when size is 1") {
+            val expectedStatus = Status.KRAV_SENDT
+            every {
+                endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<Krav>())
+            } returns RequestResult(mockHttpResponse(200), mockk<Krav>(), "", "", expectedStatus)
+
+            val result = endreKravMock.sendAllEndreKrav(listOf(kravMock))
+
+            result.size shouldBe 1
+            result[0].status shouldBe expectedStatus
         }
     })

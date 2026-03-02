@@ -50,7 +50,7 @@ internal class RepositoryTestKrav :
             kravForResending.forEach {
                 it.status.shouldBeIn(
                     Status.KRAV_IKKE_SENDT.value,
-                    Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value,
+                    Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND.value,
                     Status.HTTP500_ANNEN_SERVER_FEIL.value,
                     Status.HTTP503_UTILGJENGELIG_TJENESTE.value,
                     Status.HTTP500_INTERN_TJENERFEIL.value,

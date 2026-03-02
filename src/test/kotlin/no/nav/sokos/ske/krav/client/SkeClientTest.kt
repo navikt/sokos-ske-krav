@@ -107,11 +107,12 @@ class SkeClientTest :
                         )
                     }
 
-                    else ->
+                    else -> {
                         respond(
                             content = "Not Found",
                             status = HttpStatusCode.NotFound,
                         )
+                    }
                 }
             }
 

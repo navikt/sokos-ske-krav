@@ -5,10 +5,10 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.3.0"
-    kotlin("plugin.serialization") version "2.3.0"
+    kotlin("jvm") version "2.3.10"
+    kotlin("plugin.serialization") version "2.3.10"
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
-    id("org.jetbrains.kotlinx.kover") version "0.9.4"
+    id("org.jetbrains.kotlinx.kover") version "0.9.7"
 
     application
 }
@@ -20,24 +20,24 @@ repositories {
 }
 
 val ktorVersion = "3.4.0"
-val jschVersion = "2.27.7"
-val nimbusVersion = "10.7"
+val jschVersion = "2.27.8"
+val nimbusVersion = "10.8"
 val kotlinxSerializationVersion = "1.10.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
-val prometheusVersion = "1.16.2"
-val opentelemetryVersion = "2.24.0-alpha"
+val prometheusVersion = "1.16.3"
+val opentelemetryVersion = "2.25.0-alpha"
 
 // DB
 val hikaricpVersion = "7.0.2"
-val flywayVersion = "12.0.0"
-val postgresqlVersion = "42.7.9"
+val flywayVersion = "12.0.2"
+val postgresqlVersion = "42.7.10"
 val kotliqueryVersion = "1.9.1"
 
 // Test
-val kotestVersion = "6.1.2"
+val kotestVersion = "6.1.3"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.14.9"
 val commonsVersion = "3.12.0"
@@ -47,8 +47,10 @@ val mockFtpServerVersion = "3.2.0"
 // Logging
 val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.26"
+val logbackVersion = "1.5.32"
 val logstashVersion = "9.0"
+
+val resilience4jVersion = "2.3.0"
 
 dependencies {
     // Ktor Server
@@ -102,6 +104,10 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
 
+    // Circuit Breaker
+    implementation("io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion")
+    implementation("io.github.resilience4j:resilience4j-kotlin:$resilience4jVersion")
+
     // Test
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
     testImplementation("io.kotest.extensions:kotest-extensions-testcontainers:$kotestTestContainerExtensionVersion")
@@ -111,6 +117,20 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:$testContainerVersion")
     testImplementation("commons-net:commons-net:$commonsVersion")
     testImplementation("org.mockftpserver:MockFtpServer:$mockFtpServerVersion")
+}
+
+// CVE fixes for vulnerable dependencies from transitive dependencies io.kotest.extensions:kotest-extensions-testcontainers
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.lz4" && requested.name == "lz4-java") {
+            useTarget("at.yawk.lz4:lz4-java:1.10.3")
+            because("CVE fix: Out-of-bounds memory operations in versions < 1.8.1")
+        }
+        if (requested.group == "org.xerial.snappy" && requested.name == "snappy-java") {
+            useVersion("1.1.10.8")
+            because("CVE fix: Unchecked chunk length leads to DoS in versions <= 1.1.10.0")
+        }
+    }
 }
 
 application {
@@ -175,10 +195,6 @@ tasks {
         reports.forEach { report -> report.required.value(false) }
 
         finalizedBy(koverHtmlReport)
-    }
-
-    withType<Wrapper> {
-        gradleVersion = "9.3.0"
     }
 
     ("build") {

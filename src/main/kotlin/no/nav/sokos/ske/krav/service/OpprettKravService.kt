@@ -1,6 +1,9 @@
 package no.nav.sokos.ske.krav.service
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException
+
 import no.nav.sokos.ske.krav.client.SkeClient
+import no.nav.sokos.ske.krav.config.CircuitBreakerException
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.dto.ske.responses.OpprettInnkrevingsOppdragResponse
 import no.nav.sokos.ske.krav.util.RequestResult
@@ -13,10 +16,21 @@ class OpprettKravService(
     private val skeClient: SkeClient,
     private val databaseService: DatabaseService,
 ) {
-    suspend fun sendAllOpprettKrav(kravList: List<Krav>): List<RequestResult> =
-        kravList
-            .map { sendOpprettKrav(it) }
-            .also { databaseService.updateSentKrav(it) }
+    suspend fun sendAllOpprettKrav(kravList: List<Krav>): List<RequestResult> {
+        val requestResults = mutableListOf<RequestResult>()
+
+        for (krav in kravList) {
+            runCatching { requestResults.add(sendOpprettKrav(krav)) }.onFailure { e ->
+                if (e is CircuitBreakerException || e is CallNotPermittedException) {
+                    break
+                } else {
+                    throw e
+                }
+            }
+        }
+        databaseService.updateSentKrav(requestResults)
+        return requestResults
+    }
 
     private suspend fun sendOpprettKrav(krav: Krav): RequestResult {
         val opprettKravRequest = createOpprettKravRequest(krav)

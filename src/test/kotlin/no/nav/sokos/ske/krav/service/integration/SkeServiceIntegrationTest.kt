@@ -10,6 +10,7 @@ import io.mockk.mockk
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
+import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.responses.AvstemmingResponse
@@ -39,25 +40,29 @@ import no.nav.sokos.ske.krav.validation.FileValidator
 internal class SkeServiceIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener, DBListener)
-
+        beforeEach {
+            circuitBreaker.reset()
+        }
         val ftpService: FtpService by lazy {
             FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = mockk<DatabaseService>())
         }
-        DBListener.loadInitScript("SQLscript/10NyeKrav.sql")
 
         Given("Det finnes en fil i INBOUND") {
+            DBListener.clearDB()
             SftpListener.putFiles(listOf("10NyeKrav.txt"), Directories.INBOUND)
             val skeService = setupSkeServiceMock(databaseService = DatabaseService(DBListener.dataSource), ftpService = ftpService)
 
             Then("Skal alle validerte linjer lagres i database") {
-                val kravbefore = DBListener.dataSource.connection.use { it.getAllKrav() }
                 skeService.handleNewKrav()
-                val kravEtter = DBListener.dataSource.connection.use { it.getAllKrav() }
-                kravEtter.size shouldBe 10 + kravbefore.size
+                DBListener.dataSource.connection
+                    .use { it.getAllKrav() }
+                    .size shouldBe 10
             }
         }
 
         Given("Det kommer endringer eller avskrivinger") {
+            DBListener.clearDB()
+            DBListener.loadInitScript("SQLscript/10NyeKrav.sql")
             SftpListener.putFiles(listOf("TestEndringKravident.txt"), Directories.INBOUND)
             val skeClient =
                 mockk<SkeClient> {
@@ -109,6 +114,7 @@ internal class SkeServiceIntegrationTest :
         }
 
         Given("Et krav skal lagres i database") {
+            DBListener.clearDB()
             SftpListener.putFiles(listOf("AltOkFil.txt"), Directories.INBOUND)
 
             val skeClient =
@@ -126,15 +132,14 @@ internal class SkeServiceIntegrationTest :
                 }
             val dbService = DatabaseService(DBListener.dataSource)
             val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dbService, ftpService = ftpService)
-            val kravbefore = DBListener.dataSource.connection.use { it.getAllKrav() }
 
             Then("skal type krav avgjøres og lagres") {
                 skeService.handleNewKrav()
                 val lagredeKrav = DBListener.dataSource.connection.use { it.getAllKrav() }
-                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2 + kravbefore.filter { it.kravtype == STOPP_KRAV }.size
-                lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.size shouldBe 2 + kravbefore.filter { it.kravtype == ENDRING_RENTE }.size
-                lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.size shouldBe 2 + kravbefore.filter { it.kravtype == ENDRING_HOVEDSTOL }.size
-                lagredeKrav.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97 + kravbefore.filter { it.kravtype == NYTT_KRAV }.size
+                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
+                lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.size shouldBe 2
+                lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.size shouldBe 2
+                lagredeKrav.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
                 lagredeKrav.forEach {
                     DBListener.dataSource.connection.use { con ->
                         con.updateStatus("RESKONTROFOERT", it.corrId)
@@ -144,13 +149,14 @@ internal class SkeServiceIntegrationTest :
         }
 
         Given("Vi mottar 403") {
+            DBListener.clearDB()
             SftpListener.putFiles(listOf("10NyeKrav.txt"), Directories.INBOUND)
             val nyttKravKall = MockRequestObj(Responses.httpErrorResponse, EndepunktType.OPPRETT, HttpStatusCode.Forbidden)
 
             val httpClient = setUpMockHttpClient(listOf(nyttKravKall))
             val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
 
-            Then("Skal feilen lagres i feilmeldingtabell") {
+            Then("Skal ingen feil lagres i feilmeldingtabell") {
                 skeService.handleNewKrav()
                 val feilmeldinger =
                     DBListener.dataSource.connection.use {
@@ -160,7 +166,7 @@ internal class SkeServiceIntegrationTest :
                             .toFeilmelding()
                     }
 
-                feilmeldinger.filter { it.skeResponse.contains("403") }.size shouldBe 10
+                feilmeldinger.filter { it.skeResponse.contains("403") }.size shouldBe 0
                 val kravMedFeil =
                     DBListener.dataSource.connection.use { conn ->
                         feilmeldinger.flatMap { feilmelding ->
@@ -172,13 +178,13 @@ internal class SkeServiceIntegrationTest :
                         }
                     }
 
-                kravMedFeil.filter { it.status == Status.HTTP403_INGEN_TILGANG.value }.size shouldBe 10
+                kravMedFeil.filter { it.status == Status.HTTP403_INGEN_TILGANG.value }.size shouldBe 0
             }
         }
-
         Given("Et krav feiler ") {
+            DBListener.clearDB()
             SftpListener.putFiles(listOf("10NyeKrav.txt"), Directories.INBOUND)
-            val nyttKravKall = MockRequestObj(Responses.innkrevingsOppdragEksistererIkkeResponse(), EndepunktType.OPPRETT, HttpStatusCode.NotFound)
+            val nyttKravKall = MockRequestObj(Responses.genericFeilResponse(), EndepunktType.OPPRETT, HttpStatusCode.UnprocessableEntity)
 
             val httpClient = setUpMockHttpClient(listOf(nyttKravKall))
             val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
@@ -193,7 +199,7 @@ internal class SkeServiceIntegrationTest :
                             .toFeilmelding()
                     }
 
-                feilmeldinger.filter { it.skeResponse.contains("404") }.size shouldBe 10
+                feilmeldinger.filter { it.error == "422" }.size shouldBe 10
 
                 val kravMedFeil =
                     DBListener.dataSource.connection.use { conn ->
@@ -206,17 +212,18 @@ internal class SkeServiceIntegrationTest :
                         }
                     }
 
-                kravMedFeil.filter { it.status == Status.HTTP404_FANT_IKKE_SAKSREF.value }.size shouldBe 10
+                kravMedFeil.filter { it.status == Status.HTTP422_VALIDERINGSFEIL.value }.size shouldBe 10
             }
         }
 
         Given("Et krav har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500") {
+            DBListener.clearDB()
             DBListener.loadInitScript("SQLscript/KravSomSkalResendes.sql")
 
             DBListener.dataSource.connection.use { con ->
                 con.getAllKrav().also { kravBefore ->
                     kravBefore.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 3
-                    kravBefore.filter { it.status == Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 3
+                    kravBefore.filter { it.status == Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 3
                     kravBefore.filter { it.status == Status.HTTP500_ANNEN_SERVER_FEIL.value }.size shouldBe 1
                     kravBefore.filter { it.status == Status.HTTP503_UTILGJENGELIG_TJENESTE.value }.size shouldBe 1
                     kravBefore.filter { it.status == Status.HTTP500_INTERN_TJENERFEIL.value }.size shouldBe 1
@@ -237,7 +244,7 @@ internal class SkeServiceIntegrationTest :
                 DBListener.dataSource.connection.use { con ->
                     con.getAllKrav().also { kravAfter ->
                         kravAfter.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 0
-                        kravAfter.filter { it.status == Status.HTTP409_IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 0
+                        kravAfter.filter { it.status == Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 0
                         kravAfter.filter { it.status == Status.HTTP500_ANNEN_SERVER_FEIL.value }.size shouldBe 0
                         kravAfter.filter { it.status == Status.HTTP503_UTILGJENGELIG_TJENESTE.value }.size shouldBe 0
                         kravAfter.filter { it.status == Status.HTTP500_INTERN_TJENERFEIL.value }.size shouldBe 0
