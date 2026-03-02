@@ -45,7 +45,7 @@ For å kjøre applikasjonen må du gjøre følgende:
 ### Funksjonalitet
 | Dokument                                                                                | Beskrivelse                                             |
 |-----------------------------------------------------------------------------------------|---------------------------------------------------------|
-| [Overordnet beskrivelse](docs/løsningsbeskrivelse/overordnet/Overordnet_beskrivelse.md) | Hva applikasjonen gjør, aktører, flyt og kravtyper      |
+| [Overordnet beskrivelse](docs/beskrivelse/overordnet/Overordnet_beskrivelse.md) | Hva applikasjonen gjør, aktører, flyt og kravtyper      |
 | [Funksjonell flyt](docs/arkitektur/Funksjonell_flyt.md)                                 | Detaljerte sekvens- og flytdiagrammer                   |
 | [Systemarkitektur](docs/arkitektur/Systemarkitektur.md)                                 | Komponent- og infrastrukturdiagrammer                   |
 | [Beskrivelse](docs/funksjonalitet/Beskrivelse.md)                                       | Detaljert beskrivelse av input, behandling og kravtyper |
@@ -56,9 +56,9 @@ For å kjøre applikasjonen må du gjøre følgende:
 ### Løsningsbeskrivelse
 | Dokument                                                                                               | Beskrivelse                                       |
 |--------------------------------------------------------------------------------------------------------|---------------------------------------------------|
-| [Klassebeskrivelser](docs/løsningsbeskrivelse/overordnet/Klassebeskrivelser.md)                        | Ansvar og oppgaver for alle klasser               |
-| [Validering](docs/løsningsbeskrivelse/detaljert/Validering.md)                                         | Detaljerte valideringsregler (fil og linje)       |
-| [SKE-requests og feilhåndtering](docs/løsningsbeskrivelse/detaljert/SKE_requests_og_feilhandtering.md) | Request-oppbygging og HTTP-feilhåndtering mot SKE |
+| [Klassebeskrivelser](docs/beskrivelse/overordnet/Klassebeskrivelser.md)                        | Ansvar og oppgaver for alle klasser               |
+| [Validering](docs/beskrivelse/detaljert/Validering.md)                                         | Detaljerte valideringsregler (fil og linje)       |
+| [SKE-requests og feilhåndtering](docs/beskrivelse/detaljert/SKE_requests_og_feilhandtering.md) | Request-oppbygging og HTTP-feilhåndtering mot SKE |
 
 ### Drift og testing
 | Dokument                                           | Beskrivelse                                           |
