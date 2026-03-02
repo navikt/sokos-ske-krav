@@ -37,7 +37,7 @@ Sjekker mottaksstatus for alle krav som er i tilstandene `KRAV_SENDT` eller `MOT
 ### `DatabaseService`
 Abstraksjonssjikt mellom services og repositories. Delegerer alle databaseoperasjoner til `KravRepository`, `FeilmeldingRepository` og `FilValideringsfeilRepository`, og håndterer oppretting og avslutning av databaseforbindelser via HikariCP.
 ### `RapportService`    
-Produserer data til webgrensesnittet for avtemmings- og resendingsrapporter. Merket med `@Frontend`-annotasjon for å indikere at den kun skal brukes fra routing-laget. Henter krav med feilstatuser og mapper dem til `RapportObjekt` med tilhørende feilmeldinger.
+Produserer data til webgrensesnittet for avstemmings- og resendingsrapporter. Merket med `@Frontend`-annotasjon for å indikere at den kun skal brukes fra routing-laget. Henter krav med feilstatuser og mapper dem til `RapportObjekt` med tilhørende feilmeldinger.
 
 ---
 ## Pakke: `validation`

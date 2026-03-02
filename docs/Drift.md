@@ -49,7 +49,7 @@ Når feilen er løst må vi trigge resending av kravene. Dette gjøres ved å ma
 
         
 ## Testing
-Se [manuell testing](Manuell_testing.md) for detaljert beskrivelse av hvordan å teste.
+Se [manuell testing](testing/Manuell_testing.md) for detaljert beskrivelse av hvordan å teste.
 
 ### Når MÅ du teste manuelt? 
 Husk at å "teste manuelt" betyr å faktisk teste mot Skatteetaten. Når kontrakten endrer seg må du *alltid* teste manuelt.
@@ -58,7 +58,7 @@ Husk at å "teste manuelt" betyr å faktisk teste mot Skatteetaten. Når kontrak
 - Når det legges inn nye felter (du må manuelt lage en fil med de nye feltene)
 
 ### Når BØR du teste manuelt?
-- Ved endring i logikk for parsing (slik at du kan sjekke database) (vi vil ikke vite om vi sender inn feil data så det lønner seg å sjekke det manuelt)
+- Ved endring i logikk for parsing (slik at du kan sjekke database)
 - Ved endring i logikk for alarmer og logging
 - Når det kommer nye valideringsregler
 - Når eksisterende valideringsregler endres

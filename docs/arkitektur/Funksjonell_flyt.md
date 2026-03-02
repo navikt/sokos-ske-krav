@@ -1,11 +1,13 @@
 # Funksjonell flyt
 Beskrivelse av de viktigste prosessene i sokos-ske-krav, med sekvensdiagrammer.
 ## Oversikt over kjøreløkken
+
 Applikasjonen kjører to periodiske jobber:
-| Jobb | Intervall | Funksjon |
-|---|---|---|
-| `handleNewKrav` | Konfigurerbart (typisk ~5 timer) | Henter nye filer fra SFTP, validerer, lagrer og sender krav til SKE |
-| `checkKravDateForAlert` | Hvert 24. time | Varsler på Slack dersom krav har stått ubehandlet for lenge |
+
+| Jobb                    | Intervall                        | Funksjon                                                            |
+|-------------------------|----------------------------------|---------------------------------------------------------------------|
+| `handleNewKrav`         | Konfigurerbart (default 5 timer) | Henter nye filer fra SFTP, validerer, lagrer og sender krav til SKE |
+| `checkKravDateForAlert` | Hvert 24. time                   | Varsler på Slack dersom krav har stått ubehandlet for lenge         |
 Begge kan også trigges manuelt via HTTP-API:
 - `GET /api/hentNye` – starter `handleNewKrav`
 - `GET /api/hentStatus` – starter `getMottaksStatus`
@@ -73,6 +75,7 @@ sequenceDiagram
 ---
 ## 2. Sending av krav til SKE
 Krav sendes i tre varianter avhengig av `kravtype`:
+
 ```mermaid
 flowchart TD
     A[Liste med usente krav] --> B{kravtype?}
@@ -94,6 +97,7 @@ flowchart TD
     K --> M
 ```
 ### Statuskoder
+
 | Status                           | Beskrivelse                                                                                                                      |
 |----------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
 | `KRAV_IKKE_SENDT`                | Initial status for gyldige krav etter innlesing. Brukes også ved automatisk resending etter feil                                 |
@@ -176,7 +180,7 @@ stateDiagram-v2
     OPEN : OPEN – Alle kall blokkeres, sending stoppes
     HALF_OPEN : HALF_OPEN – 1 testanrop tillates
 ```
-Nar Circuit Breaker er **OPEN** stopper applikasjonen all videre sending i innevaerende kjoring. Neste planlagte kjoring starter med ny sjekk av status.
+Når Circuit Breaker er **OPEN** stopper applikasjonen all videre sending i inneværende kjøring. Neste planlagte kjøring starter med ny sjekk av status.
 ---
 ## 6. Rapport og manuell oppfolging
 ```mermaid
@@ -194,5 +198,5 @@ flowchart LR
     I -->|POST /CSVdownload| J[CSV-fil til browser]
 ```
 Rapportvisningen brukes til:
-- **Avstemming** – folge opp krav med feil-statuser som krever manuell handling
-- **Resending** – se hvilke krav som er i ko for automatisk resending
+- **Avstemming** – følge opp krav med feil-statuser som krever manuell handling
+- **Resending** – se hvilke krav som er i kø for automatisk resending

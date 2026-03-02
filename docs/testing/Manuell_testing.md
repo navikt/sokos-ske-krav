@@ -13,10 +13,10 @@ På MacOS og Linux kan den be om en `.ppk` nøkkel. Isåfall la FileZilla automa
 
 ### Trigge innlesing av fil
 Vi har tre måter å trigge innlesing av filen på:
-1. Enten trigging av endepunktet [hentNye](https://sokos-ske-krav.intern.dev.nav.no/api/hentNye). Dette kan gjøres med en klient som Bruno.
-   Vi ha med en `Authorization` token i headeren. En sånn kan genereres [her](https://azure-token-generator.intern.dev.nav.no/api/m2m?aud=dev-fss:okonomi:sokos-ske-krav)
+1. Trigging av endepunktet [hentNye](https://sokos-ske-krav.intern.dev.nav.no/api/hentNye). Dette kan gjøres med en klient som Bruno.
+   Vi må ha med en `Authorization`-token i headeren. En slik kan genereres [her](https://azure-token-generator.intern.dev.nav.no/api/m2m?aud=dev-fss:okonomi:sokos-ske-krav)
 2. Restarte den kjørende pod'en via [nais console](https://console.nav.cloud.nais.io/team/okonomi/dev-fss/app/sokos-ske-krav). Trykk på `Restart app`.
-    3. Hvis du skal teste en spesiell branch kan du bruke [workflowen for manuell deploy til dev](https://github.com/navikt/sokos-ske-krav/actions/workflows/manual-deploy.yaml)
+   Hvis du skal teste en spesiell branch kan du bruke [workflowen for manuell deploy til dev](https://github.com/navikt/sokos-ske-krav/actions/workflows/manual-deploy.yaml)
 3. Kjøre applikasjonen lokalt
 
 **Alltid trigg innlesing to ganger** slik at kravene får korrekt mottaksstatus (og asynkrone valideringsfeil blir hentet)
@@ -26,14 +26,14 @@ Vi har tre måter å trigge innlesing av filen på:
 SFTP filer for testing kan man finne [her](testfiler). De er i copybook format som stormaskin/COBOL opererer med.
 For å kunne bruke disse til testing må først må man erstatte saksnummerene med nye så vi ikke sender inn duplikater.
 
-- Endring av saksnummer gjøres med pythonscriptet `docs/scripts/ErstattSaksnummer.py`
-- Kopiering av saksnummer til referansenummer gjøres med pythonscriptet `docs/scripts/KopierSaksnummer.py`
+- Endring av saksnummer gjøres med pythonscriptet `docs/testing/scripts/ErstattSaksnummer.py`
+- Kopiering av saksnummer til referansenummer gjøres med pythonscriptet `docs/testing/scripts/KopierSaksnummer.py`
 - Installer python3 (MACOS og brew: `brew install python`) (Linux: `sudo apt install python3`)
 - Kopier scriptene og filene til en mappe lokalt på din maskin
 
 ### Les disse instruksjonene nøye!
 
-Noen av filene vil gi valideringsfeil og det er litt av hensikten. Forventede feil er dokumentert i .md filen som følger med hver testfil.
+Noen av filene vil gi valideringsfeil og det er litt av hensikten. Forventede feil er dokumentert i `.md`-filen som følger med hver testfil.
 
 
 ### Test av nye krav
@@ -43,10 +43,10 @@ Testfilene er navngitt Fil-A, Fil-B, og Fil-C og organisert i mapper med testfil
 - [Fil-B](testfiler/OS/Fil-B)
   - Resultatfil: [Fil-B_Resultat.md](testfiler/OS/Fil-B/Fil-B_Resultat.md)
 - [Fil-C](testfiler/OS/Fil-C)
-    - Resultatfil: [Fil-C_Resultat.md](testfiler/OS/Fil-C/Fil-C_Resultat.md)
+  - Resultatfil: [Fil-C_Resultat.md](testfiler/OS/Fil-C/Fil-C_Resultat.md)
   
 
-- Kopier filer og script (`docs/scripts/ErstattSaksnummer.py`) til en mappe lokalt på din maskin
+- Kopier filer og script (`docs/testing/scripts/ErstattSaksnummer.py`) til en mappe lokalt på din maskin
 - For Fil-A, Fil-B og Fil-C kjør `python3 ErstattSaksnummer.py Fil-x.txt` Hvor x er A..C
 - [Logg inn på SFTP serveren](#sftp-tilkobling)
 - Legg én fil i `/inbound` mappen og [trigg innlesing](#trigge-innlesing-av-fil)
@@ -74,8 +74,8 @@ Testfilene er navngitt Fil-E1, Fil-E2, Fil-E3, og Fil-E4 og organisert i mapper 
 - [Fil-E4](testfiler/OS/Fil-E4)
   - Stopper 5 av kravene som E1 opprettet
   - Resultat: [Fil-E4_Resultat.md](testfiler/OS/Fil-E4/Fil-E4_Resultat.md)
-- Kommandoer:
-  -  `python3 KopierSaksnummer.py Fil-E1.txt Fil-E4.txt`
+  - Kommandoer:
+    - `python3 KopierSaksnummer.py Fil-E1.txt Fil-E4.txt`
               
 
 Saksnumrene på kravene ender med Exxx der xxx er siffer og representerer filnummeret og linjennummeret i filen slik at det er lett å sammenligne

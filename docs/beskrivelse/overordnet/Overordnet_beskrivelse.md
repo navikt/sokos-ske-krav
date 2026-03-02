@@ -82,7 +82,7 @@ Alle funksjonelle feil håndteres av produkteier og/eller fagsiden. Tekniske fei
 
 ## Kjøreplan og triggere
 
-Tjenesten kjøres periodisk (konfigurerbart, typisk ca. hvert 5. time) og kan i tillegg trigges manuelt:
+Tjenesten kjøres periodisk (konfigurerbart, default hvert 5. time) og kan i tillegg trigges manuelt:
 
 | Trigger               | Endepunkt           | Funksjon                         |
 |-----------------------|---------------------|----------------------------------|
