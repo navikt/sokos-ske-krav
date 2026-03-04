@@ -17,7 +17,7 @@ val CircuitBreakerPlugin =
         onResponse { response ->
             if (response.isFailure()) {
                 logger.error {
-                    "Circuit breaker treating response as failure: ${response.status.value} for ${response.request.url} "
+                    "Circuit breaker treating response as failure: ${response.status.value} ${response.status.description} from ${response.request.url} "
                 }
                 throw CircuitBreakerException("HTTP ${response.status.value}: ${response.status.description} from ${response.request.url}")
             }
