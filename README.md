@@ -45,28 +45,28 @@ For å kjøre applikasjonen må du gjøre følgende:
 ### Funksjonalitet
 | Dokument                                                                        | Beskrivelse                                             |
 |---------------------------------------------------------------------------------|---------------------------------------------------------|
-| [Overordnet beskrivelse](docs/beskrivelse/overordnet/Overordnet_beskrivelse.md) | Hva applikasjonen gjør, aktører, flyt og kravtyper      |
-| [Funksjonell flyt](docs/arkitektur/Funksjonell_flyt.md)                         | Detaljerte sekvens- og flytdiagrammer                   |
-| [Systemarkitektur](docs/arkitektur/Systemarkitektur.md)                         | Komponent- og infrastrukturdiagrammer                   |
-| [Beskrivelse](docs/funksjonalitet/Beskrivelse.md)                               | Detaljert beskrivelse av input, behandling og kravtyper |
-| [Begrepsforklaring](docs/funksjonalitet/Begrepsforklaring.md)                   | Ordliste – begreper i NAV vs. SKE-kontekst              |
-| [Stønadstyper](docs/funksjonalitet/Stonadstyper.md)                             | Fullstendig kravkode + hjemmelkode-mappingtabell        |
-| [Databasestruktur](docs/funksjonalitet/Databasestruktur.md)                     | Tabeller, kolonner og migrasjonshistorikk               |
+| [Overordnet beskrivelse](dokumentasjon/beskrivelse/overordnet/Overordnet_beskrivelse.md) | Hva applikasjonen gjør, aktører, flyt og kravtyper      |
+| [Funksjonell flyt](dokumentasjon/arkitektur/Funksjonell_flyt.md)                         | Detaljerte sekvens- og flytdiagrammer                   |
+| [Systemarkitektur](dokumentasjon/arkitektur/Systemarkitektur.md)                         | Komponent- og infrastrukturdiagrammer                   |
+| [Beskrivelse](dokumentasjon/funksjonalitet/Beskrivelse.md)                               | Detaljert beskrivelse av input, behandling og kravtyper |
+| [Begrepsforklaring](dokumentasjon/funksjonalitet/Begrepsforklaring.md)                   | Ordliste – begreper i NAV vs. SKE-kontekst              |
+| [Stønadstyper](dokumentasjon/funksjonalitet/Stonadstyper.md)                             | Fullstendig kravkode + hjemmelkode-mappingtabell        |
+| [Databasestruktur](dokumentasjon/funksjonalitet/Databasestruktur.md)                     | Tabeller, kolonner og migrasjonshistorikk               |
 
 ### Løsningsbeskrivelse
 | Dokument                                                                                       | Beskrivelse                                       |
 |------------------------------------------------------------------------------------------------|---------------------------------------------------|
-| [Klassebeskrivelser](docs/beskrivelse/overordnet/Klassebeskrivelser.md)                        | Ansvar og oppgaver for alle klasser               |
-| [Serviceklasser](docs/beskrivelse/detaljert/Serviceklasser.md)                                 | Detaljert beskrivelse av alle serviceklasser      |
-| [Validering](docs/beskrivelse/detaljert/Validering.md)                                         | Detaljerte valideringsregler (fil og linje)       |
-| [SKE-requests og feilhåndtering](docs/beskrivelse/detaljert/SKE_requests_og_feilhandtering.md) | Request-oppbygging og HTTP-feilhåndtering mot SKE |
+| [Klassebeskrivelser](dokumentasjon/beskrivelse/overordnet/Klassebeskrivelser.md)                        | Ansvar og oppgaver for alle klasser               |
+| [Serviceklasser](dokumentasjon/beskrivelse/detaljert/Serviceklasser.md)                                 | Detaljert beskrivelse av alle serviceklasser      |
+| [Validering](dokumentasjon/beskrivelse/detaljert/Validering.md)                                         | Detaljerte valideringsregler (fil og linje)       |
+| [SKE-requests og feilhåndtering](dokumentasjon/beskrivelse/detaljert/SKE_requests_og_feilhandtering.md) | Request-oppbygging og HTTP-feilhåndtering mot SKE |
 
 ### Drift og testing
 | Dokument                                           | Beskrivelse                                           |
 |----------------------------------------------------|-------------------------------------------------------|
-| [Drift](docs/Drift.md)                             | BAU-oppgaver, nyttige SQL-kommandoer og Vault-aliaser |
-| [Feilretting Guide](docs/Feilretting_Guide.md)     | Feilscenarioer, årsaker og tiltak                     |
-| [Manuell testing](docs/testing/Manuell_testing.md) | Steg-for-steg guide for manuell testing mot dev       |
+| [Drift](dokumentasjon/Drift.md)                             | BAU-oppgaver, nyttige SQL-kommandoer og Vault-aliaser |
+| [Feilretting Guide](dokumentasjon/Feilretting_Guide.md)     | Feilscenarioer, årsaker og tiltak                     |
+| [Manuell testing](dokumentasjon/testing/Manuell_testing.md) | Steg-for-steg guide for manuell testing mot dev       |
 
 # 4. Deployment
 
@@ -84,7 +84,7 @@ Applikasjonen bruker to autentiseringsmekanismer:
 
 # 6. Drift og støtte
 
-Se [Drift](docs/Drift.md) for BAU-oppgaver og nyttige kommandoer, [Feilretting Guide](docs/Feilretting_Guide.md) for feilscenarioer, og [Manuell testing](docs/testing/Manuell_testing.md) for testing mot dev-miljøet.
+Se [Drift](dokumentasjon/Drift.md) for BAU-oppgaver og nyttige kommandoer, [Feilretting Guide](dokumentasjon/Feilretting_Guide.md) for feilscenarioer, og [Manuell testing](dokumentasjon/testing/Manuell_testing.md) for testing mot dev-miljøet.
 
 ### Logging
 

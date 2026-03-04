@@ -4,11 +4,11 @@ Oversikt over alle stønadstypene som sokos-ske-krav støtter, og hvordan de map
 
 ## Bakgrunn
 
-NAV bruker kombinasjonen av **kravkode** og **hjemmelkode** for å identifisere hvilken stønad et krav gjelder. Skatteetaten bruker derimot ett enkelt felt kalt **kravtype** (eller `StønadstypeKode`). Applikasjonen mapper derfor kravkode + hjemmelkode til en intern `StonadsType`-enum, som igjen brukes som kravtype i SKE-requests.
+NAV bruker kombinasjonen av **kravkode** og **hjemmelkode** for å identifisere hvilken stønad et krav gjelder. Skatteetaten bruker derimot ett enkelt felt kalt **kravtype** (eller `StønadstypeKode`). Applikasjonen mapper derfor kravkode + hjemmelkode til en intern [`StonadsType`](../../src/main/kotlin/no/nav/sokos/ske/krav/domain/StonadsType.kt)-enum, som igjen brukes som kravtype i SKE-requests.
 
-> **Merk:** Av historiske årsaker heter klassen `StonadsType` i koden, men den tilsvarer det SKE kaller `kravtype`. Begrepet `kravtype` i koden brukes separat for å angi om et krav er nytt/endring/stopp.
+> **Merk:** Av historiske årsaker heter klassen [`StonadsType`](../../src/main/kotlin/no/nav/sokos/ske/krav/domain/StonadsType.kt) i koden, men den tilsvarer det SKE kaller `kravtype`. Begrepet `kravtype` i koden brukes separat for å angi om et krav er nytt/endring/stopp.
 
-Dersom en kombinasjon av kravkode og hjemmelkode ikke finnes i tabellen nedenfor, vil kravet feile med `VALIDERINGSFEIL_AV_LINJE_I_FIL` og en Slack-alarm sendes. Nye stønadstyper må koordineres med SKE og legges inn i `StonadsType`-enumen.
+Dersom en kombinasjon av kravkode og hjemmelkode ikke finnes i tabellen nedenfor, vil kravet feile med `VALIDERINGSFEIL_AV_LINJE_I_FIL` og en Slack-alarm sendes. Nye stønadstyper må koordineres med SKE og legges inn i [`StonadsType`](../../src/main/kotlin/no/nav/sokos/ske/krav/domain/StonadsType.kt)-enumen.
 
 ## Mapping-tabell
 
@@ -67,7 +67,7 @@ Dersom en kombinasjon av kravkode og hjemmelkode ikke finnes i tabellen nedenfor
 ## Legge til ny stønadstype
 
 1. Koordiner med SKE at de har lagt inn stønadstypekoden på sin side
-2. Legg til en ny entry i `StonadsType`-enumen i [`StonadsType.kt`](https://github.com/navikt/sokos-ske-krav/blob/main/src/main/kotlin/no/nav/sokos/ske/krav/domain/StonadsType.kt) med riktig kravkode og hjemmelkode
+2. Legg til en ny entry i [`StonadsType`](../../src/main/kotlin/no/nav/sokos/ske/krav/domain/StonadsType.kt)-enumen i [`StonadsType.kt`](https://github.com/navikt/sokos-ske-krav/blob/main/src/main/kotlin/no/nav/sokos/ske/krav/domain/StonadsType.kt) med riktig kravkode og hjemmelkode
 3. Oppdater denne tabellen
 4. Test manuelt ved å sende inn en fil med den nye kravkoden (se [Manuell testing](../testing/Manuell_testing.md))
 

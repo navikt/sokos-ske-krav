@@ -2,40 +2,39 @@
 
 ## Hva er sokos-ske-krav?
 
-sokos-ske-krav er en integrasjonstjeneste som overfører tilbakekrevingskrav fra NAV til Skatteetatens (SKE) innkrevingssystem. Tjenesten erstatter den eldre løsningen PAK og er den eneste kanalen NAV bruker for å opprette, endre og stoppe tilbakekrevingskrav mot Skatteetatens REST-API.
+sokos-ske-krav er en integrasjonstjeneste som overfører tilbakekrevingskrav fra Nav til Skatteetatens (SKE) innkrevingssystem. Tjenesten skal på sikt erstatte Navs bruk av Skatteetatens innkrevingssystem (PAK)
 
 ## Formål
 
-Når NAV fatter vedtak om tilbakekreving av feilutbetalte stønader, må kravene sendes til Skatteetaten, som er ansvarlig for selve innkrevingen. sokos-ske-krav håndterer denne overføringen: den leser kravene fra en flatfil levert av fagsystemene, validerer dem, lagrer dem i en database og sender dem videre til SKE.
+Når Nav fatter vedtak om tilbakekreving av feilutbetalte stønader, må kravene sendes til Skatteetaten, som er ansvarlig for selve innkrevingen. sokos-ske-krav håndterer denne overføringen: den leser kravene fra en flatfil levert av Oppdrag-Z (på sikt også Pesys, Arena og Infotrygd), validerer dem, lagrer dem i en database og sender dem videre til SKE.
 
 ## Aktører og grensesnitt
 
 | Aktør                            | Rolle                                        | Grensesnitt                           |
 |----------------------------------|----------------------------------------------|---------------------------------------|
-| OS/Z (fagsystem)                 | Produserer kravfiler én gang i døgnet        | Flatfil (fixed record) på SFTP-server |
-| sokos-ske-krav                   | Leser, validerer og videresender krav        | Intern tjeneste                       |
+| Oppdrag-Z (fagsystem)            | Produserer kravfiler én gang i døgnet        | Flatfil (fixed record) på SFTP-server |
 | Skatteetaten (SKE)               | Mottar og innkrever kravene                  | REST-API (Maskinporten-sikret)        |
-| Saksbehandler / drift            | Følger opp feil og utfører manuell resending | Webgrensesnitt + direkte DB-tilgang   |
+| Utviklere + fagressurs           | Følger opp feil og utfører manuell resending | Webgrensesnitt + direkte DB-tilgang   |
 | Slack (#team-best-slackbot-prod) | Mottar automatiske varsler om feil           | Slack Webhook                         |
 
 ## Overordnet flyt
 
 ```mermaid
 flowchart LR
-    OS["OS/Z\n(fagsystem)"]
+    OS["Oppdrag-Z\n(fagsystem)"]
     SFTP["SFTP-server\n/inbound"]
     APP["sokos-ske-krav"]
     DB[("PostgreSQL")]
     SKE["Skatteetaten\nREST-API"]
     SLACK["Slack"]
-    SB["Saksbehandler\n/ drift"]
+    SB["Utvikler\n/ fagressurs"]
     OS -->|"Flatfil én gang i døgnet"| SFTP
     SFTP -->|"Hent filer"| APP
     APP -->|"Lagre krav og feil"| DB
     APP -->|"Opprett / endre / stopp krav"| SKE
     SKE -->|"Kravidentifikator + status"| APP
     APP -->|"Feilvarsler"| SLACK
-    SB -->|"Rapport og manuell oppfølging"| APP
+    SB -->|"Manuell oppfølging"| APP
     DB -.->|"Leses av"| APP
 ```
 
@@ -49,7 +48,7 @@ Løsningen håndterer tre typer krav som korresponderer med tre ulike operasjone
 | ENDRING_RENTE + ENDRING_HOVEDSTOL | PUT renter / PUT hovedstol | Endring av eksisterende krav (sendes alltid til begge endepunkter) |
 | STOPP_KRAV                        | POST avskriving            | Avslutter innkrevingen av et krav                                  |
 
-Hvilke stønadstyper en kravkode + hjemmelkode-kombinasjon tilhører er definert i `StonadsType`-enumen, og må koordineres med SKE dersom nye kravkoder introduseres i NAV.
+Hvilke stønadstyper en kravkode + hjemmelkode-kombinasjon tilhører er definert i [`StonadsType`](../../../src/main/kotlin/no/nav/sokos/ske/krav/domain/StonadsType.kt)-enumen, og må koordineres med SKE dersom nye kravkoder introduseres i Nav.
 
 ## Dataflyt og livssyklus for et krav
 
@@ -80,15 +79,9 @@ Et krav er ferdig behandlet når det har nådd status `RESKONTROFOERT` eller `MI
 
 Alle funksjonelle feil håndteres av produkteier og/eller fagsiden. Tekniske feil varsles i `#team-mob-alerts-prod` og meldes til SKE via `#utbetaling-tilbakekreving-fi`.
 
-## Kjøreplan og triggere
+## Kjøreplan 
 
-Tjenesten kjøres periodisk (konfigurerbart, default hvert 5. time) og kan i tillegg trigges manuelt:
-
-| Trigger               | Endepunkt           | Funksjon                         |
-|-----------------------|---------------------|----------------------------------|
-| Periodisk (scheduler) | –                   | Henter nye filer og sender krav  |
-| Manuell HTTP          | GET /api/hentNye    | Starter ny kjøring umiddelbart   |
-| Manuell HTTP          | GET /api/hentStatus | Oppdaterer mottaksstatus fra SKE |
+Tjenesten kjøres periodisk (konfigurerbart, default hvert 5. time)
 
 ## Avhengigheter
 

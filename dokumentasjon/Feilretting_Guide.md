@@ -2,7 +2,7 @@
 
 Denne guiden er ment for utviklere for å feilsøke og feilrette problemer i sokos-ske-krav.
 
-I de aller fleste tilfeller skal vi kun rapportere feilen til produkteier/produktleder, og så vil de håndtere videre kommunikasjon med fagressurser og Skatteetaten.
+I de aller fleste tilfeller skal vi kun rapportere feilen til fagressurs eller produktleder, og så vil de håndtere videre kommunikasjon med Skatteetaten og brukere av fagsystemene.
 Alle feil, med unntak av validering som skjer på vår side, vil vises på [denne siden](https://sokos-ske-krav.intern.nav.no/rapporter/avstemming) med informasjon som trengs for å feilsøke og rapportere. Produkteier og teknisk domenespesialist har tilgang til denne siden.
 
 
@@ -66,7 +66,7 @@ Det finnes to typer validering: Filvalidering, og Linjevalidering. Filvalidering
 dette feiler. Linjevalidering validerer at kravlinjene er i henhold til våre interne regler samt Skatteetatens regler og at de kan sendes til Skatteetaten.
 
 ### Filvalidering
-Fil blir validert i `FileValidator.kt`  
+Fil blir validert i [`FileValidator.kt`](../src/main/kotlin/no/nav/sokos/ske/krav/validation/FileValidator.kt)  
 Filen vi mottar inneholder en header og en footer med tilleggsinformasjon. Footeren inneholder antall transaksjoner ("kravlinjer"), sum alle transaksjoner (hovedstol + rentebeløp), og transaksjonsdato. Headeren inneholder også transaksjonsdato.  
 Det finnes tre valideringsregler:
 * Antall linjer må stemme ( lastLine.antallTransaksjoner må være lik kravLinjer.size)
@@ -77,7 +77,7 @@ Dersom filvalidering feiler vil en melding bli sendt til Slack og filen vil flyt
 
 
 ### Linjevalidering
-Enkeltlinjer blir validert i `LineValidator.kt` i henhold til [Skatteetatens regler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler).
+Enkeltlinjer blir validert i [`LineValidator.kt`](../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidator.kt) i henhold til [Skatteetatens regler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler).
 
 * Saksnummer er på ugyldig format (må være "^[a-zA-Z0-9-/]+$")
 * Vedtaksdato kan ikke være i fremtiden

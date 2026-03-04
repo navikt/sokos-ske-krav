@@ -85,7 +85,7 @@ Hovedtabellen som lagrer innkommende krav fra SKE. Hvert krav representerer én 
 | `periode_fom`              | varchar(12) | Periode fra og med                                       |
 | `periode_tom`              | varchar(12) | Periode til og med                                       |
 | `kravkode`                 | varchar(8)  | Kode som identifiserer kravtype                          |
-| `referansenummergammelsak` | varchar(40) | Referansenummer fra gammel sak                           |
+| `referansenummergammelsak` | varchar(40) | Referansenummer fra original sak eller endring           |
 | `transaksjonsdato`         | varchar(12) | Dato for transaksjonen                                   |
 | `enhet_bosted`             | varchar(4)  | Bostedsenhet                                             |
 | `enhet_behandlende`        | varchar(4)  | Behandlende enhet                                        |
@@ -112,19 +112,19 @@ Hovedtabellen som lagrer innkommende krav fra SKE. Hvert krav representerer én 
 
 Lagrer feilmeldinger som oppstår ved behandling av krav mot NAV/SKE sine systemer.
 
-| Kolonne | Type | Beskrivelse |
-|---|---|---|
-| `id` | bigserial | Primærnøkkel, auto-generert |
-| `krav_id` | bigint | Referanse til `krav.id` |
-| `corr_id` | text | Korrelasjon-ID for sporing |
-| `saksnummer_nav` | text | Saksnummer i NAV |
-| `kravidentifikator_ske` | text | SKEs kravidentifikator |
-| `error` | text | Feilkode/feiltype |
-| `melding` | text | Feilmeldingstekst |
-| `nav_request` | text | Requesten sendt til NAV |
-| `ske_response` | text | Responsen mottatt fra SKE |
-| `tidspunkt_opprettet` | timestamp | Tidspunkt feilmeldingen ble opprettet (default: NOW()) |
-| `rapporter` | boolean | Om feilen skal rapporteres (default: true) *(lagt til i V1.0.1)* |
+| Kolonne                 | Type      | Beskrivelse                                                      |
+|-------------------------|-----------|------------------------------------------------------------------|
+| `id`                    | bigserial | Primærnøkkel, auto-generert                                      |
+| `krav_id`               | bigint    | Referanse til `krav.id`                                          |
+| `corr_id`               | text      | Korrelasjon-ID for sporing                                       |
+| `saksnummer_nav`        | text      | Saksnummer i NAV                                                 |
+| `kravidentifikator_ske` | text      | SKEs kravidentifikator                                           |
+| `error`                 | text      | Feilkode/feiltype                                                |
+| `melding`               | text      | Feilmeldingstekst                                                |
+| `nav_request`           | text      | Requesten sendt til NAV                                          |
+| `ske_response`          | text      | Responsen mottatt fra SKE                                        |
+| `tidspunkt_opprettet`   | timestamp | Tidspunkt feilmeldingen ble opprettet (default: NOW())           |
+| `rapporter`             | boolean   | Om feilen skal rapporteres (default: true) *(lagt til i V1.0.1)* |
 
 ---
 

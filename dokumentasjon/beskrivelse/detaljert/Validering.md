@@ -4,13 +4,13 @@ Dokumentasjonen dekker alle valideringsregler som kjøres i sokos-ske-krav, delt
 
 ---
 
-## 1. Filvalidering (`FileValidator`)
+## 1. Filvalidering ([`FileValidator`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/FileValidator.kt))
 
 Filvalidering kjøres på hele filen umiddelbart etter nedlasting fra SFTP. Filen er bygget opp av tre seksjoner:
 
-- **Header** (`KontrollLinjeHeader`) – første linje, brukes kun til filvalidering
-- **Kravlinjer** (`KravLinje`) – n antall datarader
-- **Footer** (`KontrollLinjeFooter`) – siste linje, inneholder kontrollsummer
+- **Header** ([`KontrollLinjeHeader`](../../../src/main/kotlin/no/nav/sokos/ske/krav/copybook/FixedRecord.kt)) – første linje, brukes kun til filvalidering
+- **Kravlinjer** ([`KravLinje`](../../../src/main/kotlin/no/nav/sokos/ske/krav/copybook/FixedRecord.kt)) – n antall datarader
+- **Footer** ([`KontrollLinjeFooter`](../../../src/main/kotlin/no/nav/sokos/ske/krav/copybook/FixedRecord.kt)) – siste linje, inneholder kontrollsummer
 
 ### Regler
 
@@ -30,7 +30,7 @@ Filvalidering kjøres på hele filen umiddelbart etter nedlasting fra SFTP. File
 
 ---
 
-## 2. Linjevalidering (`LineValidationRules`)
+## 2. Linjevalidering ([`LineValidationRules`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidationRules.kt))
 
 Linjevalidering kjøres på hver enkelt kravlinje etter at filvalideringen er godkjent. Valideringsreglene speiler SKEs synkrone valideringsregler (se [SKE sin dokumentasjon](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler)).
 
@@ -89,7 +89,7 @@ Feltet tilsvarer `foreldelsesfristensUtgangspunkt` hos SKE.
 
 | Regel                | Betingelse                                                                      | Feilmelding                                                 |
 |----------------------|---------------------------------------------------------------------------------|-------------------------------------------------------------|
-| Kombinasjonen finnes | `StonadsType.getStonadstype(kravkode, kodeHjemmel)` må returnere en kjent verdi | `"Kravtype finnes ikke definert for oversending til skatt"` |
+| Kombinasjonen finnes | [`StonadsType.getStonadstype(kravkode, kodeHjemmel)`](../../../src/main/kotlin/no/nav/sokos/ske/krav/domain/StonadsType.kt) må returnere en kjent verdi | `"Kravtype finnes ikke definert for oversending til skatt"` |
 
 ### Ved linjevalideringsfeil
 

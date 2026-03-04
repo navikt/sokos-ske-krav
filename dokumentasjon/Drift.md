@@ -16,21 +16,21 @@ For å logge inn i prod database (prod-pg.intern.nav.no) må du åpne po-utbetal
 
 ### Finne informasjon om et gitt krav
 Typisk scenario er at et krav ikke er kommet frem til Skatteetaten eller ikke er blitt reskontroført. Det vil opprettes en Jirasak med informasjon om kravet og du vil typisk bli gitt et saksnummer. Du kan så logge inn i prod database og finne kravet ved å sjekke SaksnummerNav i tabellen Krav:
-`select * from krav where saksnummer_nav = `
+`select * from krav where saksnummer_nav = `   
 Hvis det har skjedd noe feil kan du finne feilmelding i Feilmelding:
 `select * from feilmelding where saksnummer_nav = `
 
 ### Resende et krav
 Dette er nødvendig når det har gått noe galt med et krav, og så har det blitt rettet opp i. For eksempel hvis det feilet i validering, eller hvis tjenesten til Skatteetaten var nede. Da må verdien i statuskolonnen settes til "KRAV_IKKE_SENDT" for at kravet skal bli sendt på nytt. Dette gjøres ved å kjøre følgende SQL-kommando:
 `update krav set status = 'KRAV_IKKE_SENDT' where saksnummer_nav = ` 
-Alternativt kan du gjøre det i GUI for å minimere risikoen for feil.
+Alternativt kan du gjøre det i Intellij GUI for å minimere risikoen for feil.
 Kravet vil så plukkes opp og resendes neste gang scheduleringen kjører.
 Husk at du alltid må ha tillatelse fra prosjektleder, samt en Jirasak før du gjør endringer i database. Dette er pga etterlevelseskrav.
 
 
 
 ## Typiske videreutviklingsoppgaver
-- Legge til ny kravkoder: legg til ny entry i `StonadsType`-enumen og oppdater [Stonadstyper.md](funksjonalitet/Stonadstyper.md)
+- Legge til ny kravkoder: legg til ny entry i [`StonadsType`](../src/main/kotlin/no/nav/sokos/ske/krav/domain/StonadsType.kt)-enumen og oppdater [Stonadstyper.md](funksjonalitet/Stonadstyper.md)
 - Legge til nye felter
 - Endre navn på parametere til Skatteetaten
 

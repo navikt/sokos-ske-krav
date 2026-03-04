@@ -17,7 +17,7 @@ Filen valideres ved å bekrefte at informasjonen i footeren stemmer overens med 
 Dersom filvalidering feiler vil en alarm sendes til Slack og filen flyttes til `/inbound/feilfiler`. Ingen krav fra filen behandles videre.
 
 ### Linjevalidering
-Kravene parses til `KravLinje`-objekter og hver linje valideres individuelt. Valideringsreglene finnes i [`LineValidator.kt`](https://github.com/navikt/sokos-ske-krav/blob/main/src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidator.kt).
+Kravene parses til [`KravLinje`](../../src/main/kotlin/no/nav/sokos/ske/krav/copybook/FixedRecord.kt)-objekter og hver linje valideres individuelt. Valideringsreglene finnes i [`LineValidator.kt`](https://github.com/navikt/sokos-ske-krav/blob/main/src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidator.kt).
 
 Dersom linjevalidering feiler lagres informasjon om linjen i databasetabellen `filvalideringsfeil`, en alarm sendes til Slack, og linjen sendes **ikke** videre til Skatteetaten. Øvrige gyldige linjer i filen behandles normalt.
 
@@ -84,8 +84,8 @@ Dette scenarioet kalles «dobbel endring på et migrert krav». Det varsles i Sl
 
 ## Kravkode + hjemmelkode = Stønadstype
 
-SKE bruker *kravtype* som identifikator for hvilken stønad kravet gjelder. NAV bruker *kravkode* og *hjemmelkode*. Applikasjonen mapper kombinasjonen til en intern `StonadsType`-enum som igjen brukes som kravtype i SKE-requester.
+SKE bruker *kravtype* som identifikator for hvilken stønad kravet gjelder. NAV bruker *kravkode* og *hjemmelkode*. Applikasjonen mapper kombinasjonen til en intern [`StonadsType`](../../src/main/kotlin/no/nav/sokos/ske/krav/domain/StonadsType.kt)-enum som igjen brukes som kravtype i SKE-requester.
 
-> **Merk:** Av historiske årsaker heter klassen `StonadsType` i koden, men tilsvarer det SKE kaller `kravtype`. Begrepet `kravtype` i koden brukes separat for å angi om et krav er nytt/endring/stopp.
+> **Merk:** Av historiske årsaker heter klassen [`StonadsType`](../../src/main/kotlin/no/nav/sokos/ske/krav/domain/StonadsType.kt) i koden, men tilsvarer det SKE kaller `kravtype`. Begrepet `kravtype` i koden brukes separat for å angi om et krav er nytt/endring/stopp.
 
-Se [fullstendig oversikt over alle stønadstyper og kravkoder](Stonadstyper.md). Dersom NAV oppretter nye kravkoder må dette koordineres med SKE, og den nye kombinasjonen legges inn i `StonadsType`-enumen.
+Se [fullstendig oversikt over alle stønadstyper og kravkoder](Stonadstyper.md). Dersom NAV oppretter nye kravkoder må dette koordineres med SKE, og den nye kombinasjonen legges inn i [`StonadsType`](../../src/main/kotlin/no/nav/sokos/ske/krav/domain/StonadsType.kt)-enumen.
