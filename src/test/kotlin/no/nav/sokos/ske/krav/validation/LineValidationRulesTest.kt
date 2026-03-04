@@ -388,4 +388,44 @@ internal class LineValidationRulesTest :
                 }
             }
         }
+
+        Given("Et krav har blank gjelderId") {
+            val krav = okLinje.copy(gjelderId = "   ")
+
+            When("Krav valideres") {
+                val validationResult: ValidationResult = LineValidationRules.runValidation(krav)
+
+                Then("Skal validationResult være error") {
+                    (validationResult is ValidationResult.Error) shouldBe true
+                }
+
+                And("Feilmelding skal returneres") {
+                    with((validationResult as ValidationResult.Error).messages) {
+                        size shouldBe 1
+                        first().first shouldBe LineValidationRules.ErrorKeys.GJELDERID_ERROR
+                        first().second shouldContain LineValidationRules.ErrorMessages.GJELDERID_MISSING
+                    }
+                }
+            }
+        }
+
+        Given("Et krav har negativt beløp") {
+            val krav = okLinje.copy(belop = BigDecimal("-100.00"))
+
+            When("Krav valideres") {
+                val validationResult: ValidationResult = LineValidationRules.runValidation(krav)
+
+                Then("Skal validationResult være error") {
+                    (validationResult is ValidationResult.Error) shouldBe true
+                }
+
+                And("Feilmelding skal returneres") {
+                    with((validationResult as ValidationResult.Error).messages) {
+                        size shouldBe 1
+                        first().first shouldBe LineValidationRules.ErrorKeys.HOVEDSTOL_ERROR
+                        first().second shouldContain LineValidationRules.ErrorMessages.BELOP_NEGATIVE
+                    }
+                }
+            }
+        }
     })
