@@ -57,8 +57,8 @@ data class YtelseForAvregningBeloep(
 
 @Serializable
 data class TilbakeKrevingsPeriode(
-    val fom: LocalDate,
-    val tom: LocalDate,
+    val fraDato: LocalDate,
+    val tilDato: LocalDate,
 )
 
 @Serializable
