@@ -24,13 +24,13 @@ class SlackClient(
         messages: Map<String, List<String>>,
     ) {
         val response =
-            client.post {
-                url(slackEndpoint)
-                contentType(ContentType.Application.Json)
-                setBody(createSlackMessage(header, fileName, messages))
-            }
+            client
+                .post {
+                    url(slackEndpoint)
+                    contentType(ContentType.Application.Json)
+                    setBody(createSlackMessage(header, fileName, messages))
+                }.bodyAsText()
 
-        val responseBody = response.bodyAsText()
-        logger.info { "Slack message sent to $slackEndpoint: $responseBody" }
+        logger.info { "Slack message sent to $slackEndpoint: $response" }
     }
 }
