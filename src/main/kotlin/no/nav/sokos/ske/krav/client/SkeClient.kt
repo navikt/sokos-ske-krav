@@ -10,14 +10,11 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
-import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig
-import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.config.httpClient
 import no.nav.sokos.ske.krav.dto.ske.requests.AvskrivingRequest
 import no.nav.sokos.ske.krav.dto.ske.requests.EndreRenteBeloepRequest
@@ -40,8 +37,6 @@ class SkeClient(
     private val skeEndpoint: String = PropertiesConfig.skeRestConfig.skeRestUrl,
     private val client: HttpClient = httpClient,
 ) {
-    private val logger = KotlinLogging.logger {}
-
     suspend fun endreRenter(
         request: EndreRenteBeloepRequest,
         kravidentifikator: String,
@@ -82,19 +77,12 @@ class SkeClient(
         path: String,
         request: T,
         corrID: String,
-    ): HttpResponse {
-        val requestB =
-            buildHttpRequest(path, corrID).apply {
-                contentType(ContentType.Application.Json)
-                setBody(request)
-            }
-
-        logger.info(marker = TEAM_LOGS_MARKER) { requestB.headers.entries() }
-        logger.info { requestB.url.toString() }
-        logger.info { requestB.attributes.allKeys }
-        logger.info { requestB.body }
-        return client.post(requestB)
-    }
+    ) = client.post(
+        buildHttpRequest(path, corrID).apply {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        },
+    )
 
     private suspend inline fun <reified T> doPut(
         path: String,
@@ -112,30 +100,20 @@ class SkeClient(
     private suspend fun doGet(
         path: String,
         corrID: String,
-    ): HttpResponse {
-        val request = buildHttpRequest(path, corrID)
-        logger.info(marker = TEAM_LOGS_MARKER) { request.headers.entries() }
-        logger.info { request.url.toString() }
-        logger.info { request.attributes.allKeys }
-        logger.info { request.body }
-        return client.get(request)
-    }
+    ) = client.get(buildHttpRequest(path, corrID))
 
     private suspend fun buildHttpRequest(
         path: String,
         corrID: String,
     ): HttpRequestBuilder {
         val token = tokenProvider.getAccessToken()
-        val request =
-            HttpRequestBuilder().apply {
-                url("$skeEndpoint$path")
-                headers {
-                    append("Klientid", KLIENT_ID)
-                    append("Korrelasjonsid", corrID)
-                    append(HttpHeaders.Authorization, "Bearer $token")
-                }
+        return HttpRequestBuilder().apply {
+            url("$skeEndpoint$path")
+            headers {
+                append("Klientid", KLIENT_ID)
+                append("Korrelasjonsid", corrID)
+                append(HttpHeaders.Authorization, "Bearer $token")
             }
-
-        return request
+        }
     }
 }
