@@ -61,3 +61,7 @@ spec:
         - name: skatteetaten:innkrevingsoppdrag
   vault:
     enabled: true
+
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: -XX:MaxRAMPercentage=75 --enable-native-access=ALL-UNNAMED $(JAVA_PROXY_OPTIONS)
