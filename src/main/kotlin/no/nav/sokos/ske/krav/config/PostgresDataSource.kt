@@ -41,6 +41,8 @@ object PostgresDataSource {
         if (PropertiesConfig.isLocal) {
             HikariDataSource(hikariConfig)
         } else {
+            logger.info { "VAULT PATH: $postgresConfig.vaultMountPath" }
+            logger.info { "VAULT ROLE: $role" }
             HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
                 hikariConfig,
                 postgresConfig.vaultMountPath,

@@ -10,6 +10,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
@@ -77,12 +78,19 @@ class SkeClient(
         path: String,
         request: T,
         corrID: String,
-    ) = client.post(
-        buildHttpRequest(path, corrID).apply {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        },
-    )
+    ): HttpResponse {
+        val requestB =
+            buildHttpRequest(path, corrID).apply {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+
+        println(requestB.headers.entries())
+        println(requestB.url.toString())
+        println(requestB.attributes.allKeys)
+        println(requestB.body)
+        return client.post(requestB)
+    }
 
     private suspend inline fun <reified T> doPut(
         path: String,
@@ -100,20 +108,30 @@ class SkeClient(
     private suspend fun doGet(
         path: String,
         corrID: String,
-    ) = client.get(buildHttpRequest(path, corrID))
+    ): HttpResponse {
+        val request = buildHttpRequest(path, corrID)
+        println(request.headers.entries())
+        println(request.url.toString())
+        println(request.attributes.allKeys)
+        println(request.body)
+        return client.get(request)
+    }
 
     private suspend fun buildHttpRequest(
         path: String,
         corrID: String,
     ): HttpRequestBuilder {
         val token = tokenProvider.getAccessToken()
-        return HttpRequestBuilder().apply {
-            url("$skeEndpoint$path")
-            headers {
-                append("Klientid", KLIENT_ID)
-                append("Korrelasjonsid", corrID)
-                append(HttpHeaders.Authorization, "Bearer $token")
+        val request =
+            HttpRequestBuilder().apply {
+                url("$skeEndpoint$path")
+                headers {
+                    append("Klientid", KLIENT_ID)
+                    append("Korrelasjonsid", corrID)
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
             }
-        }
+
+        return request
     }
 }
