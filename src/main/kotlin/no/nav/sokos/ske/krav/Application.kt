@@ -56,7 +56,6 @@ private fun Application.module() {
             Metrics.registerKravKodeCounter(kravKode)
         }
 
-    logger.info { "USE TIMER? ${timerConfig.useTimer}" }
     if (!timerConfig.useTimer) {
         return
     }

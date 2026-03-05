@@ -23,6 +23,7 @@ class SlackClient(
         fileName: String,
         messages: Map<String, List<String>>,
     ) {
+        logger.info { "Sending slack message to $slackEndpoint" }
         val response =
             client
                 .post {
