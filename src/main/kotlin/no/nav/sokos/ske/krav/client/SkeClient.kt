@@ -17,6 +17,7 @@ import io.ktor.http.contentType
 import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig
+import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.config.httpClient
 import no.nav.sokos.ske.krav.dto.ske.requests.AvskrivingRequest
 import no.nav.sokos.ske.krav.dto.ske.requests.EndreRenteBeloepRequest
@@ -88,7 +89,7 @@ class SkeClient(
                 setBody(request)
             }
 
-        logger.info { requestB.headers.entries() }
+        logger.info(marker = TEAM_LOGS_MARKER) { requestB.headers.entries() }
         logger.info { requestB.url.toString() }
         logger.info { requestB.attributes.allKeys }
         logger.info { requestB.body }
@@ -113,7 +114,7 @@ class SkeClient(
         corrID: String,
     ): HttpResponse {
         val request = buildHttpRequest(path, corrID)
-        logger.info { request.headers.entries() }
+        logger.info(marker = TEAM_LOGS_MARKER) { request.headers.entries() }
         logger.info { request.url.toString() }
         logger.info { request.attributes.allKeys }
         logger.info { request.body }
