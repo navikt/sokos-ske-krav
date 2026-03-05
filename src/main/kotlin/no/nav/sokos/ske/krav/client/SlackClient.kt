@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 
@@ -15,15 +16,21 @@ class SlackClient(
     private val slackEndpoint: String = PropertiesConfig.slackConfig.url,
     private val client: HttpClient = httpClient,
 ) {
+    private val logger = mu.KotlinLogging.logger {}
+
     suspend fun sendMessage(
         header: String,
         fileName: String,
         messages: Map<String, List<String>>,
     ) {
-        client.post {
-            url(slackEndpoint)
-            contentType(ContentType.Application.Json)
-            setBody(createSlackMessage(header, fileName, messages))
-        }
+        val response =
+            client.post {
+                url(slackEndpoint)
+                contentType(ContentType.Application.Json)
+                setBody(createSlackMessage(header, fileName, messages))
+            }
+
+        val responseBody = response.bodyAsText()
+        logger.info { "Slack message sent to $slackEndpoint: $responseBody" }
     }
 }
