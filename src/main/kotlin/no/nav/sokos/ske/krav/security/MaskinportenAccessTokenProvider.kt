@@ -54,9 +54,7 @@ class MaskinportenAccessTokenProvider(
                 tokenCache.set(getMaskinportenToken())
             }
 
-            val token = tokenCache.get()!!.token
-            println("jwt: $token")
-            token
+            tokenCache.get()?.token ?: ""
         }
 
     private suspend fun getMaskinportenToken(): AccessToken {

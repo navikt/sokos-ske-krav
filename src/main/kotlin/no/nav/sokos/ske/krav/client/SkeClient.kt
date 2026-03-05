@@ -14,6 +14,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
+import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.httpClient
@@ -38,6 +39,8 @@ class SkeClient(
     private val skeEndpoint: String = PropertiesConfig.skeRestConfig.skeRestUrl,
     private val client: HttpClient = httpClient,
 ) {
+    private val logger = KotlinLogging.logger {}
+
     suspend fun endreRenter(
         request: EndreRenteBeloepRequest,
         kravidentifikator: String,
@@ -85,10 +88,10 @@ class SkeClient(
                 setBody(request)
             }
 
-        println(requestB.headers.entries())
-        println(requestB.url.toString())
-        println(requestB.attributes.allKeys)
-        println(requestB.body)
+        logger.info { requestB.headers.entries() }
+        logger.info { requestB.url.toString() }
+        logger.info { requestB.attributes.allKeys }
+        logger.info { requestB.body }
         return client.post(requestB)
     }
 
@@ -110,10 +113,10 @@ class SkeClient(
         corrID: String,
     ): HttpResponse {
         val request = buildHttpRequest(path, corrID)
-        println(request.headers.entries())
-        println(request.url.toString())
-        println(request.attributes.allKeys)
-        println(request.body)
+        logger.info { request.headers.entries() }
+        logger.info { request.url.toString() }
+        logger.info { request.attributes.allKeys }
+        logger.info { request.body }
         return client.get(request)
     }
 
