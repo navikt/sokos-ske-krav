@@ -26,6 +26,7 @@ object CircuitBreakerManager {
             .waitDurationInOpenState(Duration.ofHours(circuitBreakerConfig.waitDurationInOpenState)) // TODO: Juster denne verdien basert på forventet nedetid
             .permittedNumberOfCallsInHalfOpenState(PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE)
             .automaticTransitionFromOpenToHalfOpenEnabled(true)
+            .recordExceptions(CircuitBreakerException::class.java)
             .build()
 
     val circuitBreaker: CircuitBreaker =
@@ -33,7 +34,7 @@ object CircuitBreakerManager {
             eventPublisher
                 .onStateTransition { event ->
                     logger.info {
-                        "Circuit breaker state changed: ${event.stateTransition.fromState} -> ${event.stateTransition.toState}"
+                        "${ event.eventType} Circuit breaker state changed: ${event.stateTransition.fromState} -> ${event.stateTransition.toState}"
                     }
                 }
         }
