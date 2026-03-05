@@ -5,11 +5,11 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.config.ApplicationConfig
-import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.unmockkObject
 
@@ -34,7 +34,7 @@ internal class StatusServiceIntegrationTest :
     BehaviorSpec({
         extensions(DBListener)
         beforeEach { CircuitBreakerManager.circuitBreaker.reset() }
-        val dbService by lazy { DatabaseService(DBListener.dataSource) }
+        val dbService = DatabaseService(DBListener.dataSource)
 
         fun setupServices(
             client: HttpClient,
@@ -102,11 +102,6 @@ internal class StatusServiceIntegrationTest :
 
             val (slackClientSpy, slackServiceSpy, statusService) = setupServices(httpClient, dbService)
 
-            val capturedSendMessages = mutableListOf<Triple<String, String, Map<String, List<String>>>>()
-            coEvery { slackClientSpy.sendMessage(any(), any(), any()) } answers {
-                capturedSendMessages.add(Triple(firstArg(), secondArg(), thirdArg()))
-            }
-
             DBListener.dataSource.asyncTransaction { tx ->
 
                 FeilmeldingRepository.getAllFeilmeldinger(tx).size shouldBe 0
@@ -138,17 +133,23 @@ internal class StatusServiceIntegrationTest :
                         slackServiceSpy.addError(capture(addErrorFilenameSlots), any<String>(), capture(addErrorMessagesSlot))
                     }
 
-                    Then("Skal 5 feilmeldinger dannes og 1 alert sendes") {
+                    Then("Skal 5 feilmeldinger dannes") {
                         addErrorFilenameSlots.filter { it == fileName }.size shouldBe 5
                         addErrorMessagesSlot.size shouldBe 5
                         addErrorMessagesSlot.forEach {
                             it.first shouldBe status
                             it.second shouldBe "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke"
                         }
+                    }
+                    Then("Skal 3 feilmeldinger sendes") {
+                        val sendAlertFilenameSlot = slot<String>()
+                        val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
-                        capturedSendMessages.size shouldBe 1
-                        capturedSendMessages.first().second shouldBe fileName
-                        capturedSendMessages.first().third shouldBe addErrorMessagesSlot.groupBy({ it.first }, { it.second })
+                        coVerify(exactly = 1) {
+                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
+                        }
+                        sendAlertFilenameSlot.captured shouldBe fileName
+                        sendAlertMessagesSlot.captured shouldBe addErrorMessagesSlot.groupBy({ it.first }, { it.second })
                     }
                 }
             }

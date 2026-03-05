@@ -56,7 +56,6 @@ private fun Application.module() {
             Metrics.registerKravKodeCounter(kravKode)
         }
 
-    println("SLACK URL ${PropertiesConfig.slackConfig.url}")
     if (!timerConfig.useTimer) {
         return
     }

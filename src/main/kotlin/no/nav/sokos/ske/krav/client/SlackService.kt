@@ -75,7 +75,6 @@ class SlackService(
         logger.info { "Sending ${errorTracking.size} slack messages" }
         errorTracking.forEach { fileErrors ->
             fileErrors.headers.forEach { header ->
-                println("Sending ${header.header}")
                 slackClient.sendMessage(header.header, fileErrors.fileName, header.errors)
             }
         }
