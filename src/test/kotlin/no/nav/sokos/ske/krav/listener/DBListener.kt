@@ -36,8 +36,8 @@ object DBListener : TestListener {
                 maximumPoolSize = 100
                 minimumIdle = 1
                 isAutoCommit = false
-            }.apply {
-                PostgresDataSource.migrate(container.toDataSource())
+            }.also {
+                PostgresDataSource.migrate(it)
             }
     }
 

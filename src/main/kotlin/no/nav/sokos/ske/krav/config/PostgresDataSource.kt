@@ -18,20 +18,22 @@ object PostgresDataSource {
         dataSource()
     }
 
-    fun migrate(dataSource: HikariDataSource = dataSource(role = postgresConfig.adminUser)) {
-        dataSource.use {
-            logger.info { "Flyway migration" }
-            Flyway
-                .configure()
-                .dataSource(dataSource)
-                .initSql("""SET ROLE "${postgresConfig.adminUser}"""")
-                .lockRetryCount(-1)
-                .validateMigrationNaming(true)
-                .load()
-                .migrate()
-                .migrationsExecuted
-            logger.info { "Migration finished" }
-        }
+    fun migrate() {
+        dataSource(role = postgresConfig.adminUser).use { migrate(it) }
+    }
+
+    fun migrate(dataSource: HikariDataSource) {
+        logger.info { "Flyway migration" }
+        Flyway
+            .configure()
+            .dataSource(dataSource)
+            .initSql("""SET ROLE "${postgresConfig.adminUser}"""")
+            .lockRetryCount(-1)
+            .validateMigrationNaming(true)
+            .load()
+            .migrate()
+            .migrationsExecuted
+        logger.info { "Migration finished" }
     }
 
     private fun dataSource(
