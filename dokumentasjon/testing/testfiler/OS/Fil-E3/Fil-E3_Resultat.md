@@ -9,7 +9,7 @@
 
 
 ##  Krav
-```select linjenummer, filnavn, saksnummer_nav, referansenummergammelsak, belop, belop_rente, fremtidig_ytelse, vedtaksdato,utbetaldato,gjelder_id, periode_fom, periode_tom, kravkode, kode_hjemmel, transaksjonsdato, enhet_bosted, enhet_behandlende, fagsystem_id, kravtype, status, tilleggsfrist, avsender from krav where filnavn = 'Fil-E3.txt' and  tidspunkt_opprettet > '2026-02-24 15:00:00'``` (bytt ut timestamp med det som passer, eller bruk DATE(now()))   
+```select linjenummer, filnavn, saksnummer_nav, referansenummergammelsak, belop, belop_rente, fremtidig_ytelse, vedtaksdato,utbetaldato,gjelder_id, periode_fom, periode_tom, kravkode, kode_hjemmel, transaksjonsdato, enhet_bosted, enhet_behandlende, fagsystem_id, kravtype, status, tilleggsfrist, avsender from krav where filnavn = 'Fil-E3.txt' and  DATE(tidspunkt_opprettet) = DATE(now()) order by linjenummer```   
 Se [sokos_ske_krav_public_feilmelding-Fil-E3.xml](sokos_ske_krav_public_feilmelding-Fil-E3.xml)
 
 | linjenummer | filnavn    | saksnummer_nav     | referansenummergammelsak | belop | belop_rente | fremtidig_ytelse | vedtaksdato | utbetaldato | gjelder_id  | periode_fom | periode_tom | kravkode | kode_hjemmel | transaksjonsdato | enhet_bosted | enhet_behandlende | fagsystem_id       | kravtype          | status                    | tilleggsfrist | avsender |
@@ -82,7 +82,7 @@ Se [sokos_ske_krav_public_feilmelding-Fil-E3.xml](sokos_ske_krav_public_feilmeld
 
 
 ## Feilmelding
-```select saksnummer_nav, error, melding, ske_response from feilmelding where saksnummer_nav in (select krav.saksnummer_nav from krav where filnavn = 'Fil-E3.txt' and DATE(tidspunkt_opprettet) = DATE(now()))``` (eller bruk timestamp)  
+```select saksnummer_nav, error, melding, ske_response from feilmelding where saksnummer_nav in (select krav.saksnummer_nav from krav where filnavn = 'Fil-E3.txt' and DATE(tidspunkt_opprettet) = DATE(now()))```
 Se [sokos_ske_krav_public_feilmelding-Fil-E3.xml](sokos_ske_krav_public_feilmelding-Fil-E3.xml)
 
 | saksnummer_nav     | error | melding                                                                                   | ske_response                                                                                                                                                                                                                                                                                                                                                             |

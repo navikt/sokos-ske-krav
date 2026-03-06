@@ -1,4 +1,4 @@
-# Forventet resultat av kjøring av Fil-E3.txt
+# Forventet resultat av kjøring av Fil-E4.txt
 
 5 stopp, ingen feil
 
