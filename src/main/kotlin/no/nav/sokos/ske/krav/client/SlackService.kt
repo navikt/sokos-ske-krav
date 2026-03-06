@@ -21,7 +21,6 @@ class SlackService(
         header: String,
         messages: Map<String, List<String>>,
     ) {
-        logger.info { "adding slack errors" }
         val fileError =
             errorTracking.find { it.fileName == fileName }
                 ?: FileErrors(fileName, mutableListOf()).also { errorTracking.add(it) }
@@ -31,7 +30,6 @@ class SlackService(
                 ?: ErrorHeader(header, mutableMapOf()).also { fileError.headers.add(it) }
 
         messages.forEach { (errorType, errorMessages) ->
-            logger.info { "Fant ${errorMessages.size} feil i $fileName for $errorType" }
             val errorTypeMessages = headerEntry.errors.getOrPut(errorType) { mutableListOf() }
             errorTypeMessages.addAll(errorMessages)
         }
@@ -72,7 +70,6 @@ class SlackService(
 
     suspend fun sendErrors() {
         consolidateErrors()
-        logger.info { "Sending ${errorTracking.size} slack messages" }
         errorTracking.forEach { fileErrors ->
             fileErrors.headers.forEach { header ->
                 slackClient.sendMessage(header.header, fileErrors.fileName, header.errors)
