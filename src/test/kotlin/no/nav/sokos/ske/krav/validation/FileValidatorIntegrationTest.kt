@@ -4,17 +4,12 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
-import io.ktor.server.config.ApplicationConfig
 import io.mockk.coVerify
-import io.mockk.every
-import io.mockk.mockkObject
 import io.mockk.slot
 import io.mockk.spyk
-import io.mockk.unmockkObject
 
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
-import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.SftpListener
@@ -27,7 +22,7 @@ import no.nav.sokos.ske.krav.validation.FileValidator.ErrorKeys
 internal class FileValidatorIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener, DBListener)
-        val dbService = DatabaseService(DBListener.dataSource)
+        val dbService by lazy { DatabaseService(DBListener.dataSource) }
 
         fun setupSlackService(): SlackService {
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
@@ -40,11 +35,6 @@ internal class FileValidatorIntegrationTest :
                 fileValidator = FileValidator(slackService = slackServiceSpy),
                 databaseService = dbService,
             )
-
-        beforeSpec {
-            mockkObject(PropertiesConfig)
-            every { PropertiesConfig.config } returns ApplicationConfig("application-test.conf")
-        }
 
         Given("Fil er OK") {
             val slackServiceSpy = setupSlackService()
@@ -307,9 +297,5 @@ internal class FileValidatorIntegrationTest :
                     }
                 }
             }
-        }
-
-        afterSpec {
-            unmockkObject(PropertiesConfig)
         }
     })
