@@ -4,20 +4,15 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.config.ApplicationConfig
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
 import io.mockk.slot
 import io.mockk.spyk
-import io.mockk.unmockkObject
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
-import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
@@ -34,7 +29,7 @@ internal class StatusServiceIntegrationTest :
     BehaviorSpec({
         extensions(DBListener)
         beforeEach { CircuitBreakerManager.circuitBreaker.reset() }
-        val dbService = DatabaseService(DBListener.dataSource)
+        val dbService by lazy { DatabaseService(DBListener.dataSource) }
 
         fun setupServices(
             client: HttpClient,
@@ -46,11 +41,6 @@ internal class StatusServiceIntegrationTest :
             val statusServiceSpy = spyk(StatusService(DBListener.dataSource, skeClient, databaseService, slackServiceSpy), recordPrivateCalls = true)
 
             return Triple(slackClientSpy, slackServiceSpy, statusServiceSpy)
-        }
-
-        beforeSpec {
-            mockkObject(PropertiesConfig)
-            every { PropertiesConfig.config } returns ApplicationConfig("application-test.conf")
         }
 
         Given("Mottaksstatus trigger circuit breaker") {
@@ -153,10 +143,6 @@ internal class StatusServiceIntegrationTest :
                     }
                 }
             }
-        }
-
-        afterSpec {
-            unmockkObject(PropertiesConfig)
         }
     })
 
