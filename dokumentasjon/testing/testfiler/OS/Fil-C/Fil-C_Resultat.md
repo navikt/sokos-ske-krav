@@ -16,7 +16,7 @@
 
 
 ##  Krav
-```select linjenummer, filnavn, referansenummergammelsak, belop, belop_rente, fremtidig_ytelse, vedtaksdato,utbetaldato,gjelder_id, periode_fom, periode_tom, kravkode, kode_hjemmel, transaksjonsdato, enhet_bosted, enhet_behandlende, fagsystem_id, kravtype, status, tilleggsfrist, avsender from krav where filnavn = 'Fil-C.txt' and DATE(tidspunkt_opprettet) = DATE(now()))```     
+```select linjenummer, filnavn, referansenummergammelsak, belop, belop_rente, fremtidig_ytelse, vedtaksdato,utbetaldato,gjelder_id, periode_fom, periode_tom, kravkode, kode_hjemmel, transaksjonsdato, enhet_bosted, enhet_behandlende, fagsystem_id, kravtype, status, tilleggsfrist, avsender from krav where filnavn = 'Fil-C.txt' and DATE(tidspunkt_opprettet) = DATE(now())```     
 Se [sokos_ske_krav_public_krav-Fil-C.xml](sokos_ske_krav_public_krav-Fil-C.xml)  
 
 | linjenummer | filnavn   | referansenummergammelsak | belop | belop_rente | fremtidig_ytelse | vedtaksdato | utbetaldato | gjelder_id  | periode_fom | periode_tom | kravkode | kode_hjemmel | transaksjonsdato | enhet_bosted | enhet_behandlende | fagsystem_id   | kravtype  | status              | tilleggsfrist | avsender |
