@@ -14,7 +14,6 @@ class SlackService(
     private val slackClient: SlackClient = SlackClient(),
 ) {
     private val errorTracking: MutableList<FileErrors> = mutableListOf()
-    private val logger = mu.KotlinLogging.logger {}
 
     fun addError(
         fileName: String,
