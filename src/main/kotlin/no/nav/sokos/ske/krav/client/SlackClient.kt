@@ -15,8 +15,6 @@ class SlackClient(
     private val slackEndpoint: String = PropertiesConfig.slackConfig.url,
     private val client: HttpClient = httpClient,
 ) {
-    private val logger = mu.KotlinLogging.logger {}
-
     suspend fun sendMessage(
         header: String,
         fileName: String,
