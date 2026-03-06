@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <data>
 <row>
-  <saksnummer_nav>2146407nr</saksnummer_nav>
   <error>422</error>
   <melding>Ugyldig identifikatortype=PERSON. Innkrevingsoppdrag med kravtype=TILBAKEKREVING_LOENNSKOMPENSASJON kan bare ha identifikatortype=ORGANISASJON</melding>
   <ske_response>{&quot;type&quot;:&quot;tag:skatteetaten.no,2026:innkreving:innkrevingsoppdrag:kravtype-gjelder-kun-for-organisasjon&quot;,&quot;title&quot;:&quot;Kravtype gjelder kun for organisasjon&quot;,&quot;status&quot;:422,&quot;detail&quot;:&quot;Ugyldig identifikatortype=PERSON. Innkrevingsoppdrag med kravtype=TILBAKEKREVING_LOENNSKOMPENSASJON kan bare ha identifikatortype=ORGANISASJON&quot;,&quot;instance&quot;:&quot;/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag&quot;}</ske_response>
 </row>
 <row>
-  <saksnummer_nav>1432637</saksnummer_nav>
   <error>422</error>
   <melding>Ugyldig identifikatortype=PERSON. Innkrevingsoppdrag med kravtype=TILBAKEKREVING_LOENNSKOMPENSASJON kan bare ha identifikatortype=ORGANISASJON</melding>
   <ske_response>{&quot;type&quot;:&quot;tag:skatteetaten.no,2026:innkreving:innkrevingsoppdrag:kravtype-gjelder-kun-for-organisasjon&quot;,&quot;title&quot;:&quot;Kravtype gjelder kun for organisasjon&quot;,&quot;status&quot;:422,&quot;detail&quot;:&quot;Ugyldig identifikatortype=PERSON. Innkrevingsoppdrag med kravtype=TILBAKEKREVING_LOENNSKOMPENSASJON kan bare ha identifikatortype=ORGANISASJON&quot;,&quot;instance&quot;:&quot;/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag&quot;}</ske_response>
 </row>
 <row>
-  <saksnummer_nav>4873465kke</saksnummer_nav>
   <error>PERSON_EKSISTERER_IKKE</error>
   <melding>Person med fødselsdato=295271 eksisterer ikke</melding>
   <ske_response></ske_response>

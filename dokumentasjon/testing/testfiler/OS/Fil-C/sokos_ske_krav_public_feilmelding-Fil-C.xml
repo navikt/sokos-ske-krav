@@ -1,37 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <data>
 <row>
-  <saksnummer_nav>1744210het003</saksnummer_nav>
   <error>422</error>
   <melding>Ugyldig identifikatortype=ORGANISASJON. Innkrevingsoppdrag med kravtype=TILBAKEKREVING_OVERGANGSSTOENAD kan bare ha identifikatortype=PERSON</melding>
   <ske_response>{&quot;type&quot;:&quot;tag:skatteetaten.no,2026:innkreving:innkrevingsoppdrag:kravtype-gjelder-kun-for-person&quot;,&quot;title&quot;:&quot;Kravtype gjelder kun for person&quot;,&quot;status&quot;:422,&quot;detail&quot;:&quot;Ugyldig identifikatortype=ORGANISASJON. Innkrevingsoppdrag med kravtype=TILBAKEKREVING_OVERGANGSSTOENAD kan bare ha identifikatortype=PERSON&quot;,&quot;instance&quot;:&quot;/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag&quot;}</ske_response>
 </row>
 <row>
-  <saksnummer_nav>6096064het003</saksnummer_nav>
   <error>422</error>
   <melding>Ugyldig identifikatortype=ORGANISASJON. Innkrevingsoppdrag med kravtype=TILBAKEKREVING_SYKEPENGER kan bare ha identifikatortype=PERSON</melding>
   <ske_response>{&quot;type&quot;:&quot;tag:skatteetaten.no,2026:innkreving:innkrevingsoppdrag:kravtype-gjelder-kun-for-person&quot;,&quot;title&quot;:&quot;Kravtype gjelder kun for person&quot;,&quot;status&quot;:422,&quot;detail&quot;:&quot;Ugyldig identifikatortype=ORGANISASJON. Innkrevingsoppdrag med kravtype=TILBAKEKREVING_SYKEPENGER kan bare ha identifikatortype=PERSON&quot;,&quot;instance&quot;:&quot;/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag&quot;}</ske_response>
 </row>
 <row>
-  <saksnummer_nav>6666502002</saksnummer_nav>
   <error>422</error>
   <melding>Ugyldig identifikatortype=ORGANISASJON. Innkrevingsoppdrag med kravtype=TILBAKEKREVING_SVANGERSKAPSPENGER kan bare ha identifikatortype=PERSON</melding>
   <ske_response>{&quot;type&quot;:&quot;tag:skatteetaten.no,2026:innkreving:innkrevingsoppdrag:kravtype-gjelder-kun-for-person&quot;,&quot;title&quot;:&quot;Kravtype gjelder kun for person&quot;,&quot;status&quot;:422,&quot;detail&quot;:&quot;Ugyldig identifikatortype=ORGANISASJON. Innkrevingsoppdrag med kravtype=TILBAKEKREVING_SVANGERSKAPSPENGER kan bare ha identifikatortype=PERSON&quot;,&quot;instance&quot;:&quot;/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag&quot;}</ske_response>
 </row>
 <row>
-  <saksnummer_nav>2239071t002</saksnummer_nav>
   <error>422</error>
   <melding>Ugyldig identifikatortype=ORGANISASJON. Innkrevingsoppdrag med kravtype=TILBAKEKREVING_SVANGERSKAPSPENGER kan bare ha identifikatortype=PERSON</melding>
   <ske_response>{&quot;type&quot;:&quot;tag:skatteetaten.no,2026:innkreving:innkrevingsoppdrag:kravtype-gjelder-kun-for-person&quot;,&quot;title&quot;:&quot;Kravtype gjelder kun for person&quot;,&quot;status&quot;:422,&quot;detail&quot;:&quot;Ugyldig identifikatortype=ORGANISASJON. Innkrevingsoppdrag med kravtype=TILBAKEKREVING_SVANGERSKAPSPENGER kan bare ha identifikatortype=PERSON&quot;,&quot;instance&quot;:&quot;/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag&quot;}</ske_response>
 </row>
 <row>
-  <saksnummer_nav>6004024001</saksnummer_nav>
   <error>ORGANISASJONSNUMMER_FINNES_IKKE</error>
   <melding>Organisasjon med organisasjonsnummer=210167722 finnes ikke. </melding>
   <ske_response></ske_response>
 </row>
 <row>
-  <saksnummer_nav>2634242Orgnr</saksnummer_nav>
   <error>ORGANISASJONSNUMMER_FINNES_IKKE</error>
   <melding>Organisasjon med organisasjonsnummer=999999999 finnes ikke. </melding>
   <ske_response></ske_response>
