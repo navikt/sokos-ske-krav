@@ -51,10 +51,12 @@ class MaskinportenAccessTokenProvider(
             val cachedToken = tokenCache.get()
 
             if (cachedToken == null || cachedToken.expiresAt < nowPlusLimit) {
-                tokenCache.set(getMaskinportenToken())
+                val newToken = getMaskinportenToken()
+                tokenCache.set(newToken)
+                newToken.token
+            } else {
+                cachedToken.token
             }
-
-            tokenCache.get()?.token ?: ""
         }
 
     private suspend fun getMaskinportenToken(): AccessToken {
