@@ -29,7 +29,7 @@ internal class StatusServiceIntegrationTest :
     BehaviorSpec({
         extensions(DBListener)
         beforeEach { CircuitBreakerManager.circuitBreaker.reset() }
-        val dbService = DatabaseService(DBListener.dataSource)
+        val dbService by lazy { DatabaseService(DBListener.dataSource) }
 
         fun setupServices(
             client: HttpClient,
