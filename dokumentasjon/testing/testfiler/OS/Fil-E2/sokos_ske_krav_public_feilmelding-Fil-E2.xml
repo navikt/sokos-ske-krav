@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data>
+<row>
+  <saksnummer_nav>7470840240409-E212</saksnummer_nav>
+  <error>404</error>
+  <melding>Innkrevingsoppdrag med oppdragsgiversKravidentifikator=3546573240409-E112 eksisterer ikke</melding>
+  <ske_response>{&quot;type&quot;:&quot;tag:skatteetaten.no,2026:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-eksisterer-ikke&quot;,&quot;title&quot;:&quot;Innkrevingsoppdrag eksisterer ikke&quot;,&quot;status&quot;:404,&quot;detail&quot;:&quot;Innkrevingsoppdrag med oppdragsgiversKravidentifikator=3546573240409-E112 eksisterer ikke&quot;,&quot;instance&quot;:&quot;/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/3546573240409-E112/hovedstol&quot;}</ske_response>
+</row>
+<row>
+  <saksnummer_nav>7470840240409-E212</saksnummer_nav>
+  <error>404</error>
+  <melding>Innkrevingsoppdrag med oppdragsgiversKravidentifikator=3546573240409-E112 eksisterer ikke</melding>
+  <ske_response>{&quot;type&quot;:&quot;tag:skatteetaten.no,2026:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-eksisterer-ikke&quot;,&quot;title&quot;:&quot;Innkrevingsoppdrag eksisterer ikke&quot;,&quot;status&quot;:404,&quot;detail&quot;:&quot;Innkrevingsoppdrag med oppdragsgiversKravidentifikator=3546573240409-E112 eksisterer ikke&quot;,&quot;instance&quot;:&quot;/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/3546573240409-E112/renter&quot;}</ske_response>
+</row>
+</data>
