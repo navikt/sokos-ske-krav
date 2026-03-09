@@ -13,13 +13,8 @@ class SftpConfig(
     private val jsch: JSch =
         JSch().apply {
             JSch.setLogger(JSchLogger())
-            try {
-                addIdentity(sftpProperties.privateKeyFilePath, sftpProperties.privateKeyPassword)
-            } catch (e: Exception) {
-                logger.error(marker = TEAM_LOGS_MARKER) {
-                    "Feil ved innlasting av SFTP-nøkkel: ${sftpProperties.privateKeyFilePath} ${sftpProperties.privateKeyPassword} ${sftpProperties.host}\n ${e.message}"
-                }
-            }
+
+            addIdentity(sftpProperties.privateKeyFilePath, sftpProperties.privateKeyPassword)
         }
 
     fun <T> channel(operation: (ChannelSftp) -> T): T {
