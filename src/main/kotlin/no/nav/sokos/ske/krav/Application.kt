@@ -8,17 +8,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 
-import no.nav.sokos.ske.krav.config.PostgresConfig
+import no.nav.sokos.ske.krav.config.ApplicationState
+import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.PropertiesConfig
-import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.schedulerIntervalPeriod
-import no.nav.sokos.ske.krav.config.PropertiesConfig.TimerConfig.useTimer
+import no.nav.sokos.ske.krav.config.PropertiesConfig.timerConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
+import no.nav.sokos.ske.krav.config.applicationLifecycleConfig
 import no.nav.sokos.ske.krav.config.commonConfig
+import no.nav.sokos.ske.krav.config.mergeWithEnv
 import no.nav.sokos.ske.krav.config.routingConfig
 import no.nav.sokos.ske.krav.config.securityConfig
 import no.nav.sokos.ske.krav.domain.StonadsType
@@ -34,7 +34,9 @@ private val logger = mu.KotlinLogging.logger {}
 
 @OptIn(Frontend::class)
 private fun Application.module() {
-    val useAuthentication = PropertiesConfig.Configuration().useAuthentication
+    PropertiesConfig.load(environment.config.mergeWithEnv())
+
+    val useAuthentication = PropertiesConfig.applicationProperties.useAuthentication
     val applicationState = ApplicationState()
     val skeService = SkeService()
 
@@ -44,7 +46,7 @@ private fun Application.module() {
     routingConfig(useAuthentication, applicationState, skeService)
 
     if (!PropertiesConfig.isLocal) {
-        PostgresConfig.migrate()
+        PostgresDataSource.migrate()
     }
 
     StonadsType.entries
@@ -54,11 +56,11 @@ private fun Application.module() {
             Metrics.registerKravKodeCounter(kravKode)
         }
 
-    if (!useTimer) {
+    if (!timerConfig.useTimer) {
         return
     }
 
-    launchJob(skeService::handleNewKrav, schedulerIntervalPeriod)
+    launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
     launchJob(skeService::checkKravDateForAlert, 24.hours)
 }
 
@@ -79,18 +81,3 @@ private fun CoroutineScope.launchJob(
         }
     }
 }
-
-fun Application.applicationLifecycleConfig(applicationState: ApplicationState) {
-    monitor.subscribe(ApplicationStarted) {
-        applicationState.ready = true
-    }
-
-    monitor.subscribe(ApplicationStopped) {
-        applicationState.ready = false
-    }
-}
-
-class ApplicationState(
-    var ready: Boolean = true,
-    var alive: Boolean = true,
-)

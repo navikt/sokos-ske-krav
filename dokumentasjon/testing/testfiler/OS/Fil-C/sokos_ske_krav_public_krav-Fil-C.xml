@@ -3,7 +3,6 @@
 <row>
   <linjenummer>1</linjenummer>
   <filnavn>Fil-C.txt</filnavn>
-  <saksnummer_nav>5714726het001</saksnummer_nav>
   <referansenummergammelsak></referansenummergammelsak>
   <belop>11000</belop>
   <belop_rente>3500</belop_rente>
@@ -27,7 +26,6 @@
 <row>
   <linjenummer>2</linjenummer>
   <filnavn>Fil-C.txt</filnavn>
-  <saksnummer_nav>7054323het001</saksnummer_nav>
   <referansenummergammelsak></referansenummergammelsak>
   <belop>5000</belop>
   <belop_rente>1000</belop_rente>
@@ -51,7 +49,6 @@
 <row>
   <linjenummer>3</linjenummer>
   <filnavn>Fil-C.txt</filnavn>
-  <saksnummer_nav>3760512het002</saksnummer_nav>
   <referansenummergammelsak></referansenummergammelsak>
   <belop>5600</belop>
   <belop_rente>500</belop_rente>
@@ -75,7 +72,6 @@
 <row>
   <linjenummer>4</linjenummer>
   <filnavn>Fil-C.txt</filnavn>
-  <saksnummer_nav>6062106het002</saksnummer_nav>
   <referansenummergammelsak></referansenummergammelsak>
   <belop>6000</belop>
   <belop_rente>500</belop_rente>
@@ -99,7 +95,6 @@
 <row>
   <linjenummer>5</linjenummer>
   <filnavn>Fil-C.txt</filnavn>
-  <saksnummer_nav>1744210het003</saksnummer_nav>
   <referansenummergammelsak></referansenummergammelsak>
   <belop>12345</belop>
   <belop_rente>500</belop_rente>
@@ -123,7 +118,6 @@
 <row>
   <linjenummer>6</linjenummer>
   <filnavn>Fil-C.txt</filnavn>
-  <saksnummer_nav>6096064het003</saksnummer_nav>
   <referansenummergammelsak></referansenummergammelsak>
   <belop>3654</belop>
   <belop_rente>500</belop_rente>
@@ -147,7 +141,6 @@
 <row>
   <linjenummer>7</linjenummer>
   <filnavn>Fil-C.txt</filnavn>
-  <saksnummer_nav>6004024001</saksnummer_nav>
   <referansenummergammelsak></referansenummergammelsak>
   <belop>98542</belop>
   <belop_rente>500</belop_rente>
@@ -171,7 +164,6 @@
 <row>
   <linjenummer>8</linjenummer>
   <filnavn>Fil-C.txt</filnavn>
-  <saksnummer_nav>6666502002</saksnummer_nav>
   <referansenummergammelsak></referansenummergammelsak>
   <belop>6520</belop>
   <belop_rente>500</belop_rente>
@@ -195,7 +187,6 @@
 <row>
   <linjenummer>9</linjenummer>
   <filnavn>Fil-C.txt</filnavn>
-  <saksnummer_nav>6321090t001</saksnummer_nav>
   <referansenummergammelsak></referansenummergammelsak>
   <belop>4631</belop>
   <belop_rente>500</belop_rente>
@@ -219,7 +210,6 @@
 <row>
   <linjenummer>10</linjenummer>
   <filnavn>Fil-C.txt</filnavn>
-  <saksnummer_nav>2239071t002</saksnummer_nav>
   <referansenummergammelsak></referansenummergammelsak>
   <belop>721</belop>
   <belop_rente>500</belop_rente>
@@ -243,7 +233,6 @@
 <row>
   <linjenummer>11</linjenummer>
   <filnavn>Fil-C.txt</filnavn>
-  <saksnummer_nav>2634242Orgnr</saksnummer_nav>
   <referansenummergammelsak></referansenummergammelsak>
   <belop>35785</belop>
   <belop_rente>500</belop_rente>

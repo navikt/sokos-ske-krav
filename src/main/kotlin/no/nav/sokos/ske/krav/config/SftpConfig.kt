@@ -7,12 +7,12 @@ import com.jcraft.jsch.Session
 import mu.KotlinLogging
 
 class SftpConfig(
-    private val sftpProperties: PropertiesConfig.SftpProperties = PropertiesConfig.SftpProperties(),
+    private val sftpProperties: SftpProperties = PropertiesConfig.sftpProperties,
 ) {
     private val jsch: JSch =
         JSch().apply {
             JSch.setLogger(JSchLogger())
-            addIdentity(sftpProperties.privateKey, sftpProperties.privateKeyPassword)
+            addIdentity(sftpProperties.privateKeyFilePath, sftpProperties.privateKeyPassword)
         }
 
     fun <T> channel(operation: (ChannelSftp) -> T): T {

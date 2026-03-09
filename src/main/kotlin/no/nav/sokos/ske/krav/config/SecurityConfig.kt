@@ -25,7 +25,7 @@ const val BASIC_AUTH_NAME = "basicAuth"
 
 fun Application.securityConfig(
     useAuthentication: Boolean,
-    azureAdProperties: PropertiesConfig.AzureAdProperties = PropertiesConfig.AzureAdProperties(),
+    azureAdProperties: AzureAdProperties = PropertiesConfig.azureAdProperties,
 ) {
     logger.info { "Use authentication: $useAuthentication" }
     if (useAuthentication) {
@@ -34,7 +34,7 @@ fun Application.securityConfig(
 
         authentication {
             jwt(AUTHENTICATION_NAME) {
-                realm = PropertiesConfig.Configuration().naisAppName
+                realm = PropertiesConfig.applicationProperties.appName
                 verifier(
                     jwkProvider = jwkProvider,
                     issuer = openIdMetadata.issuer,
@@ -60,8 +60,8 @@ fun Application.securityConfig(
             basic(BASIC_AUTH_NAME) {
                 realm = "Rapport Access"
                 validate { credentials ->
-                    val config = PropertiesConfig.Configuration()
-                    if (credentials.name == config.basicUsername && credentials.password == config.basicPassword) {
+                    val properties = PropertiesConfig.applicationProperties
+                    if (credentials.name == properties.basicUsername && credentials.password == properties.basicPassword) {
                         UserIdPrincipal(credentials.name)
                     } else {
                         null

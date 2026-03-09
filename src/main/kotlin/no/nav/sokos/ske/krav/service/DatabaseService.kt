@@ -3,7 +3,7 @@ package no.nav.sokos.ske.krav.service
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.isSuccess
 
-import no.nav.sokos.ske.krav.config.PostgresConfig
+import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.domain.Krav
@@ -26,7 +26,7 @@ import no.nav.sokos.ske.krav.repository.RepositoryExtensions.useAndHandleErrors
 import no.nav.sokos.ske.krav.util.RequestResult
 
 class DatabaseService(
-    private val dataSource: HikariDataSource = PostgresConfig.dataSource,
+    private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
 ) {
     fun getSkeKravidentifikator(navref: String): String =
         dataSource.connection.useAndHandleErrors {

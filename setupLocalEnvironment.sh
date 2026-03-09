@@ -1,45 +1,73 @@
 #!/bin/bash
 export VAULT_ADDR=https://vault.adeo.no
-# Ensure user is authenicated, and run login if not.
-gcloud auth print-identity-token &> /dev/null
-if [ $? -gt 0 ]; then
+
+# Ensure user is authenticated, and run login if not.
+if ! gcloud auth print-identity-token &>/dev/null; then
     gcloud auth login
 fi
 
-# Suppress kubectl config output
 kubectl config use-context dev-fss
 kubectl config set-context --current --namespace=okonomi
 
-# Get pod name
-POD_NAME=$(kubectl get pods --no-headers | grep sokos-ske-krav | head -n1 | awk '{print $1}')
-
-if [ -z "$POD_NAME" ]; then
-    echo "Error: No sokos-ske-krav pod found" >&2
-    exit 1
+# Authenticate Vault if needed
+if ! vault token lookup -format=json | jq -e '.data.display_name' | grep -q "nav.no"; then
+    vault login -method=oidc -no-print
 fi
 
-echo "Fetching environment variables from pod: $POD_NAME"
+# Fetch secrets from Kubernetes
+get_secret() {
+    local secret_name=$1
+    local key=$2
+    kubectl get secret "$secret_name" -o "jsonpath={.data.$key}" | base64 --decode
+}
 
-# Get database username and password secret from Vault
-[[ "$(vault token lookup -format=json | jq '.data.display_name' -r; exit ${PIPESTATUS[0]})" =~ "nav.no" ]] &>/dev/null || vault login -method=oidc -no-print
+get_secretName(){
+  local prefix=$1
+  kubectl get secrets --no-headers -o custom-columns=":metadata.name" | grep "^$prefix-" | head -n1
+}
 
-# Get system variables
-envValue=$(kubectl exec "$POD_NAME" -c sokos-ske-krav -- env | egrep "^AZURE|^MASKINPORTEN|^SKE_REST_URL|^SKE_SFTP_USERNAME|SKE_SFTP_PASSWORD|SFTP_PORT|POSTGRES_PORT|POSTGRES_NAME|TEAM_BEST_SLACK_WEBHOOK_URL|USE_TIMER|TIMER_INITIAL_DELAY|TIMER_INTERVAL_PERIOD" | sort)
+
+MASKINPORTEN_CLIENT_JWK=$(get_secret "$(get_secretName maskinporten-sokos-ske-krav)" MASKINPORTEN_CLIENT_JWK)
+MASKINPORTEN_CLIENT_ID=$(get_secret "$(get_secretName maskinporten-sokos-ske-krav)" MASKINPORTEN_CLIENT_ID)
+MASKINPORTEN_WELL_KNOWN_URL=$(get_secret "$(get_secretName maskinporten-sokos-ske-krav)" MASKINPORTEN_WELL_KNOWN_URL)
+MASKINPORTEN_SCOPES=$(get_secret "$(get_secretName maskinporten-sokos-ske-krav)" MASKINPORTEN_SCOPES)
+
+AZURE_APP_CLIENT_ID=$(get_secret "$(get_secretName azure-sokos-ske-krav)" AZURE_APP_CLIENT_ID)
+AZURE_APP_WELL_KNOWN_URL=$(get_secret "$(get_secretName azure-sokos-ske-krav)" AZURE_APP_WELL_KNOWN_URL)
+AZURE_APP_TENANT_ID=$(get_secret "$(get_secretName azure-sokos-ske-krav)" AZURE_APP_TENANT_ID)
+AZURE_APP_CLIENT_SECRET=$(get_secret "$(get_secretName azure-sokos-ske-krav)" AZURE_APP_CLIENT_SECRET)
+
+SKE_SFTP_USERNAME=$(get_secret ske-sftp-creds SKE_SFTP_USERNAME)
+SKE_SFTP_PASSWORD=$(get_secret ske-sftp-creds SKE_SFTP_PASSWORD)
 PRIVATE_KEY=$(vault read -field=privateKey kv/preprod/fss/sokos-ske-krav/okonomi/sftp)
 
+TEAM_BEST_SLACK_WEBHOOK_URL=$(get_secret team-best-slackbot-webhook TEAM_BEST_SLACK_WEBHOOK_URL)
+
+# Get database username and password secret from Vault
 POSTGRES_USER=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-ske-krav-user)
-#POSTGRES_ADMIN=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-ske-krav-admin)
+
 
 username=$(echo "$POSTGRES_USER" | awk -F 'username:' '{print $2}' | awk '{print $1}' | sed 's/]$//')
 password=$(echo "$POSTGRES_USER" | awk -F 'password:' '{print $2}' | awk '{print $1}' | sed 's/]$//')
 
-# Set local environment variables
 rm -f defaults.properties
-echo "$envValue" > defaults.properties
-echo "Environment variables saved to defaults.properties"
-
-echo "POSTGRES_USERNAME=$username" >> defaults.properties
-echo "POSTGRES_PASSWORD=$password" >> defaults.properties
+{
+    echo "MASKINPORTEN_CLIENT_JWK=$MASKINPORTEN_CLIENT_JWK"
+    echo "MASKINPORTEN_CLIENT_ID=$MASKINPORTEN_CLIENT_ID"
+    echo "MASKINPORTEN_WELL_KNOWN_URL=$MASKINPORTEN_WELL_KNOWN_URL"
+    echo "MASKINPORTEN_SCOPES=$MASKINPORTEN_SCOPES"
+    echo "AZURE_APP_CLIENT_ID=$AZURE_APP_CLIENT_ID"
+    echo "AZURE_APP_WELL_KNOWN_URL=$AZURE_APP_WELL_KNOWN_URL"
+    echo "AZURE_APP_TENANT_ID=$AZURE_APP_TENANT_ID"
+    echo "AZURE_APP_CLIENT_SECRET=$AZURE_APP_CLIENT_SECRET"
+    echo "SKE_SFTP_USERNAME=$SKE_SFTP_USERNAME"
+    echo "SKE_SFTP_PASSWORD=$SKE_SFTP_PASSWORD"
+    echo "POSTGRES_USERNAME=$username"
+    echo "POSTGRES_PASSWORD=$password"
+    echo "TEAM_BEST_SLACK_WEBHOOK_URL=$TEAM_BEST_SLACK_WEBHOOK_URL"
+} > defaults.properties
 
 rm -f privKey
 echo "$PRIVATE_KEY" > privKey
+
+echo "defaults.properties created successfully."

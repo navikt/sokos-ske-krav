@@ -8,48 +8,52 @@ import mu.KotlinLogging
 import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
 
+import no.nav.sokos.ske.krav.config.PropertiesConfig.postgresConfig
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 
 private val logger = KotlinLogging.logger {}
 
-object PostgresConfig {
+object PostgresDataSource {
     val dataSource: HikariDataSource by lazy {
         dataSource()
     }
 
-    fun migrate(dataSource: HikariDataSource = dataSource(role = PropertiesConfig.PostgresConfig.adminUser)) {
-        dataSource.use {
-            logger.info { "Flyway migration" }
-            Flyway
-                .configure()
-                .dataSource(dataSource)
-                .initSql("""SET ROLE "${PropertiesConfig.PostgresConfig.adminUser}"""")
-                .lockRetryCount(-1)
-                .validateMigrationNaming(true)
-                .load()
-                .migrate()
-                .migrationsExecuted
-            logger.info { "Migration finished" }
-        }
+    fun migrate() {
+        dataSource(role = postgresConfig.adminUser).use { migrate(it) }
+    }
+
+    fun migrate(dataSource: HikariDataSource) {
+        logger.info { "Flyway migration" }
+        Flyway
+            .configure()
+            .dataSource(dataSource)
+            .initSql("""SET ROLE "${postgresConfig.adminUser}"""")
+            .lockRetryCount(-1)
+            .validateMigrationNaming(true)
+            .load()
+            .migrate()
+            .migrationsExecuted
+        logger.info { "Migration finished" }
     }
 
     private fun dataSource(
         hikariConfig: HikariConfig = hikariConfig(),
-        role: String = PropertiesConfig.PostgresConfig.user,
+        role: String = postgresConfig.user,
     ): HikariDataSource =
         if (PropertiesConfig.isLocal) {
             HikariDataSource(hikariConfig)
         } else {
+            logger.info { "VAULT PATH: $postgresConfig.vaultMountPath" }
+            logger.info { "VAULT ROLE: $role" }
             HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
                 hikariConfig,
-                PropertiesConfig.PostgresConfig.vaultMountPath,
+                postgresConfig.vaultMountPath,
                 role,
             )
         }
 
-    private fun hikariConfig(): HikariConfig {
-        val postgresConfig = PropertiesConfig.PostgresConfig
-        return HikariConfig().apply {
+    private fun hikariConfig(): HikariConfig =
+        HikariConfig().apply {
             maximumPoolSize = 5
             minimumIdle = 1
             isAutoCommit = false
@@ -67,5 +71,4 @@ object PostgresConfig {
                     initializationFailTimeout = Duration.ofMinutes(30).toMillis()
                 }
         }
-    }
 }

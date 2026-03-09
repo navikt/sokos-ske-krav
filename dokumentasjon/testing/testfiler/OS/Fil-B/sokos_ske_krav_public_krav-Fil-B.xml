@@ -3,7 +3,6 @@
     <row>
         <linjenummer>1</linjenummer>
         <filnavn>Fil-B.txt</filnavn>
-        <saksnummer_nav>4873465kke</saksnummer_nav>
         <referansenummergammelsak></referansenummergammelsak>
         <belop>2500</belop>
         <belop_rente>100</belop_rente>
@@ -27,7 +26,6 @@
     <row>
         <linjenummer>2</linjenummer>
         <filnavn>Fil-B.txt</filnavn>
-        <saksnummer_nav>2146407nr</saksnummer_nav>
         <referansenummergammelsak></referansenummergammelsak>
         <belop>12562</belop>
         <belop_rente>100</belop_rente>
@@ -51,7 +49,6 @@
     <row>
         <linjenummer>3</linjenummer>
         <filnavn>Fil-B.txt</filnavn>
-        <saksnummer_nav>7776149</saksnummer_nav>
         <referansenummergammelsak></referansenummergammelsak>
         <belop>13000</belop>
         <belop_rente>100</belop_rente>
@@ -75,7 +72,6 @@
     <row>
         <linjenummer>4</linjenummer>
         <filnavn>Fil-B.txt</filnavn>
-        <saksnummer_nav>1432637</saksnummer_nav>
         <referansenummergammelsak></referansenummergammelsak>
         <belop>7000</belop>
         <belop_rente>100</belop_rente>
@@ -99,7 +95,6 @@
     <row>
         <linjenummer>5</linjenummer>
         <filnavn>Fil-B.txt</filnavn>
-        <saksnummer_nav>9015040Doed</saksnummer_nav>
         <referansenummergammelsak></referansenummergammelsak>
         <belop>3980</belop>
         <belop_rente>100</belop_rente>

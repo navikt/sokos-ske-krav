@@ -61,30 +61,7 @@ spec:
         - name: skatteetaten:innkrevingsoppdrag
   vault:
     enabled: true
+
   env:
     - name: JDK_JAVA_OPTIONS
       value: -XX:MaxRAMPercentage=75 --enable-native-access=ALL-UNNAMED $(JAVA_PROXY_OPTIONS)
-    - name: SKE_REST_URL
-      value: https://innkrevingsoppdrag.innkreving.skatteetaten-test.no/api/innkreving/innkrevingsoppdrag/v1/
-    - name: SFTP_SERVER
-      value: b27drvl011.preprod.local
-    - name: SFTP_PORT
-      value: "22"
-    - name: SFTP_PRIVATE_KEY_FILE_PATH
-      value: /var/run/secrets/ske-sftp-private-key/ske-sftp-private-key
-    - name: POSTGRES_HOST
-      value: b27dbvl030.preprod.local
-    - name: POSTGRES_PORT
-      value: "5432"
-    - name: POSTGRES_NAME
-      value: sokos-ske-krav
-    - name: VAULT_MOUNTPATH
-      value: postgresql/preprod-fss/
-    - name: USE_TIMER
-      value: "true"
-    - name: TIMER_INITIAL_DELAY
-      value: "500"
-    - name: TIMER_INTERVAL_PERIOD_HOURS
-      value: "4"
-    - name: CIRCUIT_BREAKER_WAIT_DURATION_IN_OPEN_STATE_IN_HOURS
-      value: "2"

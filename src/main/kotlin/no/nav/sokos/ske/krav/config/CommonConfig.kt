@@ -26,7 +26,6 @@ import org.slf4j.Marker
 import org.slf4j.MarkerFactory
 import org.slf4j.event.Level
 
-import no.nav.sokos.ske.krav.ApplicationState
 import no.nav.sokos.ske.krav.metrics.Metrics
 
 private val logger = KotlinLogging.logger {}
