@@ -4,15 +4,22 @@ import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Logger
 import com.jcraft.jsch.Session
-import mu.KotlinLogging
+import mu.KotlinLogging.logger
 
 class SftpConfig(
     private val sftpProperties: SftpProperties = PropertiesConfig.sftpProperties,
 ) {
+    val logger = logger {}
     private val jsch: JSch =
         JSch().apply {
             JSch.setLogger(JSchLogger())
-            addIdentity(sftpProperties.privateKeyFilePath, sftpProperties.privateKeyPassword)
+            try {
+                addIdentity(sftpProperties.privateKeyFilePath, sftpProperties.privateKeyPassword)
+            } catch (e: Exception) {
+                logger.error(marker = TEAM_LOGS_MARKER) {
+                    "Feil ved innlasting av SFTP-nøkkel: ${sftpProperties.privateKeyFilePath} ${sftpProperties.privateKeyPassword} ${sftpProperties.host}\n ${e.message}"
+                }
+            }
         }
 
     fun <T> channel(operation: (ChannelSftp) -> T): T {
@@ -35,7 +42,7 @@ class SftpConfig(
 }
 
 class JSchLogger : Logger {
-    private val logger = KotlinLogging.logger(JSch::class.java.name)
+    private val logger = logger(JSch::class.java.name)
 
     override fun isEnabled(level: Int): Boolean = level == Logger.DEBUG && logger.isDebugEnabled
 
