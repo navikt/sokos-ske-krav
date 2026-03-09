@@ -77,6 +77,9 @@ infix fun ApplicationConfig.overriding(other: ApplicationConfig): ApplicationCon
 
 enum class Profile {
     LOCAL,
+    DEV,
+    TEST,
+    PROD,
 }
 
 @Serializable
