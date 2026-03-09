@@ -32,12 +32,12 @@ val opentelemetryVersion = "2.25.0-alpha"
 
 // DB
 val hikaricpVersion = "7.0.2"
-val flywayVersion = "12.0.2"
+val flywayVersion = "12.0.3"
 val postgresqlVersion = "42.7.10"
 val kotliqueryVersion = "1.9.1"
 
 // Test
-val kotestVersion = "6.1.3"
+val kotestVersion = "6.1.4"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.14.9"
 val commonsVersion = "3.12.0"
