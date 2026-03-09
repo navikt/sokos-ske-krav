@@ -77,16 +77,12 @@ infix fun ApplicationConfig.overriding(other: ApplicationConfig): ApplicationCon
 
 enum class Profile {
     LOCAL,
-    DEV,
-    TEST,
-    PROD,
 }
 
 @Serializable
 data class ApplicationProperties(
     val profile: Profile,
     val appName: String,
-    val namespace: String,
     val useAuthentication: Boolean,
     val basicUsername: String,
     val basicPassword: String,
