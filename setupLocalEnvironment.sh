@@ -39,9 +39,13 @@ AZURE_APP_CLIENT_SECRET=$(get_secret "$(get_secretName azure-sokos-ske-krav)" AZ
 
 SKE_SFTP_USERNAME=$(get_secret ske-sftp-creds SKE_SFTP_USERNAME)
 SKE_SFTP_PASSWORD=$(get_secret ske-sftp-creds SKE_SFTP_PASSWORD)
+
+
+
 PRIVATE_KEY=$(vault read -field=privateKey kv/preprod/fss/sokos-ske-krav/okonomi/sftp)
 
-TEAM_BEST_SLACK_WEBHOOK_URL=$(get_secret team-best-slackbot-webhook TEAM_BEST_SLACK_WEBHOOK_URL)
+
+
 
 # Get database username and password secret from Vault
 POSTGRES_USER=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-ske-krav-user)

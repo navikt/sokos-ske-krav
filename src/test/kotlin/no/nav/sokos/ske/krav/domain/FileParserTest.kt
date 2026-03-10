@@ -98,7 +98,7 @@ internal class FileParserTest :
             linjerMedTilleggsfrist[5].tilleggsfrist shouldBe LocalDate.of(2040, 2, 10)
         }
 
-        test("Tilleggsfrist hndteres korrekt i krav/MedTilleggsfrist.txt") {
+        test("Tilleggsfrist håndteres korrekt i krav/MedTilleggsfrist.txt") {
             val kravLinjer =
                 FileParser(
                     getFileContent("krav/MedTilleggsfrist.txt"),
