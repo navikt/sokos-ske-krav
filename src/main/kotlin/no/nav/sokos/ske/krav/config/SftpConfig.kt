@@ -17,7 +17,7 @@ class SftpConfig(
             logger.info(marker = TEAM_LOGS_MARKER) { "Key path: ${sftpProperties.privateKeyFilePath}, pwd length: ${sftpProperties.privateKeyPassword.length}" }
 
             try {
-                addIdentity(sftpProperties.privateKeyFilePath, sftpProperties.privateKeyPassword)
+                addIdentity(sftpProperties.privateKeyFilePath, sftpProperties.trimmedPrivateKeyPassword)
             } catch (e: Exception) {
                 logger.error(marker = TEAM_LOGS_MARKER) { "Failed to add identity: ${e.message}" }
             }
@@ -29,7 +29,7 @@ class SftpConfig(
 
         try {
             session =
-                jsch.getSession(sftpProperties.username, sftpProperties.host, sftpProperties.port).apply {
+                jsch.getSession(sftpProperties.trimmedUsername, sftpProperties.host, sftpProperties.port).apply {
                     setConfig("StrictHostKeyChecking", "no")
                     connect()
                 }

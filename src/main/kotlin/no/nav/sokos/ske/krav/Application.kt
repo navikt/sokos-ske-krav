@@ -1,7 +1,6 @@
 package no.nav.sokos.ske.krav
 
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -60,8 +59,8 @@ private fun Application.module() {
         return
     }
 
-    launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
-    launchJob(skeService::checkKravDateForAlert, 24.hours)
+    //   launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
+//    launchJob(skeService::checkKravDateForAlert, 24.hours)
 }
 
 private fun CoroutineScope.launchJob(
