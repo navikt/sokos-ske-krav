@@ -45,7 +45,7 @@ internal class StatusServiceIntegrationTest :
 
         Given("Mottaksstatus trigger circuit breaker") {
             DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/KravSomSkalOppdateres.sql")
+            DBListener.loadInitScript("SQLscript/status/KravSomSkalOppdateres.sql")
             val avskrivKravKall = MockHttpClientUtils.MockRequestObj(MockHttpClientUtils.Responses.genericFeilResponse(), MockHttpClientUtils.EndepunktType.MOTTAKSSTATUS, HttpStatusCode.Forbidden)
 
             val httpClient =
@@ -84,7 +84,7 @@ internal class StatusServiceIntegrationTest :
         Given("Mottaksstatus er VALIDERINGSFEIL") {
             DBListener.clearDB()
             val fileName = "KravSomSkalOppdateres.sql"
-            DBListener.loadInitScript("SQLscript/$fileName")
+            DBListener.loadInitScript("SQLscript/status/$fileName")
             val status = "ORGANISASJONSNUMMER_FINNES_IKKE"
             val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse(status = Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value)
             val valideringsFeilRespons = MockHttpClientUtils.Responses.valideringsfeilResponse(status, "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke")

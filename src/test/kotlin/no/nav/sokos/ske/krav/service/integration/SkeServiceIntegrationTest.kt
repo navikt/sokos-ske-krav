@@ -62,7 +62,7 @@ internal class SkeServiceIntegrationTest :
 
         Given("Det kommer endringer eller avskrivinger") {
             DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/10NyeKrav.sql")
+            DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
             SftpListener.putFiles(listOf("krav/TestEndringMedAvstemmingAvKravident.txt"), Directories.INBOUND)
             val skeClient =
                 mockk<SkeClient> {
@@ -218,7 +218,7 @@ internal class SkeServiceIntegrationTest :
 
         Given("Et krav har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500") {
             DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/KravSomSkalResendes.sql")
+            DBListener.loadInitScript("SQLscript/status/KravSomSkalResendes.sql")
 
             DBListener.dataSource.connection.use { con ->
                 con.getAllKrav().also { kravBefore ->

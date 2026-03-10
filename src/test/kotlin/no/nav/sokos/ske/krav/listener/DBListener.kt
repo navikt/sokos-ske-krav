@@ -42,7 +42,10 @@ object DBListener : TestListener {
             }
     }
 
-    fun loadInitScript(name: String) = ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)
+    fun loadInitScript(name: String) {
+        dataSource // Ensure Flyway migrations have run before executing init scripts
+        ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)
+    }
 
     fun clearDB() {
         dataSource.transaction { session ->
