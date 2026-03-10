@@ -207,8 +207,8 @@ internal class RepositoryTestKrav :
         }
 
         test("insertAllNewKrav skal inserte alle kravlinjene") {
-            val filnavn = "8NyeKrav1Endring1Stopp.txt"
-            val liste = getFileContent(filnavn)
+            val filnavn = "TiNyeKrav1Endring1Stopp.txt"
+            val liste = getFileContent("krav/$filnavn")
             val kravlinjer = FileParser(liste).parseKravLinjer()
 
             DBListener.dataSource.connection.use { con ->

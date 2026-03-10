@@ -15,7 +15,7 @@ import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 
 internal class FileParserTest :
     FunSpec({
-        val altOkFil = getFileContent("AltOkFil.txt")
+        val altOkFil = getFileContent("innsender/OppdragFil.txt")
         val altOkParser = FileParser(altOkFil)
 
         test("Alle linjer skal være av type KravLinje") {
@@ -47,7 +47,7 @@ internal class FileParserTest :
         test("Ugyldig BigDecimal skal kaste ParseException") {
             shouldThrow<ParseException> {
                 FileParser(
-                    getFileContent("FeilIParsingBigDecimal.txt"),
+                    getFileContent("validering/filvalidering/FeilParsingBigDecimal.txt"),
                 ).parseKravLinjer()
             }
         }
@@ -55,18 +55,18 @@ internal class FileParserTest :
         test("Ugyldig Int skal kaste ParseException") {
             shouldThrow<ParseException> {
                 FileParser(
-                    getFileContent("FeiliParsingAvInt.txt"),
+                    getFileContent("validering/filvalidering/FeilParsingInt.txt"),
                 ).parseKontrollLinjeFooter()
             }
         }
 
         test("Feil encoded Ø skal erstattes med Ø") {
-            val kravMedFeilEncoding = getFileContent("FA_FO_Feilencoding.txt")
+            val kravMedFeilEncoding = getFileContent("validering/filvalidering/FeilEncoding.txt")
             FileParser(kravMedFeilEncoding).parseKravLinjer().filter { linje -> linje.kravKode == "FA FØ" }.size shouldBe 1
         }
 
         test("Hvis linje ikke har fremtidig ytelse skal den settes til 0") {
-            val utenFremtidigYtelse = getFileContent("Fil-uten-fremtidigytelse.txt")
+            val utenFremtidigYtelse = getFileContent("krav/UtenFremtidigYtelse.txt")
             FileParser(utenFremtidigYtelse).parseKravLinjer().run {
                 first { it.saksnummerNav == "FinnesIkke" }.fremtidigYtelse shouldBe BigDecimal.ZERO
                 first { it.saksnummerNav == "Dnummer1" }.fremtidigYtelse shouldBe BigDecimal.ZERO
@@ -98,10 +98,10 @@ internal class FileParserTest :
             linjerMedTilleggsfrist[5].tilleggsfrist shouldBe LocalDate.of(2040, 2, 10)
         }
 
-        test("Tilleggsfrist håndteres korrekt i FilMedTilleggsfrist.txt") {
+        test("Tilleggsfrist hndteres korrekt i krav/MedTilleggsfrist.txt") {
             val kravLinjer =
                 FileParser(
-                    getFileContent("FilMedTilleggsfrist.txt"),
+                    getFileContent("krav/MedTilleggsfrist.txt"),
                 ).parseKravLinjer()
 
             kravLinjer.first().tilleggsfrist shouldBe LocalDate.of(2025, 3, 1)

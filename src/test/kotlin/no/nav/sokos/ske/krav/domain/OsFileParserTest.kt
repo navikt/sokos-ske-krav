@@ -8,7 +8,7 @@ import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 
 internal class OsFileParserTest :
     FunSpec({
-        val altOkFil = getFileContent("AltOkFil.txt")
+        val altOkFil = getFileContent("innsender/OppdragFil.txt")
         val altOkParser = FileParser(altOkFil)
 
         test("Sjekk at stønadstyper fra OS mappes riktig") {
