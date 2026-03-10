@@ -4,8 +4,6 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import kotlinx.coroutines.delay
-
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -54,12 +52,12 @@ class SkeService(
             return
         }
 
-        resendKrav()
+ /*       resendKrav()
         sendNewFilesToSKE()
         delay(5000)
         resendKrav()
 
-        slackService.sendErrors()
+        slackService.sendErrors()*/
 
         if (haltRun) {
             haltRun = false
