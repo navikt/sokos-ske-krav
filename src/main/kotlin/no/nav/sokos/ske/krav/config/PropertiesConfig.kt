@@ -113,8 +113,6 @@ data class SftpProperties(
     val privateKeyFilePath: String,
     val port: Int,
 ) {
-    // Trim to handle potential trailing whitespace/newlines from secret mounts,
-    // matching the behaviour of the old konfig-based PropertiesConfig
     val trimmedUsername: String get() = username.trim()
     val trimmedPrivateKeyPassword: String get() = privateKeyPassword.trim()
 }

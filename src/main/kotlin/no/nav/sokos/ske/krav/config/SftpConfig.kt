@@ -14,13 +14,7 @@ class SftpConfig(
         JSch().apply {
             JSch.setLogger(JSchLogger())
 
-            logger.info(marker = TEAM_LOGS_MARKER) { "Key path: ${sftpProperties.privateKeyFilePath}, pwd length: ${sftpProperties.privateKeyPassword.length}" }
-
-            try {
-                addIdentity(sftpProperties.privateKeyFilePath, sftpProperties.trimmedPrivateKeyPassword)
-            } catch (e: Exception) {
-                logger.error(marker = TEAM_LOGS_MARKER) { "Failed to add identity: ${e.message}" }
-            }
+            addIdentity(sftpProperties.privateKeyFilePath, sftpProperties.trimmedPrivateKeyPassword)
         }
 
     fun <T> channel(operation: (ChannelSftp) -> T): T {
