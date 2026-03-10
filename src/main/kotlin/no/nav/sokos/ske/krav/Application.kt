@@ -59,8 +59,8 @@ private fun Application.module() {
         return
     }
 
-    //   launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
-//    launchJob(skeService::checkKravDateForAlert, 24.hours)
+//    launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
+    //  launchJob(skeService::checkKravDateForAlert, 24.hours)
 }
 
 private fun CoroutineScope.launchJob(
