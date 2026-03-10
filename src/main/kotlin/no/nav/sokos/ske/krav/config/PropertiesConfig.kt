@@ -31,10 +31,56 @@ object PropertiesConfig {
     val sftpProperties by lazy {
         config.property("sftp").getAs<SftpProperties>()
     }
+}
+
+fun ApplicationConfig.mergeWithEnv(): ApplicationConfig {
+    val hoconConfig = HoconApplicationConfig(ConfigFactory.load())
+    val environment =
+        (System.getenv("NAIS_CLUSTER_NAME") ?: System.getProperty("NAIS_CLUSTER_NAME"))
+            ?.lowercase()
+            ?.substringBefore("-")
+            ?: propertyOrNull("ktor.environment")?.getString()
+            ?: "local"
+    val environmentConfig = ApplicationConfig("application-$environment.conf")
+    return environmentConfig overriding this overriding hoconConfig
+}
+
+infix fun ApplicationConfig.overriding(other: ApplicationConfig): ApplicationConfig = this.withFallback(other)
+
+enum class Profile {
+    LOCAL,
+    DEV,
+    TEST,
+    PROD,
+}
 
     val maskinportenClientProperties by lazy {
         config.property("maskinportenClient").getAs<MaskinportenClientConfig>()
     }
+}
+
+@Serializable
+data class SkeConfig(
+    val skeRestUrl: String,
+)
+
+@Serializable
+data class PostgresConfig(
+    val host: String,
+    val port: String,
+    val name: String,
+    val username: String = "",
+    val password: String = "",
+    val vaultMountPath: String,
+) {
+    val adminUser = "$name-admin"
+    val user = "$name-user"
+}
+
+@Serializable
+data class SlackConfig(
+    val url: String,
+)
 
     val skeRestConfig by lazy {
         config.property("ske").getAs<SkeConfig>()
