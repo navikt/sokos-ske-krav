@@ -21,12 +21,13 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Parameters
 import mu.KotlinLogging
 
+import no.nav.sokos.ske.krav.config.MaskinportenClientConfig
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.util.decodeTo
 
 class MaskinportenAccessTokenProvider(
-    private val maskinportenConfig: PropertiesConfig.MaskinportenClientConfig = PropertiesConfig.MaskinportenClientConfig(),
+    private val maskinportenConfig: MaskinportenClientConfig = PropertiesConfig.maskinportenClientProperties,
     private val client: HttpClient,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -50,10 +51,12 @@ class MaskinportenAccessTokenProvider(
             val cachedToken = tokenCache.get()
 
             if (cachedToken == null || cachedToken.expiresAt < nowPlusLimit) {
-                tokenCache.set(getMaskinportenToken())
+                val newToken = getMaskinportenToken()
+                tokenCache.set(newToken)
+                newToken.token
+            } else {
+                cachedToken.token
             }
-
-            tokenCache.get()!!.token
         }
 
     private suspend fun getMaskinportenToken(): AccessToken {

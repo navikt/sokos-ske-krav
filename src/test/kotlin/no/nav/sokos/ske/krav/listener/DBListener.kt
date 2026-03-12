@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
 import io.kotest.extensions.testcontainers.toDataSource
+import io.ktor.server.config.ApplicationConfig
 import kotliquery.queryOf
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
@@ -11,19 +12,24 @@ import org.testcontainers.ext.ScriptUtils
 import org.testcontainers.jdbc.JdbcDatabaseDelegate
 import org.testcontainers.utility.DockerImageName
 
-import no.nav.sokos.ske.krav.config.PostgresConfig
+import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
 object DBListener : TestListener {
+    init {
+        PropertiesConfig.load(ApplicationConfig("application-test.conf"))
+    }
+
     private val dockerImageName = "postgres:latest"
-    private val container =
+    private val container by lazy {
         PostgreSQLContainer<Nothing>(DockerImageName.parse(dockerImageName)).apply {
             withReuse(false)
-            withUsername(PropertiesConfig.PostgresConfig.adminUser)
+            withUsername(PropertiesConfig.postgresConfig.adminUser)
             waitingFor(Wait.defaultWaitStrategy())
             start()
         }
+    }
 
     val dataSource: HikariDataSource by lazy {
         container
@@ -31,12 +37,15 @@ object DBListener : TestListener {
                 maximumPoolSize = 100
                 minimumIdle = 1
                 isAutoCommit = false
+            }.also {
+                PostgresDataSource.migrate(it)
             }
-    }.apply {
-        PostgresConfig.migrate(container.toDataSource())
     }
 
-    fun loadInitScript(name: String) = ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)
+    fun loadInitScript(name: String) {
+        dataSource // Ensure Flyway migrations have run before executing init scripts
+        ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)
+    }
 
     fun clearDB() {
         dataSource.transaction { session ->

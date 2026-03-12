@@ -1,0 +1,1603 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data>
+<row>
+  <linjenummer>1</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E201</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E101</referansenummergammelsak>
+  <belop>54300</belop>
+  <belop_rente>3258</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>13923549344</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>BA OR</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4402</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-01</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>1</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E201</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E101</referansenummergammelsak>
+  <belop>54300</belop>
+  <belop_rente>3258</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>13923549344</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>BA OR</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4402</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-01</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>2</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E202</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E102</referansenummergammelsak>
+  <belop>70700</belop>
+  <belop_rente>4242</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>10906498893</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>BS OM</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4403</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-02</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>2</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E202</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E102</referansenummergammelsak>
+  <belop>70700</belop>
+  <belop_rente>4242</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>10906498893</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>BS OM</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4403</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-02</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>3</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E203</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E103</referansenummergammelsak>
+  <belop>65200</belop>
+  <belop_rente>3912</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>57865200783</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>BS OP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4405</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-03</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>3</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E203</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E103</referansenummergammelsak>
+  <belop>65200</belop>
+  <belop_rente>3912</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>57865200783</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>BS OP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4405</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-03</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>4</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E204</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E104</referansenummergammelsak>
+  <belop>11000</belop>
+  <belop_rente>660</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>44920775087</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>BS PN</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4407</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-04</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>4</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E204</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E104</referansenummergammelsak>
+  <belop>11000</belop>
+  <belop_rente>660</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>44920775087</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>BS PN</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4407</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-04</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>5</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E205</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E105</referansenummergammelsak>
+  <belop>76900</belop>
+  <belop_rente>4614</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>09817899177</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>BS PP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4410</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-05</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>5</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E205</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E105</referansenummergammelsak>
+  <belop>76900</belop>
+  <belop_rente>4614</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>09817899177</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>BS PP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4410</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-05</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>6</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E206</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E106</referansenummergammelsak>
+  <belop>35200</belop>
+  <belop_rente>2112</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>28837698768</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>EF BT</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4411</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-06</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>6</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E206</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E106</referansenummergammelsak>
+  <belop>35200</belop>
+  <belop_rente>2112</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>28837698768</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>EF BT</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4411</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-06</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>7</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E207</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E107</referansenummergammelsak>
+  <belop>40400</belop>
+  <belop_rente>2424</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>30917998929</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>EF OG</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4415</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-07</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>7</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E207</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E107</referansenummergammelsak>
+  <belop>40400</belop>
+  <belop_rente>2424</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>30917998929</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>EF OG</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4415</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-07</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>8</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E208</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E108</referansenummergammelsak>
+  <belop>58100</belop>
+  <belop_rente>3486</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>27848299214</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>EF UT</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4416</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-08</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>8</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E208</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E108</referansenummergammelsak>
+  <belop>58100</belop>
+  <belop_rente>3486</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>27848299214</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>EF UT</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4416</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-08</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>9</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E209</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E109</referansenummergammelsak>
+  <belop>73100</belop>
+  <belop_rente>4386</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>27828999856</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>FA FE</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4402</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-09</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>9</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E209</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E109</referansenummergammelsak>
+  <belop>73100</belop>
+  <belop_rente>4386</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>27828999856</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>FA FE</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4402</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-09</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>10</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E210</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E110</referansenummergammelsak>
+  <belop>49500</belop>
+  <belop_rente>2970</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>03857797352</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>FA FØ</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4403</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-10</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>10</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E210</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E110</referansenummergammelsak>
+  <belop>49500</belop>
+  <belop_rente>2970</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>03857797352</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>FA FØ</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4403</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-10</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>11</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E211</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E111</referansenummergammelsak>
+  <belop>35900</belop>
+  <belop_rente>2154</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>30875999091</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>FA SV</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4405</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-11</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>11</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E211</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E111</referansenummergammelsak>
+  <belop>35900</belop>
+  <belop_rente>2154</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>30875999091</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>FA SV</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4405</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-11</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>12</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E212</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E112</referansenummergammelsak>
+  <belop>38800</belop>
+  <belop_rente>2328</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>14857998864</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>FO FT</kravkode>
+  <kode_hjemmel>FT</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4407</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-12</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>404_SKE_FANT_IKKE_SAKSREF</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>12</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E212</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E112</referansenummergammelsak>
+  <belop>38800</belop>
+  <belop_rente>2328</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>14857998864</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>FO FT</kravkode>
+  <kode_hjemmel>FT</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4407</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-12</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>404_SKE_FANT_IKKE_SAKSREF</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>13</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E213</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E113</referansenummergammelsak>
+  <belop>41100</belop>
+  <belop_rente>2466</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>53838301122</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>FR SN</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4410</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-13</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>13</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E213</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E113</referansenummergammelsak>
+  <belop>41100</belop>
+  <belop_rente>2466</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>53838301122</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>FR SN</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4410</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-13</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>14</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E214</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E114</referansenummergammelsak>
+  <belop>76300</belop>
+  <belop_rente>4578</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>11864398857</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>KS KS</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4411</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-14</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>14</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E214</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E114</referansenummergammelsak>
+  <belop>76300</belop>
+  <belop_rente>4578</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>11864398857</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>KS KS</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4411</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-14</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>15</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E215</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E115</referansenummergammelsak>
+  <belop>88400</belop>
+  <belop_rente>3536</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>20921699639</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>KT SP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4415</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-15</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>15</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E215</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E115</referansenummergammelsak>
+  <belop>88400</belop>
+  <belop_rente>3536</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>20921699639</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>KT SP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4415</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-15</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>16</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E216</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E116</referansenummergammelsak>
+  <belop>60100</belop>
+  <belop_rente>2404</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>18855298313</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>LK LK</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4416</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-16</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>16</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E216</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E116</referansenummergammelsak>
+  <belop>60100</belop>
+  <belop_rente>2404</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>18855298313</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>LK LK</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4416</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-16</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>17</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E217</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E117</referansenummergammelsak>
+  <belop>50300</belop>
+  <belop_rente>2012</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>00315406404</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>LK RF</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4402</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-17</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>17</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E217</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E117</referansenummergammelsak>
+  <belop>50300</belop>
+  <belop_rente>2012</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>00315406404</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>LK RF</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4402</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-17</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>18</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E218</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E118</referansenummergammelsak>
+  <belop>59100</belop>
+  <belop_rente>2364</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>12833648584</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE AF</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4403</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-18</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>18</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E218</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E118</referansenummergammelsak>
+  <belop>59100</belop>
+  <belop_rente>2364</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>12833648584</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE AF</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4403</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-18</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>19</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E219</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E119</referansenummergammelsak>
+  <belop>77700</belop>
+  <belop_rente>3108</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>49856702714</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE AP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4405</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-19</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>19</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E219</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E119</referansenummergammelsak>
+  <belop>77700</belop>
+  <belop_rente>3108</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>49856702714</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE AP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4405</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-19</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>20</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E220</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E120</referansenummergammelsak>
+  <belop>5000</belop>
+  <belop_rente>200</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>19905595175</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE BP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4407</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-20</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>20</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E220</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E120</referansenummergammelsak>
+  <belop>5000</belop>
+  <belop_rente>200</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>19905595175</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE BP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4407</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-20</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>21</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E221</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E121</referansenummergammelsak>
+  <belop>51700</belop>
+  <belop_rente>2068</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>65857301557</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE FP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4410</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-21</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>21</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E221</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E121</referansenummergammelsak>
+  <belop>51700</belop>
+  <belop_rente>2068</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>65857301557</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE FP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4410</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-21</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>22</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E222</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E122</referansenummergammelsak>
+  <belop>29400</belop>
+  <belop_rente>1176</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>10856799994</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE GP</kravkode>
+  <kode_hjemmel>TA</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4411</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-22</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>22</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E222</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E122</referansenummergammelsak>
+  <belop>29400</belop>
+  <belop_rente>1176</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>10856799994</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE GP</kravkode>
+  <kode_hjemmel>TA</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4411</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-22</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>23</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E223</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E123</referansenummergammelsak>
+  <belop>92300</belop>
+  <belop_rente>3692</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>16834898423</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE GP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4415</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-23</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>23</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E223</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E123</referansenummergammelsak>
+  <belop>92300</belop>
+  <belop_rente>3692</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>16834898423</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE GP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4415</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-23</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>24</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E224</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E124</referansenummergammelsak>
+  <belop>57700</belop>
+  <belop_rente>2308</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>10817296578</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE GY</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4416</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-24</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>24</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E224</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E124</referansenummergammelsak>
+  <belop>57700</belop>
+  <belop_rente>2308</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>10817296578</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE GY</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4416</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-24</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>25</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E225</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E125</referansenummergammelsak>
+  <belop>67800</belop>
+  <belop_rente>2712</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>20837999430</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE KP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4402</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-25</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>25</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E225</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E125</referansenummergammelsak>
+  <belop>67800</belop>
+  <belop_rente>2712</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>20837999430</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE KP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4402</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-25</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>26</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E226</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E126</referansenummergammelsak>
+  <belop>29600</belop>
+  <belop_rente>1184</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>17926297910</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE UP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4403</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-26</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>26</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E226</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E126</referansenummergammelsak>
+  <belop>29600</belop>
+  <belop_rente>1184</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>17926297910</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE UP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4403</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-26</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>27</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E227</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E127</referansenummergammelsak>
+  <belop>93900</belop>
+  <belop_rente>3756</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>07858899863</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE UP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4405</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-27</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>27</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E227</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E127</referansenummergammelsak>
+  <belop>93900</belop>
+  <belop_rente>3756</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>07858899863</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE UP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4405</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-27</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>28</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E228</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E128</referansenummergammelsak>
+  <belop>2400</belop>
+  <belop_rente>96</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>48899900246</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE UT</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4407</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-28</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>28</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E228</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E128</referansenummergammelsak>
+  <belop>2400</belop>
+  <belop_rente>96</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>48899900246</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE UT</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4407</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-28</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>29</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E229</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E129</referansenummergammelsak>
+  <belop>98600</belop>
+  <belop_rente>3944</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>16856799232</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE UT</kravkode>
+  <kode_hjemmel>EU</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4410</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-29</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>29</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E229</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E129</referansenummergammelsak>
+  <belop>98600</belop>
+  <belop_rente>3944</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>16856799232</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE UT</kravkode>
+  <kode_hjemmel>EU</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4410</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-29</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>30</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E230</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E130</referansenummergammelsak>
+  <belop>99300</belop>
+  <belop_rente>3972</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>15874799065</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE UT</kravkode>
+  <kode_hjemmel>TA</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4411</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-30</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>30</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E230</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E130</referansenummergammelsak>
+  <belop>99300</belop>
+  <belop_rente>3972</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>15874799065</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE UT</kravkode>
+  <kode_hjemmel>TA</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4411</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-30</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>31</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E231</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E131</referansenummergammelsak>
+  <belop>72500</belop>
+  <belop_rente>2900</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>20867797115</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE XP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4415</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-31</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>31</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E231</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E131</referansenummergammelsak>
+  <belop>72500</belop>
+  <belop_rente>2900</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>20867797115</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>PE XP</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4415</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-31</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>32</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E232</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E132</referansenummergammelsak>
+  <belop>94100</belop>
+  <belop_rente>3764</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>02866799205</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>SU UF</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4416</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-32</fagsystem_id>
+  <kravtype>ENDRING_HOVEDSTOL</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+<row>
+  <linjenummer>32</linjenummer>
+  <tidspunkt_opprettet>2026-02-24 15:01:05.141318</tidspunkt_opprettet>
+  <filnavn>Fil-E2.txt</filnavn>
+  <saksnummer_nav>xxxxxxxxxxxxx-E232</saksnummer_nav>
+  <referansenummergammelsak>xxxxxxxxxxxxx-E132</referansenummergammelsak>
+  <belop>94100</belop>
+  <belop_rente>3764</belop_rente>
+  <fremtidig_ytelse>0.00</fremtidig_ytelse>
+  <vedtaksdato>2024-02-18 00:00:00.000000</vedtaksdato>
+  <utbetaldato>2024-01-09 00:00:00.000000</utbetaldato>
+  <gjelder_id>02866799205</gjelder_id>
+  <periode_fom>20230819</periode_fom>
+  <periode_tom>20231128</periode_tom>
+  <kravkode>SU UF</kravkode>
+  <kode_hjemmel>T</kode_hjemmel>
+  <transaksjonsdato></transaksjonsdato>
+  <enhet_bosted>4416</enhet_bosted>
+  <enhet_behandlende>4819</enhet_behandlende>
+  <fagsystem_id>Fil-E1-20240409-32</fagsystem_id>
+  <kravtype>ENDRING_RENTE</kravtype>
+  <status>RESKONTROFOERT</status>
+  <tilleggsfrist>null</tilleggsfrist>
+  <avsender>OB04</avsender>
+</row>
+</data>

@@ -5,7 +5,6 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 
-import no.nav.sokos.ske.krav.ApplicationState
 import no.nav.sokos.ske.krav.api.avstemmingRoutes
 import no.nav.sokos.ske.krav.api.internalRoutes
 import no.nav.sokos.ske.krav.service.Frontend

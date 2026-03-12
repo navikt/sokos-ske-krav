@@ -1,148 +1,173 @@
 package no.nav.sokos.ske.krav.config
 
-import java.io.File
-
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+import kotlinx.serialization.Serializable
 
-import com.natpryce.konfig.ConfigurationMap
-import com.natpryce.konfig.ConfigurationProperties
-import com.natpryce.konfig.EnvironmentVariables
-import com.natpryce.konfig.Key
-import com.natpryce.konfig.overriding
-import com.natpryce.konfig.stringType
 import com.nimbusds.jose.jwk.RSAKey
+import com.typesafe.config.ConfigFactory
+import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.config.HoconApplicationConfig
+import io.ktor.server.config.getAs
+import io.ktor.server.config.withFallback
+
+import no.nav.sokos.ske.krav.util.logger
 
 object PropertiesConfig {
-    private val defaultProperties =
-        ConfigurationMap(
-            mapOf(
-                "NAIS_APP_NAME" to "sokos-ske-krav",
-                "NAIS_NAMESPACE" to "okonomi",
-                "USE_AUTHENTICATION" to "true",
-                "VAULT_MOUNTPATH" to "",
-                "TEAM_BEST_SLACK_WEBHOOK_URL" to "",
-                "USE_TIMER" to "false",
-                "TIMER_INITIAL_DELAY" to "500",
-                "TIMER_INTERVAL_PERIOD" to "0",
-                "SKE_REST_URL" to "",
-                "MASKINPORTEN_CLIENT_ID" to "",
-                "MASKINPORTEN_WELL_KNOWN_URL" to "",
-                "MASKINPORTEN_CLIENT_JWK" to "",
-                "MASKINPORTEN_SCOPES" to "",
-                "POSTGRES_NAME" to "test",
-                "POSTGRES_USERNAME" to "test",
-                "POSTGRES_PASSWORD" to "test",
-                "CIRCUIT_BREAKER_WAIT_DURATION_IN_OPEN_STATE_IN_HOURS" to "4",
-                "TIMER_INTERVAL_PERIOD_HOURS" to "5",
-            ),
-        )
-    private val localDevProperties =
-        ConfigurationMap(
-            "APPLICATION_PROFILE" to Profile.LOCAL.toString(),
-            "POSTGRES_HOST" to "dev-pg.intern.nav.no",
-            "POSTGRES_PORT" to "5422",
-            "SFTP_HOST_KEY_FILE_PATH" to "hostKey",
-            "SFTP_PRIVATE_KEY_FILE_PATH" to "privKey",
-            "SFTP_SERVER" to "10.183.32.98",
-            "SFTP_PORT" to "22",
-            "BASIC_AUTH_USERNAME" to "user",
-            "BASIC_AUTH_PASSWORD" to "password",
-            "USE_AUTHENTICATION" to "false",
-            "CIRCUIT_BREAKER_WAIT_DURATION_IN_OPEN_STATE_IN_HOURS" to "4",
-            "TIMER_INTERVAL_PERIOD_HOURS" to "5",
-        )
+    lateinit var config: ApplicationConfig
+        private set
 
-    private val devProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.DEV.toString()))
-    private val prodProperties = ConfigurationMap(mapOf("APPLICATION_PROFILE" to Profile.PROD.toString()))
+    val isLocal: Boolean
+        get() = applicationProperties.isLocal
 
-    private val config =
-        when (System.getenv("NAIS_CLUSTER_NAME") ?: System.getProperty("NAIS_CLUSTER_NAME")) {
-            "dev-fss" -> {
-                ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding devProperties overriding defaultProperties
-            }
+    val applicationProperties by lazy {
+        config.property("application").getAs<ApplicationProperties>()
+    }
 
-            "prod-fss" -> {
-                ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding prodProperties overriding defaultProperties
-            }
+    val azureAdProperties by lazy {
+        config.property("azureAd").getAs<AzureAdProperties>()
+    }
 
-            else -> {
-                ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding
-                    ConfigurationProperties.fromOptionalFile(
-                        File("defaults.properties"),
-                    ) overriding localDevProperties overriding defaultProperties
-            }
+    val sftpProperties by lazy {
+        config.property("sftp").getAs<SftpProperties>()
+    }
+
+    val maskinportenClientProperties by lazy {
+        config.property("maskinportenClient").getAs<MaskinportenClientConfig>()
+    }
+
+    val skeRestConfig by lazy {
+        config.property("ske").getAs<SkeConfig>()
+    }
+
+    val postgresConfig by lazy {
+        config.property("postgres").getAs<PostgresConfig>()
+    }
+
+    val slackConfig by lazy {
+        config.property("slack").getAs<SlackConfig>()
+    }
+
+    val circuitBreakerConfig by lazy {
+        config.property("circuitBreaker").getAs<CircuitBreakerConfig>()
+    }
+
+    val timerConfig by lazy {
+        config.property("timer").getAs<TimerConfig>()
+    }
+
+    fun load(applicationConfig: ApplicationConfig) {
+        if (!::config.isInitialized) {
+            config = applicationConfig
         }
-
-    enum class Profile {
-        LOCAL,
-        DEV,
-        PROD,
     }
+}
 
-    val isLocal = Configuration().profile == Profile.LOCAL
+fun ApplicationConfig.mergeWithEnv(): ApplicationConfig {
+    val hoconConfig = HoconApplicationConfig(ConfigFactory.load())
+    val environment =
+        (System.getenv("NAIS_CLUSTER_NAME") ?: System.getProperty("NAIS_CLUSTER_NAME"))
+            ?.lowercase()
+            ?.substringBefore("-")
+            ?: propertyOrNull("ktor.environment")?.getString()
+            ?: "local"
+    val environmentConfig = ApplicationConfig("application-$environment.conf")
+    logger.info(marker = TEAM_LOGS_MARKER) { "Environment: $environment" }
+    return environmentConfig overriding this overriding hoconConfig
+}
 
-    operator fun get(key: String): String = config[Key(key, stringType)]
+infix fun ApplicationConfig.overriding(other: ApplicationConfig): ApplicationConfig = this.withFallback(other)
 
-    data class Configuration(
-        val naisAppName: String = get("NAIS_APP_NAME"),
-        val profile: Profile = Profile.valueOf(this["APPLICATION_PROFILE"]),
-        val useAuthentication: Boolean = get("USE_AUTHENTICATION").toBoolean(),
-        val basicUsername: String = get("BASIC_AUTH_USERNAME"),
-        val basicPassword: String = get("BASIC_AUTH_PASSWORD"),
-    )
+enum class Profile {
+    LOCAL,
+    DEV,
+    TEST,
+    PROD,
+}
 
-    data class AzureAdProperties(
-        val clientId: String = get("AZURE_APP_CLIENT_ID"),
-        val wellKnownUrl: String = get("AZURE_APP_WELL_KNOWN_URL"),
-        val tenantId: String = get("AZURE_APP_TENANT_ID"),
-        val clientSecret: String = get("AZURE_APP_CLIENT_SECRET"),
-    )
+@Serializable
+data class ApplicationProperties(
+    val profile: Profile,
+    val appName: String,
+    val namespace: String,
+    val useAuthentication: Boolean,
+    val basicUsername: String,
+    val basicPassword: String,
+) {
+    val isLocal = profile == Profile.LOCAL
+}
 
-    data class SftpProperties(
-        val host: String = get("SFTP_SERVER"),
-        val username: String = get("SKE_SFTP_USERNAME").trim(),
-        val privateKeyPassword: String = get("SKE_SFTP_PASSWORD").trim(),
-        val privateKey: String = get("SFTP_PRIVATE_KEY_FILE_PATH"),
-        val port: Int = get("SFTP_PORT").toInt(),
-    )
+@Serializable
+data class AzureAdProperties(
+    val clientId: String,
+    val wellKnownUrl: String,
+    val tenantId: String,
+    val clientSecret: String,
+)
 
-    data class MaskinportenClientConfig(
-        val clientId: String = get("MASKINPORTEN_CLIENT_ID"),
-        val wellKnownUrl: String = get("MASKINPORTEN_WELL_KNOWN_URL"),
-        val rsaKey: RSAKey? = RSAKey.parse(get("MASKINPORTEN_CLIENT_JWK")),
-        val scopes: String = get("MASKINPORTEN_SCOPES"),
-    )
+@Serializable
+data class SftpProperties(
+    val host: String,
+    val username: String,
+    val privateKeyPassword: String,
+    val privateKeyFilePath: String,
+    val port: Int,
+) {
+    val trimmedUsername: String get() = username.trim()
+    val trimmedPrivateKeyPassword: String get() = privateKeyPassword.trim()
+}
 
-    data object SKEConfig {
-        val skeRestUrl: String = get("SKE_REST_URL")
+@Serializable
+data class MaskinportenClientConfig(
+    val clientId: String,
+    val wellKnownUrl: String,
+    val rsaKeyString: String,
+    val scopes: String,
+) {
+    val rsaKey: RSAKey? by lazy {
+        RSAKey.parse(rsaKeyString)
     }
+}
 
-    data object PostgresConfig {
-        val host: String = get("POSTGRES_HOST")
-        val port: String = get("POSTGRES_PORT")
-        val name: String = get("POSTGRES_NAME")
-        val username: String = get("POSTGRES_USERNAME").trim()
-        val password: String = get("POSTGRES_PASSWORD").trim()
-        val vaultMountPath: String = get("VAULT_MOUNTPATH")
-        val adminUser = "$name-admin"
-        val user = "$name-user"
-    }
+@Serializable
+data class SkeConfig(
+    val skeRestUrl: String,
+)
 
-    data object SlackConfig {
-        val url: String = get("TEAM_BEST_SLACK_WEBHOOK_URL").trim()
-    }
+@Serializable
+data class PostgresConfig(
+    val host: String,
+    val port: String,
+    val name: String,
+    val username: String = "",
+    val password: String = "",
+    val vaultMountPath: String,
+) {
+    val adminUser = "$name-admin"
+    val user = "$name-user"
+}
 
-    data object CircuitBreakerConfig {
-        val waitDurationInOpenState: Long = get("CIRCUIT_BREAKER_WAIT_DURATION_IN_OPEN_STATE_IN_HOURS").toLong()
+@Serializable
+data class SlackConfig(
+    val url: String,
+)
+
+@Serializable
+data class CircuitBreakerConfig(
+    val waitDurationInOpenState: Long,
+) {
+    companion object {
         const val SLIDING_WINDOW_SIZE: Int = 1
         const val MINIMUM_NUMBER_OF_CALLS: Int = 1
         const val FAILURE_RATE_THRESHOLD: Float = 100.0f
         const val PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE: Int = 1
     }
+}
 
-    data object TimerConfig {
-        val useTimer: Boolean = get("USE_TIMER").toBoolean()
-        val schedulerIntervalPeriod: Duration = get("TIMER_INTERVAL_PERIOD_HOURS").toInt().hours
-    }
+@Serializable
+data class TimerConfig(
+    val useTimer: Boolean,
+    val schedulerIntervalPeriodInt: Int,
+) {
+    val schedulerIntervalPeriod: Duration = schedulerIntervalPeriodInt.hours
 }

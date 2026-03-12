@@ -22,7 +22,7 @@ import no.nav.sokos.ske.krav.validation.FileValidator.ErrorKeys
 internal class FileValidatorIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener, DBListener)
-        val dbService = DatabaseService(DBListener.dataSource)
+        val dbService by lazy { DatabaseService(DBListener.dataSource) }
 
         fun setupSlackService(): SlackService {
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
@@ -39,7 +39,7 @@ internal class FileValidatorIntegrationTest :
         Given("Fil er OK") {
             val slackServiceSpy = setupSlackService()
             val ftpService = setupFtpService(slackServiceSpy)
-            val fileName = "AltOkFil.txt"
+            val fileName = "AllValideringOk.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             When("Filen valideres") {
@@ -60,17 +60,18 @@ internal class FileValidatorIntegrationTest :
             val slackServiceSpy = setupSlackService()
             val ftpService = setupFtpService(slackServiceSpy)
 
-            val fileName = "FilMedFeilAntallKrav.txt"
+            val fileName = "validering/filvalidering/FeilAntallKrav.txt"
+            val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             When("Filen valideres") {
                 ftpService.getValidatedFiles()
 
                 Then("Skal feilen lagres i database") {
-                    with(dbService.getFileValidationMessage(fileName)) {
+                    with(dbService.getFileValidationMessage(fileNameOnSftp)) {
                         size shouldBe 1
                         with(first()) {
-                            filnavn shouldBe fileName
+                            filnavn shouldBe fileNameOnSftp
                             feilmelding shouldContain ErrorKeys.FEIL_I_ANTALL
                             feilmelding shouldNotContain ErrorKeys.FEIL_I_SUM
                             feilmelding shouldNotContain ErrorKeys.FEIL_I_DATO
@@ -85,7 +86,7 @@ internal class FileValidatorIntegrationTest :
                     coVerify(exactly = 1) {
                         slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
-                    sendAlertFilenameSlot.captured shouldBe fileName
+                    sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
                     sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
                     capturedSendAlertMessages.size shouldBe 1
@@ -97,17 +98,18 @@ internal class FileValidatorIntegrationTest :
         Given("En fil har feil sum i kontroll-linjen") {
             val slackServiceSpy = setupSlackService()
             val ftpService = setupFtpService(slackServiceSpy)
-            val fileName = "FilMedFeilSum.txt"
+            val fileName = "validering/filvalidering/FeilSum.txt"
+            val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             When("Filen valideres") {
                 ftpService.getValidatedFiles()
 
                 Then("Skal feilen lagres i database ") {
-                    with(dbService.getFileValidationMessage(fileName)) {
+                    with(dbService.getFileValidationMessage(fileNameOnSftp)) {
                         size shouldBe 1
                         with(first()) {
-                            filnavn shouldBe fileName
+                            filnavn shouldBe fileNameOnSftp
                             feilmelding shouldContain ErrorKeys.FEIL_I_SUM
                             feilmelding shouldNotContain ErrorKeys.FEIL_I_ANTALL
                             feilmelding shouldNotContain ErrorKeys.FEIL_I_DATO
@@ -122,7 +124,7 @@ internal class FileValidatorIntegrationTest :
                     coVerify(exactly = 1) {
                         slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
-                    sendAlertFilenameSlot.captured shouldBe fileName
+                    sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
                     sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
                     capturedSendAlertMessages.size shouldBe 1
@@ -134,17 +136,18 @@ internal class FileValidatorIntegrationTest :
         Given("En fil har forskjellige datoer i kontroll-linjene") {
             val slackServiceSpy = setupSlackService()
             val ftpService = setupFtpService(slackServiceSpy)
-            val fileName = "FilMedFeilUtbetalDato.txt"
+            val fileName = "validering/filvalidering/FeilUtbetalDato.txt"
+            val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             When("Filen valideres") {
                 ftpService.getValidatedFiles()
 
                 Then("Skal feilen lagres i database ") {
-                    with(dbService.getFileValidationMessage(fileName)) {
+                    with(dbService.getFileValidationMessage(fileNameOnSftp)) {
                         size shouldBe 1
                         with(first()) {
-                            filnavn shouldBe fileName
+                            filnavn shouldBe fileNameOnSftp
                             feilmelding shouldContain ErrorKeys.FEIL_I_DATO
                             feilmelding shouldNotContain ErrorKeys.FEIL_I_SUM
                             feilmelding shouldNotContain ErrorKeys.FEIL_I_ANTALL
@@ -159,7 +162,7 @@ internal class FileValidatorIntegrationTest :
                     coVerify(exactly = 1) {
                         slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
-                    sendAlertFilenameSlot.captured shouldBe fileName
+                    sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
                     sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
                     capturedSendAlertMessages.size shouldBe 1
@@ -171,16 +174,17 @@ internal class FileValidatorIntegrationTest :
         Given("En fil har alle typer feil") {
             val slackServiceSpy = setupSlackService()
             val ftpService = setupFtpService(slackServiceSpy)
-            val fileName = "FilMedAlleTyperFeilForFilValidering.txt"
+            val fileName = "validering/filvalidering/AlleTyperFeil.txt"
+            val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             When("Filen valideres") {
                 ftpService.getValidatedFiles()
 
                 Then("Skal feilene lagres i database ") {
-                    with(dbService.getFileValidationMessage(fileName)) {
+                    with(dbService.getFileValidationMessage(fileNameOnSftp)) {
                         size shouldBe 3
-                        count { it.filnavn == fileName } shouldBe 3
+                        count { it.filnavn == fileNameOnSftp } shouldBe 3
                         count { it.feilmelding.contains(ErrorKeys.FEIL_I_DATO) } shouldBe 1
                         count { it.feilmelding.contains(ErrorKeys.FEIL_I_SUM) } shouldBe 1
                         count { it.feilmelding.contains(ErrorKeys.FEIL_I_ANTALL) } shouldBe 1
@@ -194,7 +198,7 @@ internal class FileValidatorIntegrationTest :
                     coVerify(exactly = 1) {
                         slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
-                    sendAlertFilenameSlot.captured shouldBe fileName
+                    sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
                     sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
                     capturedSendAlertMessages.size shouldBe 3
@@ -204,43 +208,76 @@ internal class FileValidatorIntegrationTest :
                 }
             }
         }
-        Given("Fil fra Arena") {
+        Given("Fil fra Arena - mangler fagsystemId (må fikses før produksjon)") {
             val slackServiceSpy = setupSlackService()
             val ftpService = setupFtpService(slackServiceSpy)
-            val fileName = "ArenaFil.txt"
+            val fileName = "innsender/ArenaFil.txt"
+            val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             When("Filen valideres") {
                 ftpService.getValidatedFiles()
 
-                Then("Skal ingen feil lagres i database") {
-                    dbService.getFileValidationMessage(fileName).size shouldBe 0
+                Then("Skal feil for manglende fagsystemId lagres i database") {
+                    with(dbService.getFileValidationMessage(fileNameOnSftp)) {
+                        size shouldBe 1
+                        with(first()) {
+                            filnavn shouldBe fileNameOnSftp
+                            feilmelding shouldContain ErrorKeys.FAGSYSTEMID_MANGLER
+                        }
+                    }
                 }
 
-                And("Alert skal ikke sendes") {
-                    coVerify(exactly = 0) {
-                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
+                And("Alert skal sendes til slack for manglende fagsystemId") {
+                    val sendAlertFilenameSlot = slot<String>()
+                    val sendAlertHeaderSlot = slot<String>()
+                    val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
+
+                    coVerify(exactly = 1) {
+                        slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
+                    sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
+                    sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
+                    val capturedMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
+                    capturedMessages.size shouldBe 1
+                    capturedMessages.filter { it.first == ErrorKeys.FAGSYSTEMID_MANGLER }.size shouldBe 1
                 }
             }
         }
-        Given("Fil fra Pesys") {
+
+        Given("Fil fra Pesys - mangler fagsystemId (må fikses før produksjon)") {
             val slackServiceSpy = setupSlackService()
             val ftpService = setupFtpService(slackServiceSpy)
-            val fileName = "PesysFil.txt"
+            val fileName = "innsender/PesysFil.txt"
+            val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             When("Filen valideres") {
                 ftpService.getValidatedFiles()
 
-                Then("Skal ingen feil lagres i database") {
-                    dbService.getFileValidationMessage(fileName).size shouldBe 0
+                Then("Skal feil for manglende fagsystemId lagres i database") {
+                    with(dbService.getFileValidationMessage(fileNameOnSftp)) {
+                        size shouldBe 1
+                        with(first()) {
+                            filnavn shouldBe fileNameOnSftp
+                            feilmelding shouldContain ErrorKeys.FAGSYSTEMID_MANGLER
+                        }
+                    }
                 }
 
-                And("Alert skal ikke sendes") {
-                    coVerify(exactly = 0) {
-                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
+                And("Alert skal sendes til slack for manglende fagsystemId") {
+                    val sendAlertFilenameSlot = slot<String>()
+                    val sendAlertHeaderSlot = slot<String>()
+                    val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
+
+                    coVerify(exactly = 1) {
+                        slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
+                    sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
+                    sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
+                    val capturedMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
+                    capturedMessages.size shouldBe 1
+                    capturedMessages.filter { it.first == ErrorKeys.FAGSYSTEMID_MANGLER }.size shouldBe 1
                 }
             }
         }
@@ -248,14 +285,15 @@ internal class FileValidatorIntegrationTest :
         Given("Fil med tilleggsfrist") {
             val slackServiceSpy = setupSlackService()
             val ftpService = setupFtpService(slackServiceSpy)
-            val fileName = "FilMedTilleggsfrist.txt"
+            val fileName = "krav/MedTilleggsfrist.txt"
+            val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             When("Filen valideres") {
                 ftpService.getValidatedFiles()
 
                 Then("Skal ingen feil lagres i database") {
-                    dbService.getFileValidationMessage(fileName).size shouldBe 0
+                    dbService.getFileValidationMessage(fileNameOnSftp).size shouldBe 0
                 }
 
                 And("Alert skal ikke sendes") {

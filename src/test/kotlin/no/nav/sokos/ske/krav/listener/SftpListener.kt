@@ -23,8 +23,8 @@ import org.testcontainers.shaded.org.bouncycastle.crypto.util.OpenSSHPublicKeyUt
 import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemObject
 import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemWriter
 
-import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.SftpConfig
+import no.nav.sokos.ske.krav.config.SftpProperties
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.util.FtpTestUtil
 
@@ -34,10 +34,10 @@ object SftpListener : TestListener {
     private val genericContainer = setupSftpTestContainer(keyPair.public)
 
     val sftpProperties =
-        PropertiesConfig.SftpProperties(
+        SftpProperties(
             host = "localhost",
             username = "foo",
-            privateKey = privateKeyFile.absolutePath,
+            privateKeyFilePath = privateKeyFile.absolutePath,
             privateKeyPassword = "pass",
             port = 5678,
         )
@@ -100,10 +100,10 @@ object SftpListener : TestListener {
     ) = sftpConfig.channel { con ->
 
         fileNames.forEach { fileName ->
-
+            val destinationFileName = fileName.substringAfterLast("/")
             con.put(
                 FtpTestUtil.fileAsString("/FtpFiler/$fileName").toByteArray().inputStream(),
-                "${directory.value}/$fileName",
+                "${directory.value}/$destinationFileName",
             )
         }
     }

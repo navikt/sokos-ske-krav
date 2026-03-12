@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data>
+<row>
+  <saksnummer_nav>xxxxxxxxxxxxx-E212</saksnummer_nav>
+  <error>404</error>
+  <melding>Innkrevingsoppdrag med oppdragsgiversKravidentifikator=xxxxxxxxxxxxx-E112 eksisterer ikke</melding>
+  <ske_response>{&quot;type&quot;:&quot;tag:skatteetaten.no,2026:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-eksisterer-ikke&quot;,&quot;title&quot;:&quot;Innkrevingsoppdrag eksisterer ikke&quot;,&quot;status&quot;:404,&quot;detail&quot;:&quot;Innkrevingsoppdrag med oppdragsgiversKravidentifikator=xxxxxxxxxxxxx-E112 eksisterer ikke&quot;,&quot;instance&quot;:&quot;/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/xxxxxxxxxxxxx-E112/hovedstol&quot;}</ske_response>
+</row>
+<row>
+  <saksnummer_nav>xxxxxxxxxxxxx-E212</saksnummer_nav>
+  <error>404</error>
+  <melding>Innkrevingsoppdrag med oppdragsgiversKravidentifikator=xxxxxxxxxxxxx-E112 eksisterer ikke</melding>
+  <ske_response>{&quot;type&quot;:&quot;tag:skatteetaten.no,2026:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-eksisterer-ikke&quot;,&quot;title&quot;:&quot;Innkrevingsoppdrag eksisterer ikke&quot;,&quot;status&quot;:404,&quot;detail&quot;:&quot;Innkrevingsoppdrag med oppdragsgiversKravidentifikator=xxxxxxxxxxxxx-E112 eksisterer ikke&quot;,&quot;instance&quot;:&quot;/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/xxxxxxxxxxxxx-E112/renter&quot;}</ske_response>
+</row>
+</data>
