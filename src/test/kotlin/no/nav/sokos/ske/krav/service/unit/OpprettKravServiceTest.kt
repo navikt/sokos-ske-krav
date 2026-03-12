@@ -8,7 +8,7 @@ import kotlinx.datetime.toKotlinLocalDate
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.justRun
@@ -65,8 +65,8 @@ class OpprettKravServiceTest :
                 spyk(OpprettKravService(mockk<SkeClient>(), databaseServiceMock))
             every { opprettKravServiceMock["sendAllOpprettKrav"](any<List<Krav>>()) } returns
                 listOf(
-                    RequestResult(mockk<HttpResponse>(relaxed = true), mockk<Krav>(), "", "123", mockk<Status>(relaxed = true)),
-                    RequestResult(mockk<HttpResponse>(relaxed = true), mockk<Krav>(), "", "456", mockk<Status>(relaxed = true)),
+                    RequestResult("", HttpStatusCode.OK, mockk<Krav>(), "", "123", mockk<Status>(relaxed = true)),
+                    RequestResult("", HttpStatusCode.OK, mockk<Krav>(), "", "456", mockk<Status>(relaxed = true)),
                 )
 
             val result = opprettKravServiceMock.sendAllOpprettKrav(listOf(kravMock, kravMock))
@@ -110,7 +110,8 @@ class OpprettKravServiceTest :
 
             reqResult.size shouldBe 1
             with(reqResult.first()) {
-                response shouldBe httpResponseMock
+                httpStatusCode shouldBe HttpStatusCode.OK
+                responseBody shouldBe nyttKravResponse("123")
                 request shouldBe opprettInnkrevingOppdragRequest.encodeToString()
                 krav shouldBe kravMock
                 kravidentifikator shouldBe "123"
@@ -160,7 +161,8 @@ class OpprettKravServiceTest :
                         ),
                 )
 
-            val httpResponseMock = mockHttpResponse(body = nyttKravResponse("123"))
+            val nyttKravResponse = nyttKravResponse("123")
+            val httpResponseMock = mockHttpResponse(body = nyttKravResponse)
             val skeClientMock = mockk<SkeClient> { coEvery { opprettKrav(any(), any()) } returns httpResponseMock }
             val opprettKravServiceMock = spyk(OpprettKravService(skeClientMock, databaseServiceMock), recordPrivateCalls = true)
 
@@ -168,7 +170,8 @@ class OpprettKravServiceTest :
 
             reqResult.size shouldBe 1
             with(reqResult.first()) {
-                response shouldBe httpResponseMock
+                httpStatusCode shouldBe HttpStatusCode.OK
+                responseBody shouldBe nyttKravResponse
                 request shouldBe opprettInnkrevingOppdragRequest.encodeToString()
                 krav shouldBe kravMockMedTilleggsfrist
                 kravidentifikator shouldBe "123"

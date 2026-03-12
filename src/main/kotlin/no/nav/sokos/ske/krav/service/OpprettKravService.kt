@@ -43,7 +43,8 @@ class OpprettKravService(
         val kravidentifikator = if (response.status.isSuccess()) responseBody.decodeTo<OpprettInnkrevingsOppdragResponse>()?.kravidentifikator ?: "" else ""
 
         return RequestResult(
-            response = response,
+            responseBody = responseBody,
+            httpStatusCode = response.status,
             request = opprettKravRequest.encodeToString(),
             krav = krav,
             kravidentifikator = kravidentifikator,

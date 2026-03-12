@@ -39,7 +39,8 @@ class StoppKravService(
         val definertStatus = defineStatus(responseBody, response.status)
 
         return RequestResult(
-            response = response,
+            responseBody = responseBody,
+            httpStatusCode = response.status,
             request = request.encodeToString(),
             krav = krav,
             kravidentifikator = kravidentifikatorPair.first,

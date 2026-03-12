@@ -162,17 +162,16 @@ class SkeService(
 
     private suspend fun handleErrors(responses: List<RequestResult>) {
         responses
-            .filterNot { it.response.status.isSuccess() }
+            .filterNot { it.httpStatusCode.isSuccess() }
             .forEach { result ->
-                val responseBody = result.response.bodyAsText()
                 saveErrorMessage(
                     result.request,
-                    responseBody,
-                    result.response.status,
+                    result.responseBody,
+                    result.httpStatusCode,
                     result.krav,
                     result.kravidentifikator,
                 )
-                responseBody.decodeTo<FeilResponse>()?.let { feilResponse ->
+                result.feilResponse?.let { feilResponse ->
                     val errorPair = Pair(feilResponse.title, feilResponse.detail)
                     slackService.addError(result.krav.filnavn, "Feil fra SKE", errorPair)
                 }
@@ -230,7 +229,7 @@ class SkeService(
     }
 
     private fun logResult(result: List<RequestResult>) {
-        val successful = result.filter { it.response.status.isSuccess() }
+        val successful = result.filter { it.httpStatusCode.isSuccess() }
         val unsuccessful = result.size - successful.size
         logger.info { "Sendte ${result.size} krav${if (unsuccessful > 0) ". $unsuccessful feilet" else ""}" }
 

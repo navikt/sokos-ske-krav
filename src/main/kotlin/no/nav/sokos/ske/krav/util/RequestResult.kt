@@ -1,6 +1,5 @@
 package no.nav.sokos.ske.krav.util
 
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 
@@ -19,7 +18,8 @@ const val UGYLDIG_TILLEGGSINFORMASJON = "ugyldig-tilleggsinformasjon"
 const val KRAV_ER_IKKE_RESKONTROFOERT = "innkrevingsoppdrag-er-ikke-reskontrofoert"
 
 data class RequestResult(
-    val response: HttpResponse,
+    val responseBody: String,
+    val httpStatusCode: HttpStatusCode,
     val krav: Krav,
     val request: String,
     val kravidentifikator: String,
