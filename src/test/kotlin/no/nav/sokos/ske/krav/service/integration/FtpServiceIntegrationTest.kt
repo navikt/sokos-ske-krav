@@ -17,7 +17,6 @@ import no.nav.sokos.ske.krav.validation.FileValidator
 private const val FILE_OK = "AllValideringOk.txt"
 private const val FILE_ERROR = "validering/filvalidering/FeilAntallKrav.txt"
 
-private val FILE_OK_NAME = FILE_OK.substringAfterLast("/")
 private val FILE_ERROR_NAME = FILE_ERROR.substringAfterLast("/")
 
 internal class FtpServiceIntegrationTest :
@@ -39,7 +38,7 @@ internal class FtpServiceIntegrationTest :
                 Then("Skal filen forbli i INBOUND") {
                     val successFilesInDir = ftpService.listFiles(Directories.INBOUND)
                     successFilesInDir.size shouldBe 1
-                    successFilesInDir shouldContain FILE_OK_NAME
+                    successFilesInDir shouldContain FILE_OK
                 }
             }
             When("Validering ikke er ok") {
@@ -66,7 +65,7 @@ internal class FtpServiceIntegrationTest :
                         SftpListener.putFiles(listOf(FILE_OK), directory)
                         val filesInDir = ftpService.listFiles(directory)
                         filesInDir.size shouldBe 1
-                        filesInDir shouldContain FILE_OK_NAME
+                        filesInDir shouldContain FILE_OK
                     }
                 }
             }
@@ -81,10 +80,10 @@ internal class FtpServiceIntegrationTest :
 
                     Then("Skal filen flyttes fra ${from.name} til ${to.name}") {
                         SftpListener.putFiles(listOf(FILE_OK), from)
-                        ftpService.moveFile(FILE_OK_NAME, from, to)
+                        ftpService.moveFile(FILE_OK, from, to)
                         val filesInDir = ftpService.listFiles(to)
                         filesInDir.size shouldBe 1
-                        filesInDir shouldContain FILE_OK_NAME
+                        filesInDir shouldContain FILE_OK
                     }
                 }
             }
