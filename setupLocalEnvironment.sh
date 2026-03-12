@@ -21,7 +21,7 @@ kubectl config use-context dev-fss
 kubectl config set-context --current --namespace=okonomi
 
 log "Checking Vault authentication..."
-if ! vault token lookup -format=json 2>/dev/null | jq -e '.data.display_name' 2>/dev/null | grep -q "nav.no"; then
+if ! vault token lookup -format=json 2>/dev/null | jq -e '.data.display_name' 2>/dev/null ; then
     vault login -method=oidc -no-print
 fi
 
@@ -60,7 +60,7 @@ PRIVATE_KEY=$(vault read -field=privateKey "$VAULT_PATH_SFTP")
 [ -z "$PRIVATE_KEY" ] && error "Failed to fetch SFTP private key from Vault"
 
 log "Fetching Postgres credentials from Vault..."
-POSTGRES_USER=$(vault kv get -field=data postgresql/preprod-fss/creds/sokos-ske-krav-user)
+POSTGRES_USER=$(vault kv get -field=data "$VAULT_PATH_POSTGRES")
 
 username=$(echo "$POSTGRES_USER" | awk -F 'username:' '{print $2}' | awk '{print $1}' | sed 's/]$//')
 password=$(echo "$POSTGRES_USER" | awk -F 'password:' '{print $2}' | awk '{print $1}' | sed 's/]$//')
