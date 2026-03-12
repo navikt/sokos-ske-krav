@@ -56,8 +56,8 @@ envValue=$(kubectl exec "$POD_NAME" -c "$APP_NAME" -- env \
 # ── Fetch secrets from Vault ──────────────────────────────────────────────────
 
 log "Fetching SFTP private key from Vault..."
-PRIVATE_KEY=$(vault read -field=privateKey "$VAULT_PATH_SFTP")
-[ -z "$PRIVATE_KEY" ] && error "Failed to fetch SFTP private key from Vault"
+PRIVATE_KEY=$(kubectl exec -n okonomi "$POD_NAME" -- cat /var/run/secrets/ske-sftp-private-key/private-key)
+[ -z "$PRIVATE_KEY" ] && error "Failed to fetch SFTP private key"
 
 log "Fetching Postgres credentials from Vault..."
 POSTGRES_USER=$(vault kv get -field=data "$VAULT_PATH_POSTGRES")
@@ -76,8 +76,8 @@ log "Writing defaults.properties..."
     echo "POSTGRES_PASSWORD=$password"
 } > defaults.properties
 
-log "Writing privKey..."
-echo "$PRIVATE_KEY" > privKey
-chmod 600 privKey
+log "Writing privateKey..."
+echo "$PRIVATE_KEY" > privateKey
+chmod 600 privateKey
 
 log "Done! defaults.properties and privKey created successfully."
