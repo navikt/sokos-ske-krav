@@ -9,7 +9,7 @@ import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 internal class PesysFileParserTest :
     FunSpec({
         test("Pesys fil skal ha riktig avsender") {
-            val pesysFil = getFileContent("PesysFil.txt")
+            val pesysFil = getFileContent("innsender/PesysFil.txt")
             val pesysParser = FileParser(pesysFil)
 
             pesysParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.PESYS

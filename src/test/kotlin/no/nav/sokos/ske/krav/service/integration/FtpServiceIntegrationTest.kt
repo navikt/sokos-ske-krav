@@ -14,10 +14,10 @@ import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.validation.FileValidator
 
-private const val FILE_A = "Fil-A.txt"
-private const val FILE_B = "Fil-B.txt"
-private const val FILE_OK = "AltOkFil.txt"
-private const val FILE_ERROR = "FilMedFeilAntallKrav.txt"
+private const val FILE_OK = "AllValideringOk.txt"
+private const val FILE_ERROR = "validering/filvalidering/FeilAntallKrav.txt"
+
+private val FILE_ERROR_NAME = FILE_ERROR.substringAfterLast("/")
 
 internal class FtpServiceIntegrationTest :
     BehaviorSpec({
@@ -30,27 +30,25 @@ internal class FtpServiceIntegrationTest :
 
         Given("det finnes ubehandlede filer i \"inbound\" på FTP-serveren ") {
             clearAllDirectories()
-            val fileList = listOf(FILE_OK, FILE_A, FILE_B, FILE_ERROR)
+            val fileList = listOf(FILE_OK, FILE_ERROR)
             SftpListener.putFiles(fileList, Directories.INBOUND)
             ftpService.getValidatedFiles()
             When("Validering er ok") {
 
                 Then("Skal filen forbli i INBOUND") {
                     val successFilesInDir = ftpService.listFiles(Directories.INBOUND)
-                    successFilesInDir.size shouldBe 3
+                    successFilesInDir.size shouldBe 1
                     successFilesInDir shouldContain FILE_OK
-                    successFilesInDir shouldContain FILE_A
-                    successFilesInDir shouldContain FILE_B
                 }
             }
             When("Validering ikke er ok") {
                 Then("Skal filen flyttes til FAILED") {
                     val failedFilesInDir = ftpService.listFiles(Directories.FAILED)
                     failedFilesInDir.size shouldBe 1
-                    failedFilesInDir[0] shouldBe FILE_ERROR
+                    failedFilesInDir[0] shouldBe FILE_ERROR_NAME
                 }
                 And("Feilmelding skal lagres i database") {
-                    dbService.getFileValidationMessage(FILE_ERROR).run {
+                    dbService.getFileValidationMessage(FILE_ERROR_NAME).run {
                         size shouldBe 1
                         first().feilmelding shouldBe "${FileValidator.ErrorKeys.FEIL_I_ANTALL}: Antall krav: 16, Antall i siste linje: 101"
                     }
@@ -64,11 +62,10 @@ internal class FtpServiceIntegrationTest :
                 When("Directory er ${directory.name}") {
 
                     Then("Skal listFiles returnere filer i ${directory.name}") {
-                        SftpListener.putFiles(listOf(FILE_A, FILE_B), directory)
+                        SftpListener.putFiles(listOf(FILE_OK), directory)
                         val filesInDir = ftpService.listFiles(directory)
-                        filesInDir.size shouldBe 2
-                        filesInDir shouldContain FILE_A
-                        filesInDir shouldContain FILE_B
+                        filesInDir.size shouldBe 1
+                        filesInDir shouldContain FILE_OK
                     }
                 }
             }
@@ -82,11 +79,11 @@ internal class FtpServiceIntegrationTest :
                 When("flytter fil fra ${from.name} til ${to.name}") {
 
                     Then("Skal filen flyttes fra ${from.name} til ${to.name}") {
-                        SftpListener.putFiles(listOf(FILE_A), from)
-                        ftpService.moveFile(FILE_A, from, to)
+                        SftpListener.putFiles(listOf(FILE_OK), from)
+                        ftpService.moveFile(FILE_OK, from, to)
                         val filesInDir = ftpService.listFiles(to)
                         filesInDir.size shouldBe 1
-                        filesInDir shouldContain FILE_A
+                        filesInDir shouldContain FILE_OK
                     }
                 }
             }

@@ -34,8 +34,8 @@ internal class RepositoryTestKrav :
     FunSpec({
         extensions(DBListener)
 
-        DBListener.loadInitScript("SQLscript/KravForRepositoryBehaviourTestScript.sql")
-        DBListener.loadInitScript("SQLscript/Feilmeldinger.sql")
+        DBListener.loadInitScript("SQLscript/krav/KravForRepositoryTest.sql")
+        DBListener.loadInitScript("SQLscript/feilmeldinger/Feilmeldinger.sql")
 
         test("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING") {
             DBListener.dataSource.connection.use { it.getAllKravForStatusCheck().size shouldBe 5 }
@@ -207,8 +207,8 @@ internal class RepositoryTestKrav :
         }
 
         test("insertAllNewKrav skal inserte alle kravlinjene") {
-            val filnavn = "8NyeKrav1Endring1Stopp.txt"
-            val liste = getFileContent(filnavn)
+            val filnavn = "TiNyeKrav1Endring1Stopp.txt"
+            val liste = getFileContent("krav/$filnavn")
             val kravlinjer = FileParser(liste).parseKravLinjer()
 
             DBListener.dataSource.connection.use { con ->
