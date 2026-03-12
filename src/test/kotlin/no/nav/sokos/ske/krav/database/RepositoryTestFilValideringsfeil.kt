@@ -19,7 +19,7 @@ internal class RepositoryTestFilValideringsfeil :
     FunSpec({
         extensions(DBListener)
 
-        DBListener.loadInitScript("SQLscript/FilValideringsFeil.sql")
+        DBListener.loadInitScript("SQLscript/validering/FilValideringsFeil.sql")
 
         test("getValideringsFeilForFil skal returnere valideringsfeil basert på filnavn") {
             DBListener.dataSource.connection.use { con ->

@@ -9,7 +9,7 @@ import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 internal class ArenaFileParserTest :
     FunSpec({
         test("Arena fil skal ha riktig avsender og stonadstyper") {
-            val arenaFil = getFileContent("ArenaFil.txt")
+            val arenaFil = getFileContent("innsender/ArenaFil.txt")
             val arenaParser = FileParser(arenaFil)
 
             arenaParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.ARENA

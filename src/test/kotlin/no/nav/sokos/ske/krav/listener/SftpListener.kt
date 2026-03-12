@@ -100,10 +100,10 @@ object SftpListener : TestListener {
     ) = sftpConfig.channel { con ->
 
         fileNames.forEach { fileName ->
-
+            val destinationFileName = fileName.substringAfterLast("/")
             con.put(
                 FtpTestUtil.fileAsString("/FtpFiler/$fileName").toByteArray().inputStream(),
-                "${directory.value}/$fileName",
+                "${directory.value}/$destinationFileName",
             )
         }
     }

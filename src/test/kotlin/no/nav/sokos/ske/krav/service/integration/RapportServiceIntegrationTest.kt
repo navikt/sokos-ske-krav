@@ -14,8 +14,8 @@ internal class RapportServiceIntegrationTest :
         extensions(DBListener)
 
         test("oppdaterAvstemtKravTilRapportert skal sette status til rapportert og hente tabelldata på nytt") {
-            DBListener.loadInitScript("SQLscript/KravSomSkalAvstemmes.sql")
-            DBListener.loadInitScript("SQLscript/FeilmeldingerSomSkalAvstemmes.sql")
+            DBListener.loadInitScript("SQLscript/status/KravSomSkalAvstemmes.sql")
+            DBListener.loadInitScript("SQLscript/feilmeldinger/FeilmeldingerSomSkalAvstemmes.sql")
 
             val dbService = DatabaseService(DBListener.dataSource)
             dbService.getAllKravForAvstemming().size shouldBe 3

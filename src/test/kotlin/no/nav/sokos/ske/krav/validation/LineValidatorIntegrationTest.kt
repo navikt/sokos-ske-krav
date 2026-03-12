@@ -44,7 +44,7 @@ internal class LineValidatorIntegrationTest :
             val dbService = DatabaseService(DBListener.dataSource)
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
             val ftpService = setupFtpService(dbService, slackServiceSpy)
-            val fileName = "AltOkFil.txt"
+            val fileName = "AllValideringOk.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileName }
@@ -81,16 +81,17 @@ internal class LineValidatorIntegrationTest :
             val dbService = DatabaseService(DBListener.dataSource)
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
             val ftpService = setupFtpService(dbService, slackServiceSpy)
-            val fileName = "1LinjeHarFeilKravtype.txt"
+            val fileName = "validering/linjevalidering/EnLinjeFeilKravtype.txt"
+            val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
-            val ftpFil = ftpService.getValidatedFiles().first { it.name == fileName }
+            val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
 
             When("Linjer valideres") {
                 lineValidatorSpy.validateNewLines(ftpFil, dbService)
 
                 Then("Skal én feil lagres i database") {
-                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileName) }) {
+                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileNameOnSftp) }) {
                         size shouldBe 1
                         with(first().feilmelding) {
                             shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
@@ -117,7 +118,7 @@ internal class LineValidatorIntegrationTest :
                         slackServiceSpy.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessagesSlot))
                     }
 
-                    addErrorFilenameSlot.captured shouldBe fileName
+                    addErrorFilenameSlot.captured shouldBe fileNameOnSftp
                     val capturedSendAlertMessages: Map<String, List<String>> = addErrorMessagesSlot.captured.groupBy({ it.first }, { it.second })
                     Then("Skal én feilmelding dannes") {
                         capturedSendAlertMessages.size shouldBe 1
@@ -141,7 +142,7 @@ internal class LineValidatorIntegrationTest :
                         coVerify(exactly = 1) {
                             slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
                         }
-                        sendAlertFilenameSlot.captured shouldBe fileName
+                        sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
 
                         val capturedErrorMessages = sendAlertMessagesSlot.captured
                         capturedErrorMessages shouldBe capturedSendAlertMessages
@@ -154,10 +155,11 @@ internal class LineValidatorIntegrationTest :
             val dbService = DatabaseService(DBListener.dataSource)
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
             val ftpService = setupFtpService(dbService, slackServiceSpy)
-            val fileName = "1LinjeHarFeilSaksnummer_OgVedtaksdato_OgKravtype.txt"
+            val fileName = "validering/linjevalidering/EnLinjeFlereFeil.txt"
+            val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
-            val ftpFil = ftpService.getValidatedFiles().first { it.name == fileName }
+            val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
 
             When("Linjer valideres") {
                 val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, dbService)
@@ -171,7 +173,7 @@ internal class LineValidatorIntegrationTest :
                     }
                 }
                 Then("Skal 3 feil lagres som én feilmelding i database") {
-                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileName) }) {
+                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileNameOnSftp) }) {
                         size shouldBe 1
                         with(first().feilmelding) {
                             shouldContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
@@ -200,7 +202,7 @@ internal class LineValidatorIntegrationTest :
                         slackServiceSpy.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessagesSlot))
                     }
 
-                    addErrorFilenameSlot.captured shouldBe fileName
+                    addErrorFilenameSlot.captured shouldBe fileNameOnSftp
                     val capturedAddErrorMessages: Map<String, List<String>> = addErrorMessagesSlot.captured.groupBy({ it.first }, { it.second })
 
                     Then("Skal 3 feilmeldinger dannes") {
@@ -237,7 +239,7 @@ internal class LineValidatorIntegrationTest :
                         coVerify(exactly = 1) {
                             slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
                         }
-                        sendAlertFilenameSlot.captured shouldBe fileName
+                        sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
 
                         val capturedErrorMessages = sendAlertMessagesSlot.captured
                         capturedErrorMessages shouldBe capturedAddErrorMessages
@@ -247,13 +249,14 @@ internal class LineValidatorIntegrationTest :
         }
 
         Given("6 linjer har samme type feil") {
-            val fileName = "6LinjerHarSammeTypeFeil.txt"
+            val fileName = "validering/linjevalidering/SeksLinjerSammeTypeFeil.txt"
+            val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             val dbService = DatabaseService(DBListener.dataSource)
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
             val ftpService = setupFtpService(dbService, slackServiceSpy)
-            val ftpFil = ftpService.getValidatedFiles().first { it.name == fileName }
+            val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
             ftpFil.kravLinjer.size shouldBe 10
 
             When("Linjer valideres") {
@@ -267,7 +270,7 @@ internal class LineValidatorIntegrationTest :
                 }
 
                 Then("Skal 6 feil lagres i database") {
-                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileName) }) {
+                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileNameOnSftp) }) {
                         size shouldBe 6
                         all {
                             it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
@@ -296,7 +299,7 @@ internal class LineValidatorIntegrationTest :
                         slackServiceSpy.addError(capture(addErrorFilenameSlot), capture(headerSlot), capture(addErrorMessagesSlot))
                     }
 
-                    addErrorFilenameSlot.captured shouldBe fileName
+                    addErrorFilenameSlot.captured shouldBe fileNameOnSftp
                     val capturedSendAlertMessages: Map<String, List<String>> = addErrorMessagesSlot.captured.groupBy({ it.first }, { it.second })
 
                     Then("Skal 6 feilmeldinger dannes") {
@@ -322,7 +325,7 @@ internal class LineValidatorIntegrationTest :
                         coVerify(exactly = 1) {
                             slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
                         }
-                        sendAlertFilenameSlot.captured shouldBe fileName
+                        sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
 
                         val capturedErrorMessages = sendAlertMessagesSlot.captured
 
@@ -333,12 +336,13 @@ internal class LineValidatorIntegrationTest :
             }
         }
         Given("6 linjer har samme type feil og 3 linjer har ulike feil") {
-            val fileName = "6LinjerHarSammeTypeFeilOg3LinjerHarUlikeFeil.txt"
+            val fileName = "validering/linjevalidering/SeksLinjerSammeOgUlikeFeil.txt"
+            val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
             val dbService = DatabaseService(DBListener.dataSource)
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
             val ftpService = setupFtpService(dbService, slackServiceSpy)
-            val ftpFil = ftpService.getValidatedFiles().first { it.name == fileName }
+            val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
             ftpFil.kravLinjer.size shouldBe 10
             When("Linjer valideres") {
 
@@ -355,7 +359,7 @@ internal class LineValidatorIntegrationTest :
                     }
                 }
                 Then("Skal 6 feil lagres  i database ") {
-                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileName) }) {
+                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileNameOnSftp) }) {
                         size shouldBe 6
                         filter { it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.size shouldBe 6
                         filter { it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT) }.size shouldBe 1
@@ -372,7 +376,7 @@ internal class LineValidatorIntegrationTest :
                         slackServiceSpy.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessageSlot))
                     }
 
-                    addErrorFilenameSlot.captured shouldBe fileName
+                    addErrorFilenameSlot.captured shouldBe fileNameOnSftp
                     val capturedSendAlertMessages: Map<String, List<String>> = addErrorMessageSlot.captured.groupBy({ it.first }, { it.second })
                     Then("Skal 9 feilmeldinger dannes") {
                         capturedSendAlertMessages.size shouldBe 4
@@ -411,7 +415,7 @@ internal class LineValidatorIntegrationTest :
                         coVerify(exactly = 1) {
                             slackClientSpy.sendMessage(any<String>(), capture(sendAlertFileNameSlot), capture(sendAlertMessagesSlot))
                         }
-                        sendAlertFileNameSlot.captured shouldBe fileName
+                        sendAlertFileNameSlot.captured shouldBe fileNameOnSftp
                         val capturedErrorMessages = sendAlertMessagesSlot.captured
                         Then("Skal de 6 like feilmeldingene aggregeres til én") {
                             capturedErrorMessages.size shouldBe 4

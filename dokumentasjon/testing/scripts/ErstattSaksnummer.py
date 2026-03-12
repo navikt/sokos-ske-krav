@@ -1,5 +1,7 @@
-import sys
 import random
+import sys
+from datetime import date
+
 
 def main():
     if len(sys.argv) != 2:
@@ -16,17 +18,22 @@ def main():
         print("File has less than 3 lines")
         sys.exit(1)
 
+    today = date.today().strftime('%Y%m%d')
+
     new_lines = []
     new_lines.append(lines[0])  # Keep the first line unchanged
 
     for line in lines[1:-1]:
         line = line.rstrip('\n')  # Remove the newline character for accurate indexing
-        line = line.rstrip('\n').replace('_', '-')
+        line = line.replace('_', '-')
         if len(line) >= 19:
             rand_num = random.randint(1111111, 9999999)
             rand_str = str(rand_num)
-            # Replace characters from index 11 to 18 (positions 12 to 19 inclusive)
+            # Replace saksnummer: characters from index 11 to 18 (positions 12 to 19 inclusive)
             new_line = line[:11] + rand_str + line[18:]
+            # Ensure line is at least 200 chars (pad fagsystemId field with spaces if missing)
+            # then write today's date at positions 200-208 (tilleggsfrist)
+            new_line = new_line[:200].ljust(200) + today
             new_lines.append(new_line + '\n')  # Add the newline character back
         else:
             # If the line is too short, leave it unchanged
