@@ -9,7 +9,7 @@ import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 internal class InfotrygdFileParserTest :
     FunSpec({
         test("Infotrygd fil skal ha riktig avsender") {
-            val infotrygdFil = getFileContent("InfotrygdFil.txt")
+            val infotrygdFil = getFileContent("innsender/InfotrygdFil.txt")
             val infotrygdParser = FileParser(infotrygdFil)
 
             infotrygdParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.INFOTRYGD
