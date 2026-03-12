@@ -56,7 +56,7 @@ envValue=$(kubectl exec "$POD_NAME" -c "$APP_NAME" -- env \
 # ── Fetch secrets from Vault ──────────────────────────────────────────────────
 
 log "Fetching SFTP private key from Vault..."
-PRIVATE_KEY=$(kubectl exec -n okonomi "$POD_NAME" -- cat /var/run/secrets/ske-sftp-private-key/private-key)
+PRIVATE_KEY=$(kubectl exec -n okonomi "$POD_NAME" -- cat /var/run/secrets/sokos-ske-krav-sftp-private-key/private-key)
 [ -z "$PRIVATE_KEY" ] && error "Failed to fetch SFTP private key"
 
 log "Fetching Postgres credentials from Vault..."
