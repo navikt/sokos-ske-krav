@@ -41,7 +41,7 @@ class ServiceutilsTest :
             expectSuccess = false
         }
 
-        test("parseTo skal returnere parsed objekt når parsing er OK") {
+        test("decodeTo skal returnere parsed objekt når parsing er OK") {
 
             val successResponse = """{"value": "test"}"""
             val client = createMockClient(successResponse)
@@ -50,7 +50,7 @@ class ServiceutilsTest :
             response.decodeTo<TestResponse>().shouldNotBeNull()
         }
 
-        test("parseTo skal returnere null når parsing feiler") {
+        test("decodeTo skal returnere null når parsing feiler") {
 
             val invalidResponse = """{"invalid": json"""
             val client = createMockClient(invalidResponse)
