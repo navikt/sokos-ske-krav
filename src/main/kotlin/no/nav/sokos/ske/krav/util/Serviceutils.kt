@@ -31,5 +31,5 @@ inline fun <reified T> T.encodeToString(): String =
     runCatching {
         jsonConfig.encodeToString(this)
     }.onFailure { e ->
-        logger.error(marker = TEAM_LOGS_MARKER) { "Error decoding JSON: ${e.message}" }
+        logger.error(marker = TEAM_LOGS_MARKER) { "Error encoding ${T::class.simpleName} to JSON: ${e.message}" }
     }.getOrDefault("")
