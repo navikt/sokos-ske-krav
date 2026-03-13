@@ -11,8 +11,6 @@ import io.ktor.server.config.HoconApplicationConfig
 import io.ktor.server.config.getAs
 import io.ktor.server.config.withFallback
 
-import no.nav.sokos.ske.krav.util.logger
-
 object PropertiesConfig {
     lateinit var config: ApplicationConfig
         private set
@@ -72,7 +70,6 @@ fun ApplicationConfig.mergeWithEnv(): ApplicationConfig {
             ?: propertyOrNull("ktor.environment")?.getString()
             ?: "local"
     val environmentConfig = ApplicationConfig("application-$environment.conf")
-    logger.info(marker = TEAM_LOGS_MARKER) { "Environment: $environment" }
     return environmentConfig overriding this overriding hoconConfig
 }
 

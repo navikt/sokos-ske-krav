@@ -9,6 +9,7 @@ import io.ktor.http.isSuccess
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.PostgresDataSource
+import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
@@ -102,6 +103,9 @@ class StatusService(
 
         val valideringsfeilListe = responseBody.decodeTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
         logger.info("Asynk Valideringsfeil mottatt ")
+        valideringsfeilListe.forEach {
+            logger.error(marker = TEAM_LOGS_MARKER) { "Asynk valideringsfeil mottatt: ${ it.message }" }
+        }
 
         dataSource.asyncTransaction { session ->
             FeilmeldingRepository.insertFeilmeldinger(
