@@ -96,10 +96,10 @@ internal class DefineStatusTest :
             }
 
             test("Når responsekode er 404 og typen ikke gjenkjennes, skal krav ha status Status.ANNEN_IKKE_FUNNET_404") {
-                val expectedFeilResponse = createFeilResponse(KRAV_EKSISTERER_IKKE, 404)
+                val expectedFeilResponse = createFeilResponse("foo", 404)
                 val (status, feilResponse) = defineStatus(expectedFeilResponse.encodeToString(), HttpStatusCode.NotFound)
 
-                status shouldBe Status.HTTP404_FANT_IKKE_SAKSREF
+                status shouldBe Status.HTTP404_ANNEN_IKKE_FUNNET
                 feilResponse shouldBe expectedFeilResponse
             }
 
