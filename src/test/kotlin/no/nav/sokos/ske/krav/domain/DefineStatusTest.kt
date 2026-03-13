@@ -52,7 +52,6 @@ internal class DefineStatusTest :
 
                 status shouldBe Status.HTTP400_UGYLDIG_FORESPORSEL
                 feilResponse shouldBe expectedFeilResponse
-                //   createRequestResult(400).status shouldBe Status.HTTP400_UGYLDIG_FORESPORSEL
             }
 
             test("Når responsekode er 400 og typen inneholder UGYLDIG_KRAVIDENTIFIKATOR skal krav ha status Status.HTTP400_UGYLDIG_KRAVIDENTIFIKATOR") {
