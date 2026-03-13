@@ -40,8 +40,8 @@ spec:
     enabled: true
     path: /internal/metrics
   filesFrom:
-    - secret: ske-sftp-private-key
-      mountPath: /var/run/secrets/ske-sftp-private-key
+    - secret: sokos-ske-krav-sftp-private-key
+      mountPath: /var/run/secrets/sokos-ske-krav-sftp-private-key
   envFrom:
     - secret: sokos-ske-krav-secrets
   ingresses:
