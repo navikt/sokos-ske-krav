@@ -166,7 +166,12 @@ Itererer over listen og sender hvert krav til SKE. Bryter løkken dersom `Circui
 #### `sendOpprettKrav(krav)` *(privat)*
 1. Bygger request via [`createOpprettKravRequest(krav)`](SKE_requests_og_feilhandtering.md#11-opprett-krav--post-innkrevingsoppdrag)
 2. Kaller `SkeClient.opprettKrav()`
-3. Returnerer [`RequestResult`](../../../src/main/kotlin/no/nav/sokos/ske/krav/util/RequestResult.kt) med kravidentifikator fra SKE-responsen (brukes til å lagre SKEs identifikator i databasen)
+3. Leser responsen én gang med `bodyAsText()` og lagrer resultatet i `responseBody`
+4. Kaller [`defineStatus(responseBody, response.status)`](SKE_requests_og_feilhandtering.md#22-http-feilkoder-og-statuser) som tolker body-teksten og returnerer `(Status, FeilResponse?)`
+5. Dersom HTTP-status er 2xx: deserialiserer `responseBody` til `OpprettInnkrevingsOppdragResponse` og henter ut `kravidentifikator`; ellers settes kravidentifikator til tom streng
+6. Returnerer [`RequestResult`](../../../src/main/kotlin/no/nav/sokos/ske/krav/util/RequestResult.kt) med `responseBody`, `httpStatusCode`, `status`, `feilResponse` og `kravidentifikator` (brukes til å lagre SKEs identifikator i databasen)
+
+> **Merk:** Responsen leses bare én gang (steg 3). Både statustolking (steg 4) og deserialisering av suksessrespons (steg 5) opererer på den allerede innleste strengen, og unngår dermed dobbel konsumering av HTTP-strømmen.
 
 ---
 
@@ -194,7 +199,7 @@ Sender krav av typen `ENDRING_RENTE` og `ENDRING_HOVEDSTOL` til SKE. Fordi appli
 
 #### `processKravGroup(gruppeAvKrav)` *(privat)*
 1. Bestemmer kravidentifikator via [`createKravidentifikatorPair()`](SKE_requests_og_feilhandtering.md#15-valg-av-kravidentifikator-ved-endre-og-stopp) (SKE sin identifikator brukes dersom tilgjengelig, ellers `referansenummerGammelSak`)
-2. Sender én request per krav i gruppen (typisk 2: rente + hovedstol)
+2. Sender én request per krav i gruppen (typisk 2: rente + hovedstol) via `sendEndreKrav()`. For hvert kall: responsen leses én gang med `bodyAsText()`, deretter kalles [`defineStatus(responseBody, response.status)`](SKE_requests_og_feilhandtering.md#22-http-feilkoder-og-statuser) på den innleste strengen
 3. Konformerer statusene via `getConformedResponses()`
 
 #### `getConformedResponses(resultater)` *(privat)*
@@ -232,7 +237,11 @@ Itererer over listen og sender hvert krav. Bryter løkken ved Circuit Breaker-fe
 1. Bestemmer kravidentifikator via [`createKravidentifikatorPair()`](SKE_requests_og_feilhandtering.md#15-valg-av-kravidentifikator-ved-endre-og-stopp) (SKE-identifikator eller `referansenummerGammelSak`)
 2. Bygger [`AvskrivingRequest`](../../../src/main/kotlin/no/nav/sokos/ske/krav/dto/ske/requests/AvskrivingRequest.kt) via [`createStoppKravRequest()`](SKE_requests_og_feilhandtering.md#14-stopp-krav--post-innkrevingsoppdragavskriving)
 3. Kaller `SkeClient.stoppKrav()`
-4. Returnerer [`RequestResult`](../../../src/main/kotlin/no/nav/sokos/ske/krav/util/RequestResult.kt)
+4. Leser responsen én gang med `bodyAsText()` og lagrer resultatet i `responseBody`
+5. Kaller [`defineStatus(responseBody, response.status)`](SKE_requests_og_feilhandtering.md#22-http-feilkoder-og-statuser) som tolker body-teksten og returnerer `(Status, FeilResponse?)`
+6. Returnerer [`RequestResult`](../../../src/main/kotlin/no/nav/sokos/ske/krav/util/RequestResult.kt) med `responseBody`, `httpStatusCode`, `status` og `feilResponse`
+
+> **Merk:** Som i `sendOpprettKrav` leses responsen bare én gang (steg 4), og den innleste strengen gjenbrukes for statustolking (steg 5).
 
 ---
 

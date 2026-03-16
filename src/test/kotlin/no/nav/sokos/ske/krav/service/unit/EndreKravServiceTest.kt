@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.service.unit
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
@@ -15,7 +16,6 @@ import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.EndreKravService
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.defineStatus
-import no.nav.sokos.ske.krav.util.mockHttpResponse
 
 internal class EndreKravServiceTest :
     FunSpec({
@@ -50,18 +50,20 @@ internal class EndreKravServiceTest :
 
             test("If first status is $firstStatus and second status is $secondStatus, both should be set to $expectedFirstStatus") {
 
+                val firstStatusCode = HttpStatusCode.fromValue(firstStatus)
+                val secondStatusCode = HttpStatusCode.fromValue(secondStatus)
                 every {
                     endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<Krav>())
                 } returnsMany
                     if (firstStatus == 102 && secondStatus == 102) {
                         listOf(
-                            RequestResult(mockHttpResponse(102), mockk<Krav>(), "", "", Status.HTTP409_KRAV_ER_AVSKREVET),
-                            RequestResult(mockHttpResponse(102), mockk<Krav>(), "", "", Status.HTTP500_ANNEN_SERVER_FEIL),
+                            RequestResult("", firstStatusCode, mockk<Krav>(), "", "", Status.HTTP409_KRAV_ER_AVSKREVET),
+                            RequestResult("", secondStatusCode, mockk<Krav>(), "", "", Status.HTTP500_ANNEN_SERVER_FEIL),
                         )
                     } else {
                         listOf(
-                            RequestResult(mockHttpResponse(firstStatus), mockk<Krav>(), "", "", defineStatus(mockHttpResponse(firstStatus))),
-                            RequestResult(mockHttpResponse(secondStatus), mockk<Krav>(), "", "", defineStatus(mockHttpResponse(secondStatus))),
+                            RequestResult("", firstStatusCode, mockk<Krav>(), "", "", defineStatus("", firstStatusCode).first),
+                            RequestResult("", secondStatusCode, mockk<Krav>(), "", "", defineStatus("", secondStatusCode).first),
                         )
                     }
 
@@ -75,7 +77,7 @@ internal class EndreKravServiceTest :
         test("getConformedResponses should return requestResults unchanged when size is 0") {
             every {
                 endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<Krav>())
-            } returns RequestResult(mockHttpResponse(200), mockk<Krav>(), "", "", Status.KRAV_SENDT)
+            } returns RequestResult("", HttpStatusCode.OK, mockk<Krav>(), "", "", Status.KRAV_SENDT)
 
             // Send empty list, which should result in empty request results
             val result = endreKravMock.sendAllEndreKrav(emptyList())
@@ -87,7 +89,7 @@ internal class EndreKravServiceTest :
             val expectedStatus = Status.KRAV_SENDT
             every {
                 endreKravMock["sendEndreKrav"](any<String>(), any<KravidentifikatorType>(), any<Krav>())
-            } returns RequestResult(mockHttpResponse(200), mockk<Krav>(), "", "", expectedStatus)
+            } returns RequestResult("", HttpStatusCode.OK, mockk<Krav>(), "", "", expectedStatus)
 
             val result = endreKravMock.sendAllEndreKrav(listOf(kravMock))
 

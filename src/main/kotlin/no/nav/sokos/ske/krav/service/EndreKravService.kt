@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.service
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 
 import no.nav.sokos.ske.krav.client.SkeClient
@@ -93,8 +94,8 @@ class EndreKravService(
         // Determine which status should be used for all results
         val conformedStatus =
             determineNewStatus(
-                Pair(firstResult.response.status.value, firstResult.status),
-                Pair(lastResult.response.status.value, lastResult.status),
+                Pair(firstResult.httpStatusCode.value, firstResult.status),
+                Pair(lastResult.httpStatusCode.value, lastResult.status),
             )
 
         // Apply the conformed status to all results
@@ -144,12 +145,16 @@ class EndreKravService(
                 Pair(response, request.encodeToString())
             }
 
+        val responseBody = response.bodyAsText()
+        val definertStatus = defineStatus(responseBody, response.status)
         return RequestResult(
-            response = response,
+            responseBody = responseBody,
+            httpStatusCode = response.status,
             request = request,
             krav = krav,
             kravidentifikator = "",
-            status = defineStatus(response),
+            status = definertStatus.first,
+            feilResponse = definertStatus.second,
         )
     }
 }
