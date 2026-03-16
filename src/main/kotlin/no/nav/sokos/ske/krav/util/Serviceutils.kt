@@ -24,7 +24,9 @@ inline fun <reified T> String.decodeTo(): T? =
     runCatching {
         jsonConfig.decodeFromString<T>(this)
     }.onFailure { e ->
-        logger.error(marker = TEAM_LOGS_MARKER) { "Error decoding JSON: ${e.message}" }
+        logger.error(marker = TEAM_LOGS_MARKER) {
+            "Error decoding JSON to ${T::class.simpleName} (input length=${this.length}): ${e.message}"
+        }
     }.getOrNull()
 
 inline fun <reified T> T.encodeToString(): String =
