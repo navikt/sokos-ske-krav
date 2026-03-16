@@ -25,7 +25,6 @@ import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.decodeTo
-import no.nav.sokos.ske.krav.util.isOpprettKrav
 import no.nav.sokos.ske.krav.validation.LineValidator
 
 const val NYTT_KRAV = "NYTT_KRAV"
@@ -100,7 +99,7 @@ class SkeService(
         databaseService.saveAllNewKrav(validatedLines, file.name)
         ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
 
-        updateAllEndringerAndStopp(file.name, validatedLines.filterNot { it.isOpprettKrav() })
+        updateAllEndringerAndStopp()
     }
 
     private suspend fun sendKrav(kravList: List<Krav>): List<RequestResult> {
@@ -116,11 +115,8 @@ class SkeService(
         return allResponses
     }
 
-    private suspend fun updateAllEndringerAndStopp(
-        fileName: String,
-        kravLinjer: List<KravLinje>,
-    ) {
-        kravLinjer.forEach { krav ->
+    private suspend fun updateAllEndringerAndStopp() {
+        databaseService.getAllUnsentEndringerAndStopp().forEach { krav ->
             val skeKravidentifikator = databaseService.getSkeKravidentifikator(krav.referansenummerGammelSak)
             var skeKravidentifikatorSomSkalLagres = skeKravidentifikator
 
@@ -132,14 +128,14 @@ class SkeService(
             }
 
             if (skeKravidentifikatorSomSkalLagres.isNotBlank()) {
-                databaseService.updateEndringWithSkeKravIdentifikator(krav.saksnummerNav, skeKravidentifikatorSomSkalLagres)
+                databaseService.updateEndringWithSkeKravIdentifikator(krav.saksnummerNAV, skeKravidentifikatorSomSkalLagres)
             } else {
                 slackService.addError(
-                    fileName,
+                    krav.filnavn,
                     "Fant ikke gyldig kravidentifikator for migrert krav",
                     Pair(
                         "Fant ikke gyldig kravidentifikator for migrert krav",
-                        "Saksnummer: ${krav.saksnummerNav} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
+                        "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
                     ),
                 )
                 logger.warn { "Fant ikke gyldig kravidentifikator for migrert krav:  ${krav.referansenummerGammelSak} " }
