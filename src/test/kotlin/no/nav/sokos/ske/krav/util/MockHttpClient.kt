@@ -26,6 +26,7 @@ object MockHttpClientUtils {
         ENDRE_HOVEDSTOL("/hovedstol"),
         AVSKRIVING("/avskriving"),
         HENT_VALIDERINGSFEIL("/valideringsfeil"),
+        AVSTEMMING("/avstemming"),
     }
 
     data class MockRequestObj(
@@ -143,7 +144,7 @@ class MockHttpClient {
             MockEngine { request ->
                 val handler =
                     kall.singleOrNull {
-                        generateUrls(it.type.url).contains(request.url.encodedPath)
+                        matchesEndpoint(request.url.encodedPath, it.type.url)
                     }
                 if (handler != null) {
                     respond(handler.response, handler.statusCode, responseHeaders)
@@ -155,32 +156,8 @@ class MockHttpClient {
         return guardedClient(mockEngine)
     }
 
-    private fun generateUrls(baseUrl: String) =
-        listOf(
-            "/innkrevingsoppdrag/foo$baseUrl",
-            "/innkrevingsoppdrag/1234$baseUrl",
-            "/innkrevingsoppdrag/OB040000592759$baseUrl",
-            "/innkrevingsoppdrag/OB040000479803$baseUrl",
-            "/innkrevingsoppdrag/OB040000595755$baseUrl",
-            "/innkrevingsoppdrag/2220-navsaksnummer$baseUrl",
-            "/innkrevingsoppdrag/1110-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/1111-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/1112-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/1113-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/1114-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/2222-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/3333-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/4444-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/5555-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/6666-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/7777-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/8888-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/9999-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/1010-skeUUID$baseUrl",
-            "/innkrevingsoppdrag/kravidske1$baseUrl",
-            "/innkrevingsoppdrag/kravidske2$baseUrl",
-            "/innkrevingsoppdrag/$baseUrl",
-            "/innkrevingsoppdrag$baseUrl",
-            baseUrl,
-        )
+    private fun matchesEndpoint(
+        requestPath: String,
+        endpointUrl: String,
+    ) = requestPath.startsWith("/innkrevingsoppdrag") && requestPath.endsWith(endpointUrl)
 }
