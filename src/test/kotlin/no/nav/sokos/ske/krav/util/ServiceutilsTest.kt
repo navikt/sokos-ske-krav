@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -47,7 +48,9 @@ class ServiceutilsTest :
             val client = createMockClient(successResponse)
             val response = client.get("/test").bodyAsText()
 
-            response.decodeTo<TestResponse>().shouldNotBeNull()
+            val result = response.decodeTo<TestResponse>()
+            result.shouldNotBeNull()
+            result.value shouldBe "test"
         }
 
         test("decodeTo skal returnere null når parsing feiler") {
