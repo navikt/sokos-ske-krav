@@ -33,8 +33,8 @@ private const val HENT_SKE_KRAVIDENT = "innkrevingsoppdrag/%s/avstemming?kravide
 private const val KLIENT_ID = "NAV/0.1"
 
 class SkeClient(
-    private val tokenProvider: MaskinportenAccessTokenProvider = MaskinportenAccessTokenProvider(PropertiesConfig.MaskinportenClientConfig(), httpClient),
-    private val skeEndpoint: String = PropertiesConfig.SKEConfig.skeRestUrl,
+    private val tokenProvider: MaskinportenAccessTokenProvider = MaskinportenAccessTokenProvider(PropertiesConfig.maskinportenClientProperties, httpClient),
+    private val skeEndpoint: String = PropertiesConfig.skeRestConfig.skeRestUrl,
     private val client: HttpClient = httpClient,
 ) {
     suspend fun endreRenter(

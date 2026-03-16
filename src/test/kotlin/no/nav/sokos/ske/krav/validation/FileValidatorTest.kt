@@ -14,7 +14,7 @@ internal class FileValidatorTest :
         val fileValidator = FileValidator(mockk<SlackService>(relaxed = true))
 
         Given("Fil er OK") {
-            val fileName = "AltOkFil.txt"
+            val fileName = "AllValideringOk.txt"
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
@@ -30,7 +30,7 @@ internal class FileValidatorTest :
         }
 
         Given("En fil har feil antall linjer i kontroll-linjen") {
-            val fileName = "FilMedFeilAntallKrav.txt"
+            val fileName = "validering/filvalidering/FeilAntallKrav.txt"
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
@@ -48,7 +48,7 @@ internal class FileValidatorTest :
         }
 
         Given("En fil har feil sum i kontroll-linjen") {
-            val fileName = "FilMedFeilSum.txt"
+            val fileName = "validering/filvalidering/FeilSum.txt"
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
@@ -66,7 +66,7 @@ internal class FileValidatorTest :
         }
 
         Given("En fil har forskjellige datoer i kontroll-linjene") {
-            val fileName = "FilMedFeilUtbetalDato.txt"
+            val fileName = "validering/filvalidering/FeilUtbetalDato.txt"
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
@@ -84,7 +84,7 @@ internal class FileValidatorTest :
         }
 
         Given("En fil har alle typer feil") {
-            val fileName = "FilMedAlleTyperFeilForFilValidering.txt"
+            val fileName = "validering/filvalidering/AlleTyperFeil.txt"
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
@@ -104,7 +104,7 @@ internal class FileValidatorTest :
         }
 
         Given("En fil har feil i parsing av BigDecimal") {
-            val fileName = "FeilIParsingBigDecimal.txt"
+            val fileName = "validering/filvalidering/FeilParsingBigDecimal.txt"
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
@@ -120,7 +120,7 @@ internal class FileValidatorTest :
         }
 
         Given("En fil har feil i parsing av Int") {
-            val fileName = "FeiliParsingAvInt.txt"
+            val fileName = "validering/filvalidering/FeilParsingInt.txt"
             val content = getFileContent(fileName)
 
             When("Filen valideres") {

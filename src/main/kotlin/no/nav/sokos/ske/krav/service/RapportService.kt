@@ -2,7 +2,7 @@ package no.nav.sokos.ske.krav.service
 
 import com.zaxxer.hikari.HikariDataSource
 
-import no.nav.sokos.ske.krav.config.PostgresConfig
+import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.StonadsType
@@ -19,7 +19,7 @@ enum class RapportType { AVSTEMMING, RESENDING }
 
 @Frontend
 class RapportService(
-    private val dataSource: HikariDataSource = PostgresConfig.dataSource,
+    private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
     private val dbService: DatabaseService = DatabaseService(),
 ) {
     val kravSomSkalAvstemmes by lazy { mapToRapportObjekt(dbService.getAllKravForAvstemming()) }

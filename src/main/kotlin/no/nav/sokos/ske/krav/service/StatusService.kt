@@ -3,13 +3,13 @@ package no.nav.sokos.ske.krav.service
 import java.time.LocalDateTime
 
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
-import no.nav.sokos.ske.krav.config.PostgresConfig
+import no.nav.sokos.ske.krav.config.PostgresDataSource
+import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
@@ -20,12 +20,13 @@ import no.nav.sokos.ske.krav.dto.ske.responses.ValideringsFeilResponse
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.createKravidentifikatorPair
-import no.nav.sokos.ske.krav.util.parseTo
+import no.nav.sokos.ske.krav.util.decodeTo
 
 private val logger = mu.KotlinLogging.logger {}
 
+// TODO: Burde renames til MottaksstatusService? Trenger kanskje en refaktorering
 class StatusService(
-    private val dataSource: HikariDataSource = PostgresConfig.dataSource,
+    private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
     private val skeClient: SkeClient = SkeClient(),
     private val databaseService: DatabaseService = DatabaseService(),
     private val slackService: SlackService = SlackService(),
@@ -54,22 +55,23 @@ class StatusService(
     private suspend fun processKravStatus(krav: Krav): MottaksStatusResponse? {
         val (kravidentifikator, kravidentifikatorType) = createKravidentifikatorPair(krav)
         val response = skeClient.getMottaksStatus(kravidentifikator, kravidentifikatorType)
+        val responseBody = response.bodyAsText()
 
         return if (response.status.isSuccess()) {
-            response.parseTo<MottaksStatusResponse>()?.also { updateMottaksStatus(it, kravidentifikator to kravidentifikatorType, krav) }
+            responseBody.decodeTo<MottaksStatusResponse>()?.also { updateMottaksStatus(it, kravidentifikator to kravidentifikatorType, krav) }
         } else {
-            handleFailedStatusResponse(response, krav, "Feil i oppdatering av mottaksstatus", "getMottaksStatus")
+            handleFailedStatusResponse(responseBody, krav, "Feil i oppdatering av mottaksstatus", "getMottaksStatus")
             null
         }
     }
 
-    private suspend fun handleFailedStatusResponse(
-        response: HttpResponse,
+    private fun handleFailedStatusResponse(
+        responseBody: String,
         krav: Krav,
         feilmeldingHeader: String,
         funksjonsKall: String,
     ) {
-        val feilmelding = response.parseTo<FeilResponse>()
+        val feilmelding = responseBody.decodeTo<FeilResponse>()
         if (feilmelding != null) {
             slackService.addError(
                 fileName = krav.filnavn,
@@ -77,8 +79,6 @@ class StatusService(
                 Pair(feilmelding.title, feilmelding.detail),
             )
             logger.error { "$funksjonsKall feilet: ${feilmelding.title}" }
-        } else {
-            response.bodyAsText()
         }
     }
 
@@ -95,13 +95,17 @@ class StatusService(
         krav: Krav,
     ) {
         val response = skeClient.getValideringsfeil(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
+        val responseBody = response.bodyAsText()
         if (!response.status.isSuccess()) {
-            handleFailedStatusResponse(response, krav, "Feil i henting av valideringsfeil", "getValideringsfeil")
+            handleFailedStatusResponse(responseBody, krav, "Feil i henting av valideringsfeil", "getValideringsfeil")
             return
         }
 
-        val valideringsfeilListe = response.parseTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
+        val valideringsfeilListe = responseBody.decodeTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
         logger.info("Asynk Valideringsfeil mottatt ")
+        valideringsfeilListe.forEach {
+            logger.error(marker = TEAM_LOGS_MARKER) { "Asynk valideringsfeil mottatt: ${ it.message }" }
+        }
 
         dataSource.asyncTransaction { session ->
             FeilmeldingRepository.insertFeilmeldinger(

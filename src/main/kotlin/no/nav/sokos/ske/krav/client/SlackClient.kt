@@ -12,7 +12,7 @@ import no.nav.sokos.ske.krav.config.httpClient
 import no.nav.sokos.ske.krav.dto.slack.createSlackMessage
 
 class SlackClient(
-    private val slackEndpoint: String = PropertiesConfig.SlackConfig.url,
+    private val slackEndpoint: String = PropertiesConfig.slackConfig.url,
     private val client: HttpClient = httpClient,
 ) {
     suspend fun sendMessage(
@@ -20,10 +20,11 @@ class SlackClient(
         fileName: String,
         messages: Map<String, List<String>>,
     ) {
-        client.post {
-            url(slackEndpoint)
-            contentType(ContentType.Application.Json)
-            setBody(createSlackMessage(header, fileName, messages))
-        }
+        client
+            .post {
+                url(slackEndpoint)
+                contentType(ContentType.Application.Json)
+                setBody(createSlackMessage(header, fileName, messages))
+            }
     }
 }

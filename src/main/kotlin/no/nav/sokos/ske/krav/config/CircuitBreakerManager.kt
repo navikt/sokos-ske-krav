@@ -7,20 +7,26 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig
 import io.github.resilience4j.kotlin.circuitbreaker.decorateSuspendFunction
 import mu.KotlinLogging
 
+import no.nav.sokos.ske.krav.config.CircuitBreakerConfig.Companion.FAILURE_RATE_THRESHOLD
+import no.nav.sokos.ske.krav.config.CircuitBreakerConfig.Companion.MINIMUM_NUMBER_OF_CALLS
+import no.nav.sokos.ske.krav.config.CircuitBreakerConfig.Companion.PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE
+import no.nav.sokos.ske.krav.config.CircuitBreakerConfig.Companion.SLIDING_WINDOW_SIZE
+import no.nav.sokos.ske.krav.config.PropertiesConfig.circuitBreakerConfig
+
 private val logger = KotlinLogging.logger {}
 
 object CircuitBreakerManager {
     private const val CIRCUIT_BREAKER_NAME = "http-client-breaker"
-    private val configProperties = PropertiesConfig.CircuitBreakerConfig
     private val config =
         CircuitBreakerConfig
             .custom()
-            .slidingWindowSize(configProperties.SLIDING_WINDOW_SIZE)
-            .minimumNumberOfCalls(configProperties.MINIMUM_NUMBER_OF_CALLS)
-            .failureRateThreshold(configProperties.FAILURE_RATE_THRESHOLD)
-            .waitDurationInOpenState(Duration.ofHours(configProperties.waitDurationInOpenState)) // TODO: Juster denne verdien basert på forventet nedetid
-            .permittedNumberOfCallsInHalfOpenState(configProperties.PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE)
+            .slidingWindowSize(SLIDING_WINDOW_SIZE)
+            .minimumNumberOfCalls(MINIMUM_NUMBER_OF_CALLS)
+            .failureRateThreshold(FAILURE_RATE_THRESHOLD)
+            .waitDurationInOpenState(Duration.ofHours(circuitBreakerConfig.waitDurationInOpenState)) // TODO: Juster denne verdien basert på forventet nedetid
+            .permittedNumberOfCallsInHalfOpenState(PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE)
             .automaticTransitionFromOpenToHalfOpenEnabled(true)
+            .recordExceptions(CircuitBreakerException::class.java)
             .build()
 
     val circuitBreaker: CircuitBreaker =
@@ -28,7 +34,7 @@ object CircuitBreakerManager {
             eventPublisher
                 .onStateTransition { event ->
                     logger.info {
-                        "Circuit breaker state changed: ${event.stateTransition.fromState} -> ${event.stateTransition.toState}"
+                        "${ event.eventType} Circuit breaker state changed: ${event.stateTransition.fromState} -> ${event.stateTransition.toState}"
                     }
                 }
         }

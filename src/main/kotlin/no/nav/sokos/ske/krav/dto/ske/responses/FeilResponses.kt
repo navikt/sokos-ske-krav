@@ -20,4 +20,8 @@ data class FeilResponse(
     val status: Int,
     val detail: String,
     val instance: String,
-)
+) {
+    object CustomTypes {
+        const val FEIL_FRA_SERVER = "FEIL_FRA_SERVER"
+    }
+}

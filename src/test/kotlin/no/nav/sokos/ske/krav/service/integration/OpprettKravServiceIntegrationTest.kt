@@ -28,7 +28,7 @@ internal class OpprettKravServiceIntegrationTest :
 
         Given("2 Nye krav skal opprettes ") {
             DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/2NyeKrav.sql")
+            DBListener.loadInitScript("SQLscript/krav/ToNyeKrav.sql")
 
             val kravSomSkalSendes = dbService.getAllUnsentKrav()
             kravSomSkalSendes.size shouldBe 2

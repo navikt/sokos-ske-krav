@@ -28,8 +28,8 @@ class StoppKravServiceIntegrationTest :
 
         Given("2 krav skal stoppes") {
             DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/10NyeKrav.sql")
-            DBListener.loadInitScript("SQLscript/2StoppedeKrav.sql")
+            DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
+            DBListener.loadInitScript("SQLscript/krav/ToStoppedeKrav.sql")
 
             val kravSomSkalSendes = dbService.getAllUnsentKrav()
             kravSomSkalSendes.size shouldBe 2

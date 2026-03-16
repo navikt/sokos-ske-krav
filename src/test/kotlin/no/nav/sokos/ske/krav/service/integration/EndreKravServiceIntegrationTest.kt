@@ -31,8 +31,8 @@ class EndreKravServiceIntegrationTest :
 
         Given("2 krav skal endres") {
             DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/10NyeKrav.sql")
-            DBListener.loadInitScript("SQLscript/2EndredeKrav.sql")
+            DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
+            DBListener.loadInitScript("SQLscript/krav/ToEndredeKrav.sql")
 
             val kravSomSkalSendes = dbService.getAllUnsentKrav()
             kravSomSkalSendes.size shouldBe 4
