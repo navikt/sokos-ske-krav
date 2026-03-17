@@ -23,6 +23,7 @@ import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.MockHttpClient
 import no.nav.sokos.ske.krav.util.MockHttpClientUtils
 import no.nav.sokos.ske.krav.util.getAllKrav
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody
 import no.nav.sokos.ske.krav.util.setUpMockHttpClient
 
 internal class StatusServiceIntegrationTest :
@@ -46,7 +47,7 @@ internal class StatusServiceIntegrationTest :
         Given("Mottaksstatus trigger circuit breaker") {
             DBListener.clearDB()
             DBListener.loadInitScript("SQLscript/status/KravSomSkalOppdateres.sql")
-            val avskrivKravKall = MockHttpClientUtils.MockRequestObj(MockHttpClientUtils.Responses.genericFeilResponse(), MockHttpClientUtils.EndepunktType.MOTTAKSSTATUS, HttpStatusCode.Forbidden)
+            val avskrivKravKall = MockHttpClientUtils.MockRequestObj(MockResponsesBody.genericFeilResponse(), MockHttpClientUtils.EndepunktType.MOTTAKSSTATUS, HttpStatusCode.Forbidden)
 
             val httpClient =
                 setUpMockHttpClient(listOf(avskrivKravKall))
@@ -62,7 +63,7 @@ internal class StatusServiceIntegrationTest :
         }
 
         Given("Mottaksstatus er RESKONTROFOERT") {
-            val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse(status = Status.RESKONTROFOERT.value)
+            val mottaksStatusResponse = MockResponsesBody.mottaksStatusResponse(status = Status.RESKONTROFOERT.value)
             val httpClient = mottaksStatusMockHttpClient(mottaksStatusResponse)
             val (slackClientSpy, _, statusService) = setupServices(httpClient, dbService)
 
@@ -86,8 +87,8 @@ internal class StatusServiceIntegrationTest :
             val fileName = "KravSomSkalOppdateres.sql"
             DBListener.loadInitScript("SQLscript/status/$fileName")
             val status = "ORGANISASJONSNUMMER_FINNES_IKKE"
-            val mottaksStatusResponse = MockHttpClientUtils.Responses.mottaksStatusResponse(status = Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value)
-            val valideringsFeilRespons = MockHttpClientUtils.Responses.valideringsfeilResponse(status, "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke")
+            val mottaksStatusResponse = MockResponsesBody.mottaksStatusResponse(status = Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value)
+            val valideringsFeilRespons = MockResponsesBody.valideringsfeilResponse(status, "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke")
             val httpClient = mottaksStatusMockHttpClient(mottaksStatusResponse, valideringsFeilRespons)
 
             val (slackClientSpy, slackServiceSpy, statusService) = setupServices(httpClient, dbService)
@@ -148,7 +149,7 @@ internal class StatusServiceIntegrationTest :
 
 fun mottaksStatusMockHttpClient(
     mottaksStatusResponse: String,
-    valideringsFeilResponse: String = MockHttpClientUtils.Responses.emptyValideringsfeilResponse(),
+    valideringsFeilResponse: String = MockResponsesBody.emptyValideringsfeilResponse(),
 ) = MockHttpClient().getClient(
     listOf(
         MockHttpClientUtils.MockRequestObj(mottaksStatusResponse, MockHttpClientUtils.EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK),

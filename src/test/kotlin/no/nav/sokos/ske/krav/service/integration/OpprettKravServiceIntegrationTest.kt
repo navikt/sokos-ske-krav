@@ -15,8 +15,8 @@ import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.OpprettKravService
 import no.nav.sokos.ske.krav.util.MockHttpClientUtils
-import no.nav.sokos.ske.krav.util.MockHttpClientUtils.Responses
 import no.nav.sokos.ske.krav.util.getAllKrav
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody
 import no.nav.sokos.ske.krav.util.setUpMockHttpClient
 
 internal class OpprettKravServiceIntegrationTest :
@@ -35,7 +35,9 @@ internal class OpprettKravServiceIntegrationTest :
 
             When("Response fra SKE  trigger circuit breaker") {
                 val httpClient =
-                    setUpMockHttpClient(listOf(MockHttpClientUtils.MockRequestObj(Responses.genericFeilResponse(), MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.InternalServerError)))
+                    setUpMockHttpClient(
+                        listOf(MockHttpClientUtils.MockRequestObj(MockResponsesBody.genericFeilResponse(), MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.InternalServerError)),
+                    )
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
                 val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)), recordPrivateCalls = true)
@@ -64,7 +66,7 @@ internal class OpprettKravServiceIntegrationTest :
             When("Response fra SKE er OK") {
                 CircuitBreakerManager.circuitBreaker.reset()
                 val kravidentifikatorSKE = "4321"
-                val skeOKResponse = Responses.nyttKravResponse(kravidentifikatorSKE)
+                val skeOKResponse = MockResponsesBody.nyttKravResponse(kravidentifikatorSKE)
 
                 val httpClient = setUpMockHttpClient(listOf(MockHttpClientUtils.MockRequestObj(skeOKResponse, MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.OK)))
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))

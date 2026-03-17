@@ -30,9 +30,9 @@ import no.nav.sokos.ske.krav.dto.ske.requests.Valuta
 import no.nav.sokos.ske.krav.dto.ske.requests.YtelseForAvregningBeloep
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.OpprettKravService
-import no.nav.sokos.ske.krav.util.MockHttpClientUtils.Responses.nyttKravResponse
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.encodeToString
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody
 import no.nav.sokos.ske.krav.util.mockHttpResponse
 
 class OpprettKravServiceTest :
@@ -98,7 +98,7 @@ class OpprettKravServiceTest :
                         ),
                 )
 
-            val httpResponseMock = mockHttpResponse(body = nyttKravResponse("123"))
+            val httpResponseMock = mockHttpResponse(body = MockResponsesBody.nyttKravResponse("123"))
 
             val skeClientMock = mockk<SkeClient> { coEvery { opprettKrav(any(), any()) } returns httpResponseMock }
             val opprettKravServiceMock = spyk(OpprettKravService(skeClientMock, databaseServiceMock), recordPrivateCalls = true)
@@ -111,7 +111,7 @@ class OpprettKravServiceTest :
             reqResult.size shouldBe 1
             with(reqResult.first()) {
                 httpStatusCode shouldBe HttpStatusCode.OK
-                responseBody shouldBe nyttKravResponse("123")
+                responseBody shouldBe MockResponsesBody.nyttKravResponse("123")
                 request shouldBe opprettInnkrevingOppdragRequest.encodeToString()
                 krav shouldBe kravMock
                 kravidentifikator shouldBe "123"
@@ -161,7 +161,7 @@ class OpprettKravServiceTest :
                         ),
                 )
 
-            val nyttKravResponse = nyttKravResponse("123")
+            val nyttKravResponse = MockResponsesBody.nyttKravResponse("123")
             val httpResponseMock = mockHttpResponse(body = nyttKravResponse)
             val skeClientMock = mockk<SkeClient> { coEvery { opprettKrav(any(), any()) } returns httpResponseMock }
             val opprettKravServiceMock = spyk(OpprettKravService(skeClientMock, databaseServiceMock), recordPrivateCalls = true)

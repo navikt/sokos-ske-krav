@@ -18,6 +18,7 @@ import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.service.StoppKravService
 import no.nav.sokos.ske.krav.util.MockHttpClientUtils
 import no.nav.sokos.ske.krav.util.getAllKrav
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody
 import no.nav.sokos.ske.krav.util.setUpMockHttpClient
 
 class StoppKravServiceIntegrationTest :
@@ -36,7 +37,7 @@ class StoppKravServiceIntegrationTest :
             kravSomSkalSendes.count { it.kravtype == STOPP_KRAV } shouldBe 2
 
             When("Response fra SKE trigger circuit breaker") {
-                val avskrivKravKall = MockHttpClientUtils.MockRequestObj(MockHttpClientUtils.Responses.genericFeilResponse(), MockHttpClientUtils.EndepunktType.AVSKRIVING, HttpStatusCode.Forbidden)
+                val avskrivKravKall = MockHttpClientUtils.MockRequestObj(MockResponsesBody.genericFeilResponse(), MockHttpClientUtils.EndepunktType.AVSKRIVING, HttpStatusCode.Forbidden)
 
                 val httpClient =
                     setUpMockHttpClient(listOf(avskrivKravKall))
@@ -62,7 +63,7 @@ class StoppKravServiceIntegrationTest :
             }
             When("Response fra SKE er OK") {
                 CircuitBreakerManager.circuitBreaker.reset()
-                val avskrivKravKall = MockHttpClientUtils.MockRequestObj(MockHttpClientUtils.Responses.avskrivKravResponse(), MockHttpClientUtils.EndepunktType.AVSKRIVING, HttpStatusCode.OK)
+                val avskrivKravKall = MockHttpClientUtils.MockRequestObj(MockResponsesBody.avskrivKravResponse(), MockHttpClientUtils.EndepunktType.AVSKRIVING, HttpStatusCode.OK)
 
                 val httpClient =
                     setUpMockHttpClient(listOf(avskrivKravKall))

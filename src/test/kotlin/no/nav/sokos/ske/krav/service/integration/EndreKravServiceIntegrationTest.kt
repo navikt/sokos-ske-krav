@@ -19,8 +19,8 @@ import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.EndreKravService
 import no.nav.sokos.ske.krav.util.MockHttpClientUtils
-import no.nav.sokos.ske.krav.util.MockHttpClientUtils.Responses
 import no.nav.sokos.ske.krav.util.getAllKrav
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody
 import no.nav.sokos.ske.krav.util.setUpMockHttpClient
 
 class EndreKravServiceIntegrationTest :
@@ -33,18 +33,16 @@ class EndreKravServiceIntegrationTest :
             DBListener.clearDB()
             DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
             DBListener.loadInitScript("SQLscript/krav/ToEndredeKrav.sql")
-
             val kravSomSkalSendes = dbService.getAllUnsentKrav()
             kravSomSkalSendes.size shouldBe 4
             kravSomSkalSendes.count { it.kravtype == ENDRING_RENTE || it.kravtype == ENDRING_HOVEDSTOL } shouldBe 4
 
             When("Response fra SKE trigger circuit breaker") {
-                val endreRenterKall = MockHttpClientUtils.MockRequestObj(Responses.genericFeilResponse(), MockHttpClientUtils.EndepunktType.ENDRE_RENTER, HttpStatusCode.Forbidden)
-                val endreHovedstolKall = MockHttpClientUtils.MockRequestObj(Responses.genericFeilResponse(), MockHttpClientUtils.EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.Forbidden)
+                val endreRenterKall = MockHttpClientUtils.MockRequestObj(MockResponsesBody.genericFeilResponse(), MockHttpClientUtils.EndepunktType.ENDRE_RENTER, HttpStatusCode.Forbidden)
+                val endreHovedstolKall = MockHttpClientUtils.MockRequestObj(MockResponsesBody.genericFeilResponse(), MockHttpClientUtils.EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.Forbidden)
                 val httpClient =
                     setUpMockHttpClient(listOf(endreRenterKall, endreHovedstolKall))
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
-
                 val endreKravServiceSpy = spyk(EndreKravService(skeClient, dbService), recordPrivateCalls = true)
                 val requestResults = endreKravServiceSpy.sendAllEndreKrav(kravSomSkalSendes)
 
@@ -67,8 +65,8 @@ class EndreKravServiceIntegrationTest :
             }
             When("Response fra SKE er OK") {
                 CircuitBreakerManager.circuitBreaker.reset()
-                val endreRenterKall = MockHttpClientUtils.MockRequestObj(Responses.nyEndringResponse(), MockHttpClientUtils.EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
-                val endreHovedstolKall = MockHttpClientUtils.MockRequestObj(Responses.nyEndringResponse(), MockHttpClientUtils.EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
+                val endreRenterKall = MockHttpClientUtils.MockRequestObj(MockResponsesBody.nyEndringResponse(), MockHttpClientUtils.EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
+                val endreHovedstolKall = MockHttpClientUtils.MockRequestObj(MockResponsesBody.nyEndringResponse(), MockHttpClientUtils.EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
                 val httpClient =
                     setUpMockHttpClient(listOf(endreRenterKall, endreHovedstolKall))
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
