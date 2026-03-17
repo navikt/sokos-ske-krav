@@ -190,6 +190,16 @@ internal class SkeServiceIntegrationTest :
 
                 kravMedFeil.filter { it.status == Status.HTTP403_INGEN_TILGANG.value }.size shouldBe 0
             }
+
+            Then("Skal IKKE sende Slack-alarm") {
+                coVerify(exactly = 0) {
+                    slackServiceSpy.addError(
+                        any<String>(),
+                        any<String>(),
+                        any<Pair<String, String>>(),
+                    )
+                }
+            }
         }
 
         Given("Vi mottar 404 på avstemming av migrert krav") {
@@ -315,7 +325,8 @@ internal class SkeServiceIntegrationTest :
             val mottaksstatusKall = MockRequestObj(mottaksStatusResponse(status = Status.RESKONTROFOERT.value), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
 
             val httpClient = setUpMockHttpClient(listOf(nyttKravKall, endreRenterKall, endreHovedStolKall, mottaksstatusKall, avstemmingKall))
-            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
+            val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
+            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource), slackService = slackServiceSpy)
 
             skeService.handleNewKrav()
 
@@ -326,6 +337,78 @@ internal class SkeServiceIntegrationTest :
                     }
 
                 feilmeldinger.size shouldBe 4
+            }
+
+            Then("Skal IKKE sende Slack-alarm om manglende kravidentifikator") {
+                coVerify(exactly = 0) {
+                    slackServiceSpy.addError(
+                        any(),
+                        any(),
+                        match<Pair<String, String>> { (title, _) -> title == FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR },
+                    )
+                }
+                coVerify(atLeast = 1) {
+                    slackServiceSpy.addError(any(), "Feil fra SKE", any<Pair<String, String>>())
+                }
+            }
+        }
+
+        Given("Avstemming mot SKE feiler med ikke-parsebar body (409 med tom JSON-kropp)") {
+            DBListener.clearDB()
+            DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
+            circuitBreaker.reset()
+            SftpListener.putFiles(listOf("krav/TestEndringMedAvstemmingAvKravident.txt"), Directories.INBOUND)
+            val nyttKravKall = MockRequestObj(Responses.nyttKravResponse(), EndepunktType.OPPRETT, HttpStatusCode.OK)
+            // {} er 2 tegn og kan ikke parses som FeilResponse – nøyaktig som i produksjonslogen ("input length=2")
+            val avstemmingKall = MockRequestObj("{}", EndepunktType.AVSTEMMING, HttpStatusCode.Conflict)
+            val endreRenterKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
+            val endreHovedStolKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
+            val mottaksstatusKall = MockRequestObj(mottaksStatusResponse(status = Status.RESKONTROFOERT.value), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
+
+            val httpClient = setUpMockHttpClient(listOf(nyttKravKall, endreRenterKall, endreHovedStolKall, mottaksstatusKall, avstemmingKall))
+            val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
+            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource), slackService = slackServiceSpy)
+
+            skeService.handleNewKrav()
+
+            Then("Skal migrert krav få HTTP409-status") {
+                val alleMigrertKrav =
+                    DBListener.dataSource.connection
+                        .use { it.getAllKrav() }
+                        .filter { it.saksnummerNAV in listOf("2222-saksnrmig", "8888-saksnrmig") }
+                alleMigrertKrav.size shouldBe 4
+                alleMigrertKrav.filter { it.status == Status.HTTP409_ANNEN_KONFLIKT.value }.size shouldBe 4
+            }
+
+            Then("Skal feilmelding opprettes for hvert migrert krav selv om body ikke er parsebar som FeilResponse") {
+                // defineStatusWithError lager nå alltid en custom fallback-FeilResponse når body ikke kan parses,
+                // slik at saveErrorMessage og Slack-varsling alltid kjøres.
+                val feilmeldinger =
+                    DBListener.dataSource.connection.use {
+                        it.prepareStatement("SELECT * FROM feilmelding").executeQuery().toFeilmelding()
+                    }
+                feilmeldinger.size shouldBe 4
+
+                // saveErrorMessage har sin egen decode-fallback ("egendefinert") som er uavhengig av
+                // defineStatusWithError sin fallback ("FEIL_FRA_SERVER"). Pinner innholdet her slik at
+                // eventuelle fremtidige endringer i en av de to fallback-verdiene blir synlige.
+                feilmeldinger.forEach { feilmelding ->
+                    feilmelding.skeResponse shouldBe "{}"
+                    feilmelding.melding shouldBe "{}" // detail fra "egendefinert"-fallbacken i saveErrorMessage
+                }
+            }
+
+            Then("Skal sende generisk Slack-alarm, IKKE alarm om manglende kravidentifikator") {
+                coVerify(atLeast = 1) {
+                    slackServiceSpy.addError(any(), "Feil fra SKE", any<Pair<String, String>>())
+                }
+                coVerify(exactly = 0) {
+                    slackServiceSpy.addError(
+                        any(),
+                        any(),
+                        match<Pair<String, String>> { (title, _) -> title == FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR },
+                    )
+                }
             }
         }
 

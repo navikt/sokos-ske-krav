@@ -39,11 +39,18 @@ internal class DefineStatusTest :
                 status shouldBe Status.UKJENT_FEIL
                 feilResponse shouldBe expectedFeilResponse
             }
-            test("Når response er 404 uten FeilResponse (null) skal defineStatus bruke default FEIL_FRA_SERVER type") {
+            test("Når response er 404 med ikke-parsebar body skal defineStatus lage en custom fallback FeilResponse med FEIL_FRA_SERVER type") {
                 val (status, feilResponse) = defineStatus("invalid json", HttpStatusCode.NotFound)
 
                 status shouldBe Status.HTTP404_ANNEN_IKKE_FUNNET
-                feilResponse shouldBe null
+                feilResponse shouldBe
+                    FeilResponse(
+                        type = FeilResponse.CustomTypes.FEIL_FRA_SERVER,
+                        title = "Feil fra SKE",
+                        status = 404,
+                        detail = "invalid json",
+                        instance = "",
+                    )
             }
 
             test("Når responsekode er 400 skal krav ha status Status.UGYLDIG_FORESPORSEL_400") {
