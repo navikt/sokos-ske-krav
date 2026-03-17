@@ -79,8 +79,8 @@ class SkeService(
 
     private suspend fun sendNewFilesToSKE() {
         val files = ftpService.getValidatedFiles()
+        val filtekst = if (files.size == 1) "fil" else "filer"
         if (files.isNotEmpty()) {
-            val filtekst = if (files.size == 1) "fil" else "filer"
             val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"))
             logger.info("*** Starter sending av ${files.size} $filtekst $datetime***")
         } else {
@@ -91,6 +91,8 @@ class SkeService(
             processFile(file)
             sendKrav(databaseService.getAllUnsentKrav()).also { logResult(it) }
         }
+
+        logger.info { "*** Ferdig med sending av ${files.size} $filtekst ***" }
     }
 
     private suspend fun processFile(file: FtpFil) {
@@ -123,10 +125,12 @@ class SkeService(
         val requestResults = mutableListOf<RequestResult>()
         val slackErrorsHandled = mutableListOf<String>()
 
+        logger.info("ANTALL UNSENT ${unsentEndringerAndStopp.size}")
         unsentEndringerAndStopp.forEach { krav ->
             // Sjekke om vi har det opprinnelige kravet i vår database
             val skeKravidentifikator = databaseService.getSkeKravidentifikator(krav.referansenummerGammelSak)
             if (skeKravidentifikator.isNotBlank()) {
+                logger.info("FANT KRAVIDENT $skeKravidentifikator for gammel ref ${krav.referansenummerGammelSak} for saksnummer ${krav.saksnummerNAV} i DB")
                 databaseService.updateEndringWithSkeKravIdentifikator(krav.saksnummerNAV, skeKravidentifikator)
                 return@forEach
             }
@@ -138,32 +142,37 @@ class SkeService(
             if (requestResult.status != Status.HTTP404_FANT_IKKE_SAKSREF) requestResults.add(requestResult)
 
             if (requestResult.kravidentifikator.isNotBlank()) {
+                logger.info("FANT KRAVIDENT $skeKravidentifikator for gammel ref ${krav.referansenummerGammelSak} for saksnummer ${krav.saksnummerNAV} fra skatt")
                 // Oppdatere raden i database med kravidentifikatoren vi fant
                 databaseService.updateEndringWithSkeKravIdentifikator(krav.saksnummerNAV, requestResult.kravidentifikator)
             } else {
                 databaseService.updateStatus(requestResult.status.value, krav.corrId)
 
-                // Tidlig return siden endringer er to requests og vi vil ikke ha to identiske alarmer for det samme saksnummeret
-                if (slackErrorsHandled.contains(krav.saksnummerNAV)) return@forEach
-
-                // Fra SKE vil vi få feilmeldingen "innkrevingsoppdrag eksisterer ikke" men vi ønsker mer tydelig informasjon samt informasjonen vi trenger for å kunne følge det opp manuelt
+                // Fra SKE vil vi få feilmeldingen "innkrevingsoppdrag eksisterer ikke" men vi ønsker mer tydelig informasjon samt informasjonen vi trenger for å kunne følge det opp manuelt.
                 if (requestResult.status == Status.HTTP404_FANT_IKKE_SAKSREF) {
+                    val alreadyAlerted = slackErrorsHandled.contains(krav.saksnummerNAV)
                     handleError(
                         requestResult,
-                        FeilResponse(
-                            type = requestResult.feilResponse?.type ?: KRAV_EKSISTERER_IKKE,
-                            title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR,
-                            status = requestResult.httpStatusCode.value,
-                            detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
-                            instance = requestResult.feilResponse?.instance ?: "custom",
-                        ),
+                        if (alreadyAlerted) {
+                            null
+                        } else {
+                            FeilResponse(
+                                type = requestResult.feilResponse?.type ?: KRAV_EKSISTERER_IKKE,
+                                title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR,
+                                status = requestResult.httpStatusCode.value,
+                                detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
+                                instance = requestResult.feilResponse?.instance ?: "custom",
+                            )
+                        },
                     )
-                    logger.warn { "Fant ikke gyldig kravidentifikator for migrert krav med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
-                    slackErrorsHandled.add(krav.saksnummerNAV)
+                    if (!alreadyAlerted) {
+                        logger.warn { "Fant ikke gyldig kravidentifikator for migrert krav med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
+                        slackErrorsHandled.add(krav.saksnummerNAV)
+                    }
                 }
             }
-            handleErrors(requestResults)
         }
+        handleErrors(requestResults)
     }
 
     private suspend fun getKravidentifikatorFromSkatt(krav: Krav): RequestResult {
@@ -174,13 +183,24 @@ class SkeService(
 
         val kravidentifikator = responseBody.decodeTo<AvstemmingResponse>()?.kravidentifikator ?: ""
 
+        // Ikke forsøk å sende kravet hvis kravidentifikator mangler eller respons ikke kan parses
+        val statusToSet =
+            if (responseStatus == HttpStatusCode.OK) {
+                if (kravidentifikator.isEmpty()) {
+                    Status.UKJENT_FEIL
+                } else {
+                    Status.valueOf(krav.status)
+                }
+            } else {
+                definertStatus.first
+            }
         return RequestResult(
             responseBody = responseBody,
             httpStatusCode = responseStatus,
             request = krav.referansenummerGammelSak,
             krav = krav,
             kravidentifikator = kravidentifikator,
-            status = definertStatus.first,
+            status = statusToSet,
             feilResponse = definertStatus.second,
         )
     }

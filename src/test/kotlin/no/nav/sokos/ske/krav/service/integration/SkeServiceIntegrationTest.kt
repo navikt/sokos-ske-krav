@@ -243,7 +243,7 @@ internal class SkeServiceIntegrationTest :
                             .toFeilmelding()
                     }
 
-                feilmeldinger.filter { it.skeResponse.contains("404") }.size shouldBe 2
+                feilmeldinger.filter { it.skeResponse.contains("404") }.size shouldBe 4
                 val kravMedFeil =
                     DBListener.dataSource.connection.use { conn ->
                         feilmeldinger.flatMap { feilmelding ->
@@ -254,9 +254,81 @@ internal class SkeServiceIntegrationTest :
                                 .toKrav()
                         }
                     }
-                kravMedFeil.filter { it.status == Status.HTTP404_FANT_IKKE_SAKSREF.value }.size shouldBe 2
+                kravMedFeil.filter { it.status == Status.HTTP404_FANT_IKKE_SAKSREF.value }.size shouldBe 4
+
+                // Alle 4 rader skal ha HTTP404-status.
+                val alleMigrertKrav =
+                    DBListener.dataSource.connection
+                        .use { it.getAllKrav() }
+                        .filter { it.saksnummerNAV in listOf("2222-saksnrmig", "8888-saksnrmig") }
+                alleMigrertKrav.size shouldBe 4
+                alleMigrertKrav.filter { it.status == Status.HTTP404_FANT_IKKE_SAKSREF.value }.size shouldBe 4
             }
         }
+
+        Given("Avstemming mot SKE returnerer HTTP 2xx men kravidentifikator mangler i responsen") {
+            DBListener.clearDB()
+            DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
+            circuitBreaker.reset()
+            val fileName = "krav/TestEndringMedAvstemmingAvKravident.txt"
+            SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
+            val nyttKravKall = MockRequestObj(Responses.nyttKravResponse(), EndepunktType.OPPRETT, HttpStatusCode.OK)
+            val avstemmingMed2xxMenUtenKravidentifikator = MockRequestObj("{}", EndepunktType.AVSTEMMING, HttpStatusCode.OK)
+            val endreRenterKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
+            val endreHovedStolKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
+            val mottaksstatusKall = MockRequestObj(mottaksStatusResponse(status = Status.RESKONTROFOERT.value), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
+
+            val httpClient = setUpMockHttpClient(listOf(nyttKravKall, endreRenterKall, endreHovedStolKall, mottaksstatusKall, avstemmingMed2xxMenUtenKravidentifikator))
+            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
+
+            skeService.handleNewKrav()
+
+            Then("Skal migrert krav IKKE få status KRAV_SENDT når kravidentifikator mangler i 2xx-responsen") {
+                val kravEtter = DBListener.dataSource.connection.use { it.getAllKrav() }
+                // Hvert migrert krav gir opphav til 2 rader (ENDRING_RENTE + ENDRING_HOOFDSTOL)
+                val migrertKrav = kravEtter.filter { it.saksnummerNAV in listOf("2222-saksnrmig", "8888-saksnrmig") }
+                migrertKrav.size shouldBe 4
+                migrertKrav.filter { it.status == Status.UKJENT_FEIL.value }.size shouldBe migrertKrav.size
+
+                kravEtter.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe kravEtter.size - migrertKrav.size
+
+                // handleErrors filtrerer på httpStatusCode.isSuccess(), ikke på status-enum-verdien.
+                // Siden avstemming returnerte HTTP 200, er isSuccess() == true og feilmeldingen hoppes over –
+                // selv om status-enum ble satt til UKJENT_FEIL. Ingen feilmelding skal opprettes.
+                val feilmeldinger =
+                    DBListener.dataSource.connection.use {
+                        it.prepareStatement("SELECT * FROM feilmelding").executeQuery().toFeilmelding()
+                    }
+                feilmeldinger.size shouldBe 0
+            }
+        }
+
+        Given("Avstemming mot SKE feiler med 422 for to migrerte krav") {
+            DBListener.clearDB()
+            DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
+            circuitBreaker.reset()
+            SftpListener.putFiles(listOf("krav/TestEndringMedAvstemmingAvKravident.txt"), Directories.INBOUND)
+            val nyttKravKall = MockRequestObj(Responses.nyttKravResponse(), EndepunktType.OPPRETT, HttpStatusCode.OK)
+            val avstemmingKall = MockRequestObj(Responses.genericFeilResponse(), EndepunktType.AVSTEMMING, HttpStatusCode.UnprocessableEntity)
+            val endreRenterKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
+            val endreHovedStolKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
+            val mottaksstatusKall = MockRequestObj(mottaksStatusResponse(status = Status.RESKONTROFOERT.value), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
+
+            val httpClient = setUpMockHttpClient(listOf(nyttKravKall, endreRenterKall, endreHovedStolKall, mottaksstatusKall, avstemmingKall))
+            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
+
+            skeService.handleNewKrav()
+
+            Then("Skal feilmelding for hvert migrert krav lagres nøyaktig én gang, ikke dupliseres på tvers av iterasjoner") {
+                val feilmeldinger =
+                    DBListener.dataSource.connection.use {
+                        it.prepareStatement("SELECT * FROM feilmelding").executeQuery().toFeilmelding()
+                    }
+
+                feilmeldinger.size shouldBe 4
+            }
+        }
+
         Given("Et krav feiler ") {
             DBListener.clearDB()
             SftpListener.putFiles(listOf("krav/TiNyeKrav.txt"), Directories.INBOUND)
