@@ -23,6 +23,7 @@ import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.MockHttpClient
 import no.nav.sokos.ske.krav.util.MockHttpClientUtils
 import no.nav.sokos.ske.krav.util.getAllKrav
+import no.nav.sokos.ske.krav.util.http.MockHttpClientNy
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody
 import no.nav.sokos.ske.krav.util.setUpMockHttpClient
 
@@ -36,7 +37,7 @@ internal class StatusServiceIntegrationTest :
             client: HttpClient,
             databaseService: DatabaseService,
         ): Triple<SlackClient, SlackService, StatusService> {
-            val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
+            val slackClientSpy = spyk(SlackClient(client = MockHttpClientNy.slackClient))
             val slackServiceSpy = spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
             val skeClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
             val statusServiceSpy = spyk(StatusService(DBListener.dataSource, skeClient, databaseService, slackServiceSpy), recordPrivateCalls = true)

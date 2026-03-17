@@ -37,16 +37,6 @@ object MockHttpClientUtils {
 class MockHttpClient {
     private val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
 
-    fun getSlackClient() =
-        HttpClient(MockEngine) {
-            install(ContentNegotiation) { json(jsonConfig) }
-            engine {
-                addHandler {
-                    respond("", HttpStatusCode.OK, responseHeaders)
-                }
-            }
-        }
-
     fun guardedClient(engine: MockEngine) =
         HttpClient(engine) {
             install(ContentNegotiation) { json(jsonConfig) }

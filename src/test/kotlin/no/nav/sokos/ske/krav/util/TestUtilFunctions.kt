@@ -31,6 +31,7 @@ import no.nav.sokos.ske.krav.service.OpprettKravService
 import no.nav.sokos.ske.krav.service.SkeService
 import no.nav.sokos.ske.krav.service.StatusService
 import no.nav.sokos.ske.krav.service.StoppKravService
+import no.nav.sokos.ske.krav.util.http.MockHttpClientNy
 
 object FtpTestUtil {
     fun fileAsString(fileName: String): String = fileAs(fileName, Reader::readText)
@@ -89,7 +90,7 @@ fun setupSkeServiceMock(
     statusService: StatusService = statusServiceMock,
     databaseService: DatabaseService = dataSourceMock,
     ftpService: FtpService = ftpServiceMock,
-    slackService: SlackService = SlackService(SlackClient(client = MockHttpClient().getSlackClient())),
+    slackService: SlackService = SlackService(SlackClient(client = MockHttpClientNy.slackClient)),
 ) = SkeService(
     dataSource = mockk<HikariDataSource>(),
     skeClient = skeClient,
@@ -111,7 +112,7 @@ fun setupSkeServiceMockWithMockEngine(
     databaseService: DatabaseService,
 ): SkeService {
     val tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true)
-    val slackClient = SlackClient(client = MockHttpClient().getSlackClient())
+    val slackClient = SlackClient(client = MockHttpClientNy.slackClient)
     val slackService = SlackService(slackClient)
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
     val endreKravService = EndreKravService(skeClient, databaseService)
