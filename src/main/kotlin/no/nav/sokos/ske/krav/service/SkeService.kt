@@ -181,7 +181,7 @@ class SkeService(
         val responseStatus = responseAvstemmingSkatt.status
         val definertStatus = defineStatus(responseBody, responseStatus)
 
-        val kravidentifikator = responseBody.decodeTo<AvstemmingResponse>()?.kravidentifikator ?: ""
+        val kravidentifikator = definertStatus.second?.let { "" } ?: responseBody.decodeTo<AvstemmingResponse>()?.kravidentifikator ?: ""
 
         // Ikke forsøk å sende kravet hvis kravidentifikator mangler eller respons ikke kan parses
         val statusToSet =
