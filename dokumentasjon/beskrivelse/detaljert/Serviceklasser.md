@@ -47,17 +47,17 @@ Hoved-orkestratoren for hele behandlingsløpet. Koordinerer alle andre services 
 
 ### Avhengigheter
 
-| Avhengighet          | Formål                                          |
-|----------------------|-------------------------------------------------|
-| [`FtpService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/FtpService.kt)         | Henter og validerer filer fra SFTP              |
-| [`LineValidator`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidator.kt)      | Validerer enkeltlinjer i hver fil               |
-| [`StatusService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/StatusService.kt)      | Oppdaterer mottaksstatus fra SKE                |
+| Avhengighet                                                                                          | Formål                                          |
+|------------------------------------------------------------------------------------------------------|-------------------------------------------------|
+| [`FtpService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/FtpService.kt)                 | Henter og validerer filer fra SFTP              |
+| [`LineValidator`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidator.kt)        | Validerer enkeltlinjer i hver fil               |
+| [`StatusService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/StatusService.kt)           | Oppdaterer mottaksstatus fra SKE                |
 | [`OpprettKravService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/OpprettKravService.kt) | Sender nye krav til SKE                         |
-| [`EndreKravService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/EndreKravService.kt)   | Sender endringer til SKE                        |
-| [`StoppKravService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/StoppKravService.kt)   | Sender avskrivinger til SKE                     |
-| [`DatabaseService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/DatabaseService.kt)    | Lagrer og henter krav fra databasen             |
-| [`SkeClient`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SkeClient.kt)          | Henter SKE-kravidentifikator via avstemming-API |
-| [`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SlackService.kt)       | Sender feilmeldinger til Slack                  |
+| [`EndreKravService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/EndreKravService.kt)     | Sender endringer til SKE                        |
+| [`StoppKravService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/StoppKravService.kt)     | Sender avskrivinger til SKE                     |
+| [`DatabaseService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/DatabaseService.kt)       | Lagrer og henter krav fra databasen             |
+| [`SkeClient`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SkeClient.kt)                    | Henter SKE-kravidentifikator via avstemming-API |
+| [`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SlackService.kt)              | Sender feilmeldinger til Slack                  |
 
 ### Viktige egenskaper
 
@@ -91,7 +91,33 @@ Itererer over alle validerte filer fra `FtpService`. For hver fil:
 1. Kjører linjevalidering via `LineValidator.validateNewLines()`
 2. Lagrer gyldige og ugyldige linjer i databasen
 3. Flytter filen til `/outbound`
-4. For krav som er endringer eller stopp: slår opp kravidentifikator i DB, og hvis ikke funnet, spør SKE sitt avstemming-API. Varsler på Slack dersom identifikator ikke kan finnes.
+4. Kaller `updateSkeKravidentifikatorForEndringerAndStopp()` for å slå opp og lagre kravidentifikatorer for alle usente endringer og stopp
+
+#### `updateSkeKravidentifikatorForEndringerAndStopp()` *(privat)*
+Henter alle usente endringer og stopp fra databasen (`getAllUnsentEndringerAndStopp()`), og for hvert krav:
+
+1. Sjekker om kravidentifikatoren allerede finnes i databasen (via `getSkeKravidentifikator(referansenummerGammelSak)`). Hvis funnet → oppdaterer DB og går videre til neste krav.
+2. Hvis ikke funnet i DB: kaller SKEs avstemming-API via `getKravidentifikatorFromSkatt()`.
+3. Resultatbehandling etter API-kall:
+
+ Situasjon                                          Handling                                                                                                                                                                          
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 2xx med gyldig `kravidentifikator`                 Lagrer kravidentifikator i DB                                                                                                                                                    
+ 2xx uten `kravidentifikator` i responsen           Setter status `UKJENT_FEIL`. Ingen feilmelding lagres.                                                                                                                            
+ 404 (`HTTP404_FANT_IKKE_SAKSREF`)                  Setter `HTTP404_FANT_IKKE_SAKSREF`. Lagrer feilmelding i DB. Sender Slack-alarm med tittel `FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR` – kun én gang per `saksnummerNAV` (deduplication). 
+ 403 / 401 / 5xx                                    `CircuitBreakerPlugin` kaster `CircuitBreakerException` direkte fra HTTP-laget. Ingen status oppdateres, ingen feilmelding lagres.                                                
+ Andre ikke-2xx (f.eks. 400, 406, 409, 422)         Legges i `requestResults`-listen og håndteres samlet av `handleErrors()` → feilmelding + Slack.                                                                                  
+
+#### `getKravidentifikatorFromSkatt(krav)` *(privat)*
+Kaller `skeClient.getSkeKravidentifikator(krav.referansenummerGammelSak)` og bygger et `RequestResult`:
+- Kravidentifikator settes kun dersom HTTP-status er 2xx og feltet finnes i `AvstemmingResponse`.
+- Dersom HTTP-status er 200 men kravidentifikator mangler, settes `statusToSet = UKJENT_FEIL`.
+- Ellers brukes `defineStatus()` til å tolke HTTP-statuskode og body.
+
+#### `handleError(requestResult, feilResponse)` *(privat)*
+Konsoliderer feilhåndtering for et enkelt `RequestResult`:
+1. Dersom `feilResponse != null`: sender Slack-alarm via `slackService.addError(filnavn, "Feil fra SKE", feilResponse.title to feilResponse.detail)`.
+2. Lagrer alltid en rad i `feilmelding`-tabellen via `saveErrorMessage()`.
 
 #### `checkKravDateForAlert()`
 Kjøres hvert 24. time. Henter alle krav i status `KRAV_SENDT`/`MOTTATT_UNDER_BEHANDLING` og varsler på Slack for hvert krav der `tidspunktSendt` er mer enn 24 timer siden.
@@ -312,8 +338,9 @@ Abstraksjonslag mellom serviceklassene og repositoriene. Alle databaseoperasjone
 | `getAllKravForStatusCheck()`                                           | Returnerer krav med status `KRAV_SENDT` eller `MOTTATT_UNDER_BEHANDLING`                                                                   |
 | `getAllKravForAvstemming()`                                            | Returnerer krav med feilstatuser til bruk i rapportvisningen                                                                               |
 | `getAllKravForResending()`                                             | Returnerer krav med status `KRAV_IKKE_SENDT`                                                                                               |
-| `getAllUnsentKrav()`                                                   | Returnerer krav med status `KRAV_IKKE_SENDT` (brukes etter innlesing av ny fil)                                                            |
-| `updateStatus(mottakStatus, corrId)`                                   | Oppdaterer status på krav identifisert med `corrId`                                                                                        |
+ `getAllUnsentKrav()`                                    Returnerer krav med status `KRAV_IKKE_SENDT` (brukes etter innlesing av ny fil)                                                            
+ `getAllUnsentEndringerAndStopp()`                        Returnerer krav med status `KRAV_IKKE_SENDT` og kravtype `ENDRING_RENTE`, `ENDRING_HOOFDSTOL` eller `STOPP_KRAV` – brukes til å slå opp SKE-kravidentifikator for migrerte krav 
+ `updateStatus(mottakStatus, corrId)`                    Oppdaterer status på krav identifisert med `corrId`                                                                                        
 | `updateEndringWithSkeKravIdentifikator(saksnummer, kravidentifikator)` | Lagrer SKEs kravidentifikator på endringskrav                                                                                              |
 | `updateStatusForAvstemtKravToReported(kravId)`                         | Markerer et krav som rapportert i avstemmingsvisningen                                                                                     |
 | `getFileValidationMessage(filNavn)`                                    | Henter filvalideringsfeil for en gitt fil                                                                                                  |

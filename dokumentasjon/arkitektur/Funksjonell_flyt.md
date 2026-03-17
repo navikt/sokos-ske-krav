@@ -56,7 +56,29 @@ sequenceDiagram
         end
         SkeService->>DB: saveAllNewKrav(validerteLinjer)
         SkeService->>FtpService: moveFile() til /outbound
-        SkeService->>SKE: Hent SKE-kravidentifikator for endringer/stopp
+        SkeService->>DB: getAllUnsentEndringerAndStopp()
+        DB-->>SkeService: Usente endringer og stopp
+        loop For hvert usent endring/stopp-krav
+            SkeService->>DB: getSkeKravidentifikator(referansenummerGammelSak)
+            alt Funnet i DB
+                SkeService->>DB: updateEndringWithSkeKravIdentifikator()
+            else Ikke funnet i DB – spør SKE
+                SkeService->>SKE: GET /avstemming/{referansenummerGammelSak}
+                alt 2xx med kravidentifikator
+                    SKE-->>SkeService: AvstemmingResponse
+                    SkeService->>DB: updateEndringWithSkeKravIdentifikator()
+                else 2xx uten kravidentifikator
+                    SkeService->>DB: updateStatus(UKJENT_FEIL)
+                else 404
+                    SKE-->>SkeService: FeilResponse (innkrevingsoppdrag-eksisterer-ikke)
+                    SkeService->>DB: updateStatus(HTTP404_FANT_IKKE_SAKSREF)
+                    SkeService->>DB: insertFeilmelding()
+                    SkeService->>Slack: addError(FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR)
+                else 403 / 401 / 5xx
+                    note over SkeService: CircuitBreakerException propagerer – kjøringen avbrytes
+                end
+            end
+        end
         SkeService->>DB: getAllUnsentKrav()
         DB-->>SkeService: Usente krav
         SkeService->>SKE: sendKrav() – opprett + endre + stopp

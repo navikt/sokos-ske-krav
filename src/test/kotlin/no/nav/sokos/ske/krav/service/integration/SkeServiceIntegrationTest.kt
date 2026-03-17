@@ -295,7 +295,6 @@ internal class SkeServiceIntegrationTest :
 
             Then("Skal migrert krav IKKE få status KRAV_SENDT når kravidentifikator mangler i 2xx-responsen") {
                 val kravEtter = DBListener.dataSource.connection.use { it.getAllKrav() }
-                // Hvert migrert krav gir opphav til 2 rader (ENDRING_RENTE + ENDRING_HOOFDSTOL)
                 val migrertKrav = kravEtter.filter { it.saksnummerNAV in listOf("2222-saksnrmig", "8888-saksnrmig") }
                 migrertKrav.size shouldBe 4
                 migrertKrav.filter { it.status == Status.UKJENT_FEIL.value }.size shouldBe migrertKrav.size
