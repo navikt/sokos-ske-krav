@@ -53,6 +53,10 @@ internal class SkeServiceIntegrationTest :
             FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = mockk<DatabaseService>())
         }
 
+        beforeEach {
+            circuitBreaker.reset()
+        }
+
         Given("Det finnes en fil i INBOUND") {
             DBListener.clearDB()
             SftpListener.putFiles(listOf("krav/TiNyeKrav.txt"), Directories.INBOUND)
