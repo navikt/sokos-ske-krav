@@ -16,10 +16,12 @@ import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.service.StoppKravService
-import no.nav.sokos.ske.krav.util.MockHttpClientUtils
 import no.nav.sokos.ske.krav.util.getAllKrav
-import no.nav.sokos.ske.krav.util.http.MockResponsesBody
-import no.nav.sokos.ske.krav.util.setUpMockHttpClient
+import no.nav.sokos.ske.krav.util.http.Endpoint
+import no.nav.sokos.ske.krav.util.http.MockHttpClientNy
+import no.nav.sokos.ske.krav.util.http.MockResponse
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody.avskrivKravResponse
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
 
 class StoppKravServiceIntegrationTest :
     BehaviorSpec({
@@ -37,10 +39,9 @@ class StoppKravServiceIntegrationTest :
             kravSomSkalSendes.count { it.kravtype == STOPP_KRAV } shouldBe 2
 
             When("Response fra SKE trigger circuit breaker") {
-                val avskrivKravKall = MockHttpClientUtils.MockRequestObj(MockResponsesBody.genericFeilResponse(), MockHttpClientUtils.EndepunktType.AVSKRIVING, HttpStatusCode.Forbidden)
+                val avskrivingResponse = MockResponse(Endpoint.AVSKRIVING, genericFeilResponse(), HttpStatusCode.Forbidden)
 
-                val httpClient =
-                    setUpMockHttpClient(listOf(avskrivKravKall))
+                val httpClient = MockHttpClientNy.client(avskrivingResponse)
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
                 val stoppKravServiceSpy = spyk(StoppKravService(skeClient, dbService), recordPrivateCalls = true)
@@ -63,10 +64,9 @@ class StoppKravServiceIntegrationTest :
             }
             When("Response fra SKE er OK") {
                 CircuitBreakerManager.circuitBreaker.reset()
-                val avskrivKravKall = MockHttpClientUtils.MockRequestObj(MockResponsesBody.avskrivKravResponse(), MockHttpClientUtils.EndepunktType.AVSKRIVING, HttpStatusCode.OK)
+                val avskrivingResponse = MockResponse(Endpoint.AVSKRIVING, avskrivKravResponse(), HttpStatusCode.OK)
 
-                val httpClient =
-                    setUpMockHttpClient(listOf(avskrivKravKall))
+                val httpClient = MockHttpClientNy.client(avskrivingResponse)
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
                 StoppKravService(skeClient, dbService).sendAllStoppKrav(kravSomSkalSendes)
