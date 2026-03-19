@@ -134,4 +134,17 @@ internal class FileValidatorTest :
                 }
             }
         }
+
+        Given("En fil med null-sum i kontroll-linjen og ingen kravlinjer") {
+            val fileName = "validering/filvalidering/NullSumOk.txt"
+            val content = getFileContent(fileName)
+
+            When("Filen valideres") {
+                val validationResult = fileValidator.validateFile(content, fileName)
+
+                Then("Skal ValidationResult være Success - BigDecimal scale-forskjell skal ikke gi FEIL_I_SUM ved null-sum") {
+                    (validationResult is ValidationResult.Success) shouldBe true
+                }
+            }
+        }
     })
