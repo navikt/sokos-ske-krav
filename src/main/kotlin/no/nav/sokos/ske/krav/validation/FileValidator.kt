@@ -65,7 +65,7 @@ class FileValidator(
         if (lastLine.antallTransaksjoner != kravLinjer.size) {
             add(ErrorKeys.FEIL_I_ANTALL to "Antall krav: ${kravLinjer.size}, Antall i siste linje: ${lastLine.antallTransaksjoner}\n")
         }
-        if (kravLinjer.sumOf { it.belop + it.belopRente } != lastLine.sumAlleTransaksjoner) {
+        if (kravLinjer.sumOf { it.belop + it.belopRente }.compareTo(lastLine.sumAlleTransaksjoner) != 0) {
             add(ErrorKeys.FEIL_I_SUM to "Sum alle linjer: ${kravLinjer.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAlleTransaksjoner}\n")
         }
         if (firstLine.transaksjonsDato != lastLine.transaksjonTimestamp) {
