@@ -6,10 +6,8 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.headersOf
 import io.ktor.server.config.ApplicationConfig
 import io.mockk.every
 import io.mockk.mockkObject
@@ -17,6 +15,9 @@ import io.mockk.unmockkObject
 
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
 import no.nav.sokos.ske.krav.util.MockHttpClient
+import no.nav.sokos.ske.krav.util.http.Endpoint
+import no.nav.sokos.ske.krav.util.http.MockHttpClientNy
+import no.nav.sokos.ske.krav.util.http.MockResponse
 
 class CircuitBreakerPluginTest :
     FunSpec({
@@ -32,24 +33,19 @@ class CircuitBreakerPluginTest :
         }
 
         test("circuit breaker should remain closed on successful requests") {
-            var requestCount = 0
+            val mockResponse =
+                MockResponse(
+                    originEndpoint = Endpoint.MOTTAKSSTATUS,
+                    content = """{"status":"ok"}""",
+                )
 
-            val mockEngine =
-                MockEngine { _ ->
-                    requestCount++
-                    respond(
-                        content = """{"status":"ok"}""",
-                        status = HttpStatusCode.OK,
-                        headers = headersOf("Content-Type", "application/json"),
-                    )
-                }
-
-            val client = mockHttpClient.guardedClient(mockEngine)
+            val client = MockHttpClientNy.client(mockResponse)
 
             repeat(3) {
-                client.get("https://example.com/api")
+                client.get("https://example.com/innkrevingsoppdrag/mottaksstatus")
             }
 
+            val requestCount = (client.engine as MockEngine).requestHistory.size
             requestCount shouldBe 3
             circuitBreaker.state shouldBe CircuitBreaker.State.CLOSED
 
@@ -57,19 +53,17 @@ class CircuitBreakerPluginTest :
         }
 
         test("circuit breaker should open on first HTTP 401 Unauthorized") {
-            val mockEngine =
-                MockEngine { _ ->
-                    respond(
-                        content = """{"error":"Unauthorized"}""",
-                        status = HttpStatusCode.Unauthorized,
-                        headers = headersOf("Content-Type", "application/json"),
-                    )
-                }
+            val mockResponse =
+                MockResponse(
+                    originEndpoint = Endpoint.MOTTAKSSTATUS,
+                    content = """{"error":"Unauthorized"}""",
+                    statusCode = HttpStatusCode.Unauthorized,
+                )
 
-            val client = mockHttpClient.guardedClient(mockEngine)
+            val client = MockHttpClientNy.client(mockResponse)
 
             shouldThrow<CircuitBreakerException> {
-                client.get("https://example.com/api")
+                client.get("https://example.com/innkrevingsoppdrag/mottaksstatus")
             }
 
             circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
@@ -78,18 +72,17 @@ class CircuitBreakerPluginTest :
         }
 
         test("circuit breaker should open on first HTTP 403 Forbidden") {
-            val mockEngine =
-                MockEngine { _ ->
-                    respond(
-                        content = """{"error":"Forbidden"}""",
-                        status = HttpStatusCode.Forbidden,
-                        headers = headersOf("Content-Type", "application/json"),
-                    )
-                }
+            val mockResponse =
+                MockResponse(
+                    Endpoint.MOTTAKSSTATUS,
+                    content = """{"error":"Forbidden"}""",
+                    statusCode = HttpStatusCode.Forbidden,
+                )
 
-            val client = mockHttpClient.guardedClient(mockEngine)
+            val client = MockHttpClientNy.client(mockResponse)
+
             shouldThrow<CircuitBreakerException> {
-                client.get("https://example.com/api")
+                client.get("https://example.com/innkrevingsoppdrag/mottaksstatus")
             }
 
             circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
@@ -98,19 +91,17 @@ class CircuitBreakerPluginTest :
         }
 
         test("circuit breaker should open on first HTTP 5xx") {
-            val mockEngine =
-                MockEngine { _ ->
-                    respond(
-                        content = """{"error":"Internal Server Error"}""",
-                        status = HttpStatusCode.InternalServerError,
-                        headers = headersOf("Content-Type", "application/json"),
-                    )
-                }
+            val mockResponse =
+                MockResponse(
+                    originEndpoint = Endpoint.MOTTAKSSTATUS,
+                    content = """{"error":"Internal Server Error"}""",
+                    statusCode = HttpStatusCode.InternalServerError,
+                )
 
-            val client = mockHttpClient.guardedClient(mockEngine)
+            val client = MockHttpClientNy.client(mockResponse)
 
             shouldThrow<CircuitBreakerException> {
-                client.get("https://example.com/api")
+                client.get("https://example.com/innkrevingsoppdrag/mottaksstatus")
             }
 
             circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
@@ -119,24 +110,20 @@ class CircuitBreakerPluginTest :
         }
 
         test("circuit breaker should not open on HTTP 404 Not Found") {
-            var requestCount = 0
+            val mockResponse =
+                MockResponse(
+                    originEndpoint = Endpoint.MOTTAKSSTATUS,
+                    content = """{"error":"Not Found"}""",
+                    statusCode = HttpStatusCode.NotFound,
+                )
 
-            val mockEngine =
-                MockEngine { _ ->
-                    requestCount++
-                    respond(
-                        content = """{"error":"Not Found"}""",
-                        status = HttpStatusCode.NotFound,
-                        headers = headersOf("Content-Type", "application/json"),
-                    )
-                }
-
-            val client = mockHttpClient.guardedClient(mockEngine)
+            val client = MockHttpClientNy.client(mockResponse)
 
             repeat(3) {
-                client.get("https://example.com/api")
+                client.get("https://example.com/innkrevingsoppdrag/mottaksstatus")
             }
 
+            val requestCount = (client.engine as MockEngine).requestHistory.size
             requestCount shouldBe 3
             circuitBreaker.state shouldBe CircuitBreaker.State.CLOSED
 
@@ -144,24 +131,22 @@ class CircuitBreakerPluginTest :
         }
 
         test("circuit breaker should fail after response when OPEN") {
-            val mockEngine =
-                MockEngine { _ ->
-                    respond(
-                        content = """{"error":"Service Unavailable"}""",
-                        status = HttpStatusCode.ServiceUnavailable,
-                        headers = headersOf("Content-Type", "application/json"),
-                    )
-                }
+            val mockResponse =
+                MockResponse(
+                    Endpoint.MOTTAKSSTATUS,
+                    content = """{"error":"Service Unavailable"}""",
+                    statusCode = HttpStatusCode.ServiceUnavailable,
+                )
 
-            val client = mockHttpClient.guardedClient(mockEngine)
+            val client = MockHttpClientNy.client(mockResponse)
 
             shouldThrow<CircuitBreakerException> {
-                client.get("https://example.com/api")
+                client.get("https://example.com/innkrevingsoppdrag/mottaksstatus")
             }
 
             circuitBreaker.state shouldBe CircuitBreaker.State.OPEN
             shouldThrow<CallNotPermittedException> {
-                client.get("https://example.com/api")
+                client.get("https://example.com/innkrevingsoppdrag/mottaksstatus")
             }
 
             client.close()

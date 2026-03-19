@@ -37,16 +37,6 @@ object MockHttpClientUtils {
 class MockHttpClient {
     private val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
 
-    fun guardedClient(engine: MockEngine) =
-        HttpClient(engine) {
-            install(ContentNegotiation) { json(jsonConfig) }
-            install(CircuitBreakerPlugin)
-        }.apply {
-            plugin(HttpSend).intercept {
-                guardCall { execute(it) }
-            }
-        }
-
     fun getClient(kall: List<MockHttpClientUtils.MockRequestObj>): HttpClient {
         val mockEngine =
             MockEngine { request ->
@@ -61,7 +51,14 @@ class MockHttpClient {
                 }
             }
 
-        return guardedClient(mockEngine)
+        return HttpClient(mockEngine) {
+            install(ContentNegotiation) { json(jsonConfig) }
+            install(CircuitBreakerPlugin)
+        }.apply {
+            plugin(HttpSend).intercept {
+                guardCall { execute(it) }
+            }
+        }
     }
 
     private fun generateUrls(baseUrl: String) =
