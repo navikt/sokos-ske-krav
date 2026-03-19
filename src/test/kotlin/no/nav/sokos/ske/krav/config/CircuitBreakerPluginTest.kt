@@ -10,14 +10,23 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+import io.ktor.server.config.ApplicationConfig
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
 import no.nav.sokos.ske.krav.util.MockHttpClient
 
 class CircuitBreakerPluginTest :
     FunSpec({
-
         val mockHttpClient = MockHttpClient()
+
+        beforeSpec {
+            mockkObject(PropertiesConfig)
+            every { PropertiesConfig.config } returns ApplicationConfig("application-test.conf")
+        }
+
         beforeEach {
             circuitBreaker.reset()
         }
@@ -156,5 +165,9 @@ class CircuitBreakerPluginTest :
             }
 
             client.close()
+        }
+
+        afterSpec {
+            unmockkObject(PropertiesConfig)
         }
     })
