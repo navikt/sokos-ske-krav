@@ -103,8 +103,6 @@ fun setupSkeServiceMock(
     slackService = slackService,
 )
 
-fun setUpMockHttpClient(endepunktTyper: List<MockHttpClientUtils.MockRequestObj>) = MockHttpClient().getClient(endepunktTyper)
-
 fun setupSkeServiceMockWithMockEngine(
     dataSource: HikariDataSource,
     httpClient: HttpClient,

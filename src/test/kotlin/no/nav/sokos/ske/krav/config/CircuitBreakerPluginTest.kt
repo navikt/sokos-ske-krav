@@ -14,15 +14,12 @@ import io.mockk.mockkObject
 import io.mockk.unmockkObject
 
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
-import no.nav.sokos.ske.krav.util.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClientNy
 import no.nav.sokos.ske.krav.util.http.MockResponse
 
 class CircuitBreakerPluginTest :
     FunSpec({
-        val mockHttpClient = MockHttpClient()
-
         beforeSpec {
             mockkObject(PropertiesConfig)
             every { PropertiesConfig.config } returns ApplicationConfig("application-test.conf")
