@@ -16,7 +16,7 @@ import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.OpprettKravService
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
-import no.nav.sokos.ske.krav.util.http.MockHttpClientNy
+import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.nyttKravResponse
@@ -37,7 +37,7 @@ internal class OpprettKravServiceIntegrationTest :
 
             When("Response fra SKE  trigger circuit breaker") {
                 val skeFeilResponse = MockResponse(Endpoint.OPPRETT, genericFeilResponse(), HttpStatusCode.InternalServerError)
-                val httpClient = MockHttpClientNy.client(skeFeilResponse)
+                val httpClient = MockHttpClient.client(skeFeilResponse)
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
                 val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)), recordPrivateCalls = true)
@@ -68,7 +68,7 @@ internal class OpprettKravServiceIntegrationTest :
                 val kravidentifikatorSKE = "4321"
 
                 val skeOKResponse = MockResponse(Endpoint.OPPRETT, nyttKravResponse(kravidentifikatorSKE), HttpStatusCode.OK)
-                val httpClient = MockHttpClientNy.client(skeOKResponse)
+                val httpClient = MockHttpClient.client(skeOKResponse)
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
                 val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)), recordPrivateCalls = true)

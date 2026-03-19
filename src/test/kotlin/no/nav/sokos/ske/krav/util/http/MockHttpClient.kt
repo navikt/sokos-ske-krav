@@ -32,7 +32,7 @@ data class MockResponse(
     val statusCode: HttpStatusCode = HttpStatusCode.OK,
 )
 
-object MockHttpClientNy {
+object MockHttpClient {
     private val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
     val slackClient =
         HttpClient(MockEngine) {

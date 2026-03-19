@@ -22,7 +22,7 @@ import no.nav.sokos.ske.krav.service.StatusService
 import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
-import no.nav.sokos.ske.krav.util.http.MockHttpClientNy
+import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody
 
@@ -36,7 +36,7 @@ internal class StatusServiceIntegrationTest :
             client: HttpClient,
             databaseService: DatabaseService,
         ): Triple<SlackClient, SlackService, StatusService> {
-            val slackClientSpy = spyk(SlackClient(client = MockHttpClientNy.slackClient))
+            val slackClientSpy = spyk(SlackClient(client = MockHttpClient.slackClient))
             val slackServiceSpy = spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
             val skeClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
             val statusServiceSpy = spyk(StatusService(DBListener.dataSource, skeClient, databaseService, slackServiceSpy), recordPrivateCalls = true)
@@ -49,7 +49,7 @@ internal class StatusServiceIntegrationTest :
             DBListener.loadInitScript("SQLscript/status/KravSomSkalOppdateres.sql")
 
             val avskrivKravKall = MockResponse(Endpoint.MOTTAKSSTATUS, MockResponsesBody.genericFeilResponse(), HttpStatusCode.Forbidden)
-            val httpClient = MockHttpClientNy.client(avskrivKravKall)
+            val httpClient = MockHttpClient.client(avskrivKravKall)
             val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
             dbService.getAllKravForStatusCheck().size shouldBe 5
@@ -149,7 +149,7 @@ internal class StatusServiceIntegrationTest :
 fun mottaksStatusHttpClient(
     mottaksStatusResponse: String,
     valideringsFeilResponse: String = MockResponsesBody.emptyValideringsfeilResponse(),
-) = MockHttpClientNy.client(
+) = MockHttpClient.client(
     MockResponse(Endpoint.MOTTAKSSTATUS, mottaksStatusResponse),
     MockResponse(Endpoint.HENT_VALIDERINGSFEIL, valideringsFeilResponse),
 )

@@ -16,7 +16,7 @@ import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.service.DatabaseService
-import no.nav.sokos.ske.krav.util.http.MockHttpClientNy
+import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.setupSkeServiceMock
 
 class SkeServiceTest :
@@ -59,7 +59,7 @@ class SkeServiceTest :
                 }
 
             Then("Skal Slack alert sendes") {
-                val slackServiceSpy = spyk(SlackService(SlackClient(client = MockHttpClientNy.slackClient)), recordPrivateCalls = true)
+                val slackServiceSpy = spyk(SlackService(SlackClient(client = MockHttpClient.slackClient)), recordPrivateCalls = true)
 
                 setupSkeServiceMock(databaseService = databaseServiceMock, slackService = slackServiceSpy).checkKravDateForAlert()
                 coVerify(exactly = 3) {

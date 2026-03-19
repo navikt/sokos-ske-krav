@@ -19,7 +19,7 @@ import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValid
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
-import no.nav.sokos.ske.krav.util.http.MockHttpClientNy
+import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages
 import no.nav.sokos.ske.krav.validation.LineValidationRules.errorDate
@@ -29,7 +29,7 @@ internal class LineValidatorIntegrationTest :
         extensions(SftpListener, DBListener)
 
         fun setupServices(): Triple<SlackClient, SlackService, LineValidator> {
-            val slackClientSpy = spyk(SlackClient(client = MockHttpClientNy.slackClient))
+            val slackClientSpy = spyk(SlackClient(client = MockHttpClient.slackClient))
             val slackServiceSpy = spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
             val lineValidatorSpy = spyk(LineValidator(slackService = slackServiceSpy), recordPrivateCalls = true)
             return Triple(slackClientSpy, slackServiceSpy, lineValidatorSpy)

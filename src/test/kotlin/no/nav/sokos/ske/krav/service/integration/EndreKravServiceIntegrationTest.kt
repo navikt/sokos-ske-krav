@@ -20,7 +20,7 @@ import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.EndreKravService
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
-import no.nav.sokos.ske.krav.util.http.MockHttpClientNy
+import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.nyEndringResponse
@@ -43,7 +43,7 @@ class EndreKravServiceIntegrationTest :
                 val endreRenterResponse = MockResponse(Endpoint.ENDRE_RENTER, genericFeilResponse(), HttpStatusCode.Forbidden)
                 val endreHovedstolResponse = MockResponse(Endpoint.ENDRE_HOVEDSTOL, genericFeilResponse(), HttpStatusCode.Forbidden)
 
-                val httpClient = MockHttpClientNy.client(endreRenterResponse, endreHovedstolResponse)
+                val httpClient = MockHttpClient.client(endreRenterResponse, endreHovedstolResponse)
 
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
                 val endreKravServiceSpy = spyk(EndreKravService(skeClient, dbService), recordPrivateCalls = true)
@@ -71,7 +71,7 @@ class EndreKravServiceIntegrationTest :
 
                 val endreRenterResponse = MockResponse(Endpoint.ENDRE_RENTER, nyEndringResponse(), HttpStatusCode.OK)
                 val endreHovedstolResponse = MockResponse(Endpoint.ENDRE_HOVEDSTOL, nyEndringResponse(), HttpStatusCode.OK)
-                val httpClient = MockHttpClientNy.client(endreRenterResponse, endreHovedstolResponse)
+                val httpClient = MockHttpClient.client(endreRenterResponse, endreHovedstolResponse)
 
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 

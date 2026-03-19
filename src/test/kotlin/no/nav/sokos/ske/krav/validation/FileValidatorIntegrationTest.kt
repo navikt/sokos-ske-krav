@@ -16,7 +16,7 @@ import no.nav.sokos.ske.krav.listener.SftpListener
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
-import no.nav.sokos.ske.krav.util.http.MockHttpClientNy
+import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.validation.FileValidator.ErrorKeys
 
 internal class FileValidatorIntegrationTest :
@@ -25,7 +25,7 @@ internal class FileValidatorIntegrationTest :
         val dbService by lazy { DatabaseService(DBListener.dataSource) }
 
         fun setupSlackService(): SlackService {
-            val slackClientSpy = spyk(SlackClient(client = MockHttpClientNy.slackClient))
+            val slackClientSpy = spyk(SlackClient(client = MockHttpClient.slackClient))
             return spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
         }
 

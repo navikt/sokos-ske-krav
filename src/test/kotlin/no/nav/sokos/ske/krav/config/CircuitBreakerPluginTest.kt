@@ -15,7 +15,7 @@ import io.mockk.unmockkObject
 
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
 import no.nav.sokos.ske.krav.util.http.Endpoint
-import no.nav.sokos.ske.krav.util.http.MockHttpClientNy
+import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
 
 class CircuitBreakerPluginTest :
@@ -36,7 +36,7 @@ class CircuitBreakerPluginTest :
                     content = """{"status":"ok"}""",
                 )
 
-            val client = MockHttpClientNy.client(mockResponse)
+            val client = MockHttpClient.client(mockResponse)
 
             repeat(3) {
                 client.get("https://example.com/innkrevingsoppdrag/mottaksstatus")
@@ -57,7 +57,7 @@ class CircuitBreakerPluginTest :
                     statusCode = HttpStatusCode.Unauthorized,
                 )
 
-            val client = MockHttpClientNy.client(mockResponse)
+            val client = MockHttpClient.client(mockResponse)
 
             shouldThrow<CircuitBreakerException> {
                 client.get("https://example.com/innkrevingsoppdrag/mottaksstatus")
@@ -76,7 +76,7 @@ class CircuitBreakerPluginTest :
                     statusCode = HttpStatusCode.Forbidden,
                 )
 
-            val client = MockHttpClientNy.client(mockResponse)
+            val client = MockHttpClient.client(mockResponse)
 
             shouldThrow<CircuitBreakerException> {
                 client.get("https://example.com/innkrevingsoppdrag/mottaksstatus")
@@ -95,7 +95,7 @@ class CircuitBreakerPluginTest :
                     statusCode = HttpStatusCode.InternalServerError,
                 )
 
-            val client = MockHttpClientNy.client(mockResponse)
+            val client = MockHttpClient.client(mockResponse)
 
             shouldThrow<CircuitBreakerException> {
                 client.get("https://example.com/innkrevingsoppdrag/mottaksstatus")
@@ -114,7 +114,7 @@ class CircuitBreakerPluginTest :
                     statusCode = HttpStatusCode.NotFound,
                 )
 
-            val client = MockHttpClientNy.client(mockResponse)
+            val client = MockHttpClient.client(mockResponse)
 
             repeat(3) {
                 client.get("https://example.com/innkrevingsoppdrag/mottaksstatus")
@@ -135,7 +135,7 @@ class CircuitBreakerPluginTest :
                     statusCode = HttpStatusCode.ServiceUnavailable,
                 )
 
-            val client = MockHttpClientNy.client(mockResponse)
+            val client = MockHttpClient.client(mockResponse)
 
             shouldThrow<CircuitBreakerException> {
                 client.get("https://example.com/innkrevingsoppdrag/mottaksstatus")
