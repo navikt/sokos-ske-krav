@@ -18,10 +18,12 @@ import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.EndreKravService
-import no.nav.sokos.ske.krav.util.MockHttpClientUtils
-import no.nav.sokos.ske.krav.util.MockHttpClientUtils.Responses
 import no.nav.sokos.ske.krav.util.getAllKrav
-import no.nav.sokos.ske.krav.util.setUpMockHttpClient
+import no.nav.sokos.ske.krav.util.http.Endpoint
+import no.nav.sokos.ske.krav.util.http.MockHttpClient
+import no.nav.sokos.ske.krav.util.http.MockResponse
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody.nyEndringResponse
 
 class EndreKravServiceIntegrationTest :
     BehaviorSpec({
@@ -33,18 +35,17 @@ class EndreKravServiceIntegrationTest :
             DBListener.clearDB()
             DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
             DBListener.loadInitScript("SQLscript/krav/ToEndredeKrav.sql")
-
             val kravSomSkalSendes = dbService.getAllUnsentKrav()
             kravSomSkalSendes.size shouldBe 4
             kravSomSkalSendes.count { it.kravtype == ENDRING_RENTE || it.kravtype == ENDRING_HOVEDSTOL } shouldBe 4
 
             When("Response fra SKE trigger circuit breaker") {
-                val endreRenterKall = MockHttpClientUtils.MockRequestObj(Responses.genericFeilResponse(), MockHttpClientUtils.EndepunktType.ENDRE_RENTER, HttpStatusCode.Forbidden)
-                val endreHovedstolKall = MockHttpClientUtils.MockRequestObj(Responses.genericFeilResponse(), MockHttpClientUtils.EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.Forbidden)
-                val httpClient =
-                    setUpMockHttpClient(listOf(endreRenterKall, endreHovedstolKall))
-                val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
+                val endreRenterResponse = MockResponse(Endpoint.ENDRE_RENTER, genericFeilResponse(), HttpStatusCode.Forbidden)
+                val endreHovedstolResponse = MockResponse(Endpoint.ENDRE_HOVEDSTOL, genericFeilResponse(), HttpStatusCode.Forbidden)
 
+                val httpClient = MockHttpClient.client(endreRenterResponse, endreHovedstolResponse)
+
+                val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
                 val endreKravServiceSpy = spyk(EndreKravService(skeClient, dbService), recordPrivateCalls = true)
                 val requestResults = endreKravServiceSpy.sendAllEndreKrav(kravSomSkalSendes)
 
@@ -67,13 +68,15 @@ class EndreKravServiceIntegrationTest :
             }
             When("Response fra SKE er OK") {
                 CircuitBreakerManager.circuitBreaker.reset()
-                val endreRenterKall = MockHttpClientUtils.MockRequestObj(Responses.nyEndringResponse(), MockHttpClientUtils.EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
-                val endreHovedstolKall = MockHttpClientUtils.MockRequestObj(Responses.nyEndringResponse(), MockHttpClientUtils.EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
-                val httpClient =
-                    setUpMockHttpClient(listOf(endreRenterKall, endreHovedstolKall))
+
+                val endreRenterResponse = MockResponse(Endpoint.ENDRE_RENTER, nyEndringResponse(), HttpStatusCode.OK)
+                val endreHovedstolResponse = MockResponse(Endpoint.ENDRE_HOVEDSTOL, nyEndringResponse(), HttpStatusCode.OK)
+                val httpClient = MockHttpClient.client(endreRenterResponse, endreHovedstolResponse)
+
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
                 EndreKravService(skeClient, dbService).sendAllEndreKrav(kravSomSkalSendes)
+
                 Then("Skal krav oppdateres med status sendt") {
                     DBListener.dataSource.connection.use { con ->
                         con.getAllKrav().filter { it.status == Status.KRAV_SENDT.value }.size shouldBe 4
