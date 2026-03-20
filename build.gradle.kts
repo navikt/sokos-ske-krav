@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "2.3.10"
     kotlin("plugin.serialization") version "2.3.10"
-    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.7"
 
     application
@@ -19,8 +19,8 @@ repositories {
     mavenCentral()
 }
 
-val ktorVersion = "3.4.0"
-val jschVersion = "2.27.8"
+val ktorVersion = "3.4.1"
+val jschVersion = "2.27.9"
 val nimbusVersion = "10.8"
 val kotlinxSerializationVersion = "1.10.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
