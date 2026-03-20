@@ -24,14 +24,17 @@ import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
-import no.nav.sokos.ske.krav.util.MockHttpClientUtils.EndepunktType
-import no.nav.sokos.ske.krav.util.MockHttpClientUtils.MockRequestObj
-import no.nav.sokos.ske.krav.util.MockHttpClientUtils.Responses
-import no.nav.sokos.ske.krav.util.MockHttpClientUtils.Responses.avstemmingResponse
-import no.nav.sokos.ske.krav.util.MockHttpClientUtils.Responses.mottaksStatusResponse
 import no.nav.sokos.ske.krav.util.getAllKrav
+import no.nav.sokos.ske.krav.util.http.Endpoint
+import no.nav.sokos.ske.krav.util.http.MockHttpClient
+import no.nav.sokos.ske.krav.util.http.MockResponse
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody.httpErrorResponse
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody.mottaksStatusResponse
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody.nyEndringResponse
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody.nyttKravResponse
 import no.nav.sokos.ske.krav.util.mockHttpResponse
-import no.nav.sokos.ske.krav.util.setUpMockHttpClient
 import no.nav.sokos.ske.krav.util.setupSkeServiceMock
 import no.nav.sokos.ske.krav.util.setupSkeServiceMockWithMockEngine
 import no.nav.sokos.ske.krav.validation.FileValidator
@@ -71,10 +74,8 @@ internal class SkeServiceIntegrationTest :
                     coEvery { getSkeKravidentifikator("2222-migrert") } returns
                         mockHttpResponse(200, """{"kravidentifikator": "avstemming2222-skeUUID"}""")
                 }
-
             val dbService = DatabaseService(DBListener.dataSource)
             val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dbService, ftpService = ftpService)
-
             val kravBefore = DBListener.dataSource.connection.use { it.getAllKrav() }
             with(kravBefore.find { it.saksnummerNAV == "2222-navsaksnr" }) {
                 this?.kravidentifikatorSKE shouldBe "2222-skeUUID"
@@ -109,11 +110,10 @@ internal class SkeServiceIntegrationTest :
         Given("Et krav skal lagres i database") {
             DBListener.clearDB()
             SftpListener.putFiles(listOf("innsender/OppdragFil.txt"), Directories.INBOUND)
-
             val skeClient =
                 mockk<SkeClient> {
                     coEvery { getSkeKravidentifikator(any()) } returns
-                        mockHttpResponse(200, avstemmingResponse())
+                        mockHttpResponse(200, MockResponsesBody.avstemmingResponse())
                     coEvery { getMottaksStatus(any(), any()) } returns
                         mockHttpResponse(200, mottaksStatusResponse(status = Status.RESKONTROFOERT.value))
                 }
@@ -138,9 +138,8 @@ internal class SkeServiceIntegrationTest :
         Given("Vi mottar 403") {
             DBListener.clearDB()
             SftpListener.putFiles(listOf("krav/TiNyeKrav.txt"), Directories.INBOUND)
-            val nyttKravKall = MockRequestObj(Responses.httpErrorResponse, EndepunktType.OPPRETT, HttpStatusCode.Forbidden)
-
-            val httpClient = setUpMockHttpClient(listOf(nyttKravKall))
+            val nyttKravResponse = MockResponse(Endpoint.OPPRETT, httpErrorResponse, HttpStatusCode.Forbidden)
+            val httpClient = MockHttpClient.client(nyttKravResponse)
             val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
 
             Then("Skal ingen feil lagres i feilmeldingtabell") {
@@ -171,9 +170,9 @@ internal class SkeServiceIntegrationTest :
         Given("Et krav feiler ") {
             DBListener.clearDB()
             SftpListener.putFiles(listOf("krav/TiNyeKrav.txt"), Directories.INBOUND)
-            val nyttKravKall = MockRequestObj(Responses.genericFeilResponse(), EndepunktType.OPPRETT, HttpStatusCode.UnprocessableEntity)
 
-            val httpClient = setUpMockHttpClient(listOf(nyttKravKall))
+            val nyttKravResponse = MockResponse(Endpoint.OPPRETT, genericFeilResponse(), HttpStatusCode.UnprocessableEntity)
+            val httpClient = MockHttpClient.client(nyttKravResponse)
             val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
 
             Then("skal det lagres i feilmeldingtabell") {
@@ -187,7 +186,6 @@ internal class SkeServiceIntegrationTest :
                     }
 
                 feilmeldinger.filter { it.error == "422" }.size shouldBe 10
-
                 val kravMedFeil =
                     DBListener.dataSource.connection.use { conn ->
                         feilmeldinger.flatMap { feilmelding ->
@@ -217,13 +215,13 @@ internal class SkeServiceIntegrationTest :
                 }
             }
 
-            val nyttKravKall = MockRequestObj(Responses.nyttKravResponse(), EndepunktType.OPPRETT, HttpStatusCode.OK)
-            val avskrivKravKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.AVSKRIVING, HttpStatusCode.OK)
-            val endreRenterKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_RENTER, HttpStatusCode.OK)
-            val endreHovedstolKall = MockRequestObj(Responses.nyEndringResponse(), EndepunktType.ENDRE_HOVEDSTOL, HttpStatusCode.OK)
-            val mottaksstatusKall = MockRequestObj(mottaksStatusResponse(), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
+            val nyttKravResponse = MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK)
+            val avskrivKravResponse = MockResponse(Endpoint.AVSKRIVING, nyEndringResponse(), HttpStatusCode.OK)
+            val endreRenterResponse = MockResponse(Endpoint.ENDRE_RENTER, nyEndringResponse(), HttpStatusCode.OK)
+            val endreHovedstolResponse = MockResponse(Endpoint.ENDRE_HOVEDSTOL, nyEndringResponse(), HttpStatusCode.OK)
+            val mottaksStatusResponse = MockResponse(Endpoint.MOTTAKSSTATUS, mottaksStatusResponse(), HttpStatusCode.OK)
 
-            val httpClient = setUpMockHttpClient(listOf(nyttKravKall, avskrivKravKall, endreRenterKall, endreHovedstolKall, mottaksstatusKall))
+            val httpClient = MockHttpClient.client(nyttKravResponse, avskrivKravResponse, endreRenterResponse, endreHovedstolResponse, mottaksStatusResponse)
             val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
 
             Then("skal kravet resendes") {

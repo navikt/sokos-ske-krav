@@ -14,10 +14,12 @@ import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.OpprettKravService
-import no.nav.sokos.ske.krav.util.MockHttpClientUtils
-import no.nav.sokos.ske.krav.util.MockHttpClientUtils.Responses
 import no.nav.sokos.ske.krav.util.getAllKrav
-import no.nav.sokos.ske.krav.util.setUpMockHttpClient
+import no.nav.sokos.ske.krav.util.http.Endpoint
+import no.nav.sokos.ske.krav.util.http.MockHttpClient
+import no.nav.sokos.ske.krav.util.http.MockResponse
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody.nyttKravResponse
 
 internal class OpprettKravServiceIntegrationTest :
     BehaviorSpec({
@@ -34,8 +36,8 @@ internal class OpprettKravServiceIntegrationTest :
             kravSomSkalSendes.size shouldBe 2
 
             When("Response fra SKE  trigger circuit breaker") {
-                val httpClient =
-                    setUpMockHttpClient(listOf(MockHttpClientUtils.MockRequestObj(Responses.genericFeilResponse(), MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.InternalServerError)))
+                val skeFeilResponse = MockResponse(Endpoint.OPPRETT, genericFeilResponse(), HttpStatusCode.InternalServerError)
+                val httpClient = MockHttpClient.client(skeFeilResponse)
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
                 val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)), recordPrivateCalls = true)
@@ -64,10 +66,11 @@ internal class OpprettKravServiceIntegrationTest :
             When("Response fra SKE er OK") {
                 CircuitBreakerManager.circuitBreaker.reset()
                 val kravidentifikatorSKE = "4321"
-                val skeOKResponse = Responses.nyttKravResponse(kravidentifikatorSKE)
 
-                val httpClient = setUpMockHttpClient(listOf(MockHttpClientUtils.MockRequestObj(skeOKResponse, MockHttpClientUtils.EndepunktType.OPPRETT, HttpStatusCode.OK)))
+                val skeOKResponse = MockResponse(Endpoint.OPPRETT, nyttKravResponse(kravidentifikatorSKE), HttpStatusCode.OK)
+                val httpClient = MockHttpClient.client(skeOKResponse)
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
+
                 val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)), recordPrivateCalls = true)
                 val requestResults = opprettKravServiceSpy.sendAllOpprettKrav(kravSomSkalSendes)
 
