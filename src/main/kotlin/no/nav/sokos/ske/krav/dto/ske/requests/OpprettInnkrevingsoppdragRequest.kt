@@ -14,7 +14,7 @@ data class OpprettInnkrevingsoppdragRequest(
     val skyldner: Skyldner,
     val hovedstol: HovedstolBeloep,
     val renteBeloep: List<RenteBeloep>?,
-    val oppdragsgiversReferanse: String,
+    val oppdragsgiversReferanse: String? = null,
     @SerialName("oppdragsgiversKravidentifikator")
     val oppdragsgiversKravIdentifikator: String,
     @SerialName("fastsettelsesdato")
