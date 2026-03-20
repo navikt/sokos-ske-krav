@@ -19,9 +19,9 @@ object MockResponsesBody {
     ) = //language=json
         """
         {
-             "kravidentifikator": "$kravIdentifikator"
-             "oppdragsgiversKravidentifikator": "4321"
-             "mottaksstatus": "$status"
+             "kravidentifikator": "$kravIdentifikator",
+             "oppdragsgiversKravidentifikator": "4321",
+             "mottaksstatus": "$status",
              "statusOppdatert": "2023-10-04T04:47:08.482Z"
          }
         """.trimIndent()
