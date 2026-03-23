@@ -8,7 +8,6 @@ import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.util.isOpprettKrav
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.FAGSYSTEMID_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.GJELDERID_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.HOVEDSTOL_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.KRAVTYPE_ERROR
@@ -19,7 +18,6 @@ import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.TILLEGGSFR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.UTBETALINGSDATO_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.VEDTAKSDATO_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.BELOP_NEGATIVE
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.FAGSYSTEMID_MISSING
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.GJELDERID_MISSING
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM
@@ -60,10 +58,6 @@ object LineValidationRules {
 
                     checkTilleggsfristDato(tilleggsfrist)?.let { message ->
                         add(Pair(TILLEGGSFRISTDATO_ERROR, message))
-                    }
-
-                    checkFagsystemId(fagsystemId)?.let { message ->
-                        add(Pair(FAGSYSTEMID_ERROR, "$message. Linje: $linjenummer"))
                     }
 
                     checkGjelderId(gjelderId)?.let { message ->
@@ -143,8 +137,6 @@ object LineValidationRules {
             else -> null
         }
 
-    private fun checkFagsystemId(linje: String): String? = if (linje.isBlank()) FAGSYSTEMID_MISSING else null
-
     private fun checkGjelderId(gjelderId: String): String? = if (gjelderId.isBlank()) GJELDERID_MISSING else null
 
     private fun checkBelop(belop: BigDecimal): String? = if (belop < BigDecimal.ZERO) BELOP_NEGATIVE else null
@@ -192,7 +184,6 @@ object LineValidationRules {
         const val KRAVTYPE_DOES_NOT_EXIST = "Kravtype finnes ikke definert for oversending til skatt"
         const val TILLEGGSFRISTDATO_TOO_OLD = "Tilleggsfristdato kan ikke være lengre tilbake i tid enn 10 måneder fra dagens dato"
         const val TILLEGGSFRISTDATO_WRONG_FORMAT = "Tilleggsfristdato er feil formattert i fil"
-        const val FAGSYSTEMID_MISSING = "fagsystemId mangler"
         const val GJELDERID_MISSING = "gjelderId mangler"
         const val BELOP_NEGATIVE = "Beløp kan ikke være negativt"
     }
@@ -205,7 +196,6 @@ object LineValidationRules {
         const val REFERANSENUMMERGAMMELSAK_ERROR = "Feil med ReferanseNummerGammelSak"
         const val KRAVTYPE_ERROR = "Kravtype finnes ikke definert for oversending til skatt"
         const val TILLEGGSFRISTDATO_ERROR = "Feil med tilleggsfristdato"
-        const val FAGSYSTEMID_ERROR = "Feil med fagsystemId"
         const val GJELDERID_ERROR = "Feil med gjelderId"
         const val HOVEDSTOL_ERROR = "Feil med hovedstol"
     }

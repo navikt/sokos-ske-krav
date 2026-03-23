@@ -30,7 +30,7 @@ fun createOpprettKravRequest(krav: Krav) =
         skyldner = createSkyldner(krav),
         hovedstol = HovedstolBeloep(valuta = Valuta.NOK, beloep = krav.belop.roundToLong()),
         renteBeloep = createRenteBelop(krav).takeIf { it.first().beloep > 0L },
-        oppdragsgiversReferanse = krav.fagsystemId.takeIf { it.isNotEmpty() },
+        oppdragsgiversReferanse = krav.fagsystemId.takeIf { it.isNotBlank() },
         oppdragsgiversKravIdentifikator = krav.saksnummerNAV,
         fastsettelsesDato = krav.vedtaksDato.toKotlinLocalDate(),
         foreldelsesFristensUtgangspunkt =

@@ -165,32 +165,6 @@ internal class LineValidatorTest :
                 }
             }
         }
-        Given("fagsystemId mangler på en eller flere linjer") {
-            val okKrav = getKravlinjer()
-            val ikkeOkKrav = listOf(okKrav[0].copy(linjenummer = 6, fagsystemId = ""))
-
-            val kravLinjer = okKrav + ikkeOkKrav
-            val fileName = this.testCase.name.name
-            val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
-
-            When("Linjer valideres") {
-                val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
-
-                Then("Skal validering returnere ${okKrav.size} ok kravlinjer") {
-                    val updatedLines = okKrav.map { it.copy(status = Status.KRAV_IKKE_SENDT.value) }
-                    val validated = validatedLines.filter { it.status == Status.KRAV_IKKE_SENDT.value }
-                    (updatedLines + validated).toSet().size shouldBe okKrav.size
-                    updatedLines.sortedBy { it.saksnummerNav } shouldBe validated.sortedBy { it.saksnummerNav }
-                }
-
-                And("Validering skal returnere ${ikkeOkKrav.size} feil-linjer") {
-                    with(validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }) {
-                        size shouldBe ikkeOkKrav.size
-                        first() shouldBe ikkeOkKrav.first().copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
-                    }
-                }
-            }
-        }
     })
 
 private fun getKravlinjer(): MutableList<KravLinje> {
