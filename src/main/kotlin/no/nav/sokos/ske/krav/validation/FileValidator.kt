@@ -16,7 +16,6 @@ class FileValidator(
         const val FEIL_I_ANTALL = "Antall krav stemmer ikke med antallet i siste linje"
         const val FEIL_I_SUM = "Sum alle linjer stemmer ikke med sum i siste linje"
         const val FEIL_I_DATO = "Dato sendt er avvikende mellom første og siste linje fra OS"
-        const val FAGSYSTEMID_MANGLER = "fagsystemId mangler i en eller flere kravlinjer"
     }
 
     suspend fun validateFile(
@@ -70,9 +69,6 @@ class FileValidator(
         }
         if (firstLine.transaksjonsDato != lastLine.transaksjonTimestamp) {
             add(ErrorKeys.FEIL_I_DATO to "Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonTimestamp}\n")
-        }
-        if (kravLinjer.any { it.fagsystemId.isBlank() }) {
-            add(ErrorKeys.FAGSYSTEMID_MANGLER to "fagsystemId mangler i en eller flere kravlinjer\n")
         }
     }
 }
