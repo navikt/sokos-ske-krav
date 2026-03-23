@@ -28,7 +28,7 @@ val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
 val prometheusVersion = "1.16.4"
-val opentelemetryVersion = "2.25.0-alpha"
+val opentelemetryVersion = "2.26.0-alpha"
 
 // DB
 val hikaricpVersion = "7.0.2"
@@ -37,7 +37,7 @@ val postgresqlVersion = "42.7.10"
 val kotliqueryVersion = "1.9.1"
 
 // Test
-val kotestVersion = "6.1.6"
+val kotestVersion = "6.1.7"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.14.9"
 val commonsVersion = "3.12.0"
@@ -50,7 +50,7 @@ val kotlinLoggingVersion = "3.0.5"
 val logbackVersion = "1.5.32"
 val logstashVersion = "9.0"
 
-val resilience4jVersion = "2.3.0"
+val resilience4jVersion = "2.4.0"
 
 dependencies {
     // Ktor Server
