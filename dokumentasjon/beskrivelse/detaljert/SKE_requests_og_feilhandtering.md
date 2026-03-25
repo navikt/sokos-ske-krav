@@ -18,7 +18,7 @@ Bygges av [`createOpprettKravRequest()`](../../../src/main/kotlin/no/nav/sokos/s
 | `renteBeloep[].beloep`                           | `belopRente`                                                                                                                | Kun inkludert dersom beloep > 0                                                                                              |
 | `renteBeloep[].renterIlagtDato`                  | `vedtaksDato`                                                                                                               |                                                                                                                              |
 | `renteBeloep[].rentetype`                        | –                                                                                                                           | Alltid `STRAFFERENTE`                                                                                                        |
-| `oppdragsgiversReferanse`                        | `fagsystemId`                                                                                                               |                                                                                                                              |
+| `oppdragsgiversReferanse`                        | `fagsystemId`                                                                                                               | Nullable – settes kun dersom `fagsystemId` er ikke-blank. Feltet utelates helt fra requesten dersom `fagsystemId` er tom.    |
 | `oppdragsgiversKravidentifikator`                | `saksnummerNAV`                                                                                                             |                                                                                                                              |
 | `fastsettelsesdato`                              | `vedtaksDato`                                                                                                               |                                                                                                                              |
 | `foreldelsesfristensUtgangspunkt`                | `utbetalDato`                                                                                                               | Settes kun dersom: ingen tilleggsfrist er satt, dato er gyldig, dato er ulik vedtaksdato, og dato er før vedtaksdato         |
@@ -200,4 +200,4 @@ Kjøres hvert 24. time. Henter alle krav med status som venter på svar fra SKE,
 
 > `"N av samme type feil: <feiltype>. Sjekk avstemming"`
 
-Dette er fordi Slack har en grense for hvor mange like meldinger den kan sende, og hvis det er n like meldinger vil ingen av de sendes 
+Dette er fordi Slack har en grense for hvor mange like meldinger den kan sende, og hvis det er n like meldinger vil ingen av de sendes

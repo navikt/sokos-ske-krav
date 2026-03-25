@@ -87,9 +87,13 @@ Feltet tilsvarer `foreldelsesfristensUtgangspunkt` hos SKE.
 
 ### 2.7 Kravtype (kravkode + hjemmelkode)
 
-| Regel                | Betingelse                                                                      | Feilmelding                                                 |
-|----------------------|---------------------------------------------------------------------------------|-------------------------------------------------------------|
+| Regel                | Betingelse                                                                                                                                              | Feilmelding                                                 |
+|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
 | Kombinasjonen finnes | [`StonadsType.getStonadstype(kravkode, kodeHjemmel)`](../../../src/main/kotlin/no/nav/sokos/ske/krav/domain/StonadsType.kt) må returnere en kjent verdi | `"Kravtype finnes ikke definert for oversending til skatt"` |
+
+### 2.8 FagsystemId (oppdragsgiversReferanse)
+
+`fagsystemId` er **ikke** underlagt linjevalidering. Feltet er valgfritt – det aksepteres at det er tomt eller blankt, og det medfører ingen feil. Dersom `fagsystemId` er tom, utelates feltet `oppdragsgiversReferanse` helt fra requesten mot SKE.
 
 ### Ved linjevalideringsfeil
 
@@ -102,10 +106,10 @@ Feltet tilsvarer `foreldelsesfristensUtgangspunkt` hos SKE.
 
 Kravtypen utledes fra selve kravlinjens innhold, ikke fra et eksplisitt felt:
 
-| Logikk | Kravtype |
-|---|---|
-| `belop == 0` | `STOPP_KRAV` |
+| Logikk                                               | Kravtype                              |
+|------------------------------------------------------|---------------------------------------|
+| `belop == 0`                                         | `STOPP_KRAV`                          |
 | `referansenummerGammelSak` er utfylt og `belop != 0` | `ENDRING_RENTE` + `ENDRING_HOVEDSTOL` |
-| Ingen av de over | `NYTT_KRAV` |
+| Ingen av de over                                     | `NYTT_KRAV`                           |
 
 For endringer opprettes to rader i databasen – én med `ENDRING_RENTE` og én med `ENDRING_HOVEDSTOL`.
