@@ -289,7 +289,8 @@ internal class SkeServiceIntegrationTest :
             val mottaksstatusKall = MockRequestObj(mottaksStatusResponse(status = Status.RESKONTROFOERT.value), EndepunktType.MOTTAKSSTATUS, HttpStatusCode.OK)
 
             val httpClient = setUpMockHttpClient(listOf(nyttKravKall, endreRenterKall, endreHovedStolKall, mottaksstatusKall, avstemmingMed2xxMenUtenKravidentifikator))
-            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource))
+            val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
+            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource), slackService = slackServiceSpy)
 
             skeService.handleNewKrav()
 
@@ -301,14 +302,17 @@ internal class SkeServiceIntegrationTest :
 
                 kravEtter.filter { it.status == Status.RESKONTROFOERT.value }.size shouldBe kravEtter.size - migrertKrav.size
 
-                // handleErrors filtrerer på httpStatusCode.isSuccess(), ikke på status-enum-verdien.
-                // Siden avstemming returnerte HTTP 200, er isSuccess() == true og feilmeldingen hoppes over –
-                // selv om status-enum ble satt til UKJENT_FEIL. Ingen feilmelding skal opprettes.
+                // Én feilmelding per rad i krav-tabellen (4 rader: 2 saksnummer × ENDRING_RENTE + ENDRING_HOOFDSTOL)
                 val feilmeldinger =
                     DBListener.dataSource.connection.use {
                         it.prepareStatement("SELECT * FROM feilmelding").executeQuery().toFeilmelding()
                     }
-                feilmeldinger.size shouldBe 0
+                feilmeldinger.size shouldBe migrertKrav.size
+
+                // Slack-alarm sendes én gang per saksnummerNAV (deduplication), dvs. 2 ganger totalt
+                coVerify(exactly = 2) {
+                    slackServiceSpy.addError(any(), "Feil fra SKE", any<Pair<String, String>>())
+                }
             }
         }
 

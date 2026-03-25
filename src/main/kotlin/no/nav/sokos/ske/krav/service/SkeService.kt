@@ -169,6 +169,30 @@ class SkeService(
                         logger.warn { "Fant ikke gyldig kravidentifikator for migrert krav med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
                         slackErrorsHandled.add(krav.saksnummerNAV)
                     }
+                } else if (requestResult.httpStatusCode.isSuccess()) {
+                    // 2xx fra SKE, men kravidentifikator mangler i responsen – lagre feilmelding og varsle Slack
+                    val alreadyAlerted = slackErrorsHandled.contains(krav.saksnummerNAV)
+                    handleError(
+                        requestResult,
+                        if (alreadyAlerted) {
+                            null
+                        } else {
+                            FeilResponse(
+                                type = FeilResponse.CustomTypes.FEIL_FRA_SERVER,
+                                title = FeilResponse.CustomTitles.KRAVIDENTIFIKATOR_MANGLER_I_RESPONS,
+                                status = requestResult.httpStatusCode.value,
+                                detail =
+                                    "Saksnummer: ${krav.saksnummerNAV} \n " +
+                                        "ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n " +
+                                        "Fikk 2xx fra SKE, men kravidentifikator mangler i responsen. Dette må følges opp manuelt.",
+                                instance = "custom",
+                            )
+                        },
+                    )
+                    if (!alreadyAlerted) {
+                        logger.warn { "Fikk 2xx fra SKE sitt avstemming-API, men kravidentifikator mangler i responsen for referansenummerGammelSak: ${krav.referansenummerGammelSak}" }
+                        slackErrorsHandled.add(krav.saksnummerNAV)
+                    }
                 }
             }
         }

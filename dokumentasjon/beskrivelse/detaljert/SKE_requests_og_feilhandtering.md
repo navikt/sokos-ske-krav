@@ -146,7 +146,7 @@ Når `SkeService.updateSkeKravidentifikatorForEndringerAndStopp()` ikke finner k
  HTTP-status  Situasjon                                              Intern status           Feilmelding lagret  Slack-alarm                                                 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  2xx          `kravidentifikator`-felt finnes i responsen            Uendret (originalt)     Nei                 Nei                                                         
- 2xx          `kravidentifikator`-felt mangler i responsen           `UKJENT_FEIL`           Nei                 Nei                                                         
+ 2xx          `kravidentifikator`-felt mangler i responsen           `UKJENT_FEIL`           Ja                  Ja – med tittel `KRAVIDENTIFIKATOR_MANGLER_I_RESPONS` (maks én per `saksnummerNAV`) 
  404          `innkrevingsoppdrag-eksisterer-ikke`                   `HTTP404_FANT_IKKE_SAKSREF`  Ja             Ja – med tittel `FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR` (maks én per `saksnummerNAV`) 
  403 / 401 / 5xx  –                                                 –                       Nei (se under)      Nei                                                         
  Andre ikke-2xx (400, 409, 422, …)                                   Fra `defineStatus()`    Ja                  Ja – generisk `"Feil fra SKE"`                              
