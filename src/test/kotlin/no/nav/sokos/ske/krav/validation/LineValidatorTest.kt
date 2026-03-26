@@ -177,7 +177,10 @@ internal class LineValidatorTest :
                 val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
 
                 Then("Skal validering returnere ${okKrav.size} ok kravlinjer") {
-                    validatedLines.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe okKrav.size
+                    val updatedLines = okKrav.map { it.copy(status = Status.KRAV_IKKE_SENDT.value) }
+                    val validated = validatedLines.filter { it.status == Status.KRAV_IKKE_SENDT.value }
+                    (updatedLines + validated).toSet().size shouldBe okKrav.size
+                    updatedLines.sortedBy { it.saksnummerNav } shouldBe validated.sortedBy { it.saksnummerNav }
                 }
 
                 And("Validering skal returnere 1 feil-linje") {
