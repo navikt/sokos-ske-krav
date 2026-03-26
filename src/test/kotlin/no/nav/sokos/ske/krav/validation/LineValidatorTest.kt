@@ -165,6 +165,74 @@ internal class LineValidatorTest :
                 }
             }
         }
+
+        Given("OB04 linje mangler fagsystemId") {
+            val okKrav = getKravlinjer()
+            val ikkeOkKrav = listOf(okKrav[0].copy(linjenummer = 6, fagsystemId = ""))
+            val kravLinjer = okKrav + ikkeOkKrav
+            val fileName = this.testCase.name.name
+            val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
+
+            When("Linjer valideres") {
+                val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
+
+                Then("Skal validering returnere ${okKrav.size} ok kravlinjer") {
+                    validatedLines.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe okKrav.size
+                }
+
+                And("Validering skal returnere 1 feil-linje") {
+                    with(validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }) {
+                        size shouldBe 1
+                        first() shouldBe ikkeOkKrav.first().copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
+                    }
+                }
+            }
+        }
+
+        Given("Arena linje med blank fagsystemId") {
+            val arenaLinje = getKravlinjer().first().copy(avsender = Avsender.ARENA, fagsystemId = "", utbetalDato = errorDate)
+            val kravLinjer = listOf(arenaLinje)
+            val fileName = this.testCase.name.name
+            val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
+
+            When("Linjer valideres") {
+                val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
+
+                Then("Blank fagsystemId skal ikke gi feil for Arena") {
+                    validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }.size shouldBe 0
+                }
+            }
+        }
+
+        Given("Pesys linje med blank fagsystemId") {
+            val pesysLinje = getKravlinjer().first().copy(avsender = Avsender.PESYS, fagsystemId = "", utbetalDato = errorDate)
+            val kravLinjer = listOf(pesysLinje)
+            val fileName = this.testCase.name.name
+            val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
+
+            When("Linjer valideres") {
+                val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
+
+                Then("Blank fagsystemId skal ikke gi feil for Pesys") {
+                    validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }.size shouldBe 0
+                }
+            }
+        }
+
+        Given("Infotrygd linje med blank fagsystemId") {
+            val infotrygdLinje = getKravlinjer().first().copy(avsender = Avsender.INFOTRYGD, fagsystemId = "", utbetalDato = errorDate)
+            val kravLinjer = listOf(infotrygdLinje)
+            val fileName = this.testCase.name.name
+            val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
+
+            When("Linjer valideres") {
+                val validatedLines = lineValidator.validateNewLines(ftpFile(fileName, kravLinjer), dbService)
+
+                Then("Blank fagsystemId skal ikke gi feil for Infotrygd") {
+                    validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }.size shouldBe 0
+                }
+            }
+        }
     })
 
 private fun getKravlinjer(): MutableList<KravLinje> {

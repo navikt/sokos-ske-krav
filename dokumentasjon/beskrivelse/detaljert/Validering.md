@@ -14,12 +14,13 @@ Filvalidering kjøres på hele filen umiddelbart etter nedlasting fra SFTP. File
 
 ### Regler
 
-| Regel          | Beskrivelse                                                                              | Feilmelding                                                     |
-|----------------|------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
-| Parsbar fil    | Filen må kunne parses uten unntak                                                        | `"Exception i parsing av fil"`                                  |
-| Antall stemmer | `footer.antallTransaksjoner` må være lik faktisk antall kravlinjer                       | `"Antall krav stemmer ikke med antallet i siste linje"`         |
-| Sum stemmer    | Summen av `belop + belopRente` for alle linjer må være lik `footer.sumAlleTransaksjoner` | `"Sum alle linjer stemmer ikke med sum i siste linje"`          |
-| Dato stemmer   | `header.transaksjonsDato` må være lik `footer.transaksjonTimestamp`                      | `"Dato sendt er avvikende mellom første og siste linje fra OS"` |
+| Regel          | Beskrivelse                                                                                                   | Feilmelding                                                     |
+|----------------|---------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
+| Parsbar fil    | Filen må kunne parses uten unntak                                                                             | `"Exception i parsing av fil"`                                  |
+| Antall stemmer | `footer.antallTransaksjoner` må være lik faktisk antall kravlinjer                                            | `"Antall krav stemmer ikke med antallet i siste linje"`         |
+| Sum stemmer    | Summen av `belop + belopRente` for alle linjer må være lik `footer.sumAlleTransaksjoner`                      | `"Sum alle linjer stemmer ikke med sum i siste linje"`          |
+| Dato stemmer   | `header.transaksjonsDato` må være lik `footer.transaksjonTimestamp`                                           | `"Dato sendt er avvikende mellom første og siste linje fra OS"` |
+| FagsystemId    | Dersom avsender er `OB04` må `fagsystemId` være utfylt i alle kravlinjer                                      | `"fagsystemId mangler i en eller flere kravlinjer"`             |
 
 ### Ved feil
 
@@ -93,7 +94,13 @@ Feltet tilsvarer `foreldelsesfristensUtgangspunkt` hos SKE.
 
 ### 2.8 FagsystemId (oppdragsgiversReferanse)
 
-`fagsystemId` er **ikke** underlagt linjevalidering. Feltet er valgfritt – det aksepteres at det er tomt eller blankt, og det medfører ingen feil. Dersom `fagsystemId` er tom, utelates feltet `oppdragsgiversReferanse` helt fra requesten mot SKE.
+`fagsystemId` er valgfritt for **Arena**, **Pesys** og **Infotrygd** – det aksepteres at det er tomt eller blankt uten at det medfører noen feil. Dersom `fagsystemId` er tom, utelates feltet `oppdragsgiversReferanse` helt fra requesten mot SKE.
+
+For avsender **OB04** er `fagsystemId` **påkrevd** og valideres både på fil- og linjenivå.
+
+| Regel                | Betingelse                                          | Feilmelding (fil)                                          | Feilmelding (linje)         |
+|----------------------|-----------------------------------------------------|------------------------------------------------------------|-----------------------------|
+| Påkrevd for OB04     | Dersom avsender er `OB04` kan `fagsystemId` ikke være blank | `"fagsystemId mangler i en eller flere kravlinjer"` | `"fagsystemId mangler"`     |
 
 ### Ved linjevalideringsfeil
 
