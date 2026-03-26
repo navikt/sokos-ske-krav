@@ -40,7 +40,7 @@ val kotliqueryVersion = "1.9.1"
 val kotestVersion = "6.1.7"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.14.9"
-val commonsVersion = "3.12.0"
+val commonsVersion = "3.13.0"
 val testContainerVersion = "1.21.4"
 val mockFtpServerVersion = "3.2.0"
 
