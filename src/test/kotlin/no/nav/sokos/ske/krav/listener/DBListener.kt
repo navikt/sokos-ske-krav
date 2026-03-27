@@ -1,11 +1,12 @@
 package no.nav.sokos.ske.krav.listener
 
+import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
-import io.kotest.extensions.testcontainers.toDataSource
 import io.ktor.server.config.ApplicationConfig
 import kotliquery.queryOf
+import org.testcontainers.containers.JdbcDatabaseContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.ext.ScriptUtils
@@ -21,9 +22,8 @@ object DBListener : TestListener {
         PropertiesConfig.load(ApplicationConfig("application-test.conf"))
     }
 
-    private val dockerImageName = "postgres:latest"
     private val container by lazy {
-        PostgreSQLContainer<Nothing>(DockerImageName.parse(dockerImageName)).apply {
+        PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:latest")).apply {
             withReuse(false)
             withUsername(PropertiesConfig.postgresConfig.adminUser)
             waitingFor(Wait.defaultWaitStrategy())
@@ -63,5 +63,15 @@ object DBListener : TestListener {
 
     override suspend fun afterSpec(spec: Spec) {
         clearDB()
+    }
+
+    fun JdbcDatabaseContainer<*>.toDataSource(configure: HikariConfig.() -> Unit = {}): HikariDataSource {
+        val config = HikariConfig()
+        config.jdbcUrl = jdbcUrl
+        config.username = username
+        config.password = password
+        config.minimumIdle = 0
+        config.configure()
+        return HikariDataSource(config)
     }
 }

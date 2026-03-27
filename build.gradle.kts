@@ -26,7 +26,6 @@ val kotlinxSerializationVersion = "1.10.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
-val konfigVersion = "1.6.10.0"
 val prometheusVersion = "1.16.4"
 val opentelemetryVersion = "2.26.0-alpha"
 
@@ -38,7 +37,7 @@ val kotliqueryVersion = "1.9.1"
 
 // Test
 val kotestVersion = "6.1.7"
-val kotestTestContainerExtensionVersion = "2.0.2"
+
 val mockkVersion = "1.14.9"
 val commonsVersion = "3.13.0"
 val testContainerVersion = "1.21.4"
@@ -58,7 +57,6 @@ dependencies {
     implementation("io.ktor:ktor-server-call-id-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-html-builder:$ktorVersion")
 
     // Ktor Client
@@ -88,9 +86,6 @@ dependencies {
     // FTP
     implementation("com.github.mwiede:jsch:$jschVersion")
 
-    // Config
-    implementation("com.natpryce:konfig:$konfigVersion")
-
     // Opentelemetry
     implementation("io.opentelemetry.instrumentation:opentelemetry-ktor-3.0:$opentelemetryVersion")
 
@@ -110,7 +105,6 @@ dependencies {
 
     // Test
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
-    testImplementation("io.kotest.extensions:kotest-extensions-testcontainers:$kotestTestContainerExtensionVersion")
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion")
     testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
     testImplementation("io.mockk:mockk-jvm:$mockkVersion")
