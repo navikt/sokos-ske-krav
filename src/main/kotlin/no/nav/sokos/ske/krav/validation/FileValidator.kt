@@ -5,6 +5,7 @@ import no.nav.sokos.ske.krav.copybook.FileParser
 import no.nav.sokos.ske.krav.copybook.KontrollLinjeFooter
 import no.nav.sokos.ske.krav.copybook.KontrollLinjeHeader
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.domain.Avsender
 
 private val logger = mu.KotlinLogging.logger {}
 
@@ -71,7 +72,7 @@ class FileValidator(
         if (firstLine.transaksjonsDato != lastLine.transaksjonTimestamp) {
             add(ErrorKeys.FEIL_I_DATO to "Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonTimestamp}\n")
         }
-        if (kravLinjer.any { it.fagsystemId.isBlank() }) {
+        if (kravLinjer.any { it.avsender.trim() == Avsender.OB04.name && it.fagsystemId.isBlank() }) {
             add(ErrorKeys.FAGSYSTEMID_MANGLER to "fagsystemId mangler i en eller flere kravlinjer\n")
         }
     }

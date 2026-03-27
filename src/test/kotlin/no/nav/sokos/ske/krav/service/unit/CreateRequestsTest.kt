@@ -199,6 +199,24 @@ internal class CreateRequestsTest :
                 }
             }
 
+            When("fagsystemId er blank") {
+                val kravTable = kravTableMockk(fagsystemIdParam = "")
+                Then("Skal oppdragsgiversReferanse settes til null") {
+                    createOpprettKravRequest(kravTable).run {
+                        oppdragsgiversReferanse shouldBe null
+                    }
+                }
+            }
+
+            When("fagsystemId er ikke blank") {
+                val kravTable = kravTableMockk(fagsystemIdParam = "TEST-123")
+                Then("Skal oppdragsgiversReferanse settes til fagsystemId") {
+                    createOpprettKravRequest(kravTable).run {
+                        oppdragsgiversReferanse shouldBe "TEST-123"
+                    }
+                }
+            }
+
             When("TilbakeKrevingsPeriode har datoer") {
                 val kravTable =
                     kravTableMockk(

@@ -12,13 +12,13 @@ internal class ArenaFileParserTest :
             val arenaFil = getFileContent("innsender/ArenaFil.txt")
             val arenaParser = FileParser(arenaFil)
 
-            arenaParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.ARENA
-            arenaParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.ARENA
+            arenaParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.ARENA.name
+            arenaParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.ARENA.name
 
             val kravLinjer = arenaParser.parseKravLinjer()
             kravLinjer.size shouldBe 18
             kravLinjer.forEach { kravLinje ->
-                kravLinje.avsender shouldBe Avsender.ARENA
+                kravLinje.avsender shouldBe Avsender.ARENA.name
             }
 
             val dagpenger = kravLinjer.filter { it.kravKode == "AE DP" }
