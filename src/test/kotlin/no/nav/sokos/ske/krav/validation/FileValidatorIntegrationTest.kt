@@ -252,6 +252,28 @@ internal class FileValidatorIntegrationTest :
             }
         }
 
+        Given("Fil fra Infotrygd - fagsystemId er valgfritt") {
+            val slackServiceSpy = setupSlackService()
+            val ftpService = setupFtpService(slackServiceSpy)
+            val fileName = "innsender/InfotrygdFil.txt"
+            val fileNameOnSftp = fileName.substringAfterLast("/")
+            SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
+
+            When("Filen valideres") {
+                ftpService.getValidatedFiles()
+
+                Then("Skal ingen feil lagres i database") {
+                    dbService.getFileValidationMessage(fileNameOnSftp).size shouldBe 0
+                }
+
+                And("Alert skal ikke sendes") {
+                    coVerify(exactly = 0) {
+                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
+                    }
+                }
+            }
+        }
+
         Given("Fil med tilleggsfrist") {
             val slackServiceSpy = setupSlackService()
             val ftpService = setupFtpService(slackServiceSpy)
