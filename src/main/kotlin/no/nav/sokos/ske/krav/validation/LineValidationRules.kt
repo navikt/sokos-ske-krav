@@ -62,7 +62,7 @@ object LineValidationRules {
                         add(Pair(TILLEGGSFRISTDATO_ERROR, message))
                     }
 
-                    if (avsender.trim() == Avsender.OB04) {
+                    if (avsender.trim() == Avsender.OB04.name) {
                         checkFagsystemId(fagsystemId)?.let { message ->
                             add(Pair(FAGSYSTEMID_ERROR, "$message. Linje: $linjenummer"))
                         }
@@ -129,7 +129,7 @@ object LineValidationRules {
         avsender: String,
     ): String? =
         when {
-            avsender.trim() == Avsender.OB04 && utbetalingsDato.isEqual(errorDate) -> ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
+            avsender.trim() == Avsender.OB04.name && utbetalingsDato.isEqual(errorDate) -> ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
             utbetalingsDato.isEqual(errorDate) -> null
             utbetalingsDato.isBefore(vedtaksDato) -> null
             utbetalingsDato.isEqual(vedtaksDato) || utbetalingsDato.isAfter(vedtaksDato) -> UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO

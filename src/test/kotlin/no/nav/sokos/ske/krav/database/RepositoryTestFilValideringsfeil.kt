@@ -67,7 +67,7 @@ internal class RepositoryTestFilValideringsfeil :
                     "fagid",
                     "NYTT_KRAV",
                     null,
-                    Avsender.OB04,
+                    Avsender.OB04.name,
                 )
 
             DBListener.dataSource.connection.use { con ->
