@@ -22,7 +22,7 @@ internal class FileParserTest :
             val kravLinjer = altOkParser.parseKravLinjer()
             kravLinjer.size shouldBe 101
             kravLinjer.forEach { kravLinje ->
-                kravLinje.avsender shouldBe Avsender.OB04
+                kravLinje.avsender shouldBe Avsender.OB04.name
             }
         }
 
@@ -30,7 +30,7 @@ internal class FileParserTest :
             altOkParser.parseKontrollLinjeHeader() shouldBe
                 KontrollLinjeHeader(
                     transaksjonsDato = "20230526221340",
-                    avsender = Avsender.OB04,
+                    avsender = Avsender.OB04.name,
                 )
         }
 
@@ -38,7 +38,7 @@ internal class FileParserTest :
             altOkParser.parseKontrollLinjeFooter() shouldBe
                 KontrollLinjeFooter(
                     transaksjonTimestamp = "20230526221340",
-                    avsender = Avsender.OB04,
+                    avsender = Avsender.OB04.name,
                     antallTransaksjoner = 101,
                     sumAlleTransaksjoner = "2645917.40".toBigDecimal(),
                 )

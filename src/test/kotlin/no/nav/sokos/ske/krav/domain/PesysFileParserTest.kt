@@ -12,12 +12,12 @@ internal class PesysFileParserTest :
             val pesysFil = getFileContent("innsender/PesysFil.txt")
             val pesysParser = FileParser(pesysFil)
 
-            pesysParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.PESYS
-            pesysParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.PESYS
+            pesysParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.PESYS.name
+            pesysParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.PESYS.name
 
             val kravLinjer = pesysParser.parseKravLinjer()
             kravLinjer.forEach { kravLinje ->
-                kravLinje.avsender shouldBe Avsender.PESYS
+                kravLinje.avsender shouldBe Avsender.PESYS.name
             }
 
             val gjenlevende = kravLinjer.first { it.kravKode == "PE GP" }

@@ -193,7 +193,7 @@ internal class LineValidatorTest :
         }
 
         Given("Arena linje med blank fagsystemId") {
-            val arenaLinje = getKravlinjer().first().copy(avsender = Avsender.ARENA, fagsystemId = "", utbetalDato = errorDate)
+            val arenaLinje = getKravlinjer().first().copy(avsender = Avsender.ARENA.name, fagsystemId = "", utbetalDato = errorDate)
             val kravLinjer = listOf(arenaLinje)
             val fileName = this.testCase.name.name
             val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
@@ -208,7 +208,7 @@ internal class LineValidatorTest :
         }
 
         Given("Pesys linje med blank fagsystemId") {
-            val pesysLinje = getKravlinjer().first().copy(avsender = Avsender.PESYS, fagsystemId = "", utbetalDato = errorDate)
+            val pesysLinje = getKravlinjer().first().copy(avsender = Avsender.PESYS.name, fagsystemId = "", utbetalDato = errorDate)
             val kravLinjer = listOf(pesysLinje)
             val fileName = this.testCase.name.name
             val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
@@ -223,7 +223,7 @@ internal class LineValidatorTest :
         }
 
         Given("Infotrygd linje med blank fagsystemId") {
-            val infotrygdLinje = getKravlinjer().first().copy(avsender = Avsender.INFOTRYGD, fagsystemId = "", utbetalDato = errorDate)
+            val infotrygdLinje = getKravlinjer().first().copy(avsender = Avsender.INFOTRYGD.name, fagsystemId = "", utbetalDato = errorDate)
             val kravLinjer = listOf(infotrygdLinje)
             val fileName = this.testCase.name.name
             val lineValidator = LineValidator(SlackService(mockk<SlackClient>(relaxed = true)))
@@ -259,7 +259,7 @@ private fun getKravlinjer(): MutableList<KravLinje> {
             fremtidigYtelse = BigDecimal.ONE,
             utbetalDato = LocalDate.now().minusDays(1),
             fagsystemId = "1234",
-            avsender = Avsender.OB04,
+            avsender = Avsender.OB04.name,
         )
     return mutableListOf(
         okLinje,

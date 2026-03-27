@@ -94,10 +94,11 @@ internal class FileValidatorTest :
                 }
                 And("Feilmeldingen skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 3
+                        size shouldBe 4
                         count { it.first == ErrorKeys.FEIL_I_DATO } shouldBe 1
                         count { it.first == ErrorKeys.FEIL_I_SUM } shouldBe 1
                         count { it.first == ErrorKeys.FEIL_I_ANTALL } shouldBe 1
+                        count { it.first == ErrorKeys.FAGSYSTEMID_MANGLER } shouldBe 1
                     }
                 }
             }
