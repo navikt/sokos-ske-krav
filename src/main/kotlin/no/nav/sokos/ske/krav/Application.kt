@@ -42,8 +42,8 @@ private fun Application.module() {
 
     commonConfig()
     applicationLifecycleConfig(applicationState)
-    securityConfig(useAuthentication)
-    routingConfig(useAuthentication, applicationState, skeService)
+    securityConfig()
+    routingConfig(useAuthentication, applicationState)
 
     if (!PropertiesConfig.isLocal) {
         PostgresDataSource.migrate()
@@ -74,7 +74,7 @@ private fun CoroutineScope.launchJob(
             delay(delayDuration)
         } catch (_: CancellationException) {
             logger.info { "Scheduled task cancelled" }
-            break // Exit the loop on cancellation
+            break
         } catch (e: Exception) {
             logger.error(marker = TEAM_LOGS_MARKER) { "Unhandled exception in scheduled task ${e.message}" }
             delay(delayDuration / 2)
