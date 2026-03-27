@@ -183,11 +183,12 @@ internal class FileValidatorIntegrationTest :
 
                 Then("Skal feilene lagres i database ") {
                     with(dbService.getFileValidationMessage(fileNameOnSftp)) {
-                        size shouldBe 3
-                        count { it.filnavn == fileNameOnSftp } shouldBe 3
+                        size shouldBe 4
+                        count { it.filnavn == fileNameOnSftp } shouldBe 4
                         count { it.feilmelding.contains(ErrorKeys.FEIL_I_DATO) } shouldBe 1
                         count { it.feilmelding.contains(ErrorKeys.FEIL_I_SUM) } shouldBe 1
                         count { it.feilmelding.contains(ErrorKeys.FEIL_I_ANTALL) } shouldBe 1
+                        count { it.feilmelding.contains(ErrorKeys.FAGSYSTEMID_MANGLER) } shouldBe 1
                     }
                 }
                 And("Alert skal sendes til slack") {
@@ -201,14 +202,15 @@ internal class FileValidatorIntegrationTest :
                     sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
                     sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
-                    capturedSendAlertMessages.size shouldBe 3
+                    capturedSendAlertMessages.size shouldBe 4
                     capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_DATO }.size shouldBe 1
                     capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_SUM }.size shouldBe 1
                     capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_ANTALL }.size shouldBe 1
+                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FAGSYSTEMID_MANGLER }.size shouldBe 1
                 }
             }
         }
-        Given("Fil fra Arena - fagsystemId er valgfritt") {
+        Given("Fil fra Arena - mangler alltid fagsystemID") {
             val slackServiceSpy = setupSlackService()
             val ftpService = setupFtpService(slackServiceSpy)
             val fileName = "innsender/ArenaFil.txt"
@@ -230,7 +232,7 @@ internal class FileValidatorIntegrationTest :
             }
         }
 
-        Given("Fil fra Pesys - fagsystemId er valgfritt") {
+        Given("Fil fra Pesys - mangler alltid fagsystemID") {
             val slackServiceSpy = setupSlackService()
             val ftpService = setupFtpService(slackServiceSpy)
             val fileName = "innsender/PesysFil.txt"
@@ -252,7 +254,7 @@ internal class FileValidatorIntegrationTest :
             }
         }
 
-        Given("Fil fra Infotrygd - fagsystemId er valgfritt") {
+        Given("Fil fra Infotrygd - mangler alltid fagsystemID") {
             val slackServiceSpy = setupSlackService()
             val ftpService = setupFtpService(slackServiceSpy)
             val fileName = "innsender/InfotrygdFil.txt"
