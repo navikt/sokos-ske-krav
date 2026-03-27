@@ -78,9 +78,9 @@ Når PR er merged til main branch vil Github Actions bygge og deploye til dev-fs
 Har også mulighet for å deploye manuelt til testmiljø ved å deploye en PR.
 
 # 5. Autentisering
-Applikasjonen bruker to autentiseringsmekanismer:
-- **[AzureAD](https://docs.nais.io/security/auth/azure-ad/)** – beskytter API-endepunktene (`/api/*`). Krever et gyldig Azure AD JWT-token i `Authorization`-headeren.
+Applikasjonen bruker følgende autentiseringsmekanismer:
 - **Basic Auth** – beskytter webgrensesnittet for rapporter (`/rapporter/*`). Brukernavn og passord er konfigurert via miljøvariabler.
+- **[Maskinporten](https://docs.nais.io/security/auth/maskinporten/)** – brukes for utgående kall til SKE sitt API. Applikasjonen henter et OAuth 2.0 JWT-bearer token fra Maskinporten og legger det til i `Authorization`-headeren på alle kall mot SKE.
 
 # 6. Drift og støtte
 

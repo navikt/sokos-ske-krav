@@ -22,10 +22,6 @@ object PropertiesConfig {
         config.property("application").getAs<ApplicationProperties>()
     }
 
-    val azureAdProperties by lazy {
-        config.property("azureAd").getAs<AzureAdProperties>()
-    }
-
     val sftpProperties by lazy {
         config.property("sftp").getAs<SftpProperties>()
     }
@@ -93,14 +89,6 @@ data class ApplicationProperties(
 ) {
     val isLocal = profile == Profile.LOCAL
 }
-
-@Serializable
-data class AzureAdProperties(
-    val clientId: String,
-    val wellKnownUrl: String,
-    val tenantId: String,
-    val clientSecret: String,
-)
 
 @Serializable
 data class SftpProperties(

@@ -120,7 +120,7 @@ flowchart TD
 | Plattform          | NAIS (Kubernetes) på `fss`-sonen                                         |
 | Miljøer            | `dev-fss`, `prod-fss`                                                    |
 | Applikasjonsserver | Ktor med Netty, port `8080`                                              |
-| Autentisering inn  | AzureAD JWT (API-endepunkter) + Basic Auth (webgrensesnitt /rapporter/*) |
+| Autentisering inn  | Basic Auth (webgrensesnitt /rapporter/*)                                 |
 | Autentisering ut   | Maskinporten (JWT-bearer)                                                |
 | Database           | PostgreSQL (HikariCP connection pool, Flyway migrasjoner)                |
 | Filoverføring      | SFTP via JSch med RSA-nøkkelautentisering                                |

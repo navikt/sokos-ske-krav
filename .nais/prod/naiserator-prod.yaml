@@ -21,9 +21,6 @@ spec:
     autoInstrumentation:
       enabled: true
       runtime: java
-  azure:
-    application:
-      enabled: true
   liveness:
     path: /internal/isAlive
     initialDelay: 10
