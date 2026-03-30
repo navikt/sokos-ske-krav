@@ -116,10 +116,14 @@ dependencies {
 configurations.all {
     resolutionStrategy {
         eachDependency {
+            // ./gradlew dependencies --configuration runtimeClasspath | grep logback-core
+
+            // Critical
             if (requested.group == "org.lz4" && requested.name == "lz4-java") {
                 useTarget("at.yawk.lz4:lz4-java:1.10.4")
                 because("Prefer the patched fork for vulnerability fix")
             }
+            // High
             if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-core") {
                 useVersion("2.21.1")
                 because("jackson-core: Number Length Constraint Bypass in Async Parser Leads to Potential DoS Condition. Affected version >= 2.19.0, < 2.21.1")
@@ -139,6 +143,13 @@ configurations.all {
             if (requested.group == "io.netty" && requested.name == "netty-codec-http2") {
                 useVersion("4.2.11.Final")
                 because("Netty HTTP/2 CONTINUATION Frame Flood DoS via Zero-Byte Frame Bypass. Affected version >= 4.2.0.Alpha1, < 4.2.10.Final")
+            }
+
+            // Moderate
+            // Test
+            if (requested.group == "org.apache.commons " && requested.name == "commons-compress") { // ./gradlew dependencies --configuration testRuntimeClasspath | grep commons-compress
+                useVersion("1.26.0")
+                because("Apache Commons Compress: OutOfMemoryError unpacking broken Pack200 filet. Affected version >= 1.21, < 1.26.0")
             }
         }
     }
