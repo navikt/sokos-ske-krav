@@ -77,4 +77,4 @@ log "Writing privateKey..."
 echo "$PRIVATE_KEY" > privateKey
 chmod 600 privateKey
 
-log "Done! defaults.properties and privKey created successfully."
+log "Done! defaults.properties and privateKey created successfully."
