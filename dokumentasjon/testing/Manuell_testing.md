@@ -2,7 +2,7 @@
 
 ## SFTP tilkobling
 
-Etter at `setupLocalEnvironment.sh` er kjørt, vil den opprette en `privKey` fil. Den burde legges inn der man oppbevarer ssh nøkler, f.eks `.ssh`.
+Etter at `setupLocalEnvironment.sh` er kjørt, vil den opprette en `privateKey` fil. Den burde legges inn der man oppbevarer ssh nøkler, f.eks `.ssh`.
 Scriptet vil hente brukernavn og passord til `defaults.properties` i form av variablene `SKE_SFTP_USERNAME` og `SKE_SFTP_PASSWORD`.
 
 FileZilla er en god klient for å koble seg til SFTP. Bruk `login with key file`.
