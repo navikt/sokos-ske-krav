@@ -5,8 +5,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.3.20"
-    kotlin("plugin.serialization") version "2.3.20"
+    kotlin("jvm") version "2.3.10"
+    kotlin("plugin.serialization") version "2.3.10"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.7"
 
@@ -131,6 +131,14 @@ configurations.all {
             if (requested.group == "org.xerial.snappy" && requested.name == "snappy-java") {
                 useVersion("1.1.10.4")
                 because("snappy-java's missing upper bound check on chunk length can lead to Denial of Service (DoS) impact. Affected version <= 1.1.10.3")
+            }
+            if (requested.group == "io.netty" && requested.name == "netty-codec-http") {
+                useVersion("4.2.11.Final")
+                because("Netty: HTTP Request Smuggling via Chunked Extension Quoted-String Parsing. Affected version >= 4.2.0.Alpha1, < 4.2.10.Final")
+            }
+            if (requested.group == "io.netty" && requested.name == "netty-codec-http2") {
+                useVersion("4.2.11.Final")
+                because("Netty HTTP/2 CONTINUATION Frame Flood DoS via Zero-Byte Frame Bypass. Affected version >= 4.2.0.Alpha1, < 4.2.10.Final")
             }
         }
     }
