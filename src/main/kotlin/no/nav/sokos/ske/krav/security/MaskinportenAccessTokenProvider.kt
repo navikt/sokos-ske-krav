@@ -81,9 +81,9 @@ class MaskinportenAccessTokenProvider(
             logger.error("Kunne ikke hente accessToken,")
             val feilmelding = responseBody.decodeTo<TokenError>()
             logger.error(marker = TEAM_LOGS_MARKER) {
-                "Feil fra tokenprovider, Token: $jwtAssertion, Feilmelding: $feilmelding"
+                "Feil fra tokenprovider, Feilmelding: $feilmelding"
             }
-            throw Exception("Feil fra tokenprovider, Token: $jwtAssertion, Feilmelding: $feilmelding")
+            throw Exception("Feil fra tokenprovider: $feilmelding")
         }
     }
 

@@ -29,8 +29,8 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
                 }
             }
             post("/update") {
-                val id = call.receiveParameters()["kravid"]
-                if (!id.isNullOrBlank()) rapportService.oppdaterStatusTilRapportert(id.toInt())
+                val id = call.receiveParameters()["kravid"]?.toIntOrNull()
+                if (id != null) rapportService.oppdaterStatusTilRapportert(id)
                 call.respondRedirect("/rapporter/avstemming")
             }
 

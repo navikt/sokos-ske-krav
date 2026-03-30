@@ -3,6 +3,7 @@ package no.nav.sokos.ske.krav.service
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlinx.coroutines.delay
 
@@ -33,6 +34,9 @@ const val ENDRING_RENTE = "ENDRING_RENTE"
 const val ENDRING_HOVEDSTOL = "ENDRING_HOVEDSTOL"
 const val STOPP_KRAV = "STOPP_KRAV"
 
+private const val RESEND_DELAY_MS = 5_000L
+private const val LARGE_FILE_THRESHOLD = 1_000
+
 private val logger = mu.KotlinLogging.logger {}
 
 class SkeService(
@@ -46,23 +50,23 @@ class SkeService(
     private val slackService: SlackService = SlackService(),
     private val ftpService: FtpService = FtpService(),
 ) {
-    private var haltRun = false
+    private val haltRun = AtomicBoolean(false)
 
     suspend fun handleNewKrav() {
-        if (haltRun) {
+        if (haltRun.get()) {
             logger.info("*** Kjøring er blokkert ***")
             return
         }
 
         resendKrav()
         sendNewFilesToSKE()
-        delay(5000)
+        delay(RESEND_DELAY_MS)
         resendKrav()
 
         slackService.sendErrors()
 
-        if (haltRun) {
-            haltRun = false
+        if (haltRun.get()) {
+            haltRun.set(false)
             logger.info("*** Kjøring er ublokkert ***")
         }
     }
@@ -154,9 +158,9 @@ class SkeService(
         if (file.kravLinjer.size > validatedLines.size) {
             logger.warn("Ved validering av linjer i fil ${file.name} har ${file.kravLinjer.size - validatedLines.size} linjer velideringsfeil ")
         }
-        if (validatedLines.size >= 1000) {
+        if (validatedLines.size >= LARGE_FILE_THRESHOLD) {
             logger.info("***Stor fil. Blokkerer kjøring***")
-            haltRun = true
+            haltRun.set(true)
         }
     }
 

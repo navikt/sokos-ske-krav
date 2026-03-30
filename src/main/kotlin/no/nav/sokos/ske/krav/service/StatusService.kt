@@ -2,6 +2,8 @@ package no.nav.sokos.ske.krav.service
 
 import java.time.LocalDateTime
 
+import kotlinx.coroutines.CancellationException
+
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
@@ -45,7 +47,10 @@ class StatusService(
                 if (mottaksStatusResponse?.mottaksStatus == Status.RESKONTROFOERT.value) {
                     reskontrofoerteKravCount++
                 }
-            }.onFailure { break }
+            }.onFailure { e ->
+                if (e is CancellationException) throw e
+                break
+            }
         }
 
         logger.info { "Antall reskontroførte krav: $reskontrofoerteKravCount" }

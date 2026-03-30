@@ -89,7 +89,7 @@ object RepositoryExtensions {
                     is Long -> setLong(idx, param)
                     is String -> setString(idx, param)
                     is LocalDate -> setDate(idx, Date.valueOf(param))
-                    is BigDecimal -> setDouble(idx, param.toDouble())
+                    is BigDecimal -> setBigDecimal(idx, param)
                 }
             }
         }

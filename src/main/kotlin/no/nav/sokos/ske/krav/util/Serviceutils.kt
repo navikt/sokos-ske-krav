@@ -6,7 +6,8 @@ import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 
-val logger = mu.KotlinLogging.logger {}
+@PublishedApi
+internal val logger = mu.KotlinLogging.logger {}
 
 // TODO: Refaktorer? Uklart navn
 fun createKravidentifikatorPair(it: Krav): Pair<String, KravidentifikatorType> {

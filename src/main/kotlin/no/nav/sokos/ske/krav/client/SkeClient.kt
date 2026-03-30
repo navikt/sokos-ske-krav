@@ -25,7 +25,7 @@ import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 
 private const val OPPRETT_KRAV = "innkrevingsoppdrag"
 private const val ENDRE_RENTER = "innkrevingsoppdrag/%s/renter?kravidentifikatortype=%s"
-private const val ENDRE_HOVESTOL = "innkrevingsoppdrag/%s/hovedstol?kravidentifikatortype=%s"
+private const val ENDRE_HOVEDSTOL = "innkrevingsoppdrag/%s/hovedstol?kravidentifikatortype=%s"
 private const val STOPP_KRAV = "innkrevingsoppdrag/avskriving"
 private const val MOTTAKSSTATUS = "innkrevingsoppdrag/%s/mottaksstatus?kravidentifikatortype=%s"
 private const val VALIDERINGSFEIL = "innkrevingsoppdrag/%s/valideringsfeil?kravidentifikatortype=%s"
@@ -49,7 +49,7 @@ class SkeClient(
         kravidentifikator: String,
         kravidentifikatorType: KravidentifikatorType,
         corrID: String,
-    ) = doPut(String.format(ENDRE_HOVESTOL, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
+    ) = doPut(String.format(ENDRE_HOVEDSTOL, kravidentifikator, kravidentifikatorType.value), request, kravidentifikator, corrID)
 
     suspend fun opprettKrav(
         request: OpprettInnkrevingsoppdragRequest,

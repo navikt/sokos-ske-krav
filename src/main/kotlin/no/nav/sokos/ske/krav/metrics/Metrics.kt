@@ -41,7 +41,7 @@ object Metrics {
         name: String,
         description: String,
     ) = Counter
-        .builder("${NAMESPACE}_$name ")
+        .builder("${NAMESPACE}_$name")
         .description(description)
         .register(registry)
 }

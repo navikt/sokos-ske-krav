@@ -185,75 +185,44 @@ object KravRepository {
         kravListe: List<KravLinje>,
         filnavn: String,
     ) {
-        val prepStmt =
-            prepareStatement(
-                """
-                insert into krav (
-                saksnummer_nav,
-                belop,
-                vedtaksdato,
-                gjelder_id,
-                periode_fom,
-                periode_tom,
-                kravkode,
-                referansenummergammelsak,
-                transaksjonsdato,
-                enhet_bosted,
-                enhet_behandlende,
-                kode_hjemmel,
-                kode_arsak,
-                belop_rente,
-                fremtidig_ytelse,
-                utbetaldato,
-                fagsystem_id,
-                status, 
-                kravtype,
-                corr_id,
-                filnavn,
-                linjenummer,
-                tilleggsfrist,
-                avsender
-                ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?, ?, ?, ?)
-                """,
-            )
+        prepareStatement(
+            """
+            insert into krav (
+            saksnummer_nav,
+            belop,
+            vedtaksdato,
+            gjelder_id,
+            periode_fom,
+            periode_tom,
+            kravkode,
+            referansenummergammelsak,
+            transaksjonsdato,
+            enhet_bosted,
+            enhet_behandlende,
+            kode_hjemmel,
+            kode_arsak,
+            belop_rente,
+            fremtidig_ytelse,
+            utbetaldato,
+            fagsystem_id,
+            status, 
+            kravtype,
+            corr_id,
+            filnavn,
+            linjenummer,
+            tilleggsfrist,
+            avsender
+            ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?, ?, ?, ?)
+            """,
+        ).use { prepStmt ->
+            kravListe.forEach { krav ->
+                val type: String =
+                    when {
+                        krav.isStopp() -> STOPP_KRAV
+                        krav.isEndring() -> ENDRING_HOVEDSTOL
+                        else -> NYTT_KRAV
+                    }
 
-        kravListe.forEach { krav ->
-            val type: String =
-                when {
-                    krav.isStopp() -> STOPP_KRAV
-                    krav.isEndring() -> ENDRING_HOVEDSTOL
-                    else -> NYTT_KRAV
-                }
-
-            prepStmt
-                .withParameters(
-                    krav.saksnummerNav,
-                    krav.belop,
-                    krav.vedtaksDato,
-                    krav.gjelderId,
-                    krav.periodeFOM,
-                    krav.periodeTOM,
-                    krav.kravKode,
-                    krav.referansenummerGammelSak,
-                    krav.transaksjonsDato,
-                    krav.enhetBosted,
-                    krav.enhetBehandlende,
-                    krav.kodeHjemmel,
-                    krav.kodeArsak,
-                    krav.belopRente,
-                    krav.fremtidigYtelse.toString(),
-                    krav.utbetalDato,
-                    krav.fagsystemId,
-                    krav.status ?: Status.KRAV_INNLEST_FRA_FIL.value,
-                    type,
-                    UUID.randomUUID().toString(),
-                    filnavn,
-                    krav.linjenummer,
-                    krav.tilleggsfrist,
-                    krav.avsender,
-                ).addBatch()
-
-            if (type == ENDRING_HOVEDSTOL) {
                 prepStmt
                     .withParameters(
                         krav.saksnummerNav,
@@ -274,16 +243,46 @@ object KravRepository {
                         krav.utbetalDato,
                         krav.fagsystemId,
                         krav.status ?: Status.KRAV_INNLEST_FRA_FIL.value,
-                        ENDRING_RENTE,
+                        type,
                         UUID.randomUUID().toString(),
                         filnavn,
                         krav.linjenummer,
                         krav.tilleggsfrist,
                         krav.avsender,
                     ).addBatch()
+
+                if (type == ENDRING_HOVEDSTOL) {
+                    prepStmt
+                        .withParameters(
+                            krav.saksnummerNav,
+                            krav.belop,
+                            krav.vedtaksDato,
+                            krav.gjelderId,
+                            krav.periodeFOM,
+                            krav.periodeTOM,
+                            krav.kravKode,
+                            krav.referansenummerGammelSak,
+                            krav.transaksjonsDato,
+                            krav.enhetBosted,
+                            krav.enhetBehandlende,
+                            krav.kodeHjemmel,
+                            krav.kodeArsak,
+                            krav.belopRente,
+                            krav.fremtidigYtelse.toString(),
+                            krav.utbetalDato,
+                            krav.fagsystemId,
+                            krav.status ?: Status.KRAV_INNLEST_FRA_FIL.value,
+                            ENDRING_RENTE,
+                            UUID.randomUUID().toString(),
+                            filnavn,
+                            krav.linjenummer,
+                            krav.tilleggsfrist,
+                            krav.avsender,
+                        ).addBatch()
+                }
             }
+            prepStmt.executeBatch()
+            commit()
         }
-        prepStmt.executeBatch()
-        commit()
     }
 }
