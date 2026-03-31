@@ -56,12 +56,24 @@ def main():
             # Extract gammelref (18 chars) from positions 83-100 (indices 83:101)
             gammelref = target_line[83:101]
 
+            # Check belop (positions 29-40, last 2 digits are decimals) for stopp condition
+            # Mirrors: belop.toDouble().roundToLong() == 0L
+            belop_str = target_line[29:40].strip()
+            if len(belop_str) >= 3:
+                belop_val = float(belop_str[:-2] + '.' + belop_str[-2:])
+            else:
+                belop_val = 0.0
+            is_stopp = round(belop_val) == 0
+
             # Check if any Exxx suffix matches this gammelref
             match_found = False
             for exxx_suffix, saksnummer_full in saksnummer_map.items():
                 if exxx_suffix in gammelref:
                     # Replace gammelref with the saksnummer
                     new_line = target_line[:83] + saksnummer_full + target_line[101:]
+                    # For stopp krav (belop == 0), also copy saksnummer into saksnummer position (11:29)
+                    if is_stopp:
+                        new_line = new_line[:11] + saksnummer_full + new_line[29:]
                     new_lines.append(new_line + '\n')
                     matched_count += 1
                     match_found = True

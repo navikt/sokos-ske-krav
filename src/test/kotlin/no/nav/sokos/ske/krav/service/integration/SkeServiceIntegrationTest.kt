@@ -82,10 +82,8 @@ internal class SkeServiceIntegrationTest :
                     coEvery { getSkeKravidentifikator("2222-migrert") } returns
                         mockHttpResponse(200, """{"kravidentifikator": "avstemming2222-skeUUID"}""")
                 }
-
             val dbService = DatabaseService(DBListener.dataSource)
             val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dbService, ftpService = ftpService)
-
             val kravBefore = DBListener.dataSource.connection.use { it.getAllKrav() }
             with(kravBefore.find { it.saksnummerNAV == "2222-navsaksnr" }) {
                 this?.kravidentifikatorSKE shouldBe "2222-skeUUID"
@@ -120,7 +118,6 @@ internal class SkeServiceIntegrationTest :
         Given("Et krav skal lagres i database") {
             DBListener.clearDB()
             SftpListener.putFiles(listOf("innsender/OppdragFil.txt"), Directories.INBOUND)
-
             val skeClient =
                 mockk<SkeClient> {
                     coEvery { getSkeKravidentifikator(any()) } returns
@@ -434,7 +431,6 @@ internal class SkeServiceIntegrationTest :
                     }
 
                 feilmeldinger.filter { it.error == "422" }.size shouldBe 10
-
                 val kravMedFeil =
                     DBListener.dataSource.connection.use { conn ->
                         feilmeldinger.flatMap { feilmelding ->

@@ -5,9 +5,9 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.3.10"
-    kotlin("plugin.serialization") version "2.3.10"
-    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+    kotlin("jvm") version "2.3.20"
+    kotlin("plugin.serialization") version "2.3.20"
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.7"
 
     application
@@ -19,25 +19,25 @@ repositories {
     mavenCentral()
 }
 
-val ktorVersion = "3.4.0"
-val jschVersion = "2.27.8"
+val ktorVersion = "3.4.1"
+val jschVersion = "2.27.9"
 val nimbusVersion = "10.8"
 val kotlinxSerializationVersion = "1.10.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
 val konfigVersion = "1.6.10.0"
-val prometheusVersion = "1.16.3"
-val opentelemetryVersion = "2.25.0-alpha"
+val prometheusVersion = "1.16.4"
+val opentelemetryVersion = "2.26.0-alpha"
 
 // DB
 val hikaricpVersion = "7.0.2"
-val flywayVersion = "12.0.3"
+val flywayVersion = "12.1.1"
 val postgresqlVersion = "42.7.10"
 val kotliqueryVersion = "1.9.1"
 
 // Test
-val kotestVersion = "6.1.5"
+val kotestVersion = "6.1.7"
 val kotestTestContainerExtensionVersion = "2.0.2"
 val mockkVersion = "1.14.9"
 val commonsVersion = "3.12.0"
@@ -50,7 +50,7 @@ val kotlinLoggingVersion = "3.0.5"
 val logbackVersion = "1.5.32"
 val logstashVersion = "9.0"
 
-val resilience4jVersion = "2.3.0"
+val resilience4jVersion = "2.4.0"
 
 dependencies {
     // Ktor Server
@@ -119,16 +119,25 @@ dependencies {
     testImplementation("org.mockftpserver:MockFtpServer:$mockFtpServerVersion")
 }
 
-// CVE fixes for vulnerable dependencies from transitive dependencies io.kotest.extensions:kotest-extensions-testcontainers
 configurations.all {
-    resolutionStrategy.eachDependency {
-        if (requested.group == "org.lz4" && requested.name == "lz4-java") {
-            useTarget("at.yawk.lz4:lz4-java:1.10.4")
-            because("CVE fix: Out-of-bounds memory operations in versions < 1.8.1")
-        }
-        if (requested.group == "org.xerial.snappy" && requested.name == "snappy-java") {
-            useVersion("1.1.10.8")
-            because("CVE fix: Unchecked chunk length leads to DoS in versions <= 1.1.10.0")
+    resolutionStrategy {
+        eachDependency {
+            if (requested.group == "org.lz4" && requested.name == "lz4-java") {
+                useTarget("at.yawk.lz4:lz4-java:1.10.4")
+                because("Prefer the patched fork for vulnerability fix")
+            }
+            if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-core") {
+                useVersion("2.21.1")
+                because("jackson-core: Number Length Constraint Bypass in Async Parser Leads to Potential DoS Condition. Affected version >= 2.19.0, < 2.21.1")
+            }
+            if (requested.group == "org.eclipse.jetty" && requested.name == "jetty-server") {
+                useVersion("9.4.57.v20241219")
+                because("Eclipse Jetty's ThreadLimitHandler.getRemote() vulnerable to remote DoS attacks. Affected version >= 9.3.12, <= 9.4.55")
+            }
+            if (requested.group == "org.xerial.snappy" && requested.name == "snappy-java") {
+                useVersion("1.1.10.4")
+                because("snappy-java's missing upper bound check on chunk length can lead to Denial of Service (DoS) impact. Affected version <= 1.1.10.3")
+            }
         }
     }
 }

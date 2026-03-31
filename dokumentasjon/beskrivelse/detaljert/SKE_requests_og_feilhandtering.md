@@ -18,7 +18,7 @@ Bygges av [`createOpprettKravRequest()`](../../../src/main/kotlin/no/nav/sokos/s
 | `renteBeloep[].beloep`                           | `belopRente`                                                                                                                | Kun inkludert dersom beloep > 0                                                                                              |
 | `renteBeloep[].renterIlagtDato`                  | `vedtaksDato`                                                                                                               |                                                                                                                              |
 | `renteBeloep[].rentetype`                        | –                                                                                                                           | Alltid `STRAFFERENTE`                                                                                                        |
-| `oppdragsgiversReferanse`                        | `fagsystemId`                                                                                                               |                                                                                                                              |
+| `oppdragsgiversReferanse`                        | `fagsystemId`                                                                                                               | Nullable – settes kun dersom `fagsystemId` er ikke-blank. Feltet utelates helt fra requesten dersom `fagsystemId` er tom.    |
 | `oppdragsgiversKravidentifikator`                | `saksnummerNAV`                                                                                                             |                                                                                                                              |
 | `fastsettelsesdato`                              | `vedtaksDato`                                                                                                               |                                                                                                                              |
 | `foreldelsesfristensUtgangspunkt`                | `utbetalDato`                                                                                                               | Settes kun dersom: ingen tilleggsfrist er satt, dato er gyldig, dato er ulik vedtaksdato, og dato er før vedtaksdato         |
@@ -139,29 +139,7 @@ Dersom responsen ikke lar seg parse til [`FeilResponse`](../../../src/main/kotli
 
 ---
 
-## 3. Feilhåndtering ved oppsett av kravidentifikator for migrerte krav
-
-Når `SkeService.updateSkeKravidentifikatorForEndringerAndStopp()` ikke finner kravidentifikatoren i lokal DB, kalles SKEs `GET /innkrevingsoppdrag/avstemming/{referansenummerGammelSak}`-endepunkt. Responsen behandles slik:
-
- HTTP-status  Situasjon                                              Intern status           Feilmelding lagret  Slack-alarm                                                 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- 2xx          `kravidentifikator`-felt finnes i responsen            Uendret (originalt)     Nei                 Nei                                                         
- 2xx          `kravidentifikator`-felt mangler i responsen           `UKJENT_FEIL`           Ja                  Ja – med tittel `KRAVIDENTIFIKATOR_MANGLER_I_RESPONS` (maks én per `saksnummerNAV`) 
- 404          `innkrevingsoppdrag-eksisterer-ikke`                   `HTTP404_FANT_IKKE_SAKSREF`  Ja             Ja – med tittel `FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR` (maks én per `saksnummerNAV`) 
- 403 / 401 / 5xx  –                                                 –                       Nei (se under)      Nei                                                         
- Andre ikke-2xx (400, 409, 422, …)                                   Fra `defineStatus()`    Ja                  Ja – generisk `"Feil fra SKE"`                              
-
-> **403 / 401 / 5xx og Circuit Breaker**: `CircuitBreakerPlugin` kaster `CircuitBreakerException` direkte fra HTTP-laget for disse statuskodene, før noen returverdi er tilgjengelig. Unntaket propagerer opp og stopper videre behandling i denne kjøringen – ingen status oppdateres og ingen feilmelding lagres.
-
-> **Deduplication av Slack-alarm for 404**: Dersom to rader i databasen tilhører samme logiske endring (f.eks. `ENDRING_RENTE` + `ENDRING_HOOFDSTOL` for samme saksnummer), sendes Slack-alarmen kun for det første funnet. Begge radene får likevel status `HTTP404_FANT_IKKE_SAKSREF` og en rad i `feilmelding`-tabellen.
-
-### Manuell oppfølging av HTTP 404 på avstemming
-
-HTTP 404 fra avstemming betyr at SKE ikke kjenner til noe krav med det oppgitte `referansenummerGammelSak`. Dette skjer typisk ved «dobbel endring på migrert krav» (se [Feilretting_Guide.md](../../Feilretting_Guide.md#dobbel-endring-p-migrert-krav)). Kravene med `HTTP404_FANT_IKKE_SAKSREF`-status er synlige i rapportvisningen og må følges opp manuelt.
-
----
-
-## 4. Asynkrone valideringsfeil fra SKE ([`StatusService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/StatusService.kt))
+## 3. Asynkrone valideringsfeil fra SKE ([`StatusService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/StatusService.kt))
 
 SKE validerer krav asynkront etter mottak. Dersom et krav returnerer status `VALIDERINGSFEIL` ved polling av mottaksstatus, hentes detaljene:
 
@@ -184,7 +162,7 @@ SKE validerer krav asynkront etter mottak. Dersom et krav returnerer status `VAL
 
 ---
 
-## 5. Circuit Breaker-feilhåndtering
+## 4. Circuit Breaker-feilhåndtering
 
 Dersom [`CircuitBreakerManager`](../../../src/main/kotlin/no/nav/sokos/ske/krav/config/CircuitBreakerManager.kt) kaster `CircuitBreakerException` eller `CallNotPermittedException`:
 
@@ -195,7 +173,7 @@ Krav som ikke ble sendt beholder status `KRAV_IKKE_SENDT` og resendes automatisk
 
 ---
 
-## 6. Stor-fil-sperre
+## 5. Stor-fil-sperre
 
 Dersom en fil inneholder 1000 eller flere kravlinjer etter validering, settes `haltRun = true` i [`SkeService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SkeService.kt). Dette:
 
@@ -205,7 +183,7 @@ Dersom en fil inneholder 1000 eller flere kravlinjer etter validering, settes `h
 
 ---
 
-## 7. Varsler om krav som venter for lenge ([`checkKravDateForAlert`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SkeService.kt))
+## 6. Varsler om krav som venter for lenge ([`checkKravDateForAlert`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SkeService.kt))
 
 Kjøres hvert 24. time. Henter alle krav med status som venter på svar fra SKE, og filtrerer ut de som har `tidspunktSendt` mer enn 24 timer tilbake i tid. For hvert slikt krav sendes en Slack-melding med:
 
@@ -216,10 +194,10 @@ Kjøres hvert 24. time. Henter alle krav med status som venter på svar fra SKE,
 
 ---
 
-## 8. Slack-varsling – konsolidering
+## 7. Slack-varsling – konsolidering
 
 [`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SlackService.kt) samler feil i minnet per fil og per feiltype. Dersom mer enn 5 feil av samme type er registrert for en fil, erstattes de med én melding:
 
 > `"N av samme type feil: <feiltype>. Sjekk avstemming"`
 
-Dette er fordi Slack har en grense for hvor mange like meldinger den kan sende, og hvis det er n like meldinger vil ingen av de sendes 
+Dette er fordi Slack har en grense for hvor mange like meldinger den kan sende, og hvis det er n like meldinger vil ingen av de sendes

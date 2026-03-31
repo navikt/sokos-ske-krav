@@ -16,7 +16,7 @@ import no.nav.sokos.ske.krav.listener.SftpListener
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
-import no.nav.sokos.ske.krav.util.MockHttpClient
+import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.validation.FileValidator.ErrorKeys
 
 internal class FileValidatorIntegrationTest :
@@ -25,7 +25,7 @@ internal class FileValidatorIntegrationTest :
         val dbService by lazy { DatabaseService(DBListener.dataSource) }
 
         fun setupSlackService(): SlackService {
-            val slackClientSpy = spyk(SlackClient(client = MockHttpClient().getSlackClient()))
+            val slackClientSpy = spyk(SlackClient(client = MockHttpClient.slackClient))
             return spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
         }
 
@@ -208,7 +208,7 @@ internal class FileValidatorIntegrationTest :
                 }
             }
         }
-        Given("Fil fra Arena - mangler fagsystemId (må fikses før produksjon)") {
+        Given("Fil fra Arena - fagsystemId er valgfritt") {
             val slackServiceSpy = setupSlackService()
             val ftpService = setupFtpService(slackServiceSpy)
             val fileName = "innsender/ArenaFil.txt"
@@ -218,34 +218,19 @@ internal class FileValidatorIntegrationTest :
             When("Filen valideres") {
                 ftpService.getValidatedFiles()
 
-                Then("Skal feil for manglende fagsystemId lagres i database") {
-                    with(dbService.getFileValidationMessage(fileNameOnSftp)) {
-                        size shouldBe 1
-                        with(first()) {
-                            filnavn shouldBe fileNameOnSftp
-                            feilmelding shouldContain ErrorKeys.FAGSYSTEMID_MANGLER
-                        }
-                    }
+                Then("Skal ingen feil lagres i database") {
+                    dbService.getFileValidationMessage(fileNameOnSftp).size shouldBe 0
                 }
 
-                And("Alert skal sendes til slack for manglende fagsystemId") {
-                    val sendAlertFilenameSlot = slot<String>()
-                    val sendAlertHeaderSlot = slot<String>()
-                    val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
-
-                    coVerify(exactly = 1) {
-                        slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
+                And("Alert skal ikke sendes") {
+                    coVerify(exactly = 0) {
+                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
                     }
-                    sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
-                    sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
-                    val capturedMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
-                    capturedMessages.size shouldBe 1
-                    capturedMessages.filter { it.first == ErrorKeys.FAGSYSTEMID_MANGLER }.size shouldBe 1
                 }
             }
         }
 
-        Given("Fil fra Pesys - mangler fagsystemId (må fikses før produksjon)") {
+        Given("Fil fra Pesys - fagsystemId er valgfritt") {
             val slackServiceSpy = setupSlackService()
             val ftpService = setupFtpService(slackServiceSpy)
             val fileName = "innsender/PesysFil.txt"
@@ -255,29 +240,14 @@ internal class FileValidatorIntegrationTest :
             When("Filen valideres") {
                 ftpService.getValidatedFiles()
 
-                Then("Skal feil for manglende fagsystemId lagres i database") {
-                    with(dbService.getFileValidationMessage(fileNameOnSftp)) {
-                        size shouldBe 1
-                        with(first()) {
-                            filnavn shouldBe fileNameOnSftp
-                            feilmelding shouldContain ErrorKeys.FAGSYSTEMID_MANGLER
-                        }
-                    }
+                Then("Skal ingen feil lagres i database") {
+                    dbService.getFileValidationMessage(fileNameOnSftp).size shouldBe 0
                 }
 
-                And("Alert skal sendes til slack for manglende fagsystemId") {
-                    val sendAlertFilenameSlot = slot<String>()
-                    val sendAlertHeaderSlot = slot<String>()
-                    val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
-
-                    coVerify(exactly = 1) {
-                        slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
+                And("Alert skal ikke sendes") {
+                    coVerify(exactly = 0) {
+                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
                     }
-                    sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
-                    sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
-                    val capturedMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
-                    capturedMessages.size shouldBe 1
-                    capturedMessages.filter { it.first == ErrorKeys.FAGSYSTEMID_MANGLER }.size shouldBe 1
                 }
             }
         }
