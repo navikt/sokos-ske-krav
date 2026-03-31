@@ -41,7 +41,7 @@ val kotestVersion = "6.1.7"
 val mockkVersion = "1.14.9"
 val commonsVersion = "3.13.0"
 val testContainerVersion = "1.21.4"
-val mockFtpServerVersion = "3.2.0"
+val sshdSftpVersion = "2.14.0"
 
 // Logging
 val janinoVersion = "3.1.12"
@@ -110,7 +110,7 @@ dependencies {
     testImplementation("io.mockk:mockk-jvm:$mockkVersion")
     testImplementation("org.testcontainers:postgresql:$testContainerVersion")
     testImplementation("commons-net:commons-net:$commonsVersion")
-    testImplementation("org.mockftpserver:MockFtpServer:$mockFtpServerVersion")
+    testImplementation("org.apache.sshd:sshd-sftp:$sshdSftpVersion")
 }
 
 configurations.all {
