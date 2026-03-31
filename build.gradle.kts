@@ -27,7 +27,7 @@ val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
 val prometheusVersion = "1.16.4"
-val opentelemetryVersion = "2.26.0-alpha"
+val opentelemetryVersion = "2.26.1-alpha"
 
 // DB
 val hikaricpVersion = "7.0.2"
@@ -36,7 +36,7 @@ val postgresqlVersion = "42.7.10"
 val kotliqueryVersion = "1.9.1"
 
 // Test
-val kotestVersion = "6.1.7"
+val kotestVersion = "6.1.8"
 
 val mockkVersion = "1.14.9"
 val commonsVersion = "3.13.0"
