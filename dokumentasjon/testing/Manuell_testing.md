@@ -2,7 +2,7 @@
 
 ## SFTP tilkobling
 
-Etter at `setupLocalEnvironment.sh` er kjørt, vil den opprette en `privKey` fil. Den burde legges inn der man oppbevarer ssh nøkler, f.eks `.ssh`.
+Etter at `setupLocalEnvironment.sh` er kjørt, vil den opprette en `privateKey` fil. Den burde legges inn der man oppbevarer ssh nøkler, f.eks `.ssh`.
 Scriptet vil hente brukernavn og passord til `defaults.properties` i form av variablene `SKE_SFTP_USERNAME` og `SKE_SFTP_PASSWORD`.
 
 FileZilla er en god klient for å koble seg til SFTP. Bruk `login with key file`.
@@ -12,12 +12,10 @@ Noen ganger vil FileZilla ikke kunne koble seg til SFTP (den vil stå og "spinne
 På MacOS og Linux kan den be om en `.ppk` nøkkel. Isåfall la FileZilla automatisk konvertere privatnøkkelen til .ppk og referer til denne.
 
 ### Trigge innlesing av fil
-Vi har tre måter å trigge innlesing av filen på:
-1. Trigging av endepunktet [hentNye](https://sokos-ske-krav.intern.dev.nav.no/api/hentNye). Dette kan gjøres med en klient som Bruno.
-   Vi må ha med en `Authorization`-token i headeren. En slik kan genereres [her](https://azure-token-generator.intern.dev.nav.no/api/m2m?aud=dev-fss:okonomi:sokos-ske-krav)
+Vi har to måter å trigge innlesing av filen på:
+1. Kjøre applikasjonen lokalt
 2. Restarte den kjørende pod'en via [nais console](https://console.nav.cloud.nais.io/team/okonomi/dev-fss/app/sokos-ske-krav). Trykk på `Restart app`.
    Hvis du skal teste en spesiell branch kan du bruke [workflowen for manuell deploy til dev](https://github.com/navikt/sokos-ske-krav/actions/workflows/manual-deploy.yaml)
-3. Kjøre applikasjonen lokalt
 
 **Alltid trigg innlesing to ganger** slik at kravene får korrekt mottaksstatus (og asynkrone valideringsfeil blir hentet)
 

@@ -159,7 +159,7 @@ internal class LineValidationRulesTest :
                 }
             }
             When("Utbetalingsdato er ikke oppgitt (error date) for OB04 skal gi feil") {
-                val krav = okLinje.copy(utbetalDato = LineValidationRules.errorDate, avsender = Avsender.OB04)
+                val krav = okLinje.copy(utbetalDato = LineValidationRules.errorDate, avsender = Avsender.OB04.name)
                 val validationResult: ValidationResult = LineValidationRules.runValidation(krav)
                 Then("Skal validationResult være error") {
                     (validationResult is ValidationResult.Error) shouldBe true
@@ -173,7 +173,7 @@ internal class LineValidationRulesTest :
                 }
             }
             When("Utbetalingsdato er ikke oppgitt (error date) for Arena skal være ok") {
-                val krav = okLinje.copy(utbetalDato = LineValidationRules.errorDate, avsender = Avsender.ARENA)
+                val krav = okLinje.copy(utbetalDato = LineValidationRules.errorDate, avsender = Avsender.ARENA.name)
                 val validationResult: ValidationResult = LineValidationRules.runValidation(krav)
                 Then("Skal ValidationResult være success") {
                     (validationResult is ValidationResult.Success) shouldBe true

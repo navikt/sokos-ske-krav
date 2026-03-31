@@ -5,8 +5,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.3.20"
-    kotlin("plugin.serialization") version "2.3.20"
+    kotlin("jvm") version "2.3.10"
+    kotlin("plugin.serialization") version "2.3.10"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.7"
 
@@ -26,7 +26,6 @@ val kotlinxSerializationVersion = "1.10.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
-val konfigVersion = "1.6.10.0"
 val prometheusVersion = "1.16.4"
 val opentelemetryVersion = "2.26.0-alpha"
 
@@ -38,9 +37,9 @@ val kotliqueryVersion = "1.9.1"
 
 // Test
 val kotestVersion = "6.1.7"
-val kotestTestContainerExtensionVersion = "2.0.2"
+
 val mockkVersion = "1.14.9"
-val commonsVersion = "3.12.0"
+val commonsVersion = "3.13.0"
 val testContainerVersion = "1.21.4"
 val mockFtpServerVersion = "3.2.0"
 
@@ -58,7 +57,6 @@ dependencies {
     implementation("io.ktor:ktor-server-call-id-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-html-builder:$ktorVersion")
 
     // Ktor Client
@@ -88,9 +86,6 @@ dependencies {
     // FTP
     implementation("com.github.mwiede:jsch:$jschVersion")
 
-    // Config
-    implementation("com.natpryce:konfig:$konfigVersion")
-
     // Opentelemetry
     implementation("io.opentelemetry.instrumentation:opentelemetry-ktor-3.0:$opentelemetryVersion")
 
@@ -110,7 +105,6 @@ dependencies {
 
     // Test
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
-    testImplementation("io.kotest.extensions:kotest-extensions-testcontainers:$kotestTestContainerExtensionVersion")
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion")
     testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
     testImplementation("io.mockk:mockk-jvm:$mockkVersion")
@@ -122,10 +116,14 @@ dependencies {
 configurations.all {
     resolutionStrategy {
         eachDependency {
+            // ./gradlew dependencies --configuration runtimeClasspath | grep logback-core
+
+            // Critical
             if (requested.group == "org.lz4" && requested.name == "lz4-java") {
                 useTarget("at.yawk.lz4:lz4-java:1.10.4")
                 because("Prefer the patched fork for vulnerability fix")
             }
+            // High
             if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-core") {
                 useVersion("2.21.1")
                 because("jackson-core: Number Length Constraint Bypass in Async Parser Leads to Potential DoS Condition. Affected version >= 2.19.0, < 2.21.1")
@@ -137,6 +135,21 @@ configurations.all {
             if (requested.group == "org.xerial.snappy" && requested.name == "snappy-java") {
                 useVersion("1.1.10.4")
                 because("snappy-java's missing upper bound check on chunk length can lead to Denial of Service (DoS) impact. Affected version <= 1.1.10.3")
+            }
+            if (requested.group == "io.netty" && requested.name == "netty-codec-http") {
+                useVersion("4.2.11.Final")
+                because("Netty: HTTP Request Smuggling via Chunked Extension Quoted-String Parsing. Affected version >= 4.2.0.Alpha1, < 4.2.10.Final")
+            }
+            if (requested.group == "io.netty" && requested.name == "netty-codec-http2") {
+                useVersion("4.2.11.Final")
+                because("Netty HTTP/2 CONTINUATION Frame Flood DoS via Zero-Byte Frame Bypass. Affected version >= 4.2.0.Alpha1, < 4.2.10.Final")
+            }
+
+            // Moderate
+            // Test
+            if (requested.group == "org.apache.commons " && requested.name == "commons-compress") { // ./gradlew dependencies --configuration testRuntimeClasspath | grep commons-compress
+                useVersion("1.26.0")
+                because("Apache Commons Compress: OutOfMemoryError unpacking broken Pack200 filet. Affected version >= 1.21, < 1.26.0")
             }
         }
     }
