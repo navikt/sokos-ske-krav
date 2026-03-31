@@ -92,7 +92,9 @@ class SkeService(
             sendKrav(databaseService.getAllUnsentKrav()).also { logResult(it) }
         }
 
-        logger.info { "*** Ferdig med sending av ${files.size} $filtekst ***" }
+        if (files.isNotEmpty()) {
+            logger.info { "*** Ferdig med sending av ${files.size} $filtekst ***" }
+        }
     }
 
     private suspend fun processFile(file: FtpFil) {
