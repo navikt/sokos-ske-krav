@@ -4,6 +4,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 
 import com.zaxxer.hikari.HikariDataSource
@@ -58,7 +59,7 @@ class SkeService(
 
         resendKrav()
         sendNewFilesToSKE()
-        delay(5000)
+        delay(5000.milliseconds)
         resendKrav()
 
         slackService.sendErrors()
@@ -125,80 +126,96 @@ class SkeService(
     private suspend fun updateSkeKravidentifikatorForEndringerAndStopp() {
         val unsentEndringerAndStopp = databaseService.getAllUnsentEndringerAndStopp()
         val requestResults = mutableListOf<RequestResult>()
-        val slackErrorsHandled = mutableListOf<String>()
+        val slackErrorsHandled = mutableSetOf<String>()
 
-        logger.info("ANTALL UNSENT ${unsentEndringerAndStopp.size}")
         unsentEndringerAndStopp.forEach { krav ->
             // Sjekke om vi har det opprinnelige kravet i vår database
             val skeKravidentifikator = databaseService.getSkeKravidentifikator(krav.referansenummerGammelSak)
             if (skeKravidentifikator.isNotBlank()) {
-                logger.info("FANT KRAVIDENT $skeKravidentifikator for gammel ref ${krav.referansenummerGammelSak} for saksnummer ${krav.saksnummerNAV} i DB")
                 databaseService.updateEndringWithSkeKravIdentifikator(krav.saksnummerNAV, skeKravidentifikator)
                 return@forEach
             }
 
-            // Spørre mot skatteetatens avstemmingendepunkt
             val requestResult = getKravidentifikatorFromSkatt(krav)
 
             // Feil som 403, 500 osv skal håndteres som normalt
             if (requestResult.status != Status.HTTP404_FANT_IKKE_SAKSREF) requestResults.add(requestResult)
 
+            // Vi fant kravidentifikator fra SKE
             if (requestResult.kravidentifikator.isNotBlank()) {
-                logger.info("FANT KRAVIDENT $skeKravidentifikator for gammel ref ${krav.referansenummerGammelSak} for saksnummer ${krav.saksnummerNAV} fra skatt")
-                // Oppdatere raden i database med kravidentifikatoren vi fant
                 databaseService.updateEndringWithSkeKravIdentifikator(krav.saksnummerNAV, requestResult.kravidentifikator)
             } else {
                 databaseService.updateStatus(requestResult.status.value, krav.corrId)
 
                 // Fra SKE vil vi få feilmeldingen "innkrevingsoppdrag eksisterer ikke" men vi ønsker mer tydelig informasjon samt informasjonen vi trenger for å kunne følge det opp manuelt.
                 if (requestResult.status == Status.HTTP404_FANT_IKKE_SAKSREF) {
-                    val alreadyAlerted = slackErrorsHandled.contains(krav.saksnummerNAV)
-                    handleError(
-                        requestResult,
-                        if (alreadyAlerted) {
-                            null
-                        } else {
-                            FeilResponse(
-                                type = requestResult.feilResponse?.type ?: KRAV_EKSISTERER_IKKE,
-                                title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR,
-                                status = requestResult.httpStatusCode.value,
-                                detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
-                                instance = requestResult.feilResponse?.instance ?: "custom",
-                            )
-                        },
-                    )
-                    if (!alreadyAlerted) {
-                        logger.warn { "Fant ikke gyldig kravidentifikator for migrert krav med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
-                        slackErrorsHandled.add(krav.saksnummerNAV)
-                    }
+                    handle404FromAvstemming(requestResult, krav, slackErrorsHandled)
                 } else if (requestResult.httpStatusCode.isSuccess()) {
                     // 2xx fra SKE, men kravidentifikator mangler i responsen – lagre feilmelding og varsle Slack
-                    val alreadyAlerted = slackErrorsHandled.contains(krav.saksnummerNAV)
-                    handleError(
-                        requestResult,
-                        if (alreadyAlerted) {
-                            null
-                        } else {
-                            FeilResponse(
-                                type = FeilResponse.CustomTypes.FEIL_FRA_SERVER,
-                                title = FeilResponse.CustomTitles.KRAVIDENTIFIKATOR_MANGLER_I_RESPONS,
-                                status = requestResult.httpStatusCode.value,
-                                detail =
-                                    "Saksnummer: ${krav.saksnummerNAV} \n " +
-                                        "ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n " +
-                                        "Fikk 2xx fra SKE, men kravidentifikator mangler i responsen. Dette må følges opp manuelt.",
-                                instance = "custom",
-                            )
-                        },
-                    )
-                    if (!alreadyAlerted) {
-                        logger.warn { "Fikk 2xx fra SKE sitt avstemming-API, men kravidentifikator mangler i responsen for referansenummerGammelSak: ${krav.referansenummerGammelSak}" }
-                        slackErrorsHandled.add(krav.saksnummerNAV)
-                    }
+                    handle200FromAvstemming(requestResult, krav, slackErrorsHandled)
                 }
             }
         }
         handleErrors(requestResults)
+    }
+
+    private suspend fun handle404FromAvstemming(
+        requestResult: RequestResult,
+        krav: Krav,
+        slackErrorsHandled: MutableSet<String>,
+    ) {
+        val shouldAlert = slackErrorsHandled.add(krav.saksnummerNAV)
+
+        handleError(
+            requestResult,
+            if (shouldAlert) {
+                FeilResponse(
+                    type = requestResult.feilResponse?.type ?: KRAV_EKSISTERER_IKKE,
+                    title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR,
+                    status = requestResult.httpStatusCode.value,
+                    detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
+                    instance = requestResult.feilResponse?.instance ?: "custom",
+                )
+            } else {
+                null
+            },
+        )
+
+        if (shouldAlert) {
+            logger.warn { "Fant ikke gyldig kravidentifikator for migrert krav med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
+            slackErrorsHandled.add(krav.saksnummerNAV)
+        }
+    }
+
+    private suspend fun handle200FromAvstemming(
+        requestResult: RequestResult,
+        krav: Krav,
+        slackErrorsHandled: MutableSet<String>,
+    ) {
+        val shouldAlert = slackErrorsHandled.add(krav.saksnummerNAV)
+
+        handleError(
+            requestResult,
+            if (shouldAlert) {
+                FeilResponse(
+                    type = FeilResponse.CustomTypes.FEIL_FRA_SERVER,
+                    title = FeilResponse.CustomTitles.KRAVIDENTIFIKATOR_MANGLER_I_RESPONS,
+                    status = requestResult.httpStatusCode.value,
+                    detail =
+                        "Saksnummer: ${krav.saksnummerNAV} \n " +
+                            "ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n " +
+                            "Fikk 2xx fra SKE, men kravidentifikator mangler i responsen. Dette må følges opp manuelt.",
+                    instance = "custom",
+                )
+            } else {
+                null
+            },
+        )
+
+        if (shouldAlert) {
+            logger.warn { "Fikk 2xx fra SKE sitt avstemming-API, men kravidentifikator mangler i responsen for referansenummerGammelSak: ${krav.referansenummerGammelSak}" }
+            slackErrorsHandled.add(krav.saksnummerNAV)
+        }
     }
 
     private suspend fun getKravidentifikatorFromSkatt(krav: Krav): RequestResult {

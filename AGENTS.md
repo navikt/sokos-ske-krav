@@ -73,7 +73,10 @@ Regular logs go to Grafana Loki; `TEAM_LOGS_MARKER` routes to Team Logs only.
 ### Frontend / Rapport Code
 Internal HTML report pages are marked with `@RequiresOptIn annotation class Frontend`. Apply `@OptIn(Frontend::class)` wherever these APIs are called. Do not expose these endpoints publicly.
 
-## Testing Conventions
+## Language Notes
+
+- **HOVEDSTOL** is a Norwegian word (meaning "principal/capital amount"). Never correct it to "HOOFDSTOL" or any other spelling.
+
 - **Unit tests**: `src/test/.../service/unit/` — use MockK (`mockk`, `spyk`, `coVerify`).
 - **Integration tests**: `src/test/.../service/integration/` — use `DBListener` (PostgreSQL Testcontainer) and `SftpListener` (MockFtpServer).
 - **DB tests**: `src/test/.../database/` — use `DBListener.loadInitScript("SQLscript/...")` to seed data from SQL scripts in `src/test/resources/SQLscript/`.

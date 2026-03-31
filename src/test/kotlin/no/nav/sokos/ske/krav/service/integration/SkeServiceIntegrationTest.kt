@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.spyk
 
@@ -32,9 +33,10 @@ import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
-import no.nav.sokos.ske.krav.util.http.MockResponsesBody
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody.avstemmingResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.httpErrorResponse
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody.innkrevingsOppdragEksistererIkkeResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.mottaksStatusResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.nyEndringResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.nyttKravResponse
@@ -117,7 +119,7 @@ internal class SkeServiceIntegrationTest :
             val skeClient =
                 mockk<SkeClient> {
                     coEvery { getSkeKravidentifikator(any()) } returns
-                        mockHttpResponse(200, MockResponsesBody.avstemmingResponse())
+                        mockHttpResponse(200, avstemmingResponse())
                     coEvery { getMottaksStatus(any(), any()) } returns
                         mockHttpResponse(200, mottaksStatusResponse(status = Status.RESKONTROFOERT.value))
                 }
@@ -180,6 +182,52 @@ internal class SkeServiceIntegrationTest :
                     }
 
                 kravMedFeil.filter { it.status == Status.HTTP403_INGEN_TILGANG.value }.size shouldBe 0
+            }
+        }
+        Given("Vi mottar 404 på avstemming") {
+            DBListener.clearDB()
+            DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
+            SftpListener.putFiles(listOf("krav/TestEndringMedAvstemmingAvKravident.txt"), Directories.INBOUND)
+            val nyttKravKall = MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK)
+            val avstemmingKall = MockResponse(Endpoint.AVSTEMMING, innkrevingsOppdragEksistererIkkeResponse(), HttpStatusCode.NotFound)
+            val endreRenterKall = MockResponse(Endpoint.ENDRE_RENTER, nyEndringResponse(), HttpStatusCode.OK)
+            val endreHovedStolKall = MockResponse(Endpoint.ENDRE_HOVEDSTOL, nyEndringResponse(), HttpStatusCode.OK)
+            val mottaksstatusKall = MockResponse(Endpoint.MOTTAKSSTATUS, mottaksStatusResponse(status = Status.RESKONTROFOERT.value), HttpStatusCode.OK)
+
+            val httpClient =
+                MockHttpClient.client(nyttKravKall, endreRenterKall, endreHovedStolKall, mottaksstatusKall, avstemmingKall)
+            val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
+            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource), slackService = slackServiceSpy)
+
+            Then("skal feilmelding sendes til Slack én gang per endring") {
+                skeService.handleNewKrav()
+
+                coVerify(exactly = 2) {
+                    slackServiceSpy.addError(any(), any(), any<Pair<String, String>>())
+                }
+            }
+        }
+        Given("Vi mottar 200 uten kravidentifikator på avstemming") {
+            DBListener.clearDB()
+            DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
+            SftpListener.putFiles(listOf("krav/TestEndringMedAvstemmingAvKravident.txt"), Directories.INBOUND)
+            val nyttKravKall = MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK)
+            val avstemmingKall = MockResponse(Endpoint.AVSTEMMING, avstemmingResponse(""), HttpStatusCode.OK)
+            val endreRenterKall = MockResponse(Endpoint.ENDRE_RENTER, nyEndringResponse(), HttpStatusCode.OK)
+            val endreHovedStolKall = MockResponse(Endpoint.ENDRE_HOVEDSTOL, nyEndringResponse(), HttpStatusCode.OK)
+            val mottaksstatusKall = MockResponse(Endpoint.MOTTAKSSTATUS, mottaksStatusResponse(status = Status.RESKONTROFOERT.value), HttpStatusCode.OK)
+
+            val httpClient =
+                MockHttpClient.client(nyttKravKall, endreRenterKall, endreHovedStolKall, mottaksstatusKall, avstemmingKall)
+            val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
+            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource), slackService = slackServiceSpy)
+
+            Then("skal feilmelding sendes til Slack én gang per endring") {
+                skeService.handleNewKrav()
+
+                coVerify(exactly = 2) {
+                    slackServiceSpy.addError(any(), any(), any<Pair<String, String>>())
+                }
             }
         }
         Given("Et krav feiler ") {
