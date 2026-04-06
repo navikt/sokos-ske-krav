@@ -8,7 +8,7 @@ plugins {
     kotlin("jvm") version "2.3.10"
     kotlin("plugin.serialization") version "2.3.10"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
-    id("org.jetbrains.kotlinx.kover") version "0.9.7"
+    id("org.jetbrains.kotlinx.kover") version "0.9.8"
 
     application
 }
@@ -19,7 +19,7 @@ repositories {
     mavenCentral()
 }
 
-val ktorVersion = "3.4.1"
+val ktorVersion = "3.4.2"
 val jschVersion = "2.27.9"
 val nimbusVersion = "10.8"
 val kotlinxSerializationVersion = "1.10.0"
@@ -27,21 +27,21 @@ val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
 val prometheusVersion = "1.16.4"
-val opentelemetryVersion = "2.26.0-alpha"
+val opentelemetryVersion = "2.26.1-alpha"
 
 // DB
 val hikaricpVersion = "7.0.2"
-val flywayVersion = "12.1.1"
+val flywayVersion = "12.2.0"
 val postgresqlVersion = "42.7.10"
 val kotliqueryVersion = "1.9.1"
 
 // Test
-val kotestVersion = "6.1.7"
+val kotestVersion = "6.1.10"
 
 val mockkVersion = "1.14.9"
 val commonsVersion = "3.13.0"
 val testContainerVersion = "1.21.4"
-val sshdSftpVersion = "2.14.0"
+val sshdSftpVersion = "2.17.1"
 
 // Logging
 val janinoVersion = "3.1.12"
