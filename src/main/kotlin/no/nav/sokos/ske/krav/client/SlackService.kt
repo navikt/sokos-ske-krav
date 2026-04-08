@@ -10,19 +10,25 @@ internal data class FileErrors(
     val headers: MutableList<ErrorHeader>,
 )
 
+private const val LENE = "<@U08S6FA0XSS>"
+private const val TRINE = "<@UDCM6F8V8>"
+private const val MARITA = "<@UCG179DPT>"
+private const val LINE_ANITA = "<@U02AVNPT3T9>"
+private const val STEINAR = "<@U796MGBA9>"
+
 enum class Tags(
     val personer: List<String>,
     val rutineLink: String? = null,
 ) {
-    PERSON_EKSISTERER_IKKE(listOf("@lene.johannessen", "@trine.johansen")),
-    PERSON_ER_DOED(listOf("@lene.johannessen", "@trine.johansen")),
-    ORGANISASJONSNUMMER_FINNES_IKKE(listOf("@lene.johannessen", "@trine.johansen")),
+    PERSON_EKSISTERER_IKKE(listOf(LENE, TRINE)),
+    PERSON_ER_DOED(listOf(LENE, TRINE)),
+    ORGANISASJONSNUMMER_FINNES_IKKE(listOf(LENE, TRINE)),
     ORGANISASJON_ER_OPPHOERT(
-        listOf("@marita.ragnvaldsdatt.karlsen", "@line.anita.edvardsen", "@steinar.hansen"),
+        listOf(MARITA, LINE_ANITA, STEINAR),
         "https://confluence.adeo.no/spaces/TOB/pages/791026050/Rutine+for+manuell+h%C3%A5ndtering+av+innkrevingskrav+til+skatteetaten+SKE",
     ),
-    PERSON_ER_SLETTET(listOf("@lene.johannessen", "@trine.johansen")),
-    ORGANISASJON_ER_SLETTET(listOf("@lene.johannessen", "@trine.johansen")),
+    PERSON_ER_SLETTET(listOf(LENE, TRINE)),
+    ORGANISASJON_ER_SLETTET(listOf(LENE, TRINE)),
 }
 
 class SlackService(

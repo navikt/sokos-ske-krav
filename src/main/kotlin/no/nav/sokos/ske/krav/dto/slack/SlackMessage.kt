@@ -21,7 +21,7 @@ data class Block(
 data class Text(
     val type: String = "plain_text",
     val text: String,
-    val emoji: Boolean = false,
+    val emoji: Boolean? = null,
 )
 
 @Serializable

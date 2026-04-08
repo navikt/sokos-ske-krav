@@ -115,7 +115,7 @@ internal class SlackServiceTest :
             slackService.addError("fil.txt", "Valideringsfeil", mapOf("PERSON_ER_DOED" to listOf("Person er død")))
             slackService.sendErrors()
 
-            taggedPeopleSlot[0] shouldContainExactly listOf("@lene.johannessen", "@trine.johansen")
+            taggedPeopleSlot[0] shouldContainExactly listOf("<@U08S6FA0XSS>", "<@UDCM6F8V8>")
             rutineLinkSlot[0] shouldBe null
         }
 
@@ -135,7 +135,7 @@ internal class SlackServiceTest :
             slackService.addError("fil.txt", "Valideringsfeil", mapOf("ORGANISASJON_ER_OPPHOERT" to listOf("Organisasjon er opphørt")))
             slackService.sendErrors()
 
-            taggedPeopleSlot[0] shouldContainExactly listOf("@marita.ragnvaldsdatt.karlsen", "@line.anita.edvardsen", "@steinar.hansen")
+            taggedPeopleSlot[0] shouldContainExactly listOf("<@UCG179DPT>", "<@U02AVNPT3T9>", "<@U796MGBA9>")
             rutineLinkSlot[0] shouldBe "https://confluence.adeo.no/spaces/TOB/pages/791026050/Rutine+for+manuell+h%C3%A5ndtering+av+innkrevingskrav+til+skatteetaten+SKE"
         }
 
