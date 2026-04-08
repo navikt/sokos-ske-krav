@@ -19,7 +19,7 @@ internal class SlackServiceTest :
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>()) } answers {
+                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any()) } answers {
                         headerSlots.add(firstArg())
                         fileNameSlots.add(secondArg())
                         errorSlots.add(thirdArg())
@@ -55,7 +55,7 @@ internal class SlackServiceTest :
             val errorSlots = mutableListOf<Map<String, List<String>>>()
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>()) } answers {
+                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any()) } answers {
                         headerSlots.add(firstArg())
                         fileNameSlots.add(secondArg())
                         errorSlots.add(thirdArg())
@@ -105,7 +105,7 @@ internal class SlackServiceTest :
             val errorSlots = mutableListOf<Map<String, List<String>>>()
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>()) } answers {
+                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any()) } answers {
                         headerSlots.add(firstArg())
                         fileNameSlots.add(secondArg())
                         errorSlots.add(thirdArg())

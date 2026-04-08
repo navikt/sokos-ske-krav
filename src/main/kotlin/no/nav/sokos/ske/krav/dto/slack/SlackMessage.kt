@@ -34,15 +34,19 @@ fun createSlackMessage(
     feilHeader: String,
     filnavn: String,
     content: Map<String, List<String>>,
+    taggedPeople: List<String> = emptyList(),
+    rutineLink: String? = null,
 ) = Data(
     text = ":package: $feilHeader",
-    blocks = buildSections(feilHeader, filnavn, content),
+    blocks = buildSections(feilHeader, filnavn, content, taggedPeople, rutineLink),
 )
 
 private fun buildSections(
     feilHeader: String,
     filnavn: String,
     content: Map<String, List<String>>,
+    taggedPeople: List<String>,
+    rutineLink: String?,
 ): MutableList<Block> {
     val dividerBlock = Block(type = "divider")
     val headerBlock =
@@ -60,23 +64,19 @@ private fun buildSections(
             type = "section",
             fields =
                 listOf(
-                    Field(
-                        text = "*Filnavn* \n$filnavn",
-                    ),
-                    Field(
-                        text = "*Dato* \n${LocalDate.now()}",
-                    ),
+                    Field(text = "*Filnavn* \n$filnavn"),
+                    Field(text = "*Dato* \n${LocalDate.now()}"),
                 ),
         )
 
     val feilmeldinger =
-        content.map { entry ->
-            entry.value.map { error ->
+        content.flatMap { (errorType, errors) ->
+            errors.map { error ->
                 Block(
                     type = "section",
                     fields =
                         listOf(
-                            Field(text = "*Feilmelding*\n${entry.key}"),
+                            Field(text = "*Feilmelding*\n$errorType"),
                             Field(text = "*Info*\n$error"),
                         ),
                 )
@@ -88,8 +88,20 @@ private fun buildSections(
     blocks.add(dividerBlock)
     blocks.add(filnavnBlock)
     blocks.add(dividerBlock)
-    feilmeldinger.forEach { blocks.addAll(it) }
+    blocks.addAll(feilmeldinger)
     blocks.add(dividerBlock)
-    blocks.add(dividerBlock)
+
+    if (taggedPeople.isNotEmpty()) {
+        val tagText =
+            buildString {
+                append("*Ansvarlige:* ${taggedPeople.joinToString(" ")}")
+                if (rutineLink != null) {
+                    append("\n*Rutine:* <$rutineLink|Klikk her for rutine>")
+                }
+            }
+        blocks.add(Block(type = "section", text = Text(type = "mrkdwn", text = tagText)))
+        blocks.add(dividerBlock)
+    }
+
     return blocks
 }
