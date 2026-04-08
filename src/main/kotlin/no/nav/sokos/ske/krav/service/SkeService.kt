@@ -274,6 +274,7 @@ class SkeService(
             requestResult.httpStatusCode,
             requestResult.krav,
             requestResult.kravidentifikator,
+            feilResponse,
         )
     }
 
@@ -291,11 +292,12 @@ class SkeService(
         status: HttpStatusCode,
         krav: Krav,
         kravidentifikator: String,
+        feilResponse: FeilResponse? = null,
     ) {
         val skeKravidentifikator =
             if (kravidentifikator == krav.saksnummerNAV || kravidentifikator == krav.referansenummerGammelSak) "" else kravidentifikator
 
-        val feilResponse = response.decodeTo<FeilResponse>() ?: FeilResponse("egendefinert", "Feil i parsing av http respons", status.value, response, "")
+        val resolvedFeilResponse = feilResponse ?: response.decodeTo<FeilResponse>() ?: FeilResponse("egendefinert", "Feil i parsing av http respons", status.value, response, "")
 
         dataSource.asyncTransaction { session ->
             val feilmelding =
@@ -305,8 +307,8 @@ class SkeService(
                     krav.corrId,
                     krav.saksnummerNAV,
                     skeKravidentifikator,
-                    feilResponse.status.toString(),
-                    feilResponse.detail,
+                    resolvedFeilResponse.status.toString(),
+                    resolvedFeilResponse.detail,
                     request,
                     response,
                     LocalDateTime.now(),
