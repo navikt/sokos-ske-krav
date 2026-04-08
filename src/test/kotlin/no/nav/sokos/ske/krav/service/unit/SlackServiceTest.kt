@@ -99,6 +99,66 @@ internal class SlackServiceTest :
             errorSlots[1]["ParseError"] shouldContainExactly listOf("Invalid syntax in line 10")
         }
 
+        test("sendErrors tagger riktige personer basert på kjent feiltype") {
+            val taggedPeopleSlot = mutableListOf<List<String>>()
+            val rutineLinkSlot = mutableListOf<String?>()
+
+            val slackClient =
+                mockk<SlackClient>(relaxed = true) {
+                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any()) } answers {
+                        taggedPeopleSlot.add(arg(3))
+                        rutineLinkSlot.add(arg(4))
+                    }
+                }
+
+            val slackService = SlackService(slackClient)
+            slackService.addError("fil.txt", "Valideringsfeil", mapOf("PERSON_ER_DOED" to listOf("Person er død")))
+            slackService.sendErrors()
+
+            taggedPeopleSlot[0] shouldContainExactly listOf("@lene.johannessen", "@trine.johansen")
+            rutineLinkSlot[0] shouldBe null
+        }
+
+        test("sendErrors tagger riktige personer og inkluderer rutinelenke for ORGANISASJON_ER_OPPHOERT") {
+            val taggedPeopleSlot = mutableListOf<List<String>>()
+            val rutineLinkSlot = mutableListOf<String?>()
+
+            val slackClient =
+                mockk<SlackClient>(relaxed = true) {
+                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any()) } answers {
+                        taggedPeopleSlot.add(arg(3))
+                        rutineLinkSlot.add(arg(4))
+                    }
+                }
+
+            val slackService = SlackService(slackClient)
+            slackService.addError("fil.txt", "Valideringsfeil", mapOf("ORGANISASJON_ER_OPPHOERT" to listOf("Organisasjon er opphørt")))
+            slackService.sendErrors()
+
+            taggedPeopleSlot[0] shouldContainExactly listOf("@marita.ragnvaldsdatt.karlsen", "@line.anita.edvardsen", "@steinar.hansen")
+            rutineLinkSlot[0] shouldBe "https://confluence.adeo.no/spaces/TOB/pages/791026050/Rutine+for+manuell+h%C3%A5ndtering+av+innkrevingskrav+til+skatteetaten+SKE"
+        }
+
+        test("sendErrors tagger ingen når feiltypen er ukjent") {
+            val taggedPeopleSlot = mutableListOf<List<String>>()
+            val rutineLinkSlot = mutableListOf<String?>()
+
+            val slackClient =
+                mockk<SlackClient>(relaxed = true) {
+                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any()) } answers {
+                        taggedPeopleSlot.add(arg(3))
+                        rutineLinkSlot.add(arg(4))
+                    }
+                }
+
+            val slackService = SlackService(slackClient)
+            slackService.addError("fil.txt", "Valideringsfeil", mapOf("UKJENT_FEIL" to listOf("Noe gikk galt")))
+            slackService.sendErrors()
+
+            taggedPeopleSlot[0] shouldBe emptyList()
+            rutineLinkSlot[0] shouldBe null
+        }
+
         test("consolidateErrors erstatter meldinger når det er >5 errors") {
             val headerSlots = mutableListOf<String>()
             val fileNameSlots = mutableListOf<String>()
