@@ -183,7 +183,6 @@ class SkeService(
 
         if (shouldAlert) {
             logger.warn { "Fant ikke gyldig kravidentifikator for migrert krav med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
-            slackErrorsHandled.add(krav.saksnummerNAV)
         }
     }
 
@@ -214,7 +213,6 @@ class SkeService(
 
         if (shouldAlert) {
             logger.warn { "Fikk 2xx fra SKE sitt avstemming-API, men kravidentifikator mangler i responsen for referansenummerGammelSak: ${krav.referansenummerGammelSak}" }
-            slackErrorsHandled.add(krav.saksnummerNAV)
         }
     }
 
