@@ -16,7 +16,7 @@ private const val MARITA = "<@UCG179DPT>"
 private const val LINE_ANITA = "<@U02AVNPT3T9>"
 private const val STEINAR = "<@U796MGBA9>"
 
-enum class Tags(
+private enum class Tags(
     val personer: List<String>,
     val rutineLink: String? = null,
 ) {

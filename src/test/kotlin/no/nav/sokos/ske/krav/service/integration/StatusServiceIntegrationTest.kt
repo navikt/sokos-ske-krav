@@ -77,7 +77,7 @@ internal class StatusServiceIntegrationTest :
             }
             Then("Alert skal ikke sendes") {
                 coVerify(exactly = 0) {
-                    slackClientSpy.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>())
+                    slackClientSpy.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any())
                 }
             }
         }
