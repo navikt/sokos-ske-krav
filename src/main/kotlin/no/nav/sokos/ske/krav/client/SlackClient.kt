@@ -19,12 +19,14 @@ class SlackClient(
         header: String,
         fileName: String,
         messages: Map<String, List<String>>,
+        taggedPeople: List<String> = emptyList(),
+        rutineLink: String? = null,
     ) {
         client
             .post {
                 url(slackEndpoint)
                 contentType(ContentType.Application.Json)
-                setBody(createSlackMessage(header, fileName, messages))
+                setBody(createSlackMessage(header, fileName, messages, taggedPeople, rutineLink))
             }
     }
 }
