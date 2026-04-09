@@ -90,10 +90,11 @@ class SkeService(
 
         files.forEach { file ->
             processFile(file)
-            sendKrav(databaseService.getAllUnsentKrav()).also { logResult(it) }
         }
 
         if (files.isNotEmpty()) {
+            updateSkeKravidentifikatorForEndringerAndStopp()
+            sendKrav(databaseService.getAllUnsentKrav()).also { logResult(it) }
             logger.info { "*** Ferdig med sending av ${files.size} $filtekst ***" }
         }
     }
@@ -106,8 +107,6 @@ class SkeService(
 
         databaseService.saveAllNewKrav(validatedLines, file.name)
         ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
-
-        updateSkeKravidentifikatorForEndringerAndStopp()
     }
 
     private suspend fun sendKrav(kravList: List<Krav>): List<RequestResult> {
