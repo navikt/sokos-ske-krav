@@ -53,6 +53,21 @@ internal class DefineStatusTest :
                     )
             }
 
+            test("Når response er 500 med ikke-parsebar body på mer enn 500 tegn skal detail truncate og inkludere total lengde") {
+                val longBody = "x".repeat(600)
+                val (status, feilResponse) = defineStatus(longBody, HttpStatusCode.InternalServerError)
+
+                status shouldBe Status.HTTP500_INTERN_TJENERFEIL
+                feilResponse shouldBe
+                    FeilResponse(
+                        type = FeilResponse.CustomTypes.FEIL_FRA_SERVER,
+                        title = "Feil fra SKE",
+                        status = 500,
+                        detail = "${"x".repeat(500)}... [600 tegn totalt]",
+                        instance = "",
+                    )
+            }
+
             test("Når responsekode er 400 skal krav ha status Status.UGYLDIG_FORESPORSEL_400") {
                 val expectedFeilResponse = createFeilResponse("ugyldig-foresporsel", 400)
                 val (status, feilResponse) = defineStatus(expectedFeilResponse.encodeToString(), HttpStatusCode.BadRequest)
