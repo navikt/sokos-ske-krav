@@ -23,7 +23,7 @@ object DBListener : TestListener {
     }
 
     private val container by lazy {
-        PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:16")).apply {
+        PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:16.6")).apply {
             withReuse(false)
             withUsername(PropertiesConfig.postgresConfig.adminUser)
             waitingFor(Wait.defaultWaitStrategy())
