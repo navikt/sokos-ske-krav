@@ -83,15 +83,37 @@ Rekkefølge:
 2. Henter alle krav med status `KRAV_IKKE_SENDT` og sender dem på nytt
 
 #### `sendNewFilesToSKE()` *(privat)*
-Itererer over alle validerte filer fra `FtpService`. For hver fil:
-1. Kaller `processFile()` – validerer linjer, lagrer i DB, flytter fil til `/outbound`, henter kravidentifikatorer for endringer/stopp
+Itererer over alle validerte filer fra `FtpService` og kaller `processFile()` for hver fil. Etter at alle filer er behandlet (og minst én fil ble funnet):
+1. Kaller `updateSkeKravidentifikatorForEndringerAndStopp()` – henter kravidentifikatorer for alle usendte endringer/stopp
 2. Sender alle usente krav via `sendKrav()`
 
 #### `processFile(fil)` *(privat)*
 1. Kjører linjevalidering via `LineValidator.validateNewLines()`
 2. Lagrer gyldige og ugyldige linjer i databasen
 3. Flytter filen til `/outbound`
-4. For krav som er endringer eller stopp: slår opp kravidentifikator i DB, og hvis ikke funnet, spør SKE sitt avstemming-API. Varsler på Slack dersom identifikator ikke kan finnes.
+
+#### `updateSkeKravidentifikatorForEndringerAndStopp()` *(privat)*
+Kjøres én gang per `handleNewKrav()`-runde, etter at alle filer er prosessert. Henter alle usente krav av typen `ENDRING_RENTE`, `ENDRING_HOVEDSTOL` og `STOPP_KRAV` med status `KRAV_IKKE_SENDT`. For hvert krav:
+1. Sjekker om SKE-kravidentifikator allerede finnes i DB – bruker den i så fall direkte
+2. Dersom ikke: kaller `getKravidentifikatorFromSkatt()` for å spørre SKE sitt avstemming-API
+3. Dersom kravidentifikator ble funnet: oppdaterer kravet i DB
+4. Dersom kravidentifikator ikke ble funnet:
+   - Oppdaterer status på kravet
+   - For 404-svar: kaller `handle404FromAvstemming()` for tilpasset Slack-varsling og feillogging
+   - For øvrige feilkoder (403, 500 osv.): legger til i resultat-listen som håndteres normalt av `handleErrors()`
+
+#### `getKravidentifikatorFromSkatt(krav)` *(privat)*
+Kaller `SkeClient.getSkeKravidentifikator()` med `referansenummerGammelSak`, leser respons-body én gang og kaller `defineStatus()` på den. Returnerer et `RequestResult` med:
+- `kravidentifikator`: hentet fra `AvstemmingResponse` ved suksess, ellers tom streng
+- `status`: `UKJENT_FEIL` dersom HTTP 200 men kravidentifikator er tom; ellers status fra `defineStatus()`
+
+#### `handle404FromAvstemming(requestResult, krav, slackErrorsHandled)` *(privat)*
+Håndterer 404-svar fra SKEs avstemming-API. Bruker `slackErrorsHandled`-settet for å sikre at det kun sendes én Slack-varsling per `saksnummerNAV`, selv om samme sak dukker opp i flere kravlinjer. Bygger en egendefinert `FeilResponse` med saksnummer og `referansenummerGammelSak` i `detail`-feltet, slik at feilen kan følges opp manuelt. Kaller alltid `handleError()` for å lagre feilmelding i DB.
+
+#### `handleError(requestResult, feilResponse)` *(privat)*
+Hjelpemetode som:
+1. Legger til Slack-feil (kun dersom `feilResponse` er ikke-null)
+2. Kaller `saveErrorMessage()` uansett – lagrer feilmelding i DB
 
 #### `checkKravDateForAlert()`
 Kjøres hvert 24. time. Henter alle krav i status `KRAV_SENDT`/`MOTTATT_UNDER_BEHANDLING` og varsler på Slack for hvert krav der `tidspunktSendt` er mer enn 24 timer siden.
@@ -313,6 +335,7 @@ Abstraksjonslag mellom serviceklassene og repositoriene. Alle databaseoperasjone
 | `getAllKravForAvstemming()`                                            | Returnerer krav med feilstatuser til bruk i rapportvisningen                                                                               |
 | `getAllKravForResending()`                                             | Returnerer krav med status `KRAV_IKKE_SENDT`                                                                                               |
 | `getAllUnsentKrav()`                                                   | Returnerer krav med status `KRAV_IKKE_SENDT` (brukes etter innlesing av ny fil)                                                            |
+| `getAllUnsentEndringerAndStopp()`                                      | Returnerer krav med status `KRAV_IKKE_SENDT` og kravtype `ENDRING_RENTE`, `ENDRING_HOVEDSTOL` eller `STOPP_KRAV` (brukes for å hente SKE-kravidentifikator via avstemming-API)             |
 | `updateStatus(mottakStatus, corrId)`                                   | Oppdaterer status på krav identifisert med `corrId`                                                                                        |
 | `updateEndringWithSkeKravIdentifikator(saksnummer, kravidentifikator)` | Lagrer SKEs kravidentifikator på endringskrav                                                                                              |
 | `updateStatusForAvstemtKravToReported(kravId)`                         | Markerer et krav som rapportert i avstemmingsvisningen                                                                                     |
