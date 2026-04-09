@@ -23,7 +23,7 @@ object DBListener : TestListener {
     }
 
     private val container by lazy {
-        PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:latest")).apply {
+        PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:16.6")).apply {
             withReuse(false)
             withUsername(PropertiesConfig.postgresConfig.adminUser)
             waitingFor(Wait.defaultWaitStrategy())
@@ -34,7 +34,7 @@ object DBListener : TestListener {
     val dataSource: HikariDataSource by lazy {
         container
             .toDataSource {
-                maximumPoolSize = 100
+                maximumPoolSize = 10
                 minimumIdle = 1
                 isAutoCommit = false
             }.also {
