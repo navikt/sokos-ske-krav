@@ -29,6 +29,11 @@ private enum class Tags(
     ),
     PERSON_ER_SLETTET(listOf(LENE, TRINE)),
     ORGANISASJON_ER_SLETTET(listOf(LENE, TRINE)),
+    ;
+
+    companion object {
+        val lookup: Map<String, Tags> = entries.associateBy { it.name }
+    }
 }
 
 class SlackService(
@@ -92,7 +97,7 @@ class SlackService(
         consolidateErrors()
         errorTracking.forEach { fileErrors ->
             fileErrors.headers.forEach { header ->
-                val matchedTags = header.errors.keys.mapNotNull { errorType -> Tags.entries.find { it.name == errorType } }
+                val matchedTags = header.errors.keys.mapNotNull { Tags.lookup[it] }
                 val taggedPeople = matchedTags.flatMap { it.personer }.distinct()
                 val rutineLink = matchedTags.firstNotNullOfOrNull { it.rutineLink }
                 slackClient.sendMessage(header.header, fileErrors.fileName, header.errors, taggedPeople, rutineLink)
