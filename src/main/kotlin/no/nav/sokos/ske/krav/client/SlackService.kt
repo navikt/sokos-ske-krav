@@ -10,6 +10,32 @@ internal data class FileErrors(
     val headers: MutableList<ErrorHeader>,
 )
 
+private const val LENE = "<@U08S6FA0XSS>"
+private const val TRINE = "<@UDCM6F8V8>"
+private const val MARITA = "<@UCG179DPT>"
+private const val LINE_ANITA = "<@U02AVNPT3T9>"
+private const val STEINAR = "<@U796MGBA9>"
+
+private enum class Tags(
+    val personer: List<String>,
+    val rutineLink: String? = null,
+) {
+    PERSON_EKSISTERER_IKKE(listOf(LENE, TRINE)),
+    PERSON_ER_DOED(listOf(LENE, TRINE)),
+    ORGANISASJONSNUMMER_FINNES_IKKE(listOf(LENE, TRINE)),
+    ORGANISASJON_ER_OPPHOERT(
+        listOf(MARITA, LINE_ANITA, STEINAR),
+        "https://confluence.adeo.no/spaces/TOB/pages/791026050/Rutine+for+manuell+h%C3%A5ndtering+av+innkrevingskrav+til+skatteetaten+SKE",
+    ),
+    PERSON_ER_SLETTET(listOf(LENE, TRINE)),
+    ORGANISASJON_ER_SLETTET(listOf(LENE, TRINE)),
+    ;
+
+    companion object {
+        val lookupMap: Map<String, Tags> = entries.associateBy { it.name }
+    }
+}
+
 class SlackService(
     private val slackClient: SlackClient = SlackClient(),
 ) {
@@ -71,7 +97,10 @@ class SlackService(
         consolidateErrors()
         errorTracking.forEach { fileErrors ->
             fileErrors.headers.forEach { header ->
-                slackClient.sendMessage(header.header, fileErrors.fileName, header.errors)
+                val matchedTags = header.errors.keys.mapNotNull { errorType -> Tags.lookupMap[errorType] }
+                val taggedPeople = matchedTags.flatMap { it.personer }.distinct()
+                val rutineLink = matchedTags.firstNotNullOfOrNull { it.rutineLink }
+                slackClient.sendMessage(header.header, fileErrors.fileName, header.errors, taggedPeople, rutineLink)
             }
         }
 
