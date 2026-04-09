@@ -149,9 +149,6 @@ class SkeService(
                 // Fra SKE vil vi få feilmeldingen "innkrevingsoppdrag eksisterer ikke" men vi ønsker mer tydelig informasjon samt informasjonen vi trenger for å kunne følge det opp manuelt.
                 if (requestResult.status == Status.HTTP404_FANT_IKKE_SAKSREF) {
                     handle404FromAvstemming(requestResult, krav, slackErrorsHandled)
-                } else if (requestResult.httpStatusCode.isSuccess()) {
-                    // 2xx fra SKE, men kravidentifikator mangler i responsen – lagre feilmelding og varsle Slack
-                    handle200FromAvstemming(requestResult, krav, slackErrorsHandled)
                 }
             }
         }
@@ -170,7 +167,7 @@ class SkeService(
             if (shouldAlert) {
                 FeilResponse(
                     type = requestResult.feilResponse?.type ?: KRAV_EKSISTERER_IKKE,
-                    title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR,
+                    title = "Fant ikke gyldig kravidentifikator for migrert krav",
                     status = requestResult.httpStatusCode.value,
                     detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
                     instance = requestResult.feilResponse?.instance ?: "custom",
@@ -182,36 +179,6 @@ class SkeService(
 
         if (shouldAlert) {
             logger.warn { "Fant ikke gyldig kravidentifikator for migrert krav med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
-        }
-    }
-
-    private suspend fun handle200FromAvstemming(
-        requestResult: RequestResult,
-        krav: Krav,
-        slackErrorsHandled: MutableSet<String>,
-    ) {
-        val shouldAlert = slackErrorsHandled.add(krav.saksnummerNAV)
-
-        handleError(
-            requestResult,
-            if (shouldAlert) {
-                FeilResponse(
-                    type = FeilResponse.CustomTypes.FEIL_FRA_SERVER,
-                    title = FeilResponse.CustomTitles.KRAVIDENTIFIKATOR_MANGLER_I_RESPONS,
-                    status = requestResult.httpStatusCode.value,
-                    detail =
-                        "Saksnummer: ${krav.saksnummerNAV} \n " +
-                            "ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n " +
-                            "Fikk 2xx fra SKE, men kravidentifikator mangler i responsen. Dette må følges opp manuelt.",
-                    instance = "custom",
-                )
-            } else {
-                null
-            },
-        )
-
-        if (shouldAlert) {
-            logger.warn { "Fikk 2xx fra SKE sitt avstemming-API, men kravidentifikator mangler i responsen for referansenummerGammelSak: ${krav.referansenummerGammelSak}" }
         }
     }
 

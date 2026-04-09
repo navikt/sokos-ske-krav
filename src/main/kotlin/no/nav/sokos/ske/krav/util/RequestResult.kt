@@ -3,12 +3,9 @@ package no.nav.sokos.ske.krav.util
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 
-import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
-
-private const val MAX_DETAIL_LENGTH = 500
 
 const val KRAV_ER_AVSKREVET = "innkrevingsoppdrag-er-avskrevet"
 const val KRAV_ER_ALLEREDE_AVSKREVET = "innkrevingsoppdrag-er-allerede-avskrevet"
@@ -40,24 +37,13 @@ private fun defineStatusWithError(
     httpStatus: HttpStatusCode,
 ): Pair<Status, FeilResponse?> {
     val feilResponse =
-        responseBody.decodeTo<FeilResponse>() ?: run {
-            logger.error(marker = TEAM_LOGS_MARKER) {
-                "Fikk ikke-parsbar respons fra SKE (${responseBody.length} tegn): $responseBody"
-            }
-            val truncatedDetail =
-                if (responseBody.length > MAX_DETAIL_LENGTH) {
-                    "${responseBody.take(MAX_DETAIL_LENGTH)}... [${responseBody.length} tegn totalt]"
-                } else {
-                    responseBody
-                }
-            FeilResponse(
-                type = FeilResponse.CustomTypes.FEIL_FRA_SERVER,
-                title = "Feil fra SKE",
-                status = httpStatus.value,
-                detail = truncatedDetail,
-                instance = "",
-            )
-        }
+        responseBody.decodeTo<FeilResponse>() ?: FeilResponse(
+            type = FeilResponse.CustomTypes.FEIL_FRA_SERVER,
+            title = "Feil fra SKE",
+            status = httpStatus.value,
+            detail = responseBody,
+            instance = "",
+        )
     val errorType = feilResponse.type
 
     val status =

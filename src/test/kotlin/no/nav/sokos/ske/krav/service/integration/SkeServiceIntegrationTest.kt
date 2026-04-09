@@ -207,29 +207,7 @@ internal class SkeServiceIntegrationTest :
                 }
             }
         }
-        Given("Vi mottar 200 uten kravidentifikator på avstemming") {
-            DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
-            SftpListener.putFiles(listOf("krav/TestEndringMedAvstemmingAvKravident.txt"), Directories.INBOUND)
-            val nyttKravKall = MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK)
-            val avstemmingKall = MockResponse(Endpoint.AVSTEMMING, avstemmingResponse(""), HttpStatusCode.OK)
-            val endreRenterKall = MockResponse(Endpoint.ENDRE_RENTER, nyEndringResponse(), HttpStatusCode.OK)
-            val endreHovedStolKall = MockResponse(Endpoint.ENDRE_HOVEDSTOL, nyEndringResponse(), HttpStatusCode.OK)
-            val mottaksstatusKall = MockResponse(Endpoint.MOTTAKSSTATUS, mottaksStatusResponse(status = Status.RESKONTROFOERT.value), HttpStatusCode.OK)
 
-            val httpClient =
-                MockHttpClient.client(nyttKravKall, endreRenterKall, endreHovedStolKall, mottaksstatusKall, avstemmingKall)
-            val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
-            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, DatabaseService(DBListener.dataSource), slackService = slackServiceSpy)
-
-            Then("skal feilmelding sendes til Slack én gang per endring") {
-                skeService.handleNewKrav()
-
-                coVerify(exactly = 2) {
-                    slackServiceSpy.addError(any(), any(), any<Pair<String, String>>())
-                }
-            }
-        }
         Given("Et krav feiler ") {
             DBListener.clearDB()
             SftpListener.putFiles(listOf("krav/TiNyeKrav.txt"), Directories.INBOUND)
