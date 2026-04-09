@@ -20,7 +20,7 @@ repositories {
 }
 
 val ktorVersion = "3.4.2"
-val jschVersion = "2.27.9"
+val jschVersion = "2.28.0"
 val nimbusVersion = "10.8"
 val kotlinxSerializationVersion = "1.10.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
@@ -31,7 +31,7 @@ val opentelemetryVersion = "2.26.1-alpha"
 
 // DB
 val hikaricpVersion = "7.0.2"
-val flywayVersion = "12.2.0"
+val flywayVersion = "12.3.0"
 val postgresqlVersion = "42.7.10"
 val kotliqueryVersion = "1.9.1"
 
