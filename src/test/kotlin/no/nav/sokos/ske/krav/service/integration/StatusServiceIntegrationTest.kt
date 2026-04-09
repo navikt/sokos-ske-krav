@@ -77,7 +77,7 @@ internal class StatusServiceIntegrationTest :
             }
             Then("Alert skal ikke sendes") {
                 coVerify(exactly = 0) {
-                    slackClientSpy.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>())
+                    slackClientSpy.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any())
                 }
             }
         }
@@ -136,7 +136,7 @@ internal class StatusServiceIntegrationTest :
                         val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
                         coVerify(exactly = 1) {
-                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot))
+                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<String>>(), any())
                         }
                         sendAlertFilenameSlot.captured shouldBe fileName
                         sendAlertMessagesSlot.captured shouldBe addErrorMessagesSlot.groupBy({ it.first }, { it.second })
