@@ -1,11 +1,15 @@
 package no.nav.sokos.ske.krav.database
 
+import java.math.BigDecimal
 import java.sql.SQLException
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeSelect
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeUpdate
 import no.nav.sokos.ske.krav.repository.RepositoryExtensions.getColumn
 import no.nav.sokos.ske.krav.repository.RepositoryExtensions.useAndHandleErrors
 import no.nav.sokos.ske.krav.repository.toFeilmelding
@@ -53,6 +57,18 @@ internal class RepositoryExtensionTest :
                         it.prepareStatement("""insert into foo values(1,2)""").execute()
                     }
                 }
+            }
+        }
+
+        test("withParameters skal binde BigDecimal med full presisjon via setBigDecimal") {
+            val highPrecisionValue = BigDecimal("123456789.1234567890")
+
+            DBListener.dataSource.connection.use { conn ->
+                conn.executeUpdate("CREATE TEMPORARY TABLE IF NOT EXISTS bigdecimal_precision_test (val NUMERIC(28, 10))")
+                conn.executeUpdate("INSERT INTO bigdecimal_precision_test (val) VALUES (?)", highPrecisionValue)
+                val rs = conn.executeSelect("SELECT val FROM bigdecimal_precision_test")
+                rs.next()
+                rs.getColumn<BigDecimal>("val").compareTo(highPrecisionValue) shouldBe 0
             }
         }
     })
