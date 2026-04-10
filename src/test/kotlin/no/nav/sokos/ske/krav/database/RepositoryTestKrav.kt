@@ -34,8 +34,9 @@ internal class RepositoryTestKrav :
     FunSpec({
         extensions(DBListener)
 
-        DBListener.loadInitScript("SQLscript/krav/KravForRepositoryTest.sql")
-        DBListener.loadInitScript("SQLscript/feilmeldinger/Feilmeldinger.sql")
+        beforeTest {
+            DBListener.loadInitScript("SQLscript/krav/KravForRepositoryTest.sql")
+        }
 
         test("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING") {
             DBListener.dataSource.connection.use { it.getAllKravForStatusCheck().size shouldBe 5 }
@@ -67,6 +68,8 @@ internal class RepositoryTestKrav :
         }
 
         test("getAllKravForAvstemming skal returnere alle krav som har en feilmelding med status rapporter=true") {
+            DBListener.loadInitScript("SQLscript/feilmeldinger/Feilmeldinger.sql")
+
             DBListener.dataSource.connection.use {
                 val kravForAvstemming = it.getAllKravForAvstemming()
                 kravForAvstemming.size shouldBe 4
@@ -151,6 +154,8 @@ internal class RepositoryTestKrav :
         }
 
         test("updateStatusForAvstemtKravToReported skal sette rapporter til false på krav med angitt kravid") {
+            DBListener.loadInitScript("SQLscript/feilmeldinger/Feilmeldinger.sql")
+
             val kravForAvstemmingBeforeUpdate = DBListener.dataSource.connection.use { it.getAllKravForAvstemming() }
             val firstKrav = kravForAvstemmingBeforeUpdate.first()
             val lastKrav = kravForAvstemmingBeforeUpdate.last()
@@ -222,5 +227,9 @@ internal class RepositoryTestKrav :
                 lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.size shouldBe 1 + kravBefore.filter { it.kravtype == ENDRING_RENTE }.size
                 lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.size shouldBe 1 + kravBefore.filter { it.kravtype == ENDRING_HOVEDSTOL }.size
             }
+        }
+
+        afterTest {
+            DBListener.clearDB()
         }
     })
