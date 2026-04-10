@@ -14,7 +14,9 @@ internal class RepositoryTestFeilmelding :
     FunSpec({
         extensions(DBListener)
 
-        DBListener.loadInitScript("SQLscript/feilmeldinger/Feilmeldinger.sql")
+        beforeTest {
+            DBListener.loadInitScript("SQLscript/feilmeldinger/Feilmeldinger.sql")
+        }
 
         test("getAllFeilmeldinger skal returnere alle feilmeldinger ") {
             DBListener.dataSource.transaction { tx ->
@@ -70,5 +72,9 @@ internal class RepositoryTestFeilmelding :
                     }
                 }
             }
+        }
+
+        afterTest {
+            DBListener.clearDB()
         }
     })
