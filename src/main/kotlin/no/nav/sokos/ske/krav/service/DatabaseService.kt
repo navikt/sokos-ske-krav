@@ -11,6 +11,7 @@ import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.metrics.Metrics
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.deleteOldFilValideringsfeil
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertFileValideringsfeil
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertLineFilValideringsfeil
@@ -127,8 +128,9 @@ class DatabaseService(
         val threshold = LocalDate.now().minusYears(10)
         dataSource.connection.useAndHandleErrors {
             val kravDeleted = it.deleteOldKrav(threshold)
+            val filValideringsfeilDeleted = it.deleteOldFilValideringsfeil(threshold)
 
-            logger.info { "Slettet $kravDeleted krav" }
+            logger.info { "Slettet $kravDeleted krav og $filValideringsfeilDeleted filvalideringsfeil" }
         }
     }
 
