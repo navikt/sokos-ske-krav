@@ -11,6 +11,7 @@ import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
+import no.nav.sokos.ske.krav.repository.KravRepository.deleteOldKrav
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForAvstemming
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForResending
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForStatusCheck
@@ -113,7 +114,6 @@ internal class RepositoryTestKrav :
                 originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
                 con.updateSentKrav("CORR457387", "TESTSTATUS")
-
                 val updatedKrav = con.getAllKrav().first { it.corrId == "CORR457387" }
                 updatedKrav.status shouldBe "TESTSTATUS"
                 updatedKrav.tidspunktSendt!!.toLocalDate() shouldBe LocalDate.now()
@@ -130,7 +130,6 @@ internal class RepositoryTestKrav :
                 originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
                 con.updateSentKrav("CORR83985902", "NykravidentSke", "TESTSTATUS")
-
                 val updatedKrav = con.getAllKrav().first { it.corrId == "CORR83985902" }
                 updatedKrav.status shouldBe "TESTSTATUS"
                 updatedKrav.kravidentifikatorSKE shouldBe "NykravidentSke"
@@ -146,7 +145,6 @@ internal class RepositoryTestKrav :
                 originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
                 con.updateStatus("NY_STATUS", "CORR457389")
-
                 val updatedKrav = con.getAllKrav().first { it.corrId == "CORR457389" }
                 updatedKrav.status shouldBe "NY_STATUS"
                 updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
@@ -166,7 +164,6 @@ internal class RepositoryTestKrav :
             DBListener.dataSource.connection.use {
                 it.updateStatusForAvstemtKravToReported(lastKrav.kravId.toInt())
             }
-
             val kravForAvstemmingAfterUpdate = DBListener.dataSource.connection.use { it.getAllKravForAvstemming() }
             kravForAvstemmingAfterUpdate.size shouldBe kravForAvstemmingBeforeUpdate.size - 2
 
@@ -185,7 +182,6 @@ internal class RepositoryTestKrav :
                 originalNyttKrav.kravidentifikatorSKE shouldBe "7777-skeUUID"
 
                 con.updateEndringWithSkeKravIdentifikator("7770-navsaksnummer", "Ny_ske_saksnummer")
-
                 val updatedNyttKrav = con.getAllKrav().first { it.saksnummerNAV == "7770-navsaksnummer" }
                 updatedNyttKrav.kravidentifikatorSKE shouldBe "7777-skeUUID"
             }
@@ -195,7 +191,6 @@ internal class RepositoryTestKrav :
                 originalStoppKrav.kravidentifikatorSKE shouldBe "3333-skeUUID"
 
                 con.updateEndringWithSkeKravIdentifikator("3330-navsaksnummer", "Ny_ske_saksnummer")
-
                 val updatedStoppKrav = con.getAllKrav().first { it.saksnummerNAV == "3330-navsaksnummer" }
                 updatedStoppKrav.kravidentifikatorSKE shouldBe "Ny_ske_saksnummer"
             }
@@ -205,7 +200,6 @@ internal class RepositoryTestKrav :
                 originalEndreKrav.kravidentifikatorSKE shouldBe "1111-skeUUID"
 
                 con.updateEndringWithSkeKravIdentifikator("2220-navsaksnummer", "Ny_ske_saksnummer")
-
                 val updatedEndreKrav = con.getAllKrav().first { it.saksnummerNAV == "3330-navsaksnummer" }
                 updatedEndreKrav.kravidentifikatorSKE shouldBe "Ny_ske_saksnummer"
             }
@@ -226,6 +220,17 @@ internal class RepositoryTestKrav :
                 lagredeKrav.filter { it.kravtype == STOPP_KRAV }.size shouldBe 1 + kravBefore.filter { it.kravtype == STOPP_KRAV }.size
                 lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.size shouldBe 1 + kravBefore.filter { it.kravtype == ENDRING_RENTE }.size
                 lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.size shouldBe 1 + kravBefore.filter { it.kravtype == ENDRING_HOVEDSTOL }.size
+            }
+        }
+
+        test("deleteOldKrav skal slette alle kravene som ble opprettet før en spesifisert tid") {
+            DBListener.clearDB()
+            DBListener.loadInitScript("SQLscript/krav/KravForRepositoryTest.sql")
+
+            DBListener.dataSource.connection.use { con ->
+                val threshold = LocalDate.parse("2023-01-02")
+                val kravDeleted = con.deleteOldKrav(threshold)
+                kravDeleted shouldBe 17
             }
         }
 
