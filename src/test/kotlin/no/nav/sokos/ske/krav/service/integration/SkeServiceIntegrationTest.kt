@@ -214,7 +214,6 @@ internal class SkeServiceIntegrationTest :
                             .executeQuery()
                             .toFeilmelding()
                     }
-                println(feilmeldinger)
                 feilmeldinger.forEach {
 
                     it.melding.shouldContain(Regex("Innkrevingsoppdrag med referansenummerGammelSak .+ eksister ikke"))
