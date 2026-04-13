@@ -1,5 +1,6 @@
 package no.nav.sokos.ske.krav.database
 
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 import io.kotest.core.spec.style.FunSpec
@@ -71,6 +72,14 @@ internal class RepositoryTestFeilmelding :
                         saksnummerNav shouldBe feilmelding.saksnummerNav
                     }
                 }
+            }
+        }
+
+        test("deleteOldFeilmeldinger skal slette alle feilmeldingene som ble opprettet før en spesifisert tid") {
+            DBListener.dataSource.transaction { tx ->
+                val threshold = LocalDate.parse("2023-01-02")
+                val feilmeldingDeleted = FeilmeldingRepository.deleteOldFeilmeldinger(tx, threshold)
+                feilmeldingDeleted shouldBe 2
             }
         }
 
