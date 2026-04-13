@@ -26,6 +26,7 @@ internal class StonadsTypeTest :
                 Pair("BA OR", "T") to StonadsType.TILBAKEKREVING_BARNETRYGD,
                 Pair("BS OM", "T") to StonadsType.TILBAKEKREVING_OMSORGSPENGER,
                 Pair("BS PN", "T") to StonadsType.TILBAKEKREVING_PLEIEPENGER_BARN,
+                Pair("BS PB", "T") to StonadsType.TILBAKEKREVING_PLEIEPENGER_BARN,
                 Pair("BS PP", "T") to StonadsType.TILBAKEKREVING_PLEIEPENGER_NAERSTAAENDE,
                 Pair("EF BT", "T") to StonadsType.TILBAKEKREVING_STOENAD_TIL_BARNETILSYN,
                 Pair("EF OG", "T") to StonadsType.TILBAKEKREVING_OVERGANGSSTOENAD,
