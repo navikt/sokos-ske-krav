@@ -246,8 +246,17 @@ SELECT * FROM (
 -- Add column with default (instant in PostgreSQL 11+)
 ALTER TABLE stor_tabell ADD COLUMN ny_kolonne BOOLEAN DEFAULT false;
 
--- Create index without locking
-CREATE INDEX CONCURRENTLY idx_ny ON stor_tabell(ny_kolonne);
+-- Standard Flyway migration (runs in a transaction)
+CREATE INDEX idx_ny ON stor_tabell(ny_kolonne);
+
+-- Use CREATE INDEX CONCURRENTLY only in its own dedicated migration
+-- with no other statements in the file.
+-- Example Flyway migration:
+--      V5__add_idx_ny_concurrently.sql
+-- Example migration content:
+--      CREATE INDEX CONCURRENTLY idx_ny ON stor_tabell(ny_kolonne);
+-- This migration must run without being wrapped in a transaction,
+-- so configure Flyway's transaction handling accordingly for your setup.
 ```
 
 ## Testing Migrations
