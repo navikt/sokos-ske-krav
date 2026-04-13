@@ -164,17 +164,14 @@ class SkeService(
 
         handleError(
             requestResult,
-            if (shouldAlert) {
-                FeilResponse(
-                    type = requestResult.feilResponse?.type ?: KRAV_EKSISTERER_IKKE,
-                    title = "Fant ikke gyldig kravidentifikator for migrert krav",
-                    status = requestResult.httpStatusCode.value,
-                    detail = "Saksnummer: ${krav.saksnummerNAV} \n ReferansenummerGammelSak: ${krav.referansenummerGammelSak} \n Dette må følges opp manuelt",
-                    instance = requestResult.feilResponse?.instance ?: "custom",
-                )
-            } else {
-                null
-            },
+            FeilResponse(
+                type = requestResult.feilResponse?.type ?: KRAV_EKSISTERER_IKKE,
+                title = "Fant ikke gyldig kravidentifikator for migrert krav",
+                status = requestResult.httpStatusCode.value,
+                detail = "Innkrevingsoppdrag med referansenummerGammelSak ${krav.referansenummerGammelSak} eksister ikke. \n Nav-Saksnummer: ${krav.saksnummerNAV} \n  Dette må følges opp manuelt",
+                instance = requestResult.feilResponse?.instance ?: "custom",
+            ),
+            shouldAlert,
         )
 
         if (shouldAlert) {
@@ -228,9 +225,10 @@ class SkeService(
     private suspend fun handleError(
         requestResult: RequestResult,
         feilResponse: FeilResponse?,
+        shouldAlert: Boolean = true,
     ) {
-        feilResponse?.let {
-            val errorPair = Pair(feilResponse.title, feilResponse.detail)
+        if (shouldAlert) {
+            val errorPair = feilResponse?.let { Pair(feilResponse.title, feilResponse.detail) } ?: Pair("Ukjent feil", "Kunne ikke parse feilresponse")
             slackService.addError(requestResult.krav.filnavn, "Feil fra SKE", errorPair)
         }
 

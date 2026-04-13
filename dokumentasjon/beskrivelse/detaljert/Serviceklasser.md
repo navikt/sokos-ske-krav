@@ -108,11 +108,11 @@ Kaller `SkeClient.getSkeKravidentifikator()` med `referansenummerGammelSak`, les
 - `status`: `UKJENT_FEIL` dersom HTTP 200 men kravidentifikator er tom; ellers status fra `defineStatus()`
 
 #### `handle404FromAvstemming(requestResult, krav, slackErrorsHandled)` *(privat)*
-Håndterer 404-svar fra SKEs avstemming-API. Bruker `slackErrorsHandled`-settet for å sikre at det kun sendes én Slack-varsling per `saksnummerNAV`, selv om samme sak dukker opp i flere kravlinjer. Bygger en egendefinert `FeilResponse` med saksnummer og `referansenummerGammelSak` i `detail`-feltet, slik at feilen kan følges opp manuelt. Kaller alltid `handleError()` for å lagre feilmelding i DB.
+Håndterer 404-svar fra SKEs avstemming-API. Bruker `slackErrorsHandled`-settet for å sikre at det kun sendes én Slack-varsling per `saksnummerNAV`, selv om samme sak dukker opp i flere kravlinjer. Beregner `shouldAlert` via `slackErrorsHandled.add(krav.saksnummerNAV)` – returnerer `true` kun første gang en gitt `saksnummerNAV` legges til. Bygger en egendefinert `FeilResponse` med saksnummer og `referansenummerGammelSak` i `detail`-feltet, slik at feilen kan følges opp manuelt. Kaller alltid `handleError()` (med `shouldAlert`) for å lagre feilmelding i DB og eventuelt varsle på Slack. Dersom `shouldAlert` er `true` logges det i tillegg en `warn` med `referansenummerGammelSak`.
 
-#### `handleError(requestResult, feilResponse)` *(privat)*
+#### `handleError(requestResult, feilResponse, shouldAlert = true)` *(privat)*
 Hjelpemetode som:
-1. Legger til Slack-feil (kun dersom `feilResponse` er ikke-null)
+1. Legger til Slack-feil dersom `shouldAlert == true`
 2. Kaller `saveErrorMessage()` uansett – lagrer feilmelding i DB
 
 #### `checkKravDateForAlert()`

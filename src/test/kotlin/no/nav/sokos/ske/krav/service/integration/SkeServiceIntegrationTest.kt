@@ -3,6 +3,7 @@ package no.nav.sokos.ske.krav.service.integration
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -204,6 +205,19 @@ internal class SkeServiceIntegrationTest :
 
                 coVerify(exactly = 2) {
                     slackServiceSpy.addError(any(), any(), any<Pair<String, String>>())
+                }
+
+                val feilmeldinger =
+                    DBListener.dataSource.connection.use {
+                        it
+                            .prepareStatement("SELECT * FROM feilmelding")
+                            .executeQuery()
+                            .toFeilmelding()
+                    }
+                println(feilmeldinger)
+                feilmeldinger.forEach {
+
+                    it.melding.shouldContain(Regex("Innkrevingsoppdrag med referansenummerGammelSak .+ eksister ikke"))
                 }
             }
         }
