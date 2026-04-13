@@ -21,7 +21,7 @@ repositories {
 
 val ktorVersion = "3.4.2"
 val jschVersion = "2.28.0"
-val nimbusVersion = "10.8"
+val nimbusVersion = "10.9"
 val kotlinxSerializationVersion = "1.10.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
@@ -36,7 +36,7 @@ val postgresqlVersion = "42.7.10"
 val kotliqueryVersion = "1.9.1"
 
 // Test
-val kotestVersion = "6.1.10"
+val kotestVersion = "6.1.11"
 
 val mockkVersion = "1.14.9"
 val commonsVersion = "3.13.0"
