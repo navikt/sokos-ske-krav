@@ -168,7 +168,7 @@ class SkeService(
                 type = requestResult.feilResponse?.type ?: KRAV_EKSISTERER_IKKE,
                 title = "Fant ikke gyldig kravidentifikator for migrert krav",
                 status = requestResult.httpStatusCode.value,
-                detail = "Innkrevingsoppdrag med referansenummerGammelSak ${krav.referansenummerGammelSak} eksister ikke. \n Nav-Saksnummer: ${krav.saksnummerNAV} \n  Dette må følges opp manuelt",
+                detail = "Innkrevingsoppdrag med referansenummerGammelSak ${krav.referansenummerGammelSak} eksisterer ikke. \n Nav-Saksnummer: ${krav.saksnummerNAV} \n  Dette må følges opp manuelt",
                 instance = requestResult.feilResponse?.instance ?: "custom",
             ),
             shouldAlert,

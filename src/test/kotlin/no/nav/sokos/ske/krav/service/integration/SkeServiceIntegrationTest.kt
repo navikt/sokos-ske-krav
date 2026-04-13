@@ -216,7 +216,7 @@ internal class SkeServiceIntegrationTest :
                     }
                 feilmeldinger.forEach {
 
-                    it.melding.shouldContain(Regex("Innkrevingsoppdrag med referansenummerGammelSak .+ eksister ikke"))
+                    it.melding.shouldContain(Regex("Innkrevingsoppdrag med referansenummerGammelSak .+ eksisterer ikke"))
                 }
             }
         }
