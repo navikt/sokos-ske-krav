@@ -21,6 +21,17 @@ val jsonConfig =
         encodeDefaults = true
         explicitNulls = false
     }
+
+val slackHttpClient =
+    HttpClient(Apache5) {
+        expectSuccess = false
+        install(ContentNegotiation) { json(jsonConfig) }
+        engine {
+            customizeClient {
+                setRoutePlanner(SystemDefaultRoutePlanner(ProxySelector.getDefault()))
+            }
+        }
+    }
 val httpClient =
     HttpClient(Apache5) {
         expectSuccess = false
