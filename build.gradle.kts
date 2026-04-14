@@ -128,6 +128,10 @@ configurations.all {
                 useVersion("2.21.1")
                 because("jackson-core: Number Length Constraint Bypass in Async Parser Leads to Potential DoS Condition. Affected version >= 2.19.0, < 2.21.1")
             }
+            if (requested.group == "tools.jackson.core" && requested.name == "jackson-core") {
+                useVersion("3.1.1")
+                because("Jackson Core: Document length constraint bypass in blocking, async, and DataInput parsers. Affected version >= 3.0.0, <= 3.1.0")
+            }
             if (requested.group == "org.eclipse.jetty" && requested.name == "jetty-server") {
                 useVersion("9.4.57.v20241219")
                 because("Eclipse Jetty's ThreadLimitHandler.getRemote() vulnerable to remote DoS attacks. Affected version >= 9.3.12, <= 9.4.55")
