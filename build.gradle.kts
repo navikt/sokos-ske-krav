@@ -21,7 +21,7 @@ repositories {
 
 val ktorVersion = "3.4.2"
 val jschVersion = "2.28.0"
-val nimbusVersion = "10.8"
+val nimbusVersion = "10.9"
 val kotlinxSerializationVersion = "1.10.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
@@ -36,7 +36,7 @@ val postgresqlVersion = "42.7.10"
 val kotliqueryVersion = "1.9.1"
 
 // Test
-val kotestVersion = "6.1.10"
+val kotestVersion = "6.1.11"
 
 val mockkVersion = "1.14.9"
 val commonsVersion = "3.13.0"
@@ -127,6 +127,10 @@ configurations.all {
             if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-core") {
                 useVersion("2.21.1")
                 because("jackson-core: Number Length Constraint Bypass in Async Parser Leads to Potential DoS Condition. Affected version >= 2.19.0, < 2.21.1")
+            }
+            if (requested.group == "tools.jackson.core" && requested.name == "jackson-core") {
+                useVersion("3.1.1")
+                because("Jackson Core: Document length constraint bypass in blocking, async, and DataInput parsers. Affected version >= 3.0.0, <= 3.1.0")
             }
             if (requested.group == "org.eclipse.jetty" && requested.name == "jetty-server") {
                 useVersion("9.4.57.v20241219")

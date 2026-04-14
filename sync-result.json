@@ -1,0 +1,16 @@
+{
+  "up_to_date": false,
+  "source": "40fc4a9",
+  "updates": [
+    {
+      "path": ".github/instructions/database.instructions.md",
+      "current_hash": "ed0e2a233cb97ab3",
+      "source_hash": "aa0f7bd2de1e3d64"
+    },
+    {
+      "path": ".github/skills/kotlin-app-config/",
+      "current_hash": "036ac3b8f54978cb",
+      "source_hash": "a7f564fa07377a83"
+    }
+  ]
+}
