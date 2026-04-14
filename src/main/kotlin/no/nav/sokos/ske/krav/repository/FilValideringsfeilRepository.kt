@@ -10,19 +10,6 @@ import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeUpdate
 import no.nav.sokos.ske.krav.repository.RepositoryExtensions.withParameters
 
 object FilValideringsfeilRepository {
-    fun Connection.getFilValideringsFeilForLinje(
-        filNavn: String,
-        linjeNummer: Int,
-    ): List<FilValideringsfeil> =
-        executeSelect(
-            """
-            select * from filvalideringsfeil
-            where filnavn = ? and linjenummer = ?
-            """,
-            filNavn,
-            linjeNummer,
-        ).toValideringsfeil()
-
     fun Connection.getFilValideringsFeilForFil(filNavn: String): List<FilValideringsfeil> =
         executeSelect(
             """
