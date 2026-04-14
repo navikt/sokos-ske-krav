@@ -104,7 +104,9 @@ Hovedtabellen som lagrer innkommende krav fra SKE. Hvert krav representerer én 
 | `tilleggsfrist`            | date        | Eventuell tilleggsfrist for kravet *(lagt til i V1.0.4)* |
 | `avsender`                 | text        | Avsender av kravet, f.eks. `OB04` *(lagt til i V1.0.5)*  |
 
-**Indekser:** `idxstatus` på kolonnen `status`.
+**Indekser:** 
+  - `idxstatus` på kolonnen `status`.
+  - `idx_krav_opprettet` på kolonnen `tidspunkt_opprettet`.
 
 ---
 
@@ -126,6 +128,8 @@ Lagrer feilmeldinger som oppstår ved behandling av krav mot NAV/SKE sine system
 | `tidspunkt_opprettet`   | timestamp | Tidspunkt feilmeldingen ble opprettet (default: NOW())           |
 | `rapporter`             | boolean   | Om feilen skal rapporteres (default: true) *(lagt til i V1.0.1)* |
 
+**Indekser:** `idx_feilmelding_opprettet` på kolonnen `tidspunkt_opprettet`.
+
 ---
 
 ### `filvalideringsfeil`
@@ -143,17 +147,19 @@ Lagrer valideringsfeil oppdaget ved innlesing av filer, før kravene sendes til 
 | `tidspunkt_opprettet` | timestamp | Tidspunkt feilen ble registrert (default: NOW())                 |
 | `rapporter`           | boolean   | Om feilen skal rapporteres (default: true) *(lagt til i V1.0.2)* |
 
+**Indekser:** `idx_valideringsfeil_opprettet` på kolonnen `tidspunkt_opprettet`.
+
 ---
 
 ## Migrasjonshistorikk
 
-| Versjon | Fil                                                           | Beskrivelse                                                                                          |
-|---------|---------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
-| V1.0.0  | `V1.0.0__create_tables.sql`                                   | Opprettelse av tabellene `krav`, `feilmelding` og `valideringsfeil`                                  |
-| V1.0.1  | `V1.0.1__ny_kolonne_rapporter_i_feilmelding.sql`              | Ny kolonne `rapporter` i `feilmelding`                                                               |
-| V1.0.2  | `V1.0.2__ny_kolonne_rapporter_i_valideringsfeil.sql`          | Ny kolonne `rapporter` i `valideringsfeil`                                                           |
-| V1.0.3  | `V1.0.3__rename_valideringsfeil_til_filvalidateringsfeil.sql` | Omdøper `valideringsfeil` til `filvalideringsfeil` (tabellnavn i kode og DB er `filvalideringsfeil`) |
-| V1.0.4  | `V1.0.4__ny_kolonne_tilleggsfrist_i_krav.sql`                 | Ny kolonne `tilleggsfrist` i `krav`                                                                  |
-| V1.0.5  | `V1.0.5__ny_kolonne_avsender_i_krav.sql`                      | Ny kolonne `avsender` i `krav`                                                                       |
-| V1.0.6  | `V1.0.6__oppdater_avsender_kolonne_med_OB04.sql`              | Setter `avsender = 'OB04'` for eksisterende rader der verdien er null                                |
-
+| Versjon | Fil                                                           | Beskrivelse                                                                                                |
+|---------|---------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
+| V1.0.0  | `V1.0.0__create_tables.sql`                                   | Opprettelse av tabellene `krav`, `feilmelding` og `valideringsfeil`                                        |
+| V1.0.1  | `V1.0.1__ny_kolonne_rapporter_i_feilmelding.sql`              | Ny kolonne `rapporter` i `feilmelding`                                                                     |
+| V1.0.2  | `V1.0.2__ny_kolonne_rapporter_i_valideringsfeil.sql`          | Ny kolonne `rapporter` i `valideringsfeil`                                                                 |
+| V1.0.3  | `V1.0.3__rename_valideringsfeil_til_filvalidateringsfeil.sql` | Omdøper `valideringsfeil` til `filvalideringsfeil` (tabellnavn i kode og DB er `filvalideringsfeil`)       |
+| V1.0.4  | `V1.0.4__ny_kolonne_tilleggsfrist_i_krav.sql`                 | Ny kolonne `tilleggsfrist` i `krav`                                                                        |
+| V1.0.5  | `V1.0.5__ny_kolonne_avsender_i_krav.sql`                      | Ny kolonne `avsender` i `krav`                                                                             |
+| V1.0.6  | `V1.0.6__oppdater_avsender_kolonne_med_OB04.sql`              | Setter `avsender = 'OB04'` for eksisterende rader der verdien er null                                      |
+| V1.0.7  | `V1.0.7__nye_indekser.sql`                                    | Ny indekser for tabellene `krav`, `feilmelding` og `filvalideringsfeil` på kolonnene `tidspunkt_opprettet` |
