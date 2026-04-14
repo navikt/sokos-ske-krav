@@ -224,9 +224,6 @@ internal class RepositoryTestKrav :
         }
 
         test("deleteOldKrav skal slette alle kravene som ble opprettet før en spesifisert tid") {
-            DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/krav/KravForRepositoryTest.sql")
-
             DBListener.dataSource.connection.use { con ->
                 val threshold = LocalDate.parse("2023-01-02")
                 val kravDeleted = con.deleteOldKrav(threshold)
