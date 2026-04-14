@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.deleteOldFilValideringsfeil
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForLinje
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertFileValideringsfeil
@@ -19,7 +20,9 @@ internal class RepositoryTestFilValideringsfeil :
     FunSpec({
         extensions(DBListener)
 
-        DBListener.loadInitScript("SQLscript/validering/FilValideringsFeil.sql")
+        beforeTest {
+            DBListener.loadInitScript("SQLscript/validering/FilValideringsFeil.sql")
+        }
 
         test("getValideringsFeilForFil skal returnere valideringsfeil basert på filnavn") {
             DBListener.dataSource.connection.use { con ->
@@ -158,5 +161,18 @@ internal class RepositoryTestFilValideringsfeil :
                     }
                 }
             }
+        }
+
+        test("deleteOldFilValideringsFeil skal slette alle filvalideringsfeil som ble opprettet før en spesifisert tid") {
+            DBListener.dataSource.connection.use { con ->
+                val threshold = LocalDate.parse("2023-01-02")
+                val filValideringsfeilDeleted = con.deleteOldFilValideringsfeil(threshold)
+
+                filValideringsfeilDeleted shouldBe 2
+            }
+        }
+
+        afterTest {
+            DBListener.clearDB()
         }
     })

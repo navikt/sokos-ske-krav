@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.repository
 
+import java.time.LocalDate
+
 import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
@@ -61,6 +63,19 @@ object FeilmeldingRepository {
             )
         },
     )
+
+    fun deleteOldFeilmeldinger(
+        tx: TransactionalSession,
+        threshold: LocalDate,
+    ): Int =
+        tx.update(
+            queryOf(
+                """
+                delete from feilmelding where tidspunkt_opprettet < ?
+                """.trimIndent(),
+                threshold,
+            ),
+        )
 
     private val mapToFeilmelding: (Row) -> Feilmelding = { row ->
         Feilmelding(
