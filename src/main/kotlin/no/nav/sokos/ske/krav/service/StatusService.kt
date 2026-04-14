@@ -29,7 +29,7 @@ class StatusService(
     private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
     private val skeClient: SkeClient = SkeClient(),
     private val databaseService: DatabaseService = DatabaseService(),
-    private val slackService: SlackService = SlackService(),
+    private val slackService: SlackService = SlackService.instance,
 ) {
     suspend fun getMottaksStatus() {
         val kravListe = databaseService.getAllKravForStatusCheck()

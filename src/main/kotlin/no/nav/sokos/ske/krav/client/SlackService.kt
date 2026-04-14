@@ -106,4 +106,8 @@ class SlackService(
 
         errorTracking.clear()
     }
+
+    companion object {
+        val instance: SlackService by lazy { SlackService() }
+    }
 }

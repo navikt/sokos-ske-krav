@@ -10,7 +10,7 @@ import no.nav.sokos.ske.krav.service.FtpFil
 private val logger = mu.KotlinLogging.logger {}
 
 class LineValidator(
-    private val slackService: SlackService = SlackService(),
+    private val slackService: SlackService = SlackService.instance,
 ) {
     suspend fun validateNewLines(
         file: FtpFil,

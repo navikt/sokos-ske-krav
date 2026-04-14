@@ -43,7 +43,7 @@ class SkeService(
     private val stoppKravService: StoppKravService = StoppKravService(skeClient, databaseService),
     private val endreKravService: EndreKravService = EndreKravService(skeClient, databaseService),
     private val opprettKravService: OpprettKravService = OpprettKravService(skeClient, databaseService),
-    private val slackService: SlackService = SlackService(),
+    private val slackService: SlackService = SlackService.instance,
     private val ftpService: FtpService = FtpService(),
 ) {
     private var haltRun = false

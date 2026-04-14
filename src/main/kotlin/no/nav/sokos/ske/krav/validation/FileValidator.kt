@@ -10,7 +10,7 @@ import no.nav.sokos.ske.krav.domain.Avsender
 private val logger = mu.KotlinLogging.logger {}
 
 class FileValidator(
-    private val slackService: SlackService = SlackService(),
+    private val slackService: SlackService = SlackService.instance,
 ) {
     object ErrorKeys {
         const val PARSE_EXCEPTION = "Exception i parsing av fil"
