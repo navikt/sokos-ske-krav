@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.mockk.coVerify
+import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
 
@@ -19,7 +20,6 @@ import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValid
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
-import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages
 import no.nav.sokos.ske.krav.validation.LineValidationRules.errorDate
@@ -29,20 +29,20 @@ internal class LineValidatorIntegrationTest :
         extensions(SftpListener, DBListener)
 
         fun setupServices(): Triple<SlackClient, SlackService, LineValidator> {
-            val slackClientSpy = spyk(SlackClient(client = MockHttpClient.slackClient))
-            val slackServiceSpy = spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
+            val slackClient = mockk<SlackClient>(relaxed = true)
+            val slackServiceSpy = spyk(SlackService(slackClient), recordPrivateCalls = true)
             val lineValidatorSpy = spyk(LineValidator(slackService = slackServiceSpy), recordPrivateCalls = true)
-            return Triple(slackClientSpy, slackServiceSpy, lineValidatorSpy)
+            return Triple(slackClient, slackServiceSpy, lineValidatorSpy)
         }
 
         fun setupFtpService(
             dbService: DatabaseService,
-            slackServiceSpy: SlackService,
-        ): FtpService = FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(slackService = slackServiceSpy), databaseService = dbService)
+            slackService: SlackService,
+        ): FtpService = FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(slackService = slackService), databaseService = dbService)
 
         Given("Alle linjer er ok") {
             val dbService = DatabaseService(DBListener.dataSource)
-            val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
+            val (slackClient, slackServiceSpy, lineValidatorSpy) = setupServices()
             val ftpService = setupFtpService(dbService, slackServiceSpy)
             val fileName = "AllValideringOk.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
@@ -70,7 +70,7 @@ internal class LineValidatorIntegrationTest :
                     }
                     Then("Alert skal ikke sendes") {
                         coVerify(exactly = 0) {
-                            slackClientSpy.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any())
+                            slackClient.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any())
                         }
                     }
                 }
@@ -79,7 +79,7 @@ internal class LineValidatorIntegrationTest :
 
         Given("1 linje har 1 feil") {
             val dbService = DatabaseService(DBListener.dataSource)
-            val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
+            val (slackClient, slackServiceSpy, lineValidatorSpy) = setupServices()
             val ftpService = setupFtpService(dbService, slackServiceSpy)
             val fileName = "validering/linjevalidering/EnLinjeFeilKravtype.txt"
             val fileNameOnSftp = fileName.substringAfterLast("/")
@@ -140,7 +140,7 @@ internal class LineValidatorIntegrationTest :
                         val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
                         coVerify(exactly = 1) {
-                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<String>>(), any())
+                            slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<String>>(), any())
                         }
                         sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
 

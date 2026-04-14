@@ -8,15 +8,12 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
-import io.mockk.spyk
 import io.mockk.unmockkObject
 
-import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.service.DatabaseService
-import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.setupSkeServiceMock
 
 class SkeServiceTest :
@@ -59,11 +56,11 @@ class SkeServiceTest :
                 }
 
             Then("Skal Slack alert sendes") {
-                val slackServiceSpy = spyk(SlackService(SlackClient(client = MockHttpClient.slackClient)), recordPrivateCalls = true)
+                val slackService = mockk<SlackService>(relaxed = true)
 
-                setupSkeServiceMock(databaseService = databaseServiceMock, slackService = slackServiceSpy).checkKravDateForAlert()
+                setupSkeServiceMock(databaseService = databaseServiceMock, slackService = slackService).checkKravDateForAlert()
                 coVerify(exactly = 3) {
-                    slackServiceSpy.addError("Testfil", "Krav har blitt forsøkt resendt for lenge", any<Pair<String, String>>())
+                    slackService.addError("Testfil", "Krav har blitt forsøkt resendt for lenge", any<Pair<String, String>>())
                 }
             }
         }

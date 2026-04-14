@@ -36,12 +36,13 @@ internal class StatusServiceIntegrationTest :
             client: HttpClient,
             databaseService: DatabaseService,
         ): Triple<SlackClient, SlackService, StatusService> {
-            val slackClientSpy = spyk(SlackClient(client = MockHttpClient.slackClient))
-            val slackServiceSpy = spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
-            val skeClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
-            val statusServiceSpy = spyk(StatusService(DBListener.dataSource, skeClient, databaseService, slackServiceSpy), recordPrivateCalls = true)
+            val slackClient = mockk<SlackClient>(relaxed = true)
+            val slackService = spyk(SlackService(slackClient), recordPrivateCalls = true)
 
-            return Triple(slackClientSpy, slackServiceSpy, statusServiceSpy)
+            val skeClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
+            val statusServiceSpy = spyk(StatusService(DBListener.dataSource, skeClient, databaseService, slackService), recordPrivateCalls = true)
+
+            return Triple(slackClient, slackService, statusServiceSpy)
         }
 
         Given("Mottaksstatus trigger circuit breaker") {
@@ -64,7 +65,7 @@ internal class StatusServiceIntegrationTest :
         Given("Mottaksstatus er RESKONTROFOERT") {
             val mottaksStatusResponse = MockResponsesBody.mottaksStatusResponse(status = Status.RESKONTROFOERT.value)
             val httpClient = mottaksStatusHttpClient(mottaksStatusResponse)
-            val (slackClientSpy, _, statusService) = setupServices(httpClient, dbService)
+            val (slackClient, _, statusService) = setupServices(httpClient, dbService)
 
             Then("Skal mottaksstatus settes til RESKONTROFOERT i database") {
                 val allKravBeforeUpdate = DBListener.dataSource.connection.use { con -> con.getAllKrav() }
@@ -77,7 +78,7 @@ internal class StatusServiceIntegrationTest :
             }
             Then("Alert skal ikke sendes") {
                 coVerify(exactly = 0) {
-                    slackClientSpy.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any())
+                    slackClient.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any())
                 }
             }
         }
@@ -90,7 +91,7 @@ internal class StatusServiceIntegrationTest :
             val valideringsFeilResponse = MockResponsesBody.valideringsfeilResponse(status, "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke")
             val httpClient = mottaksStatusHttpClient(mottaksStatusResponse, valideringsFeilResponse)
 
-            val (slackClientSpy, slackServiceSpy, statusService) = setupServices(httpClient, dbService)
+            val (slackClient, slackService, statusService) = setupServices(httpClient, dbService)
 
             DBListener.dataSource.asyncTransaction { tx ->
 
@@ -120,7 +121,7 @@ internal class StatusServiceIntegrationTest :
                     val addErrorMessagesSlot = mutableListOf<Pair<String, String>>()
 
                     coVerify(exactly = 5) {
-                        slackServiceSpy.addError(capture(addErrorFilenameSlots), any<String>(), capture(addErrorMessagesSlot))
+                        slackService.addError(capture(addErrorFilenameSlots), any<String>(), capture(addErrorMessagesSlot))
                     }
 
                     Then("Skal 5 feilmeldinger dannes") {
@@ -136,7 +137,7 @@ internal class StatusServiceIntegrationTest :
                         val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
                         coVerify(exactly = 1) {
-                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<String>>(), any())
+                            slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<String>>(), any())
                         }
                         sendAlertFilenameSlot.captured shouldBe fileName
                         sendAlertMessagesSlot.captured shouldBe addErrorMessagesSlot.groupBy({ it.first }, { it.second })

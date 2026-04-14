@@ -5,10 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.mockk.coVerify
+import io.mockk.mockk
 import io.mockk.slot
-import io.mockk.spyk
 
-import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.listener.DBListener
@@ -16,7 +15,6 @@ import no.nav.sokos.ske.krav.listener.SftpListener
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
-import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.validation.FileValidator.ErrorKeys
 
 internal class FileValidatorIntegrationTest :
@@ -24,10 +22,7 @@ internal class FileValidatorIntegrationTest :
         extensions(SftpListener, DBListener)
         val dbService by lazy { DatabaseService(DBListener.dataSource) }
 
-        fun setupSlackService(): SlackService {
-            val slackClientSpy = spyk(SlackClient(client = MockHttpClient.slackClient))
-            return spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
-        }
+        fun setupSlackService(): SlackService = mockk(relaxed = true)
 
         fun setupFtpService(slackServiceSpy: SlackService): FtpService =
             FtpService(
