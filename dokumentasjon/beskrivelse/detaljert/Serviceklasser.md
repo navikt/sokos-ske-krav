@@ -85,7 +85,7 @@ Rekkefølge:
 #### `sendNewFilesToSKE()` *(privat)*
 Itererer over alle validerte filer fra `FtpService` og kaller `processFile()` for hver fil. Etter at alle filer er behandlet (og minst én fil ble funnet):
 1. Kaller `updateSkeKravidentifikatorForEndringerAndStopp()` – henter kravidentifikatorer for alle usendte endringer/stopp
-2. Sender alle usente krav via `sendKrav()`
+2. Sender alle usendte krav via `sendKrav()`
 
 #### `processFile(fil)` *(privat)*
 1. Kjører linjevalidering via `LineValidator.validateNewLines()`
