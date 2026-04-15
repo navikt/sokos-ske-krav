@@ -166,7 +166,7 @@ class SkeService(
             requestResult,
             FeilResponse(
                 type = requestResult.feilResponse?.type ?: KRAV_EKSISTERER_IKKE,
-                title = "Fant ikke gyldig kravidentifikator for migrert krav",
+                title = "Fant ikke gyldig kravidentifikator",
                 status = requestResult.httpStatusCode.value,
                 detail = "Innkrevingsoppdrag med referansenummerGammelSak ${krav.referansenummerGammelSak} eksisterer ikke. \n Nav-Saksnummer: ${krav.saksnummerNAV} \n  Dette må følges opp manuelt",
                 instance = requestResult.feilResponse?.instance ?: "custom",
@@ -175,7 +175,7 @@ class SkeService(
         )
 
         if (shouldAlert) {
-            logger.warn { "Fant ikke gyldig kravidentifikator for migrert krav med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
+            logger.warn { "Fant ikke gyldig kravidentifikator for krav med referansenummerGammelSak: ${requestResult.krav.referansenummerGammelSak} " }
         }
     }
 
