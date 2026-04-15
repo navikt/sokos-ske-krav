@@ -244,7 +244,7 @@ internal class RepositoryTestKrav :
             DBListener.dataSource.connection.use { con ->
                 val threshold = LocalDate.parse("2023-01-02")
                 val kravDeleted = con.deleteOldKrav(threshold)
-                kravDeleted shouldBe 17
+                kravDeleted shouldBe 18
             }
         }
 
