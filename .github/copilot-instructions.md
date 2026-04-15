@@ -59,7 +59,7 @@ The scheduler in `Application.kt` runs `SkeService.handleNewKrav()` on a configu
 | `SkeClient` | HTTP calls to SKE API |
 | `StatusService` | Polls SKE for `mottaksStatus` of sent krav |
 | `CircuitBreakerManager` | Resilience4j circuit breaker wrapping SKE calls; breaks the batch loop on open state |
-| `StonadsType` | Enum mapping `(fagsystemId, kravKode)` pairs to kravkode + hjemmelkode |
+| `StonadsType` | Enum mapping `(kravKode, kodeHjemmel)` pairs via `Identifikator` to a stønadtype |
 | `PropertiesConfig` | Singleton config loader from HOCON `.conf` files |
 
 ### Database
@@ -86,8 +86,13 @@ Repositories are Kotlin `object`s with extension functions on `Connection` or `T
 
 ```kotlin
 // Typical usage
+dataSource.connection.useAndHandleErrors { con ->
+    KravRepository.run { con.insertAllNewKrav(kravLinjer, filnavn) }
+}
+
+// Or with kotliquery TransactionalSession when returnGeneratedKey is needed
 dataSource.asyncTransaction { session ->
-    KravRepository.run { session.insertKrav(kravLinje, fileName) }
+    KravRepository.run { session.insertAllNewKrav(kravLinjer, filnavn) }
 }
 ```
 
@@ -114,13 +119,25 @@ Files are processed in alphabetical order. Failed files are moved to `/inbound/f
 
 ### Tests
 
-- Framework: **Kotest** `BehaviorSpec` style throughout.
+- Framework: **Kotest** — integration tests use `BehaviorSpec` (Given/When/Then); unit tests use `FunSpec` or `BehaviorSpec`.
 - Integration tests use `DBListener` (TestContainers PostgreSQL 16) and `SftpListener`.
 - Load SQL fixtures with `DBListener.loadInitScript("SQLscript/krav/ToNyeKrav.sql")`.
-- Reset state with `DBListener.clearDB()` (TRUNCATE + RESTART IDENTITY).
+- Reset state with `DBListener.clearDB()` (TRUNCATE + RESTART IDENTITY CASCADE).
 - Mock HTTP with `MockHttpClient.client(MockResponse(endpoint, body, status))`.
 - Unit tests mock `SkeClient` and `DatabaseService` via MockK.
+- Always call `CircuitBreakerManager.circuitBreaker.reset()` in `beforeEach` for tests that make SKE calls.
 
 ### Logging
 
 Sensitive data must use the `TEAM_LOGS_MARKER` (Logback marker) so it routes to Team Logs instead of Grafana Loki. Regular info/error logs go to Loki.
+
+## Available skills
+
+Deep-dive knowledge bases you can load on demand:
+
+| Skill | Description |
+|---|---|
+| `kotlin-app-config` | HOCON-layered `PropertiesConfig` singleton, `@Serializable` config data classes, `mergeWithEnv()` and environment detection via `NAIS_CLUSTER_NAME` |
+| `maskinporten` | Maskinporten JWT-assertion flow, `AtomicReference` + `Mutex` token caching, `MaskinportenAccessTokenProvider`, mocking in tests |
+| `slack-alerting` | `SlackService.addError()` + `sendErrors()` accumulation pattern, `Tags` enum for person tagging, `SlackClient` with proxy-aware HTTP client |
+

@@ -1,0 +1,10 @@
+{
+  "description": "Maskinporten JWT-assertion flow med token-caching (AtomicReference + Mutex) for server-til-server autentisering mot SKE REST API",
+  "domain": "security",
+  "tags": ["maskinporten", "jwt", "authentication", "token-caching", "ske"],
+  "examples": [
+    "Implementer Maskinporten-autentisering for et nytt API-kall mot SKE",
+    "Legg til ny Maskinporten-scope for eksisterende klient",
+    "Forklar token-caching og fornyelseslogikk i MaskinportenAccessTokenProvider"
+  ]
+}

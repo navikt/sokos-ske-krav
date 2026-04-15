@@ -1,8 +1,10 @@
 {
-  "description": "Sealed class-konfigurasjon for Kotlin-applikasjoner med miljøspesifikke innstillinger",
+  "description": "HOCON-basert konfigurasjon med PropertiesConfig singleton og @Serializable data classes for Ktor batch-tjenester på NAIS (FSS)",
   "domain": "backend",
-  "tags": ["kotlin", "configuration", "sealed-class", "environment"],
+  "tags": ["kotlin", "configuration", "hocon", "ktor", "nais", "properties-config"],
   "examples": [
-    "Sett opp miljøkonfigurasjon med sealed classes i fp-sak for dev, prod og local"
+    "Legg til en ny konfigurasjonsseksjon i PropertiesConfig",
+    "Sett opp miljøspesifikk HOCON-konfig for local/dev/prod",
+    "Forklar mergeWithEnv og NAIS_CLUSTER_NAME-miljødeteksjon"
   ]
 }

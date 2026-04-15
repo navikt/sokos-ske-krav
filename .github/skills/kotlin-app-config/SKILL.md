@@ -1,197 +1,243 @@
 ---
 name: kotlin-app-config
-description: Sealed class-konfigurasjon for Kotlin-applikasjoner med miljøspesifikke innstillinger
+description: HOCON-basert konfigurasjon med PropertiesConfig singleton for Ktor batch-tjenester på NAIS (FSS)
 ---
 
 # Kotlin Application Configuration Skill
 
-This skill provides patterns for type-safe environment configuration using Kotlin sealed classes.
+This skill describes the HOCON + `PropertiesConfig` singleton pattern used in this project.
+Config is loaded from layered HOCON files via Ktor's `ApplicationConfig` API.
 
-## Sealed Class Configuration Pattern
+## Layered HOCON Pattern
+
+Config files are layered at startup via `mergeWithEnv()`:
+1. `application.conf` – base defaults, references `defaults.properties`
+2. `application-{local|dev|prod}.conf` – environment overrides
+3. `defaults.properties` – local secrets (**never commit this file**)
+
+Environment is detected via `NAIS_CLUSTER_NAME`:
 
 ```kotlin
-sealed class Environment(
-    val name: String,
-    val databaseUrl: String,
-    val kafkaBrokers: String,
-    val azureAdIssuer: String
+fun ApplicationConfig.mergeWithEnv(): ApplicationConfig {
+    val hoconConfig = HoconApplicationConfig(ConfigFactory.load())
+    val environment =
+        (System.getenv("NAIS_CLUSTER_NAME") ?: System.getProperty("NAIS_CLUSTER_NAME"))
+            ?.lowercase()
+            ?.substringBefore("-")
+            ?: propertyOrNull("ktor.environment")?.getString()
+            ?: "local"
+    val environmentConfig = ApplicationConfig("application-$environment.conf")
+    return environmentConfig overriding this overriding hoconConfig
+}
+
+infix fun ApplicationConfig.overriding(other: ApplicationConfig): ApplicationConfig =
+    this.withFallback(other)
+```
+
+## PropertiesConfig Singleton
+
+`PropertiesConfig` is a Kotlin `object` that holds all typed config sections as lazy properties.
+Call `PropertiesConfig.load(config)` once at startup; never re-initialize.
+
+```kotlin
+object PropertiesConfig {
+    lateinit var config: ApplicationConfig
+        private set
+
+    val isLocal: Boolean
+        get() = applicationProperties.isLocal
+
+    val applicationProperties by lazy {
+        config.property("application").getAs<ApplicationProperties>()
+    }
+
+    val postgresConfig by lazy {
+        config.property("postgres").getAs<PostgresConfig>()
+    }
+
+    val sftpProperties by lazy {
+        config.property("sftp").getAs<SftpProperties>()
+    }
+
+    val maskinportenClientProperties by lazy {
+        config.property("maskinportenClient").getAs<MaskinportenClientConfig>()
+    }
+
+    val circuitBreakerConfig by lazy {
+        config.property("circuitBreaker").getAs<CircuitBreakerConfig>()
+    }
+
+    val timerConfig by lazy {
+        config.property("timer").getAs<TimerConfig>()
+    }
+
+    fun load(applicationConfig: ApplicationConfig) {
+        if (!::config.isInitialized) {
+            config = applicationConfig
+        }
+    }
+}
+```
+
+## Typed Config Section Data Classes
+
+Each config section is a `@Serializable data class` deserialized via Ktor's `getAs<T>()` extension.
+
+```kotlin
+enum class Profile { LOCAL, DEV, TEST, PROD }
+
+@Serializable
+data class ApplicationProperties(
+    val profile: Profile,
+    val appName: String,
+    val namespace: String,
+    val useAuthentication: Boolean,
+    val basicUsername: String,
+    val basicPassword: String,
 ) {
-    data object Local : Environment(
-        name = "local",
-        databaseUrl = "jdbc:postgresql://localhost:5432/myapp",
-        kafkaBrokers = "localhost:9092",
-        azureAdIssuer = "http://localhost:8080/azuread"
-    )
-
-    data class Dev(
-        private val env: Map<String, String>
-    ) : Environment(
-        name = "dev",
-        databaseUrl = env.getValue("DATABASE_URL"),
-        kafkaBrokers = env.getValue("KAFKA_BROKERS"),
-        azureAdIssuer = env.getValue("AZURE_OPENID_CONFIG_ISSUER")
-    )
-
-    data class Prod(
-        private val env: Map<String, String>
-    ) : Environment(
-        name = "prod",
-        databaseUrl = env.getValue("DATABASE_URL"),
-        kafkaBrokers = env.getValue("KAFKA_BROKERS"),
-        azureAdIssuer = env.getValue("AZURE_OPENID_CONFIG_ISSUER")
-    )
-
-    companion object {
-        fun from(env: Map<String, String>): Environment {
-            return when (env["NAIS_CLUSTER_NAME"]) {
-                "dev-gcp" -> Dev(env)
-                "prod-gcp" -> Prod(env)
-                else -> Local
-            }
-        }
-    }
-}
-```
-
-## Using Configuration
-
-```kotlin
-fun main() {
-    val env = Environment.from(System.getenv())
-
-    val dataSource = createDataSource(env.databaseUrl)
-    val kafkaProducer = createKafkaProducer(env.kafkaBrokers)
-
-    logger.info("Starting application in ${env.name} environment")
-}
-```
-
-## With Konfig Library
-
-```kotlin
-import com.natpryce.konfig.*
-
-data class AppConfig(
-    val database: DatabaseConfig,
-    val kafka: KafkaConfig,
-    val azure: AzureConfig
-)
-
-data class DatabaseConfig(
-    val url: String
-)
-data class KafkaConfig(
-    val brokers: String
-)
-data class AzureConfig(
-    val issuer: String
-)
-
-val config = EnvironmentVariables()
-
-val appConfig = AppConfig(
-    database = DatabaseConfig(
-        url = config.getOrNull(Key("DATABASE_URL", stringType))
-            ?: "jdbc:postgresql://localhost:5432/myapp"
-    ),
-    kafka = KafkaConfig(
-        brokers = config.getOrNull(Key("KAFKA_BROKERS", stringType))
-            ?: "localhost:9092"
-    ),
-    azure = AzureConfig(
-        issuer = config.getOrNull(Key("AZURE_OPENID_CONFIG_ISSUER", stringType))
-            ?: "http://localhost:8080/azuread"
-    )
-)
-```
-
-## Alternative: Sealed Interface Pattern (navikt/hotlibs)
-
-Production pattern from [navikt/hotlibs](https://github.com/navikt/hotlibs) supporting multiple cluster types:
-
-```kotlin
-sealed interface Environment {
-    val cluster: String
-    val tier: Tier
-
-    enum class Tier { TEST, LOCAL, DEV, PROD }
-
-    companion object {
-        private val all: List<Environment> = listOf(
-            TestEnvironment,
-            LocalEnvironment,
-            GcpEnvironment.DEV,
-            GcpEnvironment.PROD
-        )
-
-        val current: Environment by lazy {
-            val cluster = System.getenv("NAIS_CLUSTER_NAME")
-            all.find { it.cluster == cluster } ?: LocalEnvironment
-        }
-    }
+    val isLocal = profile == Profile.LOCAL
 }
 
-sealed class DefaultEnvironment(
-    override val cluster: String,
-    override val tier: Environment.Tier
-) : Environment
-
-object TestEnvironment : DefaultEnvironment("test", Environment.Tier.TEST)
-object LocalEnvironment : DefaultEnvironment("local", Environment.Tier.LOCAL)
-
-enum class GcpEnvironment(
-    override val cluster: String,
-    override val tier: Environment.Tier
-) : Environment {
-    DEV("dev-gcp", Environment.Tier.DEV),
-    PROD("prod-gcp", Environment.Tier.PROD)
+@Serializable
+data class PostgresConfig(
+    val host: String,
+    val port: String,
+    val name: String,
+    val username: String = "",
+    val password: String = "",
+    val vaultMountPath: String,
+) {
+    val adminUser = "$name-admin"
+    val user = "$name-user"
 }
-```
 
-```kotlin
-data class DatabaseConfig(
-    val url: String,
+@Serializable
+data class SftpProperties(
+    val host: String,
     val username: String,
-    val password: String
-)
+    val privateKeyPassword: String,
+    val privateKeyFilePath: String,
+    val port: Int,
+) {
+    val trimmedUsername: String get() = username.trim()
+    val trimmedPrivateKeyPassword: String get() = privateKeyPassword.trim()
+}
 
-data class KafkaConfig(
-    val brokers: String,
-    val topic: String
-)
+@Serializable
+data class TimerConfig(
+    val useTimer: Boolean,
+    val schedulerIntervalPeriodInt: Int,
+) {
+    val schedulerIntervalPeriod: Duration = schedulerIntervalPeriodInt.hours
+}
 
-data class AzureConfig(
-    val clientId: String,
-    val issuer: String,
-    val jwksUri: String
-)
+@Serializable
+data class CircuitBreakerConfig(
+    val waitDurationInOpenState: Long,
+) {
+    companion object {
+        const val SLIDING_WINDOW_SIZE: Int = 1
+        const val MINIMUM_NUMBER_OF_CALLS: Int = 1
+        const val FAILURE_RATE_THRESHOLD: Float = 100.0f
+        const val PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE: Int = 1
+    }
+}
+```
 
-fun loadConfig(): AppConfig {
-    val config = ConfigurationProperties.systemProperties() overriding
-                 EnvironmentVariables()
+## Example HOCON Files
 
-    return AppConfig(
-        database = DatabaseConfig(
-            url = config[Key("database.url", stringType)],
-            username = config[Key("database.username", stringType)],
-            password = config[Key("database.password", stringType)]
-        ),
-        kafka = KafkaConfig(
-            brokers = config[Key("kafka.brokers", stringType)],
-            topic = config[Key("kafka.topic", stringType)]
-        ),
-        azure = AzureConfig(
-            clientId = config[Key("azure.client.id", stringType)],
-            issuer = config[Key("azure.issuer", stringType)],
-            jwksUri = config[Key("azure.jwks.uri", stringType)]
-        )
-    )
+**`application.conf`** (base):
+```hocon
+include file("defaults.properties")
+
+ktor {
+  environment = local
+}
+
+application {
+  appName = "sokos-ske-krav"
+  appName = ${?NAIS_APP_NAME}
+  namespace = "okonomi"
+  useAuthentication = true
+  basicUsername = ${?BASIC_AUTH_USERNAME}
+  basicPassword = ${?BASIC_AUTH_PASSWORD}
+}
+
+postgres {
+  name = "sokos-ske-krav"
+  username = ${?POSTGRES_USERNAME}
+  password = ${?POSTGRES_PASSWORD}
+}
+
+timer {
+  useTimer = true
+  schedulerIntervalPeriodInt = 4
+}
+```
+
+**`application-local.conf`** (local overrides):
+```hocon
+include file("application.conf")
+
+application {
+  profile = LOCAL
+  useAuthentication = false
+}
+
+sftp {
+  host = "localhost"
+  port = 22
+  privateKeyFilePath = "privKey"
+}
+```
+
+## Usage at Startup
+
+```kotlin
+private fun Application.module() {
+    PropertiesConfig.load(environment.config.mergeWithEnv())
+
+    val useAuthentication = PropertiesConfig.applicationProperties.useAuthentication
+
+    if (!PropertiesConfig.isLocal) {
+        PostgresDataSource.migrate()
+    }
+
+    if (!timerConfig.useTimer) return
+
+    launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
+}
+```
+
+## In Tests
+
+Load a fixed test config directly from `application-test.conf`:
+
+```kotlin
+object DBListener : TestListener {
+    init {
+        PropertiesConfig.load(ApplicationConfig("application-test.conf"))
+    }
+    // ...
+}
+```
+
+Mock `PropertiesConfig` with MockK when needed:
+
+```kotlin
+beforeSpec {
+    mockkObject(PropertiesConfig)
+    every { PropertiesConfig.config } returns ApplicationConfig("application-test.conf")
+}
+afterSpec {
+    unmockkObject(PropertiesConfig)
 }
 ```
 
 ## Benefits
 
-- **Type Safety**: Compile-time validation of configuration
-- **Environment Separation**: Clear boundaries between local/dev/prod
-- **Testability**: Easy to create test configurations
-- **Documentation**: Configuration structure is self-documenting
+- **Single source of truth**: All config in one singleton, no passing config objects around
+- **Lazy initialization**: Config sections only parsed when first accessed
+- **Type safety**: `@Serializable data class` properties with compile-time field names
+- **Environment layering**: Local overrides without touching base config
+- **NAIS-native**: Aligns with the HOCON layering convention used across NAV FSS services

@@ -2,292 +2,390 @@
 applyTo: "**/*.kt"
 ---
 
-Ktor- og Rapids & Rivers-mønstre for Nav-backends: ApplicationBuilder, sealed config, Kotliquery og feilhåndtering.
+Ktor batch-service mønstre for NAV FSS-backends: PropertiesConfig, object repository med Connection-extensions, DBUtils, Resilience4j circuit breaker og Kotest BehaviorSpec.
 
-> Ktor/Rapids & Rivers patterns for Nav backends. Apply when the file uses Ktor (`RapidApplication`, `routing`, `River`) — for Spring Boot apps, see `kotlin-spring.instructions.md` instead.
+> Apply these patterns when working in `sokos-ske-krav`. This is a **batch service** (not Rapids & Rivers, not Spring Boot). It reads fixed-width flat files from SFTP, validates them, persists to PostgreSQL, and forwards to SKE REST API via Maskinporten-authenticated HTTP calls.
 
 # Kotlin/Ktor Development Standards
 
-## Application Structure
+## Application Bootstrap
 
-Use the ApplicationBuilder pattern for bootstrapping applications:
+Use `embeddedServer(Netty)` and call `PropertiesConfig.load(environment.config.mergeWithEnv())` first:
 
 ```kotlin
-class ApplicationBuilder(configuration: Map<String, String>) {
-    private val meterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-    private val dataSource = PostgresDataSourceBuilder.dataSource
-    private val rapidsConnection: RapidsConnection
+fun main() {
+    embeddedServer(Netty, port = 8080, module = Application::module).start(true)
+}
 
-    init {
-        rapidsConnection = RapidApplication.create(configuration)
-        // Register rivers and event handlers
+private fun Application.module() {
+    PropertiesConfig.load(environment.config.mergeWithEnv())
+
+    val applicationState = ApplicationState()
+    val skeService = SkeService()
+
+    commonConfig()
+    applicationLifecycleConfig(applicationState)
+    securityConfig()
+    routingConfig(PropertiesConfig.applicationProperties.useAuthentication, applicationState)
+
+    if (!PropertiesConfig.isLocal) {
+        PostgresDataSource.migrate()
     }
 
-    fun start() {
-        rapidsConnection.start()
+    if (!timerConfig.useTimer) return
+
+    launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
+    launchJob(databaseService::deleteOldData, 24.hours)
+}
+
+private fun CoroutineScope.launchJob(
+    function: suspend () -> Unit,
+    delayDuration: Duration,
+) = launch {
+    while (true) {
+        try {
+            function()
+            delay(delayDuration)
+        } catch (_: CancellationException) {
+            logger.info { "Scheduled task cancelled" }
+            break
+        } catch (e: Exception) {
+            logger.error(e) { "Feil i scheduled task" }
+        }
     }
 }
 ```
 
 ## Configuration Pattern
 
-Use sealed classes for environment-specific configuration with compile-time safety:
+Use `PropertiesConfig` singleton with HOCON layered files. See `kotlin-app-config` skill for full details.
 
 ```kotlin
-sealed class ApplicationConfig {
-    abstract val database: DatabaseConfig
-    abstract val kafka: KafkaConfig
-    abstract val http: HttpConfig
-
-    data class Dev(
-        override val database: DatabaseConfig,
-        override val kafka: KafkaConfig,
-        override val http: HttpConfig
-    ) : ApplicationConfig()
-
-    data class Prod(...) : ApplicationConfig()
-    data class Local(...) : ApplicationConfig()
-}
-
-// Usage
-val config = when (environment) {
-    "prod" -> ApplicationConfig.Prod(...)
-    "dev" -> ApplicationConfig.Dev(...)
-    else -> ApplicationConfig.Local(...)
-}
-```
-
-Use `konfig` library for typed configuration:
-
-```kotlin
-object Configuration {
-    private val defaultProperties = ConfigurationMap(...)
-    val properties =
-        ConfigurationProperties.systemProperties()
-        overriding EnvironmentVariables()
-        overriding defaultProperties
-
-    val databaseUrl by lazy {
-        properties[Key("DB_JDBC_URL", stringType)]
-    }
-}
+// Read config sections anywhere via PropertiesConfig
+val host = PropertiesConfig.sftpProperties.host
+val isLocal = PropertiesConfig.isLocal
 ```
 
 ## Database Access
 
-Use Kotliquery with HikariCP connection pooling:
+### DataSource
+
+`PostgresDataSource` is a singleton `object` using HikariCP. In non-local environments it integrates with Vault for credentials:
 
 ```kotlin
-object PostgresDataSourceBuilder {
-    val dataSource by lazy {
-        HikariDataSource().apply {
-            jdbcUrl = getOrThrow(DB_URL_KEY)
-            maximumPoolSize = 40
-            minimumIdle = 1
-        }
-    }
-}
+object PostgresDataSource {
+    val dataSource: HikariDataSource by lazy { dataSource() }
 
-// Repository pattern with interface
-class RepositoryPostgres(private val dataSource: DataSource) : Repository {
-    override fun save(entity: Entity): Long {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    "INSERT INTO table (col1, col2) VALUES (?, ?)",
-                    entity.col1, entity.col2
-                ).asUpdateAndReturnGeneratedKey
-            ) ?: throw Exception("Failed to insert")
-        }
+    fun migrate() {
+        dataSource(role = postgresConfig.adminUser).use { migrate(it) }
     }
 
-    override fun findById(id: Long): Entity? {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf("SELECT * FROM table WHERE id = ?", id)
-                    .map { row ->
-                        Entity(
-                            id = row.long("id"),
-                            col1 = row.string("col1")
-                        )
-                    }.asSingle
-            )
-        }
+    fun migrate(dataSource: HikariDataSource) {
+        Flyway.configure()
+            .dataSource(dataSource)
+            .initSql("""SET ROLE "${postgresConfig.adminUser}"""")
+            .lockRetryCount(-1)
+            .validateMigrationNaming(true)
+            .load()
+            .migrate()
     }
 }
+```
+
+### Transactions via DBUtils
+
+Always use `DBUtils.asyncTransaction {}` (suspending) or `DBUtils.transaction {}` (blocking). Never use bare JDBC connections directly.
+
+```kotlin
+// Suspending (use in coroutine context / service layer)
+dataSource.asyncTransaction { session ->
+    KravRepository.run { session.insertAllNewKrav(kravLinjer, filnavn) }
+}
+
+// Blocking (use in sync contexts)
+dataSource.transaction { session ->
+    KravRepository.run { session.updateStatus(corrId, status) }
+}
+```
+
+### Repository Pattern
+
+Repositories are Kotlin `object`s with extension functions on `Connection` (raw JDBC) or `TransactionalSession` (kotliquery). Use `RepositoryExtensions` helpers:
+
+```kotlin
+object KravRepository {
+    fun Connection.getAllUnsentKrav() =
+        executeSelect(
+            """select * from krav where status = ?""",
+            Status.KRAV_IKKE_SENDT.value,
+        ).toKrav()
+
+    fun Connection.updateSentKrav(
+        corrId: String,
+        kravidentifikatorSKE: String,
+        status: String,
+    ) = executeUpdate(
+        """update krav set kravidentifikator_ske = ?, status = ?, tidspunkt_sendt = now() where corr_id = ?""",
+        kravidentifikatorSKE,
+        status,
+        corrId,
+    )
+
+    // For kotliquery TransactionalSession (e.g. when returnGeneratedKey is needed)
+    fun getKravTableIdFromCorrelationId(
+        tx: TransactionalSession,
+        corrID: String,
+    ): Long =
+        tx.single(
+            queryOf("select id from krav where corr_id = ?", corrID)
+                .map { row -> row.long("id") }
+                .asSingle,
+        ) ?: throw IllegalStateException("Krav med corrId $corrID ikke funnet")
+}
+```
+
+### ResultSet Mapping
+
+Centralise `ResultSet` → domain mapping in `RepositoryMappers.kt` using `getColumn<T>()`:
+
+```kotlin
+fun ResultSet.toKrav() =
+    toList {
+        Krav(
+            kravId = getColumn("id"),
+            saksnummerNAV = getColumn("saksnummer_nav"),
+            status = getColumn("status"),
+            kravtype = getColumn("kravtype"),
+            corrId = getColumn("corr_id"),
+            kravidentifikatorSKE = getColumn("kravidentifikator_ske"),
+            // ... remaining fields
+        )
+    }
+
+private fun <T> ResultSet.toList(mapper: ResultSet.() -> T) =
+    buildList {
+        while (next()) { add(mapper()) }
+    }
+```
+
+### Error Handling in Repositories
+
+Wrap bare `Connection` usage with `useAndHandleErrors`:
+
+```kotlin
+dataSource.connection.useAndHandleErrors { con ->
+    con.getAllUnsentKrav()
+}
+```
+
+## Service Layer Pattern
+
+Services are regular classes with default-argument injection for testability:
+
+```kotlin
+class DatabaseService(
+    private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
+) {
+    fun getAllUnsentKrav(): List<Krav> =
+        dataSource.connection.useAndHandleErrors {
+            it.getAllUnsentKrav()
+        }
+
+    fun saveAllNewKrav(kravLinjer: List<KravLinje>, filnavn: String) =
+        dataSource.connection.useAndHandleErrors {
+            it.insertAllNewKrav(kravLinjer, filnavn)
+        }
+}
+```
+
+The orchestrating service (`SkeService`) owns a `haltRun` flag. Set it to `true` when a file contains ≥ 1000 krav lines; the next scheduler invocation is skipped. Reset after the large run completes.
+
+## HTTP Client & Circuit Breaker
+
+Configure the shared `httpClient` with the `CircuitBreakerPlugin` and proxy routing:
+
+```kotlin
+val httpClient =
+    HttpClient(Apache5) {
+        expectSuccess = false
+        install(CircuitBreakerPlugin)
+        install(ContentNegotiation) { json(jsonConfig) }
+        engine {
+            customizeClient {
+                setRoutePlanner(SystemDefaultRoutePlanner(ProxySelector.getDefault()))
+            }
+        }
+    }.apply {
+        plugin(HttpSend).intercept { guardCall { execute(it) } }
+    }
+```
+
+`CircuitBreakerManager.guardCall {}` wraps every SKE HTTP call. When the breaker opens, `sendAll*` loops break out and no further krav are sent in that batch. Always reset in tests:
+
+```kotlin
+beforeEach { CircuitBreakerManager.circuitBreaker.reset() }
 ```
 
 ## Ktor Routing
 
-Structure routes using extension functions on `Application`:
+Health and metrics endpoints are unauthenticated; API routes require Basic auth:
 
 ```kotlin
-fun Application.api() {
+fun Application.routingConfig(useAuthentication: Boolean, applicationState: ApplicationState) {
     routing {
-        authenticate("azureAd") {
-            get("/api/resource") {
-                val user = call.principal<JWTPrincipal>()
-                call.respond(HttpStatusCode.OK, data)
-            }
-
-            post("/api/resource") {
-                val request = call.receive<RequestDto>()
-                call.respond(HttpStatusCode.Created, result)
-            }
+        get("/internal/isAlive") {
+            if (applicationState.running) call.respondText("Alive") else call.respond(HttpStatusCode.ServiceUnavailable)
         }
+        get("/internal/isReady") { call.respondText("Ready") }
+        get("/internal/metrics") { call.respondText(Metrics.registry.scrape()) }
 
-        // Health endpoints (unauthenticated)
-        get("/isalive") { call.respondText("Alive") }
-        get("/isready") { call.respondText("Ready") }
-        get("/metrics") { call.respondText(meterRegistry.scrape()) }
-    }
-}
-```
-
-## Kafka Rapids & Rivers
-
-Use the Rapids & Rivers pattern for event-driven architecture:
-
-```kotlin
-class MyEventRiver(rapidsConnection: RapidsConnection) : River.PacketListener {
-    init {
-        River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "my_event") }
-            validate { it.requireKey("required_field") }
-            validate { it.interestedIn("optional_field") }
-        }.register(this)
-    }
-
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val requiredField = packet["required_field"].asText()
-        // Process event
-
-        // Publish new event if needed
-        val response = JsonMessage.newNeed(
-            listOf("SomeCapability"),
-            mapOf("data" to data)
-        )
-        context.publish(ident, response.toJson())
-    }
-}
-```
-
-## Testing
-
-Use Kotest for test structure and assertions:
-
-```kotlin
-class ServiceTest {
-    companion object {
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            mockkObject(ApplicationBuilder.Companion)
-            every { getRapidsConnection() } returns TestRapid()
+        authenticate("basic") {
+            // authenticated routes
         }
     }
-
-    @Test
-    fun `should process event correctly`() {
-        val testRapid = TestRapid()
-        val service = Service(testRapid)
-
-        testRapid.sendTestMessage(testEvent)
-
-        val published = testRapid.inspektør.message(0)
-        published["field"] shouldBe expectedValue
-    }
 }
 ```
 
-Use Testcontainers for database integration tests:
+## Logging
 
-```kotlin
-@Testcontainers
-class RepositoryTest {
-    companion object {
-        @Container
-        val postgres = PostgreSQLContainer<Nothing>("postgres:15").apply {
-            withDatabaseName("testdb")
-        }
-    }
-
-    @Test
-    fun `should save and retrieve entity`() {
-        val dataSource = HikariDataSource().apply {
-            jdbcUrl = postgres.jdbcUrl
-            username = postgres.username
-            password = postgres.password
-        }
-
-        val repository = RepositoryPostgres(dataSource)
-        val saved = repository.save(entity)
-        val retrieved = repository.findById(saved)
-
-        retrieved shouldNotBe null
-    }
-}
-```
-
-## Observability
-
-Implement Prometheus metrics using Micrometer:
-
-```kotlin
-val meterRegistry = PrometheusMeterRegistry(
-    PrometheusConfig.DEFAULT,
-    PrometheusRegistry.defaultRegistry,
-    Clock.SYSTEM
-)
-
-// Counter
-val requestCounter = Counter.builder("http_requests_total")
-    .description("Total HTTP requests")
-    .tag("method", "GET")
-    .register(meterRegistry)
-
-requestCounter.increment()
-
-// Timer
-val requestTimer = Timer.builder("http_request_duration")
-    .description("HTTP request duration")
-    .register(meterRegistry)
-
-requestTimer.record {
-    // Process request
-}
-```
-
-Use structured logging with KotlinLogging:
+- Regular info/error → standard Logback (routes to Grafana Loki)
+- Sensitive data (PII, request/response bodies) → **must** use `TEAM_LOGS_MARKER`:
 
 ```kotlin
 private val logger = KotlinLogging.logger {}
 
-logger.info { "Processing event: ${event.id}" }
-logger.warn { "Retrying failed operation" }
-logger.error(exception) { "Failed to process event" }
+// Regular log
+logger.info { "Behandler fil: $filnavn" }
+
+// Sensitive log (routes to Team Logs, not Loki)
+logger.error(marker = TEAM_LOGS_MARKER) { "Feil med saksnummer: $saksnummer - ${exception.message}" }
+```
+
+## Metrics
+
+Use `Metrics` object with Micrometer `PrometheusMeterRegistry`:
+
+```kotlin
+object Metrics {
+    val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    private const val NAMESPACE = "sokos_ske_krav"
+
+    val numberOfKravSent: Counter by lazy { counter("krav_sendt_til_ske", "Antall krav sendt") }
+
+    private fun counter(name: String, description: String) =
+        Counter.builder("${NAMESPACE}_$name")
+            .description(description)
+            .register(registry)
+}
+
+// Increment in service
+Metrics.numberOfKravSent.increment()
+```
+
+## Testing
+
+### Unit Tests
+
+Use **Kotest `FunSpec`** or **`BehaviorSpec`** (never JUnit). Mock with **MockK**:
+
+```kotlin
+class OpprettKravServiceTest : FunSpec({
+    val databaseServiceMock = mockk<DatabaseService> {
+        justRun { updateSentKrav(any<List<RequestResult>>()) }
+    }
+
+    test("sendAllOpprettKrav skal returnere liste av innsendte krav") {
+        val skeClientMock = mockk<SkeClient>()
+        val service = OpprettKravService(skeClientMock, databaseServiceMock)
+        // ...
+    }
+})
+```
+
+### Integration Tests (DB)
+
+Use `DBListener` (Kotest `TestListener` wrapping TestContainers PostgreSQL 16). Register with `extensions(DBListener)`:
+
+```kotlin
+internal class OpprettKravServiceIntegrationTest : BehaviorSpec({
+    extensions(DBListener)
+    beforeEach { CircuitBreakerManager.circuitBreaker.reset() }
+
+    val dbService = DatabaseService(DBListener.dataSource)
+
+    Given("2 nye krav som ikke er sendt") {
+        DBListener.clearDB()
+        DBListener.loadInitScript("SQLscript/krav/ToNyeKrav.sql")
+
+        val krav = dbService.getAllUnsentKrav()
+        krav.size shouldBe 2
+
+        When("SKE svarer med OK") {
+            val httpClient = MockHttpClient.client(
+                MockResponse(Endpoint.OPPRETT, nyttKravResponse("4321"), HttpStatusCode.OK)
+            )
+            val skeClient = SkeClient(
+                skeEndpoint = "",
+                client = httpClient,
+                tokenProvider = mockk(relaxed = true)
+            )
+            val service = OpprettKravService(skeClient, DatabaseService(DBListener.dataSource))
+            val results = service.sendAllOpprettKrav(krav)
+
+            Then("Kravene skal ha fått kravidentifikatorSKE") {
+                results.size shouldBe 2
+                dbService.getAllUnsentKrav().size shouldBe 0
+            }
+        }
+    }
+})
+```
+
+### Integration Tests (SFTP)
+
+Use `SftpListener` in the same way:
+
+```kotlin
+internal class FtpServiceIntegrationTest : BehaviorSpec({
+    extensions(SftpListener)
+    // ...
+})
+```
+
+### Mock HTTP
+
+Use `MockHttpClient.client(vararg MockResponse)` — matches requests by endpoint path:
+
+```kotlin
+val client = MockHttpClient.client(
+    MockResponse(Endpoint.OPPRETT, nyttKravResponse("id-123"), HttpStatusCode.OK),
+    MockResponse(Endpoint.MOTTAKSSTATUS, mottaksStatusResponse(), HttpStatusCode.OK),
+)
 ```
 
 ## Boundaries
 
 ### ✅ Always
 
-- Use sealed classes for state and configuration
-- Implement Repository pattern for database access
-- Add Prometheus metrics for business operations
-- Use Flyway for database migrations
-- Implement all three health endpoints
+- Use `PropertiesConfig` for all config access — never `System.getenv()` directly in business logic
+- Use `DBUtils.asyncTransaction {}` / `DBUtils.transaction {}` — never bare `Connection` in service code
+- Use `object` + extension functions for repositories
+- Map `ResultSet` → domain in `RepositoryMappers.kt` using `getColumn<T>()`
+- Log sensitive data only with `TEAM_LOGS_MARKER`
+- Reset `CircuitBreakerManager.circuitBreaker` in `beforeEach` of tests that make SKE calls
+- Use Kotest `BehaviorSpec` (Given/When/Then) for integration tests, `FunSpec` or `BehaviorSpec` for unit tests
 
 ### ⚠️ Ask First
 
-- Changing database schema
-- Modifying Kafka event schemas
-- Adding new Rapids & Rivers dependencies
-- Changing authentication configuration
+- Changing the scheduler interval or `haltRun` threshold
+- Adding new Maskinporten scopes
+- Modifying file format / copybook field positions
+- Changing circuit breaker configuration
 
 ### 🚫 Never
 
-- Skip database migration versioning
-- Bypass authentication checks
-- Use `!!` operator without null checks
-- Commit configuration secrets
+- Commit `defaults.properties`
+- Log PII/request bodies without `TEAM_LOGS_MARKER`
+- Use `!!` (non-null assertion) without a preceding null check
+- Skip Flyway migrations for schema changes
+- Call `PropertiesConfig.load()` more than once (it is guarded but callers should not rely on that)
