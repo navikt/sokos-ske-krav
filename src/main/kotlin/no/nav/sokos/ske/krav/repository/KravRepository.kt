@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.repository
 
 import java.sql.Connection
+import java.time.LocalDate
 import java.util.UUID
 
 import kotliquery.TransactionalSession
@@ -295,4 +296,15 @@ object KravRepository {
         prepStmt.executeBatch()
         commit()
     }
+
+    fun Connection.deleteOldKrav(threshold: LocalDate): Int =
+        prepareStatement(
+            """
+            delete from krav where tidspunkt_opprettet < ?
+            """.trimIndent(),
+        ).withParameters(threshold)
+            .executeUpdate()
+            .apply {
+                commit()
+            }
 }

@@ -23,6 +23,7 @@ import no.nav.sokos.ske.krav.config.routingConfig
 import no.nav.sokos.ske.krav.config.securityConfig
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.metrics.Metrics
+import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.SkeService
 
@@ -39,6 +40,7 @@ private fun Application.module() {
     val useAuthentication = PropertiesConfig.applicationProperties.useAuthentication
     val applicationState = ApplicationState()
     val skeService = SkeService()
+    val databaseService = DatabaseService()
 
     commonConfig()
     applicationLifecycleConfig(applicationState)
@@ -62,6 +64,7 @@ private fun Application.module() {
 
     launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
     launchJob(skeService::checkKravDateForAlert, 24.hours)
+    launchJob(databaseService::deleteOldData, 24.hours)
 }
 
 private fun CoroutineScope.launchJob(

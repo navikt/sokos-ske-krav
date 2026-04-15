@@ -1,16 +1,22 @@
 package no.nav.sokos.ske.krav.service
 
+import java.time.LocalDate
+
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.isSuccess
+import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.metrics.Metrics
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.deleteOldFeilmeldinger
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.deleteOldFilValideringsfeil
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertFileValideringsfeil
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertLineFilValideringsfeil
+import no.nav.sokos.ske.krav.repository.KravRepository.deleteOldKrav
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForAvstemming
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForResending
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForStatusCheck
@@ -24,7 +30,10 @@ import no.nav.sokos.ske.krav.repository.KravRepository.updateSentKrav
 import no.nav.sokos.ske.krav.repository.KravRepository.updateStatus
 import no.nav.sokos.ske.krav.repository.KravRepository.updateStatusForAvstemtKravToReported
 import no.nav.sokos.ske.krav.repository.RepositoryExtensions.useAndHandleErrors
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.util.RequestResult
+
+private val logger = KotlinLogging.logger {}
 
 class DatabaseService(
     private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
@@ -118,6 +127,22 @@ class DatabaseService(
         skeKravidentifikator: String,
     ) = dataSource.connection.useAndHandleErrors {
         it.updateEndringWithSkeKravIdentifikator(navsaksnummer, skeKravidentifikator)
+    }
+
+    fun deleteOldData() {
+        val threshold = LocalDate.now().minusYears(10)
+        dataSource.connection.useAndHandleErrors {
+            val kravDeleted = it.deleteOldKrav(threshold)
+            val filValideringsfeilDeleted = it.deleteOldFilValideringsfeil(threshold)
+
+            logger.info { "Slettet $kravDeleted krav og $filValideringsfeilDeleted filvalideringsfeil" }
+        }
+
+        dataSource.transaction { session ->
+            val feilmeldingDeleted = deleteOldFeilmeldinger(session, threshold)
+
+            logger.info { "Slettet $feilmeldingDeleted feilmeldinger." }
+        }
     }
 
     private fun incrementMetrics(results: List<RequestResult>) {

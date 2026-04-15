@@ -1,5 +1,6 @@
 package no.nav.sokos.ske.krav.database
 
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 import io.kotest.core.spec.style.FunSpec
@@ -14,7 +15,9 @@ internal class RepositoryTestFeilmelding :
     FunSpec({
         extensions(DBListener)
 
-        DBListener.loadInitScript("SQLscript/feilmeldinger/Feilmeldinger.sql")
+        beforeTest {
+            DBListener.loadInitScript("SQLscript/feilmeldinger/Feilmeldinger.sql")
+        }
 
         test("getAllFeilmeldinger skal returnere alle feilmeldinger ") {
             DBListener.dataSource.transaction { tx ->
@@ -70,5 +73,17 @@ internal class RepositoryTestFeilmelding :
                     }
                 }
             }
+        }
+
+        test("deleteOldFeilmeldinger skal slette alle feilmeldingene som ble opprettet før en spesifisert tid") {
+            DBListener.dataSource.transaction { tx ->
+                val threshold = LocalDate.parse("2023-01-02")
+                val feilmeldingDeleted = FeilmeldingRepository.deleteOldFeilmeldinger(tx, threshold)
+                feilmeldingDeleted shouldBe 2
+            }
+        }
+
+        afterTest {
+            DBListener.clearDB()
         }
     })
