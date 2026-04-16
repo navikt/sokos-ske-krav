@@ -14,7 +14,7 @@ import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.deleteOldFeilmeldinger
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.deleteOldFilValideringsfeil
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertFileValideringsfeil
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertFilValideringsfeil
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertLineFilValideringsfeil
 import no.nav.sokos.ske.krav.repository.KravRepository.deleteOldKrav
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForAvstemming
@@ -72,15 +72,19 @@ class DatabaseService(
         filnavn: String,
         kravlinje: KravLinje,
         feilmelding: String,
-    ) = dataSource.connection.useAndHandleErrors {
-        it.insertLineFilValideringsfeil(filnavn, kravlinje, feilmelding)
+    ) {
+        dataSource.transaction { tx ->
+            insertLineFilValideringsfeil(tx, filnavn, kravlinje, feilmelding)
+        }
     }
 
     fun saveFileValidationError(
         filnavn: String,
         feilmelding: String,
-    ) = dataSource.connection.useAndHandleErrors {
-        it.insertFileValideringsfeil(filnavn, feilmelding)
+    ) {
+        dataSource.transaction { tx ->
+            insertFilValideringsfeil(tx, filnavn, feilmelding)
+        }
     }
 
     fun updateSentKrav(results: List<RequestResult>) {
@@ -107,7 +111,7 @@ class DatabaseService(
 
     fun getAllKravForAvstemming(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForAvstemming() }
 
-    fun getFileValidationMessage(filNavn: String): List<FilValideringsfeil> = dataSource.connection.useAndHandleErrors { it.getFilValideringsFeilForFil(filNavn) }
+    fun getFileValidationMessage(filNavn: String): List<FilValideringsfeil> = dataSource.transaction { getFilValideringsFeilForFil(it, filNavn) }
 
     fun updateStatus(
         mottakStatus: String,
@@ -133,15 +137,15 @@ class DatabaseService(
         val threshold = LocalDate.now().minusYears(10)
         dataSource.connection.useAndHandleErrors {
             val kravDeleted = it.deleteOldKrav(threshold)
-            val filValideringsfeilDeleted = it.deleteOldFilValideringsfeil(threshold)
 
-            logger.info { "Slettet $kravDeleted krav og $filValideringsfeilDeleted filvalideringsfeil" }
+            logger.info { "Slettet $kravDeleted krav" }
         }
 
-        dataSource.transaction { session ->
-            val feilmeldingDeleted = deleteOldFeilmeldinger(session, threshold)
+        dataSource.transaction { tx ->
+            val filvalideringsfeilDeleted = deleteOldFilValideringsfeil(tx, threshold)
+            val feilmeldingDeleted = deleteOldFeilmeldinger(tx, threshold)
 
-            logger.info { "Slettet $feilmeldingDeleted feilmeldinger." }
+            logger.info { "Slettet $feilmeldingDeleted feilmeldinger og $filvalideringsfeilDeleted filvalideringsfeil." }
         }
     }
 

@@ -1,60 +1,88 @@
 package no.nav.sokos.ske.krav.repository
 
-import java.sql.Connection
 import java.time.LocalDate
+
+import kotliquery.Row
+import kotliquery.TransactionalSession
+import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.FilValideringsfeil
-import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeSelect
-import no.nav.sokos.ske.krav.repository.RepositoryExtensions.executeUpdate
-import no.nav.sokos.ske.krav.repository.RepositoryExtensions.withParameters
 
 object FilValideringsfeilRepository {
-    fun Connection.getFilValideringsFeilForFil(filNavn: String): List<FilValideringsfeil> =
-        executeSelect(
-            """
-            select * from filvalideringsfeil
-            where filnavn = ?
-            """,
-            filNavn,
-        ).toValideringsfeil()
+    fun getFilValideringsFeilForFil(
+        tx: TransactionalSession,
+        filnavn: String,
+    ): List<FilValideringsfeil> =
+        tx.list(
+            queryOf(
+                "select * from filvalideringsfeil where filnavn = ?",
+                filnavn,
+            ),
+            extractor = mapToFilValideringsfeil,
+        )
 
-    fun Connection.insertFileValideringsfeil(
+    fun insertFilValideringsfeil(
+        tx: TransactionalSession,
         filnavn: String,
         feilmelding: String,
-    ) = executeUpdate(
-        """
-            insert into filvalideringsfeil (filnavn, feilmelding)
-            values (?, ?)
-            """,
-        filnavn,
-        feilmelding,
-    )
+    ) {
+        tx.update(
+            queryOf(
+                """
+                insert into filvalideringsfeil (filnavn, feilmelding)
+                values (?, ?)
+                """.trimIndent(),
+                filnavn,
+                feilmelding,
+            ),
+        )
+    }
 
-    fun Connection.insertLineFilValideringsfeil(
+    fun insertLineFilValideringsfeil(
+        tx: TransactionalSession,
         filnavn: String,
         kravlinje: KravLinje,
         feilmelding: String,
-    ) = executeUpdate(
-        """
-            insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
-            values (?, ?, ?, ?, ? )
-            """,
-        filnavn,
-        kravlinje.linjenummer,
-        kravlinje.saksnummerNav,
-        kravlinje.toString(),
-        feilmelding,
-    )
+    ) {
+        tx.update(
+            queryOf(
+                """
+                insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
+                values (?, ?, ?, ?, ?)
+                """.trimIndent(),
+                filnavn,
+                kravlinje.linjenummer,
+                kravlinje.saksnummerNav,
+                kravlinje.toString(),
+                feilmelding,
+            ),
+        )
+    }
 
-    fun Connection.deleteOldFilValideringsfeil(threshold: LocalDate): Int =
-        prepareStatement(
-            """
-            delete from filvalideringsfeil where tidspunkt_opprettet < ?
-            """.trimIndent(),
-        ).withParameters(threshold)
-            .executeUpdate()
-            .apply {
-                commit()
-            }
+    fun deleteOldFilValideringsfeil(
+        tx: TransactionalSession,
+        threshold: LocalDate,
+    ): Int =
+        tx.update(
+            queryOf(
+                """
+                delete from filvalideringsfeil where tidspunkt_opprettet < ?
+                """.trimIndent(),
+                threshold,
+            ),
+        )
+
+    val mapToFilValideringsfeil: (Row) -> FilValideringsfeil = { row ->
+        FilValideringsfeil(
+            valideringsfeilId = row.long("id"),
+            filnavn = row.string("filnavn"),
+            linjenummer = row.intOrNull("linjenummer") ?: 0,
+            saksnummerNav = row.stringOrNull("saksnummer_nav") ?: "",
+            kravLinje = row.stringOrNull("kravlinje") ?: "",
+            feilmelding = row.string("feilmelding").trim(),
+            tidspunktOpprettet = row.localDateTime("tidspunkt_opprettet"),
+            rapporter = row.boolean("rapporter"),
+        )
+    }
 }

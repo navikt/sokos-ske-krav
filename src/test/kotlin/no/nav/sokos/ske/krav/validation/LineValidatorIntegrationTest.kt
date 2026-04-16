@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.validation
 
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.inspectors.shouldForAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
@@ -19,6 +20,7 @@ import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValid
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages
@@ -53,10 +55,13 @@ internal class LineValidatorIntegrationTest :
                 val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, dbService)
 
                 Then("Skal ingen feil lagres i database") {
-                    DBListener.dataSource.connection
-                        .use { it.getFilValideringsFeilForFil(fileName) }
-                        .size shouldBe 0
+                    val insertedFiles =
+                        DBListener.dataSource.transaction { tx ->
+                            getFilValideringsFeilForFil(tx, fileName)
+                        }
+                    insertedFiles.size shouldBe 0
                 }
+
                 Then("Ingen linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
                     validatedLines.size shouldBe ftpFil.kravLinjer.size
                     validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }.size shouldBe 0
@@ -91,26 +96,30 @@ internal class LineValidatorIntegrationTest :
                 lineValidatorSpy.validateNewLines(ftpFil, dbService)
 
                 Then("Skal én feil lagres i database") {
-                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileNameOnSftp) }) {
-                        size shouldBe 1
-                        with(first().feilmelding) {
-                            shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
-                            shouldNotContain(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE)
-                            shouldNotContain(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO)
-                            shouldNotContain(ErrorMessages.PERIODE_FOM_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.PERIODE_TOM_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM)
-                            shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
-                            shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR)
-                            shouldNotContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
-                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
+                    val insertedFiles =
+                        DBListener.dataSource.transaction { tx ->
+                            getFilValideringsFeilForFil(tx, fileNameOnSftp)
                         }
+                    insertedFiles.size shouldBe 1
+                    with(insertedFiles.first().feilmelding) {
+                        shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
+
+                        shouldNotContain(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT)
+                        shouldNotContain(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE)
+                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT)
+                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO)
+                        shouldNotContain(ErrorMessages.PERIODE_FOM_WRONG_FORMAT)
+                        shouldNotContain(ErrorMessages.PERIODE_TOM_WRONG_FORMAT)
+                        shouldNotContain(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM)
+                        shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
+                        shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR)
+                        shouldNotContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
+                        shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
+                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
+                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
                     }
                 }
+
                 When("Feilmeldinger håndteres") {
                     val addErrorFilenameSlot = slot<String>()
                     val addErrorMessagesSlot = slot<List<Pair<String, String>>>()
@@ -173,27 +182,31 @@ internal class LineValidatorIntegrationTest :
                     }
                 }
                 Then("Skal 3 feil lagres som én feilmelding i database") {
-                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileNameOnSftp) }) {
-                        size shouldBe 1
-                        with(first().feilmelding) {
-                            shouldContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
-                            shouldContain(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE)
-                            shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
-
-                            shouldNotContain(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO)
-                            shouldNotContain(ErrorMessages.PERIODE_FOM_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.PERIODE_TOM_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM)
-                            shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
-                            shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR)
-                            shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
-                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
+                    val insertedFiles =
+                        DBListener.dataSource.transaction { tx ->
+                            getFilValideringsFeilForFil(tx, fileNameOnSftp)
                         }
+
+                    insertedFiles.size shouldBe 1
+                    with(insertedFiles.first().feilmelding) {
+                        shouldContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
+                        shouldContain(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE)
+                        shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
+
+                        shouldNotContain(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT)
+                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT)
+                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO)
+                        shouldNotContain(ErrorMessages.PERIODE_FOM_WRONG_FORMAT)
+                        shouldNotContain(ErrorMessages.PERIODE_TOM_WRONG_FORMAT)
+                        shouldNotContain(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM)
+                        shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
+                        shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR)
+                        shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
+                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
+                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
                     }
                 }
+
                 When("Feilmeldinger håndteres") {
                     val addErrorFilenameSlot = slot<String>()
                     val addErrorMessagesSlot = slot<List<Pair<String, String>>>()
@@ -270,26 +283,31 @@ internal class LineValidatorIntegrationTest :
                 }
 
                 Then("Skal 6 feil lagres i database") {
-                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileNameOnSftp) }) {
-                        size shouldBe 6
-                        all {
-                            it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
-                            !it.feilmelding.contains(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
-                            !it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE)
-                            !it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT)
-                            !it.feilmelding.contains(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT)
-                            !it.feilmelding.contains(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO)
-                            !it.feilmelding.contains(ErrorMessages.PERIODE_FOM_WRONG_FORMAT)
-                            !it.feilmelding.contains(ErrorMessages.PERIODE_TOM_WRONG_FORMAT)
-                            !it.feilmelding.contains(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM)
-                            !it.feilmelding.contains(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
-                            !it.feilmelding.contains(ErrorMessages.UNKNOWN_DATE_ERROR)
-                            !it.feilmelding.contains(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
-                            !it.feilmelding.contains(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
-                            !it.feilmelding.contains(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
-                        } shouldBe true
+                    val insertedFiles =
+                        DBListener.dataSource.transaction { tx ->
+                            getFilValideringsFeilForFil(tx, fileNameOnSftp)
+                        }
+
+                    insertedFiles.size shouldBe 6
+                    insertedFiles.shouldForAll {
+                        it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
+
+                        !it.feilmelding.contains(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
+                        !it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE)
+                        !it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT)
+                        !it.feilmelding.contains(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT)
+                        !it.feilmelding.contains(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO)
+                        !it.feilmelding.contains(ErrorMessages.PERIODE_FOM_WRONG_FORMAT)
+                        !it.feilmelding.contains(ErrorMessages.PERIODE_TOM_WRONG_FORMAT)
+                        !it.feilmelding.contains(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM)
+                        !it.feilmelding.contains(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
+                        !it.feilmelding.contains(ErrorMessages.UNKNOWN_DATE_ERROR)
+                        !it.feilmelding.contains(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
+                        !it.feilmelding.contains(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
+                        !it.feilmelding.contains(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
                     }
                 }
+
                 When("Feilmeldinger håndteres") {
                     val addErrorFilenameSlot = slot<String>()
                     val headerSlot = slot<String>()
@@ -359,8 +377,10 @@ internal class LineValidatorIntegrationTest :
                     }
                 }
                 Then("Skal 6 feil lagres  i database ") {
-                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileNameOnSftp) }) {
-                        size shouldBe 6
+                    val insertedFiles = DBListener.dataSource.transaction { getFilValideringsFeilForFil(it, fileNameOnSftp) }
+
+                    insertedFiles.size shouldBe 6
+                    with(insertedFiles) {
                         filter { it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.size shouldBe 6
                         filter { it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT) }.size shouldBe 1
                         filter { it.feilmelding.contains(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT) }.size shouldBe 1
