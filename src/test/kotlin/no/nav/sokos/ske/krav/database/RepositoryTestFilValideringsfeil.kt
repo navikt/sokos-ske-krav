@@ -4,6 +4,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
@@ -28,26 +29,34 @@ internal class RepositoryTestFilValideringsfeil :
         }
 
         test("getValideringsFeilForFil skal returnere valideringsfeil basert på filnavn") {
-            DBListener.dataSource.transaction { tx ->
-                getFilValideringsFeilForFil(tx, "Fil1.txt").size shouldBe 1
-                getFilValideringsFeilForFil(tx, "Fil2.txt").size shouldBe 2
-                getFilValideringsFeilForFil(tx, "Fil3.txt").size shouldBe 3
-            }
+            val (forFile1, forFile2, forFile3) =
+                DBListener.dataSource.transaction { tx ->
+                    listOf(
+                        getFilValideringsFeilForFil(tx, "Fil1.txt"),
+                        getFilValideringsFeilForFil(tx, "Fil2.txt"),
+                        getFilValideringsFeilForFil(tx, "Fil3.txt"),
+                    )
+                }
+
+            forFile1.shouldHaveSize(1)
+            forFile2.shouldHaveSize(2)
+            forFile3.shouldHaveSize(3)
         }
 
         test("insertFileValideringsfeil skal inserte ny valideringsfeil med filnanvn og feilmelding") {
-            DBListener.dataSource.transaction { tx ->
-                insertFilValideringsfeil(tx, "Fil4.txt", "Test validation error insert")
-
-                val inserted = getFilValideringsFeilForFil(tx, "Fil4.txt")
-                inserted.size shouldBe 1
-                inserted.first().run {
-                    filnavn shouldBe "Fil4.txt"
-                    linjenummer shouldBe 0
-                    saksnummerNav shouldBe ""
-                    kravLinje shouldBe ""
-                    feilmelding shouldBe "Test validation error insert"
+            val insertedErrors =
+                DBListener.dataSource.transaction { tx ->
+                    insertFilValideringsfeil(tx, "Fil4.txt", "Test validation error insert")
+                    getFilValideringsFeilForFil(tx, "Fil4.txt")
                 }
+
+            insertedErrors.size shouldBe 1
+            insertedErrors.first().run {
+                filnavn shouldBe "Fil4.txt"
+                linjenummer shouldBe 0
+                saksnummerNav shouldBe ""
+                kravLinje shouldBe ""
+                feilmelding shouldBe "Test validation error insert"
             }
         }
 
@@ -77,34 +86,35 @@ internal class RepositoryTestFilValideringsfeil :
                     Avsender.OB04.name,
                 )
 
-            DBListener.dataSource.transaction { tx ->
-                val feilMelding = "Test validation error insert med non-null kravlinje"
-                val filename = "Non-null test"
-
-                insertLineFilValideringsfeil(tx, filename, linje, feilMelding)
-
-                val allInsertedFiles = FilValideringsfeilRepository.getAllValideringsFeil(tx)
-                allInsertedFiles.size shouldBe 7
-
-                val insertedFilesForFilename = allInsertedFiles.filter { it.filnavn == filename }
-                insertedFilesForFilename.size shouldBe 1
-                with(insertedFilesForFilename.first()) {
-                    linjenummer shouldBe linje.linjenummer
-                    linjenummer shouldBe linje.linjenummer
-                    saksnummerNav shouldBe linje.saksnummerNav
-                    kravLinje shouldBe linje.toString()
-                    feilmelding shouldBe feilMelding
+            val feilMelding = "Test validation error insert med non-null kravlinje"
+            val filename = "Non-null test"
+            val allInsertedFiles =
+                DBListener.dataSource.transaction { tx ->
+                    insertLineFilValideringsfeil(tx, filename, linje, feilMelding)
+                    FilValideringsfeilRepository.getAllValideringsFeil(tx)
                 }
+
+            allInsertedFiles.size shouldBe 7
+
+            val insertedFilesForFilename = allInsertedFiles.filter { it.filnavn == filename }
+            insertedFilesForFilename.size shouldBe 1
+            with(insertedFilesForFilename.first()) {
+                linjenummer shouldBe linje.linjenummer
+                linjenummer shouldBe linje.linjenummer
+                saksnummerNav shouldBe linje.saksnummerNav
+                kravLinje shouldBe linje.toString()
+                feilmelding shouldBe feilMelding
             }
         }
 
         test("deleteOldFilValideringsFeil skal slette alle filvalideringsfeil som ble opprettet før en spesifisert tid") {
-            DBListener.dataSource.transaction { tx ->
-                val threshold = LocalDate.parse("2023-01-02")
-                val filValideringsfeilDeleted = deleteOldFilValideringsfeil(tx, threshold)
+            val threshold = LocalDate.parse("2023-01-02")
+            val filValideringsfeilDeleted =
+                DBListener.dataSource.transaction { tx ->
+                    deleteOldFilValideringsfeil(tx, threshold)
+                }
 
-                filValideringsfeilDeleted shouldBe 2
-            }
+            filValideringsfeilDeleted shouldBe 2
         }
 
         afterTest {
