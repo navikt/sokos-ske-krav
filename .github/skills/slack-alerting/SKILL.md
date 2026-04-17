@@ -1,101 +1,65 @@
 ---
 name: slack-alerting
-description: SlackService feilakkumulering og Tags-basert varsling for prosesseringsfeil i SKE-batch
+description: "SlackService feilakkumulering og Tags-basert varsling for prosesseringsfeil i SKE-batch"
 ---
 
-# Slack Alerting Skill
+# Slack alerting
 
-This skill covers the `SlackService` error accumulation pattern and `SlackClient` usage in this project.
+`SlackService` accumulates errors for a file/batch, then flushes them in a single call. Never call `SlackClient.sendMessage()` directly — accumulate first, send once.
 
-## Design: Accumulate First, Send Once
-
-Never call `SlackClient.sendMessage()` directly per error. Instead:
-
-1. Call `slackService.addError()` one or more times to accumulate errors for a file/batch
-2. Call `slackService.sendErrors()` once at the end to flush all accumulated errors
-
-This prevents Slack rate-limiting and groups all errors for a file into a single message.
+## Accumulate → send pattern
 
 ```kotlin
-// Accumulate during processing
 slackService.addError(fileName, "Feil i validering av fil", errorMessages)
-
-// ... more processing ...
-
-// Flush at the end (safe to call even if there are no errors)
-slackService.sendErrors()
+// ... more processing, more addError() calls ...
+slackService.sendErrors()   // flush once at the end, safe even if no errors accumulated
 ```
+
+This prevents Slack rate-limiting and groups all errors for a file into one message.
 
 ## SlackService API
 
 ```kotlin
-class SlackService(
-    private val slackClient: SlackClient = SlackClient(),
-) {
-    // Accumulate with a Map<errorType, List<message>>
-    fun addError(
-        fileName: String,
-        header: String,
-        messages: Map<String, List<String>>,
-    )
-
-    // Accumulate with a single Pair<errorType, message>
-    fun addError(
-        fileName: String,
-        header: String,
-        messages: Pair<String, String>,
-    )
-
-    // Accumulate with a List<Pair<errorType, message>>
-    fun addError(
-        fileName: String,
-        header: String,
-        messages: List<Pair<String, String>>,
-    )
-
-    // Send all accumulated errors to Slack, then clear the buffer
+class SlackService(private val slackClient: SlackClient = SlackClient()) {
+    fun addError(fileName: String, header: String, messages: Map<String, List<String>>)
+    fun addError(fileName: String, header: String, messages: Pair<String, String>)
+    fun addError(fileName: String, header: String, messages: List<Pair<String, String>>)
     suspend fun sendErrors()
 }
 ```
 
-Internal structure: `SlackService` maintains a `MutableList<FileErrors>` where each entry groups errors per file. `sendErrors()` iterates all file errors, calls `SlackClient.sendMessage()` per error header group, and clears the buffer.
+Internal state: `MutableList<FileErrors>`. `sendErrors()` iterates file errors, calls `SlackClient.sendMessage()` per header group, then clears the buffer.
 
-## Tags — person tagging by error type
+## Tags — per-error on-call tagging
 
-The `Tags` enum maps specific SKE error response types to on-call people. The `lookupMap` resolves an error type string from SKE's response to the correct `Tags` entry, which then provides a list of Slack user IDs and an optional routine link:
+The `Tags` enum maps specific SKE error types to on-call Slack user IDs and (optionally) a routine link:
 
 ```kotlin
 private enum class Tags(
     val personer: List<String>,
     val rutineLink: String? = null,
 ) {
-    PERSON_EKSISTERER_IKKE(listOf(LENE, TRINE)),
-    PERSON_ER_DOED(listOf(LENE, TRINE)),
-    ORGANISASJONSNUMMER_FINNES_IKKE(listOf(LENE, TRINE)),
-    ORGANISASJON_ER_OPPHOERT(
-        listOf(MARITA, LINE_ANITA, STEINAR),
-        "https://confluence.adeo.no/spaces/TOB/pages/791026050/Rutine+...",
-    ),
-    PERSON_ER_SLETTET(listOf(LENE, TRINE)),
-    ORGANISASJON_ER_SLETTET(listOf(LENE, TRINE)),
+    PERSON_EKSISTERER_IKKE(listOf(NAME_A, NAME_B)),
+    ORGANISASJON_ER_OPPHOERT(listOf(NAME_C, NAME_D), "https://confluence.adeo.no/…"),
+    // ...
     ;
-
-    companion object {
-        val lookupMap: Map<String, Tags> = entries.associateBy { it.name }
-    }
+    companion object { val lookupMap: Map<String, Tags> = entries.associateBy { it.name } }
 }
 ```
 
-To add a new error type that should tag specific people:
-1. Add a new entry to `Tags` with the matching people and optional confluence link
-2. The `lookupMap` resolves it automatically from the SKE error `type` field
+The error `type` field from SKE must match the enum `name` exactly (`ORGANISASJON_ER_OPPHOERT`, etc.). `lookupMap` resolves it during `sendMessage()` so the right people are tagged.
+
+**Adding a new tag:**
+1. Add an entry to `Tags` with `personer` (and optional `rutineLink`)
+2. Ensure the `name` matches the SKE error `type` exactly
+3. No other changes needed — `lookupMap` and `sendMessage()` pick it up
 
 ## SlackClient
 
 ```kotlin
 class SlackClient(
     private val slackEndpoint: String = PropertiesConfig.slackConfig.url,
-    private val client: HttpClient = slackHttpClient,   // uses proxy-aware Apache5 client
+    private val client: HttpClient = slackHttpClient,   // proxy-aware, needed on NAIS FSS
 ) {
     suspend fun sendMessage(
         header: String,
@@ -107,38 +71,40 @@ class SlackClient(
 }
 ```
 
-The Slack webhook URL is provided via `slack.url` in `application.conf` (populated from `SOKOS_SKE_KRAV_SLACK_WEBHOOK_URL` env var). The `slackHttpClient` uses a proxy-aware engine (`SystemDefaultRoutePlanner`) — required to reach Slack from NAIS FSS.
+Webhook URL comes from `slack.url` HOCON (env `SOKOS_SKE_KRAV_SLACK_WEBHOOK_URL`).
 
-## Mock in Tests
+## HOCON
+
+```hocon
+slack { url = ${SOKOS_SKE_KRAV_SLACK_WEBHOOK_URL} }
+```
+
+## Tests
 
 ```kotlin
-// SlackService is constructed with a no-op SlackClient in unit/integration tests:
-val slackClient = MockHttpClient.slackClient   // returns HTTP 200 for all calls
+// Option 1: real SlackService with a no-op HTTP client
+val slackService = SlackService(SlackClient(slackEndpoint = "", client = MockHttpClient.slackClient))
 
-// Or mock the whole SlackService with MockK:
+// Option 2: mock SlackService entirely
 val slackServiceMock = mockk<SlackService> {
     justRun { addError(any(), any(), any<List<Pair<String, String>>>()) }
     coJustRun { sendErrors() }
 }
 ```
 
-`MockHttpClient.slackClient` is a pre-built `HttpClient(MockEngine)` that responds `200 OK` to all requests — safe to use anywhere a `SlackClient` needs an HTTP client.
+`MockHttpClient.slackClient` is a pre-built `HttpClient(MockEngine)` that returns `200 OK` to any request.
 
-## Example: Adding a new error category
+## Boundaries
 
-```kotlin
-// 1. Add team members for the new error type in Tags:
-ORGANISASJON_ER_KONKURS(listOf(MARITA, STEINAR)),
+### ✅ Always
+- Use `addError(...)` + `sendErrors()` — never `SlackClient.sendMessage()` directly from service code
+- Call `sendErrors()` exactly once at the end of each processing pass (e.g. per scheduler tick)
+- Keep `Tags.name` identical to the SKE error `type` string
 
-// 2. The error key from SKE's response body `type` field must match the enum name exactly.
-//    sendErrors() will look it up in Tags.lookupMap and tag the right people automatically.
-```
+### ⚠️ Ask first
+- Removing / renaming existing `Tags` entries (on-call people depend on them)
 
-## HOCON config
-
-```hocon
-slack {
-  url = ${SOKOS_SKE_KRAV_SLACK_WEBHOOK_URL}
-}
-```
-
+### 🚫 Never
+- Send Slack messages per individual error (rate limiting)
+- Hardcode webhook URLs or user IDs outside `Tags` / config
+- Log PII inside the Slack message body without checking it's safe for the channel
