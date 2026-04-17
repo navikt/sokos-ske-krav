@@ -70,3 +70,4 @@ Lazy-loaded skills are listed automatically by the runtime — invoke by name wh
 - **Null safety**: no `!!` without a preceding null check.
 - **`defaults.properties`**: never commit.
 - **SKE calls**: always go through `CircuitBreakerManager.guardCall {}`.
+- **`ENDRING_HOVEDSTOL`**: The constant is spelled with the Norwegian word *hovedstol* (H-O-V-E-D, `0x48 0x4f 0x56 0x45 0x44`). Never rename it to `ENDRING_HOOFDSTOL` (Dutch) or any other variant. The canonical spelling is `ENDRING_HOVEDSTOL` — defined in `SkeService.kt` and used in `KravRepository.kt`, `DatabaseService.kt`, and all test fixtures.
