@@ -5,6 +5,32 @@ description: "Kotest BehaviorSpec/MockK-mønstre for sokos-ske-krav: scenariostr
 
 # Kotest patterns
 
+## Coverage audit — ALLTID gjør dette først
+
+Før du konkluderer med at et område mangler tester, **list alltid alle testfiler**:
+
+```bash
+find src/test -type f -name "*.kt" | sort
+```
+
+Testene i dette prosjektet er organisert i underkategorier — bruk aldri `| head` som kapper output.
+Forventet mappestruktur:
+
+```
+src/test/.../service/
+  integration/   ← *IntegrationTest.kt  (DBListener + SftpListener)
+  unit/          ← *Test.kt             (MockK, ingen DB)
+src/test/.../database/   ← RepositoryTest*.kt
+src/test/.../validation/ ← *Test.kt + *IntegrationTest.kt
+src/test/.../domain/     ← parser- og domene-tester
+src/test/.../client/     ← SkeClientTest.kt
+src/test/.../config/     ← CircuitBreaker*Test.kt
+```
+
+Ikke anta manglende dekning uten å ha sett full filliste først.
+
+---
+
 Default spec style: **`BehaviorSpec`** (Given/When/Then/And) in Norwegian. Use `FunSpec` only for trivial, non-scenario-based unit tests.
 
 ## Canonical BehaviorSpec

@@ -23,6 +23,17 @@ For full patterns, examples, and MockK/matchers cheat sheets, invoke the **`kote
 - Integration tests: `.../service/integration/*IntegrationTest.kt`, `.../validation/*IntegrationTest.kt`, `.../database/*Test.kt`
 - SQL fixtures: `src/test/resources/SQLscript/krav/*.sql`
 
+## Coverage audit — gjør dette før du konkluderer
+
+Før du påstår at et område mangler tester, **kjør alltid**:
+
+```bash
+find src/test -type f -name "*.kt" | sort
+```
+
+- Bruk aldri `| head` eller begrens output — testfiler ligger i underkategorier (`unit/`, `integration/`, `database/`, `client/`, `config/`) og kuttes lett av et for lavt antall
+- Vurder faktisk filinnhold, ikke bare filnavn, før du konkluderer om scenariodekning
+
 ## Boundaries
 
 ### ✅ Always
