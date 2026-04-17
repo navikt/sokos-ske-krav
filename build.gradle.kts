@@ -5,8 +5,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.3.10"
-    kotlin("plugin.serialization") version "2.3.10"
+    kotlin("jvm") version "2.3.20"
+    kotlin("plugin.serialization") version "2.3.20"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("org.jetbrains.kotlinx.kover") version "0.9.8"
 
@@ -22,7 +22,7 @@ repositories {
 val ktorVersion = "3.4.2"
 val jschVersion = "2.28.0"
 val nimbusVersion = "10.9"
-val kotlinxSerializationVersion = "1.10.0"
+val kotlinxSerializationVersion = "1.11.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
@@ -120,7 +120,7 @@ configurations.all {
 
             // Critical
             if (requested.group == "org.lz4" && requested.name == "lz4-java") {
-                useTarget("at.yawk.lz4:lz4-java:1.10.4")
+                useTarget("at.yawk.lz4:lz4-java:1.11.0")
                 because("Prefer the patched fork for vulnerability fix")
             }
             // High

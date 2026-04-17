@@ -52,7 +52,7 @@ internal class StonadsTypeTest :
                 Pair("PE UT", "TA") to StonadsType.TILBAKEKREVING_UFOERETRYGD_AVREGNING,
                 Pair("PE UP", "TA") to StonadsType.TILBAKEKREVING_UFOEREPENSJON_AVREGNING,
                 Pair("PE XP", "T") to StonadsType.TILBAKEKREVING_AVTALEFESTET_PENSJON,
-                Pair("PE XP", "AFP") to StonadsType.TILBAKEKREVING_AVTALEFESTET_PENSJON_ETTEROPPGJOER,
+                Pair("PE XP", "A") to StonadsType.TILBAKEKREVING_AVTALEFESTET_PENSJON_ETTEROPPGJOER,
                 Pair("SU AP", "T") to StonadsType.TILBAKEKREVING_SUPPLERENDE_STOENAD_ALDERSPENSJON,
                 Pair("SU UF", "T") to StonadsType.TILBAKEKREVING_SUPPLERENDE_STOENAD_UFOEREPENSJON,
                 Pair("BS OP", "T") to StonadsType.TILBAKEKREVING_OPPLAERINGSPENGER,
