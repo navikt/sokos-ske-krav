@@ -24,7 +24,7 @@ object KravRepository {
             kravId = row.long("id"),
             filnavn = row.string("filnavn"),
             linjenummer = row.int("linjenummer"),
-            kravidentifikatorSKE = row.string("kravidentifikator_ske"),
+            kravidentifikatorSKE = row.stringOrNull("kravidentifikator_ske") ?: "",
             saksnummerNAV = row.string("saksnummer_nav"),
             belop = row.double("belop"),
             vedtaksDato = row.localDate("vedtaksdato"),
@@ -49,7 +49,7 @@ object KravRepository {
             tidspunktSisteStatus = row.localDateTime("tidspunkt_siste_status"),
             tidspunktOpprettet = row.localDateTime("tidspunkt_opprettet"),
             tilleggsfrist = row.localDateOrNull("tilleggsfrist"),
-            avsender = row.string("avsender"),
+            avsender = row.stringOrNull("avsender") ?: "",
         )
     }
 

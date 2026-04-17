@@ -14,9 +14,9 @@ object FilValideringsfeilRepository {
         FilValideringsfeil(
             valideringsfeilId = row.long("id"),
             filnavn = row.string("filnavn"),
-            linjenummer = row.int("linjenummer"),
-            saksnummerNav = row.string("saksnummer_nav"),
-            kravLinje = row.string("kravlinje"),
+            linjenummer = row.intOrNull("linjenummer") ?: 0,
+            saksnummerNav = row.stringOrNull("saksnummer_nav") ?: "",
+            kravLinje = row.stringOrNull("kravlinje") ?: "",
             feilmelding = row.string("feilmelding"),
             tidspunktOpprettet = row.localDateTime("tidspunkt_opprettet"),
             rapporter = row.boolean("rapporter"),
