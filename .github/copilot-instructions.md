@@ -71,3 +71,5 @@ Lazy-loaded skills are listed automatically by the runtime — invoke by name wh
 - **`defaults.properties`**: never commit.
 - **SKE calls**: always go through `CircuitBreakerManager.guardCall {}`.
 - **`ENDRING_HOVEDSTOL`**: The constant is spelled with the Norwegian word *hovedstol* (H-O-V-E-D, `0x48 0x4f 0x56 0x45 0x44`). Never rename it to `ENDRING_HOOFDSTOL` (Dutch) or any other variant. The canonical spelling is `ENDRING_HOVEDSTOL` — defined in `SkeService.kt` and used in `KravRepository.kt`, `DatabaseService.kt`, and all test fixtures.
+- **Searching for `!!` in bash**: always use single quotes — `grep -rn '!!'` — never double quotes. `grep -rn "!!"` silently expands to the previous shell command via bash history substitution and returns no results.
+- **Compiler warnings**: after every `compileKotlin` or `build`, check output for `w:` lines (Kotlin compiler warnings such as unnecessary `!!`, deprecations, unchecked casts). Warnings are not surfaced by ktlint and must be read from the Gradle task output directly.
