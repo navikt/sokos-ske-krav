@@ -2,7 +2,6 @@ package no.nav.sokos.ske.krav.util
 
 import java.io.File
 import java.io.Reader
-import java.sql.Connection
 
 import kotlinx.io.Buffer
 
@@ -16,13 +15,14 @@ import io.mockk.coJustRun
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
+import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Krav
-import no.nav.sokos.ske.krav.repository.toKrav
+import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.EndreKravService
@@ -31,6 +31,7 @@ import no.nav.sokos.ske.krav.service.OpprettKravService
 import no.nav.sokos.ske.krav.service.SkeService
 import no.nav.sokos.ske.krav.service.StatusService
 import no.nav.sokos.ske.krav.service.StoppKravService
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 
 object FtpTestUtil {
@@ -145,4 +146,7 @@ fun mockHttpResponse(
             }
     }
 
-fun Connection.getAllKrav(): List<Krav> = prepareStatement("""select * from krav""").executeQuery().toKrav()
+fun HikariDataSource.getAllKrav(): List<Krav> =
+    transaction { tx ->
+        tx.list(queryOf("select * from krav"), KravRepository.mapToKrav)
+    }

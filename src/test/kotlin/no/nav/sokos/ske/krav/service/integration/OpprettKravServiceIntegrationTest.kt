@@ -48,9 +48,7 @@ internal class OpprettKravServiceIntegrationTest :
                 }
                 Then("Skal kravene ikke oppdateres") {
                     val krav =
-                        DBListener.dataSource.connection.use { con ->
-                            con.getAllKrav()
-                        }
+                        DBListener.dataSource.getAllKrav()
                     krav.size shouldBe 2
                     krav.count { it.saksnummerNAV == "1111-navsaksnr" } shouldBe 1
                     krav.count { it.saksnummerNAV == "2222-navsaksnr" } shouldBe 1
@@ -79,9 +77,7 @@ internal class OpprettKravServiceIntegrationTest :
                 }
                 Then("Skal kravene oppdateres med SKE kravidentifikator") {
                     val krav =
-                        DBListener.dataSource.connection.use { con ->
-                            con.getAllKrav()
-                        }
+                        DBListener.dataSource.getAllKrav()
                     krav.size shouldBe 2
                     krav.count { it.saksnummerNAV == "1111-navsaksnr" } shouldBe 1
                     krav.count { it.saksnummerNAV == "2222-navsaksnr" } shouldBe 1

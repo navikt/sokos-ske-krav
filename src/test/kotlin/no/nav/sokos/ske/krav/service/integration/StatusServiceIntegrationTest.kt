@@ -67,12 +67,12 @@ internal class StatusServiceIntegrationTest :
             val (slackClientSpy, _, statusService) = setupServices(httpClient, dbService)
 
             Then("Skal mottaksstatus settes til RESKONTROFOERT i database") {
-                val allKravBeforeUpdate = DBListener.dataSource.connection.use { con -> con.getAllKrav() }
+                val allKravBeforeUpdate = DBListener.dataSource.getAllKrav()
                 allKravBeforeUpdate.count { it.status == Status.RESKONTROFOERT.value } shouldBe 3
 
                 statusService.getMottaksStatus()
 
-                val allKravAfterUpdate = DBListener.dataSource.connection.use { con -> con.getAllKrav() }
+                val allKravAfterUpdate = DBListener.dataSource.getAllKrav()
                 allKravAfterUpdate.count { it.status == Status.RESKONTROFOERT.value } shouldBe 8
             }
             Then("Alert skal ikke sendes") {
@@ -109,8 +109,8 @@ internal class StatusServiceIntegrationTest :
                 }
 
                 Then("Mottaksstatus skal settes til VALIDERINGSFEIL i database") {
-                    DBListener.dataSource.connection
-                        .use { con -> con.getAllKrav() }
+                    DBListener.dataSource
+                        .getAllKrav()
                         .filter { it.status == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value }
                         .distinctBy { it.corrId }
                         .size shouldBe 5

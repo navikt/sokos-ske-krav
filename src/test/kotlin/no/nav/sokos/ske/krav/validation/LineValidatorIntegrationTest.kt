@@ -15,10 +15,11 @@ import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.SftpListener
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages
@@ -53,8 +54,8 @@ internal class LineValidatorIntegrationTest :
                 val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, dbService)
 
                 Then("Skal ingen feil lagres i database") {
-                    DBListener.dataSource.connection
-                        .use { it.getFilValideringsFeilForFil(fileName) }
+                    DBListener.dataSource
+                        .transaction { tx -> FilValideringsfeilRepository.getFilValideringsFeilForFil(tx, fileName) }
                         .size shouldBe 0
                 }
                 Then("Ingen linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
@@ -91,7 +92,7 @@ internal class LineValidatorIntegrationTest :
                 lineValidatorSpy.validateNewLines(ftpFil, dbService)
 
                 Then("Skal én feil lagres i database") {
-                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileNameOnSftp) }) {
+                    with(DBListener.dataSource.transaction { tx -> FilValideringsfeilRepository.getFilValideringsFeilForFil(tx, fileNameOnSftp) }) {
                         size shouldBe 1
                         with(first().feilmelding) {
                             shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
@@ -173,7 +174,7 @@ internal class LineValidatorIntegrationTest :
                     }
                 }
                 Then("Skal 3 feil lagres som én feilmelding i database") {
-                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileNameOnSftp) }) {
+                    with(DBListener.dataSource.transaction { tx -> FilValideringsfeilRepository.getFilValideringsFeilForFil(tx, fileNameOnSftp) }) {
                         size shouldBe 1
                         with(first().feilmelding) {
                             shouldContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
@@ -270,7 +271,7 @@ internal class LineValidatorIntegrationTest :
                 }
 
                 Then("Skal 6 feil lagres i database") {
-                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileNameOnSftp) }) {
+                    with(DBListener.dataSource.transaction { tx -> FilValideringsfeilRepository.getFilValideringsFeilForFil(tx, fileNameOnSftp) }) {
                         size shouldBe 6
                         all {
                             it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
@@ -359,7 +360,7 @@ internal class LineValidatorIntegrationTest :
                     }
                 }
                 Then("Skal 6 feil lagres  i database ") {
-                    with(DBListener.dataSource.connection.use { it.getFilValideringsFeilForFil(fileNameOnSftp) }) {
+                    with(DBListener.dataSource.transaction { tx -> FilValideringsfeilRepository.getFilValideringsFeilForFil(tx, fileNameOnSftp) }) {
                         size shouldBe 6
                         filter { it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.size shouldBe 6
                         filter { it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT) }.size shouldBe 1

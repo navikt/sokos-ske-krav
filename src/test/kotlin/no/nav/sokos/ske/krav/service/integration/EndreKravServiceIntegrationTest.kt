@@ -57,9 +57,7 @@ class EndreKravServiceIntegrationTest :
                 }
                 Then("Skal kravstatus ikke oppdateres") {
                     val krav =
-                        DBListener.dataSource.connection.use { con ->
-                            con.getAllKrav()
-                        }
+                        DBListener.dataSource.getAllKrav()
 
                     dbService.getAllUnsentKrav().size shouldBe 4
                     krav.filter { it.status == Status.KRAV_SENDT.value }.size shouldBe 0
@@ -78,9 +76,10 @@ class EndreKravServiceIntegrationTest :
                 EndreKravService(skeClient, dbService).sendAllEndreKrav(kravSomSkalSendes)
 
                 Then("Skal krav oppdateres med status sendt") {
-                    DBListener.dataSource.connection.use { con ->
-                        con.getAllKrav().filter { it.status == Status.KRAV_SENDT.value }.size shouldBe 4
-                    }
+                    DBListener.dataSource
+                        .getAllKrav()
+                        .filter { it.status == Status.KRAV_SENDT.value }
+                        .size shouldBe 4
                     dbService.getAllUnsentKrav().size shouldBe 0
                 }
             }

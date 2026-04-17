@@ -11,24 +11,9 @@ import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.metrics.Metrics
-import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.deleteOldFeilmeldinger
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.deleteOldFilValideringsfeil
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertFileValideringsfeil
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertLineFilValideringsfeil
-import no.nav.sokos.ske.krav.repository.KravRepository.deleteOldKrav
-import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForAvstemming
-import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForResending
-import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForStatusCheck
-import no.nav.sokos.ske.krav.repository.KravRepository.getAllUnsentKrav
-import no.nav.sokos.ske.krav.repository.KravRepository.getPreviousReferansenummer
-import no.nav.sokos.ske.krav.repository.KravRepository.getSkeKravidentifikator
-import no.nav.sokos.ske.krav.repository.KravRepository.insertAllNewKrav
-import no.nav.sokos.ske.krav.repository.KravRepository.updateEndringWithSkeKravIdentifikator
-import no.nav.sokos.ske.krav.repository.KravRepository.updateSentKrav
-import no.nav.sokos.ske.krav.repository.KravRepository.updateStatus
-import no.nav.sokos.ske.krav.repository.KravRepository.updateStatusForAvstemtKravToReported
-import no.nav.sokos.ske.krav.repository.RepositoryExtensions.useAndHandleErrors
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
+import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.util.RequestResult
 
@@ -38,49 +23,39 @@ class DatabaseService(
     private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
 ) {
     fun getSkeKravidentifikator(navref: String): String =
-        dataSource.connection.useAndHandleErrors {
-            it.getSkeKravidentifikator(navref).ifBlank {
-                val kravId2 = it.getPreviousReferansenummer(navref)
-                if (kravId2.isNotBlank()) it.getSkeKravidentifikator(kravId2) else ""
+        dataSource.transaction { tx ->
+            KravRepository.getSkeKravidentifikator(tx, navref).ifBlank {
+                val previousRef = KravRepository.getPreviousReferansenummer(tx, navref)
+                if (previousRef.isNotBlank()) KravRepository.getSkeKravidentifikator(tx, previousRef) else ""
             }
         }
+
+    private fun updateSentKrav(
+        corrID: String,
+        responseStatus: String,
+    ) = dataSource.transaction { tx -> KravRepository.updateSentKrav(tx, corrID, responseStatus) }
 
     private fun updateSentKrav(
         skeKravidentifikator: String,
         corrID: String,
         responseStatus: String,
-    ) = dataSource.connection.useAndHandleErrors {
-        it.updateSentKrav(corrID, skeKravidentifikator, responseStatus)
-    }
-
-    private fun updateSentKrav(
-        corrID: String,
-        responseStatus: String,
-    ) = dataSource.connection.useAndHandleErrors {
-        it.updateSentKrav(corrID, responseStatus)
-    }
+    ) = dataSource.transaction { tx -> KravRepository.updateSentKrav(tx, corrID, skeKravidentifikator, responseStatus) }
 
     fun saveAllNewKrav(
         kravLinjer: List<KravLinje>,
         filnavn: String,
-    ) = dataSource.connection.useAndHandleErrors {
-        it.insertAllNewKrav(kravLinjer, filnavn)
-    }
+    ) = dataSource.transaction { tx -> KravRepository.insertAllNewKrav(tx, kravLinjer, filnavn) }
 
     fun saveLineValidationError(
         filnavn: String,
         kravlinje: KravLinje,
         feilmelding: String,
-    ) = dataSource.connection.useAndHandleErrors {
-        it.insertLineFilValideringsfeil(filnavn, kravlinje, feilmelding)
-    }
+    ) = dataSource.transaction { tx -> FilValideringsfeilRepository.insertLineFilValideringsfeil(tx, filnavn, kravlinje, feilmelding) }
 
     fun saveFileValidationError(
         filnavn: String,
         feilmelding: String,
-    ) = dataSource.connection.useAndHandleErrors {
-        it.insertFileValideringsfeil(filnavn, feilmelding)
-    }
+    ) = dataSource.transaction { tx -> FilValideringsfeilRepository.insertFileValideringsfeil(tx, filnavn, feilmelding) }
 
     fun updateSentKrav(results: List<RequestResult>) {
         incrementMetrics(results)
@@ -102,43 +77,36 @@ class DatabaseService(
         }
     }
 
-    fun getAllKravForStatusCheck(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForStatusCheck() }
+    fun getAllKravForStatusCheck(): List<Krav> = dataSource.transaction { tx -> KravRepository.getAllKravForStatusCheck(tx) }
 
-    fun getAllKravForAvstemming(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForAvstemming() }
+    fun getAllKravForAvstemming(): List<Krav> = dataSource.transaction { tx -> KravRepository.getAllKravForAvstemming(tx) }
 
-    fun getFileValidationMessage(filNavn: String): List<FilValideringsfeil> = dataSource.connection.useAndHandleErrors { it.getFilValideringsFeilForFil(filNavn) }
+    fun getFileValidationMessage(filNavn: String): List<FilValideringsfeil> = dataSource.transaction { tx -> FilValideringsfeilRepository.getFilValideringsFeilForFil(tx, filNavn) }
 
     fun updateStatus(
         mottakStatus: String,
         corrId: String,
-    ) = dataSource.connection.useAndHandleErrors { it.updateStatus(mottakStatus, corrId) }
+    ) = dataSource.transaction { tx -> KravRepository.updateStatus(tx, mottakStatus, corrId) }
 
-    fun updateStatusForAvstemtKravToReported(kravId: Int) = dataSource.connection.useAndHandleErrors { it.updateStatusForAvstemtKravToReported(kravId) }
+    fun updateStatusForAvstemtKravToReported(kravId: Int) = dataSource.transaction { tx -> KravRepository.updateStatusForAvstemtKravToReported(tx, kravId) }
 
-    fun getAllKravForResending(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForResending() }
+    fun getAllKravForResending(): List<Krav> = dataSource.transaction { tx -> KravRepository.getAllKravForResending(tx) }
 
-    fun getAllUnsentKrav(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllUnsentKrav() }
+    fun getAllUnsentKrav(): List<Krav> = dataSource.transaction { tx -> KravRepository.getAllUnsentKrav(tx) }
 
     fun updateEndringWithSkeKravIdentifikator(
         navsaksnummer: String,
         skeKravidentifikator: String,
-    ) = dataSource.connection.useAndHandleErrors {
-        it.updateEndringWithSkeKravIdentifikator(navsaksnummer, skeKravidentifikator)
-    }
+    ) = dataSource.transaction { tx -> KravRepository.updateEndringWithSkeKravIdentifikator(tx, navsaksnummer, skeKravidentifikator) }
 
     fun deleteOldData() {
         val threshold = LocalDate.now().minusYears(10)
-        dataSource.connection.useAndHandleErrors {
-            val kravDeleted = it.deleteOldKrav(threshold)
-            val filValideringsfeilDeleted = it.deleteOldFilValideringsfeil(threshold)
+        dataSource.transaction { tx ->
+            val kravDeleted = KravRepository.deleteOldKrav(tx, threshold)
+            val filValideringsfeilDeleted = FilValideringsfeilRepository.deleteOldFilValideringsfeil(tx, threshold)
+            val feilmeldingDeleted = FeilmeldingRepository.deleteOldFeilmeldinger(tx, threshold)
 
-            logger.info { "Slettet $kravDeleted krav og $filValideringsfeilDeleted filvalideringsfeil" }
-        }
-
-        dataSource.transaction { session ->
-            val feilmeldingDeleted = deleteOldFeilmeldinger(session, threshold)
-
-            logger.info { "Slettet $feilmeldingDeleted feilmeldinger." }
+            logger.info { "Slettet $kravDeleted krav, $filValideringsfeilDeleted filvalideringsfeil og $feilmeldingDeleted feilmeldinger." }
         }
     }
 
