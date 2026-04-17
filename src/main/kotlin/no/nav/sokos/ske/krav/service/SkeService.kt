@@ -193,7 +193,7 @@ class SkeService(
                 if (kravidentifikator.isEmpty()) {
                     Status.UKJENT_FEIL
                 } else {
-                    Status.valueOf(krav.status)
+                    Status.entries.firstOrNull { it.value == krav.status } ?: Status.UKJENT_FEIL
                 }
             } else {
                 definertStatus.first
