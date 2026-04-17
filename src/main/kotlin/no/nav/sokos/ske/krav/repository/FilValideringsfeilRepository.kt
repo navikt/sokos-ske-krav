@@ -18,7 +18,7 @@ object FilValideringsfeilRepository {
             saksnummerNav = row.string("saksnummer_nav"),
             kravLinje = row.string("kravlinje"),
             feilmelding = row.string("feilmelding"),
-            tidspunktOpprettet = row.localDateTime("tidspunkt_opprettet")!!,
+            tidspunktOpprettet = row.localDateTime("tidspunkt_opprettet"),
             rapporter = row.boolean("rapporter"),
         )
     }
