@@ -38,3 +38,5 @@ enum class Status(
     HTTP500_INTERN_TJENERFEIL("500_FEIL_PÅ_MOTTAKSERVER"),
     HTTP503_UTILGJENGELIG_TJENESTE("503_TJENESTEN_ER_IKKE_TILGJENGELIG"),
 }
+
+fun String.toStatus() = runCatching { Status.valueOf(this) }.getOrElse { Status.entries.find { it.value == this } } ?: Status.UKJENT_STATUS

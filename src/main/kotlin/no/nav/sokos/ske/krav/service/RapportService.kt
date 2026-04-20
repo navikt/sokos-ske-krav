@@ -54,7 +54,7 @@ class RapportService(
             }.distinctBy { it.kravID }
 
     private fun getFeilmeldinger(krav: Krav): List<String> =
-        if (krav.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value) {
+        if (krav.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL) {
             dataSource.transaction { tx ->
                 FeilmeldingRepository
                     .getFeilmeldingForKravId(tx, krav.kravId)
@@ -73,7 +73,7 @@ class RapportService(
         val fagsystemId: String,
         val kravkode: String,
         val kodeHjemmel: String,
-        val status: String,
+        val status: Status,
         val stonadsType: StonadsType,
         val saksnummerNAV: String,
         val referansenummerGammelSak: String,
@@ -121,7 +121,7 @@ class RapportService(
                                     it.fagsystemId.escapeCsvField(),
                                     it.kravkode.escapeCsvField(),
                                     it.kodeHjemmel.escapeCsvField(),
-                                    it.status.escapeCsvField(),
+                                    it.status.value.escapeCsvField(),
                                     it.stonadsType.toString().escapeCsvField(),
                                     it.saksnummerNAV.escapeCsvField(),
                                     it.referansenummerGammelSak.escapeCsvField(),

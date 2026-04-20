@@ -5,6 +5,8 @@ import java.sql.ResultSet
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.domain.Status
+import no.nav.sokos.ske.krav.domain.toStatus
 import no.nav.sokos.ske.krav.repository.RepositoryExtensions.getColumn
 
 fun ResultSet.toKrav() =
@@ -31,7 +33,7 @@ fun ResultSet.toKrav() =
             fremtidigYtelse = getColumn("fremtidig_ytelse"),
             utbetalDato = getColumn("utbetaldato"),
             fagsystemId = getColumn("fagsystem_id"),
-            status = getColumn("status"),
+            status = getColumn<String?>("status")?.toStatus() ?: Status.UKJENT_STATUS,
             kravtype = getColumn("kravtype"),
             corrId = getColumn("corr_id"),
             tidspunktSendt = getColumn("tidspunkt_sendt"),

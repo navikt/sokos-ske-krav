@@ -62,8 +62,8 @@ class EndreKravServiceIntegrationTest :
                         }
 
                     dbService.getAllUnsentKrav().size shouldBe 4
-                    krav.filter { it.status == Status.KRAV_SENDT.value }.size shouldBe 0
-                    krav.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 4
+                    krav.filter { it.status == Status.KRAV_SENDT }.size shouldBe 0
+                    krav.filter { it.status == Status.KRAV_IKKE_SENDT }.size shouldBe 4
                 }
             }
             When("Response fra SKE er OK") {
@@ -79,7 +79,7 @@ class EndreKravServiceIntegrationTest :
 
                 Then("Skal krav oppdateres med status sendt") {
                     DBListener.dataSource.connection.use { con ->
-                        con.getAllKrav().filter { it.status == Status.KRAV_SENDT.value }.size shouldBe 4
+                        con.getAllKrav().filter { it.status == Status.KRAV_SENDT }.size shouldBe 4
                     }
                     dbService.getAllUnsentKrav().size shouldBe 0
                 }

@@ -68,12 +68,12 @@ internal class StatusServiceIntegrationTest :
 
             Then("Skal mottaksstatus settes til RESKONTROFOERT i database") {
                 val allKravBeforeUpdate = DBListener.dataSource.connection.use { con -> con.getAllKrav() }
-                allKravBeforeUpdate.count { it.status == Status.RESKONTROFOERT.value } shouldBe 3
+                allKravBeforeUpdate.count { it.status == Status.RESKONTROFOERT } shouldBe 3
 
                 statusService.getMottaksStatus()
 
                 val allKravAfterUpdate = DBListener.dataSource.connection.use { con -> con.getAllKrav() }
-                allKravAfterUpdate.count { it.status == Status.RESKONTROFOERT.value } shouldBe 8
+                allKravAfterUpdate.count { it.status == Status.RESKONTROFOERT } shouldBe 8
             }
             Then("Alert skal ikke sendes") {
                 coVerify(exactly = 0) {
@@ -111,7 +111,7 @@ internal class StatusServiceIntegrationTest :
                 Then("Mottaksstatus skal settes til VALIDERINGSFEIL i database") {
                     DBListener.dataSource.connection
                         .use { con -> con.getAllKrav() }
-                        .filter { it.status == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value }
+                        .filter { it.status == Status.VALIDERINGSFEIL_MOTTAKSSTATUS }
                         .distinctBy { it.corrId }
                         .size shouldBe 5
                 }

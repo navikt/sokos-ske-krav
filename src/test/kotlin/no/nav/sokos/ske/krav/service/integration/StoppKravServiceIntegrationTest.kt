@@ -57,7 +57,7 @@ class StoppKravServiceIntegrationTest :
                 }
                 Then("Skal krav ikke oppdateres med status sendt") {
                     DBListener.dataSource.connection.use { con ->
-                        con.getAllKrav().filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 2
+                        con.getAllKrav().filter { it.status == Status.KRAV_IKKE_SENDT }.size shouldBe 2
                     }
                     dbService.getAllUnsentKrav().size shouldBe 2
                 }
@@ -76,7 +76,7 @@ class StoppKravServiceIntegrationTest :
                         DBListener.dataSource.connection.use { con ->
                             con.getAllKrav()
                         }
-                    krav.count { it.status == Status.KRAV_SENDT.value } shouldBe 2
+                    krav.count { it.status == Status.KRAV_SENDT } shouldBe 2
                     dbService.getAllUnsentKrav().size shouldBe 0
                 }
             }

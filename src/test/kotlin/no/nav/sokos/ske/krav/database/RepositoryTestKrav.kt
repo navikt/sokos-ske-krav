@@ -52,11 +52,11 @@ internal class RepositoryTestKrav :
             kravForResending.size shouldBe 10
             kravForResending.forEach {
                 it.status.shouldBeIn(
-                    Status.KRAV_IKKE_SENDT.value,
-                    Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND.value,
-                    Status.HTTP500_ANNEN_SERVER_FEIL.value,
-                    Status.HTTP503_UTILGJENGELIG_TJENESTE.value,
-                    Status.HTTP500_INTERN_TJENERFEIL.value,
+                    Status.KRAV_IKKE_SENDT,
+                    Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND,
+                    Status.HTTP500_ANNEN_SERVER_FEIL,
+                    Status.HTTP503_UTILGJENGELIG_TJENESTE,
+                    Status.HTTP500_INTERN_TJENERFEIL,
                 )
             }
         }
@@ -65,7 +65,7 @@ internal class RepositoryTestKrav :
             val unsentKrav = DBListener.dataSource.connection.use { it.getAllUnsentKrav() }
             unsentKrav.size shouldBe 4
             unsentKrav.forEach {
-                it.status shouldBe Status.KRAV_IKKE_SENDT.value
+                it.status shouldBe Status.KRAV_IKKE_SENDT
             }
         }
 
@@ -126,13 +126,13 @@ internal class RepositoryTestKrav :
         test("updateSentKrav skal oppdatere krav med ny status, og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
             DBListener.dataSource.connection.use { con ->
                 val originalKrav = con.getAllKrav().first { it.corrId == "CORR457387" }
-                originalKrav.status shouldBe "RESKONTROFOERT"
+                originalKrav.status shouldBe Status.RESKONTROFOERT
                 originalKrav.tidspunktSendt!!.toString() shouldBe "2023-02-01T12:00"
                 originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
-                con.updateSentKrav("CORR457387", "TESTSTATUS")
+                con.updateSentKrav("CORR457387", Status.KRAV_SENDT.value)
                 val updatedKrav = con.getAllKrav().first { it.corrId == "CORR457387" }
-                updatedKrav.status shouldBe "TESTSTATUS"
+                updatedKrav.status shouldBe Status.KRAV_SENDT
                 updatedKrav.tidspunktSendt!!.toLocalDate() shouldBe LocalDate.now()
                 updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
             }
@@ -141,14 +141,14 @@ internal class RepositoryTestKrav :
         test("updateSendtKrav skal oppdatere krav med ny status og ny kravidentifikator_ske, og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
             DBListener.dataSource.connection.use { con ->
                 val originalKrav = con.getAllKrav().first { it.corrId == "CORR83985902" }
-                originalKrav.status shouldBe "RESKONTROFOERT"
+                originalKrav.status shouldBe Status.RESKONTROFOERT
                 originalKrav.kravidentifikatorSKE shouldBe "6666-skeUUID"
                 originalKrav.tidspunktSendt!!.toString() shouldBe "2023-02-01T12:00"
                 originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
-                con.updateSentKrav("CORR83985902", "NykravidentSke", "TESTSTATUS")
+                con.updateSentKrav("CORR83985902", "NykravidentSke", Status.KRAV_SENDT.value)
                 val updatedKrav = con.getAllKrav().first { it.corrId == "CORR83985902" }
-                updatedKrav.status shouldBe "TESTSTATUS"
+                updatedKrav.status shouldBe Status.KRAV_SENDT
                 updatedKrav.kravidentifikatorSKE shouldBe "NykravidentSke"
                 updatedKrav.tidspunktSendt!!.toLocalDate() shouldBe LocalDate.now()
                 updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
@@ -158,12 +158,12 @@ internal class RepositoryTestKrav :
         test("updateStatus skal oppdatere status, og tidspunkt_siste_status skal settes til NOW") {
             DBListener.dataSource.connection.use { con ->
                 val originalKrav = con.getAllKrav().first { it.corrId == "CORR457389" }
-                originalKrav.status shouldBe "RESKONTROFOERT"
+                originalKrav.status shouldBe Status.RESKONTROFOERT
                 originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
-                con.updateStatus("NY_STATUS", "CORR457389")
+                con.updateStatus(Status.KRAV_IKKE_SENDT.value, "CORR457389")
                 val updatedKrav = con.getAllKrav().first { it.corrId == "CORR457389" }
-                updatedKrav.status shouldBe "NY_STATUS"
+                updatedKrav.status shouldBe Status.KRAV_IKKE_SENDT
                 updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
             }
         }

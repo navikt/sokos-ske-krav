@@ -206,7 +206,7 @@ internal class SkeServiceIntegrationTest :
                         }
                     }
 
-                kravMedFeil.filter { it.status == Status.HTTP403_INGEN_TILGANG.value }.size shouldBe 0
+                kravMedFeil.filter { it.status == Status.HTTP403_INGEN_TILGANG }.size shouldBe 0
             }
         }
         Given("Vi mottar 404 på avstemming") {
@@ -275,7 +275,7 @@ internal class SkeServiceIntegrationTest :
                         }
                     }
 
-                kravMedFeil.filter { it.status == Status.HTTP422_VALIDERINGSFEIL.value }.size shouldBe 10
+                kravMedFeil.filter { it.status == Status.HTTP422_VALIDERINGSFEIL }.size shouldBe 10
             }
         }
 
@@ -304,11 +304,11 @@ internal class SkeServiceIntegrationTest :
 
             DBListener.dataSource.connection.use { con ->
                 con.getAllKrav().also { kravBefore ->
-                    kravBefore.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 3
-                    kravBefore.filter { it.status == Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 3
-                    kravBefore.filter { it.status == Status.HTTP500_ANNEN_SERVER_FEIL.value }.size shouldBe 1
-                    kravBefore.filter { it.status == Status.HTTP503_UTILGJENGELIG_TJENESTE.value }.size shouldBe 1
-                    kravBefore.filter { it.status == Status.HTTP500_INTERN_TJENERFEIL.value }.size shouldBe 1
+                    kravBefore.filter { it.status == Status.KRAV_IKKE_SENDT }.size shouldBe 3
+                    kravBefore.filter { it.status == Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND }.size shouldBe 3
+                    kravBefore.filter { it.status == Status.HTTP500_ANNEN_SERVER_FEIL }.size shouldBe 1
+                    kravBefore.filter { it.status == Status.HTTP503_UTILGJENGELIG_TJENESTE }.size shouldBe 1
+                    kravBefore.filter { it.status == Status.HTTP500_INTERN_TJENERFEIL }.size shouldBe 1
                 }
             }
 
@@ -325,11 +325,11 @@ internal class SkeServiceIntegrationTest :
                 skeService.handleNewKrav()
                 DBListener.dataSource.connection.use { con ->
                     con.getAllKrav().also { kravAfter ->
-                        kravAfter.filter { it.status == Status.KRAV_IKKE_SENDT.value }.size shouldBe 0
-                        kravAfter.filter { it.status == Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND.value }.size shouldBe 0
-                        kravAfter.filter { it.status == Status.HTTP500_ANNEN_SERVER_FEIL.value }.size shouldBe 0
-                        kravAfter.filter { it.status == Status.HTTP503_UTILGJENGELIG_TJENESTE.value }.size shouldBe 0
-                        kravAfter.filter { it.status == Status.HTTP500_INTERN_TJENERFEIL.value }.size shouldBe 0
+                        kravAfter.filter { it.status == Status.KRAV_IKKE_SENDT }.size shouldBe 0
+                        kravAfter.filter { it.status == Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND }.size shouldBe 0
+                        kravAfter.filter { it.status == Status.HTTP500_ANNEN_SERVER_FEIL }.size shouldBe 0
+                        kravAfter.filter { it.status == Status.HTTP503_UTILGJENGELIG_TJENESTE }.size shouldBe 0
+                        kravAfter.filter { it.status == Status.HTTP500_INTERN_TJENERFEIL }.size shouldBe 0
                     }
                 }
             }
