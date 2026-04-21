@@ -35,7 +35,7 @@ class SkeServiceTest :
                             mockk<Krav>(relaxed = true) {
                                 every { filnavn } returns "Testfil"
                                 every { saksnummerNAV } returns "123"
-                                every { status } returns Status.MOTTATT_UNDERBEHANDLING
+                                every { status } returns Status.MOTTATT_UNDER_BEHANDLING
                                 every { tidspunktSendt } returns LocalDateTime.now().minusDays(2)
                             },
                             mockk<Krav>(relaxed = true) {
@@ -53,7 +53,7 @@ class SkeServiceTest :
                             mockk<Krav>(relaxed = true) {
                                 every { filnavn } returns "Testfil"
                                 every { saksnummerNAV } returns "101112"
-                                every { status } returns Status.MOTTATT_UNDERBEHANDLING
+                                every { status } returns Status.MOTTATT_UNDER_BEHANDLING
                                 every { tidspunktSendt } returns LocalDateTime.now().minusHours(25)
                             },
                         )

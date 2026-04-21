@@ -42,7 +42,7 @@ class StatusService(
         for (krav in kravListe) {
             runCatching {
                 val mottaksStatusResponse = processKravStatus(krav)
-                if (mottaksStatusResponse?.mottaksStatus == Status.RESKONTROFOERT.value) {
+                if (mottaksStatusResponse?.mottaksStatus == Status.RESKONTROFOERT) {
                     reskontrofoerteKravCount++
                 }
             }.onFailure { break }
@@ -86,8 +86,8 @@ class StatusService(
         mottaksstatus: MottaksStatusResponse,
         kravIdentifikatorPair: Pair<String, KravidentifikatorType>,
         krav: Krav,
-    ) = databaseService.updateStatus(mottaksstatus.mottaksStatus, krav.corrId).also {
-        if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value) handleValideringsFeil(kravIdentifikatorPair, krav)
+    ) = databaseService.updateStatus(mottaksstatus.mottaksStatus.value, krav.corrId).also {
+        if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS) handleValideringsFeil(kravIdentifikatorPair, krav)
     }
 
     private suspend fun handleValideringsFeil(

@@ -25,7 +25,7 @@ object KravRepository {
         executeSelect(
             """select * from krav where status in (?, ?)""",
             Status.KRAV_SENDT.value,
-            Status.MOTTATT_UNDERBEHANDLING.value,
+            Status.MOTTATT_UNDER_BEHANDLING.value,
         ).toKrav()
 
     fun Connection.getAllKravForResending() =

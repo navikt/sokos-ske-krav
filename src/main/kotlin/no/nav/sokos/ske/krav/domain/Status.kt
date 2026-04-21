@@ -1,16 +1,22 @@
 package no.nav.sokos.ske.krav.domain
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class Status(
     val value: String,
 ) {
     KRAV_INNLEST_FRA_FIL("KRAV_INNLEST_FRA_FIL"),
     KRAV_IKKE_SENDT("KRAV_IKKE_SENDT"),
     KRAV_SENDT("KRAV_SENDT"),
-    MOTTATT_UNDERBEHANDLING("MOTTATT_UNDER_BEHANDLING"),
+    MOTTATT_UNDER_BEHANDLING("MOTTATT_UNDER_BEHANDLING"),
     RESKONTROFOERT("RESKONTROFOERT"),
     MIGRERT("MIGRERT"),
 
     VALIDERINGSFEIL_AV_LINJE_I_FIL("VALIDERINGSFEIL_AV_LINJE_I_FIL"),
+
+    @SerialName("VALIDERINGSFEIL")
     VALIDERINGSFEIL_MOTTAKSSTATUS("VALIDERINGSFEIL"),
 
     UKJENT_FEIL("UKJENT_FEIL"),
