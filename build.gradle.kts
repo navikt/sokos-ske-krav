@@ -26,7 +26,7 @@ val kotlinxSerializationVersion = "1.11.0"
 val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
-val prometheusVersion = "1.16.4"
+val prometheusVersion = "1.16.5"
 val opentelemetryVersion = "2.26.1-alpha"
 
 // DB
