@@ -3,10 +3,15 @@ package no.nav.sokos.ske.krav.database
 import java.time.LocalDate
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.inspectors.shouldForAll
 import io.kotest.matchers.collections.shouldBeIn
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import kotliquery.TransactionalSession
+import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.copybook.FileParser
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
@@ -41,16 +46,17 @@ internal class RepositoryTestKrav :
         }
 
         test("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING") {
-            DBListener.dataSource.connection.use { it.getAllKravForStatusCheck().size shouldBe 5 }
+            val allKrav = DBListener.dataSource.transaction { getAllKravForStatusCheck(it) }
+            allKrav.shouldHaveSize(5)
         }
 
         test(
             "getAllKravForResending skal returnere krav som har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500 ",
         ) {
-            val kravForResending = DBListener.dataSource.connection.use { it.getAllKravForResending() }
+            val kravForResending = DBListener.dataSource.transaction { getAllKravForResending(it) }
 
-            kravForResending.size shouldBe 10
-            kravForResending.forEach {
+            kravForResending.shouldHaveSize(10)
+            kravForResending.shouldForAll {
                 it.status.shouldBeIn(
                     Status.KRAV_IKKE_SENDT,
                     Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND,
@@ -62,9 +68,10 @@ internal class RepositoryTestKrav :
         }
 
         test("getAllUnsentKrav skal returnere krav som har status KRAV_IKKE_SENDT") {
-            val unsentKrav = DBListener.dataSource.connection.use { it.getAllUnsentKrav() }
-            unsentKrav.size shouldBe 4
-            unsentKrav.forEach {
+            val unsentKrav = DBListener.dataSource.transaction { getAllUnsentKrav(it) }
+
+            unsentKrav.shouldHaveSize(4)
+            unsentKrav.shouldForAll {
                 it.status shouldBe Status.KRAV_IKKE_SENDT
             }
         }
@@ -72,25 +79,23 @@ internal class RepositoryTestKrav :
         test("getAllKravForAvstemming skal returnere alle krav som har en feilmelding med status rapporter=true") {
             DBListener.loadInitScript("SQLscript/feilmeldinger/Feilmeldinger.sql")
 
-            DBListener.dataSource.connection.use {
-                val kravForAvstemming = it.getAllKravForAvstemming()
-                kravForAvstemming.size shouldBe 4
-            }
+            val kravForAvstemming = DBListener.dataSource.transaction { getAllKravForAvstemming(it) }
+            kravForAvstemming.shouldHaveSize(4)
         }
 
         test("getSkeKravidentifikator skal returnere kravidentifikator_ske basert på saksnummer_nav eller gammel referanse") {
-            DBListener.dataSource.connection.use {
-                it.getSkeKravidentifikator("1010-navsaksnummer") shouldBe "1010-skeUUID"
-                it.getSkeKravidentifikator("1111-navsaksnummer") shouldBe ""
-                it.getSkeKravidentifikator("1112-navsaksnummer") shouldBe "1112-skeUUID"
-                it.getSkeKravidentifikator("1113-navsaksnummer") shouldBe "1112-skeUUID"
-                it.getSkeKravidentifikator("4440-navsaksnummer") shouldBe "4444-skeUUID"
+            DBListener.dataSource.transaction {
+                getSkeKravidentifikator(it, "1010-navsaksnummer") shouldBe "1010-skeUUID"
+                getSkeKravidentifikator(it, "1111-navsaksnummer") shouldBe ""
+                getSkeKravidentifikator(it, "1112-navsaksnummer") shouldBe "1112-skeUUID"
+                getSkeKravidentifikator(it, "1113-navsaksnummer") shouldBe "1112-skeUUID"
+                getSkeKravidentifikator(it, "4440-navsaksnummer") shouldBe "4444-skeUUID"
             }
         }
         test("getPreviousReferansenummer skal returnere den tidligste referansenummergammelsak basert på saksnummer_nav") {
-            DBListener.dataSource.connection.use {
-                it.getPreviousReferansenummer("2220-navsaksnummer") shouldBe "1110-navsaksnummer"
-                it.getPreviousReferansenummer("foo-navsaksnummer") shouldBe "foo-navsaksnummer"
+            DBListener.dataSource.transaction {
+                getPreviousReferansenummer(it, "2220-navsaksnummer") shouldBe "1110-navsaksnummer"
+                getPreviousReferansenummer(it, "foo-navsaksnummer") shouldBe "foo-navsaksnummer"
             }
         }
 
@@ -108,46 +113,46 @@ internal class RepositoryTestKrav :
         }
 
         test("getAllUnsentEndringerAndStopp skal returnere alle endringer og stopp som er lest inn men ikke sendt") {
-            val krav =
-                DBListener.dataSource.connection.use { con ->
-                    con.getAllUnsentEndringerAndStopp()
-                }
+            val krav = DBListener.dataSource.transaction { getAllUnsentEndringerAndStopp(it) }
 
             krav.size shouldBe 3
             krav.count { it.kravtype == STOPP_KRAV } shouldBe 1
             krav.count { it.kravtype == ENDRING_HOVEDSTOL } shouldBe 1
             krav.count { it.kravtype == ENDRING_RENTE } shouldBe 1
             krav.forEach { krav ->
-                krav.status shouldBe Status.KRAV_IKKE_SENDT.value
+                krav.status shouldBe Status.KRAV_IKKE_SENDT
                 krav.tidspunktSendt shouldBe null
             }
         }
 
         test("updateSentKrav skal oppdatere krav med ny status, og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
-            DBListener.dataSource.connection.use { con ->
-                val originalKrav = con.getAllKrav().first { it.corrId == "CORR457387" }
+            val corrID = "CORR457387"
+            DBListener.dataSource.transaction {
+                val originalKrav = KravRepository.getAllKrav(it).first { krav -> krav.corrId == corrID }
                 originalKrav.status shouldBe Status.RESKONTROFOERT
-                originalKrav.tidspunktSendt!!.toString() shouldBe "2023-02-01T12:00"
+                originalKrav.tidspunktSendt?.toString() shouldBe "2023-02-01T12:00"
                 originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
-                con.updateSentKrav("CORR457387", Status.KRAV_SENDT.value)
-                val updatedKrav = con.getAllKrav().first { it.corrId == "CORR457387" }
+                updateSentKrav(it, corrID, Status.KRAV_SENDT)
+                val updatedKrav = KravRepository.getAllKrav(it).first { krav -> krav.corrId == corrID }
                 updatedKrav.status shouldBe Status.KRAV_SENDT
-                updatedKrav.tidspunktSendt!!.toLocalDate() shouldBe LocalDate.now()
+                updatedKrav.tidspunktSendt?.toLocalDate() shouldBe LocalDate.now()
                 updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
+                updatedKrav.kravidentifikatorSKE shouldBe originalKrav.kravidentifikatorSKE
             }
         }
 
         test("updateSendtKrav skal oppdatere krav med ny status og ny kravidentifikator_ske, og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
-            DBListener.dataSource.connection.use { con ->
-                val originalKrav = con.getAllKrav().first { it.corrId == "CORR83985902" }
+            val corrID = "CORR83985902"
+            DBListener.dataSource.transaction {
+                val originalKrav = KravRepository.getAllKrav(it).first { krav -> krav.corrId == corrID }
                 originalKrav.status shouldBe Status.RESKONTROFOERT
                 originalKrav.kravidentifikatorSKE shouldBe "6666-skeUUID"
                 originalKrav.tidspunktSendt!!.toString() shouldBe "2023-02-01T12:00"
                 originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
-                con.updateSentKrav("CORR83985902", "NykravidentSke", Status.KRAV_SENDT.value)
-                val updatedKrav = con.getAllKrav().first { it.corrId == "CORR83985902" }
+                updateSentKrav(it, corrID, Status.KRAV_SENDT, "NykravidentSke")
+                val updatedKrav = KravRepository.getAllKrav(it).first { krav -> krav.corrId == corrID }
                 updatedKrav.status shouldBe Status.KRAV_SENDT
                 updatedKrav.kravidentifikatorSKE shouldBe "NykravidentSke"
                 updatedKrav.tidspunktSendt!!.toLocalDate() shouldBe LocalDate.now()
@@ -156,13 +161,14 @@ internal class RepositoryTestKrav :
         }
 
         test("updateStatus skal oppdatere status, og tidspunkt_siste_status skal settes til NOW") {
-            DBListener.dataSource.connection.use { con ->
-                val originalKrav = con.getAllKrav().first { it.corrId == "CORR457389" }
+            val corrId = "CORR457389"
+            DBListener.dataSource.transaction {
+                val originalKrav = KravRepository.getAllKrav(it).first { krav -> krav.corrId == corrId }
                 originalKrav.status shouldBe Status.RESKONTROFOERT
                 originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
-                con.updateStatus(Status.KRAV_IKKE_SENDT.value, "CORR457389")
-                val updatedKrav = con.getAllKrav().first { it.corrId == "CORR457389" }
+                updateStatus(it, Status.KRAV_IKKE_SENDT, corrId)
+                val updatedKrav = KravRepository.getAllKrav(it).first { krav -> krav.corrId == corrId }
                 updatedKrav.status shouldBe Status.KRAV_IKKE_SENDT
                 updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
             }
@@ -171,20 +177,17 @@ internal class RepositoryTestKrav :
         test("updateStatusForAvstemtKravToReported skal sette rapporter til false på krav med angitt kravid") {
             DBListener.loadInitScript("SQLscript/feilmeldinger/Feilmeldinger.sql")
 
-            val kravForAvstemmingBeforeUpdate = DBListener.dataSource.connection.use { it.getAllKravForAvstemming() }
-            val firstKrav = kravForAvstemmingBeforeUpdate.first()
-            val lastKrav = kravForAvstemmingBeforeUpdate.last()
-
-            DBListener.dataSource.connection.use {
-                it.updateStatusForAvstemtKravToReported(firstKrav.kravId.toInt())
-            }
-            DBListener.dataSource.connection.use {
-                it.updateStatusForAvstemtKravToReported(lastKrav.kravId.toInt())
-            }
-            val kravForAvstemmingAfterUpdate = DBListener.dataSource.connection.use { it.getAllKravForAvstemming() }
-            kravForAvstemmingAfterUpdate.size shouldBe kravForAvstemmingBeforeUpdate.size - 2
-
             DBListener.dataSource.transaction { tx ->
+                val kravForAvstemmingBeforeUpdate = getAllKravForAvstemming(tx)
+                val firstKrav = kravForAvstemmingBeforeUpdate.first()
+                val lastKrav = kravForAvstemmingBeforeUpdate.last()
+
+                updateStatusForAvstemtKravToReported(tx, firstKrav.kravId.toInt())
+                updateStatusForAvstemtKravToReported(tx, lastKrav.kravId.toInt())
+
+                val kravForAvstemmingAfterUpdate = getAllKravForAvstemming(tx)
+                kravForAvstemmingAfterUpdate.shouldHaveSize(kravForAvstemmingBeforeUpdate.size - 2)
+
                 val feilmelding1 = FeilmeldingRepository.getFeilmeldingForKravId(tx, firstKrav.kravId)
                 val feilmelding2 = FeilmeldingRepository.getFeilmeldingForKravId(tx, lastKrav.kravId)
 
@@ -194,56 +197,47 @@ internal class RepositoryTestKrav :
         }
 
         test("updateEndringWithSkeKravIdentifikator skal sette kravidentifikator_ske med gitt saksnummerNav") {
-            DBListener.dataSource.connection.use { con ->
-                val originalNyttKrav = con.getAllKrav().first { it.saksnummerNAV == "7770-navsaksnummer" }
-                originalNyttKrav.kravidentifikatorSKE shouldBe "7777-skeUUID"
+            DBListener.dataSource.transaction { tx ->
+                val nyttKravSaksnummerNAV = "7770-navsaksnummer"
+                getSkeKravidentifikator(tx, nyttKravSaksnummerNAV) shouldBe "7777-skeUUID"
+                updateEndringWithSkeKravIdentifikator(tx, nyttKravSaksnummerNAV, "ny_saksnummer_nytt_krav")
+                getSkeKravidentifikator(tx, nyttKravSaksnummerNAV) shouldBe "7777-skeUUID"
 
-                con.updateEndringWithSkeKravIdentifikator("7770-navsaksnummer", "Ny_ske_saksnummer")
-                val updatedNyttKrav = con.getAllKrav().first { it.saksnummerNAV == "7770-navsaksnummer" }
-                updatedNyttKrav.kravidentifikatorSKE shouldBe "7777-skeUUID"
-            }
+                val stoppKravSaksnummerNAV = "3330-navsaksnummer"
+                getSkeKravidentifikator(tx, stoppKravSaksnummerNAV) shouldBe "3333-skeUUID"
+                updateEndringWithSkeKravIdentifikator(tx, stoppKravSaksnummerNAV, "ny_saksnummer_stopp_krav")
+                getSkeKravidentifikator(tx, stoppKravSaksnummerNAV) shouldBe "ny_saksnummer_stopp_krav"
 
-            DBListener.dataSource.connection.use { con ->
-                val originalStoppKrav = con.getAllKrav().first { it.saksnummerNAV == "3330-navsaksnummer" }
-                originalStoppKrav.kravidentifikatorSKE shouldBe "3333-skeUUID"
-
-                con.updateEndringWithSkeKravIdentifikator("3330-navsaksnummer", "Ny_ske_saksnummer")
-                val updatedStoppKrav = con.getAllKrav().first { it.saksnummerNAV == "3330-navsaksnummer" }
-                updatedStoppKrav.kravidentifikatorSKE shouldBe "Ny_ske_saksnummer"
-            }
-
-            DBListener.dataSource.connection.use { con ->
-                val originalEndreKrav = con.getAllKrav().first { it.saksnummerNAV == "2220-navsaksnummer" }
-                originalEndreKrav.kravidentifikatorSKE shouldBe "1111-skeUUID"
-
-                con.updateEndringWithSkeKravIdentifikator("2220-navsaksnummer", "Ny_ske_saksnummer")
-                val updatedEndreKrav = con.getAllKrav().first { it.saksnummerNAV == "3330-navsaksnummer" }
-                updatedEndreKrav.kravidentifikatorSKE shouldBe "Ny_ske_saksnummer"
+                val endreKravSaksnummerNAV = "2220-navsaksnummer"
+                getSkeKravidentifikator(tx, endreKravSaksnummerNAV) shouldBe "1111-skeUUID"
+                updateEndringWithSkeKravIdentifikator(tx, endreKravSaksnummerNAV, "ny_saksnummer_endre_krav")
+                getSkeKravidentifikator(tx, endreKravSaksnummerNAV) shouldBe "ny_saksnummer_endre_krav"
             }
         }
 
         test("insertAllNewKrav skal inserte alle kravlinjene") {
+            DBListener.clearDB()
+
             val filnavn = "TiNyeKrav1Endring1Stopp.txt"
             val liste = getFileContent("krav/$filnavn")
             val kravlinjer = FileParser(liste).parseKravLinjer()
 
-            DBListener.dataSource.connection.use { con ->
-                val kravBefore = con.getAllKrav()
+            DBListener.dataSource.transaction { tx ->
+                insertAllNewKrav(tx, kravlinjer, filnavn)
 
-                con.insertAllNewKrav(kravlinjer, filnavn)
-                val lagredeKrav = con.getAllKrav()
-                lagredeKrav.size shouldBe kravlinjer.size + kravBefore.size + 1
-                lagredeKrav.filter { it.kravtype == NYTT_KRAV }.size shouldBe 8 + kravBefore.filter { it.kravtype == NYTT_KRAV }.size
-                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.size shouldBe 1 + kravBefore.filter { it.kravtype == STOPP_KRAV }.size
-                lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.size shouldBe 1 + kravBefore.filter { it.kravtype == ENDRING_RENTE }.size
-                lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.size shouldBe 1 + kravBefore.filter { it.kravtype == ENDRING_HOVEDSTOL }.size
+                val lagredeKrav = KravRepository.getAllKrav(tx)
+                lagredeKrav.shouldHaveSize(kravlinjer.size + 1)
+                lagredeKrav.filter { it.kravtype == NYTT_KRAV }.shouldHaveSize(8)
+                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(1)
+                lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.shouldHaveSize(1)
+                lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.shouldHaveSize(1)
             }
         }
 
         test("deleteOldKrav skal slette alle kravene som ble opprettet før en spesifisert tid") {
-            DBListener.dataSource.connection.use { con ->
+            DBListener.dataSource.transaction {
                 val threshold = LocalDate.parse("2023-01-02")
-                val kravDeleted = con.deleteOldKrav(threshold)
+                val kravDeleted = deleteOldKrav(it, threshold)
                 kravDeleted shouldBe 18
             }
         }
@@ -252,3 +246,9 @@ internal class RepositoryTestKrav :
             DBListener.clearDB()
         }
     })
+
+fun KravRepository.getAllKrav(tx: TransactionalSession): List<Krav> =
+    tx.list(
+        queryOf("select * from krav"),
+        mapToKrav,
+    )

@@ -86,7 +86,7 @@ class StatusService(
         mottaksstatus: MottaksStatusResponse,
         kravIdentifikatorPair: Pair<String, KravidentifikatorType>,
         krav: Krav,
-    ) = databaseService.updateStatus(mottaksstatus.mottaksStatus.value, krav.corrId).also {
+    ) = databaseService.updateStatus(mottaksstatus.mottaksStatus, krav.corrId).also {
         if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS) handleValideringsFeil(kravIdentifikatorPair, krav)
     }
 

@@ -25,9 +25,11 @@ import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.CircuitBreakerException
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
 import no.nav.sokos.ske.krav.config.SftpConfig
+import no.nav.sokos.ske.krav.database.getAllKrav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.SftpListener
+import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.repository.KravRepository.updateStatus
 import no.nav.sokos.ske.krav.repository.RepositoryExtensions.withParameters
 import no.nav.sokos.ske.krav.repository.toFeilmelding
@@ -39,6 +41,7 @@ import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
@@ -153,16 +156,23 @@ internal class SkeServiceIntegrationTest :
 
             Then("skal type krav avgjøres og lagres") {
                 skeService.handleNewKrav()
-                val lagredeKrav = DBListener.dataSource.connection.use { it.getAllKrav() }
+                val lagredeKrav = DBListener.dataSource.transaction { KravRepository.getAllKrav(it) }
+
                 lagredeKrav.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
                 lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.size shouldBe 2
                 lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.size shouldBe 2
                 lagredeKrav.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
-                lagredeKrav.forEach {
-                    DBListener.dataSource.connection.use { con ->
-                        con.updateStatus(Status.RESKONTROFOERT.value, it.corrId)
+                // TODO: Why do we do that???
+                DBListener.dataSource.transaction { tx ->
+                    lagredeKrav.forEach { krav ->
+                        updateStatus(tx, Status.RESKONTROFOERT, krav.corrId)
                     }
                 }
+//                lagredeKrav.forEach {
+//                    DBListener.dataSource.connection.use { con ->
+//                        con.updateStatus(Status.RESKONTROFOERT.value, it.corrId)
+//                    }
+//                }
             }
         }
 

@@ -144,7 +144,7 @@ class SkeService(
             if (requestResult.kravidentifikator.isNotBlank()) {
                 databaseService.updateEndringWithSkeKravIdentifikator(krav.saksnummerNAV, requestResult.kravidentifikator)
             } else {
-                databaseService.updateStatus(requestResult.status.value, krav.corrId)
+                databaseService.updateStatus(requestResult.status, krav.corrId)
 
                 // Fra SKE vil vi få feilmeldingen "innkrevingsoppdrag eksisterer ikke" men vi ønsker mer tydelig informasjon samt informasjonen vi trenger for å kunne følge det opp manuelt.
                 if (requestResult.status == Status.HTTP404_FANT_IKKE_SAKSREF) {
@@ -193,7 +193,7 @@ class SkeService(
                 if (kravidentifikator.isEmpty()) {
                     Status.UKJENT_FEIL
                 } else {
-                    Status.entries.firstOrNull { it.value == krav.status } ?: Status.UKJENT_FEIL
+                    Status.entries.firstOrNull { it == krav.status } ?: Status.UKJENT_FEIL
                 }
             } else {
                 definertStatus.first

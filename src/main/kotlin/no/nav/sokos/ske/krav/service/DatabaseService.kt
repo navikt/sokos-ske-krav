@@ -10,6 +10,7 @@ import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.deleteOldFeilmeldinger
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.deleteOldFilValideringsfeil
@@ -29,7 +30,6 @@ import no.nav.sokos.ske.krav.repository.KravRepository.updateEndringWithSkeKravI
 import no.nav.sokos.ske.krav.repository.KravRepository.updateSentKrav
 import no.nav.sokos.ske.krav.repository.KravRepository.updateStatus
 import no.nav.sokos.ske.krav.repository.KravRepository.updateStatusForAvstemtKravToReported
-import no.nav.sokos.ske.krav.repository.RepositoryExtensions.useAndHandleErrors
 import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.util.RequestResult
 
@@ -39,33 +39,20 @@ class DatabaseService(
     private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
 ) {
     fun getSkeKravidentifikator(navref: String): String =
-        dataSource.connection.useAndHandleErrors {
-            it.getSkeKravidentifikator(navref).ifBlank {
-                val kravId2 = it.getPreviousReferansenummer(navref)
-                if (kravId2.isNotBlank()) it.getSkeKravidentifikator(kravId2) else ""
+        dataSource.transaction {
+            getSkeKravidentifikator(it, navref).ifBlank {
+                val kravId2 = getPreviousReferansenummer(it, navref)
+                if (kravId2.isNotBlank()) getSkeKravidentifikator(it, kravId2) else ""
             }
         }
-
-    private fun updateSentKrav(
-        skeKravidentifikator: String,
-        corrID: String,
-        responseStatus: String,
-    ) = dataSource.connection.useAndHandleErrors {
-        it.updateSentKrav(corrID, skeKravidentifikator, responseStatus)
-    }
-
-    private fun updateSentKrav(
-        corrID: String,
-        responseStatus: String,
-    ) = dataSource.connection.useAndHandleErrors {
-        it.updateSentKrav(corrID, responseStatus)
-    }
 
     fun saveAllNewKrav(
         kravLinjer: List<KravLinje>,
         filnavn: String,
-    ) = dataSource.connection.useAndHandleErrors {
-        it.insertAllNewKrav(kravLinjer, filnavn)
+    ) {
+        dataSource.transaction {
+            insertAllNewKrav(it, kravLinjer, filnavn)
+        }
     }
 
     fun saveLineValidationError(
@@ -89,63 +76,59 @@ class DatabaseService(
 
     fun updateSentKrav(results: List<RequestResult>) {
         incrementMetrics(results)
-        results.forEach {
-            Metrics.incrementKravKodeSendtMetric(it.krav.kravkode)
+        results.forEach { result ->
+            Metrics.incrementKravKodeSendtMetric(result.krav.kravkode)
 
-            if (it.krav.kravtype == NYTT_KRAV) {
-                updateSentKrav(
-                    it.kravidentifikator,
-                    it.krav.corrId,
-                    it.status.value,
-                )
-            } else {
-                updateSentKrav(
-                    it.krav.corrId,
-                    it.status.value,
-                )
+            val skeKravidentifikator = if (result.krav.kravtype == NYTT_KRAV) result.kravidentifikator else null
+            dataSource.transaction { tx ->
+                updateSentKrav(tx, result.krav.corrId, result.status, skeKravidentifikator)
             }
         }
     }
 
-    fun getAllKravForStatusCheck(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForStatusCheck() }
+    fun getAllKravForStatusCheck(): List<Krav> = dataSource.transaction { getAllKravForStatusCheck(it) }
 
-    fun getAllKravForAvstemming(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForAvstemming() }
+    fun getAllKravForAvstemming(): List<Krav> = dataSource.transaction { getAllKravForAvstemming(it) }
 
     fun getFileValidationMessage(filNavn: String): List<FilValideringsfeil> = dataSource.transaction { getFilValideringsFeilForFil(it, filNavn) }
 
     fun updateStatus(
-        mottakStatus: String,
+        mottakStatus: Status,
         corrId: String,
-    ) = dataSource.connection.useAndHandleErrors { it.updateStatus(mottakStatus, corrId) }
+    ) {
+        dataSource.transaction { tx -> updateStatus(tx, mottakStatus, corrId) }
+    }
 
-    fun updateStatusForAvstemtKravToReported(kravId: Int) = dataSource.connection.useAndHandleErrors { it.updateStatusForAvstemtKravToReported(kravId) }
+    fun updateStatusForAvstemtKravToReported(kravId: Int) = dataSource.transaction { updateStatusForAvstemtKravToReported(it, kravId) }
 
-    fun getAllKravForResending(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForResending() }
+    fun getAllKravForResending(): List<Krav> = dataSource.transaction { getAllKravForResending(it) }
 
-    fun getAllUnsentKrav(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllUnsentKrav() }
+    fun getAllUnsentKrav(): List<Krav> = dataSource.transaction { getAllUnsentKrav(it) }
 
-    fun getAllUnsentEndringerAndStopp(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllUnsentEndringerAndStopp() }
+    fun getAllUnsentEndringerAndStopp(): List<Krav> = dataSource.transaction { getAllUnsentEndringerAndStopp(it) }
 
     fun updateEndringWithSkeKravIdentifikator(
         navsaksnummer: String,
         skeKravidentifikator: String,
-    ) = dataSource.connection.useAndHandleErrors {
-        it.updateEndringWithSkeKravIdentifikator(navsaksnummer, skeKravidentifikator)
+    ) = dataSource.transaction {
+        updateEndringWithSkeKravIdentifikator(it, navsaksnummer, skeKravidentifikator)
     }
 
     fun deleteOldData() {
         val threshold = LocalDate.now().minusYears(10)
-        dataSource.connection.useAndHandleErrors {
-            val kravDeleted = it.deleteOldKrav(threshold)
-
-            logger.info { "Slettet $kravDeleted krav" }
-        }
 
         dataSource.transaction { tx ->
-            val filvalideringsfeilDeleted = deleteOldFilValideringsfeil(tx, threshold)
-            val feilmeldingDeleted = deleteOldFeilmeldinger(tx, threshold)
+            deleteOldKrav(tx, threshold).takeIf { it != 0 }?.let {
+                logger.info { "Slettet $it krav." }
+            }
 
-            logger.info { "Slettet $feilmeldingDeleted feilmeldinger og $filvalideringsfeilDeleted filvalideringsfeil." }
+            deleteOldFilValideringsfeil(tx, threshold).takeIf { it != 0 }?.let {
+                logger.info { "Slettet $it filvalideringsfeil." }
+            }
+
+            deleteOldFeilmeldinger(tx, threshold).takeIf { it != 0 }?.let {
+                logger.info { "Slettet $it feilmeldinger." }
+            }
         }
     }
 
