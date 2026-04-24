@@ -20,7 +20,6 @@ import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.StatusService
-import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
@@ -31,7 +30,14 @@ internal class StatusServiceIntegrationTest :
     BehaviorSpec({
         extensions(DBListener)
         beforeEach { CircuitBreakerManager.circuitBreaker.reset() }
-        val dbService by lazy { DatabaseService(DBListener.dataSource, FilValideringsfeilRepository(DBListener.dataSource)) }
+        val feilmeldingRepository = FeilmeldingRepository(DBListener.dataSource)
+        val dbService by lazy {
+            DatabaseService(
+                DBListener.dataSource,
+                FilValideringsfeilRepository(DBListener.dataSource),
+                feilmeldingRepository,
+            )
+        }
 
         fun setupServices(
             client: HttpClient,
@@ -40,7 +46,7 @@ internal class StatusServiceIntegrationTest :
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient.slackClient))
             val slackServiceSpy = spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
             val skeClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
-            val statusServiceSpy = spyk(StatusService(DBListener.dataSource, skeClient, databaseService, slackServiceSpy), recordPrivateCalls = true)
+            val statusServiceSpy = spyk(StatusService(DBListener.dataSource, skeClient, databaseService, slackServiceSpy, feilmeldingRepository), recordPrivateCalls = true)
 
             return Triple(slackClientSpy, slackServiceSpy, statusServiceSpy)
         }
@@ -55,7 +61,7 @@ internal class StatusServiceIntegrationTest :
 
             dbService.getAllKravForStatusCheck().size shouldBe 5
 
-            StatusService(DBListener.dataSource, skeClient, dbService, mockk<SlackService>(relaxed = true)).getMottaksStatus()
+            StatusService(DBListener.dataSource, skeClient, dbService, mockk<SlackService>(relaxed = true), feilmeldingRepository).getMottaksStatus()
             Then("Skal krav ikke oppdateres") {
                 dbService.getAllKravForStatusCheck().size shouldBe 5
             }
@@ -93,55 +99,52 @@ internal class StatusServiceIntegrationTest :
 
             val (slackClientSpy, slackServiceSpy, statusService) = setupServices(httpClient, dbService)
 
-            DBListener.dataSource.asyncTransaction { tx ->
+            feilmeldingRepository.getAllFeilmeldinger().size shouldBe 0
+            dbService.getAllKravForStatusCheck().size shouldBe 5
 
-                FeilmeldingRepository.getAllFeilmeldinger(tx).size shouldBe 0
-                dbService.getAllKravForStatusCheck().size shouldBe 5
+            statusService.getMottaksStatus()
 
-                statusService.getMottaksStatus()
+            Then("Skal feilmelding lagres i Feilmelding tabell") {
+                val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
+                feilmeldinger.size shouldBe 5
+                feilmeldinger.forEach {
+                    it.error shouldBe status
+                    it.melding shouldBe "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke"
+                }
+            }
 
-                Then("Skal feilmelding lagres i Feilmelding tabell") {
-                    val feilmeldinger = FeilmeldingRepository.getAllFeilmeldinger(tx)
-                    feilmeldinger.size shouldBe 5
-                    feilmeldinger.forEach {
-                        it.error shouldBe status
-                        it.melding shouldBe "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke"
-                    }
+            Then("Mottaksstatus skal settes til VALIDERINGSFEIL i database") {
+                DBListener.dataSource.connection
+                    .use { con -> con.getAllKrav() }
+                    .filter { it.status == Status.VALIDERINGSFEIL_MOTTAKSSTATUS }
+                    .distinctBy { it.corrId }
+                    .size shouldBe 5
+            }
+            When("Feilmeldinger håndteres") {
+                val addErrorFilenameSlots = mutableListOf<String>()
+                val addErrorMessagesSlot = mutableListOf<Pair<String, String>>()
+
+                coVerify(exactly = 5) {
+                    slackServiceSpy.addError(capture(addErrorFilenameSlots), any<String>(), capture(addErrorMessagesSlot))
                 }
 
-                Then("Mottaksstatus skal settes til VALIDERINGSFEIL i database") {
-                    DBListener.dataSource.connection
-                        .use { con -> con.getAllKrav() }
-                        .filter { it.status == Status.VALIDERINGSFEIL_MOTTAKSSTATUS }
-                        .distinctBy { it.corrId }
-                        .size shouldBe 5
+                Then("Skal 5 feilmeldinger dannes") {
+                    addErrorFilenameSlots.filter { it == fileName }.size shouldBe 5
+                    addErrorMessagesSlot.size shouldBe 5
+                    addErrorMessagesSlot.forEach {
+                        it.first shouldBe status
+                        it.second shouldBe "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke"
+                    }
                 }
-                When("Feilmeldinger håndteres") {
-                    val addErrorFilenameSlots = mutableListOf<String>()
-                    val addErrorMessagesSlot = mutableListOf<Pair<String, String>>()
+                Then("Skal 3 feilmeldinger sendes") {
+                    val sendAlertFilenameSlot = slot<String>()
+                    val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
-                    coVerify(exactly = 5) {
-                        slackServiceSpy.addError(capture(addErrorFilenameSlots), any<String>(), capture(addErrorMessagesSlot))
+                    coVerify(exactly = 1) {
+                        slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<String>>(), any())
                     }
-
-                    Then("Skal 5 feilmeldinger dannes") {
-                        addErrorFilenameSlots.filter { it == fileName }.size shouldBe 5
-                        addErrorMessagesSlot.size shouldBe 5
-                        addErrorMessagesSlot.forEach {
-                            it.first shouldBe status
-                            it.second shouldBe "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke"
-                        }
-                    }
-                    Then("Skal 3 feilmeldinger sendes") {
-                        val sendAlertFilenameSlot = slot<String>()
-                        val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
-
-                        coVerify(exactly = 1) {
-                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<String>>(), any())
-                        }
-                        sendAlertFilenameSlot.captured shouldBe fileName
-                        sendAlertMessagesSlot.captured shouldBe addErrorMessagesSlot.groupBy({ it.first }, { it.second })
-                    }
+                    sendAlertFilenameSlot.captured shouldBe fileName
+                    sendAlertMessagesSlot.captured shouldBe addErrorMessagesSlot.groupBy({ it.first }, { it.second })
                 }
             }
         }

@@ -24,7 +24,7 @@ import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
-import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.util.KRAV_EKSISTERER_IKKE
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.decodeTo
@@ -48,6 +48,7 @@ class SkeService(
     private val opprettKravService: OpprettKravService = OpprettKravService(skeClient, databaseService),
     private val slackService: SlackService = SlackService(),
     private val ftpService: FtpService = FtpService(),
+    private val feilmeldingRepository: FeilmeldingRepository = FeilmeldingRepository.instance,
 ) {
     private var haltRun = false
 
@@ -222,7 +223,7 @@ class SkeService(
         }
     }
 
-    private suspend fun handleError(
+    private fun handleError(
         requestResult: RequestResult,
         feilResponse: FeilResponse?,
         shouldAlert: Boolean = true,
@@ -242,7 +243,7 @@ class SkeService(
         )
     }
 
-    private suspend fun handleErrors(responses: List<RequestResult>) {
+    private fun handleErrors(responses: List<RequestResult>) {
         responses
             .filterNot { it.httpStatusCode.isSuccess() }
             .forEach { result ->
@@ -250,7 +251,7 @@ class SkeService(
             }
     }
 
-    private suspend fun saveErrorMessage(
+    private fun saveErrorMessage(
         request: String,
         response: String,
         status: HttpStatusCode,
@@ -263,22 +264,21 @@ class SkeService(
 
         val resolvedFeilResponse = feilResponse ?: response.decodeTo<FeilResponse>() ?: FeilResponse("egendefinert", "Feil i parsing av http respons", status.value, response, "")
 
-        dataSource.asyncTransaction { session ->
-            val feilmelding =
-                Feilmelding(
-                    0L,
-                    KravRepository.getKravTableIdFromCorrelationId(session, krav.corrId),
-                    krav.corrId,
-                    krav.saksnummerNAV,
-                    skeKravidentifikator,
-                    resolvedFeilResponse.status.toString(),
-                    resolvedFeilResponse.detail,
-                    request,
-                    response,
-                    LocalDateTime.now(),
-                )
-            FeilmeldingRepository.insertFeilmeldinger(session, listOf(feilmelding))
-        }
+        val kravId = dataSource.transaction { KravRepository.getKravTableIdFromCorrelationId(it, krav.corrId) }
+        val feilmelding =
+            Feilmelding(
+                0L,
+                kravId,
+                krav.corrId,
+                krav.saksnummerNAV,
+                skeKravidentifikator,
+                resolvedFeilResponse.status.toString(),
+                resolvedFeilResponse.detail,
+                request,
+                response,
+                LocalDateTime.now(),
+            )
+        feilmeldingRepository.insertFeilmelding(feilmelding)
     }
 
     suspend fun checkKravDateForAlert() {

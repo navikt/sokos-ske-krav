@@ -12,7 +12,7 @@ import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.metrics.Metrics
-import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.deleteOldFeilmeldinger
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.repository.KravRepository.deleteOldKrav
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForAvstemming
@@ -35,6 +35,7 @@ private val logger = KotlinLogging.logger {}
 class DatabaseService(
     private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
     private val filValideringsFeilRepository: FilValideringsfeilRepository = FilValideringsfeilRepository.instance,
+    private val feilmeldingRepository: FeilmeldingRepository = FeilmeldingRepository.instance,
 ) {
     fun getSkeKravidentifikator(navref: String): String =
         dataSource.transaction {
@@ -115,13 +116,13 @@ class DatabaseService(
             logger.info { "Slettet $it filvalideringsfeil." }
         }
 
+        feilmeldingRepository.deleteOldFeilmeldinger(threshold).takeIf { it != 0 }?.let {
+            logger.info { "Slettet $it feilmeldinger." }
+        }
+
         dataSource.transaction { tx ->
             deleteOldKrav(tx, threshold).takeIf { it != 0 }?.let {
                 logger.info { "Slettet $it krav." }
-            }
-
-            deleteOldFeilmeldinger(tx, threshold).takeIf { it != 0 }?.let {
-                logger.info { "Slettet $it feilmeldinger." }
             }
         }
     }

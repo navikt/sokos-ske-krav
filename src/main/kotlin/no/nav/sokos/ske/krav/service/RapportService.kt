@@ -8,7 +8,6 @@ import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.domain.StonadsType.Companion.getStonadstype
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
-import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
 @RequiresOptIn(message = "Skal bare brukes i frontend")
 @Retention(AnnotationRetention.BINARY)
@@ -21,6 +20,7 @@ enum class RapportType { AVSTEMMING, RESENDING }
 class RapportService(
     private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
     private val dbService: DatabaseService = DatabaseService(),
+    private val feilmeldingRepository: FeilmeldingRepository = FeilmeldingRepository.instance,
 ) {
     val kravSomSkalAvstemmes by lazy { mapToRapportObjekt(dbService.getAllKravForAvstemming()) }
     val kravSomSkalResendes by lazy { mapToRapportObjekt(dbService.getAllKravForResending()) }
@@ -55,11 +55,9 @@ class RapportService(
 
     private fun getFeilmeldinger(krav: Krav): List<String> =
         if (krav.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL) {
-            dataSource.transaction { tx ->
-                FeilmeldingRepository
-                    .getFeilmeldingForKravId(tx, krav.kravId)
-                    .map { it.melding.splitToSequence(", mottatt").first() }
-            }
+            feilmeldingRepository
+                .getFeilmeldingerForKravId(krav.kravId)
+                .map { it.melding.splitToSequence(", mottatt").first() }
         } else {
             emptyList()
         }

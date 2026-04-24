@@ -18,7 +18,6 @@ import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.dto.ske.responses.MottaksStatusResponse
 import no.nav.sokos.ske.krav.dto.ske.responses.ValideringsFeilResponse
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
-import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.createKravidentifikatorPair
 import no.nav.sokos.ske.krav.util.decodeTo
 
@@ -30,6 +29,7 @@ class StatusService(
     private val skeClient: SkeClient = SkeClient(),
     private val databaseService: DatabaseService = DatabaseService(),
     private val slackService: SlackService = SlackService(),
+    private val feilmeldingRepository: FeilmeldingRepository = FeilmeldingRepository.instance,
 ) {
     suspend fun getMottaksStatus() {
         val kravListe = databaseService.getAllKravForStatusCheck()
@@ -103,31 +103,26 @@ class StatusService(
 
         val valideringsfeilListe = responseBody.decodeTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
         logger.info("Asynk Valideringsfeil mottatt ")
-        valideringsfeilListe.forEach {
-            logger.error(marker = TEAM_LOGS_MARKER) { "Asynk valideringsfeil mottatt: ${ it.message }" }
+        valideringsfeilListe.forEach { valideringsFeil ->
+            logger.error(marker = TEAM_LOGS_MARKER) { "Asynk valideringsfeil mottatt: ${ valideringsFeil.message }" }
+            slackService.addError(krav.filnavn, "Asynk valideringsfeil", Pair(valideringsFeil.error, valideringsFeil.message))
         }
 
-        dataSource.asyncTransaction { session ->
-            FeilmeldingRepository.insertFeilmeldinger(
-                tx = session,
-                feilmeldinger =
-                    valideringsfeilListe.map { valideringsFeil ->
-                        slackService.addError(krav.filnavn, "Asynk valideringsfeil", Pair(valideringsFeil.error, valideringsFeil.message))
-
-                        Feilmelding(
-                            0,
-                            krav.kravId,
-                            krav.corrId,
-                            krav.saksnummerNAV,
-                            krav.kravidentifikatorSKE,
-                            valideringsFeil.error,
-                            valideringsFeil.message,
-                            "",
-                            "",
-                            LocalDateTime.now(),
-                        )
-                    },
-            )
-        }
+        val feilmeldinger =
+            valideringsfeilListe.map { valideringsFeil ->
+                Feilmelding(
+                    0,
+                    krav.kravId,
+                    krav.corrId,
+                    krav.saksnummerNAV,
+                    krav.kravidentifikatorSKE,
+                    valideringsFeil.error,
+                    valideringsFeil.message,
+                    "",
+                    "",
+                    LocalDateTime.now(),
+                )
+            }
+        feilmeldingRepository.insertFeilmeldinger(feilmeldinger)
     }
 }

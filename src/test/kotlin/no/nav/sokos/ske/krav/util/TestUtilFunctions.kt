@@ -22,6 +22,7 @@ import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.toKrav
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
@@ -82,6 +83,11 @@ private val dataSourceMock =
         every { getSkeKravidentifikator(any<String>()) } returns "foo"
     }
 
+private val feilmeldingRepositoryMock =
+    mockk<FeilmeldingRepository> {
+        every { insertFeilmelding(any()) } returns Unit
+    }
+
 fun setupSkeServiceMock(
     skeClient: SkeClient = mockSkeClient,
     stoppKravService: StoppKravService = stoppServiceMock,
@@ -91,6 +97,7 @@ fun setupSkeServiceMock(
     databaseService: DatabaseService = dataSourceMock,
     ftpService: FtpService = ftpServiceMock,
     slackService: SlackService = SlackService(SlackClient(client = MockHttpClient.slackClient)),
+    feilmeldingRepository: FeilmeldingRepository = feilmeldingRepositoryMock,
 ) = SkeService(
     dataSource = mockk<HikariDataSource>(),
     skeClient = skeClient,
@@ -101,6 +108,7 @@ fun setupSkeServiceMock(
     databaseService = databaseService,
     ftpService = ftpService,
     slackService = slackService,
+    feilmeldingRepository = feilmeldingRepository,
 )
 
 fun setupSkeServiceMockWithMockEngine(
@@ -110,12 +118,13 @@ fun setupSkeServiceMockWithMockEngine(
     databaseService: DatabaseService,
     slackClient: SlackClient = SlackClient(client = MockHttpClient.slackClient),
     slackService: SlackService = SlackService(slackClient),
+    feilmeldingRepository: FeilmeldingRepository,
 ): SkeService {
     val tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true)
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
     val endreKravService = EndreKravService(skeClient, databaseService)
     val opprettKravService = OpprettKravService(skeClient, databaseService)
-    val statusService = StatusService(dataSource, skeClient, databaseService, slackService)
+    val statusService = StatusService(dataSource, skeClient, databaseService, slackService, feilmeldingRepository)
     val stoppKravService = StoppKravService(skeClient, databaseService)
 
     return SkeService(
@@ -128,6 +137,7 @@ fun setupSkeServiceMockWithMockEngine(
         databaseService = databaseService,
         ftpService = ftpService,
         slackService = slackService,
+        feilmeldingRepository = feilmeldingRepository,
     )
 }
 

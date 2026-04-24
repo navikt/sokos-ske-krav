@@ -16,6 +16,7 @@ import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.SftpListener
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Directories
@@ -29,6 +30,7 @@ internal class LineValidatorIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener, DBListener)
         val filValideringsFeilRepository = FilValideringsfeilRepository(DBListener.dataSource)
+        val feilmeldingRepository = FeilmeldingRepository(DBListener.dataSource)
 
         fun setupServices(): Triple<SlackClient, SlackService, LineValidator> {
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient.slackClient))
@@ -43,7 +45,7 @@ internal class LineValidatorIntegrationTest :
         ): FtpService = FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(slackService = slackServiceSpy), databaseService = dbService)
 
         Given("Alle linjer er ok") {
-            val dbService = DatabaseService(DBListener.dataSource, filValideringsFeilRepository)
+            val dbService = DatabaseService(DBListener.dataSource, filValideringsFeilRepository, feilmeldingRepository)
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
             val ftpService = setupFtpService(dbService, slackServiceSpy)
             val fileName = "AllValideringOk.txt"
@@ -80,7 +82,7 @@ internal class LineValidatorIntegrationTest :
         }
 
         Given("1 linje har 1 feil") {
-            val dbService = DatabaseService(DBListener.dataSource, filValideringsFeilRepository)
+            val dbService = DatabaseService(DBListener.dataSource, filValideringsFeilRepository, feilmeldingRepository)
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
             val ftpService = setupFtpService(dbService, slackServiceSpy)
             val fileName = "validering/linjevalidering/EnLinjeFeilKravtype.txt"
@@ -155,7 +157,7 @@ internal class LineValidatorIntegrationTest :
         }
 
         Given("1 linje har 3 forskjellige feil") {
-            val dbService = DatabaseService(DBListener.dataSource, filValideringsFeilRepository)
+            val dbService = DatabaseService(DBListener.dataSource, filValideringsFeilRepository, feilmeldingRepository)
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
             val ftpService = setupFtpService(dbService, slackServiceSpy)
             val fileName = "validering/linjevalidering/EnLinjeFlereFeil.txt"
@@ -257,7 +259,7 @@ internal class LineValidatorIntegrationTest :
             val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
-            val dbService = DatabaseService(DBListener.dataSource, filValideringsFeilRepository)
+            val dbService = DatabaseService(DBListener.dataSource, filValideringsFeilRepository, feilmeldingRepository)
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
             val ftpService = setupFtpService(dbService, slackServiceSpy)
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
@@ -345,7 +347,7 @@ internal class LineValidatorIntegrationTest :
             val fileName = "validering/linjevalidering/SeksLinjerSammeOgUlikeFeil.txt"
             val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
-            val dbService = DatabaseService(DBListener.dataSource, filValideringsFeilRepository)
+            val dbService = DatabaseService(DBListener.dataSource, filValideringsFeilRepository, feilmeldingRepository)
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
             val ftpService = setupFtpService(dbService, slackServiceSpy)
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }

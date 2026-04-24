@@ -2,82 +2,20 @@ package no.nav.sokos.ske.krav.repository
 
 import java.time.LocalDate
 
+import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 
+import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.domain.Feilmelding
+import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
+import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
-object FeilmeldingRepository {
-    fun getAllFeilmeldinger(tx: TransactionalSession): List<Feilmelding> =
-        tx.list(
-            queryOf(
-                """
-                select * from feilmelding
-                """.trimIndent(),
-            ),
-            mapToFeilmelding,
-        )
-
-    fun getFeilmeldingForKravId(
-        tx: TransactionalSession,
-        kravId: Long,
-    ): List<Feilmelding> =
-        tx.list(
-            queryOf(
-                """
-                select * from feilmelding
-                where krav_id = ?
-                """.trimIndent(),
-                kravId,
-            ),
-            mapToFeilmelding,
-        )
-
-    fun insertFeilmeldinger(
-        tx: TransactionalSession,
-        feilmeldinger: List<Feilmelding>,
-    ) = tx.batchPreparedStatement(
-        """
-        insert into feilmelding (
-            krav_id, 
-            saksnummer_nav, 
-            kravidentifikator_ske, 
-            corr_id, 
-            error, 
-            melding, 
-            nav_request, 
-            ske_response
-        ) values (?, ?, ?, ?, ?, ?, ?, ?)
-        """.trimIndent(),
-        feilmeldinger.map { feilmelding ->
-            listOf(
-                feilmelding.kravId,
-                feilmelding.saksnummerNav,
-                feilmelding.kravidentifikatorSKE,
-                feilmelding.corrId,
-                feilmelding.error,
-                feilmelding.melding,
-                feilmelding.navRequest,
-                feilmelding.skeResponse,
-            )
-        },
-    )
-
-    fun deleteOldFeilmeldinger(
-        tx: TransactionalSession,
-        threshold: LocalDate,
-    ): Int =
-        tx.update(
-            queryOf(
-                """
-                delete from feilmelding where tidspunkt_opprettet < ?
-                """.trimIndent(),
-                threshold,
-            ),
-        )
-
-    private val mapToFeilmelding: (Row) -> Feilmelding = { row ->
+class FeilmeldingRepository(
+    private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
+) {
+    val mapToFeilmelding: (Row) -> Feilmelding = { row ->
         Feilmelding(
             feilmeldingId = row.long("id"),
             kravId = row.long("krav_id"),
@@ -91,5 +29,101 @@ object FeilmeldingRepository {
             tidspunktOpprettet = row.localDateTime("tidspunkt_opprettet"),
             rapporter = row.boolean("rapporter"),
         )
+    }
+
+    fun getAllFeilmeldinger(): List<Feilmelding> =
+        dataSource.transaction { session ->
+            session.list(
+                queryOf(
+                    """
+                    select * from feilmelding
+                    """.trimIndent(),
+                ),
+                mapToFeilmelding,
+            )
+        }
+
+    fun getFeilmeldingerForKravId(
+        session: TransactionalSession,
+        kravId: Long,
+    ): List<Feilmelding> =
+        session.list(
+            queryOf(
+                """
+                select * from feilmelding
+                where krav_id = ?
+                """.trimIndent(),
+                kravId,
+            ),
+            mapToFeilmelding,
+        )
+
+    fun getFeilmeldingerForKravId(kravId: Long): List<Feilmelding> =
+        dataSource.transaction { session ->
+            getFeilmeldingerForKravId(session, kravId)
+        }
+
+    private fun insertFeilmeldingQuery() =
+        """
+        insert into feilmelding (
+        krav_id, 
+        saksnummer_nav, 
+        kravidentifikator_ske, 
+        corr_id, 
+        error, 
+        melding, 
+        nav_request, 
+        ske_response
+        ) values (:krav_id, :saksnummer_nav, :kravidentifikator_ske, :corr_id, :error, :melding, :nav_request, :ske_response)
+        """.trimIndent()
+
+    private fun insertFeilmeldingNamesParams(feilmelding: Feilmelding) =
+        mapOf(
+            "krav_id" to feilmelding.kravId,
+            "saksnummer_nav" to feilmelding.saksnummerNav,
+            "kravidentifikator_ske" to feilmelding.kravidentifikatorSKE,
+            "corr_id" to feilmelding.corrId,
+            "error" to feilmelding.error,
+            "melding" to feilmelding.melding,
+            "nav_request" to feilmelding.navRequest,
+            "ske_response" to feilmelding.skeResponse,
+        )
+
+    fun insertFeilmelding(feilmelding: Feilmelding) {
+        dataSource.transaction { session ->
+            session.update(
+                queryOf(
+                    insertFeilmeldingQuery(),
+                    insertFeilmeldingNamesParams(feilmelding),
+                ),
+            )
+        }
+    }
+
+    suspend fun insertFeilmeldinger(feilmeldinger: List<Feilmelding>) {
+        dataSource.asyncTransaction { session ->
+            session.batchPreparedNamedStatement(
+                insertFeilmeldingQuery(),
+                feilmeldinger.map { feilmelding ->
+                    insertFeilmeldingNamesParams(feilmelding)
+                },
+            )
+        }
+    }
+
+    fun deleteOldFeilmeldinger(threshold: LocalDate): Int =
+        dataSource.transaction { session ->
+            session.update(
+                queryOf(
+                    """
+                    delete from feilmelding where tidspunkt_opprettet < ?
+                    """.trimIndent(),
+                    threshold,
+                ),
+            )
+        }
+
+    companion object {
+        val instance: FeilmeldingRepository by lazy { FeilmeldingRepository() }
     }
 }
