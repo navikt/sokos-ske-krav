@@ -11,6 +11,7 @@ import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.OpprettKravService
@@ -26,7 +27,7 @@ internal class OpprettKravServiceIntegrationTest :
         extensions(DBListener)
         beforeEach { CircuitBreakerManager.circuitBreaker.reset() }
 
-        val dbService = DatabaseService(DBListener.dataSource)
+        val dbService = DatabaseService(DBListener.dataSource, FilValideringsfeilRepository(DBListener.dataSource))
 
         Given("2 Nye krav skal opprettes ") {
             DBListener.clearDB()
@@ -40,7 +41,7 @@ internal class OpprettKravServiceIntegrationTest :
                 val httpClient = MockHttpClient.client(skeFeilResponse)
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
-                val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)), recordPrivateCalls = true)
+                val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, dbService), recordPrivateCalls = true)
                 val requestResults = opprettKravServiceSpy.sendAllOpprettKrav(kravSomSkalSendes)
 
                 Then("Skal sendOpprettKrav kalles kun én gang") {
@@ -71,7 +72,7 @@ internal class OpprettKravServiceIntegrationTest :
                 val httpClient = MockHttpClient.client(skeOKResponse)
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
-                val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)), recordPrivateCalls = true)
+                val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, dbService), recordPrivateCalls = true)
                 val requestResults = opprettKravServiceSpy.sendAllOpprettKrav(kravSomSkalSendes)
 
                 Then("Skal sendOpprettKrav kalles to ganger") {

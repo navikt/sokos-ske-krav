@@ -13,6 +13,7 @@ import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
@@ -29,7 +30,7 @@ class EndreKravServiceIntegrationTest :
     BehaviorSpec({
         extensions(DBListener)
         beforeEach { CircuitBreakerManager.circuitBreaker.reset() }
-        val dbService = DatabaseService(DBListener.dataSource)
+        val dbService = DatabaseService(DBListener.dataSource, FilValideringsfeilRepository(DBListener.dataSource))
 
         Given("2 krav skal endres") {
             DBListener.clearDB()

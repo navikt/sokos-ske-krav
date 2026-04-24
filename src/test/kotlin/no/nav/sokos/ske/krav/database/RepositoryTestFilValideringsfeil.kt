@@ -6,7 +6,6 @@ import java.time.LocalDate
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import kotliquery.TransactionalSession
 import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.copybook.KravLinje
@@ -14,11 +13,6 @@ import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.deleteOldFilValideringsfeil
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertFilValideringsfeil
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertLineFilValideringsfeil
-import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
 internal class RepositoryTestFilValideringsfeil :
     FunSpec({
@@ -28,27 +22,19 @@ internal class RepositoryTestFilValideringsfeil :
             DBListener.loadInitScript("SQLscript/validering/FilValideringsFeil.sql")
         }
 
-        test("getValideringsFeilForFil skal returnere valideringsfeil basert på filnavn") {
-            val (forFile1, forFile2, forFile3) =
-                DBListener.dataSource.transaction { tx ->
-                    listOf(
-                        getFilValideringsFeilForFil(tx, "Fil1.txt"),
-                        getFilValideringsFeilForFil(tx, "Fil2.txt"),
-                        getFilValideringsFeilForFil(tx, "Fil3.txt"),
-                    )
-                }
+        val repository = FilValideringsfeilRepository(DBListener.dataSource)
 
-            forFile1.shouldHaveSize(1)
-            forFile2.shouldHaveSize(2)
-            forFile3.shouldHaveSize(3)
+        test("getValideringsFeilForFil skal returnere valideringsfeil basert på filnavn") {
+            with(repository) {
+                getFilValideringsFeilForFil("Fil1.txt").shouldHaveSize(1)
+                getFilValideringsFeilForFil("Fil2.txt").shouldHaveSize(2)
+                getFilValideringsFeilForFil("Fil3.txt").shouldHaveSize(3)
+            }
         }
 
         test("insertFileValideringsfeil skal inserte ny valideringsfeil med filnanvn og feilmelding") {
-            val insertedErrors =
-                DBListener.dataSource.transaction { tx ->
-                    insertFilValideringsfeil(tx, "Fil4.txt", "Test validation error insert")
-                    getFilValideringsFeilForFil(tx, "Fil4.txt")
-                }
+            repository.insertFilValideringsfeil("Fil4.txt", "Test validation error insert")
+            val insertedErrors = repository.getFilValideringsFeilForFil("Fil4.txt")
 
             insertedErrors.size shouldBe 1
             insertedErrors.first().run {
@@ -88,11 +74,8 @@ internal class RepositoryTestFilValideringsfeil :
 
             val feilMelding = "Test validation error insert med non-null kravlinje"
             val filename = "Non-null test"
-            val allInsertedFiles =
-                DBListener.dataSource.transaction { tx ->
-                    insertLineFilValideringsfeil(tx, filename, linje, feilMelding)
-                    FilValideringsfeilRepository.getAllValideringsFeil(tx)
-                }
+            repository.insertLineFilValideringsfeil(filename, linje, feilMelding)
+            val allInsertedFiles = repository.getAllValideringsFeil()
 
             allInsertedFiles.size shouldBe 7
 
@@ -109,11 +92,7 @@ internal class RepositoryTestFilValideringsfeil :
 
         test("deleteOldFilValideringsFeil skal slette alle filvalideringsfeil som ble opprettet før en spesifisert tid") {
             val threshold = LocalDate.parse("2023-01-02")
-            val filValideringsfeilDeleted =
-                DBListener.dataSource.transaction { tx ->
-                    deleteOldFilValideringsfeil(tx, threshold)
-                }
-
+            val filValideringsfeilDeleted = repository.deleteOldFilValideringsfeil(threshold)
             filValideringsfeilDeleted shouldBe 2
         }
 
@@ -122,8 +101,10 @@ internal class RepositoryTestFilValideringsfeil :
         }
     })
 
-private fun FilValideringsfeilRepository.getAllValideringsFeil(tx: TransactionalSession): List<FilValideringsfeil> =
-    tx.list(
-        queryOf("select * from filvalideringsfeil"),
-        mapToFilValideringsfeil,
-    )
+private fun FilValideringsfeilRepository.getAllValideringsFeil(): List<FilValideringsfeil> =
+    transaction { session ->
+        session.list(
+            queryOf("select * from filvalideringsfeil"),
+            mapToFilValideringsfeil,
+        )
+    }

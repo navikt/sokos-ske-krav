@@ -9,6 +9,7 @@ import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.SftpListener
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
@@ -23,7 +24,7 @@ internal class FtpServiceIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener, DBListener)
 
-        val dbService = DatabaseService(DBListener.dataSource)
+        val dbService = DatabaseService(DBListener.dataSource, FilValideringsfeilRepository(DBListener.dataSource))
         val ftpService: FtpService by lazy {
             FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = dbService)
         }

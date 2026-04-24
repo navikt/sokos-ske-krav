@@ -13,10 +13,7 @@ import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.deleteOldFeilmeldinger
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.deleteOldFilValideringsfeil
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.getFilValideringsFeilForFil
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertFilValideringsfeil
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository.insertLineFilValideringsfeil
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.repository.KravRepository.deleteOldKrav
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForAvstemming
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForResending
@@ -37,6 +34,7 @@ private val logger = KotlinLogging.logger {}
 
 class DatabaseService(
     private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
+    private val filValideringsFeilRepository: FilValideringsfeilRepository = FilValideringsfeilRepository.instance,
 ) {
     fun getSkeKravidentifikator(navref: String): String =
         dataSource.transaction {
@@ -60,18 +58,14 @@ class DatabaseService(
         kravlinje: KravLinje,
         feilmelding: String,
     ) {
-        dataSource.transaction { tx ->
-            insertLineFilValideringsfeil(tx, filnavn, kravlinje, feilmelding)
-        }
+        filValideringsFeilRepository.insertLineFilValideringsfeil(filnavn, kravlinje, feilmelding)
     }
 
     fun saveFileValidationError(
         filnavn: String,
         feilmelding: String,
     ) {
-        dataSource.transaction { tx ->
-            insertFilValideringsfeil(tx, filnavn, feilmelding)
-        }
+        filValideringsFeilRepository.insertFilValideringsfeil(filnavn, feilmelding)
     }
 
     fun updateSentKrav(results: List<RequestResult>) {
@@ -90,7 +84,7 @@ class DatabaseService(
 
     fun getAllKravForAvstemming(): List<Krav> = dataSource.transaction { getAllKravForAvstemming(it) }
 
-    fun getFileValidationMessage(filNavn: String): List<FilValideringsfeil> = dataSource.transaction { getFilValideringsFeilForFil(it, filNavn) }
+    fun getFileValidationMessage(filNavn: String): List<FilValideringsfeil> = filValideringsFeilRepository.getFilValideringsFeilForFil(filNavn)
 
     fun updateStatus(
         mottakStatus: Status,
@@ -117,13 +111,13 @@ class DatabaseService(
     fun deleteOldData() {
         val threshold = LocalDate.now().minusYears(10)
 
+        filValideringsFeilRepository.deleteOldFilValideringsfeil(threshold).takeIf { it != 0 }?.let {
+            logger.info { "Slettet $it filvalideringsfeil." }
+        }
+
         dataSource.transaction { tx ->
             deleteOldKrav(tx, threshold).takeIf { it != 0 }?.let {
                 logger.info { "Slettet $it krav." }
-            }
-
-            deleteOldFilValideringsfeil(tx, threshold).takeIf { it != 0 }?.let {
-                logger.info { "Slettet $it filvalideringsfeil." }
             }
 
             deleteOldFeilmeldinger(tx, threshold).takeIf { it != 0 }?.let {
