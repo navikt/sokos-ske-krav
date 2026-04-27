@@ -23,6 +23,7 @@ import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
+import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.repository.toKrav
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
@@ -88,6 +89,11 @@ private val feilmeldingRepositoryMock =
         every { insertFeilmelding(any()) } returns Unit
     }
 
+private val kravRepositoryMock =
+    mockk<KravRepository> {
+        every { getKravTableIdFromCorrelationId(any()) } returns 1L
+    }
+
 fun setupSkeServiceMock(
     skeClient: SkeClient = mockSkeClient,
     stoppKravService: StoppKravService = stoppServiceMock,
@@ -98,6 +104,7 @@ fun setupSkeServiceMock(
     ftpService: FtpService = ftpServiceMock,
     slackService: SlackService = SlackService(SlackClient(client = MockHttpClient.slackClient)),
     feilmeldingRepository: FeilmeldingRepository = feilmeldingRepositoryMock,
+    kravRepository: KravRepository = kravRepositoryMock,
 ) = SkeService(
     dataSource = mockk<HikariDataSource>(),
     skeClient = skeClient,
@@ -109,6 +116,7 @@ fun setupSkeServiceMock(
     ftpService = ftpService,
     slackService = slackService,
     feilmeldingRepository = feilmeldingRepository,
+    kravRepository = kravRepository,
 )
 
 fun setupSkeServiceMockWithMockEngine(
@@ -119,6 +127,7 @@ fun setupSkeServiceMockWithMockEngine(
     slackClient: SlackClient = SlackClient(client = MockHttpClient.slackClient),
     slackService: SlackService = SlackService(slackClient),
     feilmeldingRepository: FeilmeldingRepository,
+    kravRepository: KravRepository,
 ): SkeService {
     val tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true)
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
@@ -138,6 +147,7 @@ fun setupSkeServiceMockWithMockEngine(
         ftpService = ftpService,
         slackService = slackService,
         feilmeldingRepository = feilmeldingRepository,
+        kravRepository = kravRepository,
     )
 }
 

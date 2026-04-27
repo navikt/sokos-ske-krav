@@ -1,6 +1,8 @@
 package no.nav.sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import io.mockk.coVerify
@@ -9,9 +11,11 @@ import io.mockk.spyk
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
+import no.nav.sokos.ske.krav.database.getAllKrav
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dbService
+import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.OpprettKravService
 import no.nav.sokos.ske.krav.util.getAllKrav
@@ -31,7 +35,7 @@ internal class OpprettKravServiceIntegrationTest :
             DBListener.loadInitScript("SQLscript/krav/ToNyeKrav.sql")
 
             val kravSomSkalSendes = dbService.getAllUnsentKrav()
-            kravSomSkalSendes.size shouldBe 2
+            kravSomSkalSendes.shouldHaveSize(2)
 
             When("Response fra SKE  trigger circuit breaker") {
                 val skeFeilResponse = MockResponse(Endpoint.OPPRETT, genericFeilResponse(), HttpStatusCode.InternalServerError)
@@ -45,19 +49,16 @@ internal class OpprettKravServiceIntegrationTest :
                     coVerify(exactly = 1) { opprettKravServiceSpy["sendOpprettKrav"](ofType<Krav>()) }
                 }
                 Then("Skal kravene ikke oppdateres") {
-                    val krav =
-                        DBListener.dataSource.connection.use { con ->
-                            con.getAllKrav()
-                        }
-                    krav.size shouldBe 2
+                    val krav = kravRepository.getAllKrav()
+                    krav.shouldHaveSize(2)
                     krav.count { it.saksnummerNAV == "1111-navsaksnr" } shouldBe 1
                     krav.count { it.saksnummerNAV == "2222-navsaksnr" } shouldBe 1
                     krav.count { it.kravidentifikatorSKE.isBlank() } shouldBe 2
-                    dbService.getAllUnsentKrav().size shouldBe 2
+                    dbService.getAllUnsentKrav().shouldHaveSize(2)
                 }
 
                 And("Det skal være ingen requestresults") {
-                    requestResults.size shouldBe 0
+                    requestResults.shouldBeEmpty()
                 }
             }
 
@@ -76,18 +77,16 @@ internal class OpprettKravServiceIntegrationTest :
                     coVerify(exactly = 2) { opprettKravServiceSpy["sendOpprettKrav"](ofType<Krav>()) }
                 }
                 Then("Skal kravene oppdateres med SKE kravidentifikator") {
-                    val krav =
-                        DBListener.dataSource.connection.use { con ->
-                            con.getAllKrav()
-                        }
-                    krav.size shouldBe 2
+                    val krav = kravRepository.getAllKrav()
+
+                    krav.shouldHaveSize(2)
                     krav.count { it.saksnummerNAV == "1111-navsaksnr" } shouldBe 1
                     krav.count { it.saksnummerNAV == "2222-navsaksnr" } shouldBe 1
                     krav.count { it.kravidentifikatorSKE == kravidentifikatorSKE } shouldBe 2
-                    dbService.getAllUnsentKrav().size shouldBe 0
+                    dbService.getAllUnsentKrav().shouldBeEmpty()
                 }
                 And("Det skal være to requestResults") {
-                    requestResults.size shouldBe 2
+                    requestResults.shouldHaveSize(2)
                 }
             }
         }

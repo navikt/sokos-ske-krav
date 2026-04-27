@@ -1,6 +1,8 @@
 package no.nav.sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import io.mockk.coVerify
@@ -9,11 +11,13 @@ import io.mockk.spyk
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
+import no.nav.sokos.ske.krav.database.getAllKrav
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dbService
+import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
@@ -34,8 +38,9 @@ class EndreKravServiceIntegrationTest :
             DBListener.clearDB()
             DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
             DBListener.loadInitScript("SQLscript/krav/ToEndredeKrav.sql")
+
             val kravSomSkalSendes = dbService.getAllUnsentKrav()
-            kravSomSkalSendes.size shouldBe 4
+            kravSomSkalSendes.shouldHaveSize(4)
             kravSomSkalSendes.count { it.kravtype == ENDRING_RENTE || it.kravtype == ENDRING_HOVEDSTOL } shouldBe 4
 
             When("Response fra SKE trigger circuit breaker") {
@@ -52,17 +57,14 @@ class EndreKravServiceIntegrationTest :
                     coVerify(exactly = 1) { endreKravServiceSpy["sendEndreKrav"](ofType<String>(), ofType<KravidentifikatorType>(), ofType<Krav>()) }
                 }
                 And("Det skal være 0 requestresults") {
-                    requestResults.size shouldBe 0
+                    requestResults.shouldBeEmpty()
                 }
                 Then("Skal kravstatus ikke oppdateres") {
-                    val krav =
-                        DBListener.dataSource.connection.use { con ->
-                            con.getAllKrav()
-                        }
+                    val krav = kravRepository.getAllKrav()
 
-                    dbService.getAllUnsentKrav().size shouldBe 4
-                    krav.filter { it.status == Status.KRAV_SENDT }.size shouldBe 0
-                    krav.filter { it.status == Status.KRAV_IKKE_SENDT }.size shouldBe 4
+                    dbService.getAllUnsentKrav().shouldHaveSize(4)
+                    krav.filter { it.status == Status.KRAV_SENDT }.shouldBeEmpty()
+                    krav.filter { it.status == Status.KRAV_IKKE_SENDT }.shouldHaveSize(4)
                 }
             }
             When("Response fra SKE er OK") {
@@ -77,10 +79,8 @@ class EndreKravServiceIntegrationTest :
                 EndreKravService(skeClient, dbService).sendAllEndreKrav(kravSomSkalSendes)
 
                 Then("Skal krav oppdateres med status sendt") {
-                    DBListener.dataSource.connection.use { con ->
-                        con.getAllKrav().filter { it.status == Status.KRAV_SENDT }.size shouldBe 4
-                    }
-                    dbService.getAllUnsentKrav().size shouldBe 0
+                    kravRepository.getAllKrav().filter { it.status == Status.KRAV_SENDT }.shouldHaveSize(4)
+                    dbService.getAllUnsentKrav().shouldBeEmpty()
                 }
             }
         }

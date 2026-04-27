@@ -2,6 +2,8 @@ package no.nav.sokos.ske.krav.service.integration
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpStatusCode
@@ -15,6 +17,7 @@ import io.mockk.runs
 import io.mockk.spyk
 import io.mockk.unmockkObject
 import io.mockk.verify
+import kotliquery.queryOf
 import mu.KLogger
 import mu.KotlinLogging
 import mu.Marker
@@ -30,9 +33,8 @@ import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dbService
 import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
+import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.listener.SftpListener
-import no.nav.sokos.ske.krav.repository.KravRepository
-import no.nav.sokos.ske.krav.repository.KravRepository.updateStatus
 import no.nav.sokos.ske.krav.repository.RepositoryExtensions.withParameters
 import no.nav.sokos.ske.krav.repository.toFeilmelding
 import no.nav.sokos.ske.krav.repository.toKrav
@@ -43,7 +45,6 @@ import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
-import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
@@ -92,9 +93,7 @@ internal class SkeServiceIntegrationTest :
 
             Then("Skal alle validerte linjer lagres i database") {
                 skeService.handleNewKrav()
-                DBListener.dataSource.connection
-                    .use { it.getAllKrav() }
-                    .size shouldBe 10
+                kravRepository.getAllKrav().shouldHaveSize(10)
             }
         }
 
@@ -111,7 +110,7 @@ internal class SkeServiceIntegrationTest :
                         mockHttpResponse(200, """{"kravidentifikator": "avstemming2222-skeUUID"}""")
                 }
             val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dbService, ftpService = ftpService, feilmeldingRepository = feilmeldingRepository)
-            val kravBefore = DBListener.dataSource.connection.use { it.getAllKrav() }
+            val kravBefore = kravRepository.getAllKrav()
             with(kravBefore.find { it.saksnummerNAV == "2222-navsaksnr" }) {
                 this?.kravidentifikatorSKE shouldBe "2222-skeUUID"
                 this?.referansenummerGammelSak shouldBe ""
@@ -128,14 +127,14 @@ internal class SkeServiceIntegrationTest :
 
             When("Kravet finnes i database") {
                 Then("skal endringer og avskrivinger oppdateres med kravidentifikatorSKE fra database") {
-                    val kravEtter = DBListener.dataSource.connection.use { it.getAllKrav() }
+                    val kravEtter = kravRepository.getAllKrav()
                     kravEtter.find { it.saksnummerNAV == "2223-navsaksnr" }?.kravidentifikatorSKE shouldBe "2222-skeUUID"
                     kravEtter.find { it.saksnummerNAV == "8889-navsaksnr" }?.kravidentifikatorSKE shouldBe "8888-skeUUID"
                 }
             }
             When("Det er et migrert krav") {
                 Then("skal endringer og avskrivinger oppdateres med kravidentifikatorSKE fra kall til SKE avstemming") {
-                    val kravEtter = DBListener.dataSource.connection.use { it.getAllKrav() }
+                    val kravEtter = kravRepository.getAllKrav()
                     kravEtter.find { it.saksnummerNAV == "2222-saksnrmig" }?.kravidentifikatorSKE shouldBe "avstemming2222-skeUUID"
                     kravEtter.find { it.saksnummerNAV == "8888-saksnrmig" }?.kravidentifikatorSKE shouldBe "avstemming8888-skeUUID"
                 }
@@ -156,17 +155,15 @@ internal class SkeServiceIntegrationTest :
 
             Then("skal type krav avgjøres og lagres") {
                 skeService.handleNewKrav()
-                val lagredeKrav = DBListener.dataSource.transaction { KravRepository.getAllKrav(it) }
+                val lagredeKrav = kravRepository.getAllKrav()
 
-                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.size shouldBe 2
-                lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.size shouldBe 2
-                lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.size shouldBe 2
-                lagredeKrav.filter { it.kravtype == NYTT_KRAV }.size shouldBe 97
+                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(2)
+                lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.shouldHaveSize(2)
+                lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.shouldHaveSize(2)
+                lagredeKrav.filter { it.kravtype == NYTT_KRAV }.shouldHaveSize(97)
                 // TODO: Why do we do that???
-                DBListener.dataSource.transaction { tx ->
-                    lagredeKrav.forEach { krav ->
-                        updateStatus(tx, Status.RESKONTROFOERT, krav.corrId)
-                    }
+                lagredeKrav.forEach { krav ->
+                    kravRepository.updateStatus(Status.RESKONTROFOERT, krav.corrId)
                 }
 //                lagredeKrav.forEach {
 //                    DBListener.dataSource.connection.use { con ->
@@ -188,34 +185,38 @@ internal class SkeServiceIntegrationTest :
             val httpClient =
                 MockHttpClient.client(nyttKravKall, endreRenterKall, endreHovedStolKall, mottaksstatusKall, avstemmingkall)
             val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
-            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, dbService, slackService = slackServiceSpy, feilmeldingRepository = feilmeldingRepository)
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    DBListener.dataSource,
+                    httpClient,
+                    ftpService,
+                    dbService,
+                    slackService = slackServiceSpy,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
 
             Then("Skal ingen feil lagres i feilmeldingtabell") {
                 shouldThrow<CircuitBreakerException> {
                     skeService.handleNewKrav()
                 }
 
-                val feilmeldinger =
-                    DBListener.dataSource.connection.use {
-                        it
-                            .prepareStatement("SELECT * FROM feilmelding")
-                            .executeQuery()
-                            .toFeilmelding()
-                    }
+                val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
 
-                feilmeldinger.filter { it.skeResponse.contains("403") }.size shouldBe 0
                 val kravMedFeil =
-                    DBListener.dataSource.connection.use { conn ->
-                        feilmeldinger.flatMap { feilmelding ->
-                            conn
-                                .prepareStatement("""select * from krav where corr_id = ?""")
-                                .withParameters(feilmelding.corrId)
-                                .executeQuery()
-                                .toKrav()
+                    feilmeldinger.flatMap { feilmelding ->
+                        kravRepository.transaction { session ->
+                            session.list(
+                                queryOf(
+                                    """select * from krav where corr_id = ?""",
+                                    feilmelding.corrId,
+                                ),
+                                extractor = kravRepository.mapToKrav,
+                            )
                         }
                     }
 
-                kravMedFeil.filter { it.status == Status.HTTP403_INGEN_TILGANG }.size shouldBe 0
+                kravMedFeil.filter { it.status == Status.HTTP403_INGEN_TILGANG }.shouldBeEmpty()
             }
         }
         Given("Vi mottar 404 på avstemming") {
@@ -231,7 +232,16 @@ internal class SkeServiceIntegrationTest :
             val httpClient =
                 MockHttpClient.client(nyttKravKall, endreRenterKall, endreHovedStolKall, mottaksstatusKall, avstemmingKall)
             val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
-            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, dbService, slackService = slackServiceSpy, feilmeldingRepository = feilmeldingRepository)
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    DBListener.dataSource,
+                    httpClient,
+                    ftpService,
+                    dbService,
+                    slackService = slackServiceSpy,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
 
             Then("skal feilmelding sendes til Slack én gang per endring") {
                 skeService.handleNewKrav()
@@ -259,7 +269,15 @@ internal class SkeServiceIntegrationTest :
 
             val nyttKravResponse = MockResponse(Endpoint.OPPRETT, genericFeilResponse(), HttpStatusCode.UnprocessableEntity)
             val httpClient = MockHttpClient.client(nyttKravResponse)
-            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, dbService, feilmeldingRepository = feilmeldingRepository)
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    DBListener.dataSource,
+                    httpClient,
+                    ftpService,
+                    dbService,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
 
             Then("skal det lagres i feilmeldingtabell") {
                 skeService.handleNewKrav()
@@ -294,8 +312,16 @@ internal class SkeServiceIntegrationTest :
             val nyttKravKall = MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK)
             val mottaksstatusKall = MockResponse(Endpoint.MOTTAKSSTATUS, mottaksStatusResponse(), HttpStatusCode.OK)
             val httpClient = MockHttpClient.client(nyttKravKall, mottaksstatusKall)
-            val dbService = DatabaseService(DBListener.dataSource)
-            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, dbService)
+            val dbService = dbService
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    DBListener.dataSource,
+                    httpClient,
+                    ftpService,
+                    dbService,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
 
             skeService.handleNewKrav()
             Then("skal det logges rett antall krav per fil") {
@@ -327,7 +353,15 @@ internal class SkeServiceIntegrationTest :
             val mottaksStatusResponse = MockResponse(Endpoint.MOTTAKSSTATUS, mottaksStatusResponse(), HttpStatusCode.OK)
 
             val httpClient = MockHttpClient.client(nyttKravResponse, avskrivKravResponse, endreRenterResponse, endreHovedstolResponse, mottaksStatusResponse)
-            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, dbService, feilmeldingRepository = feilmeldingRepository)
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    DBListener.dataSource,
+                    httpClient,
+                    ftpService,
+                    dbService,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
 
             Then("skal kravet resendes") {
                 skeService.handleNewKrav()

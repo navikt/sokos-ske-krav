@@ -105,7 +105,7 @@ private fun krav(
     fremtidigYtelse = 0.0,
     utbetalDato = LocalDate.now(),
     fagsystemId = "",
-    status = "",
+    status = Status.UKJENT_STATUS,
     kravtype = kravtype,
     corrId = "",
     tidspunktSendt = LocalDateTime.now(),

@@ -17,6 +17,7 @@ import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
+import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
@@ -47,8 +48,9 @@ object DBListener : TestListener {
 
     val filvalideringsFeilRepository by lazy { FilValideringsfeilRepository(dataSource) }
     val feilmeldingRepository by lazy { FeilmeldingRepository(dataSource) }
+    val kravRepository by lazy { KravRepository(dataSource) }
 
-    val dbService by lazy { DatabaseService(dataSource, filvalideringsFeilRepository, feilmeldingRepository) }
+    val dbService by lazy { DatabaseService(dataSource, filvalideringsFeilRepository, feilmeldingRepository, kravRepository) }
 
     fun loadInitScript(name: String) {
         dataSource // Ensure Flyway migrations have run before executing init scripts

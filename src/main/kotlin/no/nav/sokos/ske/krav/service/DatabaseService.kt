@@ -14,20 +14,7 @@ import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
-import no.nav.sokos.ske.krav.repository.KravRepository.deleteOldKrav
-import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForAvstemming
-import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForResending
-import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForStatusCheck
-import no.nav.sokos.ske.krav.repository.KravRepository.getAllUnsentEndringerAndStopp
-import no.nav.sokos.ske.krav.repository.KravRepository.getAllUnsentKrav
-import no.nav.sokos.ske.krav.repository.KravRepository.getPreviousReferansenummer
-import no.nav.sokos.ske.krav.repository.KravRepository.getSkeKravidentifikator
-import no.nav.sokos.ske.krav.repository.KravRepository.insertAllNewKrav
-import no.nav.sokos.ske.krav.repository.KravRepository.updateEndringWithSkeKravIdentifikator
-import no.nav.sokos.ske.krav.repository.KravRepository.updateSentKrav
-import no.nav.sokos.ske.krav.repository.KravRepository.updateStatus
-import no.nav.sokos.ske.krav.repository.KravRepository.updateStatusForAvstemtKravToReported
-import no.nav.sokos.ske.krav.util.DBUtils.transaction
+import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.RequestResult
 
 private val logger = KotlinLogging.logger {}
@@ -36,22 +23,19 @@ class DatabaseService(
     private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
     private val filValideringsFeilRepository: FilValideringsfeilRepository = FilValideringsfeilRepository.instance,
     private val feilmeldingRepository: FeilmeldingRepository = FeilmeldingRepository.instance,
+    private val kravRepository: KravRepository = KravRepository.instance,
 ) {
     fun getSkeKravidentifikator(navref: String): String =
-        dataSource.transaction {
-            getSkeKravidentifikator(it, navref).ifBlank {
-                val kravId2 = getPreviousReferansenummer(it, navref)
-                if (kravId2.isNotBlank()) getSkeKravidentifikator(it, kravId2) else ""
-            }
+        kravRepository.getSkeKravidentifikator(navref).ifBlank {
+            val kravId2 = kravRepository.getPreviousReferansenummer(navref)
+            if (kravId2.isNotBlank()) kravRepository.getSkeKravidentifikator(kravId2) else ""
         }
 
     fun saveAllNewKrav(
         kravLinjer: List<KravLinje>,
         filnavn: String,
     ) {
-        dataSource.transaction {
-            insertAllNewKrav(it, kravLinjer, filnavn)
-        }
+        kravRepository.insertAllNewKrav(kravLinjer, filnavn)
     }
 
     fun saveLineValidationError(
@@ -75,15 +59,13 @@ class DatabaseService(
             Metrics.incrementKravKodeSendtMetric(result.krav.kravkode)
 
             val skeKravidentifikator = if (result.krav.kravtype == NYTT_KRAV) result.kravidentifikator else null
-            dataSource.transaction { tx ->
-                updateSentKrav(tx, result.krav.corrId, result.status, skeKravidentifikator)
-            }
+            kravRepository.updateSentKrav(result.krav.corrId, result.status, skeKravidentifikator)
         }
     }
 
-    fun getAllKravForStatusCheck(): List<Krav> = dataSource.transaction { getAllKravForStatusCheck(it) }
+    fun getAllKravForStatusCheck(): List<Krav> = kravRepository.getAllKravForStatusCheck()
 
-    fun getAllKravForAvstemming(): List<Krav> = dataSource.transaction { getAllKravForAvstemming(it) }
+    fun getAllKravForAvstemming(): List<Krav> = kravRepository.getAllKravForAvstemming()
 
     fun getFileValidationMessage(filNavn: String): List<FilValideringsfeil> = filValideringsFeilRepository.getFilValideringsFeilForFil(filNavn)
 
@@ -91,23 +73,21 @@ class DatabaseService(
         mottakStatus: Status,
         corrId: String,
     ) {
-        dataSource.transaction { tx -> updateStatus(tx, mottakStatus, corrId) }
+        kravRepository.updateStatus(mottakStatus, corrId)
     }
 
-    fun updateStatusForAvstemtKravToReported(kravId: Int) = dataSource.transaction { updateStatusForAvstemtKravToReported(it, kravId) }
+    fun updateStatusForAvstemtKravToReported(kravId: Int) = kravRepository.updateStatusForAvstemtKravToReported(kravId)
 
-    fun getAllKravForResending(): List<Krav> = dataSource.transaction { getAllKravForResending(it) }
+    fun getAllKravForResending(): List<Krav> = kravRepository.getAllKravForResending()
 
-    fun getAllUnsentKrav(): List<Krav> = dataSource.transaction { getAllUnsentKrav(it) }
+    fun getAllUnsentKrav(): List<Krav> = kravRepository.getAllUnsentKrav()
 
-    fun getAllUnsentEndringerAndStopp(): List<Krav> = dataSource.transaction { getAllUnsentEndringerAndStopp(it) }
+    fun getAllUnsentEndringerAndStopp(): List<Krav> = kravRepository.getAllUnsentEndringerAndStopp()
 
     fun updateEndringWithSkeKravIdentifikator(
         navsaksnummer: String,
         skeKravidentifikator: String,
-    ) = dataSource.transaction {
-        updateEndringWithSkeKravIdentifikator(it, navsaksnummer, skeKravidentifikator)
-    }
+    ) = kravRepository.updateEndringWithSkeKravIdentifikator(navsaksnummer, skeKravidentifikator)
 
     fun deleteOldData() {
         val threshold = LocalDate.now().minusYears(10)
@@ -120,10 +100,8 @@ class DatabaseService(
             logger.info { "Slettet $it feilmeldinger." }
         }
 
-        dataSource.transaction { tx ->
-            deleteOldKrav(tx, threshold).takeIf { it != 0 }?.let {
-                logger.info { "Slettet $it krav." }
-            }
+        kravRepository.deleteOldKrav(threshold).takeIf { it != 0 }?.let {
+            logger.info { "Slettet $it krav." }
         }
     }
 
