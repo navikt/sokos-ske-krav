@@ -12,6 +12,7 @@ import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.listener.DBListener.filvalideringsFeilRepository
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 
 internal class RepositoryTestFilValideringsfeil :
@@ -22,10 +23,8 @@ internal class RepositoryTestFilValideringsfeil :
             DBListener.loadInitScript("SQLscript/validering/FilValideringsFeil.sql")
         }
 
-        val repository = FilValideringsfeilRepository(DBListener.dataSource)
-
         test("getValideringsFeilForFil skal returnere valideringsfeil basert på filnavn") {
-            with(repository) {
+            with(filvalideringsFeilRepository) {
                 getFilValideringsFeilForFil("Fil1.txt").shouldHaveSize(1)
                 getFilValideringsFeilForFil("Fil2.txt").shouldHaveSize(2)
                 getFilValideringsFeilForFil("Fil3.txt").shouldHaveSize(3)
@@ -33,8 +32,8 @@ internal class RepositoryTestFilValideringsfeil :
         }
 
         test("insertFileValideringsfeil skal inserte ny valideringsfeil med filnanvn og feilmelding") {
-            repository.insertFilValideringsfeil("Fil4.txt", "Test validation error insert")
-            val insertedErrors = repository.getFilValideringsFeilForFil("Fil4.txt")
+            filvalideringsFeilRepository.insertFilValideringsfeil("Fil4.txt", "Test validation error insert")
+            val insertedErrors = filvalideringsFeilRepository.getFilValideringsFeilForFil("Fil4.txt")
 
             insertedErrors.size shouldBe 1
             insertedErrors.first().run {
@@ -74,8 +73,8 @@ internal class RepositoryTestFilValideringsfeil :
 
             val feilMelding = "Test validation error insert med non-null kravlinje"
             val filename = "Non-null test"
-            repository.insertLineFilValideringsfeil(filename, linje, feilMelding)
-            val allInsertedFiles = repository.getAllValideringsFeil()
+            filvalideringsFeilRepository.insertLineFilValideringsfeil(filename, linje, feilMelding)
+            val allInsertedFiles = filvalideringsFeilRepository.getAllValideringsFeil()
 
             allInsertedFiles.size shouldBe 7
 
@@ -92,7 +91,7 @@ internal class RepositoryTestFilValideringsfeil :
 
         test("deleteOldFilValideringsFeil skal slette alle filvalideringsfeil som ble opprettet før en spesifisert tid") {
             val threshold = LocalDate.parse("2023-01-02")
-            val filValideringsfeilDeleted = repository.deleteOldFilValideringsfeil(threshold)
+            val filValideringsfeilDeleted = filvalideringsFeilRepository.deleteOldFilValideringsfeil(threshold)
             filValideringsfeilDeleted shouldBe 2
         }
 

@@ -14,7 +14,7 @@ import no.nav.sokos.ske.krav.copybook.FileParser
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
+import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.repository.KravRepository.deleteOldKrav
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForAvstemming
@@ -43,8 +43,6 @@ internal class RepositoryTestKrav :
         beforeTest {
             DBListener.loadInitScript("SQLscript/krav/KravForRepositoryTest.sql")
         }
-
-        val repository = FeilmeldingRepository(DBListener.dataSource)
 
         test("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING") {
             val allKrav = DBListener.dataSource.transaction { getAllKravForStatusCheck(it) }
@@ -189,8 +187,8 @@ internal class RepositoryTestKrav :
                 val kravForAvstemmingAfterUpdate = getAllKravForAvstemming(tx)
                 kravForAvstemmingAfterUpdate.shouldHaveSize(kravForAvstemmingBeforeUpdate.size - 2)
 
-                val feilmelding1 = repository.getFeilmeldingerForKravId(tx, firstKrav.kravId)
-                val feilmelding2 = repository.getFeilmeldingerForKravId(tx, lastKrav.kravId)
+                val feilmelding1 = feilmeldingRepository.getFeilmeldingerForKravId(tx, firstKrav.kravId)
+                val feilmelding2 = feilmeldingRepository.getFeilmeldingerForKravId(tx, lastKrav.kravId)
 
                 feilmelding1.first().rapporter shouldBe false
                 feilmelding2.first().rapporter shouldBe false

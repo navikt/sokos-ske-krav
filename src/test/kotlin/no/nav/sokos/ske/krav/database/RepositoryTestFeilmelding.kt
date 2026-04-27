@@ -10,12 +10,11 @@ import io.kotest.matchers.shouldBe
 
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
+import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
 
 internal class RepositoryTestFeilmelding :
     FunSpec({
         extensions(DBListener)
-        val feilmeldingRepository = FeilmeldingRepository(DBListener.dataSource)
 
         beforeTest {
             DBListener.loadInitScript("SQLscript/feilmeldinger/Feilmeldinger.sql")

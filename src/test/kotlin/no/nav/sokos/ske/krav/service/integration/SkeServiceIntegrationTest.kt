@@ -28,9 +28,9 @@ import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.database.getAllKrav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.listener.DBListener.dbService
+import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
 import no.nav.sokos.ske.krav.listener.SftpListener
-import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.repository.KravRepository.updateStatus
 import no.nav.sokos.ske.krav.repository.RepositoryExtensions.withParameters
@@ -84,10 +84,6 @@ internal class SkeServiceIntegrationTest :
         val ftpService: FtpService by lazy {
             FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = mockk<DatabaseService>())
         }
-
-        val filValideringsfeilRepository = FilValideringsfeilRepository(DBListener.dataSource)
-        val feilmeldingRepository = FeilmeldingRepository(DBListener.dataSource)
-        val dbService = DatabaseService(DBListener.dataSource, filValideringsfeilRepository, feilmeldingRepository)
 
         Given("Det finnes en fil i INBOUND") {
             DBListener.clearDB()

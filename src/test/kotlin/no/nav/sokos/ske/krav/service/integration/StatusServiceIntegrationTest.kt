@@ -15,8 +15,8 @@ import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
+import no.nav.sokos.ske.krav.listener.DBListener.dbService
+import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.StatusService
@@ -30,14 +30,6 @@ internal class StatusServiceIntegrationTest :
     BehaviorSpec({
         extensions(DBListener)
         beforeEach { CircuitBreakerManager.circuitBreaker.reset() }
-        val feilmeldingRepository = FeilmeldingRepository(DBListener.dataSource)
-        val dbService by lazy {
-            DatabaseService(
-                DBListener.dataSource,
-                FilValideringsfeilRepository(DBListener.dataSource),
-                feilmeldingRepository,
-            )
-        }
 
         fun setupServices(
             client: HttpClient,

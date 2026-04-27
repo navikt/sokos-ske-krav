@@ -15,6 +15,9 @@ import org.testcontainers.utility.DockerImageName
 
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.PropertiesConfig
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
+import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
 object DBListener : TestListener {
@@ -41,6 +44,11 @@ object DBListener : TestListener {
                 PostgresDataSource.migrate(it)
             }
     }
+
+    val filvalideringsFeilRepository by lazy { FilValideringsfeilRepository(dataSource) }
+    val feilmeldingRepository by lazy { FeilmeldingRepository(dataSource) }
+
+    val dbService by lazy { DatabaseService(dataSource, filvalideringsFeilRepository, feilmeldingRepository) }
 
     fun loadInitScript(name: String) {
         dataSource // Ensure Flyway migrations have run before executing init scripts
