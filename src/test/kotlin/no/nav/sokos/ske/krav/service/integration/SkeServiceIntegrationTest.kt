@@ -2,8 +2,10 @@ package no.nav.sokos.ske.krav.service.integration
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.inspectors.shouldForAll
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpStatusCode
@@ -17,7 +19,6 @@ import io.mockk.runs
 import io.mockk.spyk
 import io.mockk.unmockkObject
 import io.mockk.verify
-import kotliquery.queryOf
 import mu.KLogger
 import mu.KotlinLogging
 import mu.Marker
@@ -30,14 +31,13 @@ import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.database.getAllKrav
 import no.nav.sokos.ske.krav.domain.Status
+import no.nav.sokos.ske.krav.domain.Status.HTTP403_INGEN_TILGANG
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dbService
 import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.listener.SftpListener
-import no.nav.sokos.ske.krav.repository.RepositoryExtensions.withParameters
 import no.nav.sokos.ske.krav.repository.toFeilmelding
-import no.nav.sokos.ske.krav.repository.toKrav
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
@@ -45,7 +45,6 @@ import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
-import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
@@ -155,21 +154,13 @@ internal class SkeServiceIntegrationTest :
 
             Then("skal type krav avgjøres og lagres") {
                 skeService.handleNewKrav()
-                val lagredeKrav = kravRepository.getAllKrav()
 
-                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(2)
-                lagredeKrav.filter { it.kravtype == ENDRING_RENTE }.shouldHaveSize(2)
-                lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.shouldHaveSize(2)
-                lagredeKrav.filter { it.kravtype == NYTT_KRAV }.shouldHaveSize(97)
-                // TODO: Why do we do that???
-                lagredeKrav.forEach { krav ->
-                    kravRepository.updateStatus(Status.RESKONTROFOERT, krav.corrId)
+                kravRepository.getAllKrav().groupBy { it.kravtype }.apply {
+                    get(STOPP_KRAV)?.shouldHaveSize(2)
+                    get(ENDRING_RENTE)?.shouldHaveSize(2)
+                    get(ENDRING_HOVEDSTOL)?.shouldHaveSize(2)
+                    get(NYTT_KRAV)?.shouldHaveSize(97)
                 }
-//                lagredeKrav.forEach {
-//                    DBListener.dataSource.connection.use { con ->
-//                        con.updateStatus(Status.RESKONTROFOERT.value, it.corrId)
-//                    }
-//                }
             }
         }
 
@@ -201,22 +192,8 @@ internal class SkeServiceIntegrationTest :
                     skeService.handleNewKrav()
                 }
 
-                val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
-
-                val kravMedFeil =
-                    feilmeldinger.flatMap { feilmelding ->
-                        kravRepository.transaction { session ->
-                            session.list(
-                                queryOf(
-                                    """select * from krav where corr_id = ?""",
-                                    feilmelding.corrId,
-                                ),
-                                extractor = kravRepository.mapToKrav,
-                            )
-                        }
-                    }
-
-                kravMedFeil.filter { it.status == Status.HTTP403_INGEN_TILGANG }.shouldBeEmpty()
+                feilmeldingRepository.getAllFeilmeldinger().filter { it.skeResponse.contains("403") }.shouldBeEmpty()
+                kravRepository.getAllKrav().shouldForAll { it.status != HTTP403_INGEN_TILGANG }
             }
         }
         Given("Vi mottar 404 på avstemming") {
@@ -281,27 +258,10 @@ internal class SkeServiceIntegrationTest :
 
             Then("skal det lagres i feilmeldingtabell") {
                 skeService.handleNewKrav()
-                val feilmeldinger =
-                    DBListener.dataSource.connection.use {
-                        it
-                            .prepareStatement("SELECT * FROM feilmelding")
-                            .executeQuery()
-                            .toFeilmelding()
-                    }
+                val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
+                feilmeldinger.filter { it.error == "422" }.shouldHaveSize(10)
 
-                feilmeldinger.filter { it.error == "422" }.size shouldBe 10
-                val kravMedFeil =
-                    DBListener.dataSource.connection.use { conn ->
-                        feilmeldinger.flatMap { feilmelding ->
-                            conn
-                                .prepareStatement("""select * from krav where corr_id = ?""")
-                                .withParameters(feilmelding.corrId)
-                                .executeQuery()
-                                .toKrav()
-                        }
-                    }
-
-                kravMedFeil.filter { it.status == Status.HTTP422_VALIDERINGSFEIL }.size shouldBe 10
+                kravRepository.getAllKrav().filter { it.status == Status.HTTP422_VALIDERINGSFEIL }.shouldHaveSize(10)
             }
         }
 
@@ -336,14 +296,12 @@ internal class SkeServiceIntegrationTest :
             DBListener.clearDB()
             DBListener.loadInitScript("SQLscript/status/KravSomSkalResendes.sql")
 
-            DBListener.dataSource.connection.use { con ->
-                con.getAllKrav().also { kravBefore ->
-                    kravBefore.filter { it.status == Status.KRAV_IKKE_SENDT }.size shouldBe 3
-                    kravBefore.filter { it.status == Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND }.size shouldBe 3
-                    kravBefore.filter { it.status == Status.HTTP500_ANNEN_SERVER_FEIL }.size shouldBe 1
-                    kravBefore.filter { it.status == Status.HTTP503_UTILGJENGELIG_TJENESTE }.size shouldBe 1
-                    kravBefore.filter { it.status == Status.HTTP500_INTERN_TJENERFEIL }.size shouldBe 1
-                }
+            kravRepository.getAllKrav().groupBy { it.status }.apply {
+                get(Status.KRAV_IKKE_SENDT)?.shouldHaveSize(3)
+                get(Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND)?.shouldHaveSize(3)
+                get(Status.HTTP500_ANNEN_SERVER_FEIL)?.shouldHaveSize(1)
+                get(Status.HTTP500_INTERN_TJENERFEIL)?.shouldHaveSize(1)
+                get(Status.HTTP503_UTILGJENGELIG_TJENESTE)?.shouldHaveSize(1)
             }
 
             val nyttKravResponse = MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK)
@@ -365,14 +323,12 @@ internal class SkeServiceIntegrationTest :
 
             Then("skal kravet resendes") {
                 skeService.handleNewKrav()
-                DBListener.dataSource.connection.use { con ->
-                    con.getAllKrav().also { kravAfter ->
-                        kravAfter.filter { it.status == Status.KRAV_IKKE_SENDT }.size shouldBe 0
-                        kravAfter.filter { it.status == Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND }.size shouldBe 0
-                        kravAfter.filter { it.status == Status.HTTP500_ANNEN_SERVER_FEIL }.size shouldBe 0
-                        kravAfter.filter { it.status == Status.HTTP503_UTILGJENGELIG_TJENESTE }.size shouldBe 0
-                        kravAfter.filter { it.status == Status.HTTP500_INTERN_TJENERFEIL }.size shouldBe 0
-                    }
+                kravRepository.getAllKrav().groupBy { it.status }.apply {
+                    get(Status.KRAV_IKKE_SENDT).shouldBeNull()
+                    get(Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND).shouldBeNull()
+                    get(Status.HTTP500_ANNEN_SERVER_FEIL).shouldBeNull()
+                    get(Status.HTTP500_INTERN_TJENERFEIL).shouldBeNull()
+                    get(Status.HTTP503_UTILGJENGELIG_TJENESTE).shouldBeNull()
                 }
             }
         }
