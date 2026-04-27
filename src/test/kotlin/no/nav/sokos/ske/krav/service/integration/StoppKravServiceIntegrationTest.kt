@@ -1,6 +1,8 @@
 package no.nav.sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import io.mockk.coVerify
@@ -9,14 +11,15 @@ import io.mockk.spyk
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
+import no.nav.sokos.ske.krav.database.getAllKrav
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dbService
+import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.service.StoppKravService
-import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
@@ -34,7 +37,7 @@ class StoppKravServiceIntegrationTest :
             DBListener.loadInitScript("SQLscript/krav/ToStoppedeKrav.sql")
 
             val kravSomSkalSendes = dbService.getAllUnsentKrav()
-            kravSomSkalSendes.size shouldBe 2
+            kravSomSkalSendes.shouldHaveSize(2)
             kravSomSkalSendes.count { it.kravtype == STOPP_KRAV } shouldBe 2
 
             When("Response fra SKE trigger circuit breaker") {
@@ -47,7 +50,7 @@ class StoppKravServiceIntegrationTest :
 
                 val requestResults = stoppKravServiceSpy.sendAllStoppKrav(kravSomSkalSendes)
                 Then("Skal det være 0 requestResults") {
-                    requestResults.size shouldBe 0
+                    requestResults.shouldBeEmpty()
                 }
                 And("sendStoppKrav skal kalles kun én gang") {
                     coVerify(exactly = 1) {
@@ -55,10 +58,12 @@ class StoppKravServiceIntegrationTest :
                     }
                 }
                 Then("Skal krav ikke oppdateres med status sendt") {
-                    DBListener.dataSource.connection.use { con ->
-                        con.getAllKrav().filter { it.status == Status.KRAV_IKKE_SENDT }.size shouldBe 2
-                    }
-                    dbService.getAllUnsentKrav().size shouldBe 2
+                    kravRepository
+                        .getAllKrav()
+                        .filter { it.status == Status.KRAV_IKKE_SENDT }
+                        .shouldHaveSize(2)
+
+                    dbService.getAllUnsentKrav().shouldHaveSize(2)
                 }
             }
             When("Response fra SKE er OK") {
@@ -71,12 +76,9 @@ class StoppKravServiceIntegrationTest :
                 StoppKravService(skeClient, dbService).sendAllStoppKrav(kravSomSkalSendes)
 
                 Then("Skal krav oppdateres med status sendt") {
-                    val krav =
-                        DBListener.dataSource.connection.use { con ->
-                            con.getAllKrav()
-                        }
+                    val krav = kravRepository.getAllKrav()
                     krav.count { it.status == Status.KRAV_SENDT } shouldBe 2
-                    dbService.getAllUnsentKrav().size shouldBe 0
+                    dbService.getAllUnsentKrav().shouldBeEmpty()
                 }
             }
         }

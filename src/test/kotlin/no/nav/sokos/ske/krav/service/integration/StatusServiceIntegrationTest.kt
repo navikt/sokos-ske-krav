@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
@@ -13,14 +14,15 @@ import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
+import no.nav.sokos.ske.krav.database.getAllKrav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dbService
 import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
+import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.StatusService
-import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
@@ -51,11 +53,11 @@ internal class StatusServiceIntegrationTest :
             val httpClient = MockHttpClient.client(avskrivKravKall)
             val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
-            dbService.getAllKravForStatusCheck().size shouldBe 5
+            dbService.getAllKravForStatusCheck().shouldHaveSize(5)
 
             StatusService(DBListener.dataSource, skeClient, dbService, mockk<SlackService>(relaxed = true), feilmeldingRepository).getMottaksStatus()
             Then("Skal krav ikke oppdateres") {
-                dbService.getAllKravForStatusCheck().size shouldBe 5
+                dbService.getAllKravForStatusCheck().shouldHaveSize(5)
             }
             CircuitBreakerManager.circuitBreaker.reset()
         }
@@ -66,12 +68,12 @@ internal class StatusServiceIntegrationTest :
             val (slackClientSpy, _, statusService) = setupServices(httpClient, dbService)
 
             Then("Skal mottaksstatus settes til RESKONTROFOERT i database") {
-                val allKravBeforeUpdate = DBListener.dataSource.connection.use { con -> con.getAllKrav() }
+                val allKravBeforeUpdate = kravRepository.getAllKrav()
                 allKravBeforeUpdate.count { it.status == Status.RESKONTROFOERT } shouldBe 3
 
                 statusService.getMottaksStatus()
 
-                val allKravAfterUpdate = DBListener.dataSource.connection.use { con -> con.getAllKrav() }
+                val allKravAfterUpdate = kravRepository.getAllKrav()
                 allKravAfterUpdate.count { it.status == Status.RESKONTROFOERT } shouldBe 8
             }
             Then("Alert skal ikke sendes") {
@@ -91,14 +93,14 @@ internal class StatusServiceIntegrationTest :
 
             val (slackClientSpy, slackServiceSpy, statusService) = setupServices(httpClient, dbService)
 
-            feilmeldingRepository.getAllFeilmeldinger().size shouldBe 0
-            dbService.getAllKravForStatusCheck().size shouldBe 5
+            feilmeldingRepository.getAllFeilmeldinger().shouldHaveSize(0)
+            dbService.getAllKravForStatusCheck().shouldHaveSize(5)
 
             statusService.getMottaksStatus()
 
             Then("Skal feilmelding lagres i Feilmelding tabell") {
                 val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
-                feilmeldinger.size shouldBe 5
+                feilmeldinger.shouldHaveSize(5)
                 feilmeldinger.forEach {
                     it.error shouldBe status
                     it.melding shouldBe "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke"
@@ -106,12 +108,13 @@ internal class StatusServiceIntegrationTest :
             }
 
             Then("Mottaksstatus skal settes til VALIDERINGSFEIL i database") {
-                DBListener.dataSource.connection
-                    .use { con -> con.getAllKrav() }
+                kravRepository
+                    .getAllKrav()
                     .filter { it.status == Status.VALIDERINGSFEIL_MOTTAKSSTATUS }
                     .distinctBy { it.corrId }
-                    .size shouldBe 5
+                    .shouldHaveSize(5)
             }
+
             When("Feilmeldinger håndteres") {
                 val addErrorFilenameSlots = mutableListOf<String>()
                 val addErrorMessagesSlot = mutableListOf<Pair<String, String>>()
@@ -121,8 +124,8 @@ internal class StatusServiceIntegrationTest :
                 }
 
                 Then("Skal 5 feilmeldinger dannes") {
-                    addErrorFilenameSlots.filter { it == fileName }.size shouldBe 5
-                    addErrorMessagesSlot.size shouldBe 5
+                    addErrorFilenameSlots.filter { it == fileName }.shouldHaveSize(5)
+                    addErrorMessagesSlot.shouldHaveSize(5)
                     addErrorMessagesSlot.forEach {
                         it.first shouldBe status
                         it.second shouldBe "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke"
