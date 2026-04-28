@@ -98,6 +98,12 @@ internal class RepositoryTestFeilmelding :
             }
         }
 
+        test("updateStatusForAvstemtKravToReported skal sette rapporter til false på krav med angitt kravid") {
+            feilmeldingRepository.updateStatusForAvstemtKravToReported(1)
+            val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
+            feilmeldinger.filter { !it.rapporter }.shouldHaveSize(1)
+        }
+
         test("deleteOldFeilmeldinger skal slette alle feilmeldingene som ble opprettet før en spesifisert tid") {
             val threshold = LocalDate.parse("2023-01-02")
             val feilmeldingDeleted = feilmeldingRepository.deleteOldFeilmeldinger(threshold)

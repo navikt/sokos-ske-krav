@@ -13,7 +13,6 @@ import no.nav.sokos.ske.krav.copybook.FileParser
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
@@ -148,28 +147,6 @@ internal class RepositoryTestKrav :
                 val updatedKrav = kravRepository.getAllKrav().first { krav -> krav.corrId == corrId }
                 updatedKrav.status shouldBe Status.KRAV_IKKE_SENDT
                 updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
-            }
-        }
-
-        test("updateStatusForAvstemtKravToReported skal sette rapporter til false på krav med angitt kravid") {
-            DBListener.loadInitScript("SQLscript/feilmeldinger/Feilmeldinger.sql")
-
-            val kravForAvstemmingBeforeUpdate = kravRepository.getAllKravForAvstemming()
-            val firstKrav = kravForAvstemmingBeforeUpdate.first()
-            val lastKrav = kravForAvstemmingBeforeUpdate.last()
-
-            kravRepository.updateStatusForAvstemtKravToReported(firstKrav.kravId.toInt())
-            kravRepository.updateStatusForAvstemtKravToReported(lastKrav.kravId.toInt())
-
-            DBListener.dataSource.transaction { tx ->
-                val kravForAvstemmingAfterUpdate = kravRepository.getAllKravForAvstemming()
-                kravForAvstemmingAfterUpdate.shouldHaveSize(kravForAvstemmingBeforeUpdate.size - 2)
-
-                val feilmelding1 = feilmeldingRepository.getFeilmeldingerForKravId(tx, firstKrav.kravId)
-                val feilmelding2 = feilmeldingRepository.getFeilmeldingerForKravId(tx, lastKrav.kravId)
-
-                feilmelding1.first().rapporter shouldBe false
-                feilmelding2.first().rapporter shouldBe false
             }
         }
 

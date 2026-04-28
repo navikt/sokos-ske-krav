@@ -76,7 +76,7 @@ class DatabaseService(
         kravRepository.updateStatus(mottakStatus, corrId)
     }
 
-    fun updateStatusForAvstemtKravToReported(kravId: Int) = kravRepository.updateStatusForAvstemtKravToReported(kravId)
+    fun updateStatusForAvstemtKravToReported(kravId: Int) = feilmeldingRepository.updateStatusForAvstemtKravToReported(kravId)
 
     fun getAllKravForResending(): List<Krav> = kravRepository.getAllKravForResending()
 

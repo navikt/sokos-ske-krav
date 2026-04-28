@@ -233,22 +233,6 @@ class KravRepository(
         }
     }
 
-    // TODO: Move to feilmeldingRepository
-    fun updateStatusForAvstemtKravToReported(kravId: Int) {
-        dataSource.transaction { session ->
-            session.update(
-                queryOf(
-                    """
-                    update feilmelding
-                        set rapporter = false
-                    where krav_id = ?
-                    """.trimIndent(),
-                    kravId,
-                ),
-            )
-        }
-    }
-
     fun updateEndringWithSkeKravIdentifikator(
         saksnummerNav: String,
         skeKravident: String,

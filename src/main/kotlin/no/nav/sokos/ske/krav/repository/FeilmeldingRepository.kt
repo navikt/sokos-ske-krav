@@ -111,6 +111,21 @@ class FeilmeldingRepository(
         }
     }
 
+    fun updateStatusForAvstemtKravToReported(kravId: Int) {
+        dataSource.transaction { session ->
+            session.update(
+                queryOf(
+                    """
+                    update feilmelding
+                        set rapporter = false
+                    where krav_id = ?
+                    """.trimIndent(),
+                    kravId,
+                ),
+            )
+        }
+    }
+
     fun deleteOldFeilmeldinger(threshold: LocalDate): Int =
         dataSource.transaction { session ->
             session.update(
