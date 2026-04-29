@@ -42,23 +42,10 @@ class OpprettKravServiceTest :
                 justRun { updateSentKrav(any<List<RequestResult>>()) }
             }
         val kravMock =
-            mockk<Krav>(relaxed = true) {
-                every { kravidentifikatorSKE } returns "foo"
-                every { saksnummerNAV } returns "bar"
-                every { gjelderId } returns "12131456789"
-                every { kravkode } returns "BA OR"
-                every { kodeHjemmel } returns "T"
-                every { belop } returns 100.0
-                every { belopRente } returns 10.0
-                every { vedtaksDato } returns LocalDate.now().plusDays(30)
-                every { utbetalDato } returns LocalDate.now()
-                every { fagsystemId } returns "123"
-                every { periodeFOM } returns "20210101"
-                every { periodeTOM } returns "20210102"
-                every { fremtidigYtelse } returns 10.0
-                every { tilleggsfrist } returns null
-                every { corrId } returns "test-corr-id"
-            }
+            kravMock(
+                vedtaksDato = LocalDate.now().plusDays(30),
+                utbetalDato = LocalDate.now(),
+            )
 
         test("sendAllOpprettKrav skal returnere liste av innsendte nye krav") {
             val opprettKravServiceMock =
@@ -121,23 +108,11 @@ class OpprettKravServiceTest :
 
         test("sendOpprettKrav skal returnere RequestResult når tilleggsfrist er satt") {
             val kravMockMedTilleggsfrist =
-                mockk<Krav>(relaxed = true) {
-                    every { kravidentifikatorSKE } returns "foo"
-                    every { saksnummerNAV } returns "bar"
-                    every { gjelderId } returns "12131456789"
-                    every { kravkode } returns "BA OR"
-                    every { kodeHjemmel } returns "T"
-                    every { belop } returns 100.0
-                    every { belopRente } returns 10.0
-                    every { vedtaksDato } returns LocalDate.now()
-                    every { utbetalDato } returns LocalDate.now().plusDays(5)
-                    every { fagsystemId } returns "123"
-                    every { periodeFOM } returns "20210101"
-                    every { periodeTOM } returns "20210102"
-                    every { fremtidigYtelse } returns 10.0
-                    every { tilleggsfrist } returns LocalDate.now().plusYears(3)
-                    every { corrId } returns "test-corr-id"
-                }
+                kravMock(
+                    vedtaksDato = LocalDate.now(),
+                    utbetalDato = LocalDate.now().plusDays(5),
+                    tilleggsfrist = LocalDate.now().plusYears(3),
+                )
 
             val opprettInnkrevingOppdragRequest =
                 OpprettInnkrevingsoppdragRequest(
@@ -179,3 +154,25 @@ class OpprettKravServiceTest :
             }
         }
     })
+
+private fun kravMock(
+    vedtaksDato: LocalDate = LocalDate.now(),
+    utbetalDato: LocalDate = LocalDate.now(),
+    tilleggsfrist: LocalDate? = null,
+) = mockk<Krav>(relaxed = true) {
+    every { kravidentifikatorSKE } returns "foo"
+    every { saksnummerNAV } returns "bar"
+    every { gjelderId } returns "12131456789"
+    every { kravkode } returns "BA OR"
+    every { kodeHjemmel } returns "T"
+    every { belop } returns 100.0
+    every { belopRente } returns 10.0
+    every { this@mockk.vedtaksDato } returns vedtaksDato
+    every { this@mockk.utbetalDato } returns utbetalDato
+    every { fagsystemId } returns "123"
+    every { periodeFOM } returns "20210101"
+    every { periodeTOM } returns "20210102"
+    every { fremtidigYtelse } returns 10.0
+    every { this@mockk.tilleggsfrist } returns tilleggsfrist
+    every { corrId } returns "test-corr-id"
+}

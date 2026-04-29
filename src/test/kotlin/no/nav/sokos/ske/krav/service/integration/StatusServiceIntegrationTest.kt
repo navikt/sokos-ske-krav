@@ -21,7 +21,6 @@ import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
-import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody
 import no.nav.sokos.ske.krav.util.skeClient
 
@@ -141,6 +140,6 @@ fun mottaksStatusHttpClient(
     mottaksStatusResponse: String,
     valideringsFeilResponse: String = MockResponsesBody.emptyValideringsfeilResponse(),
 ) = MockHttpClient.client(
-    MockResponse(Endpoint.MOTTAKSSTATUS, mottaksStatusResponse),
-    MockResponse(Endpoint.HENT_VALIDERINGSFEIL, valideringsFeilResponse),
+    Endpoint.MOTTAKSSTATUS.responding(mottaksStatusResponse),
+    Endpoint.HENT_VALIDERINGSFEIL.responding(valideringsFeilResponse),
 )
