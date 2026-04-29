@@ -1,6 +1,5 @@
 package no.nav.sokos.ske.krav.util
 
-import java.io.File
 import java.io.Reader
 import java.sql.Connection
 
@@ -36,7 +35,7 @@ import no.nav.sokos.ske.krav.util.http.MockHttpClient
 object FtpTestUtil {
     fun fileAsString(fileName: String): String = fileAs(fileName, Reader::readText)
 
-    fun getFileContent(filename: String) = fileAs("${File.separator}FtpFiler${File.separator}/$filename", Reader::readLines)
+    fun getFileContent(filename: String): List<String> = fileAs("/FtpFiler/$filename", Reader::readLines)
 
     private fun <T> fileAs(
         fileName: String,
@@ -48,48 +47,20 @@ object FtpTestUtil {
             .use { it.func() }
 }
 
-private val mockSkeClient =
-    mockk<SkeClient> {
-        coJustRun { getSkeKravidentifikator(any()) }
-    }
-
-private val stoppServiceMock =
-    mockk<StoppKravService> {
-        coEvery { sendAllStoppKrav(any()) } returns emptyList()
-    }
-
-private val endreServiceMock =
-    mockk<EndreKravService> {
-        coEvery { sendAllEndreKrav(any()) } returns emptyList()
-    }
-
-private val opprettServiceMock =
-    mockk<OpprettKravService> {
-        coEvery { sendAllOpprettKrav(any()) } returns emptyList()
-    }
-
-private val statusServiceMock =
-    mockk<StatusService> {
-        coJustRun { getMottaksStatus() }
-    }
-
-private val ftpServiceMock = mockk<FtpService>()
-private val dataSourceMock =
-    mockk<DatabaseService> {
-        every { getAllUnsentKrav() } returns emptyList()
-        every { getAllKravForResending() } returns emptyList()
-        justRun { saveAllNewKrav(any<List<KravLinje>>(), "filnavn.txt") }
-        every { getSkeKravidentifikator(any<String>()) } returns "foo"
-    }
-
 fun setupSkeServiceMock(
-    skeClient: SkeClient = mockSkeClient,
-    stoppKravService: StoppKravService = stoppServiceMock,
-    endreKravService: EndreKravService = endreServiceMock,
-    opprettKravService: OpprettKravService = opprettServiceMock,
-    statusService: StatusService = statusServiceMock,
-    databaseService: DatabaseService = dataSourceMock,
-    ftpService: FtpService = ftpServiceMock,
+    skeClient: SkeClient = mockk { coJustRun { getSkeKravidentifikator(any()) } },
+    stoppKravService: StoppKravService = mockk { coEvery { sendAllStoppKrav(any()) } returns emptyList() },
+    endreKravService: EndreKravService = mockk { coEvery { sendAllEndreKrav(any()) } returns emptyList() },
+    opprettKravService: OpprettKravService = mockk { coEvery { sendAllOpprettKrav(any()) } returns emptyList() },
+    statusService: StatusService = mockk { coJustRun { getMottaksStatus() } },
+    databaseService: DatabaseService =
+        mockk {
+            every { getAllUnsentKrav() } returns emptyList()
+            every { getAllKravForResending() } returns emptyList()
+            justRun { saveAllNewKrav(any<List<KravLinje>>(), "filnavn.txt") }
+            every { getSkeKravidentifikator(any<String>()) } returns "foo"
+        },
+    ftpService: FtpService = mockk(),
     slackService: SlackService = SlackService(SlackClient(client = MockHttpClient.slackClient)),
 ) = SkeService(
     dataSource = mockk<HikariDataSource>(),
@@ -113,18 +84,13 @@ fun setupSkeServiceMockWithMockEngine(
 ): SkeService {
     val tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true)
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-    val endreKravService = EndreKravService(skeClient, databaseService)
-    val opprettKravService = OpprettKravService(skeClient, databaseService)
-    val statusService = StatusService(dataSource, skeClient, databaseService, slackService)
-    val stoppKravService = StoppKravService(skeClient, databaseService)
-
     return SkeService(
         dataSource = dataSource,
         skeClient = skeClient,
-        stoppKravService = stoppKravService,
-        endreKravService = endreKravService,
-        opprettKravService = opprettKravService,
-        statusService = statusService,
+        stoppKravService = StoppKravService(skeClient, databaseService),
+        endreKravService = EndreKravService(skeClient, databaseService),
+        opprettKravService = OpprettKravService(skeClient, databaseService),
+        statusService = StatusService(dataSource, skeClient, databaseService, slackService),
         databaseService = databaseService,
         ftpService = ftpService,
         slackService = slackService,
