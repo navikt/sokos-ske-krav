@@ -36,8 +36,15 @@ private fun defineStatusWithError(
     responseBody: String,
     httpStatus: HttpStatusCode,
 ): Pair<Status, FeilResponse?> {
-    val feilResponse = responseBody.decodeTo<FeilResponse>()
-    val errorType = feilResponse?.type ?: FeilResponse.CustomTypes.FEIL_FRA_SERVER
+    val feilResponse =
+        responseBody.decodeTo<FeilResponse>() ?: FeilResponse(
+            type = FeilResponse.CustomTypes.FEIL_FRA_SERVER,
+            title = "Feil fra SKE",
+            status = httpStatus.value,
+            detail = responseBody,
+            instance = "",
+        )
+    val errorType = feilResponse.type
 
     val status =
         when (httpStatus.value) {

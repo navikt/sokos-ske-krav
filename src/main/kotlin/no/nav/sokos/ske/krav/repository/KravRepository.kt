@@ -44,6 +44,15 @@ object KravRepository {
             Status.KRAV_IKKE_SENDT.value,
         ).toKrav()
 
+    fun Connection.getAllUnsentEndringerAndStopp() =
+        executeSelect(
+            """select * from krav where status = ? and kravtype in(?, ?, ?)""",
+            Status.KRAV_IKKE_SENDT.value,
+            ENDRING_RENTE,
+            ENDRING_HOVEDSTOL,
+            STOPP_KRAV,
+        ).toKrav()
+
     fun Connection.getAllKravForAvstemming() =
         executeSelect(
             """

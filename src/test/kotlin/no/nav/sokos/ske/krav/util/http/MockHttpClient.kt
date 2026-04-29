@@ -23,6 +23,7 @@ enum class Endpoint(
     ENDRE_RENTER("/renter"),
     ENDRE_HOVEDSTOL("/hovedstol"),
     AVSKRIVING("/avskriving"),
+    AVSTEMMING("/avstemming"),
     HENT_VALIDERINGSFEIL("/valideringsfeil"),
 }
 

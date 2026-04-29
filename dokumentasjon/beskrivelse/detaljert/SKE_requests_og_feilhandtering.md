@@ -135,7 +135,9 @@ En [`FeilResponse`](../../../src/main/kotlin/no/nav/sokos/ske/krav/dto/ske/respo
 }
 ```
 
-Dersom responsen ikke lar seg parse til [`FeilResponse`](../../../src/main/kotlin/no/nav/sokos/ske/krav/dto/ske/responses/FeilResponses.kt) lagres en egendefinert feilmelding med `type = "egendefinert"`.
+Dersom responsen ikke lar seg parse til [`FeilResponse`](../../../src/main/kotlin/no/nav/sokos/ske/krav/dto/ske/responses/FeilResponses.kt), oppretter `defineStatus()` automatisk en fallback-`FeilResponse` med `type = "FEIL_FRA_SERVER"`, `title = "Feil fra SKE"` og `detail` satt til rå respons-body.
+
+`saveErrorMessage()` aksepterer en valgfri `feilResponse`-parameter. Dersom denne er satt (normaltilfelle), brukes den direkte. Ellers forsøkes ny parsing av respons-body, og til sist, som siste sikkerhetsventil, opprettes en `FeilResponse` med `type = "egendefinert"` og `title = "Feil i parsing av http respons"`.
 
 ---
 

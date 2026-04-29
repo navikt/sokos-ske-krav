@@ -20,6 +20,7 @@ import no.nav.sokos.ske.krav.repository.KravRepository.deleteOldKrav
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForAvstemming
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForResending
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForStatusCheck
+import no.nav.sokos.ske.krav.repository.KravRepository.getAllUnsentEndringerAndStopp
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllUnsentKrav
 import no.nav.sokos.ske.krav.repository.KravRepository.getPreviousReferansenummer
 import no.nav.sokos.ske.krav.repository.KravRepository.getSkeKravidentifikator
@@ -118,6 +119,8 @@ class DatabaseService(
     fun getAllKravForResending(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllKravForResending() }
 
     fun getAllUnsentKrav(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllUnsentKrav() }
+
+    fun getAllUnsentEndringerAndStopp(): List<Krav> = dataSource.connection.useAndHandleErrors { it.getAllUnsentEndringerAndStopp() }
 
     fun updateEndringWithSkeKravIdentifikator(
         navsaksnummer: String,

@@ -15,6 +15,7 @@ import no.nav.sokos.ske.krav.repository.KravRepository.deleteOldKrav
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForAvstemming
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForResending
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllKravForStatusCheck
+import no.nav.sokos.ske.krav.repository.KravRepository.getAllUnsentEndringerAndStopp
 import no.nav.sokos.ske.krav.repository.KravRepository.getAllUnsentKrav
 import no.nav.sokos.ske.krav.repository.KravRepository.getPreviousReferansenummer
 import no.nav.sokos.ske.krav.repository.KravRepository.getSkeKravidentifikator
@@ -48,7 +49,7 @@ internal class RepositoryTestKrav :
         ) {
             val kravForResending = DBListener.dataSource.connection.use { it.getAllKravForResending() }
 
-            kravForResending.size shouldBe 9
+            kravForResending.size shouldBe 10
             kravForResending.forEach {
                 it.status.shouldBeIn(
                     Status.KRAV_IKKE_SENDT.value,
@@ -62,7 +63,7 @@ internal class RepositoryTestKrav :
 
         test("getAllUnsentKrav skal returnere krav som har status KRAV_IKKE_SENDT") {
             val unsentKrav = DBListener.dataSource.connection.use { it.getAllUnsentKrav() }
-            unsentKrav.size shouldBe 3
+            unsentKrav.size shouldBe 4
             unsentKrav.forEach {
                 it.status shouldBe Status.KRAV_IKKE_SENDT.value
             }
@@ -103,6 +104,22 @@ internal class RepositoryTestKrav :
                 KravRepository.getKravTableIdFromCorrelationId(tx, "CORR263482") shouldBe 6
                 KravRepository.getKravTableIdFromCorrelationId(tx, "CORR83985902") shouldBe 7
                 KravRepository.getKravTableIdFromCorrelationId(tx, "finnesikke") shouldBe 0
+            }
+        }
+
+        test("getAllUnsentEndringerAndStopp skal returnere alle endringer og stopp som er lest inn men ikke sendt") {
+            val krav =
+                DBListener.dataSource.connection.use { con ->
+                    con.getAllUnsentEndringerAndStopp()
+                }
+
+            krav.size shouldBe 3
+            krav.count { it.kravtype == STOPP_KRAV } shouldBe 1
+            krav.count { it.kravtype == ENDRING_HOVEDSTOL } shouldBe 1
+            krav.count { it.kravtype == ENDRING_RENTE } shouldBe 1
+            krav.forEach { krav ->
+                krav.status shouldBe Status.KRAV_IKKE_SENDT.value
+                krav.tidspunktSendt shouldBe null
             }
         }
 
@@ -227,7 +244,7 @@ internal class RepositoryTestKrav :
             DBListener.dataSource.connection.use { con ->
                 val threshold = LocalDate.parse("2023-01-02")
                 val kravDeleted = con.deleteOldKrav(threshold)
-                kravDeleted shouldBe 17
+                kravDeleted shouldBe 18
             }
         }
 
