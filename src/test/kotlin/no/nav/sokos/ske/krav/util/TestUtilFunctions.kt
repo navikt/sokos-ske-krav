@@ -20,7 +20,10 @@ import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.repository.RepositoryExtensions.withParameters
+import no.nav.sokos.ske.krav.repository.toFeilmelding
 import no.nav.sokos.ske.krav.repository.toKrav
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
@@ -112,3 +115,13 @@ fun mockHttpResponse(
     }
 
 fun Connection.getAllKrav(): List<Krav> = prepareStatement("""select * from krav""").executeQuery().toKrav()
+
+fun Connection.getAllFeilmeldinger(): List<Feilmelding> = prepareStatement("SELECT * FROM feilmelding").executeQuery().toFeilmelding()
+
+fun Connection.getKravForFeilmeldinger(feilmeldinger: List<Feilmelding>): List<Krav> =
+    feilmeldinger.flatMap { feilmelding ->
+        prepareStatement("""select * from krav where corr_id = ?""")
+            .withParameters(feilmelding.corrId)
+            .executeQuery()
+            .toKrav()
+    }

@@ -66,6 +66,20 @@ object MockHttpClient {
             }
         }
 
+    fun allOk(vararg overrides: MockResponse): HttpClient {
+        val defaults =
+            listOf(
+                MockResponse(Endpoint.OPPRETT, MockResponsesBody.nyttKravResponse()),
+                MockResponse(Endpoint.ENDRE_RENTER, MockResponsesBody.nyEndringResponse()),
+                MockResponse(Endpoint.ENDRE_HOVEDSTOL, MockResponsesBody.nyEndringResponse()),
+                MockResponse(Endpoint.AVSKRIVING, MockResponsesBody.nyEndringResponse()),
+                MockResponse(Endpoint.MOTTAKSSTATUS, MockResponsesBody.mottaksStatusResponse()),
+            )
+        val overriddenEndpoints = overrides.map { it.originEndpoint }.toSet()
+        val merged = defaults.filter { it.originEndpoint !in overriddenEndpoints } + overrides
+        return client(*merged.toTypedArray())
+    }
+
     private fun matchesEndpoint(
         requestPath: String,
         endpointUrl: String,
