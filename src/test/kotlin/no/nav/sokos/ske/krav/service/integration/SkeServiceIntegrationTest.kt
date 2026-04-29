@@ -32,7 +32,6 @@ import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.getKravForFeilmeldinger
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
-import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.avstemmingResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.httpErrorResponse
@@ -150,7 +149,7 @@ internal class SkeServiceIntegrationTest :
             DBListener.clearDB()
             DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
             SftpListener.putFiles(listOf("krav/TestEndringMedAvstemmingAvKravident.txt"), Directories.INBOUND)
-            val httpClient = MockHttpClient.allOk(MockResponse(Endpoint.AVSTEMMING, httpErrorResponse, HttpStatusCode.Forbidden))
+            val httpClient = MockHttpClient.allOk(Endpoint.AVSTEMMING.responding(httpErrorResponse, HttpStatusCode.Forbidden))
             val slackSpy = slackServiceSpy()
             val skeService = skeServiceWithMockEngine(httpClient, slackService = slackSpy)
 
@@ -171,7 +170,7 @@ internal class SkeServiceIntegrationTest :
             DBListener.clearDB()
             DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
             SftpListener.putFiles(listOf("krav/TestEndringMedAvstemmingAvKravident.txt"), Directories.INBOUND)
-            val httpClient = MockHttpClient.allOk(MockResponse(Endpoint.AVSTEMMING, innkrevingsOppdragEksistererIkkeResponse(), HttpStatusCode.NotFound))
+            val httpClient = MockHttpClient.allOk(Endpoint.AVSTEMMING.responding(innkrevingsOppdragEksistererIkkeResponse(), HttpStatusCode.NotFound))
             val slackSpy = slackServiceSpy()
             val skeService = skeServiceWithMockEngine(httpClient, slackService = slackSpy)
 
@@ -192,7 +191,7 @@ internal class SkeServiceIntegrationTest :
         Given("Et krav feiler ") {
             DBListener.clearDB()
             SftpListener.putFiles(listOf("krav/TiNyeKrav.txt"), Directories.INBOUND)
-            val httpClient = MockHttpClient.client(MockResponse(Endpoint.OPPRETT, genericFeilResponse(), HttpStatusCode.UnprocessableEntity))
+            val httpClient = MockHttpClient.client(Endpoint.OPPRETT.responding(genericFeilResponse(), HttpStatusCode.UnprocessableEntity))
             val skeService = skeServiceWithMockEngine(httpClient)
 
             Then("skal det lagres i feilmeldingtabell") {

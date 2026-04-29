@@ -34,6 +34,7 @@ import no.nav.sokos.ske.krav.service.SkeService
 import no.nav.sokos.ske.krav.service.StatusService
 import no.nav.sokos.ske.krav.service.StoppKravService
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
+import no.nav.sokos.ske.krav.util.http.MockResponse
 
 object FtpTestUtil {
     fun fileAsString(fileName: String): String = fileAs(fileName, Reader::readText)
@@ -85,8 +86,7 @@ fun setupSkeServiceMockWithMockEngine(
     slackClient: SlackClient = SlackClient(client = MockHttpClient.slackClient),
     slackService: SlackService = SlackService(slackClient),
 ): SkeService {
-    val tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true)
-    val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
+    val skeClient = skeClient(httpClient)
     return SkeService(
         dataSource = dataSource,
         skeClient = skeClient,
@@ -99,6 +99,10 @@ fun setupSkeServiceMockWithMockEngine(
         slackService = slackService,
     )
 }
+
+fun skeClient(vararg responses: MockResponse): SkeClient = skeClient(MockHttpClient.client(*responses))
+
+fun skeClient(httpClient: HttpClient): SkeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
 fun mockHttpResponse(
     code: Int = 200,

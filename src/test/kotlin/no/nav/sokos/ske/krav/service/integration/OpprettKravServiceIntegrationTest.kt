@@ -4,22 +4,18 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import io.mockk.coVerify
-import io.mockk.mockk
 import io.mockk.spyk
 
-import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.OpprettKravService
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
-import no.nav.sokos.ske.krav.util.http.MockHttpClient
-import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.nyttKravResponse
+import no.nav.sokos.ske.krav.util.skeClient
 
 internal class OpprettKravServiceIntegrationTest :
     BehaviorSpec({
@@ -36,9 +32,7 @@ internal class OpprettKravServiceIntegrationTest :
             kravSomSkalSendes.size shouldBe 2
 
             When("Response fra SKE  trigger circuit breaker") {
-                val skeFeilResponse = MockResponse(Endpoint.OPPRETT, genericFeilResponse(), HttpStatusCode.InternalServerError)
-                val httpClient = MockHttpClient.client(skeFeilResponse)
-                val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
+                val skeClient = skeClient(Endpoint.OPPRETT.responding(genericFeilResponse(), HttpStatusCode.InternalServerError))
 
                 val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)), recordPrivateCalls = true)
                 val requestResults = opprettKravServiceSpy.sendAllOpprettKrav(kravSomSkalSendes)
@@ -67,9 +61,7 @@ internal class OpprettKravServiceIntegrationTest :
                 CircuitBreakerManager.circuitBreaker.reset()
                 val kravidentifikatorSKE = "4321"
 
-                val skeOKResponse = MockResponse(Endpoint.OPPRETT, nyttKravResponse(kravidentifikatorSKE), HttpStatusCode.OK)
-                val httpClient = MockHttpClient.client(skeOKResponse)
-                val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
+                val skeClient = skeClient(Endpoint.OPPRETT.responding(nyttKravResponse(kravidentifikatorSKE)))
 
                 val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)), recordPrivateCalls = true)
                 val requestResults = opprettKravServiceSpy.sendAllOpprettKrav(kravSomSkalSendes)

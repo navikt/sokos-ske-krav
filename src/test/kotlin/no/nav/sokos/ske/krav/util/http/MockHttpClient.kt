@@ -25,6 +25,12 @@ enum class Endpoint(
     AVSKRIVING("/avskriving"),
     AVSTEMMING("/avstemming"),
     HENT_VALIDERINGSFEIL("/valideringsfeil"),
+    ;
+
+    fun responding(
+        content: String,
+        status: HttpStatusCode = HttpStatusCode.OK,
+    ) = MockResponse(this, content, status)
 }
 
 data class MockResponse(
@@ -69,11 +75,11 @@ object MockHttpClient {
     fun allOk(vararg overrides: MockResponse): HttpClient {
         val defaults =
             listOf(
-                MockResponse(Endpoint.OPPRETT, MockResponsesBody.nyttKravResponse()),
-                MockResponse(Endpoint.ENDRE_RENTER, MockResponsesBody.nyEndringResponse()),
-                MockResponse(Endpoint.ENDRE_HOVEDSTOL, MockResponsesBody.nyEndringResponse()),
-                MockResponse(Endpoint.AVSKRIVING, MockResponsesBody.nyEndringResponse()),
-                MockResponse(Endpoint.MOTTAKSSTATUS, MockResponsesBody.mottaksStatusResponse()),
+                Endpoint.OPPRETT.responding(MockResponsesBody.nyttKravResponse()),
+                Endpoint.ENDRE_RENTER.responding(MockResponsesBody.nyEndringResponse()),
+                Endpoint.ENDRE_HOVEDSTOL.responding(MockResponsesBody.nyEndringResponse()),
+                Endpoint.AVSKRIVING.responding(MockResponsesBody.nyEndringResponse()),
+                Endpoint.MOTTAKSSTATUS.responding(MockResponsesBody.mottaksStatusResponse()),
             )
         val overriddenEndpoints = overrides.map { it.originEndpoint }.toSet()
         val merged = defaults.filter { it.originEndpoint !in overriddenEndpoints } + overrides

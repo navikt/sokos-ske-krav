@@ -4,24 +4,20 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import io.mockk.coVerify
-import io.mockk.mockk
 import io.mockk.spyk
 
-import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.service.StoppKravService
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
-import no.nav.sokos.ske.krav.util.http.MockHttpClient
-import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.avskrivKravResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
+import no.nav.sokos.ske.krav.util.skeClient
 
 class StoppKravServiceIntegrationTest :
     BehaviorSpec({
@@ -39,10 +35,7 @@ class StoppKravServiceIntegrationTest :
             kravSomSkalSendes.count { it.kravtype == STOPP_KRAV } shouldBe 2
 
             When("Response fra SKE trigger circuit breaker") {
-                val avskrivingResponse = MockResponse(Endpoint.AVSKRIVING, genericFeilResponse(), HttpStatusCode.Forbidden)
-
-                val httpClient = MockHttpClient.client(avskrivingResponse)
-                val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
+                val skeClient = skeClient(Endpoint.AVSKRIVING.responding(genericFeilResponse(), HttpStatusCode.Forbidden))
 
                 val stoppKravServiceSpy = spyk(StoppKravService(skeClient, dbService), recordPrivateCalls = true)
 
@@ -64,10 +57,7 @@ class StoppKravServiceIntegrationTest :
             }
             When("Response fra SKE er OK") {
                 CircuitBreakerManager.circuitBreaker.reset()
-                val avskrivingResponse = MockResponse(Endpoint.AVSKRIVING, avskrivKravResponse(), HttpStatusCode.OK)
-
-                val httpClient = MockHttpClient.client(avskrivingResponse)
-                val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
+                val skeClient = skeClient(Endpoint.AVSKRIVING.responding(avskrivKravResponse()))
 
                 StoppKravService(skeClient, dbService).sendAllStoppKrav(kravSomSkalSendes)
 
