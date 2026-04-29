@@ -50,7 +50,7 @@ object DBListener : TestListener {
     val feilmeldingRepository by lazy { FeilmeldingRepository(dataSource) }
     val kravRepository by lazy { KravRepository(dataSource) }
 
-    val dbService by lazy { DatabaseService(dataSource, filvalideringsFeilRepository, feilmeldingRepository, kravRepository) }
+    val dbService by lazy { DatabaseService(filvalideringsFeilRepository, feilmeldingRepository, kravRepository) }
 
     fun loadInitScript(name: String) {
         dataSource // Ensure Flyway migrations have run before executing init scripts
