@@ -1,48 +1,110 @@
 ---
-applyTo: "**/test/**/*.kt"
+applyTo: "**/*.test.{ts,tsx,kt,kts}"
 ---
 
-# Testing essentials
+# Testing Standards
 
-Framework: **Kotest** (never JUnit) + **MockK**. Default spec style is `BehaviorSpec` (Given/When/Then/And) in Norwegian — both for unit and integration tests. Use `FunSpec` only for trivial, purely technical unit tests.
+Felles testprinsipper for Nav. Språkspesifikke eksempler finnes i egne instruksjoner for [Kotlin](testing-kotlin.instructions.md) og [TypeScript](testing-typescript.instructions.md).
 
-For full patterns, examples, and MockK/matchers cheat sheets, invoke the **`kotest` skill**.
+## Test Coverage
 
-## Hard rules
+### Coverage Requirements
 
-- Integration tests with DB → `extensions(DBListener)`; call `DBListener.clearDB()` before `loadInitScript(...)` inside every `Given`.
-- Integration tests with SFTP → `extensions(SftpListener)`.
-- Any test that reaches `SkeClient` (directly or via `MockHttpClient.client`) → `beforeEach { CircuitBreakerManager.circuitBreaker.reset() }`.
-- Use `MockHttpClient.client(vararg MockResponse)` — never real HTTP to SKE.
-- For suspend functions use `coEvery` / `coVerify`; never `runBlocking` inside test blocks.
-- Never call `PropertiesConfig.load()` from tests — `DBListener` already does it.
+- **Utilities in `lib/`**: 80%+ coverage required
+- **Business logic**: 70%+ coverage required
+- **API routes**: Test happy path + error cases
+- **Repositories**: Test CRUD operations
+- **Event handlers**: Test event processing + publishing
 
-## File conventions
+## Test Naming
 
-- Unit tests: `.../service/unit/*Test.kt`
-- Integration tests: `.../service/integration/*IntegrationTest.kt`, `.../validation/*IntegrationTest.kt`, `.../database/*Test.kt`
-- SQL fixtures: `src/test/resources/SQLscript/krav/*.sql`
+```kotlin
+// ✅ Good - describes behavior
+`should create user when valid data provided`
+`should throw exception when email is invalid`
+`should publish event after successful processing`
 
-## Coverage audit — gjør dette før du konkluderer
-
-Før du påstår at et område mangler tester, **kjør alltid**:
-
-```bash
-find src/test -type f -name "*.kt" | sort
+// ❌ Bad - not descriptive
+`test1`
+`createUserTest`
+`testValidation`
 ```
 
-- Bruk aldri `| head` eller begrens output — testfiler ligger i underkategorier (`unit/`, `integration/`, `database/`, `client/`, `config/`) og kuttes lett av et for lavt antall
-- Vurder faktisk filinnhold, ikke bare filnavn, før du konkluderer om scenariodekning
+## Test Strategy
+
+Choose test type based on what you're verifying:
+
+| What to test | Test type | Tools |
+|---|---|---|
+| Pure functions, utils | Unit test | Kotest / Vitest |
+| Controller + validation | Slice test | `@WebMvcTest` + MockkBean |
+| Repository + SQL | Slice test | `@DataJpaTest` + Testcontainers |
+| Full API flow | Integration test | `@SpringBootTest` + Testcontainers |
+| User workflows | E2E test | Playwright |
+| Accessibility | E2E test | Playwright + axe-core |
+
+### When to use what
+
+- **Unit**: Business logic, data transformations, formatting
+- **Slice** (`@WebMvcTest`, `@DataJpaTest`): Faster than full integration, tests one layer
+- **Integration** (`@SpringBootTest`): Auth flow, multi-layer, real DB
+- **E2E** (Playwright): Critical user journeys, form submission, navigation
+
+## Playwright E2E Tests
+
+```typescript
+import { test, expect } from "@playwright/test";
+
+test.describe("Oversikt", () => {
+  test("should display vedtak list", async ({ page }) => {
+    await page.goto("/oversikt");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByRole("table")).toBeVisible();
+  });
+
+  test("should filter by status", async ({ page }) => {
+    await page.goto("/oversikt");
+    await page.getByRole("combobox", { name: /status/i }).selectOption("aktiv");
+    await expect(page.getByRole("row")).toHaveCount(await page.getByRole("row").count());
+  });
+});
+```
+
+### Accessibility in E2E
+
+```typescript
+import AxeBuilder from "@axe-core/playwright";
+
+test("should have no a11y violations", async ({ page }) => {
+  await page.goto("/oversikt");
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa"])
+    .analyze();
+  expect(results.violations).toEqual([]);
+});
+```
 
 ## Boundaries
 
 ### ✅ Always
-- `BehaviorSpec` as default; Norwegian Given/When/Then text
-- Reset circuit breaker in `beforeEach` for SKE-reaching tests
-- Kotest matchers (`shouldBe`, `shouldHaveSize`, `shouldBeEmpty`, `with { ... }`)
+
+- Write tests for new code before committing
+- Test both success and error cases
+- Use descriptive test names
+- Clean up test data after each test
+- Run full test suite before pushing
+
+### ⚠️ Ask First
+
+- Changing test framework or structure
+- Adding complex test fixtures
+- Modifying shared test utilities
+- Disabling or skipping tests
 
 ### 🚫 Never
-- JUnit
-- Real HTTP to SKE
-- `runBlocking` inside test blocks
-- Leak mutable state between scenarios
+
+- Commit failing tests
+- Skip tests without good reason
+- Test implementation details
+- Share mutable state between tests
+- Commit without running tests

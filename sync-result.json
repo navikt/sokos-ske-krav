@@ -1,16 +1,21 @@
 {
   "up_to_date": false,
-  "source": "40fc4a9",
+  "source": "bb25c0e",
   "updates": [
     {
-      "path": ".github/instructions/database.instructions.md",
-      "current_hash": "ed0e2a233cb97ab3",
-      "source_hash": "aa0f7bd2de1e3d64"
+      "path": ".github/instructions/kotlin-ktor.instructions.md",
+      "current_hash": "13444cc9b05fe8d0",
+      "source_hash": "5d85d53d8f375ec2"
+    },
+    {
+      "path": ".github/instructions/testing.instructions.md",
+      "current_hash": "a65264e8bc8d204c",
+      "source_hash": "4a6a7547a3701ce1"
     },
     {
       "path": ".github/skills/kotlin-app-config/",
-      "current_hash": "036ac3b8f54978cb",
-      "source_hash": "a7f564fa07377a83"
+      "current_hash": "9b66329a96eb7f29",
+      "source_hash": "9168a07cc0b620c3"
     }
   ]
 }
