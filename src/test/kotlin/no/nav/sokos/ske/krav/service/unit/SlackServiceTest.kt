@@ -139,6 +139,26 @@ internal class SlackServiceTest :
             rutineLinkSlot[0] shouldBe "https://confluence.adeo.no/spaces/TOB/pages/791026050/Rutine+for+manuell+h%C3%A5ndtering+av+innkrevingskrav+til+skatteetaten+SKE"
         }
 
+        test("sendErrors tagger TRINE ved Fant ikke gyldig kravidentifikator") {
+            val taggedPeopleSlot = mutableListOf<List<String>>()
+            val rutineLinkSlot = mutableListOf<String?>()
+
+            val slackClient =
+                mockk<SlackClient>(relaxed = true) {
+                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any()) } answers {
+                        taggedPeopleSlot.add(arg(3))
+                        rutineLinkSlot.add(arg(4))
+                    }
+                }
+
+            val slackService = SlackService(slackClient)
+            slackService.addError("fil.txt", "Feil fra SKE", mapOf("Fant ikke gyldig kravidentifikator" to listOf("Kravidentifikator ikke funnet")))
+            slackService.sendErrors()
+
+            taggedPeopleSlot[0] shouldContainExactly listOf("<@UDCM6F8V8>")
+            rutineLinkSlot[0] shouldBe null
+        }
+
         test("sendErrors tagger ingen når feiltypen er ukjent") {
             val taggedPeopleSlot = mutableListOf<List<String>>()
             val rutineLinkSlot = mutableListOf<String?>()

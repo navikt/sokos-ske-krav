@@ -19,6 +19,7 @@ private const val STEINAR = "<@U796MGBA9>"
 private enum class Tags(
     val personer: List<String>,
     val rutineLink: String? = null,
+    val errorKey: String? = null,
 ) {
     PERSON_EKSISTERER_IKKE(listOf(LENE, TRINE)),
     PERSON_ER_DOED(listOf(LENE, TRINE)),
@@ -29,10 +30,11 @@ private enum class Tags(
     ),
     PERSON_ER_SLETTET(listOf(LENE, TRINE)),
     ORGANISASJON_ER_SLETTET(listOf(LENE, TRINE)),
+    FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR(listOf(TRINE), errorKey = "Fant ikke gyldig kravidentifikator"),
     ;
 
     companion object {
-        val lookupMap: Map<String, Tags> = entries.associateBy { it.name }
+        val lookupMap: Map<String, Tags> = entries.associateBy { it.errorKey ?: it.name }
     }
 }
 
