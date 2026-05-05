@@ -303,27 +303,29 @@ class SkeService(
 
     private fun logResult(result: List<RequestResult>) {
         result.partition { it.httpStatusCode.isSuccess() }.also { (successful, unsuccessful) ->
-            successful.aggregertPerFil().forEach { (filnavn, triple) ->
-                logger.info { "Fil: $filnavn - Nye: ${triple.first}, Endringer: ${triple.second}, Stopp: ${triple.third}" }
+            successful.aggregertPerFil().forEach { (filnavn, telling) ->
+                logger.info { "Fil: $filnavn - Nye: ${telling.antallNye}, Endringer: ${telling.antallEndringer}, Stopp: ${telling.antallStopp}" }
             }
-            unsuccessful.aggregertPerFil().forEach { (filnavn, triple) ->
-                logger.info { "Ikke vellykkede - Fil: $filnavn - Nye: ${triple.first}, Endringer: ${triple.second}, Stopp: ${triple.third}" }
+            unsuccessful.aggregertPerFil().forEach { (filnavn, telling) ->
+                logger.info { "Ikke vellykkede - Fil: $filnavn - Nye: ${telling.antallNye}, Endringer: ${telling.antallEndringer}, Stopp: ${telling.antallStopp}" }
             }
             logger.info { "Sendte ${result.size} krav${if (unsuccessful.isNotEmpty()) ". $unsuccessful feilet" else ""}" }
         }
     }
 }
 
-typealias AntallNye = Int
-typealias AntallEndringer = Int
-typealias AntallStopp = Int
+data class Telling(
+    val antallNye: Int,
+    val antallEndringer: Int,
+    val antallStopp: Int,
+)
 
-fun List<RequestResult>.aggregertPerFil(): Map<String, Triple<AntallNye, AntallEndringer, AntallStopp>> =
+fun List<RequestResult>.aggregertPerFil(): Map<String, Telling> =
     groupBy { it.krav.filnavn }
         .mapValues { (_, resultaterPerFil) ->
             val antallNye = resultaterPerFil.count { it.krav.kravtype == NYTT_KRAV }
             val antallEndringer = resultaterPerFil.count { it.krav.kravtype == ENDRING_RENTE || it.krav.kravtype == ENDRING_HOVEDSTOL }
             val antallStopp = resultaterPerFil.count { it.krav.kravtype == STOPP_KRAV }
 
-            Triple(antallNye, antallEndringer, antallStopp)
+            Telling(antallNye, antallEndringer, antallStopp)
         }
