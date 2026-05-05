@@ -302,17 +302,14 @@ class SkeService(
     }
 
     private fun logResult(result: List<RequestResult>) {
-        val successful = result.filter { it.httpStatusCode.isSuccess() }
-        val unsuccessful = result.size - successful.size
-        logger.info { "Sendte ${result.size} krav${if (unsuccessful > 0) ". $unsuccessful feilet" else ""}" }
-
-        val nye = successful.count { it.krav.kravtype == NYTT_KRAV }
-        val endringer = successful.count { it.krav.kravtype == ENDRING_RENTE } + successful.count { it.krav.kravtype == ENDRING_HOVEDSTOL }
-        val stopp = successful.count { it.krav.kravtype == STOPP_KRAV }
-        logger.info { "$nye nye, $endringer endringer, $stopp stopp" }
-
-        successful.aggregertPerFil().forEach { (filnavn, triple) ->
-            logger.info { "Fil: $filnavn - Nye: ${triple.first}, Endringer: ${triple.second}, Stopp: ${triple.third}" }
+        result.partition { it.httpStatusCode.isSuccess() }.also { (successful, unsuccessful) ->
+            successful.aggregertPerFil().forEach { (filnavn, triple) ->
+                logger.info { "Fil: $filnavn - Nye: ${triple.first}, Endringer: ${triple.second}, Stopp: ${triple.third}" }
+            }
+            unsuccessful.aggregertPerFil().forEach { (filnavn, triple) ->
+                logger.info { "Ikke vellykkede - Fil: $filnavn - Nye: ${triple.first}, Endringer: ${triple.second}, Stopp: ${triple.third}" }
+            }
+            logger.info { "Sendte ${result.size} krav${if (unsuccessful.isNotEmpty()) ". $unsuccessful feilet" else ""}" }
         }
     }
 }
