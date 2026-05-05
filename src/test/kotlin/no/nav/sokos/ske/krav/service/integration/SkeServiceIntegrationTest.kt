@@ -3,7 +3,7 @@ package no.nav.sokos.ske.krav.service.integration
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.inspectors.forAll
-import io.kotest.inspectors.shouldForAll
+import io.kotest.inspectors.forNone
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
@@ -284,7 +284,7 @@ internal class SkeServiceIntegrationTest :
                 }
 
                 feilmeldingRepository.getAllFeilmeldinger().filter { it.skeResponse.contains("403") }.shouldBeEmpty()
-                kravRepository.getAllKrav().shouldForAll { it.status != HTTP403_INGEN_TILGANG }
+                kravRepository.getAllKrav().forNone { it.status shouldBe HTTP403_INGEN_TILGANG }
             }
         }
 

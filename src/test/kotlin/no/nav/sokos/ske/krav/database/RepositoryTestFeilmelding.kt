@@ -4,7 +4,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.inspectors.shouldForAll
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 
@@ -32,7 +32,7 @@ internal class RepositoryTestFeilmelding :
             val feilmelding2 = feilmeldingRepository.getFeilmeldingerForKravId(2)
             feilmelding2.shouldHaveSize(2)
             feilmelding2.filter { it.error == "404" }.shouldHaveSize(2)
-            feilmelding2.shouldForAll { it.corrId shouldBe "CORR658" }
+            feilmelding2.forAll { it.corrId shouldBe "CORR658" }
 
             val feilmelding3 = feilmeldingRepository.getFeilmeldingerForKravId(3)
             feilmelding3.shouldHaveSize(1)

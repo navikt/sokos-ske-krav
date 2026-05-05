@@ -1,7 +1,7 @@
 package no.nav.sokos.ske.krav.validation
 
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.inspectors.shouldForAll
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
@@ -270,22 +270,24 @@ internal class LineValidatorIntegrationTest :
                     val insertedFiles = filvalideringsFeilRepository.getFilValideringsFeilForFil(fileNameOnSftp)
 
                     insertedFiles.size shouldBe 6
-                    insertedFiles.shouldForAll {
-                        it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
+                    insertedFiles.forAll {
+                        with(it.feilmelding) {
+                            shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
 
-                        !it.feilmelding.contains(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
-                        !it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE)
-                        !it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT)
-                        !it.feilmelding.contains(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT)
-                        !it.feilmelding.contains(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO)
-                        !it.feilmelding.contains(ErrorMessages.PERIODE_FOM_WRONG_FORMAT)
-                        !it.feilmelding.contains(ErrorMessages.PERIODE_TOM_WRONG_FORMAT)
-                        !it.feilmelding.contains(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM)
-                        !it.feilmelding.contains(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
-                        !it.feilmelding.contains(ErrorMessages.UNKNOWN_DATE_ERROR)
-                        !it.feilmelding.contains(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
-                        !it.feilmelding.contains(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
-                        !it.feilmelding.contains(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
+                            shouldNotContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
+                            shouldNotContain(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE)
+                            shouldNotContain(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT)
+                            shouldNotContain(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT)
+                            shouldNotContain(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO)
+                            shouldNotContain(ErrorMessages.PERIODE_FOM_WRONG_FORMAT)
+                            shouldNotContain(ErrorMessages.PERIODE_TOM_WRONG_FORMAT)
+                            shouldNotContain(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM)
+                            shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
+                            shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR)
+                            shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
+                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
+                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
+                        }
                     }
                 }
 

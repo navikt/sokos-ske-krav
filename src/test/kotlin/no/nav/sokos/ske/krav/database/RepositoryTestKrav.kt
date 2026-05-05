@@ -3,7 +3,7 @@ package no.nav.sokos.ske.krav.database
 import java.time.LocalDate
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.inspectors.shouldForAll
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -41,7 +41,7 @@ internal class RepositoryTestKrav :
             val kravForResending = kravRepository.getAllKravForResending()
 
             kravForResending.shouldHaveSize(10)
-            kravForResending.shouldForAll {
+            kravForResending.forAll {
                 it.status.shouldBeIn(
                     Status.KRAV_IKKE_SENDT,
                     Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND,
@@ -56,7 +56,7 @@ internal class RepositoryTestKrav :
             val unsentKrav = kravRepository.getAllUnsentKrav()
 
             unsentKrav.shouldHaveSize(4)
-            unsentKrav.shouldForAll {
+            unsentKrav.forAll {
                 it.status shouldBe Status.KRAV_IKKE_SENDT
             }
         }
