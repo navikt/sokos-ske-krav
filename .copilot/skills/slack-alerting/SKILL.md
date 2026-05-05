@@ -42,22 +42,22 @@ private enum class Tags(
 ) {
     PERSON_EKSISTERER_IKKE(listOf(NAME_A, NAME_B)),
     ORGANISASJON_ER_OPPHOERT(listOf(NAME_C, NAME_D), "https://confluence.adeo.no/…"),
-    FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR(listOf(NAME_E), errorKey = "Fant ikke gyldig kravidentifikator"),
+    FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR(listOf(NAME_E), errorKey = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR),
     // ...
     ;
     companion object { val lookupMap: Map<String, Tags> = entries.associateBy { it.errorKey ?: it.name } }
 }
 ```
 
-The key passed as the first element of the `Pair` in `addError` must match either `it.errorKey` (if set) or `it.name` exactly. `lookupMap` resolves it during `sendMessage()` so the right people are tagged.
+The key passed as the first element of the `Pair` in `addError` must match either `it.errorKey` (if set) or `it.name` exactly. `SlackService.sendErrors()` resolves it through `lookupMap` before calling `SlackClient.sendMessage(...)`, so the right people are tagged.
 
 - For **async SKE validation errors**: the key is `valideringsFeil.error` which comes directly from SKE in SCREAMING_SNAKE_CASE — use a matching enum `name`.
-- For **internally detected errors** (e.g. `"Fant ikke gyldig kravidentifikator"` set as `feilResponse.title`): set `errorKey` to that human-readable string.
+- For **internally detected errors** (e.g. `FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR` set as `feilResponse.title`): set `errorKey` to the shared constant.
 
 **Adding a new tag:**
 1. Add an entry to `Tags` with `personer` (and optional `rutineLink`)
 2. If the error key is SCREAMING_SNAKE_CASE (SKE async errors): match via enum `name`, no `errorKey` needed
-3. If the error key is a human-readable string: set `errorKey = "..."` explicitly
+3. If the error key is a human-readable string: define/reuse a shared constant and set `errorKey` to it
 4. No other changes needed — `lookupMap` and `sendMessage()` pick it up
 
 ## SlackClient
@@ -106,7 +106,7 @@ val slackServiceMock = mockk<SlackService> {
 - Use `addError(...)` + `sendErrors()` — never `SlackClient.sendMessage()` directly from service code
 - Call `sendErrors()` exactly once at the end of each processing pass (e.g. per scheduler tick)
 - For SKE async errors: keep `Tags.name` identical to the SKE error `type` string
-- For internally detected errors: set `errorKey` explicitly to match the `feilResponse.title`
+- For internally detected errors: set `errorKey` to the same shared constant used by `feilResponse.title`
 
 ### ⚠️ Ask first
 - Removing / renaming existing `Tags` entries (on-call people depend on them)

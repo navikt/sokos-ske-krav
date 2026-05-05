@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.client
 
+import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
+
 internal data class ErrorHeader(
     val header: String,
     val errors: MutableMap<String, MutableList<String>>,
@@ -30,7 +32,10 @@ private enum class Tags(
     ),
     PERSON_ER_SLETTET(listOf(LENE, TRINE)),
     ORGANISASJON_ER_SLETTET(listOf(LENE, TRINE)),
-    FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR(listOf(TRINE), errorKey = "Fant ikke gyldig kravidentifikator"),
+    FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR(
+        listOf(TRINE),
+        errorKey = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR,
+    ),
     ;
 
     companion object {

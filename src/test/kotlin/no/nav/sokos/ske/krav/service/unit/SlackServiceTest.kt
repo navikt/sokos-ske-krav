@@ -8,6 +8,7 @@ import io.mockk.mockk
 
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
+import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 
 internal class SlackServiceTest :
     FunSpec({
@@ -152,7 +153,11 @@ internal class SlackServiceTest :
                 }
 
             val slackService = SlackService(slackClient)
-            slackService.addError("fil.txt", "Feil fra SKE", mapOf("Fant ikke gyldig kravidentifikator" to listOf("Kravidentifikator ikke funnet")))
+            slackService.addError(
+                "fil.txt",
+                "Feil fra SKE",
+                mapOf(FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR to listOf("Kravidentifikator ikke funnet")),
+            )
             slackService.sendErrors()
 
             taggedPeopleSlot[0] shouldContainExactly listOf("<@UDCM6F8V8>")
