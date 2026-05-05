@@ -309,7 +309,7 @@ class SkeService(
             unsuccessful.aggregertPerFil().forEach { (filnavn, telling) ->
                 logger.info { "Ikke vellykkede - Fil: $filnavn - Nye: ${telling.antallNye}, Endringer: ${telling.antallEndringer}, Stopp: ${telling.antallStopp}" }
             }
-            logger.info { "Sendte ${result.size} krav${if (unsuccessful.isNotEmpty()) ". $unsuccessful feilet" else ""}" }
+            logger.info { "Sendte ${result.size} krav${if (unsuccessful.isNotEmpty()) ". ${unsuccessful.size} feilet" else ""}" }
         }
     }
 }
