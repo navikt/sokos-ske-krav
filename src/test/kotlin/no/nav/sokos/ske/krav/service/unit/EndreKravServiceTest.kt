@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import io.mockk.every
-import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.spyk
 
@@ -12,7 +11,6 @@ import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
-import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.EndreKravService
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.defineStatus
@@ -20,12 +18,7 @@ import no.nav.sokos.ske.krav.util.defineStatus
 internal class EndreKravServiceTest :
     FunSpec({
 
-        val databaseServiceMock =
-            mockk<DatabaseService> {
-                justRun { updateSentKrav(any<List<RequestResult>>()) }
-            }
-
-        val endreKravMock = spyk(EndreKravService(mockk<SkeClient>(), databaseServiceMock), recordPrivateCalls = true)
+        val endreKravMock = spyk(EndreKravService(mockk<SkeClient>()), recordPrivateCalls = true)
         val kravMock =
             mockk<Krav> {
                 every { kravidentifikatorSKE } returns "foo"

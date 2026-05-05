@@ -18,7 +18,6 @@ import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
-import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
 object DBListener : TestListener {
@@ -50,11 +49,11 @@ object DBListener : TestListener {
     val feilmeldingRepository by lazy { FeilmeldingRepository(dataSource) }
     val kravRepository by lazy { KravRepository(dataSource) }
 
-    val dbService by lazy { DatabaseService(filvalideringsFeilRepository, feilmeldingRepository, kravRepository) }
-
-    fun loadInitScript(name: String) {
+    fun loadInitScripts(vararg names: String) {
         dataSource // Ensure Flyway migrations have run before executing init scripts
-        ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)
+        names.forEach { name ->
+            ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)
+        }
     }
 
     fun clearDB() {

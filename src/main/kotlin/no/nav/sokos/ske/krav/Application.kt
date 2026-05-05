@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav
 
+import java.time.LocalDate
+
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.CancellationException
@@ -23,7 +25,9 @@ import no.nav.sokos.ske.krav.config.routingConfig
 import no.nav.sokos.ske.krav.config.securityConfig
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.metrics.Metrics
-import no.nav.sokos.ske.krav.service.DatabaseService
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
+import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.SkeService
 
@@ -40,7 +44,6 @@ private fun Application.module() {
     val useAuthentication = PropertiesConfig.applicationProperties.useAuthentication
     val applicationState = ApplicationState()
     val skeService = SkeService()
-    val databaseService = DatabaseService()
 
     commonConfig()
     applicationLifecycleConfig(applicationState)
@@ -64,7 +67,20 @@ private fun Application.module() {
 
     launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
     launchJob(skeService::checkKravDateForAlert, 24.hours)
-    launchJob(databaseService::deleteOldData, 24.hours)
+    launchJob(::deleteOldData, 24.hours)
+}
+
+private fun deleteOldData() {
+    val threshold = LocalDate.now().minusYears(10)
+    FilValideringsfeilRepository.instance.deleteOldFilValideringsfeil(threshold).reportDeletedData("filvalideringsfeil(er)")
+    FeilmeldingRepository.instance.deleteOldFeilmeldinger(threshold).reportDeletedData("feilmelding(er)")
+    KravRepository.instance.deleteOldKrav(threshold).reportDeletedData("krav")
+}
+
+private fun Int.reportDeletedData(name: String) {
+    takeIf { it != 0 }?.let {
+        logger.info { "Slettet $it $name." }
+    }
 }
 
 private fun CoroutineScope.launchJob(

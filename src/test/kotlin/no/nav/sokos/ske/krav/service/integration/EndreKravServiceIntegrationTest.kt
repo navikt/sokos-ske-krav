@@ -16,7 +16,6 @@ import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.listener.DBListener.dbService
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
@@ -26,7 +25,6 @@ import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
-import no.nav.sokos.ske.krav.util.http.MockResponsesBody.nyEndringResponse
 
 class EndreKravServiceIntegrationTest :
     BehaviorSpec({
@@ -35,10 +33,9 @@ class EndreKravServiceIntegrationTest :
 
         Given("2 krav skal endres") {
             DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
-            DBListener.loadInitScript("SQLscript/krav/ToEndredeKrav.sql")
+            DBListener.loadInitScripts("SQLscript/krav/TiNyeKrav.sql", "SQLscript/krav/ToEndredeKrav.sql")
 
-            val kravSomSkalSendes = dbService.getAllUnsentKrav()
+            val kravSomSkalSendes = kravRepository.getAllUnsentKrav()
             kravSomSkalSendes.shouldHaveSize(4)
             kravSomSkalSendes.count { it.kravtype == ENDRING_RENTE || it.kravtype == ENDRING_HOVEDSTOL } shouldBe 4
 
@@ -49,7 +46,7 @@ class EndreKravServiceIntegrationTest :
                 val httpClient = MockHttpClient.client(endreRenterResponse, endreHovedstolResponse)
 
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
-                val endreKravServiceSpy = spyk(EndreKravService(skeClient, dbService), recordPrivateCalls = true)
+                val endreKravServiceSpy = spyk(EndreKravService(skeClient), recordPrivateCalls = true)
                 val requestResults = endreKravServiceSpy.sendAllEndreKrav(kravSomSkalSendes)
 
                 Then("Skal sendEndreKrav kalles kun én gang") {
@@ -61,25 +58,9 @@ class EndreKravServiceIntegrationTest :
                 Then("Skal kravstatus ikke oppdateres") {
                     val krav = kravRepository.getAllKrav()
 
-                    dbService.getAllUnsentKrav().shouldHaveSize(4)
+                    kravRepository.getAllUnsentKrav().shouldHaveSize(4)
                     krav.filter { it.status == Status.KRAV_SENDT }.shouldBeEmpty()
                     krav.filter { it.status == Status.KRAV_IKKE_SENDT }.shouldHaveSize(4)
-                }
-            }
-            When("Response fra SKE er OK") {
-                CircuitBreakerManager.circuitBreaker.reset()
-
-                val endreRenterResponse = MockResponse(Endpoint.ENDRE_RENTER, nyEndringResponse(), HttpStatusCode.OK)
-                val endreHovedstolResponse = MockResponse(Endpoint.ENDRE_HOVEDSTOL, nyEndringResponse(), HttpStatusCode.OK)
-                val httpClient = MockHttpClient.client(endreRenterResponse, endreHovedstolResponse)
-
-                val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
-
-                EndreKravService(skeClient, dbService).sendAllEndreKrav(kravSomSkalSendes)
-
-                Then("Skal krav oppdateres med status sendt") {
-                    kravRepository.getAllKrav().filter { it.status == Status.KRAV_SENDT }.shouldHaveSize(4)
-                    dbService.getAllUnsentKrav().shouldBeEmpty()
                 }
             }
         }

@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.service.integration
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.inspectors.forAll
 import io.kotest.inspectors.shouldForAll
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -32,13 +33,13 @@ import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.database.getAllKrav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.Status.HTTP403_INGEN_TILGANG
+import no.nav.sokos.ske.krav.domain.Status.KRAV_SENDT
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.listener.DBListener.dbService
 import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
+import no.nav.sokos.ske.krav.listener.DBListener.filvalideringsFeilRepository
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.listener.SftpListener
 import no.nav.sokos.ske.krav.repository.toFeilmelding
-import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
@@ -48,6 +49,7 @@ import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody.avskrivKravResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.avstemmingResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.httpErrorResponse
@@ -82,13 +84,19 @@ internal class SkeServiceIntegrationTest :
             circuitBreaker.reset()
         }
         val ftpService: FtpService by lazy {
-            FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = mockk<DatabaseService>())
+            FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(mockk<SlackService>(relaxed = true)), filvalideringsFeilRepository)
         }
 
         Given("Det finnes en fil i INBOUND") {
             DBListener.clearDB()
             SftpListener.putFiles(listOf("krav/TiNyeKrav.txt"), Directories.INBOUND)
-            val skeService = setupSkeServiceMock(databaseService = dbService, ftpService = ftpService, feilmeldingRepository = feilmeldingRepository)
+            val skeService =
+                setupSkeServiceMock(
+                    ftpService = ftpService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
 
             Then("Skal alle validerte linjer lagres i database") {
                 skeService.handleNewKrav()
@@ -98,7 +106,7 @@ internal class SkeServiceIntegrationTest :
 
         Given("Det kommer endringer eller avskrivinger") {
             DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
+            DBListener.loadInitScripts("SQLscript/krav/TiNyeKrav.sql")
             SftpListener.putFiles(listOf("krav/TestEndringMedAvstemmingAvKravident.txt"), Directories.INBOUND)
             val skeClient =
                 mockk<SkeClient> {
@@ -108,7 +116,14 @@ internal class SkeServiceIntegrationTest :
                     coEvery { getSkeKravidentifikator("2222-migrert") } returns
                         mockHttpResponse(200, """{"kravidentifikator": "avstemming2222-skeUUID"}""")
                 }
-            val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dbService, ftpService = ftpService, feilmeldingRepository = feilmeldingRepository)
+            val skeService =
+                setupSkeServiceMock(
+                    skeClient,
+                    ftpService = ftpService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
             val kravBefore = kravRepository.getAllKrav()
             with(kravBefore.find { it.saksnummerNAV == "2222-navsaksnr" }) {
                 this?.kravidentifikatorSKE shouldBe "2222-skeUUID"
@@ -150,7 +165,14 @@ internal class SkeServiceIntegrationTest :
                     coEvery { getMottaksStatus(any(), any()) } returns
                         mockHttpResponse(200, mottaksStatusResponse(status = Status.RESKONTROFOERT.value))
                 }
-            val skeService = setupSkeServiceMock(skeClient = skeClient, databaseService = dbService, ftpService = ftpService, feilmeldingRepository = feilmeldingRepository)
+            val skeService =
+                setupSkeServiceMock(
+                    skeClient,
+                    ftpService = ftpService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
 
             Then("skal type krav avgjøres og lagres") {
                 skeService.handleNewKrav()
@@ -164,9 +186,79 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
+        Given("Response fra SKE er OK") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts(
+                "SQLscript/krav/ToNyeKrav.sql",
+                "SQLscript/krav/ToEndredeKrav.sql",
+                "SQLscript/krav/ToStoppedeKrav.sql",
+            )
+
+            val kravSomSkalSendes = kravRepository.getAllUnsentKrav()
+            kravSomSkalSendes.shouldHaveSize(8)
+            kravSomSkalSendes.groupBy { it.kravtype }.apply {
+                get(NYTT_KRAV)?.shouldHaveSize(2)
+                get(ENDRING_RENTE)?.shouldHaveSize(2)
+                get(ENDRING_HOVEDSTOL)?.shouldHaveSize(2)
+                get(STOPP_KRAV)?.shouldHaveSize(2)
+            }
+
+            circuitBreaker.reset()
+            val kravidentifikatorSke = "4321"
+
+            val opprettResponse = MockResponse(Endpoint.OPPRETT, nyttKravResponse(kravidentifikatorSke), HttpStatusCode.OK)
+            val endreRenterResponse = MockResponse(Endpoint.ENDRE_RENTER, nyEndringResponse(), HttpStatusCode.OK)
+            val endreHovedstolResponse = MockResponse(Endpoint.ENDRE_HOVEDSTOL, nyEndringResponse(), HttpStatusCode.OK)
+            val avskrivingResponse = MockResponse(Endpoint.AVSKRIVING, avskrivKravResponse(), HttpStatusCode.OK)
+
+            val httpClient = MockHttpClient.client(opprettResponse, endreRenterResponse, endreHovedstolResponse, avskrivingResponse)
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    httpClient,
+                    ftpService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
+
+            skeService.handleNewKrav()
+            val allKrav = kravRepository.getAllKrav().groupBy { it.kravtype }
+
+            Then("Skal de nye kravene oppdateres med SKE kravidentifikator og status sendt") {
+                allKrav[NYTT_KRAV]?.run {
+                    shouldHaveSize(2)
+                    count { it.saksnummerNAV == "1111-navsaksnr" } shouldBe 1
+                    count { it.saksnummerNAV == "2222-navsaksnr" } shouldBe 1
+                    count { it.kravidentifikatorSKE == kravidentifikatorSke } shouldBe 2
+                    forAll { it.status shouldBe KRAV_SENDT }
+                }
+            }
+
+            Then("Skal de endre kravene oppdateres med status sendt") {
+                allKrav[ENDRING_RENTE]?.run {
+                    shouldHaveSize(2)
+                    forAll { it.status shouldBe KRAV_SENDT }
+                }
+
+                allKrav[ENDRING_HOVEDSTOL]?.run {
+                    shouldHaveSize(2)
+                    forAll { it.status shouldBe KRAV_SENDT }
+                }
+            }
+
+            Then("Skal de stopp kravene oppdateres med status sendt") {
+                allKrav[STOPP_KRAV]?.run {
+                    shouldHaveSize(2)
+                    forAll { it.status shouldBe KRAV_SENDT }
+                }
+            }
+
+            kravRepository.getAllUnsentKrav().shouldBeEmpty()
+        }
+
         Given("Vi mottar 403 på avstemming") {
             DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
+            DBListener.loadInitScripts("SQLscript/krav/TiNyeKrav.sql")
             SftpListener.putFiles(listOf("krav/TestEndringMedAvstemmingAvKravident.txt"), Directories.INBOUND)
             val nyttKravKall = MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK)
             val avstemmingkall = MockResponse(Endpoint.AVSTEMMING, httpErrorResponse, HttpStatusCode.Forbidden)
@@ -178,11 +270,10 @@ internal class SkeServiceIntegrationTest :
             val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
             val skeService =
                 setupSkeServiceMockWithMockEngine(
-                    DBListener.dataSource,
                     httpClient,
                     ftpService,
-                    dbService,
                     slackService = slackServiceSpy,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
                     feilmeldingRepository = feilmeldingRepository,
                     kravRepository = kravRepository,
                 )
@@ -196,9 +287,10 @@ internal class SkeServiceIntegrationTest :
                 kravRepository.getAllKrav().shouldForAll { it.status != HTTP403_INGEN_TILGANG }
             }
         }
+
         Given("Vi mottar 404 på avstemming") {
             DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
+            DBListener.loadInitScripts("SQLscript/krav/TiNyeKrav.sql")
             SftpListener.putFiles(listOf("krav/TestEndringMedAvstemmingAvKravident.txt"), Directories.INBOUND)
             val nyttKravKall = MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK)
             val avstemmingKall = MockResponse(Endpoint.AVSTEMMING, innkrevingsOppdragEksistererIkkeResponse(), HttpStatusCode.NotFound)
@@ -211,11 +303,10 @@ internal class SkeServiceIntegrationTest :
             val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
             val skeService =
                 setupSkeServiceMockWithMockEngine(
-                    DBListener.dataSource,
                     httpClient,
                     ftpService,
-                    dbService,
                     slackService = slackServiceSpy,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
                     feilmeldingRepository = feilmeldingRepository,
                     kravRepository = kravRepository,
                 )
@@ -248,10 +339,9 @@ internal class SkeServiceIntegrationTest :
             val httpClient = MockHttpClient.client(nyttKravResponse)
             val skeService =
                 setupSkeServiceMockWithMockEngine(
-                    DBListener.dataSource,
                     httpClient,
                     ftpService,
-                    dbService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
                     feilmeldingRepository = feilmeldingRepository,
                     kravRepository = kravRepository,
                 )
@@ -294,7 +384,7 @@ internal class SkeServiceIntegrationTest :
 
         Given("Et krav har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500") {
             DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/status/KravSomSkalResendes.sql")
+            DBListener.loadInitScripts("SQLscript/status/KravSomSkalResendes.sql")
 
             kravRepository.getAllKrav().groupBy { it.status }.apply {
                 get(Status.KRAV_IKKE_SENDT)?.shouldHaveSize(3)
@@ -313,10 +403,9 @@ internal class SkeServiceIntegrationTest :
             val httpClient = MockHttpClient.client(nyttKravResponse, avskrivKravResponse, endreRenterResponse, endreHovedstolResponse, mottaksStatusResponse)
             val skeService =
                 setupSkeServiceMockWithMockEngine(
-                    DBListener.dataSource,
                     httpClient,
                     ftpService,
-                    dbService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
                     feilmeldingRepository = feilmeldingRepository,
                     kravRepository = kravRepository,
                 )

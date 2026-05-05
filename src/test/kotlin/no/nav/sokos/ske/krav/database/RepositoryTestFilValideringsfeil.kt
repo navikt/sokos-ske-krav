@@ -20,7 +20,7 @@ internal class RepositoryTestFilValideringsfeil :
         extensions(DBListener)
 
         beforeTest {
-            DBListener.loadInitScript("SQLscript/validering/FilValideringsFeil.sql")
+            DBListener.loadInitScripts("SQLscript/validering/FilValideringsFeil.sql")
         }
 
         test("getValideringsFeilForFil skal returnere valideringsfeil basert på filnavn") {
@@ -105,5 +105,16 @@ private fun FilValideringsfeilRepository.getAllValideringsFeil(): List<FilValide
         session.list(
             queryOf("select * from filvalideringsfeil"),
             mapToFilValideringsfeil,
+        )
+    }
+
+fun FilValideringsfeilRepository.getFilValideringsFeilForFil(filnavn: String): List<FilValideringsfeil> =
+    transaction { session ->
+        session.list(
+            queryOf(
+                "select * from filvalideringsfeil where filnavn = ?",
+                filnavn,
+            ),
+            extractor = mapToFilValideringsfeil,
         )
     }

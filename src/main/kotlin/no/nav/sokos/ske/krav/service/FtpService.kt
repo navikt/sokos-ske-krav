@@ -9,6 +9,7 @@ import mu.KotlinLogging
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.validation.FileValidator
 import no.nav.sokos.ske.krav.validation.ValidationResult
 
@@ -29,7 +30,7 @@ data class FtpFil(
 class FtpService(
     private val sftpConfig: SftpConfig = SftpConfig(),
     private val fileValidator: FileValidator = FileValidator(),
-    private val databaseService: DatabaseService = DatabaseService(),
+    private val filValideringsfeilRepository: FilValideringsfeilRepository = FilValideringsfeilRepository.instance,
 ) {
     private val logger = KotlinLogging.logger { }
 
@@ -101,7 +102,7 @@ class FtpService(
     ) {
         moveFile(fileName, directory, Directories.FAILED)
         errorMessages.forEach { message ->
-            databaseService.saveFileValidationError(fileName, "${message.first}: ${message.second}")
+            filValideringsfeilRepository.insertFilValideringsfeil(fileName, "${message.first}: ${message.second}")
         }
     }
 }

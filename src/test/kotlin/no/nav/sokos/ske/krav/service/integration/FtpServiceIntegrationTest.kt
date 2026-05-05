@@ -7,8 +7,9 @@ import io.mockk.mockk
 
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
+import no.nav.sokos.ske.krav.database.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.listener.DBListener.dbService
+import no.nav.sokos.ske.krav.listener.DBListener.filvalideringsFeilRepository
 import no.nav.sokos.ske.krav.listener.SftpListener
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
@@ -24,7 +25,7 @@ internal class FtpServiceIntegrationTest :
         extensions(SftpListener, DBListener)
 
         val ftpService: FtpService by lazy {
-            FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = dbService)
+            FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), filvalideringsFeilRepository)
         }
 
         Given("det finnes ubehandlede filer i \"inbound\" på FTP-serveren ") {
@@ -47,7 +48,7 @@ internal class FtpServiceIntegrationTest :
                     failedFilesInDir[0] shouldBe FILE_ERROR_NAME
                 }
                 And("Feilmelding skal lagres i database") {
-                    dbService.getFileValidationMessage(FILE_ERROR_NAME).run {
+                    filvalideringsFeilRepository.getFilValideringsFeilForFil(FILE_ERROR_NAME).run {
                         size shouldBe 1
                         first().feilmelding shouldBe "${FileValidator.ErrorKeys.FEIL_I_ANTALL}: Antall krav: 16, Antall i siste linje: 101"
                     }

@@ -27,7 +27,7 @@ internal class RepositoryTestKrav :
         extensions(DBListener)
 
         beforeTest {
-            DBListener.loadInitScript("SQLscript/krav/KravForRepositoryTest.sql")
+            DBListener.loadInitScripts("SQLscript/krav/KravForRepositoryTest.sql")
         }
 
         test("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING") {
@@ -62,7 +62,7 @@ internal class RepositoryTestKrav :
         }
 
         test("getAllKravForAvstemming skal returnere alle krav som har en feilmelding med status rapporter=true") {
-            DBListener.loadInitScript("SQLscript/feilmeldinger/Feilmeldinger.sql")
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/Feilmeldinger.sql")
 
             val kravForAvstemming = kravRepository.getAllKravForAvstemming()
             kravForAvstemming.shouldHaveSize(4)

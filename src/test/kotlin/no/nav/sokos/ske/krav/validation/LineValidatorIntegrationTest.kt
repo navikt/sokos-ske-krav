@@ -13,12 +13,11 @@ import io.mockk.spyk
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
+import no.nav.sokos.ske.krav.database.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.listener.DBListener.dbService
 import no.nav.sokos.ske.krav.listener.DBListener.filvalideringsFeilRepository
 import no.nav.sokos.ske.krav.listener.SftpListener
-import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
@@ -37,21 +36,19 @@ internal class LineValidatorIntegrationTest :
             return Triple(slackClientSpy, slackServiceSpy, lineValidatorSpy)
         }
 
-        fun setupFtpService(
-            dbService: DatabaseService,
-            slackServiceSpy: SlackService,
-        ): FtpService = FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(slackService = slackServiceSpy), databaseService = dbService)
+        fun setupFtpService(slackServiceSpy: SlackService): FtpService =
+            FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(slackService = slackServiceSpy), filvalideringsFeilRepository)
 
         Given("Alle linjer er ok") {
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
-            val ftpService = setupFtpService(dbService, slackServiceSpy)
+            val ftpService = setupFtpService(slackServiceSpy)
             val fileName = "AllValideringOk.txt"
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileName }
 
             When("Linjer valideres") {
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, dbService)
+                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, filvalideringsFeilRepository)
 
                 Then("Skal ingen feil lagres i database") {
                     val insertedFiles = filvalideringsFeilRepository.getFilValideringsFeilForFil(fileName)
@@ -80,7 +77,7 @@ internal class LineValidatorIntegrationTest :
 
         Given("1 linje har 1 feil") {
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
-            val ftpService = setupFtpService(dbService, slackServiceSpy)
+            val ftpService = setupFtpService(slackServiceSpy)
             val fileName = "validering/linjevalidering/EnLinjeFeilKravtype.txt"
             val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
@@ -88,7 +85,7 @@ internal class LineValidatorIntegrationTest :
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
 
             When("Linjer valideres") {
-                lineValidatorSpy.validateNewLines(ftpFil, dbService)
+                lineValidatorSpy.validateNewLines(ftpFil, filvalideringsFeilRepository)
 
                 Then("Skal én feil lagres i database") {
                     val insertedFiles = filvalideringsFeilRepository.getFilValideringsFeilForFil(fileNameOnSftp)
@@ -154,7 +151,7 @@ internal class LineValidatorIntegrationTest :
 
         Given("1 linje har 3 forskjellige feil") {
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
-            val ftpService = setupFtpService(dbService, slackServiceSpy)
+            val ftpService = setupFtpService(slackServiceSpy)
             val fileName = "validering/linjevalidering/EnLinjeFlereFeil.txt"
             val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
@@ -162,7 +159,7 @@ internal class LineValidatorIntegrationTest :
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
 
             When("Linjer valideres") {
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, dbService)
+                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, filvalideringsFeilRepository)
 
                 Then("1 returnert linje skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
                     validatedLines.size shouldBe ftpFil.kravLinjer.size
@@ -255,12 +252,12 @@ internal class LineValidatorIntegrationTest :
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
 
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
-            val ftpService = setupFtpService(dbService, slackServiceSpy)
+            val ftpService = setupFtpService(slackServiceSpy)
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
             ftpFil.kravLinjer.size shouldBe 10
 
             When("Linjer valideres") {
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, dbService)
+                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, filvalideringsFeilRepository)
                 Then("6 returnerte linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
                     validatedLines.size shouldBe ftpFil.kravLinjer.size
                     with(validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }) {
@@ -342,12 +339,12 @@ internal class LineValidatorIntegrationTest :
             val fileNameOnSftp = fileName.substringAfterLast("/")
             SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
             val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
-            val ftpService = setupFtpService(dbService, slackServiceSpy)
+            val ftpService = setupFtpService(slackServiceSpy)
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
             ftpFil.kravLinjer.size shouldBe 10
             When("Linjer valideres") {
 
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, dbService)
+                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, filvalideringsFeilRepository)
 
                 Then("6 returnerte linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
                     validatedLines.size shouldBe ftpFil.kravLinjer.size

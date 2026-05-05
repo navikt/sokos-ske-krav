@@ -30,17 +30,6 @@ class FilValideringsfeilRepository(
 
     fun <A> transaction(operation: (TransactionalSession) -> A): A = dataSource.transaction(operation)
 
-    fun getFilValideringsFeilForFil(filnavn: String): List<FilValideringsfeil> =
-        dataSource.transaction { session ->
-            session.list(
-                queryOf(
-                    "select * from filvalideringsfeil where filnavn = ?",
-                    filnavn,
-                ),
-                extractor = mapToFilValideringsfeil,
-            )
-        }
-
     fun insertFilValideringsfeil(
         filnavn: String,
         feilmelding: String,

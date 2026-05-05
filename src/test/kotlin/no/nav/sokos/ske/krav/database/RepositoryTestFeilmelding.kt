@@ -17,7 +17,7 @@ internal class RepositoryTestFeilmelding :
         extensions(DBListener)
 
         beforeTest {
-            DBListener.loadInitScript("SQLscript/feilmeldinger/Feilmeldinger.sql")
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/Feilmeldinger.sql")
         }
 
         test("getAllFeilmeldinger skal returnere alle feilmeldinger ") {

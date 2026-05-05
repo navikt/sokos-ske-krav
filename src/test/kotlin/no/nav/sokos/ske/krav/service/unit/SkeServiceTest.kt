@@ -16,7 +16,7 @@ import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
-import no.nav.sokos.ske.krav.service.DatabaseService
+import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.setupSkeServiceMock
 
@@ -28,8 +28,8 @@ class SkeServiceTest :
         }
 
         Given("Det finnes krav som ikke er reskontroført etter 24t") {
-            val databaseServiceMock =
-                mockk<DatabaseService> {
+            val kravRepositoryMock =
+                mockk<KravRepository> {
                     every { getAllKravForStatusCheck() } returns
                         listOf(
                             mockk<Krav>(relaxed = true) {
@@ -62,7 +62,7 @@ class SkeServiceTest :
             Then("Skal Slack alert sendes") {
                 val slackServiceSpy = spyk(SlackService(SlackClient(client = MockHttpClient.slackClient)), recordPrivateCalls = true)
 
-                setupSkeServiceMock(databaseService = databaseServiceMock, slackService = slackServiceSpy).checkKravDateForAlert()
+                setupSkeServiceMock(slackService = slackServiceSpy, kravRepository = kravRepositoryMock).checkKravDateForAlert()
                 coVerify(exactly = 3) {
                     slackServiceSpy.addError("Testfil", "Krav har blitt forsøkt resendt for lenge", any<Pair<String, String>>())
                 }

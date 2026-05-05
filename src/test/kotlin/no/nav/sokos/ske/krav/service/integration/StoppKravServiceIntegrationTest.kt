@@ -15,7 +15,6 @@ import no.nav.sokos.ske.krav.database.getAllKrav
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.listener.DBListener.dbService
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
@@ -23,7 +22,6 @@ import no.nav.sokos.ske.krav.service.StoppKravService
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
-import no.nav.sokos.ske.krav.util.http.MockResponsesBody.avskrivKravResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
 
 class StoppKravServiceIntegrationTest :
@@ -33,10 +31,9 @@ class StoppKravServiceIntegrationTest :
 
         Given("2 krav skal stoppes") {
             DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/krav/TiNyeKrav.sql")
-            DBListener.loadInitScript("SQLscript/krav/ToStoppedeKrav.sql")
+            DBListener.loadInitScripts("SQLscript/krav/TiNyeKrav.sql", "SQLscript/krav/ToStoppedeKrav.sql")
 
-            val kravSomSkalSendes = dbService.getAllUnsentKrav()
+            val kravSomSkalSendes = kravRepository.getAllUnsentKrav()
             kravSomSkalSendes.shouldHaveSize(2)
             kravSomSkalSendes.count { it.kravtype == STOPP_KRAV } shouldBe 2
 
@@ -46,7 +43,7 @@ class StoppKravServiceIntegrationTest :
                 val httpClient = MockHttpClient.client(avskrivingResponse)
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
-                val stoppKravServiceSpy = spyk(StoppKravService(skeClient, dbService), recordPrivateCalls = true)
+                val stoppKravServiceSpy = spyk(StoppKravService(skeClient), recordPrivateCalls = true)
 
                 val requestResults = stoppKravServiceSpy.sendAllStoppKrav(kravSomSkalSendes)
                 Then("Skal det være 0 requestResults") {
@@ -63,22 +60,7 @@ class StoppKravServiceIntegrationTest :
                         .filter { it.status == Status.KRAV_IKKE_SENDT }
                         .shouldHaveSize(2)
 
-                    dbService.getAllUnsentKrav().shouldHaveSize(2)
-                }
-            }
-            When("Response fra SKE er OK") {
-                CircuitBreakerManager.circuitBreaker.reset()
-                val avskrivingResponse = MockResponse(Endpoint.AVSKRIVING, avskrivKravResponse(), HttpStatusCode.OK)
-
-                val httpClient = MockHttpClient.client(avskrivingResponse)
-                val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
-
-                StoppKravService(skeClient, dbService).sendAllStoppKrav(kravSomSkalSendes)
-
-                Then("Skal krav oppdateres med status sendt") {
-                    val krav = kravRepository.getAllKrav()
-                    krav.count { it.status == Status.KRAV_SENDT } shouldBe 2
-                    dbService.getAllUnsentKrav().shouldBeEmpty()
+                    kravRepository.getAllUnsentKrav().shouldHaveSize(2)
                 }
             }
         }

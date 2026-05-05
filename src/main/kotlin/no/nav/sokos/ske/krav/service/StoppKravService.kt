@@ -14,7 +14,6 @@ import no.nav.sokos.ske.krav.util.encodeToString
 
 class StoppKravService(
     private val skeClient: SkeClient,
-    private val databaseService: DatabaseService,
 ) {
     suspend fun sendAllStoppKrav(kravList: List<Krav>): List<RequestResult> {
         val requestResults = mutableListOf<RequestResult>()
@@ -27,7 +26,6 @@ class StoppKravService(
                 }
             }
         }
-        databaseService.updateSentKrav(requestResults)
         return requestResults
     }
 
