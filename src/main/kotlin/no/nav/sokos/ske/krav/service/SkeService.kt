@@ -310,5 +310,23 @@ class SkeService(
         val endringer = successful.count { it.krav.kravtype == ENDRING_RENTE } + successful.count { it.krav.kravtype == ENDRING_HOVEDSTOL }
         val stopp = successful.count { it.krav.kravtype == STOPP_KRAV }
         logger.info { "$nye nye, $endringer endringer, $stopp stopp" }
+
+        successful.aggregertPerFil().forEach { (filnavn, triple) ->
+            logger.info { "Fil: $filnavn - Nye: ${triple.first}, Endringer: ${triple.second}, Stopp: ${triple.third}" }
+        }
     }
 }
+
+typealias AntallNye = Int
+typealias AntallEndringer = Int
+typealias AntallStopp = Int
+
+fun List<RequestResult>.aggregertPerFil(): Map<String, Triple<AntallNye, AntallEndringer, AntallStopp>> =
+    groupBy { it.krav.filnavn }
+        .mapValues { (_, resultaterPerFil) ->
+            val antallNye = resultaterPerFil.count { it.krav.kravtype == NYTT_KRAV }
+            val antallEndringer = resultaterPerFil.count { it.krav.kravtype == ENDRING_RENTE || it.krav.kravtype == ENDRING_HOVEDSTOL }
+            val antallStopp = resultaterPerFil.count { it.krav.kravtype == STOPP_KRAV }
+
+            Triple(antallNye, antallEndringer, antallStopp)
+        }
