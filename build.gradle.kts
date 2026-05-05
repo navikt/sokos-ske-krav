@@ -19,7 +19,7 @@ repositories {
     mavenCentral()
 }
 
-val ktorVersion = "3.4.2"
+val ktorVersion = "3.4.3"
 val jschVersion = "2.28.0"
 val nimbusVersion = "10.9"
 val kotlinxSerializationVersion = "1.11.0"
@@ -27,11 +27,11 @@ val kotlinxDatetimeVersion = "0.7.1-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
 val prometheusVersion = "1.16.5"
-val opentelemetryVersion = "2.26.1-alpha"
+val opentelemetryVersion = "2.27.0-alpha"
 
 // DB
 val hikaricpVersion = "7.0.2"
-val flywayVersion = "12.4.0"
+val flywayVersion = "12.5.0"
 val postgresqlVersion = "42.7.10"
 val kotliqueryVersion = "1.9.1"
 
