@@ -34,17 +34,17 @@ class RequestResultTest :
             Then("Skal aggregatet telle alle de forskjellige kravene fordelt på filer") {
                 val aggregat = resultater.aggregertPerFil()
                 aggregat.size shouldBe 3
-                aggregat["fil-en"]?.first shouldBe 1
-                aggregat["fil-en"]?.second shouldBe 0
-                aggregat["fil-en"]?.third shouldBe 0
+                aggregat["fil-en"]?.antallNye shouldBe 1
+                aggregat["fil-en"]?.antallEndringer shouldBe 0
+                aggregat["fil-en"]?.antallStopp shouldBe 0
 
-                aggregat["fil-to"]?.first shouldBe 0
-                aggregat["fil-to"]?.second shouldBe 4
-                aggregat["fil-to"]?.third shouldBe 0
+                aggregat["fil-to"]?.antallNye shouldBe 0
+                aggregat["fil-to"]?.antallEndringer shouldBe 4
+                aggregat["fil-to"]?.antallStopp shouldBe 0
 
-                aggregat["fil-tre"]?.first shouldBe 1
-                aggregat["fil-tre"]?.second shouldBe 0
-                aggregat["fil-tre"]?.third shouldBe 1
+                aggregat["fil-tre"]?.antallNye shouldBe 1
+                aggregat["fil-tre"]?.antallEndringer shouldBe 0
+                aggregat["fil-tre"]?.antallStopp shouldBe 1
             }
         }
 
@@ -55,9 +55,9 @@ class RequestResultTest :
                 val aggregat = resultater.aggregertPerFil()
                 aggregat.size shouldBe 1
                 aggregat.keys.first() shouldBe "fil"
-                aggregat["fil"]?.first shouldBe 1
-                aggregat["fil"]?.second shouldBe 2
-                aggregat["fil"]?.third shouldBe 1
+                aggregat["fil"]?.antallNye shouldBe 1
+                aggregat["fil"]?.antallEndringer shouldBe 2
+                aggregat["fil"]?.antallStopp shouldBe 1
             }
         }
 
@@ -68,9 +68,9 @@ class RequestResultTest :
                 val aggregat = resultater.aggregertPerFil()
                 aggregat.size shouldBe 1
                 aggregat.keys.first() shouldBe "fil"
-                aggregat["fil"]?.first shouldBe 3
-                aggregat["fil"]?.second shouldBe 0
-                aggregat["fil"]?.third shouldBe 0
+                aggregat["fil"]?.antallNye shouldBe 3
+                aggregat["fil"]?.antallEndringer shouldBe 0
+                aggregat["fil"]?.antallStopp shouldBe 0
             }
         }
     })
