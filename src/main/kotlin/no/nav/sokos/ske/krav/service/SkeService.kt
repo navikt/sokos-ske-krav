@@ -312,20 +312,22 @@ class SkeService(
             logger.info("Sendte ${result.size} krav${if (unsuccessful.isNotEmpty()) ". ${unsuccessful.size} feilet" else ""}")
         }
     }
+
+    internal companion object {
+        internal data class Telling(
+            val antallNye: Int,
+            val antallEndringer: Int,
+            val antallStopp: Int,
+        )
+
+        internal fun List<RequestResult>.aggregertPerFil(): Map<String, Telling> =
+            groupBy { it.krav.filnavn }
+                .mapValues { (_, resultaterPerFil) ->
+                    val antallNye = resultaterPerFil.count { it.krav.kravtype == NYTT_KRAV }
+                    val antallEndringer = resultaterPerFil.count { it.krav.kravtype == ENDRING_RENTE || it.krav.kravtype == ENDRING_HOVEDSTOL }
+                    val antallStopp = resultaterPerFil.count { it.krav.kravtype == STOPP_KRAV }
+
+                    Telling(antallNye, antallEndringer, antallStopp)
+                }
+    }
 }
-
-data class Telling(
-    val antallNye: Int,
-    val antallEndringer: Int,
-    val antallStopp: Int,
-)
-
-fun List<RequestResult>.aggregertPerFil(): Map<String, Telling> =
-    groupBy { it.krav.filnavn }
-        .mapValues { (_, resultaterPerFil) ->
-            val antallNye = resultaterPerFil.count { it.krav.kravtype == NYTT_KRAV }
-            val antallEndringer = resultaterPerFil.count { it.krav.kravtype == ENDRING_RENTE || it.krav.kravtype == ENDRING_HOVEDSTOL }
-            val antallStopp = resultaterPerFil.count { it.krav.kravtype == STOPP_KRAV }
-
-            Telling(antallNye, antallEndringer, antallStopp)
-        }

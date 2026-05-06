@@ -13,7 +13,7 @@ import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
-import no.nav.sokos.ske.krav.service.aggregertPerFil
+import no.nav.sokos.ske.krav.service.SkeService.Companion.aggregertPerFil
 import no.nav.sokos.ske.krav.util.RequestResult
 
 class RequestResultTest :
