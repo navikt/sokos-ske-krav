@@ -9,7 +9,6 @@ import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.domain.Feilmelding
-import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
 import no.nav.sokos.ske.krav.util.DBUtils.transaction
 
 class FeilmeldingRepository(
@@ -100,8 +99,8 @@ class FeilmeldingRepository(
         }
     }
 
-    suspend fun insertFeilmeldinger(feilmeldinger: List<Feilmelding>) {
-        dataSource.asyncTransaction { session ->
+    fun insertFeilmeldinger(feilmeldinger: List<Feilmelding>) {
+        dataSource.transaction { session ->
             session.batchPreparedNamedStatement(
                 insertFeilmeldingQuery(),
                 feilmeldinger.map { feilmelding ->
