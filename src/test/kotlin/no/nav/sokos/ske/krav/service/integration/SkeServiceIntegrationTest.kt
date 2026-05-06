@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.service.integration
 
+import kotlinx.coroutines.runBlocking
+
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -7,8 +9,16 @@ import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.runs
 import io.mockk.spyk
+import io.mockk.verify
+import mu.KLogger
+import mu.KotlinLogging
+import mu.Marker
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
@@ -49,6 +59,18 @@ import no.nav.sokos.ske.krav.validation.FileValidator
 internal class SkeServiceIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener, DBListener)
+        val logger =
+            mockk<KLogger>(relaxed = true) {
+                every { info(any<() -> Unit>()) } just runs
+                every { warn(any<() -> Unit>()) } just runs
+                every { error(any<() -> Unit>()) } just runs
+                every { error(any<String>()) } just runs
+                every { error(any<Marker>(), any<() -> Unit>()) } just runs
+            }
+        beforeSpec {
+            mockkObject(KotlinLogging)
+            every { KotlinLogging.logger(any<() -> Unit>()) } returns logger
+        }
         beforeEach {
             circuitBreaker.reset()
         }
@@ -252,6 +274,25 @@ internal class SkeServiceIntegrationTest :
                     }
 
                 kravMedFeil.filter { it.status == Status.HTTP422_VALIDERINGSFEIL.value }.size shouldBe 10
+            }
+        }
+
+        Given("To filer med krav legges i INBOUND") {
+            DBListener.clearDB()
+            SftpListener.putFiles(listOf("krav/TiNyeKrav.txt", "krav/UtenFremtidigYtelse.txt"), Directories.INBOUND)
+
+            val nyttKravKall = MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK)
+            val mottaksstatusKall = MockResponse(Endpoint.MOTTAKSSTATUS, mottaksStatusResponse(), HttpStatusCode.OK)
+            val httpClient = MockHttpClient.client(nyttKravKall, mottaksstatusKall)
+            val dbService = DatabaseService(DBListener.dataSource)
+            val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, dbService)
+
+            runBlocking { skeService.handleNewKrav() }
+            Then("skal det logges rett antall krav per fil") {
+                verify(exactly = 1) {
+                    logger.info("Fil: TiNyeKrav.txt - Nye: 10, Endringer: 0, Stopp: 0")
+                    logger.info("Fil: UtenFremtidigYtelse.txt - Nye: 5, Endringer: 0, Stopp: 0")
+                }
             }
         }
 

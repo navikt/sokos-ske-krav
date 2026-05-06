@@ -304,12 +304,12 @@ class SkeService(
     private fun logResult(result: List<RequestResult>) {
         result.partition { it.httpStatusCode.isSuccess() }.also { (successful, unsuccessful) ->
             successful.aggregertPerFil().forEach { (filnavn, telling) ->
-                logger.info { "Fil: $filnavn - Nye: ${telling.antallNye}, Endringer: ${telling.antallEndringer}, Stopp: ${telling.antallStopp}" }
+                logger.info("Fil: $filnavn - Nye: ${telling.antallNye}, Endringer: ${telling.antallEndringer}, Stopp: ${telling.antallStopp}")
             }
             unsuccessful.aggregertPerFil().forEach { (filnavn, telling) ->
-                logger.info { "Ikke vellykkede - Fil: $filnavn - Nye: ${telling.antallNye}, Endringer: ${telling.antallEndringer}, Stopp: ${telling.antallStopp}" }
+                logger.info("Ikke vellykkede - Fil: $filnavn - Nye: ${telling.antallNye}, Endringer: ${telling.antallEndringer}, Stopp: ${telling.antallStopp}")
             }
-            logger.info { "Sendte ${result.size} krav${if (unsuccessful.isNotEmpty()) ". ${unsuccessful.size} feilet" else ""}" }
+            logger.info("Sendte ${result.size} krav${if (unsuccessful.isNotEmpty()) ". ${unsuccessful.size} feilet" else ""}")
         }
     }
 }
