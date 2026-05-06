@@ -39,7 +39,6 @@ import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
 import no.nav.sokos.ske.krav.listener.DBListener.filvalideringsFeilRepository
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.listener.SftpListener
-import no.nav.sokos.ske.krav.repository.toFeilmelding
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
@@ -318,15 +317,9 @@ internal class SkeServiceIntegrationTest :
                     slackServiceSpy.addError(any(), any(), any<Pair<String, String>>())
                 }
 
-                val feilmeldinger =
-                    DBListener.dataSource.connection.use {
-                        it
-                            .prepareStatement("SELECT * FROM feilmelding")
-                            .executeQuery()
-                            .toFeilmelding()
-                    }
-                feilmeldinger.forEach {
-                    it.melding.shouldContain(Regex("Innkrevingsoppdrag med referansenummerGammelSak .+ eksisterer ikke"))
+                val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
+                feilmeldinger.forAll {
+                    it.melding shouldContain Regex("Innkrevingsoppdrag med referansenummerGammelSak .+ eksisterer ikke")
                 }
             }
         }
