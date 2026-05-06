@@ -5,7 +5,14 @@ import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
 import io.ktor.server.config.ApplicationConfig
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
+import jdk.internal.vm.ThreadContainers.container
 import kotliquery.queryOf
+import mu.KLogger
+import mu.KotlinLogging
 import org.testcontainers.containers.JdbcDatabaseContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
@@ -18,11 +25,15 @@ import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
-import no.nav.sokos.ske.krav.util.DBUtils.transaction
+import no.nav.sokos.ske.krav.util.transaction
 
 object DBListener : TestListener {
+    val loggerMock = mockk<KLogger>(relaxed = true)
+
     init {
         PropertiesConfig.load(ApplicationConfig("application-test.conf"))
+        mockkObject(KotlinLogging)
+        every { KotlinLogging.logger(any<() -> Unit>()) } returns loggerMock
     }
 
     private val container by lazy {
@@ -72,6 +83,7 @@ object DBListener : TestListener {
 
     override suspend fun afterSpec(spec: Spec) {
         clearDB()
+        unmockkObject(KotlinLogging)
     }
 
     fun JdbcDatabaseContainer<*>.toDataSource(configure: HikariConfig.() -> Unit = {}): HikariDataSource {

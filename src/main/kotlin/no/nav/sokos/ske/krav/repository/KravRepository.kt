@@ -17,9 +17,9 @@ import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
-import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.util.isEndring
 import no.nav.sokos.ske.krav.util.isStopp
+import no.nav.sokos.ske.krav.util.transaction
 
 class KravRepository(
     private val dataSource: HikariDataSource = PostgresDataSource.dataSource,

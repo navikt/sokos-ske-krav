@@ -19,7 +19,6 @@ import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
-import no.nav.sokos.ske.krav.util.DBUtils.transaction
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 
 internal class RepositoryTestKrav :
@@ -138,16 +137,14 @@ internal class RepositoryTestKrav :
 
         test("updateStatus skal oppdatere status, og tidspunkt_siste_status skal settes til NOW") {
             val corrId = "CORR457389"
-            DBListener.dataSource.transaction {
-                val originalKrav = kravRepository.getAllKrav().first { krav -> krav.corrId == corrId }
-                originalKrav.status shouldBe Status.RESKONTROFOERT
-                originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
+            val originalKrav = kravRepository.getAllKrav().first { krav -> krav.corrId == corrId }
+            originalKrav.status shouldBe Status.RESKONTROFOERT
+            originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
-                kravRepository.updateStatus(Status.KRAV_IKKE_SENDT, corrId)
-                val updatedKrav = kravRepository.getAllKrav().first { krav -> krav.corrId == corrId }
-                updatedKrav.status shouldBe Status.KRAV_IKKE_SENDT
-                updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
-            }
+            kravRepository.updateStatus(Status.KRAV_IKKE_SENDT, corrId)
+            val updatedKrav = kravRepository.getAllKrav().first { krav -> krav.corrId == corrId }
+            updatedKrav.status shouldBe Status.KRAV_IKKE_SENDT
+            updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
         }
 
         test("updateEndringWithSkeKravIdentifikator skal sette kravidentifikator_ske med gitt saksnummerNav") {

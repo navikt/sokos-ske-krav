@@ -9,7 +9,7 @@ import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.domain.Feilmelding
-import no.nav.sokos.ske.krav.util.DBUtils.transaction
+import no.nav.sokos.ske.krav.util.transaction
 
 class FeilmeldingRepository(
     private val dataSource: HikariDataSource = PostgresDataSource.dataSource,

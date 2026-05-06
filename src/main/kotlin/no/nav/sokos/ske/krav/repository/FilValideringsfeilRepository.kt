@@ -10,7 +10,7 @@ import kotliquery.queryOf
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.FilValideringsfeil
-import no.nav.sokos.ske.krav.util.DBUtils.transaction
+import no.nav.sokos.ske.krav.util.transaction
 
 class FilValideringsfeilRepository(
     private val dataSource: HikariDataSource = PostgresDataSource.dataSource,

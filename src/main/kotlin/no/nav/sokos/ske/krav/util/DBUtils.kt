@@ -8,23 +8,21 @@ import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 
-object DBUtils {
-    private val logger = KotlinLogging.logger {}
+private val dbLogger = KotlinLogging.logger {}
 
-    fun <A> HikariDataSource.transaction(operation: (TransactionalSession) -> A): A =
-        using(sessionOf(this, returnGeneratedKey = true)) { session ->
-            session.transaction { tx ->
-                handleError {
-                    operation(tx)
-                }
+fun <A> HikariDataSource.transaction(operation: (TransactionalSession) -> A): A =
+    using(sessionOf(this, returnGeneratedKey = true)) { session ->
+        session.transaction { tx ->
+            handleError {
+                operation(tx)
             }
         }
+    }
 
-    private fun <A> handleError(block: () -> A): A =
-        runCatching {
-            block()
-        }.onFailure {
-            logger.error("Feil i databaseoperasjon")
-            logger.error(TEAM_LOGS_MARKER, "Feil i databaseoperasjon: ${it.message}")
-        }.getOrThrow()
-}
+private fun <A> handleError(block: () -> A): A =
+    runCatching {
+        block()
+    }.onFailure {
+        dbLogger.error("Feil i databaseoperasjon")
+        dbLogger.error(TEAM_LOGS_MARKER, "Feil i databaseoperasjon: ${it.message}")
+    }.getOrThrow()
