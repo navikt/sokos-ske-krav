@@ -1,7 +1,5 @@
 package no.nav.sokos.ske.krav.service.integration
 
-import kotlinx.coroutines.runBlocking
-
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -287,7 +285,7 @@ internal class SkeServiceIntegrationTest :
             val dbService = DatabaseService(DBListener.dataSource)
             val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, dbService)
 
-            runBlocking { skeService.handleNewKrav() }
+            skeService.handleNewKrav()
             Then("skal det logges rett antall krav per fil") {
                 verify(exactly = 1) {
                     logger.info("Fil: TiNyeKrav.txt - Nye: 10, Endringer: 0, Stopp: 0")
