@@ -59,7 +59,7 @@ object LineValidationRules {
                     }
 
                     checkTilleggsfristDato(tilleggsfrist)?.let { message ->
-                        add(Pair(TILLEGGSFRISTDATO_ERROR, message))
+                        add(Pair(TILLEGGSFRISTDATO_ERROR, "$message: (Tilleggsfristdato: $tilleggsfrist). Saksnummer: $saksnummerNav. Linje: $linjenummer"))
                     }
 
                     if (avsender.trim() == Avsender.OB04.name) {
