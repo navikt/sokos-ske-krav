@@ -13,6 +13,7 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.runs
 import io.mockk.spyk
+import io.mockk.unmockkObject
 import io.mockk.verify
 import mu.KLogger
 import mu.KotlinLogging
@@ -68,6 +69,9 @@ internal class SkeServiceIntegrationTest :
         beforeSpec {
             mockkObject(KotlinLogging)
             every { KotlinLogging.logger(any<() -> Unit>()) } returns logger
+        }
+        afterSpec {
+            unmockkObject(KotlinLogging)
         }
         beforeEach {
             circuitBreaker.reset()
