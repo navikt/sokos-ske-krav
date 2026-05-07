@@ -166,7 +166,7 @@ class SkeService(
             requestResult,
             FeilResponse(
                 type = requestResult.feilResponse?.type ?: KRAV_EKSISTERER_IKKE,
-                title = "Fant ikke gyldig kravidentifikator",
+                title = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR,
                 status = requestResult.httpStatusCode.value,
                 detail = "Innkrevingsoppdrag med referansenummerGammelSak ${krav.referansenummerGammelSak} eksisterer ikke. \n Nav-Saksnummer: ${krav.saksnummerNAV} \n  Dette må følges opp manuelt",
                 instance = requestResult.feilResponse?.instance ?: "custom",
