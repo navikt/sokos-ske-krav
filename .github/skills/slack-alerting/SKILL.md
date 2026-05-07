@@ -38,21 +38,27 @@ The `Tags` enum maps specific SKE error types to on-call Slack user IDs and (opt
 private enum class Tags(
     val personer: List<String>,
     val rutineLink: String? = null,
+    val errorKey: String? = null,
 ) {
     PERSON_EKSISTERER_IKKE(listOf(NAME_A, NAME_B)),
     ORGANISASJON_ER_OPPHOERT(listOf(NAME_C, NAME_D), "https://confluence.adeo.no/…"),
+    FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR(listOf(NAME_E), errorKey = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR),
     // ...
     ;
-    companion object { val lookupMap: Map<String, Tags> = entries.associateBy { it.name } }
+    companion object { val lookupMap: Map<String, Tags> = entries.associateBy { it.errorKey ?: it.name } }
 }
 ```
 
-The error `type` field from SKE must match the enum `name` exactly (`ORGANISASJON_ER_OPPHOERT`, etc.). `lookupMap` resolves it during `sendMessage()` so the right people are tagged.
+The error key in the `messages` map passed to `addError` must match either `it.errorKey` (if set) or `it.name` exactly. `SlackService.sendErrors()` resolves it through `lookupMap` before calling `SlackClient.sendMessage(...)`, so the right people are tagged.
+
+- For **async SKE validation errors**: the key is `valideringsFeil.error` which comes directly from SKE in SCREAMING_SNAKE_CASE — use a matching enum `name`.
+- For **internally detected errors** (e.g. `FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR` set as `feilResponse.title`): set `errorKey` to the shared constant and use that same value as the map key in `messages`.
 
 **Adding a new tag:**
 1. Add an entry to `Tags` with `personer` (and optional `rutineLink`)
-2. Ensure the `name` matches the SKE error `type` exactly
-3. No other changes needed — `lookupMap` and `sendMessage()` pick it up
+2. If the error key is SCREAMING_SNAKE_CASE (SKE async errors): match via enum `name`, no `errorKey` needed
+3. If the error key is a human-readable string: define/reuse a shared constant and set `errorKey` to it
+4. No other changes needed — `lookupMap` and `sendMessage()` pick it up
 
 ## SlackClient
 
@@ -99,7 +105,8 @@ val slackServiceMock = mockk<SlackService> {
 ### ✅ Always
 - Use `addError(...)` + `sendErrors()` — never `SlackClient.sendMessage()` directly from service code
 - Call `sendErrors()` exactly once at the end of each processing pass (e.g. per scheduler tick)
-- Keep `Tags.name` identical to the SKE error `type` string
+- For SKE async errors: keep `Tags.name` identical to the SKE error `type` string
+- For internally detected errors: set `errorKey` to the same shared constant used by `feilResponse.title`
 
 ### ⚠️ Ask first
 - Removing / renaming existing `Tags` entries (on-call people depend on them)

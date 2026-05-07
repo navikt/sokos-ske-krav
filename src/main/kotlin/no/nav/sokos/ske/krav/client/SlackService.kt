@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.client
 
+import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
+
 internal data class ErrorHeader(
     val header: String,
     val errors: MutableMap<String, MutableList<String>>,
@@ -19,6 +21,7 @@ private const val STEINAR = "<@U796MGBA9>"
 private enum class Tags(
     val personer: List<String>,
     val rutineLink: String? = null,
+    val errorKey: String? = null,
 ) {
     PERSON_EKSISTERER_IKKE(listOf(LENE, TRINE)),
     PERSON_ER_DOED(listOf(LENE, TRINE)),
@@ -29,10 +32,14 @@ private enum class Tags(
     ),
     PERSON_ER_SLETTET(listOf(LENE, TRINE)),
     ORGANISASJON_ER_SLETTET(listOf(LENE, TRINE)),
+    FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR(
+        listOf(TRINE),
+        errorKey = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR,
+    ),
     ;
 
     companion object {
-        val lookupMap: Map<String, Tags> = entries.associateBy { it.name }
+        val lookupMap: Map<String, Tags> = entries.associateBy { it.errorKey ?: it.name }
     }
 }
 
