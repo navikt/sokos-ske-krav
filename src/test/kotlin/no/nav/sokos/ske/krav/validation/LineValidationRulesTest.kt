@@ -216,6 +216,9 @@ internal class LineValidationRulesTest :
                         size shouldBe 1
                         first().first shouldBe LineValidationRules.ErrorKeys.TILLEGGSFRISTDATO_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD
+                        first().second shouldContain tilleggsfristDato.toString()
+                        first().second shouldContain krav.saksnummerNav
+                        first().second shouldContain krav.linjenummer.toString()
                     }
                 }
             }
