@@ -302,13 +302,32 @@ class SkeService(
     }
 
     private fun logResult(result: List<RequestResult>) {
-        val successful = result.filter { it.httpStatusCode.isSuccess() }
-        val unsuccessful = result.size - successful.size
-        logger.info { "Sendte ${result.size} krav${if (unsuccessful > 0) ". $unsuccessful feilet" else ""}" }
+        result.partition { it.httpStatusCode.isSuccess() }.also { (successful, unsuccessful) ->
+            successful.aggregertPerFil().forEach { (filnavn, count) ->
+                logger.info("Fil: $filnavn - Nye: ${count.new}, Endringer: ${count.changes}, Stopp: ${count.stops}")
+            }
+            unsuccessful.aggregertPerFil().forEach { (filnavn, count) ->
+                logger.info("Ikke vellykkede - Fil: $filnavn - Nye: ${count.new}, Endringer: ${count.changes}, Stopp: ${count.stops}")
+            }
+            logger.info("Sendte ${result.size} krav${if (unsuccessful.isNotEmpty()) ". ${unsuccessful.size} feilet" else ""}")
+        }
+    }
 
-        val nye = successful.count { it.krav.kravtype == NYTT_KRAV }
-        val endringer = successful.count { it.krav.kravtype == ENDRING_RENTE } + successful.count { it.krav.kravtype == ENDRING_HOVEDSTOL }
-        val stopp = successful.count { it.krav.kravtype == STOPP_KRAV }
-        logger.info { "$nye nye, $endringer endringer, $stopp stopp" }
+    internal companion object {
+        internal data class Counts(
+            val new: Int,
+            val changes: Int,
+            val stops: Int,
+        )
+
+        internal fun List<RequestResult>.aggregertPerFil(): Map<String, Counts> =
+            groupBy { it.krav.filnavn }
+                .mapValues { (_, resultaterPerFil) ->
+                    val antallNye = resultaterPerFil.count { it.krav.kravtype == NYTT_KRAV }
+                    val antallEndringer = resultaterPerFil.count { it.krav.kravtype == ENDRING_RENTE || it.krav.kravtype == ENDRING_HOVEDSTOL }
+                    val antallStopp = resultaterPerFil.count { it.krav.kravtype == STOPP_KRAV }
+
+                    Counts(antallNye, antallEndringer, antallStopp)
+                }
     }
 }
