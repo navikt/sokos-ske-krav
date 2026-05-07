@@ -9,7 +9,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
-import jdk.internal.vm.ThreadContainers.container
 import kotliquery.queryOf
 import mu.KLogger
 import mu.KotlinLogging
