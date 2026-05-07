@@ -69,6 +69,6 @@ application {
 sftp {
   host = "localhost"
   port = 22
-  privateKeyFilePath = "privKey"
+  privateKeyFilePath = "privateKey"
 }
 ```
