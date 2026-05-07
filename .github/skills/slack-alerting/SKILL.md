@@ -43,10 +43,6 @@ private enum class Tags(
     PERSON_EKSISTERER_IKKE(listOf(NAME_A, NAME_B)),
     ORGANISASJON_ER_OPPHOERT(listOf(NAME_C, NAME_D), "https://confluence.adeo.no/…"),
     FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR(listOf(NAME_E), errorKey = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR),
-    FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR_FOR_MIGRERT_KRAV(
-        listOf(NAME_E),
-        errorKey = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR_FOR_MIGRERT_KRAV,
-    ),
     // ...
     ;
     companion object { val lookupMap: Map<String, Tags> = entries.associateBy { it.errorKey ?: it.name } }
