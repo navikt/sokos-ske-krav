@@ -49,10 +49,10 @@ private enum class Tags(
 }
 ```
 
-The key passed as the first element of the `Pair` in `addError` must match either `it.errorKey` (if set) or `it.name` exactly. `SlackService.sendErrors()` resolves it through `lookupMap` before calling `SlackClient.sendMessage(...)`, so the right people are tagged.
+The error key in the `messages` map passed to `addError` must match either `it.errorKey` (if set) or `it.name` exactly. `SlackService.sendErrors()` resolves it through `lookupMap` before calling `SlackClient.sendMessage(...)`, so the right people are tagged.
 
 - For **async SKE validation errors**: the key is `valideringsFeil.error` which comes directly from SKE in SCREAMING_SNAKE_CASE — use a matching enum `name`.
-- For **internally detected errors** (e.g. `FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR` set as `feilResponse.title`): set `errorKey` to the shared constant.
+- For **internally detected errors** (e.g. `FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR` set as `feilResponse.title`): set `errorKey` to the shared constant and use that same value as the map key in `messages`.
 
 **Adding a new tag:**
 1. Add an entry to `Tags` with `personer` (and optional `rutineLink`)
