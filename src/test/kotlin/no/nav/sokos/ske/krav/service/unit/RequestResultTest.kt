@@ -34,17 +34,17 @@ class RequestResultTest :
             Then("Skal aggregatet telle alle de forskjellige kravene fordelt på filer") {
                 val aggregat = resultater.aggregertPerFil()
                 aggregat.size shouldBe 3
-                aggregat["fil-en"]?.antallNye shouldBe 1
-                aggregat["fil-en"]?.antallEndringer shouldBe 0
-                aggregat["fil-en"]?.antallStopp shouldBe 0
+                aggregat["fil-en"]?.new shouldBe 1
+                aggregat["fil-en"]?.changes shouldBe 0
+                aggregat["fil-en"]?.stops shouldBe 0
 
-                aggregat["fil-to"]?.antallNye shouldBe 0
-                aggregat["fil-to"]?.antallEndringer shouldBe 4
-                aggregat["fil-to"]?.antallStopp shouldBe 0
+                aggregat["fil-to"]?.new shouldBe 0
+                aggregat["fil-to"]?.changes shouldBe 4
+                aggregat["fil-to"]?.stops shouldBe 0
 
-                aggregat["fil-tre"]?.antallNye shouldBe 1
-                aggregat["fil-tre"]?.antallEndringer shouldBe 0
-                aggregat["fil-tre"]?.antallStopp shouldBe 1
+                aggregat["fil-tre"]?.new shouldBe 1
+                aggregat["fil-tre"]?.changes shouldBe 0
+                aggregat["fil-tre"]?.stops shouldBe 1
             }
         }
 
@@ -55,9 +55,9 @@ class RequestResultTest :
                 val aggregat = resultater.aggregertPerFil()
                 aggregat.size shouldBe 1
                 aggregat.keys.first() shouldBe "fil"
-                aggregat["fil"]?.antallNye shouldBe 1
-                aggregat["fil"]?.antallEndringer shouldBe 2
-                aggregat["fil"]?.antallStopp shouldBe 1
+                aggregat["fil"]?.new shouldBe 1
+                aggregat["fil"]?.changes shouldBe 2
+                aggregat["fil"]?.stops shouldBe 1
             }
         }
 
@@ -68,9 +68,9 @@ class RequestResultTest :
                 val aggregat = resultater.aggregertPerFil()
                 aggregat.size shouldBe 1
                 aggregat.keys.first() shouldBe "fil"
-                aggregat["fil"]?.antallNye shouldBe 3
-                aggregat["fil"]?.antallEndringer shouldBe 0
-                aggregat["fil"]?.antallStopp shouldBe 0
+                aggregat["fil"]?.new shouldBe 3
+                aggregat["fil"]?.changes shouldBe 0
+                aggregat["fil"]?.stops shouldBe 0
             }
         }
     })

@@ -303,31 +303,31 @@ class SkeService(
 
     private fun logResult(result: List<RequestResult>) {
         result.partition { it.httpStatusCode.isSuccess() }.also { (successful, unsuccessful) ->
-            successful.aggregertPerFil().forEach { (filnavn, telling) ->
-                logger.info("Fil: $filnavn - Nye: ${telling.antallNye}, Endringer: ${telling.antallEndringer}, Stopp: ${telling.antallStopp}")
+            successful.aggregertPerFil().forEach { (filnavn, count) ->
+                logger.info("Fil: $filnavn - Nye: ${count.new}, Endringer: ${count.changes}, Stopp: ${count.stops}")
             }
-            unsuccessful.aggregertPerFil().forEach { (filnavn, telling) ->
-                logger.info("Ikke vellykkede - Fil: $filnavn - Nye: ${telling.antallNye}, Endringer: ${telling.antallEndringer}, Stopp: ${telling.antallStopp}")
+            unsuccessful.aggregertPerFil().forEach { (filnavn, count) ->
+                logger.info("Ikke vellykkede - Fil: $filnavn - Nye: ${count.new}, Endringer: ${count.changes}, Stopp: ${count.stops}")
             }
             logger.info("Sendte ${result.size} krav${if (unsuccessful.isNotEmpty()) ". ${unsuccessful.size} feilet" else ""}")
         }
     }
 
     internal companion object {
-        internal data class Telling(
-            val antallNye: Int,
-            val antallEndringer: Int,
-            val antallStopp: Int,
+        internal data class Counts(
+            val new: Int,
+            val changes: Int,
+            val stops: Int,
         )
 
-        internal fun List<RequestResult>.aggregertPerFil(): Map<String, Telling> =
+        internal fun List<RequestResult>.aggregertPerFil(): Map<String, Counts> =
             groupBy { it.krav.filnavn }
                 .mapValues { (_, resultaterPerFil) ->
                     val antallNye = resultaterPerFil.count { it.krav.kravtype == NYTT_KRAV }
                     val antallEndringer = resultaterPerFil.count { it.krav.kravtype == ENDRING_RENTE || it.krav.kravtype == ENDRING_HOVEDSTOL }
                     val antallStopp = resultaterPerFil.count { it.krav.kravtype == STOPP_KRAV }
 
-                    Telling(antallNye, antallEndringer, antallStopp)
+                    Counts(antallNye, antallEndringer, antallStopp)
                 }
     }
 }
