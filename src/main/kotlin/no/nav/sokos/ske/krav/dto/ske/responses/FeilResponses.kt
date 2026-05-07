@@ -24,4 +24,8 @@ data class FeilResponse(
     object CustomTypes {
         const val FEIL_FRA_SERVER = "FEIL_FRA_SERVER"
     }
+
+    object CustomTitles {
+        const val FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR = "Fant ikke gyldig kravidentifikator"
+    }
 }
