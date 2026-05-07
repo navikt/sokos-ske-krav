@@ -36,10 +36,6 @@ private enum class Tags(
         listOf(TRINE),
         errorKey = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR,
     ),
-    FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR_FOR_MIGRERT_KRAV(
-        listOf(TRINE),
-        errorKey = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR_FOR_MIGRERT_KRAV,
-    ),
     ;
 
     companion object {

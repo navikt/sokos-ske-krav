@@ -27,6 +27,5 @@ data class FeilResponse(
 
     object CustomTitles {
         const val FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR = "Fant ikke gyldig kravidentifikator"
-        const val FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR_FOR_MIGRERT_KRAV = "Fant ikke gyldig kravidentifikator for migrert krav"
     }
 }
