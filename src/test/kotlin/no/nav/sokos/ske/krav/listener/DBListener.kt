@@ -27,13 +27,11 @@ import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.transaction
 
 object DBListener : TestListener {
-    val loggerMock = mockk<KLogger>(relaxed = true)
-
     init {
         PropertiesConfig.load(ApplicationConfig("application-test.conf"))
-        mockkObject(KotlinLogging)
-        every { KotlinLogging.logger(any<() -> Unit>()) } returns loggerMock
     }
+
+    val loggerMock = mockk<KLogger>(relaxed = true)
 
     private val container by lazy {
         PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:16.6")).apply {
@@ -78,6 +76,12 @@ object DBListener : TestListener {
                 session.execute(queryOf("TRUNCATE TABLE ${tables.joinToString(", ")} RESTART IDENTITY CASCADE"))
             }
         }
+    }
+
+    override suspend fun beforeSpec(spec: Spec) {
+        super.beforeSpec(spec)
+        mockkObject(KotlinLogging)
+        every { KotlinLogging.logger(any<() -> Unit>()) } returns loggerMock
     }
 
     override suspend fun afterSpec(spec: Spec) {
