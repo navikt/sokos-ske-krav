@@ -355,13 +355,11 @@ internal class SkeServiceIntegrationTest :
             val nyttKravKall = MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK)
             val mottaksstatusKall = MockResponse(Endpoint.MOTTAKSSTATUS, mottaksStatusResponse(), HttpStatusCode.OK)
             val httpClient = MockHttpClient.client(nyttKravKall, mottaksstatusKall)
-            val dbService = dbService
             val skeService =
                 setupSkeServiceMockWithMockEngine(
-                    DBListener.dataSource,
                     httpClient,
                     ftpService,
-                    dbService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
                     feilmeldingRepository = feilmeldingRepository,
                     kravRepository = kravRepository,
                 )
