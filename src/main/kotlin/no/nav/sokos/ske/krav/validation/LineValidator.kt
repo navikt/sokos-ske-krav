@@ -10,12 +10,10 @@ import no.nav.sokos.ske.krav.service.FtpFil
 private val logger = mu.KotlinLogging.logger {}
 
 class LineValidator(
+    private val filValideringsfeilRepository: FilValideringsfeilRepository,
     private val slackService: SlackService = SlackService(),
 ) {
-    suspend fun validateNewLines(
-        file: FtpFil,
-        filValideringsfeilRepository: FilValideringsfeilRepository,
-    ): List<KravLinje> {
+    suspend fun validateNewLines(file: FtpFil): List<KravLinje> {
         val slackMessages = mutableListOf<Pair<String, String>>()
         val returnLines =
             file.kravLinjer.map { linje ->

@@ -100,7 +100,7 @@ class SkeService(
 
     private suspend fun processFile(file: FtpFil) {
         logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
-        val validatedLines = LineValidator().validateNewLines(file, filValideringsfeilRepository)
+        val validatedLines = LineValidator(filValideringsfeilRepository).validateNewLines(file)
 
         handleValidationResults(file, validatedLines)
 

@@ -32,7 +32,7 @@ internal class LineValidatorIntegrationTest :
         fun setupServices(): Triple<SlackClient, SlackService, LineValidator> {
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient.slackClient))
             val slackServiceSpy = spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
-            val lineValidatorSpy = spyk(LineValidator(slackService = slackServiceSpy), recordPrivateCalls = true)
+            val lineValidatorSpy = spyk(LineValidator(filvalideringsFeilRepository, slackService = slackServiceSpy), recordPrivateCalls = true)
             return Triple(slackClientSpy, slackServiceSpy, lineValidatorSpy)
         }
 
@@ -48,7 +48,7 @@ internal class LineValidatorIntegrationTest :
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileName }
 
             When("Linjer valideres") {
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, filvalideringsFeilRepository)
+                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil)
 
                 Then("Skal ingen feil lagres i database") {
                     val insertedFiles = filvalideringsFeilRepository.getFilValideringsFeilForFil(fileName)
@@ -85,7 +85,7 @@ internal class LineValidatorIntegrationTest :
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
 
             When("Linjer valideres") {
-                lineValidatorSpy.validateNewLines(ftpFil, filvalideringsFeilRepository)
+                lineValidatorSpy.validateNewLines(ftpFil)
 
                 Then("Skal én feil lagres i database") {
                     val insertedFiles = filvalideringsFeilRepository.getFilValideringsFeilForFil(fileNameOnSftp)
@@ -159,7 +159,7 @@ internal class LineValidatorIntegrationTest :
             val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
 
             When("Linjer valideres") {
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, filvalideringsFeilRepository)
+                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil)
 
                 Then("1 returnert linje skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
                     validatedLines.size shouldBe ftpFil.kravLinjer.size
@@ -257,7 +257,7 @@ internal class LineValidatorIntegrationTest :
             ftpFil.kravLinjer.size shouldBe 10
 
             When("Linjer valideres") {
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, filvalideringsFeilRepository)
+                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil)
                 Then("6 returnerte linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
                     validatedLines.size shouldBe ftpFil.kravLinjer.size
                     with(validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }) {
@@ -346,7 +346,7 @@ internal class LineValidatorIntegrationTest :
             ftpFil.kravLinjer.size shouldBe 10
             When("Linjer valideres") {
 
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil, filvalideringsFeilRepository)
+                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil)
 
                 Then("6 returnerte linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
                     validatedLines.size shouldBe ftpFil.kravLinjer.size
