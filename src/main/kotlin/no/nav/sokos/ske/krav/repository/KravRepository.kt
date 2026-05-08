@@ -2,8 +2,8 @@ package no.nav.sokos.ske.krav.repository
 
 import java.time.LocalDate
 import java.util.UUID
+import javax.sql.DataSource
 
-import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
@@ -22,7 +22,7 @@ import no.nav.sokos.ske.krav.util.isStopp
 import no.nav.sokos.ske.krav.util.transaction
 
 class KravRepository(
-    private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
+    private val dataSource: DataSource = PostgresDataSource.dataSource,
 ) {
     val mapToKrav: (Row) -> Krav = { row ->
         Krav(

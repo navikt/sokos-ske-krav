@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.util
 
-import com.zaxxer.hikari.HikariDataSource
+import javax.sql.DataSource
+
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import kotliquery.using
@@ -10,7 +11,7 @@ import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 
 private val dbLogger = KotlinLogging.logger {}
 
-fun <A> HikariDataSource.transaction(operation: (TransactionalSession) -> A): A =
+fun <A> DataSource.transaction(operation: (TransactionalSession) -> A): A =
     using(sessionOf(this, returnGeneratedKey = true)) { session ->
         session.transaction { tx ->
             handleError {

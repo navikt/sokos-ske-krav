@@ -1,8 +1,8 @@
 package no.nav.sokos.ske.krav.repository
 
 import java.time.LocalDate
+import javax.sql.DataSource
 
-import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
@@ -13,7 +13,7 @@ import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.util.transaction
 
 class FilValideringsfeilRepository(
-    private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
+    private val dataSource: DataSource = PostgresDataSource.dataSource,
 ) {
     val mapToFilValideringsfeil: (Row) -> FilValideringsfeil = { row ->
         FilValideringsfeil(
