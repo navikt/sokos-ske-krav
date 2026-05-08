@@ -48,10 +48,7 @@ class FeilmeldingRepository(
     ): List<Feilmelding> =
         session.list(
             queryOf(
-                """
-                select * from feilmelding
-                where krav_id = ?
-                """.trimIndent(),
+                """select * from feilmelding where krav_id = ?""".trimIndent(),
                 kravId,
             ),
             mapToFeilmelding,
