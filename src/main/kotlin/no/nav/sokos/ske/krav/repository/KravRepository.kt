@@ -140,6 +140,7 @@ class KravRepository(
                     select kravidentifikator_ske from krav
                     where (saksnummer_nav = :saksnummer_nav or referansenummergammelsak = :referansenummergammelsak)
                     and (kravidentifikator_ske is not null and kravidentifikator_ske != '')
+                    limit 1
                     """.trimIndent(),
                     mapOf(
                         "saksnummer_nav" to navref,
