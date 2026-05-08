@@ -6,14 +6,13 @@ import java.time.LocalDate
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
-import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.filvalideringsFeilRepository
-import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
+import no.nav.sokos.ske.krav.util.getAllValideringsFeil
+import no.nav.sokos.ske.krav.util.getFilValideringsFeilForFil
 
 internal class RepositoryTestFilValideringsfeil :
     FunSpec({
@@ -35,7 +34,7 @@ internal class RepositoryTestFilValideringsfeil :
             filvalideringsFeilRepository.insertFilValideringsfeil("Fil4.txt", "Test validation error insert")
             val insertedErrors = filvalideringsFeilRepository.getFilValideringsFeilForFil("Fil4.txt")
 
-            insertedErrors.size shouldBe 1
+            insertedErrors.shouldHaveSize(1)
             insertedErrors.first().run {
                 filnavn shouldBe "Fil4.txt"
                 linjenummer shouldBe 0
@@ -76,12 +75,11 @@ internal class RepositoryTestFilValideringsfeil :
             filvalideringsFeilRepository.insertLineFilValideringsfeil(filename, linje, feilMelding)
             val allInsertedFiles = filvalideringsFeilRepository.getAllValideringsFeil()
 
-            allInsertedFiles.size shouldBe 7
+            allInsertedFiles.shouldHaveSize(7)
 
             val insertedFilesForFilename = allInsertedFiles.filter { it.filnavn == filename }
-            insertedFilesForFilename.size shouldBe 1
+            insertedFilesForFilename.shouldHaveSize(1)
             with(insertedFilesForFilename.first()) {
-                linjenummer shouldBe linje.linjenummer
                 linjenummer shouldBe linje.linjenummer
                 saksnummerNav shouldBe linje.saksnummerNav
                 kravLinje shouldBe linje.toString()
@@ -99,22 +97,3 @@ internal class RepositoryTestFilValideringsfeil :
             DBListener.clearDB()
         }
     })
-
-private fun FilValideringsfeilRepository.getAllValideringsFeil(): List<FilValideringsfeil> =
-    transaction { session ->
-        session.list(
-            queryOf("select * from filvalideringsfeil"),
-            mapToFilValideringsfeil,
-        )
-    }
-
-fun FilValideringsfeilRepository.getFilValideringsFeilForFil(filnavn: String): List<FilValideringsfeil> =
-    transaction { session ->
-        session.list(
-            queryOf(
-                "select * from filvalideringsfeil where filnavn = ?",
-                filnavn,
-            ),
-            extractor = mapToFilValideringsfeil,
-        )
-    }

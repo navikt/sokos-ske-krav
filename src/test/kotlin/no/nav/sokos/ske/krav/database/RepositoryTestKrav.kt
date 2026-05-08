@@ -7,19 +7,17 @@ import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.copybook.FileParser
-import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
-import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
+import no.nav.sokos.ske.krav.util.getAllKrav
 
 internal class RepositoryTestKrav :
     FunSpec({
@@ -191,11 +189,3 @@ internal class RepositoryTestKrav :
             DBListener.clearDB()
         }
     })
-
-fun KravRepository.getAllKrav(): List<Krav> =
-    transaction { session ->
-        session.list(
-            queryOf("select * from krav"),
-            extractor = mapToKrav,
-        )
-    }
