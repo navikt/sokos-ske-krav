@@ -17,6 +17,8 @@ group = "no.nav.sokos"
 
 repositories {
     mavenCentral()
+
+    maven { url = uri("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
 }
 
 val ktorVersion = "3.4.3"
@@ -33,7 +35,7 @@ val opentelemetryVersion = "2.27.0-alpha"
 val hikaricpVersion = "7.0.2"
 val flywayVersion = "12.5.0"
 val postgresqlVersion = "42.7.11"
-val kotliqueryVersion = "1.9.1"
+val kotliqueryVersion = "2.0.5"
 
 // Test
 val kotestVersion = "6.1.11"
@@ -73,7 +75,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:$hikaricpVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("no.nav:vault-jdbc:$vaultVersion")
-    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
+    implementation("no.nav:kotliquery:$kotliqueryVersion")
 
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")
