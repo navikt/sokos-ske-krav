@@ -19,11 +19,7 @@ object PostgresDataSource {
     }
 
     fun migrate() {
-        val migrationConfig =
-            hikariConfig().apply {
-                connectionInitSql = """SET ROLE "${postgresConfig.adminUser}""""
-            }
-        dataSource(hikariConfig = migrationConfig, role = postgresConfig.adminUser).use { migrate(it) }
+        dataSource(role = postgresConfig.adminUser).use { migrate(it) }
     }
 
     fun migrate(dataSource: HikariDataSource) {
