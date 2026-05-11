@@ -148,6 +148,10 @@ configurations.all {
                 useVersion("4.2.13.Final")
                 because("Netty HttpClientCodec response desynchronization (GHSA-57rv-r2g8-2cj3). Affected version = 4.2.11.Final, < 4.2.13.Final")
             }
+            if (requested.group == "io.netty" && requested.name == "netty-transport-native-epoll") {
+                useVersion("4.2.13.Final")
+                because("Netty epoll transport denial of service via RST on half-closed TCP connection (GHSA-rwm7-x88c-3g2p). Affected version = 4.2.12.Final")
+            }
 
             // Moderate
             // Test
