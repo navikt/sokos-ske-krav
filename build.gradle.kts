@@ -156,6 +156,10 @@ configurations.all {
                     useVersion("1.3.15")
                     because("CVE-2024-12798: JaninoEventEvaluator ACE vulnerability. Affected version <= 1.3.14")
                 }
+                if (requestedVersion.startsWith("1.5.") && requestedVersion < "1.5.25") {
+                    useVersion("1.5.25")
+                    because("CVE-2026-1225: ACE vulnerability in configuration file processing (GHSA-qqpg-mvqg-649v). Affected version <= 1.5.24")
+                }
             }
             if (requested.group == "io.netty" && requested.name == "netty-transport-native-epoll") {
                 useVersion("4.2.13.Final")
