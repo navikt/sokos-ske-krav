@@ -155,6 +155,10 @@ configurations.all {
                     because("CVE-2024-12798: JaninoEventEvaluator ACE vulnerability. Affected version <= 1.3.14")
                 }
             }
+            if (requested.group == "io.netty" && requested.name == "netty-transport-native-epoll") {
+                useVersion("4.2.13.Final")
+                because("Netty epoll transport denial of service via RST on half-closed TCP connection (GHSA-rwm7-x88c-3g2p). Affected version = 4.2.12.Final")
+            }
 
             // Moderate
             // Test
