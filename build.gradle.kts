@@ -148,6 +148,13 @@ configurations.all {
                 useVersion("4.2.13.Final")
                 because("Netty HttpClientCodec response desynchronization (GHSA-57rv-r2g8-2cj3). Affected version = 4.2.11.Final, < 4.2.13.Final")
             }
+            if (requested.group == "ch.qos.logback" && requested.name == "logback-core") {
+                val requestedVersion = requested.version ?: ""
+                if (requestedVersion.startsWith("1.3.") && requestedVersion < "1.3.15") {
+                    useVersion("1.3.15")
+                    because("CVE-2024-12798: JaninoEventEvaluator ACE vulnerability. Affected version <= 1.3.14")
+                }
+            }
 
             // Moderate
             // Test
