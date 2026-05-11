@@ -1,1 +1,0 @@
-ALTER TABLE feilmeldingtemp RENAME TO temp;
