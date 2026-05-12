@@ -48,7 +48,7 @@ val sshdSftpVersion = "2.17.1"
 // Logging
 val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.32"
+val logbackVersion = "1.5.25"
 val logstashVersion = "9.0"
 
 val resilience4jVersion = "2.4.0"
@@ -151,15 +151,12 @@ configurations.all {
                 because("Netty HttpClientCodec response desynchronization (GHSA-57rv-r2g8-2cj3). Affected version = 4.2.11.Final, < 4.2.13.Final")
             }
             if (requested.group == "ch.qos.logback" && requested.name == "logback-core") {
-                val requestedVersion = requested.version ?: ""
-                if (requestedVersion.startsWith("1.3.") && requestedVersion < "1.3.15") {
-                    useVersion("1.3.15")
-                    because("CVE-2024-12798: JaninoEventEvaluator ACE vulnerability. Affected version <= 1.3.14")
-                }
-                if (requestedVersion.startsWith("1.5.") && requestedVersion < "1.5.25") {
-                    useVersion("1.5.25")
-                    because("CVE-2026-1225: ACE vulnerability in configuration file processing (GHSA-qqpg-mvqg-649v). Affected version <= 1.5.24")
-                }
+                useVersion("1.5.25")
+                because("CVE-2026-1225: ACE vulnerability in configuration file processing (GHSA-qqpg-mvqg-649v). Affected version <= 1.5.24")
+            }
+            if (requested.group == "ch.qos.logback" && requested.name == "logback-classic") {
+                useVersion("1.5.25")
+                because("CVE-2026-1225: Ensure logback-classic matches logback-core version for compatibility")
             }
             if (requested.group == "io.netty" && requested.name == "netty-transport-native-epoll") {
                 useVersion("4.2.13.Final")
