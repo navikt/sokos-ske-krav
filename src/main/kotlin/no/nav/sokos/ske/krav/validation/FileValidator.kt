@@ -36,7 +36,7 @@ class FileValidator(
             logErrors(fileName, validationErrors)
             return ValidationResult.Error(messages = validationErrors)
         }
-        return ValidationResult.Success(parser.linjer.map { it as KravLinje })
+        return ValidationResult.Success(parser.kravLinjer())
     }
 
     private suspend fun logErrors(
