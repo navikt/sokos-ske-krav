@@ -37,7 +37,7 @@ class FileParser(
 
     private fun parseKravLinjer(): List<FtpLinje> =
         if (kontrollLinjeHeader.isLeft && content.size > 1) {
-            content.subList(1, content.lastIndex).mapIndexed { index, linje -> kravLinjeParser(linje, index, kontrollLinjeHeader.left.avsender) }
+            content.subList(1, content.lastIndex).mapIndexed { index, linje -> kravLinjeParser(linje, index + 1, kontrollLinjeHeader.left.avsender) }
         } else {
             emptyList()
         }
