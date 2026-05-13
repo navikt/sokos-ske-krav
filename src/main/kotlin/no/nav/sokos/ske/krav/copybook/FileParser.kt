@@ -46,8 +46,8 @@ class FileParser(
 
     fun errors(): List<Pair<String, String>> =
         buildList {
-            if (kontrollLinjeHeader.isRight) add(FileValidator.ErrorKeys.PARSE_EXCEPTION to (kontrollLinjeHeader.get().message))
-            if (kontrollLinjeFooter.isRight) add(FileValidator.ErrorKeys.PARSE_EXCEPTION to (kontrollLinjeFooter.get().message))
+            if (kontrollLinjeHeader.isRight) add(FileValidator.ErrorKeys.PARSE_EXCEPTION to (kontrollLinjeHeader.get().message ?: "Ukjent feil"))
+            if (kontrollLinjeFooter.isRight) add(FileValidator.ErrorKeys.PARSE_EXCEPTION to (kontrollLinjeFooter.get().message ?: "Ukjent feil"))
             linjer.filterIsInstance<ErrorLinje>().forEach { add(FileValidator.ErrorKeys.PARSE_EXCEPTION to it.message) }
         }
 
