@@ -36,12 +36,9 @@ class FileParser(
     fun kravLinjer(): List<KravLinje> = linjer.filterIsInstance<KravLinje>()
 
     private fun parseKravLinjer(): List<FtpLinje> =
-        try {
-            when (kontrollLinjeHeader) {
-                is Either.Left -> content.subList(1, content.lastIndex).map { linje -> kravLinjeParser(linje, kontrollLinjeHeader.left.avsender) }
-                else -> emptyList()
-            }
-        } catch (_: IllegalArgumentException) {
+        if (kontrollLinjeHeader.isLeft && content.size > 1) {
+            content.subList(1, content.lastIndex).map { linje -> kravLinjeParser(linje, kontrollLinjeHeader.left.avsender) }
+        } else {
             emptyList()
         }
 
