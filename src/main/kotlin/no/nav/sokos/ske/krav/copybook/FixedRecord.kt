@@ -3,6 +3,10 @@ package no.nav.sokos.ske.krav.copybook
 import java.math.BigDecimal
 import java.time.LocalDate
 
+import kotlin.math.roundToLong
+
+import no.nav.sokos.ske.krav.domain.Status
+
 data class KravLinje(
     val linjenummer: Int,
     val saksnummerNav: String,
@@ -25,7 +29,17 @@ data class KravLinje(
     val status: String? = null,
     val tilleggsfrist: LocalDate? = null,
     val avsender: String,
-)
+) {
+    fun isStopp() = belop.toDouble().roundToLong() == 0L
+
+    fun isEndring() = referansenummerGammelSak.isNotEmpty() && !isStopp()
+
+    fun isOpprettKrav() = !isEndring() && !isStopp()
+
+    fun markAsValid() = copy(status = Status.KRAV_IKKE_SENDT.value)
+
+    fun markAsValidationError() = copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
+}
 
 data class KontrollLinjeHeader(
     val transaksjonsDato: String,
