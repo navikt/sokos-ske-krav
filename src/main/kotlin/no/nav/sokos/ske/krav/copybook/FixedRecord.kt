@@ -7,6 +7,12 @@ import kotlin.math.roundToLong
 
 import no.nav.sokos.ske.krav.domain.Status
 
+sealed interface FtpLinje
+
+data class ErrorLinje(
+    val message: String,
+) : FtpLinje
+
 data class KravLinje(
     val linjenummer: Int,
     val saksnummerNav: String,
@@ -29,7 +35,7 @@ data class KravLinje(
     val status: String? = null,
     val tilleggsfrist: LocalDate? = null,
     val avsender: String,
-) {
+) : FtpLinje {
     fun isStopp() = belop.toDouble().roundToLong() == 0L
 
     fun isEndring() = referansenummerGammelSak.isNotEmpty() && !isStopp()
