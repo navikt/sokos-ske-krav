@@ -37,7 +37,7 @@ class FileParser(
 
     private fun parseKravLinjer(): List<FtpLinje> =
         if (kontrollLinjeHeader.isLeft && content.size > 1) {
-            content.subList(1, content.lastIndex).map { linje -> kravLinjeParser(linje, kontrollLinjeHeader.left.avsender) }
+            content.subList(1, content.lastIndex).mapIndexed { index, linje -> kravLinjeParser(linje, index, kontrollLinjeHeader.left.avsender) }
         } else {
             emptyList()
         }
@@ -67,6 +67,7 @@ class FileParser(
 
     private fun kravLinjeParser(
         linje: String,
+        index: Int,
         avsender: String,
     ) = with(linje) {
         try {
@@ -93,7 +94,7 @@ class FileParser(
                 avsender = avsender,
             )
         } catch (e: ParseException) {
-            ErrorLinje(e.message ?: "Ukjent feil")
+            ErrorLinje("Parsingfeil på linje #$index: ${e.message}")
         }
     }
 
