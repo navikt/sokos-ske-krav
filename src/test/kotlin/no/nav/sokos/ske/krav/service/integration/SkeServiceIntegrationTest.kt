@@ -5,7 +5,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpStatusCode
@@ -61,6 +60,16 @@ internal class SkeServiceIntegrationTest :
         }
         val ftpService: FtpService by lazy {
             FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = mockk<DatabaseService>())
+        }
+        val skeServiceLogger = LoggerFactory.getLogger(SkeService::class.java) as Logger
+        val logAppender = ListAppender<ILoggingEvent>()
+        beforeTest {
+            logAppender.start()
+            skeServiceLogger.addAppender(logAppender)
+        }
+        afterTest {
+            skeServiceLogger.detachAppender(logAppender)
+            logAppender.stop()
         }
 
         Given("Det finnes en fil i INBOUND") {
@@ -272,14 +281,7 @@ internal class SkeServiceIntegrationTest :
             val dbService = DatabaseService(DBListener.dataSource)
             val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, dbService)
 
-            // en god del av dette kan leve i beforeTest{} og afterTest{}
-            // men så lenge bare én test benytter seg av oppsettet, tenker
-            // jeg det er like greit å ha det her
-            val skeServiceLogger = LoggerFactory.getLogger(SkeService::class.java) as Logger
             Then("skal det logges rett antall krav per fil") {
-                val logAppender = ListAppender<ILoggingEvent>()
-                logAppender.start()
-                skeServiceLogger.addAppender(logAppender)
 
                 try {
                     skeService.handleNewKrav()
@@ -288,8 +290,6 @@ internal class SkeServiceIntegrationTest :
                     messages.filter { it == "Fil: TiNyeKrav.txt - Nye: 10, Endringer: 0, Stopp: 0" }.size shouldBe 1
                     messages.filter { it == "Fil: UtenFremtidigYtelse.txt - Nye: 5, Endringer: 0, Stopp: 0" }.size shouldBe 1
                 } finally {
-                    skeServiceLogger.detachAppender(logAppender)
-                    logAppender.stop()
                 }
             }
         }
