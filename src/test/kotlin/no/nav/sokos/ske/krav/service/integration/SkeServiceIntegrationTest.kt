@@ -285,8 +285,8 @@ internal class SkeServiceIntegrationTest :
                     skeService.handleNewKrav()
 
                     val messages = logAppender.list.map { it.formattedMessage }
-                    messages shouldContain "Fil: TiNyeKrav.txt - Nye: 10, Endringer: 0, Stopp: 0"
-                    messages shouldContain "Fil: UtenFremtidigYtelse.txt - Nye: 5, Endringer: 0, Stopp: 0"
+                    messages.filter { it == "Fil: TiNyeKrav.txt - Nye: 10, Endringer: 0, Stopp: 0" }.size shouldBe 1
+                    messages.filter { it == "Fil: UtenFremtidigYtelse.txt - Nye: 5, Endringer: 0, Stopp: 0" }.size shouldBe 1
                 } finally {
                     skeServiceLogger.detachAppender(logAppender)
                     logAppender.stop()
