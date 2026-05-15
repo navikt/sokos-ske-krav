@@ -1,5 +1,8 @@
 package no.nav.sokos.ske.krav.service.integration
 
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -7,17 +10,9 @@ import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.runs
 import io.mockk.spyk
-import io.mockk.unmockkObject
-import io.mockk.verify
-import mu.KLogger
-import mu.KotlinLogging
-import mu.Marker
+import org.slf4j.LoggerFactory
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
@@ -39,6 +34,7 @@ import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
+import no.nav.sokos.ske.krav.service.SkeService
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
@@ -58,26 +54,22 @@ import no.nav.sokos.ske.krav.validation.FileValidator
 internal class SkeServiceIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener, DBListener)
-        val logger =
-            mockk<KLogger>(relaxed = true) {
-                every { info(any<() -> Unit>()) } just runs
-                every { warn(any<() -> Unit>()) } just runs
-                every { error(any<() -> Unit>()) } just runs
-                every { error(any<String>()) } just runs
-                every { error(any<Marker>(), any<() -> Unit>()) } just runs
-            }
-        beforeSpec {
-            mockkObject(KotlinLogging)
-            every { KotlinLogging.logger(any<() -> Unit>()) } returns logger
-        }
-        afterSpec {
-            unmockkObject(KotlinLogging)
-        }
+
         beforeEach {
             circuitBreaker.reset()
         }
         val ftpService: FtpService by lazy {
             FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), databaseService = mockk<DatabaseService>())
+        }
+        val skeServiceLogger = LoggerFactory.getLogger(SkeService::class.java) as Logger
+        val logAppender = ListAppender<ILoggingEvent>()
+        beforeTest {
+            logAppender.start()
+            skeServiceLogger.addAppender(logAppender)
+        }
+        afterTest {
+            skeServiceLogger.detachAppender(logAppender)
+            logAppender.stop()
         }
 
         Given("Det finnes en fil i INBOUND") {
@@ -289,11 +281,15 @@ internal class SkeServiceIntegrationTest :
             val dbService = DatabaseService(DBListener.dataSource)
             val skeService = setupSkeServiceMockWithMockEngine(DBListener.dataSource, httpClient, ftpService, dbService)
 
-            skeService.handleNewKrav()
             Then("skal det logges rett antall krav per fil") {
-                verify(exactly = 1) {
-                    logger.info("Fil: TiNyeKrav.txt - Nye: 10, Endringer: 0, Stopp: 0")
-                    logger.info("Fil: UtenFremtidigYtelse.txt - Nye: 5, Endringer: 0, Stopp: 0")
+
+                try {
+                    skeService.handleNewKrav()
+
+                    val messages = logAppender.list.map { it.formattedMessage }
+                    messages.filter { it == "Fil: TiNyeKrav.txt - Nye: 10, Endringer: 0, Stopp: 0" }.size shouldBe 1
+                    messages.filter { it == "Fil: UtenFremtidigYtelse.txt - Nye: 5, Endringer: 0, Stopp: 0" }.size shouldBe 1
+                } finally {
                 }
             }
         }
