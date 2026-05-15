@@ -26,54 +26,45 @@ class FileValidator(
     ): ValidationResult {
         val parser = FileParser(content)
 
-        val errorMessages =
-            buildList {
-                runCatching {
-                    val lastLine = parser.parseKontrollLinjeFooter()
-                    val firstLine = parser.parseKontrollLinjeHeader()
-                    val kravLinjer =
-                        runCatching {
-                            parser.parseKravLinjer()
-                        }.onFailure { exception ->
-                            val exceptionMessage = exception.message ?: "Ukjent feil"
-                            add(ErrorKeys.PARSE_EXCEPTION to exceptionMessage)
-                            logger.warn(exception) { "Feil i parsing av kravlinjer" }
-                        }.getOrNull() ?: return@buildList
-
-                    validateLines(lastLine, firstLine, kravLinjer)
-                }.onFailure {
-                    add(ErrorKeys.PARSE_EXCEPTION to (it.message ?: "Ukjent feil"))
-                }
-            }
-
-        if (errorMessages.isEmpty()) {
-            return ValidationResult.Success(parser.parseKravLinjer())
+        if (parser.harFeil()) {
+            val errorMessages = parser.errors()
+            logErrors(fileName, errorMessages)
+            return ValidationResult.Error(messages = errorMessages)
         }
-
-        logger.warn("*** Feil i validering av fil $fileName ***")
-
-        slackService.addError(fileName, "Feil i validering av fil", errorMessages)
-        slackService.sendErrors()
-
-        return ValidationResult.Error(messages = errorMessages)
+        val validationErrors = validateLines(parser.kontrollLinjeFooter.left, parser.kontrollLinjeHeader.left, parser.kravLinjer())
+        if (validationErrors.isNotEmpty()) {
+            logErrors(fileName, validationErrors)
+            return ValidationResult.Error(messages = validationErrors)
+        }
+        return ValidationResult.Success(parser.kravLinjer())
     }
 
-    private fun MutableList<Pair<String, String>>.validateLines(
+    private suspend fun logErrors(
+        fileName: String,
+        errorMessages: List<Pair<String, String>>,
+    ) {
+        logger.warn("*** Feil i validering av fil $fileName ***")
+        slackService.addError(fileName, "Feil i validering av fil", errorMessages)
+        slackService.sendErrors()
+    }
+
+    private fun validateLines(
         lastLine: KontrollLinjeFooter,
         firstLine: KontrollLinjeHeader,
         kravLinjer: List<KravLinje>,
-    ) {
-        if (lastLine.antallTransaksjoner != kravLinjer.size) {
-            add(ErrorKeys.FEIL_I_ANTALL to "Antall krav: ${kravLinjer.size}, Antall i siste linje: ${lastLine.antallTransaksjoner}\n")
+    ): List<Pair<String, String>> =
+        buildList {
+            if (lastLine.antallTransaksjoner != kravLinjer.size) {
+                add(ErrorKeys.FEIL_I_ANTALL to "Antall krav: ${kravLinjer.size}, Antall i siste linje: ${lastLine.antallTransaksjoner}\n")
+            }
+            if (kravLinjer.sumOf { it.belop + it.belopRente }.compareTo(lastLine.sumAlleTransaksjoner) != 0) {
+                add(ErrorKeys.FEIL_I_SUM to "Sum alle linjer: ${kravLinjer.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAlleTransaksjoner}\n")
+            }
+            if (firstLine.transaksjonsDato != lastLine.transaksjonTimestamp) {
+                add(ErrorKeys.FEIL_I_DATO to "Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonTimestamp}\n")
+            }
+            if (kravLinjer.any { it.avsender.trim() == Avsender.OB04.name && it.fagsystemId.isBlank() }) {
+                add(ErrorKeys.FAGSYSTEMID_MANGLER to "fagsystemId mangler i en eller flere kravlinjer\n")
+            }
         }
-        if (kravLinjer.sumOf { it.belop + it.belopRente }.compareTo(lastLine.sumAlleTransaksjoner) != 0) {
-            add(ErrorKeys.FEIL_I_SUM to "Sum alle linjer: ${kravLinjer.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAlleTransaksjoner}\n")
-        }
-        if (firstLine.transaksjonsDato != lastLine.transaksjonTimestamp) {
-            add(ErrorKeys.FEIL_I_DATO to "Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonTimestamp}\n")
-        }
-        if (kravLinjer.any { it.avsender.trim() == Avsender.OB04.name && it.fagsystemId.isBlank() }) {
-            add(ErrorKeys.FAGSYSTEMID_MANGLER to "fagsystemId mangler i en eller flere kravlinjer\n")
-        }
-    }
 }

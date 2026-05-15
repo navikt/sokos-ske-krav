@@ -12,10 +12,10 @@ internal class InfotrygdFileParserTest :
             val infotrygdFil = getFileContent("innsender/InfotrygdFil.txt")
             val infotrygdParser = FileParser(infotrygdFil)
 
-            infotrygdParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.INFOTRYGD.name
-            infotrygdParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.INFOTRYGD.name
+            infotrygdParser.kontrollLinjeHeader.left.avsender shouldBe Avsender.INFOTRYGD.name
+            infotrygdParser.kontrollLinjeFooter.left.avsender shouldBe Avsender.INFOTRYGD.name
 
-            val kravLinjer = infotrygdParser.parseKravLinjer()
+            val kravLinjer = infotrygdParser.kravLinjer()
             kravLinjer.forEach { kravLinje ->
                 kravLinje.avsender shouldBe Avsender.INFOTRYGD.name
             }

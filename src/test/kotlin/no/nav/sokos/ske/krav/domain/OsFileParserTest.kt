@@ -12,7 +12,7 @@ internal class OsFileParserTest :
         val altOkParser = FileParser(altOkFil)
 
         test("Sjekk at stønadstyper fra OS mappes riktig") {
-            val kravLinjer = altOkParser.parseKravLinjer()
+            val kravLinjer = altOkParser.kravLinjer()
 
             kravLinjer.first { it.kravKode == "PE AP" }.let {
                 StonadsType.getStonadstype(it.kravKode, it.kodeHjemmel) shouldBe StonadsType.TILBAKEKREVING_ALDERSPENSJON

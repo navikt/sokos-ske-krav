@@ -4,21 +4,52 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import io.github.resilience4j.core.functions.Either
 import io.ktor.http.parsing.ParseException
 
+import no.nav.sokos.ske.krav.validation.FileValidator
 import no.nav.sokos.ske.krav.validation.LineValidationRules
 
 class FileParser(
     private val content: List<String>,
 ) {
-    fun parseKontrollLinjeHeader() = kontrollLinjeHeaderParser(content.first())
+    val kontrollLinjeHeader: Either<KontrollLinjeHeader, ParseException> =
+        try {
+            Either.left(kontrollLinjeHeaderParser(content.first()))
+        } catch (e: ParseException) {
+            Either.right(e)
+        } catch (_: NoSuchElementException) {
+            Either.right(ParseException("Filen har ikke en første linje"))
+        }
 
-    fun parseKontrollLinjeFooter() = kontrollLinjeFooterParser(content.last())
+    val kontrollLinjeFooter: Either<KontrollLinjeFooter, ParseException> =
+        try {
+            Either.left(kontrollLinjeFooterParser(content.last()))
+        } catch (e: ParseException) {
+            Either.right(e)
+        } catch (_: NoSuchElementException) {
+            Either.right(ParseException("Filen har ikke en siste linje"))
+        }
 
-    fun parseKravLinjer(): List<KravLinje> {
-        val header = parseKontrollLinjeHeader()
-        return content.subList(1, content.lastIndex).map { linje -> kravLinjeParser(linje, header.avsender) }
-    }
+    val linjer: List<FtpLinje> = parseKravLinjer()
+
+    fun kravLinjer(): List<KravLinje> = linjer.filterIsInstance<KravLinje>()
+
+    private fun parseKravLinjer(): List<FtpLinje> =
+        if (kontrollLinjeHeader.isLeft && content.size > 1) {
+            content.subList(1, content.lastIndex).mapIndexed { index, linje -> kravLinjeParser(linje, index + 1, kontrollLinjeHeader.left.avsender) }
+        } else {
+            emptyList()
+        }
+
+    fun harFeil() = kontrollLinjeHeader.isRight || kontrollLinjeFooter.isRight || linjer.any { it is ErrorLinje }
+
+    fun errors(): List<Pair<String, String>> =
+        buildList {
+            if (kontrollLinjeHeader.isRight) add(FileValidator.ErrorKeys.PARSE_EXCEPTION to (kontrollLinjeHeader.get().message ?: "Ukjent feil"))
+            if (kontrollLinjeFooter.isRight) add(FileValidator.ErrorKeys.PARSE_EXCEPTION to (kontrollLinjeFooter.get().message ?: "Ukjent feil"))
+            linjer.filterIsInstance<ErrorLinje>().forEach { add(FileValidator.ErrorKeys.PARSE_EXCEPTION to it.message) }
+        }
 
     private fun kontrollLinjeHeaderParser(linje: String): KontrollLinjeHeader =
         KontrollLinjeHeader(
@@ -36,30 +67,35 @@ class FileParser(
 
     private fun kravLinjeParser(
         linje: String,
+        index: Int,
         avsender: String,
     ) = with(linje) {
-        KravLinje(
-            linjenummer = getInt(start = 4, end = 11),
-            saksnummerNav = getString(start = 11, end = 29),
-            belop = getBigDecimal(start = 29, end = 40),
-            vedtaksDato = getDate(start = 40, end = 48),
-            gjelderId = getString(start = 48, end = 59),
-            periodeFOM = getString(start = 59, end = 67),
-            periodeTOM = getString(start = 67, end = 75),
-            kravKode = getString(start = 75, end = 83).replace(0xFFFD.toChar(), 'Ø'),
-            referansenummerGammelSak = getString(start = 83, end = 101),
-            transaksjonsDato = getString(start = 101, end = 109),
-            enhetBosted = getString(start = 109, end = 113),
-            enhetBehandlende = getString(start = 113, end = 117),
-            kodeHjemmel = getString(start = 117, end = 119),
-            kodeArsak = getString(start = 119, end = 131),
-            belopRente = getBigDecimal(start = 131, end = 151),
-            fremtidigYtelse = getBigDecimal(start = 151, end = 162),
-            utbetalDato = getDate(start = 162, end = 170),
-            fagsystemId = getString(start = 170, end = 200),
-            tilleggsfrist = getOptionalDate(start = 200, end = 208),
-            avsender = avsender,
-        )
+        try {
+            KravLinje(
+                linjenummer = getInt(start = 4, end = 11),
+                saksnummerNav = getString(start = 11, end = 29),
+                belop = getBigDecimal(start = 29, end = 40),
+                vedtaksDato = getDate(start = 40, end = 48),
+                gjelderId = getString(start = 48, end = 59),
+                periodeFOM = getString(start = 59, end = 67),
+                periodeTOM = getString(start = 67, end = 75),
+                kravKode = getString(start = 75, end = 83).replace(0xFFFD.toChar(), 'Ø'),
+                referansenummerGammelSak = getString(start = 83, end = 101),
+                transaksjonsDato = getString(start = 101, end = 109),
+                enhetBosted = getString(start = 109, end = 113),
+                enhetBehandlende = getString(start = 113, end = 117),
+                kodeHjemmel = getString(start = 117, end = 119),
+                kodeArsak = getString(start = 119, end = 131),
+                belopRente = getBigDecimal(start = 131, end = 151),
+                fremtidigYtelse = getBigDecimal(start = 151, end = 162),
+                utbetalDato = getDate(start = 162, end = 170),
+                fagsystemId = getString(start = 170, end = 200),
+                tilleggsfrist = getOptionalDate(start = 200, end = 208),
+                avsender = avsender,
+            )
+        } catch (e: ParseException) {
+            ErrorLinje("Parsingfeil på linje #$index: ${e.message}")
+        }
     }
 
     private fun String.getString(

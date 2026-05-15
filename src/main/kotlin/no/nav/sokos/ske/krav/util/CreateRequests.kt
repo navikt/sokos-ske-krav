@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
 import kotlinx.datetime.toKotlinLocalDate
 
-import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.dto.ske.requests.AvskrivingRequest
@@ -60,12 +59,6 @@ fun createStoppKravRequest(
     kravidentifikator: String,
     kravidentifikatorType: KravidentifikatorType,
 ) = AvskrivingRequest(kravidentifikatorType.value, kravidentifikator)
-
-fun KravLinje.isOpprettKrav() = (!this.isEndring() && !this.isStopp())
-
-fun KravLinje.isEndring() = (referansenummerGammelSak.isNotEmpty() && !isStopp())
-
-fun KravLinje.isStopp() = (belop.toDouble().roundToLong() == 0L)
 
 private fun createRenteBelop(krav: Krav): List<RenteBeloep> =
     listOf(
