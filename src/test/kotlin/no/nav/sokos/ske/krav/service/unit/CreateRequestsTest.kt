@@ -27,9 +27,6 @@ import no.nav.sokos.ske.krav.util.createEndreHovedstolRequest
 import no.nav.sokos.ske.krav.util.createEndreRenteRequest
 import no.nav.sokos.ske.krav.util.createOpprettKravRequest
 import no.nav.sokos.ske.krav.util.createStoppKravRequest
-import no.nav.sokos.ske.krav.util.isEndring
-import no.nav.sokos.ske.krav.util.isOpprettKrav
-import no.nav.sokos.ske.krav.util.isStopp
 import no.nav.sokos.ske.krav.validation.LineValidationRules
 
 internal class CreateRequestsTest :
@@ -318,19 +315,19 @@ internal class CreateRequestsTest :
 
         Given("isOpprettKrav") {
             When("KravLinje er opprett krav") {
-                val kravLinje = kravLinjeMockk()
+                val kravLinje = kravLinje()
                 Then("Skal det returnere true") {
                     kravLinje.isOpprettKrav() shouldBe true
                 }
             }
             When("KravLinje er endring krav") {
-                val kravLinje = kravLinjeMockk(referansenummerGammelSakParam = "123456789")
+                val kravLinje = kravLinje(referansenummerGammelSakParam = "123456789")
                 Then("Skal det returnere false") {
                     kravLinje.isOpprettKrav() shouldBe false
                 }
             }
             When("KravLinje er stopp krav") {
-                val kravLinje = kravLinjeMockk(belopParam = BigDecimal.ZERO)
+                val kravLinje = kravLinje(belopParam = BigDecimal.ZERO)
                 Then("Skal det returnere false") {
                     kravLinje.isOpprettKrav() shouldBe false
                 }
@@ -339,21 +336,21 @@ internal class CreateRequestsTest :
 
         Given("isEndring") {
             When("KravLinje er endring krav") {
-                val kravLinje = kravLinjeMockk(referansenummerGammelSakParam = "123456789")
+                val kravLinje = kravLinje(referansenummerGammelSakParam = "123456789")
                 Then("Skal det returnere true") {
                     kravLinje.isEndring() shouldBe true
                 }
             }
 
             When("KravLinje er opprett krav") {
-                val kravLinje = kravLinjeMockk()
+                val kravLinje = kravLinje()
                 Then("Skal det returnere false") {
                     kravLinje.isEndring() shouldBe false
                 }
             }
 
             When("KravLinje er stopp krav") {
-                val kravLinje = kravLinjeMockk(belopParam = BigDecimal.ZERO)
+                val kravLinje = kravLinje(belopParam = BigDecimal.ZERO)
                 Then("Skal det returnere false") {
                     kravLinje.isEndring() shouldBe false
                 }
@@ -362,35 +359,35 @@ internal class CreateRequestsTest :
 
         Given("isStopp") {
             When("KravLinje er stopp krav") {
-                val kravLinje = kravLinjeMockk(belopParam = BigDecimal.ZERO)
+                val kravLinje = kravLinje(belopParam = BigDecimal.ZERO)
                 Then("Skal det returnere true") {
                     kravLinje.isStopp() shouldBe true
                 }
             }
 
             When("KravLinje har veldig lite beløp som rundes til 0") {
-                val kravLinje = kravLinjeMockk(belopParam = BigDecimal("0.49"))
+                val kravLinje = kravLinje(belopParam = BigDecimal("0.49"))
                 Then("Skal det returnere true") {
                     kravLinje.isStopp() shouldBe true
                 }
             }
 
             When("KravLinje har lite beløp som rundes til 1") {
-                val kravLinje = kravLinjeMockk(belopParam = BigDecimal("0.50"))
+                val kravLinje = kravLinje(belopParam = BigDecimal("0.50"))
                 Then("Skal det returnere false") {
                     kravLinje.isStopp() shouldBe false
                 }
             }
 
             When("KravLinje er opprett krav") {
-                val kravLinje = kravLinjeMockk()
+                val kravLinje = kravLinje()
                 Then("Skal det returnere false") {
                     kravLinje.isStopp() shouldBe false
                 }
             }
 
             When("KravLinje er endring krav") {
-                val kravLinje = kravLinjeMockk(referansenummerGammelSakParam = "123456789")
+                val kravLinje = kravLinje(referansenummerGammelSakParam = "123456789")
                 Then("Skal det returnere false") {
                     kravLinje.isStopp() shouldBe false
                 }
@@ -428,10 +425,27 @@ fun kravTableMockk(
     every { saksnummerNAV } returns saksnummerNavParam
 }
 
-fun kravLinjeMockk(
+fun kravLinje(
     referansenummerGammelSakParam: String = "",
     belopParam: BigDecimal = BigDecimal(100.0),
-) = mockk<KravLinje>(relaxed = true) {
-    every { referansenummerGammelSak } returns referansenummerGammelSakParam
-    every { belop } returns belopParam
-}
+) = KravLinje(
+    linjenummer = 1,
+    saksnummerNav = "",
+    belop = belopParam,
+    vedtaksDato = LocalDate.now(),
+    gjelderId = "",
+    periodeFOM = "",
+    periodeTOM = "",
+    kravKode = "",
+    referansenummerGammelSak = referansenummerGammelSakParam,
+    transaksjonsDato = "",
+    enhetBosted = "",
+    enhetBehandlende = "",
+    kodeHjemmel = "",
+    kodeArsak = "",
+    belopRente = BigDecimal.ZERO,
+    fremtidigYtelse = BigDecimal.ZERO,
+    utbetalDato = LocalDate.now(),
+    fagsystemId = "",
+    avsender = "",
+)

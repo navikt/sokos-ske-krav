@@ -109,12 +109,12 @@ internal class FileValidatorTest :
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
-                Then("Skal Exception kastes og melding skal inneholde 'Feil i parsing av BigDecimal'") {
+                Then("Skal parsingfeil registreres og melding skal inneholde 'Feil i parsing av BigDecimal'") {
                     val validationResult = fileValidator.validateFile(content, fileName)
                     with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        count { it.first == ErrorKeys.PARSE_EXCEPTION } shouldBe 1
-                        count { it.first == ErrorKeys.PARSE_EXCEPTION && it.second.contains("Feil i parsing av BigDecimal") } shouldBe 1
+                        size shouldBe 5
+                        count { it.first == ErrorKeys.PARSE_EXCEPTION } shouldBe 5
+                        count { it.first == ErrorKeys.PARSE_EXCEPTION && it.second.contains("Feil i parsing av BigDecimal") } shouldBe 5
                     }
                 }
             }

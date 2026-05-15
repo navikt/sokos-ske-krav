@@ -12,10 +12,10 @@ internal class ArenaFileParserTest :
             val arenaFil = getFileContent("innsender/ArenaFil.txt")
             val arenaParser = FileParser(arenaFil)
 
-            arenaParser.parseKontrollLinjeHeader().avsender shouldBe Avsender.ARENA.name
-            arenaParser.parseKontrollLinjeFooter().avsender shouldBe Avsender.ARENA.name
+            arenaParser.kontrollLinjeHeader.left.avsender shouldBe Avsender.ARENA.name
+            arenaParser.kontrollLinjeFooter.left.avsender shouldBe Avsender.ARENA.name
 
-            val kravLinjer = arenaParser.parseKravLinjer()
+            val kravLinjer = arenaParser.kravLinjer()
             kravLinjer.size shouldBe 18
             kravLinjer.forEach { kravLinje ->
                 kravLinje.avsender shouldBe Avsender.ARENA.name

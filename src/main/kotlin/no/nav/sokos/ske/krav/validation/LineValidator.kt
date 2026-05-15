@@ -2,7 +2,6 @@ package no.nav.sokos.ske.krav.validation
 
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.copybook.KravLinje
-import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.FtpFil
@@ -23,14 +22,14 @@ class LineValidator(
 
                 when (val result: ValidationResult = LineValidationRules.runValidation(linje)) {
                     is ValidationResult.Success -> {
-                        linje.copy(status = Status.KRAV_IKKE_SENDT.value)
+                        linje.markAsValid()
                     }
 
                     is ValidationResult.Error -> {
                         slackMessages.addAll(result.messages)
 
                         dbService.saveLineValidationError(file.name, linje, result.messages.joinToString { pair -> pair.second })
-                        linje.copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
+                        linje.markAsValidationError()
                     }
                 }
             }
