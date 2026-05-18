@@ -14,6 +14,7 @@ import no.nav.sokos.ske.krav.config.CircuitBreakerManager
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
@@ -23,6 +24,7 @@ import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
+import no.nav.sokos.ske.krav.util.transaction
 
 class StoppKravServiceIntegrationTest :
     BehaviorSpec({
@@ -55,8 +57,12 @@ class StoppKravServiceIntegrationTest :
                     }
                 }
                 Then("Skal krav ikke oppdateres med status sendt") {
-                    kravRepository
-                        .getAllKrav()
+                    val allKrav =
+                        dataSource.transaction { session ->
+                            kravRepository.getAllKrav(session)
+                        }
+
+                    allKrav
                         .filter { it.status == Status.KRAV_IKKE_SENDT }
                         .shouldHaveSize(2)
 

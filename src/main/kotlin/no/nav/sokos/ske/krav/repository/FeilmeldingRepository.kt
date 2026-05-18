@@ -30,17 +30,17 @@ class FeilmeldingRepository(
         )
     }
 
-    fun getAllFeilmeldinger(): List<Feilmelding> =
-        dataSource.transaction { session ->
-            session.list(
-                queryOf(
-                    """
-                    select * from feilmelding
-                    """.trimIndent(),
-                ),
-                mapToFeilmelding,
-            )
-        }
+    fun getAllFeilmeldinger(): List<Feilmelding> = dataSource.transaction { session -> getAllFeilmeldinger(session) }
+
+    fun getAllFeilmeldinger(session: TransactionalSession): List<Feilmelding> =
+        session.list(
+            queryOf(
+                """
+                select * from feilmelding
+                """.trimIndent(),
+            ),
+            mapToFeilmelding,
+        )
 
     fun getFeilmeldingerForKravId(
         session: TransactionalSession,
@@ -85,54 +85,58 @@ class FeilmeldingRepository(
             "ske_response" to feilmelding.skeResponse,
         )
 
-    fun insertFeilmelding(feilmelding: Feilmelding) {
-        dataSource.transaction { session ->
-            session.update(
-                queryOf(
-                    insertFeilmeldingQuery(),
-                    insertFeilmeldingNamesParams(feilmelding),
-                ),
-            )
-        }
-    }
-
-    fun insertFeilmeldinger(feilmeldinger: List<Feilmelding>) {
-        dataSource.transaction { session ->
-            session.batchPreparedNamedStatement(
+    fun insertFeilmelding(
+        session: TransactionalSession,
+        feilmelding: Feilmelding,
+    ) {
+        session.update(
+            queryOf(
                 insertFeilmeldingQuery(),
-                feilmeldinger.map { feilmelding ->
-                    insertFeilmeldingNamesParams(feilmelding)
-                },
-            )
-        }
+                insertFeilmeldingNamesParams(feilmelding),
+            ),
+        )
     }
 
-    fun updateStatusForAvstemtKravToReported(kravId: Int) {
-        dataSource.transaction { session ->
-            session.update(
-                queryOf(
-                    """
-                    update feilmelding
-                        set rapporter = false
-                    where krav_id = ?
-                    """.trimIndent(),
-                    kravId,
-                ),
-            )
-        }
+    fun insertFeilmeldinger(
+        session: TransactionalSession,
+        feilmeldinger: List<Feilmelding>,
+    ) {
+        session.batchPreparedNamedStatement(
+            insertFeilmeldingQuery(),
+            feilmeldinger.map { feilmelding ->
+                insertFeilmeldingNamesParams(feilmelding)
+            },
+        )
     }
 
-    fun deleteOldFeilmeldinger(threshold: LocalDate): Int =
-        dataSource.transaction { session ->
-            session.update(
-                queryOf(
-                    """
-                    delete from feilmelding where tidspunkt_opprettet < ?
-                    """.trimIndent(),
-                    threshold,
-                ),
-            )
-        }
+    fun updateStatusForAvstemtKravToReported(
+        session: TransactionalSession,
+        kravId: Int,
+    ) {
+        session.update(
+            queryOf(
+                """
+                update feilmelding
+                    set rapporter = false
+                where krav_id = ?
+                """.trimIndent(),
+                kravId,
+            ),
+        )
+    }
+
+    fun deleteOldFeilmeldinger(
+        session: TransactionalSession,
+        threshold: LocalDate,
+    ): Int =
+        session.update(
+            queryOf(
+                """
+                delete from feilmelding where tidspunkt_opprettet < ?
+                """.trimIndent(),
+                threshold,
+            ),
+        )
 
     companion object {
         val instance: FeilmeldingRepository by lazy { FeilmeldingRepository() }

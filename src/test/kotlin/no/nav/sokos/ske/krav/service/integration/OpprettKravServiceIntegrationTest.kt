@@ -13,6 +13,7 @@ import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.OpprettKravService
@@ -22,6 +23,7 @@ import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.nyttKravResponse
+import no.nav.sokos.ske.krav.util.transaction
 
 internal class OpprettKravServiceIntegrationTest :
     BehaviorSpec({
@@ -47,7 +49,10 @@ internal class OpprettKravServiceIntegrationTest :
                     coVerify(exactly = 1) { opprettKravServiceSpy["sendOpprettKrav"](ofType<Krav>()) }
                 }
                 Then("Skal kravene ikke oppdateres") {
-                    val krav = kravRepository.getAllKrav()
+                    val krav =
+                        dataSource.transaction { session ->
+                            kravRepository.getAllKrav(session)
+                        }
                     krav.shouldHaveSize(2)
                     krav.count { it.saksnummerNAV == "1111-navsaksnr" } shouldBe 1
                     krav.count { it.saksnummerNAV == "2222-navsaksnr" } shouldBe 1

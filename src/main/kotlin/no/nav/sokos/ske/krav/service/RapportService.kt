@@ -1,11 +1,15 @@
 package no.nav.sokos.ske.krav.service
 
+import javax.sql.DataSource
+
+import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.domain.StonadsType.Companion.getStonadstype
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
+import no.nav.sokos.ske.krav.util.transaction
 
 @RequiresOptIn(message = "Skal bare brukes i frontend")
 @Retention(AnnotationRetention.BINARY)
@@ -16,13 +20,14 @@ enum class RapportType { AVSTEMMING, RESENDING }
 
 @Frontend
 class RapportService(
+    private val dataSource: DataSource = PostgresDataSource.dataSource,
     private val feilmeldingRepository: FeilmeldingRepository = FeilmeldingRepository.instance,
     private val kravRepository: KravRepository = KravRepository.instance,
 ) {
     val kravSomSkalAvstemmes by lazy { mapToRapportObjekt(kravRepository.getAllKravForAvstemming()) }
     val kravSomSkalResendes by lazy { mapToRapportObjekt(kravRepository.getAllKravForResending()) }
 
-    fun oppdaterStatusTilRapportert(kravId: Int) = feilmeldingRepository.updateStatusForAvstemtKravToReported(kravId)
+    fun oppdaterStatusTilRapportert(kravId: Int) = dataSource.transaction { session -> feilmeldingRepository.updateStatusForAvstemtKravToReported(session, kravId) }
 
     private fun mapToRapportObjekt(liste: List<Krav>) =
         liste

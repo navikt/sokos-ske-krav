@@ -17,6 +17,7 @@ import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
@@ -26,6 +27,7 @@ import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody
+import no.nav.sokos.ske.krav.util.transaction
 
 internal class StatusServiceIntegrationTest :
     BehaviorSpec({
@@ -36,7 +38,7 @@ internal class StatusServiceIntegrationTest :
             val slackClientSpy = spyk(SlackClient(client = MockHttpClient.slackClient))
             val slackServiceSpy = spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
             val skeClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
-            val statusServiceSpy = spyk(StatusService(skeClient, slackServiceSpy, feilmeldingRepository, kravRepository), recordPrivateCalls = true)
+            val statusServiceSpy = spyk(StatusService(dataSource, skeClient, slackServiceSpy, feilmeldingRepository, kravRepository), recordPrivateCalls = true)
 
             return Triple(slackClientSpy, slackServiceSpy, statusServiceSpy)
         }
@@ -51,7 +53,7 @@ internal class StatusServiceIntegrationTest :
 
             kravRepository.getAllKravForStatusCheck().shouldHaveSize(5)
 
-            StatusService(skeClient, mockk<SlackService>(relaxed = true), feilmeldingRepository, kravRepository).getMottaksStatus()
+            StatusService(dataSource, skeClient, mockk<SlackService>(relaxed = true), feilmeldingRepository, kravRepository).getMottaksStatus()
             Then("Skal krav ikke oppdateres") {
                 kravRepository.getAllKravForStatusCheck().shouldHaveSize(5)
             }
@@ -64,12 +66,18 @@ internal class StatusServiceIntegrationTest :
             val (slackClientSpy, _, statusService) = setupServices(httpClient)
 
             Then("Skal mottaksstatus settes til RESKONTROFOERT i database") {
-                val allKravBeforeUpdate = kravRepository.getAllKrav()
+                val allKravBeforeUpdate =
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session)
+                    }
                 allKravBeforeUpdate.count { it.status == Status.RESKONTROFOERT } shouldBe 3
 
                 statusService.getMottaksStatus()
 
-                val allKravAfterUpdate = kravRepository.getAllKrav()
+                val allKravAfterUpdate =
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session)
+                    }
                 allKravAfterUpdate.count { it.status == Status.RESKONTROFOERT } shouldBe 8
             }
             Then("Alert skal ikke sendes") {
@@ -104,8 +112,12 @@ internal class StatusServiceIntegrationTest :
             }
 
             Then("Mottaksstatus skal settes til VALIDERINGSFEIL i database") {
-                kravRepository
-                    .getAllKrav()
+                val allKrav =
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session)
+                    }
+
+                allKrav
                     .filter { it.status == Status.VALIDERINGSFEIL_MOTTAKSSTATUS }
                     .distinctBy { it.corrId }
                     .shouldHaveSize(5)

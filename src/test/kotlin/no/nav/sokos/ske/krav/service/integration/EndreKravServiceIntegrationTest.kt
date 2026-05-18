@@ -15,6 +15,7 @@ import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
@@ -25,6 +26,7 @@ import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
+import no.nav.sokos.ske.krav.util.transaction
 
 class EndreKravServiceIntegrationTest :
     BehaviorSpec({
@@ -56,7 +58,10 @@ class EndreKravServiceIntegrationTest :
                     requestResults.shouldBeEmpty()
                 }
                 Then("Skal kravstatus ikke oppdateres") {
-                    val krav = kravRepository.getAllKrav()
+                    val krav =
+                        dataSource.transaction { session ->
+                            kravRepository.getAllKrav(session)
+                        }
 
                     kravRepository.getAllUnsentKrav().shouldHaveSize(4)
                     krav.filter { it.status == Status.KRAV_SENDT }.shouldBeEmpty()

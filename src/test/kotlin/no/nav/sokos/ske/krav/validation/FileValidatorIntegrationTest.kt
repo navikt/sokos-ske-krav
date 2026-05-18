@@ -1,6 +1,9 @@
 package no.nav.sokos.ske.krav.validation
 
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
@@ -12,12 +15,14 @@ import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.filvalideringsFeilRepository
 import no.nav.sokos.ske.krav.listener.SftpListener
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.util.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
+import no.nav.sokos.ske.krav.util.transaction
 import no.nav.sokos.ske.krav.validation.FileValidator.ErrorKeys
 
 internal class FileValidatorIntegrationTest :
@@ -30,7 +35,12 @@ internal class FileValidatorIntegrationTest :
         }
 
         fun setupFtpService(slackServiceSpy: SlackService): FtpService =
-            FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(slackService = slackServiceSpy), filvalideringsFeilRepository)
+            FtpService(
+                dataSource = dataSource,
+                sftpConfig = SftpConfig(SftpListener.sftpProperties),
+                fileValidator = FileValidator(slackService = slackServiceSpy),
+                filValideringsfeilRepository = filvalideringsFeilRepository,
+            )
 
         Given("Fil er OK") {
             val slackServiceSpy = setupSlackService()
@@ -42,7 +52,9 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal ingen feil lagres i database") {
-                    filvalideringsFeilRepository.getFilValideringsFeilForFil(fileName).size shouldBe 0
+                    dataSource.transaction { session ->
+                        filvalideringsFeilRepository.getFilValideringsFeilForFil(session, fileName).shouldBeEmpty()
+                    }
                 }
 
                 And("Alert skal ikke sendes") {
@@ -64,14 +76,17 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal feilen lagres i database") {
-                    with(filvalideringsFeilRepository.getFilValideringsFeilForFil(fileNameOnSftp)) {
-                        size shouldBe 1
-                        with(first()) {
-                            filnavn shouldBe fileNameOnSftp
-                            feilmelding shouldContain ErrorKeys.FEIL_I_ANTALL
-                            feilmelding shouldNotContain ErrorKeys.FEIL_I_SUM
-                            feilmelding shouldNotContain ErrorKeys.FEIL_I_DATO
+                    val filValideringsfeil =
+                        dataSource.transaction { session ->
+                            filvalideringsFeilRepository.getFilValideringsFeilForFil(session, fileNameOnSftp)
                         }
+                    filValideringsfeil.shouldHaveSize(1)
+
+                    with(filValideringsfeil.first()) {
+                        filnavn shouldBe fileNameOnSftp
+                        feilmelding shouldContain ErrorKeys.FEIL_I_ANTALL
+                        feilmelding shouldNotContain ErrorKeys.FEIL_I_SUM
+                        feilmelding shouldNotContain ErrorKeys.FEIL_I_DATO
                     }
                 }
                 And("Alert skal sendes til slack") {
@@ -85,8 +100,8 @@ internal class FileValidatorIntegrationTest :
                     sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
                     sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
-                    capturedSendAlertMessages.size shouldBe 1
-                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_ANTALL }.size shouldBe 1
+                    capturedSendAlertMessages.shouldHaveSize(1)
+                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_ANTALL } shouldHaveSize 1
                 }
             }
         }
@@ -102,14 +117,17 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal feilen lagres i database ") {
-                    with(filvalideringsFeilRepository.getFilValideringsFeilForFil(fileNameOnSftp)) {
-                        size shouldBe 1
-                        with(first()) {
-                            filnavn shouldBe fileNameOnSftp
-                            feilmelding shouldContain ErrorKeys.FEIL_I_SUM
-                            feilmelding shouldNotContain ErrorKeys.FEIL_I_ANTALL
-                            feilmelding shouldNotContain ErrorKeys.FEIL_I_DATO
+                    val filValideringsfeils =
+                        dataSource.transaction { session ->
+                            filvalideringsFeilRepository.getFilValideringsFeilForFil(session, fileNameOnSftp)
                         }
+
+                    filValideringsfeils.shouldHaveSize(1)
+                    with(filValideringsfeils.first()) {
+                        filnavn shouldBe fileNameOnSftp
+                        feilmelding shouldContain ErrorKeys.FEIL_I_SUM
+                        feilmelding shouldNotContain ErrorKeys.FEIL_I_ANTALL
+                        feilmelding shouldNotContain ErrorKeys.FEIL_I_DATO
                     }
                 }
                 And("Alert skal sendes til slack") {
@@ -123,8 +141,8 @@ internal class FileValidatorIntegrationTest :
                     sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
                     sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
-                    capturedSendAlertMessages.size shouldBe 1
-                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_SUM }.size shouldBe 1
+                    capturedSendAlertMessages.shouldHaveSize(1)
+                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_SUM }.shouldHaveSize(1)
                 }
             }
         }
@@ -140,14 +158,17 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal feilen lagres i database ") {
-                    with(filvalideringsFeilRepository.getFilValideringsFeilForFil(fileNameOnSftp)) {
-                        size shouldBe 1
-                        with(first()) {
-                            filnavn shouldBe fileNameOnSftp
-                            feilmelding shouldContain ErrorKeys.FEIL_I_DATO
-                            feilmelding shouldNotContain ErrorKeys.FEIL_I_SUM
-                            feilmelding shouldNotContain ErrorKeys.FEIL_I_ANTALL
+                    val filValideringsfeils =
+                        dataSource.transaction { session ->
+                            filvalideringsFeilRepository.getFilValideringsFeilForFil(session, fileNameOnSftp)
                         }
+
+                    filValideringsfeils.shouldHaveSize(1)
+                    with(filValideringsfeils.first()) {
+                        filnavn shouldBe fileNameOnSftp
+                        feilmelding shouldContain ErrorKeys.FEIL_I_DATO
+                        feilmelding shouldNotContain ErrorKeys.FEIL_I_SUM
+                        feilmelding shouldNotContain ErrorKeys.FEIL_I_ANTALL
                     }
                 }
                 And("Alert skal sendes til slack") {
@@ -161,8 +182,8 @@ internal class FileValidatorIntegrationTest :
                     sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
                     sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
-                    capturedSendAlertMessages.size shouldBe 1
-                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_DATO }.size shouldBe 1
+                    capturedSendAlertMessages.shouldHaveSize(1)
+                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_DATO }.shouldHaveSize(1)
                 }
             }
         }
@@ -178,8 +199,13 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal feilene lagres i database ") {
-                    with(filvalideringsFeilRepository.getFilValideringsFeilForFil(fileNameOnSftp)) {
-                        size shouldBe 4
+                    val filValideringsfeils =
+                        dataSource.transaction { session ->
+                            filvalideringsFeilRepository.getFilValideringsFeilForFil(session, fileNameOnSftp)
+                        }
+
+                    with(filValideringsfeils) {
+                        shouldHaveSize(4)
                         count { it.filnavn == fileNameOnSftp } shouldBe 4
                         count { it.feilmelding.contains(ErrorKeys.FEIL_I_DATO) } shouldBe 1
                         count { it.feilmelding.contains(ErrorKeys.FEIL_I_SUM) } shouldBe 1
@@ -197,12 +223,14 @@ internal class FileValidatorIntegrationTest :
                     }
                     sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
                     sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
-                    val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
-                    capturedSendAlertMessages.size shouldBe 4
-                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_DATO }.size shouldBe 1
-                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_SUM }.size shouldBe 1
-                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_ANTALL }.size shouldBe 1
-                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FAGSYSTEMID_MANGLER }.size shouldBe 1
+                    val capturedSendAlertMessages: Map<String, List<Pair<String, String>>> = sendAlertMessagesSlot.captured.groupBy { it.first }
+                    with(capturedSendAlertMessages) {
+                        shouldHaveSize(4)
+                        get(ErrorKeys.FEIL_I_DATO)?.shouldHaveSize(1)
+                        get(ErrorKeys.FEIL_I_SUM)?.shouldHaveSize(1)
+                        get(ErrorKeys.FEIL_I_ANTALL)?.shouldHaveSize(1)
+                        get(ErrorKeys.FAGSYSTEMID_MANGLER)?.shouldHaveSize(1)
+                    }
                 }
             }
         }
@@ -217,7 +245,9 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal ingen feil lagres i database") {
-                    filvalideringsFeilRepository.getFilValideringsFeilForFil(fileNameOnSftp).size shouldBe 0
+                    dataSource.transaction { session ->
+                        filvalideringsFeilRepository.getFilValideringsFeilForFil(session, fileNameOnSftp).shouldBeEmpty()
+                    }
                 }
 
                 And("Alert skal ikke sendes") {
@@ -239,7 +269,9 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal ingen feil lagres i database") {
-                    filvalideringsFeilRepository.getFilValideringsFeilForFil(fileNameOnSftp).size shouldBe 0
+                    dataSource.transaction { session ->
+                        filvalideringsFeilRepository.getFilValideringsFeilForFil(session, fileNameOnSftp).shouldBeEmpty()
+                    }
                 }
 
                 And("Alert skal ikke sendes") {
@@ -261,7 +293,9 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal ingen feil lagres i database") {
-                    filvalideringsFeilRepository.getFilValideringsFeilForFil(fileNameOnSftp).size shouldBe 0
+                    dataSource.transaction { session ->
+                        filvalideringsFeilRepository.getFilValideringsFeilForFil(session, fileNameOnSftp).shouldBeEmpty()
+                    }
                 }
 
                 And("Alert skal ikke sendes") {
@@ -283,7 +317,9 @@ internal class FileValidatorIntegrationTest :
                 ftpService.getValidatedFiles()
 
                 Then("Skal ingen feil lagres i database") {
-                    filvalideringsFeilRepository.getFilValideringsFeilForFil(fileNameOnSftp).size shouldBe 0
+                    dataSource.transaction { session ->
+                        filvalideringsFeilRepository.getFilValideringsFeilForFil(session, fileNameOnSftp).shouldBeEmpty()
+                    }
                 }
 
                 And("Alert skal ikke sendes") {

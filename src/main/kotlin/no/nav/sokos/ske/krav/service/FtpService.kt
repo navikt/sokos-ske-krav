@@ -2,14 +2,19 @@ package no.nav.sokos.ske.krav.service
 
 import java.io.ByteArrayOutputStream
 import java.io.File
+import javax.sql.DataSource
 
 import com.jcraft.jsch.SftpException
+import com.sun.org.apache.xml.internal.serializer.utils.Utils.messages
+import jdk.internal.joptsimple.internal.Messages.message
 import mu.KotlinLogging
 
+import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
+import no.nav.sokos.ske.krav.util.transaction
 import no.nav.sokos.ske.krav.validation.FileValidator
 import no.nav.sokos.ske.krav.validation.ValidationResult
 
@@ -28,6 +33,7 @@ data class FtpFil(
 )
 
 class FtpService(
+    private val dataSource: DataSource = PostgresDataSource.dataSource,
     private val sftpConfig: SftpConfig = SftpConfig(),
     private val fileValidator: FileValidator = FileValidator(),
     private val filValideringsfeilRepository: FilValideringsfeilRepository = FilValideringsfeilRepository.instance,
@@ -101,8 +107,11 @@ class FtpService(
         directory: Directories,
     ) {
         moveFile(fileName, directory, Directories.FAILED)
-        errorMessages.forEach { message ->
-            filValideringsfeilRepository.insertFilValideringsfeil(fileName, "${message.first}: ${message.second}")
+
+        dataSource.transaction { session ->
+            errorMessages.forEach { (errorKey, message) ->
+                filValideringsfeilRepository.insertFilValideringsfeil(session, fileName, "$errorKey: $message")
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.util
 
 import java.io.File
 import java.io.Reader
+import javax.sql.DataSource
 
 import kotlinx.io.Buffer
 
@@ -14,11 +15,13 @@ import io.mockk.coJustRun
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
+import kotliquery.TransactionalSession
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
@@ -77,7 +80,7 @@ private val filValideringsfeilRepositoryMock = mockk<FilValideringsfeilRepositor
 
 private val feilmeldingRepositoryMock =
     mockk<FeilmeldingRepository> {
-        justRun { insertFeilmelding(any()) }
+        justRun { insertFeilmelding(any(), any()) }
     }
 
 private val kravRepositoryMock =
@@ -86,10 +89,11 @@ private val kravRepositoryMock =
         every { getAllUnsentKrav() } returns emptyList()
         every { getAllKravForResending() } returns emptyList()
         every { getSkeKravidentifikator(any<String>()) } returns "foo"
-        justRun { insertAllNewKrav(any<List<KravLinje>>(), "filnavn.txt") }
+        justRun { insertAllNewKrav(any<TransactionalSession>(), any<List<KravLinje>>(), "filnavn.txt") }
     }
 
 fun setupSkeServiceMock(
+    dataSource: DataSource = DBListener.dataSource,
     skeClient: SkeClient = mockSkeClient,
     stoppKravService: StoppKravService = stoppServiceMock,
     endreKravService: EndreKravService = endreServiceMock,
@@ -101,6 +105,7 @@ fun setupSkeServiceMock(
     feilmeldingRepository: FeilmeldingRepository = feilmeldingRepositoryMock,
     kravRepository: KravRepository = kravRepositoryMock,
 ) = SkeService(
+    dataSource = dataSource,
     skeClient = skeClient,
     stoppKravService = stoppKravService,
     endreKravService = endreKravService,
@@ -116,6 +121,7 @@ fun setupSkeServiceMock(
 fun setupSkeServiceMockWithMockEngine(
     httpClient: HttpClient,
     ftpService: FtpService,
+    dataSource: DataSource = DBListener.dataSource,
     slackClient: SlackClient = SlackClient(client = MockHttpClient.slackClient),
     slackService: SlackService = SlackService(slackClient),
     filValideringsfeilRepository: FilValideringsfeilRepository,
@@ -126,10 +132,11 @@ fun setupSkeServiceMockWithMockEngine(
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
     val endreKravService = EndreKravService(skeClient)
     val opprettKravService = OpprettKravService(skeClient)
-    val statusService = StatusService(skeClient, slackService, feilmeldingRepository, kravRepository)
+    val statusService = StatusService(dataSource, skeClient, slackService, feilmeldingRepository, kravRepository)
     val stoppKravService = StoppKravService(skeClient)
 
     return SkeService(
+        dataSource = dataSource,
         skeClient = skeClient,
         stoppKravService = stoppKravService,
         endreKravService = endreKravService,

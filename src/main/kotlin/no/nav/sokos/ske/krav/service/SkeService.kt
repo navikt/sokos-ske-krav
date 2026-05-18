@@ -3,6 +3,7 @@ package no.nav.sokos.ske.krav.service
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.sql.DataSource
 
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
@@ -13,6 +14,7 @@ import io.ktor.http.isSuccess
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
+import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.domain.Krav
@@ -27,6 +29,7 @@ import no.nav.sokos.ske.krav.util.KRAV_EKSISTERER_IKKE
 import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.decodeTo
 import no.nav.sokos.ske.krav.util.defineStatus
+import no.nav.sokos.ske.krav.util.transaction
 import no.nav.sokos.ske.krav.validation.LineValidator
 
 const val NYTT_KRAV = "NYTT_KRAV"
@@ -37,6 +40,7 @@ const val STOPP_KRAV = "STOPP_KRAV"
 private val logger = mu.KotlinLogging.logger {}
 
 class SkeService(
+    private val dataSource: DataSource = PostgresDataSource.dataSource,
     private val skeClient: SkeClient = SkeClient(),
     private val statusService: StatusService = StatusService(skeClient = skeClient),
     private val stoppKravService: StoppKravService = StoppKravService(skeClient),
@@ -71,9 +75,12 @@ class SkeService(
 
     private suspend fun resendKrav() {
         statusService.getMottaksStatus()
-        kravRepository.getAllKravForResending().takeIf { it.isNotEmpty() }?.let {
-            logger.info("Resender ${it.size} krav")
-            Metrics.numberOfKravResent.increment(sendKrav(it).size.toDouble())
+        val allKravForResending = kravRepository.getAllKravForResending()
+        if (allKravForResending.isEmpty()) return
+
+        logger.info("Resender ${allKravForResending.size} krav")
+        sendKrav(allKravForResending).also {
+            Metrics.numberOfKravResent.increment(it.size.toDouble())
         }
     }
 
@@ -100,11 +107,13 @@ class SkeService(
 
     private suspend fun processFile(file: FtpFil) {
         logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
-        val validatedLines = LineValidator(filValideringsfeilRepository).validateNewLines(file)
+        val validatedLines = LineValidator(dataSource, filValideringsfeilRepository).validateNewLines(file)
 
         handleValidationResults(file, validatedLines)
 
-        kravRepository.insertAllNewKrav(validatedLines, file.name)
+        dataSource.transaction { session ->
+            kravRepository.insertAllNewKrav(session, validatedLines, file.name)
+        }
         ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
     }
 
@@ -127,7 +136,9 @@ class SkeService(
             Metrics.incrementKravKodeSendtMetric(result.krav.kravkode)
 
             val skeKravidentifikator = if (result.krav.kravtype == NYTT_KRAV) result.kravidentifikator else null
-            kravRepository.updateSentKrav(result.krav.corrId, result.status, skeKravidentifikator)
+            dataSource.transaction { session ->
+                kravRepository.updateSentKrav(session, result.krav.corrId, result.status, skeKravidentifikator)
+            }
         }
     }
 
@@ -140,7 +151,9 @@ class SkeService(
             // Sjekke om vi har det opprinnelige kravet i vår database
             val skeKravidentifikator = kravRepository.getSkeKravidentifikator(krav.referansenummerGammelSak)
             if (skeKravidentifikator.isNotBlank()) {
-                kravRepository.updateEndringWithSkeKravIdentifikator(krav.saksnummerNAV, skeKravidentifikator)
+                dataSource.transaction { session ->
+                    kravRepository.updateEndringWithSkeKravIdentifikator(session, krav.saksnummerNAV, skeKravidentifikator)
+                }
                 return@forEach
             }
 
@@ -151,9 +164,13 @@ class SkeService(
 
             // Vi fant kravidentifikator fra SKE
             if (requestResult.kravidentifikator.isNotBlank()) {
-                kravRepository.updateEndringWithSkeKravIdentifikator(krav.saksnummerNAV, requestResult.kravidentifikator)
+                dataSource.transaction { session ->
+                    kravRepository.updateEndringWithSkeKravIdentifikator(session, krav.saksnummerNAV, requestResult.kravidentifikator)
+                }
             } else {
-                kravRepository.updateStatus(requestResult.status, krav.corrId)
+                dataSource.transaction { session ->
+                    kravRepository.updateStatus(session, requestResult.status, krav.corrId)
+                }
 
                 // Fra SKE vil vi få feilmeldingen "innkrevingsoppdrag eksisterer ikke" men vi ønsker mer tydelig informasjon samt informasjonen vi trenger for å kunne følge det opp manuelt.
                 if (requestResult.status == Status.HTTP404_FANT_IKKE_SAKSREF) {
@@ -272,21 +289,23 @@ class SkeService(
 
         val resolvedFeilResponse = feilResponse ?: response.decodeTo<FeilResponse>() ?: FeilResponse("egendefinert", "Feil i parsing av http respons", status.value, response, "")
 
-        val kravId = kravRepository.getKravTableIdFromCorrelationId(krav.corrId)
-        val feilmelding =
-            Feilmelding(
-                0L,
-                kravId,
-                krav.corrId,
-                krav.saksnummerNAV,
-                skeKravidentifikator,
-                resolvedFeilResponse.status.toString(),
-                resolvedFeilResponse.detail,
-                request,
-                response,
-                LocalDateTime.now(),
-            )
-        feilmeldingRepository.insertFeilmelding(feilmelding)
+        dataSource.transaction { session ->
+            val kravId = kravRepository.getKravTableIdFromCorrelationId(session, krav.corrId)
+            val feilmelding =
+                Feilmelding(
+                    0L,
+                    kravId,
+                    krav.corrId,
+                    krav.saksnummerNAV,
+                    skeKravidentifikator,
+                    resolvedFeilResponse.status.toString(),
+                    resolvedFeilResponse.detail,
+                    request,
+                    response,
+                    LocalDateTime.now(),
+                )
+            feilmeldingRepository.insertFeilmelding(session, feilmelding)
+        }
     }
 
     suspend fun checkKravDateForAlert() {

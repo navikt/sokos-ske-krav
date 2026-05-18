@@ -11,6 +11,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.sokos.ske.krav.copybook.FileParser
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
@@ -18,6 +19,7 @@ import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 import no.nav.sokos.ske.krav.util.getAllKrav
+import no.nav.sokos.ske.krav.util.transaction
 
 internal class RepositoryTestKrav :
     FunSpec({
@@ -102,64 +104,77 @@ internal class RepositoryTestKrav :
         }
 
         test("updateSentKrav skal oppdatere krav med ny status, og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
-            val corrID = "CORR457387"
+            dataSource.transaction { session ->
+                val corrID = "CORR457387"
 
-            val originalKrav = kravRepository.getAllKrav().first { krav -> krav.corrId == corrID }
-            originalKrav.status shouldBe Status.RESKONTROFOERT
-            originalKrav.tidspunktSendt?.toString() shouldBe "2023-02-01T12:00"
-            originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
+                val originalKrav = kravRepository.getAllKrav(session).first { krav -> krav.corrId == corrID }
+                originalKrav.status shouldBe Status.RESKONTROFOERT
+                originalKrav.tidspunktSendt?.toString() shouldBe "2023-02-01T12:00"
+                originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
-            kravRepository.updateSentKrav(corrID, Status.KRAV_SENDT)
-            val updatedKrav = kravRepository.getAllKrav().first { krav -> krav.corrId == corrID }
-            updatedKrav.status shouldBe Status.KRAV_SENDT
-            updatedKrav.tidspunktSendt?.toLocalDate() shouldBe LocalDate.now()
-            updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
-            updatedKrav.kravidentifikatorSKE shouldBe originalKrav.kravidentifikatorSKE
+                kravRepository.updateSentKrav(session, corrID, Status.KRAV_SENDT)
+
+                val updatedKrav = kravRepository.getAllKrav(session).first { krav -> krav.corrId == corrID }
+                updatedKrav.status shouldBe Status.KRAV_SENDT
+                updatedKrav.tidspunktSendt?.toLocalDate() shouldBe LocalDate.now()
+                updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
+                updatedKrav.kravidentifikatorSKE shouldBe originalKrav.kravidentifikatorSKE
+            }
         }
 
         test("updateSendtKrav skal oppdatere krav med ny status og ny kravidentifikator_ske, og tidspunkt_sendt og tidspunkt_siste_status settes til NOW") {
-            val corrID = "CORR83985902"
-            val originalKrav = kravRepository.getAllKrav().first { krav -> krav.corrId == corrID }
-            originalKrav.status shouldBe Status.RESKONTROFOERT
-            originalKrav.kravidentifikatorSKE shouldBe "6666-skeUUID"
-            originalKrav.tidspunktSendt!!.toString() shouldBe "2023-02-01T12:00"
-            originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
+            dataSource.transaction { session ->
+                val corrID = "CORR83985902"
 
-            kravRepository.updateSentKrav(corrID, Status.KRAV_SENDT, "NykravidentSke")
-            val updatedKrav = kravRepository.getAllKrav().first { krav -> krav.corrId == corrID }
-            updatedKrav.status shouldBe Status.KRAV_SENDT
-            updatedKrav.kravidentifikatorSKE shouldBe "NykravidentSke"
-            updatedKrav.tidspunktSendt!!.toLocalDate() shouldBe LocalDate.now()
-            updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
+                val originalKrav = kravRepository.getAllKrav(session).first { krav -> krav.corrId == corrID }
+                originalKrav.status shouldBe Status.RESKONTROFOERT
+                originalKrav.kravidentifikatorSKE shouldBe "6666-skeUUID"
+                originalKrav.tidspunktSendt!!.toString() shouldBe "2023-02-01T12:00"
+                originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
+
+                kravRepository.updateSentKrav(session, corrID, Status.KRAV_SENDT, "NykravidentSke")
+
+                val updatedKrav = kravRepository.getAllKrav(session).first { krav -> krav.corrId == corrID }
+                updatedKrav.status shouldBe Status.KRAV_SENDT
+                updatedKrav.kravidentifikatorSKE shouldBe "NykravidentSke"
+                updatedKrav.tidspunktSendt!!.toLocalDate() shouldBe LocalDate.now()
+                updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
+            }
         }
 
         test("updateStatus skal oppdatere status, og tidspunkt_siste_status skal settes til NOW") {
-            val corrId = "CORR457389"
-            val originalKrav = kravRepository.getAllKrav().first { krav -> krav.corrId == corrId }
-            originalKrav.status shouldBe Status.RESKONTROFOERT
-            originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
+            dataSource.transaction { session ->
+                val corrId = "CORR457389"
 
-            kravRepository.updateStatus(Status.KRAV_IKKE_SENDT, corrId)
-            val updatedKrav = kravRepository.getAllKrav().first { krav -> krav.corrId == corrId }
-            updatedKrav.status shouldBe Status.KRAV_IKKE_SENDT
-            updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
+                val originalKrav = kravRepository.getAllKrav(session).first { krav -> krav.corrId == corrId }
+                originalKrav.status shouldBe Status.RESKONTROFOERT
+                originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
+
+                kravRepository.updateStatus(session, Status.KRAV_IKKE_SENDT, corrId)
+
+                val updatedKrav = kravRepository.getAllKrav(session).first { krav -> krav.corrId == corrId }
+                updatedKrav.status shouldBe Status.KRAV_IKKE_SENDT
+                updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
+            }
         }
 
         test("updateEndringWithSkeKravIdentifikator skal sette kravidentifikator_ske med gitt saksnummerNav") {
-            val nyttKravSaksnummerNAV = "7770-navsaksnummer"
-            kravRepository.getSkeKravidentifikator(nyttKravSaksnummerNAV) shouldBe "7777-skeUUID"
-            kravRepository.updateEndringWithSkeKravIdentifikator(nyttKravSaksnummerNAV, "ny_saksnummer_nytt_krav")
-            kravRepository.getSkeKravidentifikator(nyttKravSaksnummerNAV) shouldBe "7777-skeUUID"
+            dataSource.transaction { session ->
+                val nyttKravSaksnummerNAV = "7770-navsaksnummer"
+                kravRepository.getSkeKravidentifikator(session, nyttKravSaksnummerNAV) shouldBe "7777-skeUUID"
+                kravRepository.updateEndringWithSkeKravIdentifikator(session, nyttKravSaksnummerNAV, "ny_saksnummer_nytt_krav")
+                kravRepository.getSkeKravidentifikator(session, nyttKravSaksnummerNAV) shouldBe "7777-skeUUID"
 
-            val stoppKravSaksnummerNAV = "3330-navsaksnummer"
-            kravRepository.getSkeKravidentifikator(stoppKravSaksnummerNAV) shouldBe "3333-skeUUID"
-            kravRepository.updateEndringWithSkeKravIdentifikator(stoppKravSaksnummerNAV, "ny_saksnummer_stopp_krav")
-            kravRepository.getSkeKravidentifikator(stoppKravSaksnummerNAV) shouldBe "ny_saksnummer_stopp_krav"
+                val stoppKravSaksnummerNAV = "3330-navsaksnummer"
+                kravRepository.getSkeKravidentifikator(session, stoppKravSaksnummerNAV) shouldBe "3333-skeUUID"
+                kravRepository.updateEndringWithSkeKravIdentifikator(session, stoppKravSaksnummerNAV, "ny_saksnummer_stopp_krav")
+                kravRepository.getSkeKravidentifikator(session, stoppKravSaksnummerNAV) shouldBe "ny_saksnummer_stopp_krav"
 
-            val endreKravSaksnummerNAV = "2220-navsaksnummer"
-            kravRepository.getSkeKravidentifikator(endreKravSaksnummerNAV) shouldBe "1111-skeUUID"
-            kravRepository.updateEndringWithSkeKravIdentifikator(endreKravSaksnummerNAV, "ny_saksnummer_endre_krav")
-            kravRepository.getSkeKravidentifikator(endreKravSaksnummerNAV) shouldBe "ny_saksnummer_endre_krav"
+                val endreKravSaksnummerNAV = "2220-navsaksnummer"
+                kravRepository.getSkeKravidentifikator(session, endreKravSaksnummerNAV) shouldBe "1111-skeUUID"
+                kravRepository.updateEndringWithSkeKravIdentifikator(session, endreKravSaksnummerNAV, "ny_saksnummer_endre_krav")
+                kravRepository.getSkeKravidentifikator(session, endreKravSaksnummerNAV) shouldBe "ny_saksnummer_endre_krav"
+            }
         }
 
         test("insertAllNewKrav skal inserte alle kravlinjene") {
@@ -169,9 +184,13 @@ internal class RepositoryTestKrav :
             val liste = getFileContent("krav/$filnavn")
             val kravlinjer = FileParser(liste).parseKravLinjer()
 
-            kravRepository.insertAllNewKrav(kravlinjer, filnavn)
+            val lagredeKrav =
+                dataSource.transaction { session ->
+                    kravRepository.insertAllNewKrav(session, kravlinjer, filnavn)
 
-            val lagredeKrav = kravRepository.getAllKrav()
+                    kravRepository.getAllKrav(session)
+                }
+
             lagredeKrav.shouldHaveSize(kravlinjer.size + 1)
             lagredeKrav.filter { it.kravtype == NYTT_KRAV }.shouldHaveSize(8)
             lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(1)
@@ -180,9 +199,11 @@ internal class RepositoryTestKrav :
         }
 
         test("deleteOldKrav skal slette alle kravene som ble opprettet før en spesifisert tid") {
-            val threshold = LocalDate.parse("2023-01-02")
-            val kravDeleted = kravRepository.deleteOldKrav(threshold)
-            kravDeleted shouldBe 18
+            dataSource.transaction { session ->
+                val threshold = LocalDate.parse("2023-01-02")
+                val kravDeleted = kravRepository.deleteOldKrav(session, threshold)
+                kravDeleted shouldBe 18
+            }
         }
 
         afterTest {

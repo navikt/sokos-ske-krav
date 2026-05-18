@@ -1,12 +1,14 @@
 package no.nav.sokos.ske.krav.service
 
 import java.time.LocalDateTime
+import javax.sql.DataSource
 
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackService
+import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.domain.Krav
@@ -19,11 +21,13 @@ import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.createKravidentifikatorPair
 import no.nav.sokos.ske.krav.util.decodeTo
+import no.nav.sokos.ske.krav.util.transaction
 
 private val logger = mu.KotlinLogging.logger {}
 
 // TODO: Burde renames til MottaksstatusService? Trenger kanskje en refaktorering
 class StatusService(
+    private val dataSource: DataSource = PostgresDataSource.dataSource,
     private val skeClient: SkeClient = SkeClient(),
     private val slackService: SlackService = SlackService(),
     private val feilmeldingRepository: FeilmeldingRepository = FeilmeldingRepository.instance,
@@ -85,7 +89,9 @@ class StatusService(
         kravIdentifikatorPair: Pair<String, KravidentifikatorType>,
         krav: Krav,
     ) {
-        kravRepository.updateStatus(mottaksStatusResponse.mottaksStatus, krav.corrId)
+        dataSource.transaction { session ->
+            kravRepository.updateStatus(session, mottaksStatusResponse.mottaksStatus, krav.corrId)
+        }
         if (mottaksStatusResponse.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS) handleValideringsFeil(kravIdentifikatorPair, krav)
     }
 
@@ -122,6 +128,9 @@ class StatusService(
                     LocalDateTime.now(),
                 )
             }
-        feilmeldingRepository.insertFeilmeldinger(feilmeldinger)
+
+        dataSource.transaction { session ->
+            feilmeldingRepository.insertFeilmeldinger(session, feilmeldinger)
+        }
     }
 }

@@ -10,7 +10,9 @@ import io.kotest.matchers.shouldBe
 
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
+import no.nav.sokos.ske.krav.util.transaction
 
 internal class RepositoryTestFeilmelding :
     FunSpec({
@@ -58,13 +60,15 @@ internal class RepositoryTestFeilmelding :
                     false,
                 )
 
-            feilmeldingRepository.insertFeilmelding(feilmelding)
+            dataSource.transaction { session ->
+                feilmeldingRepository.insertFeilmelding(session, feilmelding)
 
-            val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
-            feilmeldinger.shouldHaveSize(1)
-            with(feilmeldinger.first()) {
-                kravId shouldBe feilmelding.kravId
-                saksnummerNav shouldBe feilmelding.saksnummerNav
+                val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger(session)
+                feilmeldinger.shouldHaveSize(1)
+                with(feilmeldinger.first()) {
+                    kravId shouldBe feilmelding.kravId
+                    saksnummerNav shouldBe feilmelding.saksnummerNav
+                }
             }
         }
 
@@ -88,26 +92,32 @@ internal class RepositoryTestFeilmelding :
                     )
                 }
 
-            feilmeldingRepository.insertFeilmeldinger(feilmeldinger)
+            dataSource.transaction { session ->
+                feilmeldingRepository.insertFeilmeldinger(session, feilmeldinger)
 
-            val savedFeilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
-            savedFeilmeldinger.shouldHaveSize(2)
-            with(savedFeilmeldinger.first()) {
-                kravId shouldBe 0L
-                saksnummerNav shouldBe "1110-navsaksnummer"
+                val savedFeilmeldinger = feilmeldingRepository.getAllFeilmeldinger(session)
+                savedFeilmeldinger.shouldHaveSize(2)
+                with(savedFeilmeldinger.first()) {
+                    kravId shouldBe 0L
+                    saksnummerNav shouldBe "1110-navsaksnummer"
+                }
             }
         }
 
         test("updateStatusForAvstemtKravToReported skal sette rapporter til false på krav med angitt kravid") {
-            feilmeldingRepository.updateStatusForAvstemtKravToReported(1)
-            val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
-            feilmeldinger.filter { !it.rapporter }.shouldHaveSize(1)
+            dataSource.transaction { session ->
+                feilmeldingRepository.updateStatusForAvstemtKravToReported(session, 1)
+                val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger(session)
+                feilmeldinger.filter { !it.rapporter }.shouldHaveSize(1)
+            }
         }
 
         test("deleteOldFeilmeldinger skal slette alle feilmeldingene som ble opprettet før en spesifisert tid") {
-            val threshold = LocalDate.parse("2023-01-02")
-            val feilmeldingDeleted = feilmeldingRepository.deleteOldFeilmeldinger(threshold)
-            feilmeldingDeleted shouldBe 2
+            dataSource.transaction { session ->
+                val threshold = LocalDate.parse("2023-01-02")
+                val feilmeldingDeleted = feilmeldingRepository.deleteOldFeilmeldinger(session, threshold)
+                feilmeldingDeleted shouldBe 2
+            }
         }
 
         afterTest {

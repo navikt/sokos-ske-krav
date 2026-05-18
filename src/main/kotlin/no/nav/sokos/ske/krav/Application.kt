@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav
 
 import java.time.LocalDate
+import javax.sql.DataSource
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
@@ -30,6 +31,7 @@ import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.SkeService
+import no.nav.sokos.ske.krav.util.transaction
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::module).start(true)
@@ -70,11 +72,13 @@ private fun Application.module() {
     launchJob(::deleteOldData, 24.hours)
 }
 
-private fun deleteOldData() {
-    val threshold = LocalDate.now().minusYears(10)
-    FilValideringsfeilRepository.instance.deleteOldFilValideringsfeil(threshold).reportDeletedData("filvalideringsfeil(er)")
-    FeilmeldingRepository.instance.deleteOldFeilmeldinger(threshold).reportDeletedData("feilmelding(er)")
-    KravRepository.instance.deleteOldKrav(threshold).reportDeletedData("krav")
+private fun deleteOldData(dataSource: DataSource = PostgresDataSource.dataSource) {
+    dataSource.transaction { session ->
+        val threshold = LocalDate.now().minusYears(10)
+        FilValideringsfeilRepository.instance.deleteOldFilValideringsfeil(session, threshold).reportDeletedData("filvalideringsfeil(er)")
+        FeilmeldingRepository.instance.deleteOldFeilmeldinger(session, threshold).reportDeletedData("feilmelding(er)")
+        KravRepository.instance.deleteOldKrav(session, threshold).reportDeletedData("krav")
+    }
 }
 
 private fun Int.reportDeletedData(name: String) {

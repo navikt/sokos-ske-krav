@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 
@@ -13,6 +14,7 @@ import no.nav.sokos.ske.krav.listener.SftpListener
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.util.getFilValideringsFeilForFil
+import no.nav.sokos.ske.krav.util.transaction
 import no.nav.sokos.ske.krav.validation.FileValidator
 
 private const val FILE_OK = "AllValideringOk.txt"
@@ -25,7 +27,12 @@ internal class FtpServiceIntegrationTest :
         extensions(SftpListener, DBListener)
 
         val ftpService: FtpService by lazy {
-            FtpService(SftpConfig(SftpListener.sftpProperties), fileValidator = FileValidator(mockk<SlackService>(relaxed = true)), filvalideringsFeilRepository)
+            FtpService(
+                dataSource = DBListener.dataSource,
+                sftpConfig = SftpConfig(SftpListener.sftpProperties),
+                fileValidator = FileValidator(mockk<SlackService>(relaxed = true)),
+                filValideringsfeilRepository = filvalideringsFeilRepository,
+            )
         }
 
         Given("det finnes ubehandlede filer i \"inbound\" på FTP-serveren ") {
@@ -48,10 +55,12 @@ internal class FtpServiceIntegrationTest :
                     failedFilesInDir[0] shouldBe FILE_ERROR_NAME
                 }
                 And("Feilmelding skal lagres i database") {
-                    filvalideringsFeilRepository.getFilValideringsFeilForFil(FILE_ERROR_NAME).run {
-                        size shouldBe 1
-                        first().feilmelding shouldBe "${FileValidator.ErrorKeys.FEIL_I_ANTALL}: Antall krav: 16, Antall i siste linje: 101"
-                    }
+                    val filValideringsfeil =
+                        DBListener.dataSource.transaction { session ->
+                            filvalideringsFeilRepository.getFilValideringsFeilForFil(session, FILE_ERROR_NAME)
+                        }
+                    filValideringsfeil.shouldHaveSize(1)
+                    filValideringsfeil.first().feilmelding shouldBe "${FileValidator.ErrorKeys.FEIL_I_ANTALL}: Antall krav: 16, Antall i siste linje: 101"
                 }
             }
         }

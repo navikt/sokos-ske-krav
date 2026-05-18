@@ -10,9 +10,11 @@ import io.kotest.matchers.shouldBe
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.filvalideringsFeilRepository
 import no.nav.sokos.ske.krav.util.getAllValideringsFeil
 import no.nav.sokos.ske.krav.util.getFilValideringsFeilForFil
+import no.nav.sokos.ske.krav.util.transaction
 
 internal class RepositoryTestFilValideringsfeil :
     FunSpec({
@@ -23,16 +25,22 @@ internal class RepositoryTestFilValideringsfeil :
         }
 
         test("getValideringsFeilForFil skal returnere valideringsfeil basert på filnavn") {
-            with(filvalideringsFeilRepository) {
-                getFilValideringsFeilForFil("Fil1.txt").shouldHaveSize(1)
-                getFilValideringsFeilForFil("Fil2.txt").shouldHaveSize(2)
-                getFilValideringsFeilForFil("Fil3.txt").shouldHaveSize(3)
+            dataSource.transaction { session ->
+                with(filvalideringsFeilRepository) {
+                    getFilValideringsFeilForFil(session, "Fil1.txt").shouldHaveSize(1)
+                    getFilValideringsFeilForFil(session, "Fil2.txt").shouldHaveSize(2)
+                    getFilValideringsFeilForFil(session, "Fil3.txt").shouldHaveSize(3)
+                }
             }
         }
 
         test("insertFileValideringsfeil skal inserte ny valideringsfeil med filnanvn og feilmelding") {
-            filvalideringsFeilRepository.insertFilValideringsfeil("Fil4.txt", "Test validation error insert")
-            val insertedErrors = filvalideringsFeilRepository.getFilValideringsFeilForFil("Fil4.txt")
+            val insertedErrors =
+                dataSource.transaction { session ->
+                    filvalideringsFeilRepository.insertFilValideringsfeil(session, "Fil4.txt", "Test validation error insert")
+
+                    filvalideringsFeilRepository.getFilValideringsFeilForFil(session, "Fil4.txt")
+                }
 
             insertedErrors.shouldHaveSize(1)
             insertedErrors.first().run {
@@ -72,8 +80,12 @@ internal class RepositoryTestFilValideringsfeil :
 
             val feilMelding = "Test validation error insert med non-null kravlinje"
             val filename = "Non-null test"
-            filvalideringsFeilRepository.insertLineFilValideringsfeil(filename, linje, feilMelding)
-            val allInsertedFiles = filvalideringsFeilRepository.getAllValideringsFeil()
+            val allInsertedFiles =
+                dataSource.transaction { session ->
+                    filvalideringsFeilRepository.insertLineFilValideringsfeil(session, filename, linje, feilMelding)
+
+                    filvalideringsFeilRepository.getAllValideringsFeil(session)
+                }
 
             allInsertedFiles.shouldHaveSize(7)
 
@@ -88,9 +100,11 @@ internal class RepositoryTestFilValideringsfeil :
         }
 
         test("deleteOldFilValideringsFeil skal slette alle filvalideringsfeil som ble opprettet før en spesifisert tid") {
-            val threshold = LocalDate.parse("2023-01-02")
-            val filValideringsfeilDeleted = filvalideringsFeilRepository.deleteOldFilValideringsfeil(threshold)
-            filValideringsfeilDeleted shouldBe 2
+            dataSource.transaction { session ->
+                val threshold = LocalDate.parse("2023-01-02")
+                val filValideringsfeilDeleted = filvalideringsFeilRepository.deleteOldFilValideringsfeil(session, threshold)
+                filValideringsfeilDeleted shouldBe 2
+            }
         }
 
         afterTest {

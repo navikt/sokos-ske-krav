@@ -34,6 +34,7 @@ import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.Status.HTTP403_INGEN_TILGANG
 import no.nav.sokos.ske.krav.domain.Status.KRAV_SENDT
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
 import no.nav.sokos.ske.krav.listener.DBListener.filvalideringsFeilRepository
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
@@ -59,6 +60,7 @@ import no.nav.sokos.ske.krav.util.http.MockResponsesBody.nyttKravResponse
 import no.nav.sokos.ske.krav.util.mockHttpResponse
 import no.nav.sokos.ske.krav.util.setupSkeServiceMock
 import no.nav.sokos.ske.krav.util.setupSkeServiceMockWithMockEngine
+import no.nav.sokos.ske.krav.util.transaction
 import no.nav.sokos.ske.krav.validation.FileValidator
 
 internal class SkeServiceIntegrationTest :
@@ -83,7 +85,12 @@ internal class SkeServiceIntegrationTest :
             circuitBreaker.reset()
         }
         val ftpService: FtpService by lazy {
-            FtpService(SftpConfig(SftpListener.sftpProperties), FileValidator(mockk<SlackService>(relaxed = true)), filvalideringsFeilRepository)
+            FtpService(
+                dataSource = dataSource,
+                sftpConfig = SftpConfig(SftpListener.sftpProperties),
+                fileValidator = FileValidator(mockk<SlackService>(relaxed = true)),
+                filValideringsfeilRepository = filvalideringsFeilRepository,
+            )
         }
 
         Given("Det finnes en fil i INBOUND") {
@@ -99,7 +106,11 @@ internal class SkeServiceIntegrationTest :
 
             Then("Skal alle validerte linjer lagres i database") {
                 skeService.handleNewKrav()
-                kravRepository.getAllKrav().shouldHaveSize(10)
+                val allKrav =
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session)
+                    }
+                allKrav.shouldHaveSize(10)
             }
         }
 
@@ -117,13 +128,16 @@ internal class SkeServiceIntegrationTest :
                 }
             val skeService =
                 setupSkeServiceMock(
-                    skeClient,
+                    skeClient = skeClient,
                     ftpService = ftpService,
                     filValideringsfeilRepository = filvalideringsFeilRepository,
                     feilmeldingRepository = feilmeldingRepository,
                     kravRepository = kravRepository,
                 )
-            val kravBefore = kravRepository.getAllKrav()
+            val kravBefore =
+                dataSource.transaction { session ->
+                    kravRepository.getAllKrav(session)
+                }
             with(kravBefore.find { it.saksnummerNAV == "2222-navsaksnr" }) {
                 this?.kravidentifikatorSKE shouldBe "2222-skeUUID"
                 this?.referansenummerGammelSak shouldBe ""
@@ -140,14 +154,20 @@ internal class SkeServiceIntegrationTest :
 
             When("Kravet finnes i database") {
                 Then("skal endringer og avskrivinger oppdateres med kravidentifikatorSKE fra database") {
-                    val kravEtter = kravRepository.getAllKrav()
+                    val kravEtter =
+                        dataSource.transaction { session ->
+                            kravRepository.getAllKrav(session)
+                        }
                     kravEtter.find { it.saksnummerNAV == "2223-navsaksnr" }?.kravidentifikatorSKE shouldBe "2222-skeUUID"
                     kravEtter.find { it.saksnummerNAV == "8889-navsaksnr" }?.kravidentifikatorSKE shouldBe "8888-skeUUID"
                 }
             }
             When("Det er et migrert krav") {
                 Then("skal endringer og avskrivinger oppdateres med kravidentifikatorSKE fra kall til SKE avstemming") {
-                    val kravEtter = kravRepository.getAllKrav()
+                    val kravEtter =
+                        dataSource.transaction { session ->
+                            kravRepository.getAllKrav(session)
+                        }
                     kravEtter.find { it.saksnummerNAV == "2222-saksnrmig" }?.kravidentifikatorSKE shouldBe "avstemming2222-skeUUID"
                     kravEtter.find { it.saksnummerNAV == "8888-saksnrmig" }?.kravidentifikatorSKE shouldBe "avstemming8888-skeUUID"
                 }
@@ -166,7 +186,7 @@ internal class SkeServiceIntegrationTest :
                 }
             val skeService =
                 setupSkeServiceMock(
-                    skeClient,
+                    skeClient = skeClient,
                     ftpService = ftpService,
                     filValideringsfeilRepository = filvalideringsFeilRepository,
                     feilmeldingRepository = feilmeldingRepository,
@@ -175,8 +195,11 @@ internal class SkeServiceIntegrationTest :
 
             Then("skal type krav avgjøres og lagres") {
                 skeService.handleNewKrav()
-
-                kravRepository.getAllKrav().groupBy { it.kravtype }.apply {
+                val allKrav =
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session)
+                    }
+                allKrav.groupBy { it.kravtype }.apply {
                     get(STOPP_KRAV)?.shouldHaveSize(2)
                     get(ENDRING_RENTE)?.shouldHaveSize(2)
                     get(ENDRING_HOVEDSTOL)?.shouldHaveSize(2)
@@ -221,7 +244,11 @@ internal class SkeServiceIntegrationTest :
                 )
 
             skeService.handleNewKrav()
-            val allKrav = kravRepository.getAllKrav().groupBy { it.kravtype }
+            val allKrav =
+                dataSource
+                    .transaction { session ->
+                        kravRepository.getAllKrav(session)
+                    }.groupBy { it.kravtype }
 
             Then("Skal de nye kravene oppdateres med SKE kravidentifikator og status sendt") {
                 allKrav[NYTT_KRAV]?.run {
@@ -283,7 +310,11 @@ internal class SkeServiceIntegrationTest :
                 }
 
                 feilmeldingRepository.getAllFeilmeldinger().filter { it.skeResponse.contains("403") }.shouldBeEmpty()
-                kravRepository.getAllKrav().forNone { it.status shouldBe HTTP403_INGEN_TILGANG }
+                val allKrav =
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session)
+                    }
+                allKrav.forNone { it.status shouldBe HTTP403_INGEN_TILGANG }
             }
         }
 
@@ -343,8 +374,11 @@ internal class SkeServiceIntegrationTest :
                 skeService.handleNewKrav()
                 val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
                 feilmeldinger.filter { it.error == "422" }.shouldHaveSize(10)
-
-                kravRepository.getAllKrav().filter { it.status == Status.HTTP422_VALIDERINGSFEIL }.shouldHaveSize(10)
+                val allKrav =
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session)
+                    }
+                allKrav.filter { it.status == Status.HTTP422_VALIDERINGSFEIL }.shouldHaveSize(10)
             }
         }
 
@@ -376,8 +410,11 @@ internal class SkeServiceIntegrationTest :
         Given("Et krav har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/status/KravSomSkalResendes.sql")
-
-            kravRepository.getAllKrav().groupBy { it.status }.apply {
+            val allKravBefore =
+                dataSource.transaction { session ->
+                    kravRepository.getAllKrav(session)
+                }
+            allKravBefore.groupBy { it.status }.apply {
                 get(Status.KRAV_IKKE_SENDT)?.shouldHaveSize(3)
                 get(Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND)?.shouldHaveSize(3)
                 get(Status.HTTP500_ANNEN_SERVER_FEIL)?.shouldHaveSize(1)
@@ -403,7 +440,11 @@ internal class SkeServiceIntegrationTest :
 
             Then("skal kravet resendes") {
                 skeService.handleNewKrav()
-                kravRepository.getAllKrav().groupBy { it.status }.apply {
+                val allKravAfter =
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session)
+                    }
+                allKravAfter.groupBy { it.status }.apply {
                     get(Status.KRAV_IKKE_SENDT).shouldBeNull()
                     get(Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND).shouldBeNull()
                     get(Status.HTTP500_ANNEN_SERVER_FEIL).shouldBeNull()

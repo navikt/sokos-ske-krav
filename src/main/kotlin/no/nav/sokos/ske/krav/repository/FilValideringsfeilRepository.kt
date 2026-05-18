@@ -10,7 +10,6 @@ import kotliquery.queryOf
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.FilValideringsfeil
-import no.nav.sokos.ske.krav.util.transaction
 
 class FilValideringsfeilRepository(
     private val dataSource: DataSource = PostgresDataSource.dataSource,
@@ -28,59 +27,56 @@ class FilValideringsfeilRepository(
         )
     }
 
-    fun <A> transaction(operation: (TransactionalSession) -> A): A = dataSource.transaction(operation)
-
     fun insertFilValideringsfeil(
+        session: TransactionalSession,
         filnavn: String,
         feilmelding: String,
     ) {
-        dataSource.transaction { session ->
-            session.update(
-                queryOf(
-                    """
-                    insert into filvalideringsfeil (filnavn, feilmelding)
-                    values (?, ?)
-                    """.trimIndent(),
-                    filnavn,
-                    feilmelding,
-                ),
-            )
-        }
+        session.update(
+            queryOf(
+                """
+                insert into filvalideringsfeil (filnavn, feilmelding)
+                values (?, ?)
+                """.trimIndent(),
+                filnavn,
+                feilmelding,
+            ),
+        )
     }
 
     fun insertLineFilValideringsfeil(
+        session: TransactionalSession,
         filnavn: String,
         kravlinje: KravLinje,
         feilmelding: String,
     ) {
-        dataSource.transaction { session ->
-            session.update(
-                queryOf(
-                    """
-                    insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
-                    values (?, ?, ?, ?, ?)
-                    """.trimIndent(),
-                    filnavn,
-                    kravlinje.linjenummer,
-                    kravlinje.saksnummerNav,
-                    kravlinje.toString(),
-                    feilmelding,
-                ),
-            )
-        }
+        session.update(
+            queryOf(
+                """
+                insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
+                values (?, ?, ?, ?, ?)
+                """.trimIndent(),
+                filnavn,
+                kravlinje.linjenummer,
+                kravlinje.saksnummerNav,
+                kravlinje.toString(),
+                feilmelding,
+            ),
+        )
     }
 
-    fun deleteOldFilValideringsfeil(threshold: LocalDate): Int =
-        dataSource.transaction { session ->
-            session.update(
-                queryOf(
-                    """
-                    delete from filvalideringsfeil where tidspunkt_opprettet < ?
-                    """.trimIndent(),
-                    threshold,
-                ),
-            )
-        }
+    fun deleteOldFilValideringsfeil(
+        session: TransactionalSession,
+        threshold: LocalDate,
+    ): Int =
+        session.update(
+            queryOf(
+                """
+                delete from filvalideringsfeil where tidspunkt_opprettet < ?
+                """.trimIndent(),
+                threshold,
+            ),
+        )
 
     companion object {
         val instance: FilValideringsfeilRepository by lazy { FilValideringsfeilRepository() }

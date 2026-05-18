@@ -58,8 +58,6 @@ class KravRepository(
         )
     }
 
-    fun <A> transaction(operation: (TransactionalSession) -> A): A = dataSource.transaction(operation)
-
     fun getAllKravForStatusCheck(): List<Krav> =
         dataSource.transaction { session ->
             session.list(
@@ -132,25 +130,28 @@ class KravRepository(
             )
         }
 
-    fun getSkeKravidentifikator(navref: String): String =
-        dataSource.transaction { session ->
-            session.single(
-                queryOf(
-                    """
-                    select kravidentifikator_ske from krav
-                    where (saksnummer_nav = :saksnummer_nav or referansenummergammelsak = :referansenummergammelsak)
-                    and (kravidentifikator_ske is not null and kravidentifikator_ske != '')
-                    limit 1
-                    """.trimIndent(),
-                    mapOf(
-                        "saksnummer_nav" to navref,
-                        "referansenummergammelsak" to navref,
-                    ),
+    fun getSkeKravidentifikator(navref: String): String = dataSource.transaction { session -> getSkeKravidentifikator(session, navref) }
+
+    fun getSkeKravidentifikator(
+        session: TransactionalSession,
+        navref: String,
+    ): String =
+        session.single(
+            queryOf(
+                """
+                select kravidentifikator_ske from krav
+                where (saksnummer_nav = :saksnummer_nav or referansenummergammelsak = :referansenummergammelsak)
+                and (kravidentifikator_ske is not null and kravidentifikator_ske != '')
+                limit 1
+                """.trimIndent(),
+                mapOf(
+                    "saksnummer_nav" to navref,
+                    "referansenummergammelsak" to navref,
                 ),
-            ) { row ->
-                row.stringOrNull("kravidentifikator_ske")
-            } ?: ""
-        }
+            ),
+        ) { row ->
+            row.stringOrNull("kravidentifikator_ske")
+        } ?: ""
 
     fun getPreviousReferansenummer(navref: String): String =
         dataSource.transaction { session ->
@@ -169,91 +170,91 @@ class KravRepository(
             } ?: navref
         }
 
-    fun getKravTableIdFromCorrelationId(corrID: String): Long =
-        dataSource.transaction { session ->
-            session.single(
-                queryOf(
-                    """
-                    select id from krav
-                    where corr_id = ? 
-                    order by id
-                    limit 1
-                    """.trimIndent(),
-                    corrID,
-                ),
-            ) { row ->
-                row.longOrNull("id")
-            } ?: 0L
-        }
+    fun getKravTableIdFromCorrelationId(corrID: String): Long = dataSource.transaction { session -> getKravTableIdFromCorrelationId(session, corrID) }
+
+    fun getKravTableIdFromCorrelationId(
+        session: TransactionalSession,
+        corrID: String,
+    ): Long =
+        session.single(
+            queryOf(
+                """
+                select id from krav
+                where corr_id = ? 
+                order by id
+                limit 1
+                """.trimIndent(),
+                corrID,
+            ),
+        ) { row ->
+            row.longOrNull("id")
+        } ?: 0L
 
     fun updateSentKrav(
+        session: TransactionalSession,
         corrID: String,
         responseStatus: Status,
         skeKravidentifikator: String? = null,
     ) {
-        dataSource.transaction { session ->
-            session.update(
-                queryOf(
-                    """
-                    update krav
-                        set tidspunkt_sendt = now(),
-                        tidspunkt_siste_status = now(),
-                        status = :status,
-                        kravidentifikator_ske = coalesce(:kravidentifikator_ske, kravidentifikator_ske)
-                    where corr_id = :corr_id
-                    """.trimIndent(),
-                    mapOf(
-                        "status" to responseStatus.value,
-                        "kravidentifikator_ske" to skeKravidentifikator,
-                        "corr_id" to corrID,
-                    ),
+        session.update(
+            queryOf(
+                """
+                update krav
+                    set tidspunkt_sendt = now(),
+                    tidspunkt_siste_status = now(),
+                    status = :status,
+                    kravidentifikator_ske = coalesce(:kravidentifikator_ske, kravidentifikator_ske)
+                where corr_id = :corr_id
+                """.trimIndent(),
+                mapOf(
+                    "status" to responseStatus.value,
+                    "kravidentifikator_ske" to skeKravidentifikator,
+                    "corr_id" to corrID,
                 ),
-            )
-        }
+            ),
+        )
     }
 
     fun updateStatus(
+        session: TransactionalSession,
         mottakStatus: Status,
         corrID: String,
     ) {
-        dataSource.transaction { session ->
-            session.update(
-                queryOf(
-                    """
-                    update krav
-                        set status = :status,
-                        tidspunkt_siste_status = now()
-                    where corr_id = :corr_id
-                    """.trimIndent(),
-                    mapOf(
-                        "status" to mottakStatus.value,
-                        "corr_id" to corrID,
-                    ),
+        session.update(
+            queryOf(
+                """
+                update krav
+                    set status = :status,
+                    tidspunkt_siste_status = now()
+                where corr_id = :corr_id
+                """.trimIndent(),
+                mapOf(
+                    "status" to mottakStatus.value,
+                    "corr_id" to corrID,
                 ),
-            )
-        }
+            ),
+        )
     }
 
     fun updateEndringWithSkeKravIdentifikator(
+        session: TransactionalSession,
         saksnummerNav: String,
         skeKravident: String,
     ) {
-        dataSource.transaction { session ->
-            session.update(
-                queryOf(
-                    """
-                    update krav
-                        set kravidentifikator_ske = :kravidentifikator_ske
-                    where saksnummer_nav = :saksnummer_nav and kravtype <> :kravtype
-                    """.trimIndent(),
-                    mapOf(
-                        "kravidentifikator_ske" to skeKravident,
-                        "saksnummer_nav" to saksnummerNav,
-                        "kravtype" to NYTT_KRAV,
-                    ),
+        session.update(
+            queryOf(
+                """
+                update krav
+                    set kravidentifikator_ske = :kravidentifikator_ske
+                where saksnummer_nav = :saksnummer_nav and kravtype <> :kravtype
+                """.trimIndent(),
+                mapOf(
+                    "kravidentifikator_ske" to skeKravident,
+                    "saksnummer_nav" to saksnummerNav,
+                    "kravtype" to NYTT_KRAV,
                 ),
-            )
-        }
+            ),
+        )
     }
 
     private fun insertKrav(
@@ -325,36 +326,36 @@ class KravRepository(
     }
 
     fun insertAllNewKrav(
+        session: TransactionalSession,
         kravLinjer: List<KravLinje>,
         filnavn: String,
     ) {
-        dataSource.transaction { session ->
-            kravLinjer.forEach { kravLinje ->
-                when {
-                    kravLinje.isStopp() -> {
-                        insertKrav(session, kravLinje, STOPP_KRAV, filnavn)
-                    }
-                    kravLinje.isEndring() -> {
-                        insertKrav(session, kravLinje, ENDRING_HOVEDSTOL, filnavn)
-                        insertKrav(session, kravLinje, ENDRING_RENTE, filnavn)
-                    }
-                    else -> {
-                        insertKrav(session, kravLinje, NYTT_KRAV, filnavn)
-                    }
+        kravLinjer.forEach { kravLinje ->
+            when {
+                kravLinje.isStopp() -> {
+                    insertKrav(session, kravLinje, STOPP_KRAV, filnavn)
+                }
+                kravLinje.isEndring() -> {
+                    insertKrav(session, kravLinje, ENDRING_HOVEDSTOL, filnavn)
+                    insertKrav(session, kravLinje, ENDRING_RENTE, filnavn)
+                }
+                else -> {
+                    insertKrav(session, kravLinje, NYTT_KRAV, filnavn)
                 }
             }
         }
     }
 
-    fun deleteOldKrav(threshold: LocalDate): Int =
-        dataSource.transaction { session ->
-            session.update(
-                queryOf(
-                    """delete from krav where tidspunkt_opprettet < ?""",
-                    threshold,
-                ),
-            )
-        }
+    fun deleteOldKrav(
+        session: TransactionalSession,
+        threshold: LocalDate,
+    ): Int =
+        session.update(
+            queryOf(
+                """delete from krav where tidspunkt_opprettet < ?""",
+                threshold,
+            ),
+        )
 
     companion object {
         val instance by lazy { KravRepository() }
