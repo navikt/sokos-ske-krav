@@ -29,7 +29,7 @@ internal class LineValidatorTest :
         fun ftpFile(
             name: String,
             kravLinjer: List<KravLinje>,
-        ) = FtpFil(name, emptyList(), kravLinjer)
+        ) = FtpFil(name, kravLinjer)
 
         Given("Alle linjer er ok") {
             val kravLinjer = getKravlinjer()

@@ -7,7 +7,6 @@ import java.time.format.DateTimeFormatter
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.StonadsType
-import no.nav.sokos.ske.krav.util.isOpprettKrav
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.FAGSYSTEMID_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.GJELDERID_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.HOVEDSTOL_ERROR

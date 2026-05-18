@@ -28,7 +28,6 @@ enum class Directories(
 
 data class FtpFil(
     val name: String,
-    val content: List<String>,
     val kravLinjer: List<KravLinje>,
 )
 
@@ -90,7 +89,7 @@ class FtpService(
         return files.mapNotNull { (fileName, fileContent) ->
             when (val validationResult = fileValidator.validateFile(fileContent, fileName)) {
                 is ValidationResult.Success -> {
-                    FtpFil(fileName, fileContent, validationResult.kravLinjer)
+                    FtpFil(fileName, validationResult.kravLinjer)
                 }
 
                 is ValidationResult.Error -> {

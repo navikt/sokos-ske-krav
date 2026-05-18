@@ -20,7 +20,11 @@ object PostgresDataSource {
     }
 
     fun migrate() {
-        dataSource(role = postgresConfig.adminUser).use { migrate(it) }
+        val migrationConfig =
+            hikariConfig().apply {
+                connectionInitSql = """SET ROLE "${postgresConfig.adminUser}""""
+            }
+        dataSource(hikariConfig = migrationConfig, role = postgresConfig.adminUser).use { migrate(it) }
     }
 
     fun migrate(dataSource: DataSource) {
@@ -28,7 +32,6 @@ object PostgresDataSource {
         Flyway
             .configure()
             .dataSource(dataSource)
-            .initSql("""SET ROLE "${postgresConfig.adminUser}"""")
             .lockRetryCount(-1)
             .validateMigrationNaming(true)
             .load()

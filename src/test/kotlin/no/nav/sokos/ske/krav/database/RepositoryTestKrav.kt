@@ -182,7 +182,7 @@ internal class RepositoryTestKrav :
 
             val filnavn = "TiNyeKrav1Endring1Stopp.txt"
             val liste = getFileContent("krav/$filnavn")
-            val kravlinjer = FileParser(liste).parseKravLinjer()
+            val kravlinjer = FileParser(liste).kravLinjer()
 
             val lagredeKrav =
                 dataSource.transaction { session ->
