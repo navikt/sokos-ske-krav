@@ -14,13 +14,13 @@ private val dbLogger = KotlinLogging.logger {}
 fun <A> DataSource.transaction(operation: (TransactionalSession) -> A): A =
     using(sessionOf(this, returnGeneratedKey = true)) { session ->
         session.transaction { tx ->
-            handleError {
+            logError {
                 operation(tx)
             }
         }
     }
 
-private fun <A> handleError(block: () -> A): A =
+private fun <A> logError(block: () -> A): A =
     runCatching {
         block()
     }.onFailure {
