@@ -5,8 +5,6 @@ import java.io.File
 import javax.sql.DataSource
 
 import com.jcraft.jsch.SftpException
-import com.sun.org.apache.xml.internal.serializer.utils.Utils.messages
-import jdk.internal.joptsimple.internal.Messages.message
 import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.PostgresDataSource

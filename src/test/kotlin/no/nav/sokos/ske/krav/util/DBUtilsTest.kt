@@ -6,20 +6,30 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import io.mockk.every
 import io.mockk.justRun
+import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import io.mockk.verify
 import kotliquery.queryOf
+import mu.KLogger
 import mu.KotlinLogging
 import mu.Marker
 
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.listener.DBListener.loggerMock
 
 class DBUtilsTest :
     FunSpec({
         extensions(DBListener)
+
+        val loggerMock = mockk<KLogger>(relaxed = true)
+
+        beforeSpec {
+            mockkObject(KotlinLogging)
+            every { KotlinLogging.logger(any<() -> Unit>()) } returns loggerMock
+        }
 
         test("transaction skal kaste exception oppover og logge error i begge vanlig log og TEAM_LOGS") {
             justRun { loggerMock.error(any<String>()) }

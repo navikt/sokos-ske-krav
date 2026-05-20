@@ -7,13 +7,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
 import io.ktor.server.config.ApplicationConfig
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.unmockkObject
 import kotliquery.queryOf
-import mu.KLogger
-import mu.KotlinLogging
 import org.testcontainers.containers.JdbcDatabaseContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
@@ -32,8 +26,6 @@ object DBListener : TestListener {
     init {
         PropertiesConfig.load(ApplicationConfig("application-test.conf"))
     }
-
-    val loggerMock = mockk<KLogger>(relaxed = true)
 
     private val container by lazy {
         PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:16.6")).apply {
@@ -80,15 +72,8 @@ object DBListener : TestListener {
         }
     }
 
-    override suspend fun beforeSpec(spec: Spec) {
-        super.beforeSpec(spec)
-        mockkObject(KotlinLogging)
-        every { KotlinLogging.logger(any<() -> Unit>()) } returns loggerMock
-    }
-
     override suspend fun afterSpec(spec: Spec) {
         clearDB()
-        unmockkObject(KotlinLogging)
     }
 
     fun JdbcDatabaseContainer<*>.toDataSource(configure: HikariConfig.() -> Unit = {}): HikariDataSource {
