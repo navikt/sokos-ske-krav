@@ -135,7 +135,7 @@ class SkeService(
         requestResults.forEach { result ->
             Metrics.incrementKravKodeSendtMetric(result.krav.kravkode)
 
-            val skeKravidentifikator = if (result.krav.kravtype == NYTT_KRAV) result.kravidentifikator else null
+            val skeKravidentifikator = if (result.krav.kravtype == NYTT_KRAV) result.kravidentifikator.takeIf { it.isNotBlank() } else null
             dataSource.transaction { session ->
                 kravRepository.updateSentKrav(session, result.krav.corrId, result.status, skeKravidentifikator)
             }
