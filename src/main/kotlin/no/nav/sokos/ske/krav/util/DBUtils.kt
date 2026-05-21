@@ -25,5 +25,5 @@ private fun <A> logError(block: () -> A): A =
         block()
     }.onFailure {
         dbLogger.error("Feil i databaseoperasjon")
-        dbLogger.error(TEAM_LOGS_MARKER, "Feil i databaseoperasjon: ${it.message}")
+        dbLogger.error(TEAM_LOGS_MARKER, "Feil i databaseoperasjon: ${it.message}", it)
     }.getOrThrow()
