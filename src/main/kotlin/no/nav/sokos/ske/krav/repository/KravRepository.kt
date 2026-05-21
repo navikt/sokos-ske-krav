@@ -255,93 +255,92 @@ class KravRepository(
         )
     }
 
-    private fun insertKrav(
-        session: TransactionalSession,
+    private val insertKravQuery =
+        """
+        insert into krav(
+        saksnummer_nav,
+        belop,
+        vedtaksdato,
+        gjelder_id,
+        periode_fom,
+        periode_tom,
+        kravkode,
+        referansenummergammelsak,
+        transaksjonsdato,
+        enhet_bosted,
+        enhet_behandlende,
+        kode_hjemmel,
+        kode_arsak,
+        belop_rente,
+        fremtidig_ytelse,
+        utbetaldato,
+        fagsystem_id,
+        status, 
+        kravtype,
+        corr_id,
+        filnavn,
+        linjenummer,
+        tilleggsfrist,
+        avsender
+        ) values (:saksnummer_nav, :belop, :vedtaksdato, :gjelder_id, :periode_fom, :periode_tom, :kravkode, :referansenummergammelsak, :transaksjonsdato, :enhet_bosted, :enhet_behandlende, :kode_hjemmel, :kode_arsak, :belop_rente, :fremtidig_ytelse, :utbetaldato, :fagsystem_id, :status, :kravtype, :corr_id, :filnavn, :linjenummer, :tilleggsfrist, :avsender)
+        """.trimIndent()
+
+    private fun insertKravNamesParams(
         kravLinje: KravLinje,
         kravType: String,
         filnavn: String,
-    ) {
-        val kravStatus = kravLinje.status ?: Status.KRAV_INNLEST_FRA_FIL.value
-
-        session.update(
-            queryOf(
-                """
-                insert into krav(
-                saksnummer_nav,
-                belop,
-                vedtaksdato,
-                gjelder_id,
-                periode_fom,
-                periode_tom,
-                kravkode,
-                referansenummergammelsak,
-                transaksjonsdato,
-                enhet_bosted,
-                enhet_behandlende,
-                kode_hjemmel,
-                kode_arsak,
-                belop_rente,
-                fremtidig_ytelse,
-                utbetaldato,
-                fagsystem_id,
-                status, 
-                kravtype,
-                corr_id,
-                filnavn,
-                linjenummer,
-                tilleggsfrist,
-                avsender
-                ) values (:saksnummer_nav, :belop, :vedtaksdato, :gjelder_id, :periode_fom, :periode_tom, :kravkode, :referansenummergammelsak, :transaksjonsdato, :enhet_bosted, :enhet_behandlende, :kode_hjemmel, :kode_arsak, :belop_rente, :fremtidig_ytelse, :utbetaldato, :fagsystem_id, :status, :kravtype, :corr_id, :filnavn, :linjenummer, :tilleggsfrist, :avsender)
-                """.trimIndent(),
-                mapOf(
-                    "saksnummer_nav" to kravLinje.saksnummerNav,
-                    "belop" to kravLinje.belop,
-                    "vedtaksdato" to kravLinje.vedtaksDato,
-                    "gjelder_id" to kravLinje.gjelderId,
-                    "periode_fom" to kravLinje.periodeFOM,
-                    "periode_tom" to kravLinje.periodeTOM,
-                    "kravkode" to kravLinje.kravKode,
-                    "referansenummergammelsak" to kravLinje.referansenummerGammelSak,
-                    "transaksjonsdato" to kravLinje.transaksjonsDato,
-                    "enhet_bosted" to kravLinje.enhetBosted,
-                    "enhet_behandlende" to kravLinje.enhetBehandlende,
-                    "kode_hjemmel" to kravLinje.kodeHjemmel,
-                    "kode_arsak" to kravLinje.kodeArsak,
-                    "belop_rente" to kravLinje.belopRente,
-                    "fremtidig_ytelse" to kravLinje.fremtidigYtelse,
-                    "utbetaldato" to kravLinje.utbetalDato,
-                    "fagsystem_id" to kravLinje.fagsystemId,
-                    "status" to kravStatus,
-                    "kravtype" to kravType,
-                    "corr_id" to UUID.randomUUID().toString(),
-                    "filnavn" to filnavn,
-                    "linjenummer" to kravLinje.linjenummer,
-                    "tilleggsfrist" to kravLinje.tilleggsfrist,
-                    "avsender" to kravLinje.avsender,
-                ),
-            ),
-        )
-    }
+    ) = mapOf(
+        "saksnummer_nav" to kravLinje.saksnummerNav,
+        "belop" to kravLinje.belop,
+        "vedtaksdato" to kravLinje.vedtaksDato,
+        "gjelder_id" to kravLinje.gjelderId,
+        "periode_fom" to kravLinje.periodeFOM,
+        "periode_tom" to kravLinje.periodeTOM,
+        "kravkode" to kravLinje.kravKode,
+        "referansenummergammelsak" to kravLinje.referansenummerGammelSak,
+        "transaksjonsdato" to kravLinje.transaksjonsDato,
+        "enhet_bosted" to kravLinje.enhetBosted,
+        "enhet_behandlende" to kravLinje.enhetBehandlende,
+        "kode_hjemmel" to kravLinje.kodeHjemmel,
+        "kode_arsak" to kravLinje.kodeArsak,
+        "belop_rente" to kravLinje.belopRente,
+        "fremtidig_ytelse" to kravLinje.fremtidigYtelse,
+        "utbetaldato" to kravLinje.utbetalDato,
+        "fagsystem_id" to kravLinje.fagsystemId,
+        "status" to (kravLinje.status ?: Status.KRAV_INNLEST_FRA_FIL.value),
+        "kravtype" to kravType,
+        "corr_id" to UUID.randomUUID().toString(),
+        "filnavn" to filnavn,
+        "linjenummer" to kravLinje.linjenummer,
+        "tilleggsfrist" to kravLinje.tilleggsfrist,
+        "avsender" to kravLinje.avsender,
+    )
 
     fun insertAllNewKrav(
         session: TransactionalSession,
         kravLinjer: List<KravLinje>,
         filnavn: String,
     ) {
+        val params = mutableListOf<Map<String, Any?>>()
         kravLinjer.forEach { kravLinje ->
             when {
                 kravLinje.isStopp() -> {
-                    insertKrav(session, kravLinje, STOPP_KRAV, filnavn)
+                    params.add(insertKravNamesParams(kravLinje, STOPP_KRAV, filnavn))
                 }
                 kravLinje.isEndring() -> {
-                    insertKrav(session, kravLinje, ENDRING_HOVEDSTOL, filnavn)
-                    insertKrav(session, kravLinje, ENDRING_RENTE, filnavn)
+                    params.add(insertKravNamesParams(kravLinje, ENDRING_HOVEDSTOL, filnavn))
+                    params.add(insertKravNamesParams(kravLinje, ENDRING_RENTE, filnavn))
                 }
                 else -> {
-                    insertKrav(session, kravLinje, NYTT_KRAV, filnavn)
+                    params.add(insertKravNamesParams(kravLinje, NYTT_KRAV, filnavn))
                 }
             }
         }
+
+        session.batchPreparedNamedStatement(
+            insertKravQuery,
+            params,
+        )
     }
 
     fun deleteOldKrav(

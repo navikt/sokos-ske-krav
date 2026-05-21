@@ -59,7 +59,7 @@ class FeilmeldingRepository(
             getFeilmeldingerForKravId(session, kravId)
         }
 
-    private fun insertFeilmeldingQuery() =
+    private val insertFeilmeldingQuery =
         """
         insert into feilmelding (
         krav_id, 
@@ -91,7 +91,7 @@ class FeilmeldingRepository(
     ) {
         session.update(
             queryOf(
-                insertFeilmeldingQuery(),
+                insertFeilmeldingQuery,
                 insertFeilmeldingNamesParams(feilmelding),
             ),
         )
@@ -102,7 +102,7 @@ class FeilmeldingRepository(
         feilmeldinger: List<Feilmelding>,
     ) {
         session.batchPreparedNamedStatement(
-            insertFeilmeldingQuery(),
+            insertFeilmeldingQuery,
             feilmeldinger.map { feilmelding ->
                 insertFeilmeldingNamesParams(feilmelding)
             },
