@@ -215,15 +215,12 @@ class SkeService(
 
         // Ikke forsøk å sende kravet hvis kravidentifikator mangler eller respons ikke kan parses
         val statusToSet =
-            if (responseStatus == HttpStatusCode.OK) {
-                if (kravidentifikator.isEmpty()) {
-                    Status.UKJENT_FEIL
-                } else {
-                    Status.entries.firstOrNull { it == krav.status } ?: Status.UKJENT_FEIL
-                }
-            } else {
-                definertStatus.first
+            when {
+                responseStatus != HttpStatusCode.OK -> definertStatus.first
+                kravidentifikator.isEmpty() -> Status.UKJENT_FEIL
+                else -> krav.status
             }
+
         return RequestResult(
             responseBody = responseBody,
             httpStatusCode = responseStatus,
