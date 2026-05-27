@@ -18,7 +18,6 @@ import no.nav.sokos.ske.krav.util.encodeToString
 
 class EndreKravService(
     private val skeClient: SkeClient,
-    private val databaseService: DatabaseService,
 ) {
     /**
      * Sends all "endre krav" requests to SKE and updates the database with results.
@@ -49,9 +48,6 @@ class EndreKravService(
                 }
             }
         }
-
-        databaseService.updateSentKrav(requestResults)
-
         return requestResults
     }
 

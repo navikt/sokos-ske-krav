@@ -35,7 +35,7 @@ class ResendingTemplate : Template<FlowContent> {
                     td { +it.fagsystemId }
                     td { +it.kravkode }
                     td { +it.kodeHjemmel }
-                    td { +it.status }
+                    td { +it.status.value }
                     td { +it.tidspunktSisteStatus }
                 }
             }

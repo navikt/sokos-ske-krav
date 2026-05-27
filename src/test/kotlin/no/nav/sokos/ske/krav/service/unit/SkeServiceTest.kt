@@ -15,7 +15,8 @@ import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.domain.Krav
-import no.nav.sokos.ske.krav.service.DatabaseService
+import no.nav.sokos.ske.krav.domain.Status
+import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.setupSkeServiceMock
 
@@ -27,32 +28,32 @@ class SkeServiceTest :
         }
 
         Given("Det finnes krav som ikke er reskontroført etter 24t") {
-            val databaseServiceMock =
-                mockk<DatabaseService> {
+            val kravRepositoryMock =
+                mockk<KravRepository> {
                     every { getAllKravForStatusCheck() } returns
                         listOf(
                             mockk<Krav>(relaxed = true) {
                                 every { filnavn } returns "Testfil"
                                 every { saksnummerNAV } returns "123"
-                                every { status } returns "MOTTATT_UNDER_BEHANDLING"
+                                every { status } returns Status.MOTTATT_UNDER_BEHANDLING
                                 every { tidspunktSendt } returns LocalDateTime.now().minusDays(2)
                             },
                             mockk<Krav>(relaxed = true) {
                                 every { filnavn } returns "Testfil"
                                 every { saksnummerNAV } returns "456"
-                                every { status } returns "KRAV_SENDT"
+                                every { status } returns Status.KRAV_SENDT
                                 every { tidspunktSendt } returns LocalDateTime.now().minusHours(2)
                             },
                             mockk<Krav>(relaxed = true) {
                                 every { filnavn } returns "Testfil"
                                 every { saksnummerNAV } returns "789"
-                                every { status } returns "KRAV_SENDT"
+                                every { status } returns Status.KRAV_SENDT
                                 every { tidspunktSendt } returns LocalDateTime.now().minusHours(24)
                             },
                             mockk<Krav>(relaxed = true) {
                                 every { filnavn } returns "Testfil"
                                 every { saksnummerNAV } returns "101112"
-                                every { status } returns "MOTTATT_UNDER_BEHANDLING"
+                                every { status } returns Status.MOTTATT_UNDER_BEHANDLING
                                 every { tidspunktSendt } returns LocalDateTime.now().minusHours(25)
                             },
                         )
@@ -61,7 +62,7 @@ class SkeServiceTest :
             Then("Skal Slack alert sendes") {
                 val slackServiceSpy = spyk(SlackService(SlackClient(client = MockHttpClient.slackClient)), recordPrivateCalls = true)
 
-                setupSkeServiceMock(databaseService = databaseServiceMock, slackService = slackServiceSpy).checkKravDateForAlert()
+                setupSkeServiceMock(slackService = slackServiceSpy, kravRepository = kravRepositoryMock).checkKravDateForAlert()
                 coVerify(exactly = 3) {
                     slackServiceSpy.addError("Testfil", "Krav har blitt forsøkt resendt for lenge", any<Pair<String, String>>())
                 }

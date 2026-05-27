@@ -4,7 +4,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.service.DatabaseService
+import no.nav.sokos.ske.krav.listener.DBListener.dataSource
+import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
+import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService
 
@@ -14,14 +16,12 @@ internal class RapportServiceIntegrationTest :
         extensions(DBListener)
 
         test("oppdaterAvstemtKravTilRapportert skal sette status til rapportert og hente tabelldata på nytt") {
-            DBListener.loadInitScript("SQLscript/status/KravSomSkalAvstemmes.sql")
-            DBListener.loadInitScript("SQLscript/feilmeldinger/FeilmeldingerSomSkalAvstemmes.sql")
+            DBListener.loadInitScripts("SQLscript/status/KravSomSkalAvstemmes.sql", "SQLscript/feilmeldinger/FeilmeldingerSomSkalAvstemmes.sql")
 
-            val dbService = DatabaseService(DBListener.dataSource)
-            dbService.getAllKravForAvstemming().size shouldBe 3
+            kravRepository.getAllKravForAvstemming().size shouldBe 3
 
-            val rapportService = RapportService(dataSource = DBListener.dataSource, dbService = dbService)
+            val rapportService = RapportService(dataSource, feilmeldingRepository, kravRepository)
             rapportService.oppdaterStatusTilRapportert(1)
-            dbService.getAllKravForAvstemming().size shouldBe 2
+            kravRepository.getAllKravForAvstemming().size shouldBe 2
         }
     })

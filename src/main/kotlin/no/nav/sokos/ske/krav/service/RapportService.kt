@@ -1,6 +1,6 @@
 package no.nav.sokos.ske.krav.service
 
-import com.zaxxer.hikari.HikariDataSource
+import javax.sql.DataSource
 
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.domain.Krav
@@ -8,7 +8,8 @@ import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.domain.StonadsType.Companion.getStonadstype
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
-import no.nav.sokos.ske.krav.util.DBUtils.transaction
+import no.nav.sokos.ske.krav.repository.KravRepository
+import no.nav.sokos.ske.krav.util.transaction
 
 @RequiresOptIn(message = "Skal bare brukes i frontend")
 @Retention(AnnotationRetention.BINARY)
@@ -19,13 +20,14 @@ enum class RapportType { AVSTEMMING, RESENDING }
 
 @Frontend
 class RapportService(
-    private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
-    private val dbService: DatabaseService = DatabaseService(),
+    private val dataSource: DataSource = PostgresDataSource.dataSource,
+    private val feilmeldingRepository: FeilmeldingRepository = FeilmeldingRepository.instance,
+    private val kravRepository: KravRepository = KravRepository.instance,
 ) {
-    val kravSomSkalAvstemmes by lazy { mapToRapportObjekt(dbService.getAllKravForAvstemming()) }
-    val kravSomSkalResendes by lazy { mapToRapportObjekt(dbService.getAllKravForResending()) }
+    val kravSomSkalAvstemmes by lazy { mapToRapportObjekt(kravRepository.getAllKravForAvstemming()) }
+    val kravSomSkalResendes by lazy { mapToRapportObjekt(kravRepository.getAllKravForResending()) }
 
-    fun oppdaterStatusTilRapportert(kravId: Int) = dbService.updateStatusForAvstemtKravToReported(kravId)
+    fun oppdaterStatusTilRapportert(kravId: Int) = dataSource.transaction { session -> feilmeldingRepository.updateStatusForAvstemtKravToReported(session, kravId) }
 
     private fun mapToRapportObjekt(liste: List<Krav>) =
         liste
@@ -54,12 +56,10 @@ class RapportService(
             }.distinctBy { it.kravID }
 
     private fun getFeilmeldinger(krav: Krav): List<String> =
-        if (krav.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value) {
-            dataSource.transaction { tx ->
-                FeilmeldingRepository
-                    .getFeilmeldingForKravId(tx, krav.kravId)
-                    .map { it.melding.splitToSequence(", mottatt").first() }
-            }
+        if (krav.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL) {
+            feilmeldingRepository
+                .getFeilmeldingerForKravId(krav.kravId)
+                .map { it.melding.splitToSequence(", mottatt").first() }
         } else {
             emptyList()
         }
@@ -73,7 +73,7 @@ class RapportService(
         val fagsystemId: String,
         val kravkode: String,
         val kodeHjemmel: String,
-        val status: String,
+        val status: Status,
         val stonadsType: StonadsType,
         val saksnummerNAV: String,
         val referansenummerGammelSak: String,
@@ -121,7 +121,7 @@ class RapportService(
                                     it.fagsystemId.escapeCsvField(),
                                     it.kravkode.escapeCsvField(),
                                     it.kodeHjemmel.escapeCsvField(),
-                                    it.status.escapeCsvField(),
+                                    it.status.value.escapeCsvField(),
                                     it.stonadsType.toString().escapeCsvField(),
                                     it.saksnummerNAV.escapeCsvField(),
                                     it.referansenummerGammelSak.escapeCsvField(),

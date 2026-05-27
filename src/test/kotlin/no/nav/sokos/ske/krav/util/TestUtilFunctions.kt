@@ -2,11 +2,10 @@ package no.nav.sokos.ske.krav.util
 
 import java.io.File
 import java.io.Reader
-import java.sql.Connection
+import javax.sql.DataSource
 
 import kotlinx.io.Buffer
 
-import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.HttpClient
 import io.ktor.client.call.HttpClientCall
 import io.ktor.client.statement.HttpResponse
@@ -16,15 +15,17 @@ import io.mockk.coJustRun
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
+import kotliquery.TransactionalSession
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.copybook.KravLinje
-import no.nav.sokos.ske.krav.domain.Krav
-import no.nav.sokos.ske.krav.repository.toKrav
+import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
+import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
-import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.EndreKravService
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.service.OpprettKravService
@@ -74,49 +75,65 @@ private val statusServiceMock =
     }
 
 private val ftpServiceMock = mockk<FtpService>()
-private val dataSourceMock =
-    mockk<DatabaseService> {
+
+private val filValideringsfeilRepositoryMock = mockk<FilValideringsfeilRepository>()
+
+private val feilmeldingRepositoryMock =
+    mockk<FeilmeldingRepository> {
+        justRun { insertFeilmelding(any(), any()) }
+    }
+
+private val kravRepositoryMock =
+    mockk<KravRepository> {
+        every { getKravTableIdFromCorrelationId(any()) } returns 1L
         every { getAllUnsentKrav() } returns emptyList()
         every { getAllKravForResending() } returns emptyList()
-        justRun { saveAllNewKrav(any<List<KravLinje>>(), "filnavn.txt") }
         every { getSkeKravidentifikator(any<String>()) } returns "foo"
+        justRun { insertAllNewKrav(any<TransactionalSession>(), any<List<KravLinje>>(), "filnavn.txt") }
     }
 
 fun setupSkeServiceMock(
+    dataSource: DataSource = DBListener.dataSource,
     skeClient: SkeClient = mockSkeClient,
     stoppKravService: StoppKravService = stoppServiceMock,
     endreKravService: EndreKravService = endreServiceMock,
     opprettKravService: OpprettKravService = opprettServiceMock,
     statusService: StatusService = statusServiceMock,
-    databaseService: DatabaseService = dataSourceMock,
     ftpService: FtpService = ftpServiceMock,
     slackService: SlackService = SlackService(SlackClient(client = MockHttpClient.slackClient)),
+    filValideringsfeilRepository: FilValideringsfeilRepository = filValideringsfeilRepositoryMock,
+    feilmeldingRepository: FeilmeldingRepository = feilmeldingRepositoryMock,
+    kravRepository: KravRepository = kravRepositoryMock,
 ) = SkeService(
-    dataSource = mockk<HikariDataSource>(),
+    dataSource = dataSource,
     skeClient = skeClient,
     stoppKravService = stoppKravService,
     endreKravService = endreKravService,
     opprettKravService = opprettKravService,
     statusService = statusService,
-    databaseService = databaseService,
     ftpService = ftpService,
     slackService = slackService,
+    filValideringsfeilRepository = filValideringsfeilRepository,
+    feilmeldingRepository = feilmeldingRepository,
+    kravRepository = kravRepository,
 )
 
 fun setupSkeServiceMockWithMockEngine(
-    dataSource: HikariDataSource,
     httpClient: HttpClient,
     ftpService: FtpService,
-    databaseService: DatabaseService,
+    dataSource: DataSource = DBListener.dataSource,
     slackClient: SlackClient = SlackClient(client = MockHttpClient.slackClient),
     slackService: SlackService = SlackService(slackClient),
+    filValideringsfeilRepository: FilValideringsfeilRepository,
+    feilmeldingRepository: FeilmeldingRepository,
+    kravRepository: KravRepository,
 ): SkeService {
     val tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true)
     val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = tokenProvider)
-    val endreKravService = EndreKravService(skeClient, databaseService)
-    val opprettKravService = OpprettKravService(skeClient, databaseService)
-    val statusService = StatusService(dataSource, skeClient, databaseService, slackService)
-    val stoppKravService = StoppKravService(skeClient, databaseService)
+    val endreKravService = EndreKravService(skeClient)
+    val opprettKravService = OpprettKravService(skeClient)
+    val statusService = StatusService(dataSource, skeClient, slackService, feilmeldingRepository, kravRepository)
+    val stoppKravService = StoppKravService(skeClient)
 
     return SkeService(
         dataSource = dataSource,
@@ -125,9 +142,11 @@ fun setupSkeServiceMockWithMockEngine(
         endreKravService = endreKravService,
         opprettKravService = opprettKravService,
         statusService = statusService,
-        databaseService = databaseService,
         ftpService = ftpService,
         slackService = slackService,
+        filValideringsfeilRepository = filValideringsfeilRepository,
+        feilmeldingRepository = feilmeldingRepository,
+        kravRepository = kravRepository,
     )
 }
 
@@ -144,5 +163,3 @@ fun mockHttpResponse(
                 }
             }
     }
-
-fun Connection.getAllKrav(): List<Krav> = prepareStatement("""select * from krav""").executeQuery().toKrav()

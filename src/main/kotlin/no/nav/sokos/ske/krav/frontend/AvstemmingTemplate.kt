@@ -79,7 +79,7 @@ class AvstemmingTemplate : Template<FlowContent> {
                     td { +it.kravkode }
                     td { +it.kodeHjemmel }
                     // TODO: Status må også ha listevisning
-                    td { +it.status }
+                    td { +it.status.value }
                     td { +it.stonadsType.toString() }
                     td { +it.saksnummerNAV }
                     td { +it.referansenummerGammelSak }
@@ -101,7 +101,7 @@ class AvstemmingTemplate : Template<FlowContent> {
                     td { +it.tidspunktSisteStatus }
 
                     // TODO: Rapporter valideringsfeil
-                    if (it.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value) {
+                    if (it.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL) {
                         td {
                             form {
                                 action = updateURL

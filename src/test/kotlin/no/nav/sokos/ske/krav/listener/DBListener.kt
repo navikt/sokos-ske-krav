@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.listener
 
+import javax.sql.DataSource
+
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.listeners.TestListener
@@ -15,7 +17,10 @@ import org.testcontainers.utility.DockerImageName
 
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.PropertiesConfig
-import no.nav.sokos.ske.krav.util.DBUtils.transaction
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
+import no.nav.sokos.ske.krav.repository.KravRepository
+import no.nav.sokos.ske.krav.util.transaction
 
 object DBListener : TestListener {
     init {
@@ -31,7 +36,7 @@ object DBListener : TestListener {
         }
     }
 
-    val dataSource: HikariDataSource by lazy {
+    val dataSource: DataSource by lazy {
         container
             .toDataSource {
                 maximumPoolSize = 10
@@ -42,9 +47,15 @@ object DBListener : TestListener {
             }
     }
 
-    fun loadInitScript(name: String) {
+    val filvalideringsFeilRepository by lazy { FilValideringsfeilRepository(dataSource) }
+    val feilmeldingRepository by lazy { FeilmeldingRepository(dataSource) }
+    val kravRepository by lazy { KravRepository(dataSource) }
+
+    fun loadInitScripts(vararg names: String) {
         dataSource // Ensure Flyway migrations have run before executing init scripts
-        ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)
+        names.forEach { name ->
+            ScriptUtils.runInitScript(JdbcDatabaseDelegate(container, ""), name)
+        }
     }
 
     fun clearDB() {

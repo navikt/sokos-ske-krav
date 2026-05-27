@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.config
 
 import java.time.Duration
+import javax.sql.DataSource
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -14,7 +15,7 @@ import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 private val logger = KotlinLogging.logger {}
 
 object PostgresDataSource {
-    val dataSource: HikariDataSource by lazy {
+    val dataSource: DataSource by lazy {
         dataSource()
     }
 
@@ -26,7 +27,7 @@ object PostgresDataSource {
         dataSource(hikariConfig = migrationConfig, role = postgresConfig.adminUser).use { migrate(it) }
     }
 
-    fun migrate(dataSource: HikariDataSource) {
+    fun migrate(dataSource: DataSource) {
         logger.info { "Flyway migration" }
         Flyway
             .configure()

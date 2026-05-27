@@ -4,14 +4,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import io.mockk.every
-import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.spyk
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
-import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.StoppKravService
 import no.nav.sokos.ske.krav.util.RequestResult
 
@@ -19,16 +17,12 @@ class StoppKravServiceTest :
     FunSpec({
 
         test("sendAllStoppKrav skal returnere liste av innsendte stopp av krav") {
-            val databaseServiceMock =
-                mockk<DatabaseService> {
-                    justRun { updateSentKrav(any<List<RequestResult>>()) }
-                }
             val kravMock =
                 mockk<Krav> {
                     every { kravidentifikatorSKE } returns "foo"
                     every { saksnummerNAV } returns "bar"
                 }
-            val stoppKravMock = spyk(StoppKravService(mockk<SkeClient>(), databaseServiceMock), recordPrivateCalls = true)
+            val stoppKravMock = spyk(StoppKravService(mockk<SkeClient>()), recordPrivateCalls = true)
 
             every { stoppKravMock["sendStoppKrav"](any<Krav>()) } returnsMany
                 listOf(

@@ -1,6 +1,8 @@
 package no.nav.sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import io.mockk.coVerify
@@ -11,8 +13,9 @@ import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.listener.DBListener
+import no.nav.sokos.ske.krav.listener.DBListener.dataSource
+import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
-import no.nav.sokos.ske.krav.service.DatabaseService
 import no.nav.sokos.ske.krav.service.OpprettKravService
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
@@ -20,27 +23,26 @@ import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.nyttKravResponse
+import no.nav.sokos.ske.krav.util.transaction
 
 internal class OpprettKravServiceIntegrationTest :
     BehaviorSpec({
         extensions(DBListener)
         beforeEach { CircuitBreakerManager.circuitBreaker.reset() }
 
-        val dbService = DatabaseService(DBListener.dataSource)
-
         Given("2 Nye krav skal opprettes ") {
             DBListener.clearDB()
-            DBListener.loadInitScript("SQLscript/krav/ToNyeKrav.sql")
+            DBListener.loadInitScripts("SQLscript/krav/ToNyeKrav.sql")
 
-            val kravSomSkalSendes = dbService.getAllUnsentKrav()
-            kravSomSkalSendes.size shouldBe 2
+            val kravSomSkalSendes = kravRepository.getAllUnsentKrav()
+            kravSomSkalSendes.shouldHaveSize(2)
 
             When("Response fra SKE  trigger circuit breaker") {
                 val skeFeilResponse = MockResponse(Endpoint.OPPRETT, genericFeilResponse(), HttpStatusCode.InternalServerError)
                 val httpClient = MockHttpClient.client(skeFeilResponse)
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
-                val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)), recordPrivateCalls = true)
+                val opprettKravServiceSpy = spyk(OpprettKravService(skeClient), recordPrivateCalls = true)
                 val requestResults = opprettKravServiceSpy.sendAllOpprettKrav(kravSomSkalSendes)
 
                 Then("Skal sendOpprettKrav kalles kun én gang") {
@@ -48,18 +50,18 @@ internal class OpprettKravServiceIntegrationTest :
                 }
                 Then("Skal kravene ikke oppdateres") {
                     val krav =
-                        DBListener.dataSource.connection.use { con ->
-                            con.getAllKrav()
+                        dataSource.transaction { session ->
+                            kravRepository.getAllKrav(session)
                         }
-                    krav.size shouldBe 2
+                    krav.shouldHaveSize(2)
                     krav.count { it.saksnummerNAV == "1111-navsaksnr" } shouldBe 1
                     krav.count { it.saksnummerNAV == "2222-navsaksnr" } shouldBe 1
                     krav.count { it.kravidentifikatorSKE.isBlank() } shouldBe 2
-                    dbService.getAllUnsentKrav().size shouldBe 2
+                    kravRepository.getAllUnsentKrav().shouldHaveSize(2)
                 }
 
                 And("Det skal være ingen requestresults") {
-                    requestResults.size shouldBe 0
+                    requestResults.shouldBeEmpty()
                 }
             }
 
@@ -71,25 +73,14 @@ internal class OpprettKravServiceIntegrationTest :
                 val httpClient = MockHttpClient.client(skeOKResponse)
                 val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
-                val opprettKravServiceSpy = spyk(OpprettKravService(skeClient, DatabaseService(DBListener.dataSource)), recordPrivateCalls = true)
+                val opprettKravServiceSpy = spyk(OpprettKravService(skeClient), recordPrivateCalls = true)
                 val requestResults = opprettKravServiceSpy.sendAllOpprettKrav(kravSomSkalSendes)
 
                 Then("Skal sendOpprettKrav kalles to ganger") {
                     coVerify(exactly = 2) { opprettKravServiceSpy["sendOpprettKrav"](ofType<Krav>()) }
                 }
-                Then("Skal kravene oppdateres med SKE kravidentifikator") {
-                    val krav =
-                        DBListener.dataSource.connection.use { con ->
-                            con.getAllKrav()
-                        }
-                    krav.size shouldBe 2
-                    krav.count { it.saksnummerNAV == "1111-navsaksnr" } shouldBe 1
-                    krav.count { it.saksnummerNAV == "2222-navsaksnr" } shouldBe 1
-                    krav.count { it.kravidentifikatorSKE == kravidentifikatorSKE } shouldBe 2
-                    dbService.getAllUnsentKrav().size shouldBe 0
-                }
                 And("Det skal være to requestResults") {
-                    requestResults.size shouldBe 2
+                    requestResults.shouldHaveSize(2)
                 }
             }
         }

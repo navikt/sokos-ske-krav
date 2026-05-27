@@ -1,20 +1,23 @@
 package no.nav.sokos.ske.krav.validation
 
+import javax.sql.DataSource
+
 import no.nav.sokos.ske.krav.client.SlackService
+import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.metrics.Metrics
-import no.nav.sokos.ske.krav.service.DatabaseService
+import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.service.FtpFil
+import no.nav.sokos.ske.krav.util.transaction
 
 private val logger = mu.KotlinLogging.logger {}
 
 class LineValidator(
+    private val dataSource: DataSource = PostgresDataSource.dataSource,
+    private val filValideringsfeilRepository: FilValideringsfeilRepository,
     private val slackService: SlackService = SlackService(),
 ) {
-    suspend fun validateNewLines(
-        file: FtpFil,
-        dbService: DatabaseService,
-    ): List<KravLinje> {
+    suspend fun validateNewLines(file: FtpFil): List<KravLinje> {
         val slackMessages = mutableListOf<Pair<String, String>>()
         val returnLines =
             file.kravLinjer.map { linje ->
@@ -28,7 +31,9 @@ class LineValidator(
                     is ValidationResult.Error -> {
                         slackMessages.addAll(result.messages)
 
-                        dbService.saveLineValidationError(file.name, linje, result.messages.joinToString { pair -> pair.second })
+                        dataSource.transaction { session ->
+                            filValideringsfeilRepository.insertLineFilValideringsfeil(session, file.name, linje, result.messages.joinToString { pair -> pair.second })
+                        }
                         linje.markAsValidationError()
                     }
                 }

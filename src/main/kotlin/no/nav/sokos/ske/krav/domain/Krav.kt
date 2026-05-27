@@ -25,7 +25,7 @@ data class Krav(
     val fremtidigYtelse: Double,
     val utbetalDato: LocalDate,
     val fagsystemId: String,
-    val status: String,
+    val status: Status,
     val kravtype: String,
     val corrId: String,
     val tidspunktSendt: LocalDateTime?,

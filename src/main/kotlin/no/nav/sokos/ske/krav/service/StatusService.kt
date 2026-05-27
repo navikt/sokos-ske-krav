@@ -1,8 +1,8 @@
 package no.nav.sokos.ske.krav.service
 
 import java.time.LocalDateTime
+import javax.sql.DataSource
 
-import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 
@@ -18,21 +18,23 @@ import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.dto.ske.responses.MottaksStatusResponse
 import no.nav.sokos.ske.krav.dto.ske.responses.ValideringsFeilResponse
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
-import no.nav.sokos.ske.krav.util.DBUtils.asyncTransaction
+import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.createKravidentifikatorPair
 import no.nav.sokos.ske.krav.util.decodeTo
+import no.nav.sokos.ske.krav.util.transaction
 
 private val logger = mu.KotlinLogging.logger {}
 
 // TODO: Burde renames til MottaksstatusService? Trenger kanskje en refaktorering
 class StatusService(
-    private val dataSource: HikariDataSource = PostgresDataSource.dataSource,
+    private val dataSource: DataSource = PostgresDataSource.dataSource,
     private val skeClient: SkeClient = SkeClient(),
-    private val databaseService: DatabaseService = DatabaseService(),
     private val slackService: SlackService = SlackService(),
+    private val feilmeldingRepository: FeilmeldingRepository = FeilmeldingRepository.instance,
+    private val kravRepository: KravRepository = KravRepository.instance,
 ) {
     suspend fun getMottaksStatus() {
-        val kravListe = databaseService.getAllKravForStatusCheck()
+        val kravListe = kravRepository.getAllKravForStatusCheck()
         if (kravListe.isEmpty()) return
 
         logger.info("Sjekk av mottaksstatus -> Antall krav som ikke er reskontroført: ${kravListe.size}")
@@ -42,7 +44,7 @@ class StatusService(
         for (krav in kravListe) {
             runCatching {
                 val mottaksStatusResponse = processKravStatus(krav)
-                if (mottaksStatusResponse?.mottaksStatus == Status.RESKONTROFOERT.value) {
+                if (mottaksStatusResponse?.mottaksStatus == Status.RESKONTROFOERT) {
                     reskontrofoerteKravCount++
                 }
             }.onFailure { break }
@@ -83,11 +85,14 @@ class StatusService(
     }
 
     private suspend fun updateMottaksStatus(
-        mottaksstatus: MottaksStatusResponse,
+        mottaksStatusResponse: MottaksStatusResponse,
         kravIdentifikatorPair: Pair<String, KravidentifikatorType>,
         krav: Krav,
-    ) = databaseService.updateStatus(mottaksstatus.mottaksStatus, krav.corrId).also {
-        if (mottaksstatus.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value) handleValideringsFeil(kravIdentifikatorPair, krav)
+    ) {
+        dataSource.transaction { session ->
+            kravRepository.updateStatus(session, mottaksStatusResponse.mottaksStatus, krav.corrId)
+        }
+        if (mottaksStatusResponse.mottaksStatus == Status.VALIDERINGSFEIL_MOTTAKSSTATUS) handleValideringsFeil(kravIdentifikatorPair, krav)
     }
 
     private suspend fun handleValideringsFeil(
@@ -103,31 +108,29 @@ class StatusService(
 
         val valideringsfeilListe = responseBody.decodeTo<ValideringsFeilResponse>()?.valideringsfeil ?: return
         logger.info("Asynk Valideringsfeil mottatt ")
-        valideringsfeilListe.forEach {
-            logger.error(marker = TEAM_LOGS_MARKER) { "Asynk valideringsfeil mottatt: ${ it.message }" }
+        valideringsfeilListe.forEach { valideringsFeil ->
+            logger.error(marker = TEAM_LOGS_MARKER) { "Asynk valideringsfeil mottatt: ${ valideringsFeil.message }" }
+            slackService.addError(krav.filnavn, "Asynk valideringsfeil", Pair(valideringsFeil.error, valideringsFeil.message))
         }
 
-        dataSource.asyncTransaction { session ->
-            FeilmeldingRepository.insertFeilmeldinger(
-                tx = session,
-                feilmeldinger =
-                    valideringsfeilListe.map { valideringsFeil ->
-                        slackService.addError(krav.filnavn, "Asynk valideringsfeil", Pair(valideringsFeil.error, valideringsFeil.message))
+        val feilmeldinger =
+            valideringsfeilListe.map { valideringsFeil ->
+                Feilmelding(
+                    0,
+                    krav.kravId,
+                    krav.corrId,
+                    krav.saksnummerNAV,
+                    krav.kravidentifikatorSKE,
+                    valideringsFeil.error,
+                    valideringsFeil.message,
+                    "",
+                    "",
+                    LocalDateTime.now(),
+                )
+            }
 
-                        Feilmelding(
-                            0,
-                            krav.kravId,
-                            krav.corrId,
-                            krav.saksnummerNAV,
-                            krav.kravidentifikatorSKE,
-                            valideringsFeil.error,
-                            valideringsFeil.message,
-                            "",
-                            "",
-                            LocalDateTime.now(),
-                        )
-                    },
-            )
+        dataSource.transaction { session ->
+            feilmeldingRepository.insertFeilmeldinger(session, feilmeldinger)
         }
     }
 }
