@@ -304,7 +304,7 @@ class KravRepository(
         "kode_hjemmel" to kravLinje.kodeHjemmel,
         "kode_arsak" to kravLinje.kodeArsak,
         "belop_rente" to kravLinje.belopRente,
-        "fremtidig_ytelse" to kravLinje.fremtidigYtelse,
+        "fremtidig_ytelse" to kravLinje.fremtidigYtelse.toString(),
         "utbetaldato" to kravLinje.utbetalDato,
         "fagsystem_id" to kravLinje.fagsystemId,
         "status" to (kravLinje.status ?: Status.KRAV_INNLEST_FRA_FIL.value),
