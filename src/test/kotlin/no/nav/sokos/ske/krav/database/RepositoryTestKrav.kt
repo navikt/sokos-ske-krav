@@ -29,7 +29,7 @@ internal class RepositoryTestKrav :
             DBListener.loadInitScripts("SQLscript/krav/KravForRepositoryTest.sql")
         }
 
-        test("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDERBEHANDLING") {
+        test("getAllKravForStatusCheck skal returnere krav som har status KRAV_SENDT eller MOTTATT_UNDER_BEHANDLING") {
             val allKrav = kravRepository.getAllKravForStatusCheck()
             allKrav.shouldHaveSize(5)
         }
