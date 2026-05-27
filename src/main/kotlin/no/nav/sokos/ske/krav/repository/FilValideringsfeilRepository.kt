@@ -36,10 +36,12 @@ class FilValideringsfeilRepository(
             queryOf(
                 """
                 insert into filvalideringsfeil (filnavn, feilmelding)
-                values (?, ?)
+                values (:filnavn, :feilmelding)
                 """.trimIndent(),
-                filnavn,
-                feilmelding,
+                mapOf(
+                    "filnavn" to filnavn,
+                    "feilmelding" to feilmelding,
+                ),
             ),
         )
     }
@@ -54,13 +56,15 @@ class FilValideringsfeilRepository(
             queryOf(
                 """
                 insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
-                values (?, ?, ?, ?, ?)
+                values (:filnavn, :linjenummer, :saksnummberNav, :kravlinje, :feilmelding)
                 """.trimIndent(),
-                filnavn,
-                kravlinje.linjenummer,
-                kravlinje.saksnummerNav,
-                kravlinje.toString(),
-                feilmelding,
+                mapOf(
+                    "filnavn" to filnavn,
+                    "linjenummer" to kravlinje.linjenummer,
+                    "saksnummberNav" to kravlinje.saksnummerNav,
+                    "kravlinje" to kravlinje.toString(),
+                    "feilmelding" to feilmelding,
+                ),
             ),
         )
     }
