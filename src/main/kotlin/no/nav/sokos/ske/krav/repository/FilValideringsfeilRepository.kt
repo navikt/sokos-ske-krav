@@ -34,6 +34,7 @@ class FilValideringsfeilRepository(
     ) {
         session.update(
             queryOf(
+                // language=SQL
                 """
                 insert into filvalideringsfeil (filnavn, feilmelding)
                 values (:filnavn, :feilmelding)
@@ -54,6 +55,7 @@ class FilValideringsfeilRepository(
     ) {
         session.update(
             queryOf(
+                // language=SQL
                 """
                 insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
                 values (:filnavn, :linjenummer, :saksnummerNav, :kravlinje, :feilmelding)
@@ -75,6 +77,7 @@ class FilValideringsfeilRepository(
     ): Int =
         session.update(
             queryOf(
+                // language=SQL
                 """
                 delete from filvalideringsfeil where tidspunkt_opprettet < ?
                 """.trimIndent(),
