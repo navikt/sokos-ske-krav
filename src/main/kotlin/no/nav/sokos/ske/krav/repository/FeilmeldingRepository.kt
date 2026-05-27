@@ -35,6 +35,7 @@ class FeilmeldingRepository(
     fun getAllFeilmeldinger(session: TransactionalSession): List<Feilmelding> =
         session.list(
             queryOf(
+                // language=SQL
                 """
                 select * from feilmelding
                 """.trimIndent(),
@@ -48,6 +49,7 @@ class FeilmeldingRepository(
     ): List<Feilmelding> =
         session.list(
             queryOf(
+                // language=SQL
                 """select * from feilmelding where krav_id = ?""".trimIndent(),
                 kravId,
             ),
@@ -60,6 +62,7 @@ class FeilmeldingRepository(
         }
 
     private val insertFeilmeldingQuery =
+        // language=SQL
         """
         insert into feilmelding (
         krav_id, 
@@ -115,6 +118,7 @@ class FeilmeldingRepository(
     ) {
         session.update(
             queryOf(
+                // language=SQL
                 """
                 update feilmelding
                     set rapporter = false
@@ -131,6 +135,7 @@ class FeilmeldingRepository(
     ): Int =
         session.update(
             queryOf(
+                // language=SQL
                 """
                 delete from feilmelding where tidspunkt_opprettet < ?
                 """.trimIndent(),

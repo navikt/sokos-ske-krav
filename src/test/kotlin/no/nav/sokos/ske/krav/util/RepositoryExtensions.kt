@@ -10,6 +10,7 @@ import no.nav.sokos.ske.krav.repository.KravRepository
 
 fun FilValideringsfeilRepository.getAllValideringsFeil(session: TransactionalSession): List<FilValideringsfeil> =
     session.list(
+        // language=SQL
         queryOf("select * from filvalideringsfeil"),
         mapToFilValideringsfeil,
     )
@@ -20,6 +21,7 @@ fun FilValideringsfeilRepository.getFilValideringsFeilForFil(
 ): List<FilValideringsfeil> =
     session.list(
         queryOf(
+            // language=SQL
             "select * from filvalideringsfeil where filnavn = ?",
             filnavn,
         ),
@@ -28,6 +30,7 @@ fun FilValideringsfeilRepository.getFilValideringsFeilForFil(
 
 fun KravRepository.getAllKrav(session: TransactionalSession): List<Krav> =
     session.list(
+        // language=SQL
         queryOf("select * from krav"),
         extractor = mapToKrav,
     )

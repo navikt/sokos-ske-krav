@@ -60,6 +60,7 @@ class KravRepository(
         dataSource.transaction { session ->
             session.list(
                 queryOf(
+                    // language=SQL
                     """select * from krav where status in (?, ?)""",
                     Status.KRAV_SENDT.value,
                     Status.MOTTATT_UNDER_BEHANDLING.value,
@@ -72,6 +73,7 @@ class KravRepository(
         dataSource.transaction { session ->
             session.list(
                 queryOf(
+                    // language=SQL
                     """select * from krav where status = :kravStatus and kravtype in(:rente, :hovedstol, :stopp)""",
                     mapOf(
                         "kravStatus" to Status.KRAV_IKKE_SENDT.value,
@@ -88,6 +90,7 @@ class KravRepository(
         dataSource.transaction { session ->
             session.list(
                 queryOf(
+                    // language=SQL
                     """
                     select k.* from krav k
                     join feilmelding f on k.id=f.krav_id
@@ -106,6 +109,7 @@ class KravRepository(
         dataSource.transaction { session ->
             session.list(
                 queryOf(
+                    // language=SQL
                     """select * from krav where status in (?, ?, ?, ?, ?)""",
                     Status.KRAV_IKKE_SENDT.value,
                     Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND.value,
@@ -121,6 +125,7 @@ class KravRepository(
         dataSource.transaction { session ->
             session.list(
                 queryOf(
+                    // language=SQL
                     """select * from krav where status = ?""",
                     Status.KRAV_IKKE_SENDT.value,
                 ),
@@ -136,6 +141,7 @@ class KravRepository(
     ): String =
         session.single(
             queryOf(
+                // language=SQL
                 """
                 select kravidentifikator_ske from krav
                 where (saksnummer_nav = :saksnummer_nav or referansenummergammelsak = :referansenummergammelsak)
@@ -155,6 +161,7 @@ class KravRepository(
         dataSource.transaction { session ->
             session.single(
                 queryOf(
+                    // language=SQL
                     """
                     select referansenummergammelsak from krav
                     where saksnummer_nav = ? and referansenummergammelsak != saksnummer_nav
@@ -176,6 +183,7 @@ class KravRepository(
     ): Long =
         session.single(
             queryOf(
+                // language=SQL
                 """
                 select id from krav
                 where corr_id = ? 
@@ -196,6 +204,7 @@ class KravRepository(
     ) {
         session.update(
             queryOf(
+                // language=SQL
                 """
                 update krav
                     set tidspunkt_sendt = now(),
@@ -220,6 +229,7 @@ class KravRepository(
     ) {
         session.update(
             queryOf(
+                // language=SQL
                 """
                 update krav
                     set status = :status,
@@ -241,6 +251,7 @@ class KravRepository(
     ) {
         session.update(
             queryOf(
+                // language=SQL
                 """
                 update krav
                     set kravidentifikator_ske = :kravidentifikator_ske
@@ -256,6 +267,7 @@ class KravRepository(
     }
 
     private val insertKravQuery =
+        // language=SQL
         """
         insert into krav(
         saksnummer_nav,
@@ -349,6 +361,7 @@ class KravRepository(
     ): Int =
         session.update(
             queryOf(
+                // language=SQL
                 """delete from krav where tidspunkt_opprettet < ?""",
                 threshold,
             ),
