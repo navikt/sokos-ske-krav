@@ -56,12 +56,12 @@ class FilValideringsfeilRepository(
             queryOf(
                 """
                 insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
-                values (:filnavn, :linjenummer, :saksnummberNav, :kravlinje, :feilmelding)
+                values (:filnavn, :linjenummer, :saksnummerNav, :kravlinje, :feilmelding)
                 """.trimIndent(),
                 mapOf(
                     "filnavn" to filnavn,
                     "linjenummer" to kravlinje.linjenummer,
-                    "saksnummberNav" to kravlinje.saksnummerNav,
+                    "saksnummerNav" to kravlinje.saksnummerNav,
                     "kravlinje" to kravlinje.toString(),
                     "feilmelding" to feilmelding,
                 ),
