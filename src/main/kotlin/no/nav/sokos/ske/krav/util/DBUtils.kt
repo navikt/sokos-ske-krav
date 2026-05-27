@@ -24,6 +24,8 @@ private fun <A> logError(block: () -> A): A =
     runCatching {
         block()
     }.onFailure {
-        dbLogger.error("Feil i databaseoperasjon")
-        dbLogger.error(TEAM_LOGS_MARKER, "Feil i databaseoperasjon: ${it.message}", it)
+        dbLogger.error { "Feil i databaseoperasjon" }
+        dbLogger.error(TEAM_LOGS_MARKER, it) {
+            "Feil i databaseoperasjon: ${it.message}"
+        }
     }.getOrThrow()
