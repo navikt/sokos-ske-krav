@@ -305,19 +305,19 @@ class SkeService(
         }
     }
 
-    fun logTooLongWithoutReskontrofort() {
+    fun checkForStangendeKrav() {
         val now = LocalDateTime.now()
-        val kravResentForOverOneDay =
+        val stangendeKrav =
             kravRepository
                 .getAllKravForStatusCheck()
                 .filter { it.tidspunktSendt?.isBefore((now.minusHours(24))) == true }
 
-        if (kravResentForOverOneDay.isEmpty()) return
-        val kravGroupedPerDay = kravResentForOverOneDay.groupBy { Duration.between(it.tidspunktSendt, now).toDays() }
+        if (stangendeKrav.isEmpty()) return
+        val kravGroupedPerDay = stangendeKrav.groupBy { Duration.between(it.tidspunktSendt, now).toDays() }
 
         val logMessage =
             buildString {
-                append("${kravResentForOverOneDay.size} krav er blitt forsøkt resendt i over 24 timer: \n")
+                append("${stangendeKrav.size} krav er blitt forsøkt resendt i over 24 timer: \n")
                 kravGroupedPerDay.toSortedMap().forEach { (day, kravPerDay) ->
                     kravPerDay.groupBy { it.avsender }.toSortedMap().forEach { (avsender, krav) ->
                         append("${krav.size} krav fra $avsender har blitt forsøkt resendt i $day dag(er)\n")

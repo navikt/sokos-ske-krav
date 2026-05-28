@@ -68,7 +68,7 @@ private fun Application.module() {
     }
 
     launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
-    launchJob(skeService::logTooLongWithoutReskontrofort, 24.hours)
+    launchJob(skeService::checkForStangendeKrav, 24.hours)
     launchJob(::deleteOldData, 24.hours)
 }
 

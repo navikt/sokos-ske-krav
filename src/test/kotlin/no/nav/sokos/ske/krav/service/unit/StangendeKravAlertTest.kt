@@ -21,7 +21,7 @@ import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.service.SkeService
 import no.nav.sokos.ske.krav.util.setupSkeServiceMock
 
-class ReskontroforingAlertTest :
+class StangendeKravAlertTest :
     BehaviorSpec({
         beforeSpec {
             mockkObject(PropertiesConfig)
@@ -45,8 +45,8 @@ class ReskontroforingAlertTest :
                     every { getAllKravForStatusCheck() } returns mockedKrav()
                 }
 
-            When("checkKravDateForAlert kjøres") {
-                setupSkeServiceMock(kravRepository = kravRepositoryMock).logTooLongWithoutReskontrofort()
+            When("checkForStangendeKrav kjøres") {
+                setupSkeServiceMock(kravRepository = kravRepositoryMock).checkForStangendeKrav()
                 val message = logAppender.list.map { it.formattedMessage }.single()
 
                 Then("skal loggmeldingen inneholde totalt antall krav") {
