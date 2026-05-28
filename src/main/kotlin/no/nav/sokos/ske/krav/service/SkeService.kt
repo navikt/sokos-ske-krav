@@ -325,7 +325,7 @@ class SkeService(
                 }
             }
 
-        logger.error(logMessage)
+        logger.error { logMessage }
     }
 
     private fun logResult(result: List<RequestResult>) {
