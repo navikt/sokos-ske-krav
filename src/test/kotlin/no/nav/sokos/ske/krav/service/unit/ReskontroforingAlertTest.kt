@@ -45,7 +45,7 @@ class ReskontroforingAlertTest :
                     every { getAllKravForStatusCheck() } returns mockedKrav()
                 }
 
-            When("checkKravDateForAlert kjøres") {
+            When("logTooLongWithoutReskontrofort kjøres") {
                 setupSkeServiceMock(kravRepository = kravRepositoryMock).logTooLongWithoutReskontrofort()
                 val message = logAppender.list.map { it.formattedMessage }.single()
 
