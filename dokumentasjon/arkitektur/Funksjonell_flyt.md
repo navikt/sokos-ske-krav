@@ -7,7 +7,7 @@ Applikasjonen kjører to periodiske jobber:
 | Jobb                                                                                         | Intervall                        | Funksjon                                                            |
 |----------------------------------------------------------------------------------------------|----------------------------------|---------------------------------------------------------------------|
 | [`handleNewKrav`](../../src/main/kotlin/no/nav/sokos/ske/krav/service/SkeService.kt)         | Konfigurerbart (default 5 timer) | Henter nye filer fra SFTP, validerer, lagrer og sender krav til SKE |
-| [`checkKravDateForAlert`](../../src/main/kotlin/no/nav/sokos/ske/krav/service/SkeService.kt) | Hvert 24. time                   | Varsler på Slack dersom krav har stått ubehandlet for lenge         |
+| [`checkForStangendeKrav`](../../src/main/kotlin/no/nav/sokos/ske/krav/service/SkeService.kt) | Hvert 24. time                   | Logger feilmelding dersom krav har stått uten reskontroføring for lenge |
 
 ---
 ## 1. Hovedflyt – behandling av nye kravfiler

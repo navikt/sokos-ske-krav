@@ -185,14 +185,14 @@ Dersom en fil inneholder 1000 eller flere kravlinjer etter validering, settes `h
 
 ---
 
-## 6. Varsler om krav som venter for lenge ([`checkKravDateForAlert`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SkeService.kt))
+## 6. Varsler om krav som «stanger» ([`checkForStangendeKrav`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SkeService.kt))
 
-Kjøres hvert 24. time. Henter alle krav med status som venter på svar fra SKE, og filtrerer ut de som har `tidspunktSendt` mer enn 24 timer tilbake i tid. For hvert slikt krav sendes en Slack-melding med:
+Kjøres hvert 24. time. Henter alle krav med status `KRAV_SENDT`/`MOTTATT_UNDER_BEHANDLING` og filtrerer ut de som har `tidspunktSendt` mer enn 24 timer tilbake i tid. Logger en oppsummert feilmelding (`logger.error`) med:
 
-- Saksnummer
-- Antall dager kravet har ventet
-- Nåværende status
-- Tidspunkt for opprinnelig sending
+- Totalt antall krav som har ventet for lenge
+- Gruppering per antall dager og avsender (f.eks. «3 krav fra INFOTRYGD har blitt forsøkt resendt i 2 dag(er)»)
+
+Feilmeldingen fanges av Grafana Alerting og varsles i `#team-mob-alerts-prod`.
 
 ---
 

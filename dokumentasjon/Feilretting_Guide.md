@@ -52,7 +52,7 @@ Vår linjevalidering validerer ihht til Skatteetatens valideringsregler for dato
 Alle tilfeller av synkrone og asynkrone valideringsfeil må følges opp manuelt og rapporteres til produkteier/produktleder.
 
 ## Krav blir ikke reskontroførte
-Vi har en alert for om et krav er blitt forsøkt resendt i over 24 timer slik at dette kan fanges opp. Dette skjer som regel fordi det "stanger" mot PAK på deres side og utviklere hos Skattetaten må involveres. Kontakt de i Slackkanalen #utbetaling-tilbakekreving-fi. Det løser seg som regel i løpet av 1-2 dager.
+Vi har en alert for om et krav er blitt forsøkt resendt i over 24 timer slik at dette kan fanges opp.  Denne feilen fanges opp av Grafana Alerting og varsles i `#team-mob-alerts-prod`. Dette skjer som regel fordi det "stanger" mot PAK/INNFRI på SKE sin side og utviklere hos Skatteetaten må involveres. Kontakt de i Slackkanalen #utbetaling-tilbakekreving-fi. Det løser seg som regel i løpet av 1-2 dager.
 
 ## Feil i kommunikasjon med SKE
 Applikasjonen benytter seg av en circuit breaker, så ved kommunikasjon/serverfeil vil det komme en melding i #team-mob-alerts-prod. Hvis du oppdager feil i kommunikasjonen bør du undersøke logger og database, og rapportere dette til Skatteetaten i Slackkanalen #utbetaling-tilbakekreving-fi. Hent ut corr-id fra Kravtabellen for et krav som feilet i oversending slik at skatteetaten kan bruke den for å finne hendelsen i sine logger.
