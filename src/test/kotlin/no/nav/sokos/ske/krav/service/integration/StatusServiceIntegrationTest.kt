@@ -117,7 +117,7 @@ internal class StatusServiceIntegrationTest :
             val httpClient = mottaksStatusHttpClient(mottaksStatusResponse)
             val statusService = statusService(httpClient)
 
-            Then("Vi logge begge reskontroført og migrert krav") {
+            Then("Vi logger både reskontroført og migrert krav") {
                 val allKravBeforeUpdate =
                     dataSource.transaction { session ->
                         kravRepository.getAllKrav(session)
@@ -133,12 +133,12 @@ internal class StatusServiceIntegrationTest :
 
                 allKravAfterUpdate.count { it.status == Status.MIGRERT } shouldBe 5
 
-                val messages = logAppender.list.map { it.formattedMessage.also(::println) }
+                val messages = logAppender.list.map { it.formattedMessage }
                 messages.filter { it == "Antall reskontroførte krav: 5" }.shouldHaveSize(1)
-            }
 
-            statusServiceLogger.detachAppender(logAppender)
-            logAppender.stop()
+                statusServiceLogger.detachAppender(logAppender)
+                logAppender.stop()
+            }
         }
 
         Given("Mottaksstatus er VALIDERINGSFEIL") {
