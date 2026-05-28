@@ -1,5 +1,8 @@
 package no.nav.sokos.ske.krav.service.integration
 
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.core.test.TestCase
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -13,6 +16,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
+import org.slf4j.LoggerFactory
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
@@ -42,6 +46,9 @@ internal class StatusServiceIntegrationTest :
             }
 
         val slackService = spyk(SlackService(slackClient))
+
+        val statusServiceLogger = LoggerFactory.getLogger(StatusService::class.java) as Logger
+        val logAppender = ListAppender<ILoggingEvent>()
 
         beforeContainer { testCase: TestCase ->
             if (testCase.name.prefix == "Given: ") {
@@ -101,6 +108,39 @@ internal class StatusServiceIntegrationTest :
                 }
             }
         }
+
+        Given("Mottaks status oppdateres") {
+            logAppender.start()
+            statusServiceLogger.addAppender(logAppender)
+
+            val mottaksStatusResponse = MockResponsesBody.mottaksStatusResponse(status = Status.MIGRERT.value)
+            val httpClient = mottaksStatusHttpClient(mottaksStatusResponse)
+            val statusService = statusService(httpClient)
+
+            Then("Vi logge begge reskontroført og migrert krav") {
+                val allKravBeforeUpdate =
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session)
+                    }
+                allKravBeforeUpdate.count { it.status == Status.MIGRERT } shouldBe 0
+
+                statusService.getMottaksStatus()
+
+                val allKravAfterUpdate =
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session)
+                    }
+
+                allKravAfterUpdate.count { it.status == Status.MIGRERT } shouldBe 5
+
+                val messages = logAppender.list.map { it.formattedMessage.also(::println) }
+                messages.filter { it == "Antall reskontroførte krav: 5" }.shouldHaveSize(1)
+            }
+
+            statusServiceLogger.detachAppender(logAppender)
+            logAppender.stop()
+        }
+
         Given("Mottaksstatus er VALIDERINGSFEIL") {
             val fileName = "KravSomSkalOppdateres.sql"
             val status = "ORGANISASJONSNUMMER_FINNES_IKKE"

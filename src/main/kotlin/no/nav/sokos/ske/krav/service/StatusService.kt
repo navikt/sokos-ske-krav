@@ -44,7 +44,7 @@ class StatusService(
         for (krav in kravListe) {
             runCatching {
                 val mottaksStatusResponse = processKravStatus(krav)
-                if (mottaksStatusResponse?.mottaksStatus == Status.RESKONTROFOERT) {
+                if (mottaksStatusResponse?.mottaksStatus == Status.RESKONTROFOERT || mottaksStatusResponse?.mottaksStatus == Status.MIGRERT) {
                     reskontrofoerteKravCount++
                 }
             }.onFailure { break }
