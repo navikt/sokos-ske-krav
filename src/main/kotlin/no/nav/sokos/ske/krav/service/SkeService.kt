@@ -310,23 +310,23 @@ class SkeService(
         val stangendeKrav =
             kravRepository
                 .getAllStangendeKrav()
-                .mapNotNull { krav ->
-                    krav.tidspunktSendt?.let { tidspunktSendt ->
-                        krav to Duration.between(tidspunktSendt, now).toDays()
-                    }
-                }
+                .filterNot { it.tidspunktSendt == null }
 
         if (stangendeKrav.isEmpty()) return
-        val kravGroupedPerDay = stangendeKrav.groupBy(keySelector = { (_, day) -> day }, valueTransform = { (krav, _) -> krav })
-
         val logMessage =
             buildString {
                 append("${stangendeKrav.size} krav er blitt forsøkt resendt i over 24 timer: \n")
-                kravGroupedPerDay.toSortedMap().forEach { (day, kravPerDay) ->
-                    kravPerDay.groupBy { it.avsender }.toSortedMap().forEach { (avsender, krav) ->
-                        append("${krav.size} krav fra $avsender har blitt forsøkt resendt i $day dag(er)\n")
+                stangendeKrav
+                    .groupBy { Duration.between(it.tidspunktSendt, now).toDays() }
+                    .toSortedMap()
+                    .forEach { (day, kravPerDay) ->
+                        kravPerDay
+                            .groupBy { it.avsender }
+                            .toSortedMap()
+                            .forEach { (avsender, krav) ->
+                                append("${krav.size} krav fra $avsender har blitt forsøkt resendt i $day dag(er)\n")
+                            }
                     }
-                }
             }
 
         logger.error { logMessage }
