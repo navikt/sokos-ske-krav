@@ -115,8 +115,8 @@ Hjelpemetode som:
 1. Legger til Slack-feil dersom `shouldAlert == true`
 2. Kaller `saveErrorMessage()` uansett – lagrer feilmelding i DB
 
-#### `checkKravDateForAlert()`
-Kjøres hvert 24. time. Henter alle krav i status `KRAV_SENDT`/`MOTTATT_UNDER_BEHANDLING` og varsler på Slack for hvert krav der `tidspunktSendt` er mer enn 24 timer siden.
+#### `checkForStangendeKrav()`
+Kjøres hvert 24. time. Henter alle krav i status `KRAV_SENDT`/`MOTTATT_UNDER_BEHANDLING` der `tidspunktSendt` er mer enn 24 timer siden. Logger en oppsummert feilmelding gruppert per antall dager og avsender. Denne feilen fanges opp av Grafana Alerting og varsles i `#team-mob-alerts-prod`.
 
 ---
 

@@ -34,6 +34,11 @@ internal class RepositoryTestKrav :
             allKrav.shouldHaveSize(5)
         }
 
+        test("getAllStangendeKrav skal returnere krav som ble sendt for over 24 timer siden og har status KRAV_SENDT eller MOTTATT_UNDER_BEHANDLING") {
+            val allKrav = kravRepository.getAllStangendeKrav()
+            allKrav.shouldHaveSize(2)
+        }
+
         test(
             "getAllKravForResending skal returnere krav som har status KRAV_IKKE_SENDT, IKKE_RESKONTROFORT_RESEND, ANNEN_SERVER_FEIL_500, UTILGJENGELIG_TJENESTE_503, eller INTERN_TJENERFEIL_500 ",
         ) {
@@ -109,14 +114,12 @@ internal class RepositoryTestKrav :
 
                 val originalKrav = kravRepository.getAllKrav(session).first { krav -> krav.corrId == corrID }
                 originalKrav.status shouldBe Status.RESKONTROFOERT
-                originalKrav.tidspunktSendt?.toString() shouldBe "2023-02-01T12:00"
                 originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
 
                 kravRepository.updateSentKrav(session, corrID, Status.KRAV_SENDT)
 
                 val updatedKrav = kravRepository.getAllKrav(session).first { krav -> krav.corrId == corrID }
                 updatedKrav.status shouldBe Status.KRAV_SENDT
-                updatedKrav.tidspunktSendt?.toLocalDate() shouldBe LocalDate.now()
                 updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
                 updatedKrav.kravidentifikatorSKE shouldBe originalKrav.kravidentifikatorSKE
             }

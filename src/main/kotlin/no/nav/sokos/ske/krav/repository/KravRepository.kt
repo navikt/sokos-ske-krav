@@ -69,6 +69,19 @@ class KravRepository(
             )
         }
 
+    fun getAllStangendeKrav(): List<Krav> =
+        dataSource.transaction { session ->
+            session.list(
+                queryOf(
+                    // language=SQL
+                    """select * from krav where status in (?, ?) and tidspunkt_sendt < now() - interval '1 day'""",
+                    Status.KRAV_SENDT.value,
+                    Status.MOTTATT_UNDER_BEHANDLING.value,
+                ),
+                extractor = mapToKrav,
+            )
+        }
+
     fun getAllUnsentEndringerAndStopp(): List<Krav> =
         dataSource.transaction { session ->
             session.list(
@@ -339,10 +352,12 @@ class KravRepository(
                 kravLinje.isStopp() -> {
                     params.add(insertKravNamesParams(kravLinje, STOPP_KRAV, filnavn))
                 }
+
                 kravLinje.isEndring() -> {
                     params.add(insertKravNamesParams(kravLinje, ENDRING_HOVEDSTOL, filnavn))
                     params.add(insertKravNamesParams(kravLinje, ENDRING_RENTE, filnavn))
                 }
+
                 else -> {
                     params.add(insertKravNamesParams(kravLinje, NYTT_KRAV, filnavn))
                 }

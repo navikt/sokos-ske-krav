@@ -305,24 +305,31 @@ class SkeService(
         }
     }
 
-    suspend fun checkKravDateForAlert() {
-        kravRepository
-            .getAllKravForStatusCheck()
-            .filter { it.tidspunktSendt?.isBefore((LocalDateTime.now().minusHours(24))) == true }
-            .also {
-                if (it.isNotEmpty()) logger.info { "Krav med saksnummer ${it.joinToString { krav -> krav.saksnummerNAV }} har blitt forsøkt resendt i over én dag" }
-            }.forEach {
-                slackService.addError(
-                    it.filnavn,
-                    "Krav har blitt forsøkt resendt for lenge",
-                    Pair(
-                        "Krav har blitt forsøkt resendt i over 24t",
-                        "Krav med saksnummer ${it.saksnummerNAV} har blitt forsøkt resendt i ${Duration.between(it.tidspunktSendt, LocalDateTime.now()).toDays()} dager.\n" +
-                            "Kravet har status ${it.status} og ble originalt sendt ${it.tidspunktSendt?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"))}",
-                    ),
-                )
+    fun checkForStangendeKrav() {
+        val now = LocalDateTime.now()
+        val stangendeKrav =
+            kravRepository
+                .getAllStangendeKrav()
+                .filterNot { it.tidspunktSendt == null }
+
+        if (stangendeKrav.isEmpty()) return
+        val logMessage =
+            buildString {
+                append("${stangendeKrav.size} krav er blitt forsøkt resendt i over 24 timer: \n")
+                stangendeKrav
+                    .groupBy { Duration.between(it.tidspunktSendt, now).toDays() }
+                    .toSortedMap()
+                    .forEach { (day, kravPerDay) ->
+                        kravPerDay
+                            .groupBy { it.avsender }
+                            .toSortedMap()
+                            .forEach { (avsender, krav) ->
+                                append("${krav.size} krav fra $avsender har blitt forsøkt resendt i $day dag(er)\n")
+                            }
+                    }
             }
-        slackService.sendErrors()
+
+        logger.error { logMessage }
     }
 
     private fun logResult(result: List<RequestResult>) {
