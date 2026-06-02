@@ -6,6 +6,7 @@ import javax.sql.DataSource
 
 import kotlinx.io.Buffer
 
+import io.kotest.core.test.TestCase
 import io.ktor.client.HttpClient
 import io.ktor.client.call.HttpClientCall
 import io.ktor.client.statement.HttpResponse
@@ -48,6 +49,8 @@ object FtpTestUtil {
             .bufferedReader()
             .use { it.func() }
 }
+
+fun TestCase.isGivenTest(): Boolean = name.prefix == "Given: "
 
 private val mockSkeClient =
     mockk<SkeClient> {

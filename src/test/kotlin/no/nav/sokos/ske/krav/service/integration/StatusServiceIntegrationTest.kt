@@ -1,15 +1,22 @@
 package no.nav.sokos.ske.krav.service.integration
 
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.core.test.TestCase
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
+import io.mockk.clearMocks
+import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
+import org.slf4j.LoggerFactory
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
@@ -27,33 +34,65 @@ import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody
+import no.nav.sokos.ske.krav.util.isGivenTest
 import no.nav.sokos.ske.krav.util.transaction
 
 internal class StatusServiceIntegrationTest :
     BehaviorSpec({
         extensions(DBListener)
-        beforeEach { CircuitBreakerManager.circuitBreaker.reset() }
 
-        fun setupServices(client: HttpClient): Triple<SlackClient, SlackService, StatusService> {
-            val slackClientSpy = spyk(SlackClient(client = MockHttpClient.slackClient))
-            val slackServiceSpy = spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
-            val skeClient = SkeClient(skeEndpoint = "", client = client, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
-            val statusServiceSpy = spyk(StatusService(dataSource, skeClient, slackServiceSpy, feilmeldingRepository, kravRepository), recordPrivateCalls = true)
+        val slackClient =
+            mockk<SlackClient> {
+                coJustRun { sendMessage(any(), any(), any(), any(), any()) }
+            }
 
-            return Triple(slackClientSpy, slackServiceSpy, statusServiceSpy)
+        val slackService = spyk(SlackService(slackClient))
+
+        val statusServiceLogger = LoggerFactory.getLogger(StatusService::class.java) as Logger
+        val logAppender = ListAppender<ILoggingEvent>()
+
+        beforeSpec {
+            logAppender.start()
+            statusServiceLogger.addAppender(logAppender)
         }
 
-        Given("Mottaksstatus trigger circuit breaker") {
-            DBListener.clearDB()
-            DBListener.loadInitScripts("SQLscript/status/KravSomSkalOppdateres.sql")
+        beforeContainer { testCase: TestCase ->
+            if (testCase.isGivenTest()) {
+                CircuitBreakerManager.circuitBreaker.reset()
+                clearMocks(slackClient, answers = false)
 
+                DBListener.clearDB()
+                DBListener.loadInitScripts("SQLscript/status/KravSomSkalOppdateres.sql")
+            }
+        }
+
+        afterContainer { (testCase, _) ->
+            if (testCase.isGivenTest()) {
+                logAppender.list.clear()
+            }
+        }
+
+        afterSpec {
+            statusServiceLogger.detachAppender(logAppender)
+            logAppender.stop()
+        }
+
+        fun statusService(httpClient: HttpClient) =
+            StatusService(
+                dataSource,
+                SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true)),
+                slackService,
+                feilmeldingRepository,
+                kravRepository,
+            )
+
+        Given("Mottaksstatus trigger circuit breaker") {
             val avskrivKravKall = MockResponse(Endpoint.MOTTAKSSTATUS, MockResponsesBody.genericFeilResponse(), HttpStatusCode.Forbidden)
             val httpClient = MockHttpClient.client(avskrivKravKall)
-            val skeClient = SkeClient(skeEndpoint = "", client = httpClient, tokenProvider = mockk<MaskinportenAccessTokenProvider>(relaxed = true))
 
             kravRepository.getAllKravForStatusCheck().shouldHaveSize(5)
 
-            StatusService(dataSource, skeClient, mockk<SlackService>(relaxed = true), feilmeldingRepository, kravRepository).getMottaksStatus()
+            statusService(httpClient).getMottaksStatus()
             Then("Skal krav ikke oppdateres") {
                 kravRepository.getAllKravForStatusCheck().shouldHaveSize(5)
             }
@@ -63,7 +102,7 @@ internal class StatusServiceIntegrationTest :
         Given("Mottaksstatus er RESKONTROFOERT") {
             val mottaksStatusResponse = MockResponsesBody.mottaksStatusResponse(status = Status.RESKONTROFOERT.value)
             val httpClient = mottaksStatusHttpClient(mottaksStatusResponse)
-            val (slackClientSpy, _, statusService) = setupServices(httpClient)
+            val statusService = statusService(httpClient)
 
             Then("Skal mottaksstatus settes til RESKONTROFOERT i database") {
                 val allKravBeforeUpdate =
@@ -82,25 +121,48 @@ internal class StatusServiceIntegrationTest :
             }
             Then("Alert skal ikke sendes") {
                 coVerify(exactly = 0) {
-                    slackClientSpy.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any())
+                    slackClient.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any())
                 }
             }
         }
+
+        Given("Mottaks status oppdateres") {
+            val mottaksStatusResponse = MockResponsesBody.mottaksStatusResponse(status = Status.MIGRERT.value)
+            val httpClient = mottaksStatusHttpClient(mottaksStatusResponse)
+            val statusService = statusService(httpClient)
+
+            Then("Vi logger både reskontroført og migrert krav") {
+                val allKravBeforeUpdate =
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session)
+                    }
+                allKravBeforeUpdate.count { it.status == Status.MIGRERT } shouldBe 0
+
+                statusService.getMottaksStatus()
+
+                val allKravAfterUpdate =
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session)
+                    }
+
+                allKravAfterUpdate.count { it.status == Status.MIGRERT } shouldBe 5
+
+                val messages = logAppender.list.map { it.formattedMessage }
+                messages.filter { it == "Antall reskontroførte krav: 5" }.shouldHaveSize(1)
+            }
+        }
+
         Given("Mottaksstatus er VALIDERINGSFEIL") {
-            DBListener.clearDB()
             val fileName = "KravSomSkalOppdateres.sql"
-            DBListener.loadInitScripts("SQLscript/status/$fileName")
             val status = "ORGANISASJONSNUMMER_FINNES_IKKE"
             val mottaksStatusResponse = MockResponsesBody.mottaksStatusResponse(status = Status.VALIDERINGSFEIL_MOTTAKSSTATUS.value)
             val valideringsFeilResponse = MockResponsesBody.valideringsfeilResponse(status, "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke")
             val httpClient = mottaksStatusHttpClient(mottaksStatusResponse, valideringsFeilResponse)
 
-            val (slackClientSpy, slackServiceSpy, statusService) = setupServices(httpClient)
-
             feilmeldingRepository.getAllFeilmeldinger().shouldBeEmpty()
             kravRepository.getAllKravForStatusCheck().shouldHaveSize(5)
 
-            statusService.getMottaksStatus()
+            statusService(httpClient).getMottaksStatus()
 
             Then("Skal feilmelding lagres i Feilmelding tabell") {
                 val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
@@ -128,7 +190,7 @@ internal class StatusServiceIntegrationTest :
                 val addErrorMessagesSlot = mutableListOf<Pair<String, String>>()
 
                 coVerify(exactly = 5) {
-                    slackServiceSpy.addError(capture(addErrorFilenameSlots), any<String>(), capture(addErrorMessagesSlot))
+                    slackService.addError(capture(addErrorFilenameSlots), any<String>(), capture(addErrorMessagesSlot))
                 }
 
                 Then("Skal 5 feilmeldinger dannes") {
@@ -144,7 +206,7 @@ internal class StatusServiceIntegrationTest :
                     val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
                     coVerify(exactly = 1) {
-                        slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<String>>(), any())
+                        slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<String>>(), any())
                     }
                     sendAlertFilenameSlot.captured shouldBe fileName
                     sendAlertMessagesSlot.captured shouldBe addErrorMessagesSlot.groupBy({ it.first }, { it.second })
