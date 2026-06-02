@@ -34,6 +34,7 @@ import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody
+import no.nav.sokos.ske.krav.util.isGivenTest
 import no.nav.sokos.ske.krav.util.transaction
 
 internal class StatusServiceIntegrationTest :
@@ -50,14 +51,30 @@ internal class StatusServiceIntegrationTest :
         val statusServiceLogger = LoggerFactory.getLogger(StatusService::class.java) as Logger
         val logAppender = ListAppender<ILoggingEvent>()
 
+        beforeSpec {
+            logAppender.start()
+            statusServiceLogger.addAppender(logAppender)
+        }
+
         beforeContainer { testCase: TestCase ->
-            if (testCase.name.prefix == "Given: ") {
+            if (testCase.isGivenTest()) {
                 CircuitBreakerManager.circuitBreaker.reset()
                 clearMocks(slackClient, answers = false)
 
                 DBListener.clearDB()
                 DBListener.loadInitScripts("SQLscript/status/KravSomSkalOppdateres.sql")
             }
+        }
+
+        afterContainer { (testCase, _) ->
+            if (testCase.isGivenTest()) {
+                logAppender.list.clear()
+            }
+        }
+
+        afterSpec {
+            statusServiceLogger.detachAppender(logAppender)
+            logAppender.stop()
         }
 
         fun statusService(httpClient: HttpClient) =
@@ -110,9 +127,6 @@ internal class StatusServiceIntegrationTest :
         }
 
         Given("Mottaks status oppdateres") {
-            logAppender.start()
-            statusServiceLogger.addAppender(logAppender)
-
             val mottaksStatusResponse = MockResponsesBody.mottaksStatusResponse(status = Status.MIGRERT.value)
             val httpClient = mottaksStatusHttpClient(mottaksStatusResponse)
             val statusService = statusService(httpClient)
@@ -135,9 +149,6 @@ internal class StatusServiceIntegrationTest :
 
                 val messages = logAppender.list.map { it.formattedMessage }
                 messages.filter { it == "Antall reskontroførte krav: 5" }.shouldHaveSize(1)
-
-                statusServiceLogger.detachAppender(logAppender)
-                logAppender.stop()
             }
         }
 
