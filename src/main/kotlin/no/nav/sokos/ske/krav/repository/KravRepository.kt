@@ -188,6 +188,8 @@ class KravRepository(
             } ?: navref
         }
 
+    fun getKravTableIdFromCorrelationId(corrID: String): Long = dataSource.transaction { session -> getKravTableIdFromCorrelationId(session, corrID) }
+
     fun getKravTableIdFromCorrelationId(
         session: TransactionalSession,
         corrID: String,

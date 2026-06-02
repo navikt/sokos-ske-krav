@@ -84,6 +84,17 @@ internal class RepositoryTestKrav :
             kravRepository.getPreviousReferansenummer("foo-navsaksnummer") shouldBe "foo-navsaksnummer"
         }
 
+        test("getKravTableIdFromCorrelationId skal returnere krav_id basert på corr_id") {
+            kravRepository.getKravTableIdFromCorrelationId("CORR456") shouldBe 1
+            kravRepository.getKravTableIdFromCorrelationId("CORR789") shouldBe 2
+            kravRepository.getKravTableIdFromCorrelationId("CORR987") shouldBe 3
+            kravRepository.getKravTableIdFromCorrelationId("CORR652") shouldBe 4
+            kravRepository.getKravTableIdFromCorrelationId("CORR253") shouldBe 5
+            kravRepository.getKravTableIdFromCorrelationId("CORR263482") shouldBe 6
+            kravRepository.getKravTableIdFromCorrelationId("CORR83985902") shouldBe 7
+            kravRepository.getKravTableIdFromCorrelationId("finnesikke") shouldBe 0
+        }
+
         test("getAllUnsentEndringerAndStopp skal returnere alle endringer og stopp som er lest inn men ikke sendt") {
             val krav = kravRepository.getAllUnsentEndringerAndStopp()
 
