@@ -85,7 +85,6 @@ private val feilmeldingRepositoryMock =
 
 private val kravRepositoryMock =
     mockk<KravRepository> {
-        every { getKravTableIdFromCorrelationId(any()) } returns 1L
         every { getAllUnsentKrav() } returns emptyList()
         every { getAllKravForResending() } returns emptyList()
         every { getSkeKravidentifikator(any<String>()) } returns "foo"

@@ -308,9 +308,7 @@ class SkeService(
     fun checkForStangendeKrav() {
         val now = LocalDateTime.now()
         val stangendeKrav =
-            kravRepository
-                .getAllKravForStatusCheck()
-                .filter { it.tidspunktSendt?.isBefore((now.minusHours(24))) == true }
+            kravRepository.getAllStangendeKrav()
 
         if (stangendeKrav.isEmpty()) return
         val kravGroupedPerDay = stangendeKrav.groupBy { Duration.between(it.tidspunktSendt, now).toDays() }

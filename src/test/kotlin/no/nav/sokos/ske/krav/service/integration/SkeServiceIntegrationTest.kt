@@ -62,9 +62,12 @@ import no.nav.sokos.ske.krav.validation.FileValidator
 internal class SkeServiceIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener, DBListener)
+        val skeServiceLogger = LoggerFactory.getLogger(SkeService::class.java) as Logger
+        val logAppender = ListAppender<ILoggingEvent>()
 
         beforeEach {
             circuitBreaker.reset()
+            logAppender.list.clear()
         }
         val ftpService: FtpService by lazy {
             FtpService(
@@ -74,8 +77,7 @@ internal class SkeServiceIntegrationTest :
                 filValideringsfeilRepository = filvalideringsFeilRepository,
             )
         }
-        val skeServiceLogger = LoggerFactory.getLogger(SkeService::class.java) as Logger
-        val logAppender = ListAppender<ILoggingEvent>()
+
         beforeTest {
             logAppender.start()
             skeServiceLogger.addAppender(logAppender)
@@ -374,7 +376,7 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
-        Given("To filer med krav legges i INBOUND") {
+        Given("To filer med krav leses fra INBOUND") {
             DBListener.clearDB()
             SftpListener.putFiles(listOf("krav/TiNyeKrav.txt", "krav/UtenFremtidigYtelse.txt"), Directories.INBOUND)
 
@@ -391,15 +393,11 @@ internal class SkeServiceIntegrationTest :
                 )
 
             Then("skal det logges rett antall krav per fil") {
+                skeService.handleNewKrav()
 
-                try {
-                    skeService.handleNewKrav()
-
-                    val messages = logAppender.list.map { it.formattedMessage }
-                    messages.filter { it == "Fil: TiNyeKrav.txt - Nye: 10, Endringer: 0, Stopp: 0" }.shouldHaveSize(1)
-                    messages.filter { it == "Fil: UtenFremtidigYtelse.txt - Nye: 5, Endringer: 0, Stopp: 0" }.shouldHaveSize(1)
-                } finally {
-                }
+                val messages = logAppender.list.map { it.formattedMessage }
+                messages.filter { it == "Fil: TiNyeKrav.txt - Nye: 10, Endringer: 0, Stopp: 0" }.shouldHaveSize(1)
+                messages.filter { it == "Fil: UtenFremtidigYtelse.txt - Nye: 5, Endringer: 0, Stopp: 0" }.shouldHaveSize(1)
             }
         }
 
@@ -446,6 +444,44 @@ internal class SkeServiceIntegrationTest :
                     get(Status.HTTP500_ANNEN_SERVER_FEIL).shouldBeNull()
                     get(Status.HTTP500_INTERN_TJENERFEIL).shouldBeNull()
                     get(Status.HTTP503_UTILGJENGELIG_TJENESTE).shouldBeNull()
+                }
+            }
+        }
+
+        Given("Det finnes stangende krav i database") {
+
+            When("Det ikke finnes noen stangende krav i database") {
+                DBListener.clearDB()
+                Then("Skal det ikke logges") {
+                    setupSkeServiceMock(kravRepository = kravRepository).checkForStangendeKrav()
+                    logAppender.list.map { it.formattedMessage }.shouldBeEmpty()
+                }
+            }
+            When("Stangende krav er fra ett system") {
+                DBListener.clearDB()
+                logAppender.list.clear()
+                DBListener.loadInitScripts("SQLscript/krav/ToStangendeKravFraEttSystem.sql")
+
+                Then("Skal det kun telles for det systemet") {
+                    setupSkeServiceMock(kravRepository = kravRepository).checkForStangendeKrav()
+                    val message = logAppender.list.map { it.formattedMessage }.single()
+                    message shouldContain "2 krav er blitt forsøkt resendt i over 24 timer"
+                    message shouldContain "2 krav fra OB04 har blitt forsøkt resendt i 1 dag(er)"
+                }
+            }
+
+            When("Stangende krav er fra flere system") {
+                DBListener.clearDB()
+                logAppender.list.clear()
+                DBListener.loadInitScripts("SQLscript/krav/FireStangendeKravFraTreSystemer.sql")
+
+                Then("Skal det telles per system") {
+                    setupSkeServiceMock(kravRepository = kravRepository).checkForStangendeKrav()
+                    val message = logAppender.list.map { it.formattedMessage }.single()
+                    message shouldContain "4 krav er blitt forsøkt resendt i over 24 timer"
+                    message shouldContain "2 krav fra OB04 har blitt forsøkt resendt i 1 dag(er)"
+                    message shouldContain "1 krav fra ARENA har blitt forsøkt resendt i 5 dag(er)"
+                    message shouldContain "1 krav fra INFOTRYGD har blitt forsøkt resendt i 3 dag(er)"
                 }
             }
         }
