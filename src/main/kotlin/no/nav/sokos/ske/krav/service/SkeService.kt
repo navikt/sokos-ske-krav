@@ -308,10 +308,16 @@ class SkeService(
     fun checkForStangendeKrav() {
         val now = LocalDateTime.now()
         val stangendeKrav =
-            kravRepository.getAllStangendeKrav()
+            kravRepository
+                .getAllStangendeKrav()
+                .mapNotNull { krav ->
+                    krav.tidspunktSendt?.let { tidspunktSendt ->
+                        krav to Duration.between(tidspunktSendt, now).toDays()
+                    }
+                }
 
         if (stangendeKrav.isEmpty()) return
-        val kravGroupedPerDay = stangendeKrav.groupBy { Duration.between(it.tidspunktSendt, now).toDays() }
+        val kravGroupedPerDay = stangendeKrav.groupBy(keySelector = { (_, day) -> day }, valueTransform = { (krav, _) -> krav })
 
         val logMessage =
             buildString {
