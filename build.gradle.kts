@@ -151,22 +151,30 @@ configurations.all {
                 because("Netty HttpClientCodec response desynchronization (GHSA-57rv-r2g8-2cj3). Affected version = 4.2.11.Final, < 4.2.13.Final")
             }
             if (requested.group == "ch.qos.logback" && requested.name == "logback-core") {
-                val requestedVersion = requested.version ?: ""
-                if (requestedVersion.startsWith("1.3.") && requestedVersion < "1.3.15") {
-                    useVersion("1.3.15")
-                    because("CVE-2024-12798: JaninoEventEvaluator ACE vulnerability. Affected version <= 1.3.14")
+                val parts = (requested.version ?: "").split(".")
+                val minor = parts.getOrNull(1)?.toIntOrNull() ?: 0
+                val patch = parts.getOrNull(2)?.split("-")?.firstOrNull()?.toIntOrNull() ?: 0
+                if (minor < 5 || (minor == 5 && patch < 25)) {
+                    useVersion("1.5.25")
+                    because("CVE-2026-1225: ACE vulnerability <= 1.5.24; CVE-2024-12798: JaninoEventEvaluator ACE vulnerability <= 1.3.14")
                 }
             }
             if (requested.group == "io.netty" && requested.name == "netty-transport-native-epoll") {
                 useVersion("4.2.13.Final")
                 because("Netty epoll transport denial of service via RST on half-closed TCP connection (GHSA-rwm7-x88c-3g2p). Affected version = 4.2.12.Final")
             }
+        }
+    }
+}
 
+// Test-only transitive dependency overrides
+configurations.matching { it.name.startsWith("test") }.configureEach {
+    resolutionStrategy {
+        eachDependency {
             // Moderate
-            // Test
-            if (requested.group == "org.apache.commons " && requested.name == "commons-compress") { // ./gradlew dependencies --configuration testRuntimeClasspath | grep commons-compress
+            if (requested.group == "org.apache.commons" && requested.name == "commons-compress") { // ./gradlew dependencies --configuration testRuntimeClasspath | grep commons-compress
                 useVersion("1.26.0")
-                because("Apache Commons Compress: OutOfMemoryError unpacking broken Pack200 filet. Affected version >= 1.21, < 1.26.0")
+                because("Apache Commons Compress: OutOfMemoryError unpacking broken Pack200 file. Affected version >= 1.21, < 1.26.0")
             }
         }
     }
