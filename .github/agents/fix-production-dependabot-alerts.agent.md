@@ -166,6 +166,51 @@ authorization, API, or tooling failure:
 4. Report the relevant error.
 5. End the task without creating a partial remediation pull request.
 
+## Inspect and verify existing dependency overrides
+
+Before selecting eligible alerts, inspect the Gradle build files for existing
+`resolutionStrategy` overrides, dependency constraints, and version-management
+rules.
+
+For each existing override or constraint:
+
+* Verify that it is active and affects at least one production configuration
+  resolved by the current project
+* Check whether the override/constraint still applies to the vulnerable ranges
+  reported by Dependabot
+* Identify duplicates, overlaps, and stale rules that no longer affect
+  resolution
+* Consolidate rules when resulting behavior is equivalent and verified
+
+Document:
+
+* rules to keep and their justification
+* rules to remove (stale, inactive, superseded)
+* consolidation opportunities
+
+Use the following verification tools:
+
+```bash
+# Get full dependency tree to identify which rules are actually active
+./gradlew dependencies --configuration runtimeClasspath
+
+# Inspect why specific versions are selected (shows the active rule)
+./gradlew dependencyInsight \
+  --dependency <package> \
+  --configuration runtimeClasspath
+
+# Verify no test or build-only dependencies leaked into production graph
+./gradlew dependencyInsight \
+  --dependency <package> \
+  --configuration compileClasspath
+```
+
+This verification is **required in every agent run**, even when no eligible
+alerts exist. Stale overrides and constraints must not accumulate.
+
+If cleanup or consolidation opportunities are identified, document them in the
+pull request or in a summary before ending the agent run.
+
 ## Select eligible alerts
 
 After retrieving all open alerts, apply the active-mode filters locally.
@@ -354,18 +399,27 @@ Use the Gradle wrapper. Do not use a globally installed Gradle version.
 Follow the repository's established dependency-management conventions unless
 they prevent safe remediation.
 
-### Dependency override cleanup (required)
+### Dependency override cleanup (required in every run)
 
-When touching production dependency/security remediation in Gradle files:
+This cleanup is **mandatory in every agent run**, regardless of whether eligible
+alerts exist or will be remediated.
+
+When testing alert eligibility, Gradle files must be inspected using tools
+provided in the next section. During that inspection:
 
 * review existing `resolutionStrategy` overrides and dependency constraints
 * verify each kept rule against the resolved Gradle production graph
 * remove stale or inactive rules that no longer affect resolution
 * consolidate duplicate/overlapping rules when the resulting behavior is
   equivalent and verified
-* keep only active, justified rules in the same remediation change set
-* apply this cleanup in every agent run, even when no eligible alert directly
-  targets the existing override/constraint rules being cleaned up
+* keep only active, justified rules in the final change set
+
+When changes are made to remedy alerts:
+
+* apply consolidated, verified cleanup rules in the same change set
+* do not delay cleanup until a separate agent run
+* do not leave stale rules in place just because they don't directly target the
+  current eligible alert
 
 ## Determine dependency paths
 
