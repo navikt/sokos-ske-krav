@@ -38,8 +38,9 @@ internal class FileValidatorIntegrationTest :
             FtpService(
                 dataSource = dataSource,
                 sftpConfig = SftpConfig(SftpListener.sftpProperties),
-                fileValidator = FileValidator(slackService = slackServiceSpy),
+                fileValidator = FileValidator(),
                 filValideringsfeilRepository = filvalideringsFeilRepository,
+                slackService = slackServiceSpy,
             )
 
         Given("Fil er OK") {

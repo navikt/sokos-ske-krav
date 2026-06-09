@@ -46,8 +46,9 @@ internal class LineValidatorIntegrationTest :
             FtpService(
                 dataSource = dataSource,
                 sftpConfig = SftpConfig(SftpListener.sftpProperties),
-                fileValidator = FileValidator(slackService = slackServiceSpy),
+                fileValidator = FileValidator(),
                 filValideringsfeilRepository = filvalideringsFeilRepository,
+                slackService = slackServiceSpy,
             )
 
         Given("Alle linjer er ok") {

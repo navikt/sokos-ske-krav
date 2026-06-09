@@ -2,23 +2,21 @@ package no.nav.sokos.ske.krav.validation
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.mockk
 
-import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 import no.nav.sokos.ske.krav.validation.FileValidator.ErrorKeys
 
 internal class FileValidatorTest :
     BehaviorSpec({
         val controlLines = 2
-        val fileValidator = FileValidator(mockk<SlackService>(relaxed = true))
+        val fileValidator = FileValidator()
 
         Given("Fil er OK") {
             val fileName = "AllValideringOk.txt"
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
-                val validationResult = fileValidator.validateFile(content, fileName)
+                val validationResult = fileValidator.validateFile(content)
 
                 Then("Skal ValidationResult være Success") {
                     (validationResult is ValidationResult.Success) shouldBe true
@@ -34,7 +32,7 @@ internal class FileValidatorTest :
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
-                val validationResult = fileValidator.validateFile(content, fileName)
+                val validationResult = fileValidator.validateFile(content)
                 Then("Skal ValidationResult være Error") {
                     (validationResult is ValidationResult.Error) shouldBe true
                 }
@@ -52,7 +50,7 @@ internal class FileValidatorTest :
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
-                val validationResult = fileValidator.validateFile(content, fileName)
+                val validationResult = fileValidator.validateFile(content)
                 Then("Skal ValidationResult være Error") {
                     (validationResult is ValidationResult.Error) shouldBe true
                 }
@@ -70,7 +68,7 @@ internal class FileValidatorTest :
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
-                val validationResult = fileValidator.validateFile(content, fileName)
+                val validationResult = fileValidator.validateFile(content)
                 Then("Skal ValidationResult være Error") {
                     (validationResult is ValidationResult.Error) shouldBe true
                 }
@@ -88,7 +86,7 @@ internal class FileValidatorTest :
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
-                val validationResult = fileValidator.validateFile(content, fileName)
+                val validationResult = fileValidator.validateFile(content)
                 Then("Skal ValidationResult være Error") {
                     (validationResult is ValidationResult.Error) shouldBe true
                 }
@@ -110,7 +108,7 @@ internal class FileValidatorTest :
 
             When("Filen valideres") {
                 Then("Skal parsingfeil registreres og melding skal inneholde 'Feil i parsing av BigDecimal'") {
-                    val validationResult = fileValidator.validateFile(content, fileName)
+                    val validationResult = fileValidator.validateFile(content)
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 5
                         count { it.first == ErrorKeys.PARSE_EXCEPTION } shouldBe 5
@@ -126,7 +124,7 @@ internal class FileValidatorTest :
 
             When("Filen valideres") {
                 Then("Skal Exception kastes og melding skal inneholde 'Feil i parsing av Int'") {
-                    val validationResult = fileValidator.validateFile(content, fileName)
+                    val validationResult = fileValidator.validateFile(content)
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         count { it.first == ErrorKeys.PARSE_EXCEPTION } shouldBe 1
@@ -141,7 +139,7 @@ internal class FileValidatorTest :
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
-                val validationResult = fileValidator.validateFile(content, fileName)
+                val validationResult = fileValidator.validateFile(content)
 
                 Then("Skal ValidationResult være Success - BigDecimal scale-forskjell skal ikke gi FEIL_I_SUM ved null-sum") {
                     (validationResult is ValidationResult.Success) shouldBe true

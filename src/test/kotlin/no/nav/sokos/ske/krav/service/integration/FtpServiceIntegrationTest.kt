@@ -30,8 +30,9 @@ internal class FtpServiceIntegrationTest :
             FtpService(
                 dataSource = DBListener.dataSource,
                 sftpConfig = SftpConfig(SftpListener.sftpProperties),
-                fileValidator = FileValidator(mockk<SlackService>(relaxed = true)),
+                fileValidator = FileValidator(),
                 filValideringsfeilRepository = filvalideringsFeilRepository,
+                slackService = mockk<SlackService>(relaxed = true),
             )
         }
 

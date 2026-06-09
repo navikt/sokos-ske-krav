@@ -73,8 +73,9 @@ internal class SkeServiceIntegrationTest :
             FtpService(
                 dataSource = dataSource,
                 sftpConfig = SftpConfig(SftpListener.sftpProperties),
-                fileValidator = FileValidator(mockk<SlackService>(relaxed = true)),
+                fileValidator = FileValidator(),
                 filValideringsfeilRepository = filvalideringsFeilRepository,
+                slackService = mockk(relaxed = true),
             )
         }
 
