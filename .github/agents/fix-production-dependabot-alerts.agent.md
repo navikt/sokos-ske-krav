@@ -496,7 +496,7 @@ dependencies {
         implementation("group:module:patched-version") {
             because(
                 "Resolves production Dependabot alert #<number> " +
-                    "(<advisory-identifier>)"
+                        "(<advisory-identifier>)"
             )
         }
     }
@@ -797,6 +797,36 @@ production alert across all severity levels was fixed and verified.
 Alerts excluded because they are test-only or development-only must always be
 reported as outside scope, not fixed.
 
+## Create branch and pull request
+
+After all validation passes, create one branch and one pull request.
+
+```bash
+git checkout -b fix/dependabot-production-alerts
+git add -A
+git commit -m "fix: remediate production Dependabot vulnerabilities"
+git push origin fix/dependabot-production-alerts
+gh pr create \
+  --title "Fix high- and critical-severity production Dependabot alerts" \
+  --body "<contents of pull request description>" \
+  --base main
+```
+
+The pull request title and body are determined by the operating mode and results:
+
+* **Title**: Use the wording specified in the "Pull request title" section above
+* **Body**: Use the complete format specified in the "Pull request description" section above
+
+The pull request must include:
+
+* all successfully remediated alerts with verification details
+* all eligible unresolved alerts with blocking reasons
+* all excluded alerts with exclusion classifications
+* dependency verification summary
+* validation results
+
+Never merge directly to main. Wait for code review.
+
 ## Completion criteria
 
 The task is complete only when:
@@ -804,11 +834,14 @@ The task is complete only when:
 * the complete open-alert set was retrieved
 * the operating mode was determined correctly
 * every open alert was classified
+* dependency override cleanup was performed and verified (required in every run)
 * only eligible production alerts were remediated
 * all safely patchable eligible alerts were handled in one change set
 * each claimed fix was verified in a production dependency graph
 * repository validation was run
+* one branch was created with coherent commits
 * one pull request was prepared with a complete summary
+* the pull request was created (not merged)
 
 Never claim that all Dependabot alerts are fixed when alerts were deliberately
 excluded by severity or dependency scope.
