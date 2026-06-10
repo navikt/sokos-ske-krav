@@ -8,6 +8,12 @@ import io.mockk.mockk
 
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
+import no.nav.sokos.ske.krav.domain.TaggablePeople
+import no.nav.sokos.ske.krav.domain.TaggablePeople.LENE
+import no.nav.sokos.ske.krav.domain.TaggablePeople.LINE_ANITA
+import no.nav.sokos.ske.krav.domain.TaggablePeople.MARITA
+import no.nav.sokos.ske.krav.domain.TaggablePeople.STEINAR
+import no.nav.sokos.ske.krav.domain.TaggablePeople.TRINE
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 
 internal class SlackServiceTest :
@@ -20,7 +26,7 @@ internal class SlackServiceTest :
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any()) } answers {
+                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any()) } answers {
                         headerSlots.add(firstArg())
                         fileNameSlots.add(secondArg())
                         errorSlots.add(thirdArg())
@@ -56,7 +62,7 @@ internal class SlackServiceTest :
             val errorSlots = mutableListOf<Map<String, List<String>>>()
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any()) } answers {
+                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any()) } answers {
                         headerSlots.add(firstArg())
                         fileNameSlots.add(secondArg())
                         errorSlots.add(thirdArg())
@@ -106,7 +112,7 @@ internal class SlackServiceTest :
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any()) } answers {
+                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any()) } answers {
                         taggedPeopleSlot.add(arg(3))
                         rutineLinkSlot.add(arg(4))
                     }
@@ -116,7 +122,7 @@ internal class SlackServiceTest :
             slackService.addError("fil.txt", "Valideringsfeil", mapOf("PERSON_ER_DOED" to listOf("Person er død")))
             slackService.sendErrors()
 
-            taggedPeopleSlot[0] shouldContainExactly listOf("<@U08S6FA0XSS>", "<@UDCM6F8V8>")
+            taggedPeopleSlot[0] shouldContainExactly listOf(LENE, TRINE)
             rutineLinkSlot[0] shouldBe null
         }
 
@@ -126,7 +132,7 @@ internal class SlackServiceTest :
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any()) } answers {
+                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any()) } answers {
                         taggedPeopleSlot.add(arg(3))
                         rutineLinkSlot.add(arg(4))
                     }
@@ -136,7 +142,7 @@ internal class SlackServiceTest :
             slackService.addError("fil.txt", "Valideringsfeil", mapOf("ORGANISASJON_ER_OPPHOERT" to listOf("Organisasjon er opphørt")))
             slackService.sendErrors()
 
-            taggedPeopleSlot[0] shouldContainExactly listOf("<@UCG179DPT>", "<@U02AVNPT3T9>", "<@U796MGBA9>")
+            taggedPeopleSlot[0] shouldContainExactly listOf(MARITA, LINE_ANITA, STEINAR)
             rutineLinkSlot[0] shouldBe "https://confluence.adeo.no/spaces/TOB/pages/791026050/Rutine+for+manuell+h%C3%A5ndtering+av+innkrevingskrav+til+skatteetaten+SKE"
         }
 
@@ -146,7 +152,7 @@ internal class SlackServiceTest :
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any()) } answers {
+                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any()) } answers {
                         taggedPeopleSlot.add(arg(3))
                         rutineLinkSlot.add(arg(4))
                     }
@@ -160,17 +166,17 @@ internal class SlackServiceTest :
             )
             slackService.sendErrors()
 
-            taggedPeopleSlot[0] shouldContainExactly listOf("<@UDCM6F8V8>")
+            taggedPeopleSlot[0] shouldContainExactly listOf(TRINE)
             rutineLinkSlot[0] shouldBe null
         }
 
-        test("sendErrors tagger ingen når feiltypen er ukjent") {
+        test("sendErrors tagger Lene når feiltypen er ukjent") {
             val taggedPeopleSlot = mutableListOf<List<String>>()
             val rutineLinkSlot = mutableListOf<String?>()
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any()) } answers {
+                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any()) } answers {
                         taggedPeopleSlot.add(arg(3))
                         rutineLinkSlot.add(arg(4))
                     }
@@ -180,7 +186,7 @@ internal class SlackServiceTest :
             slackService.addError("fil.txt", "Valideringsfeil", mapOf("UKJENT_FEIL" to listOf("Noe gikk galt")))
             slackService.sendErrors()
 
-            taggedPeopleSlot[0] shouldBe emptyList()
+            taggedPeopleSlot[0] shouldBe listOf(LENE)
             rutineLinkSlot[0] shouldBe null
         }
 
@@ -190,7 +196,7 @@ internal class SlackServiceTest :
             val errorSlots = mutableListOf<Map<String, List<String>>>()
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any()) } answers {
+                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any()) } answers {
                         headerSlots.add(firstArg())
                         fileNameSlots.add(secondArg())
                         errorSlots.add(thirdArg())

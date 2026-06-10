@@ -9,6 +9,7 @@ import io.ktor.http.contentType
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.slackHttpClient
+import no.nav.sokos.ske.krav.domain.TaggablePeople
 import no.nav.sokos.ske.krav.dto.slack.createSlackMessage
 
 class SlackClient(
@@ -19,7 +20,7 @@ class SlackClient(
         header: String,
         fileName: String,
         messages: Map<String, List<String>>,
-        taggedPeople: List<String> = emptyList(),
+        taggedPeople: List<TaggablePeople> = emptyList(),
         rutineLink: String? = null,
     ) {
         client

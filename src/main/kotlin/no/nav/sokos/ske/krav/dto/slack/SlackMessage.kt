@@ -4,6 +4,8 @@ import java.time.LocalDate
 
 import kotlinx.serialization.Serializable
 
+import no.nav.sokos.ske.krav.domain.TaggablePeople
+
 @Serializable
 data class Data(
     val text: String,
@@ -34,19 +36,21 @@ fun createSlackMessage(
     feilHeader: String,
     filnavn: String,
     content: Map<String, List<String>>,
-    taggedPeople: List<String> = emptyList(),
+    taggedPeople: List<TaggablePeople> = emptyList(),
     rutineLink: String? = null,
+    saksnummer: String = "",
 ) = Data(
     text = ":package: $feilHeader",
-    blocks = buildSections(feilHeader, filnavn, content, taggedPeople, rutineLink),
+    blocks = buildSections(feilHeader, filnavn, content, taggedPeople, rutineLink, saksnummer),
 )
 
 private fun buildSections(
     feilHeader: String,
     filnavn: String,
     content: Map<String, List<String>>,
-    taggedPeople: List<String>,
+    taggedPeople: List<TaggablePeople>,
     rutineLink: String?,
+    saksnummer: String,
 ): MutableList<Block> {
     val dividerBlock = Block(type = "divider")
     val headerBlock =
@@ -66,6 +70,7 @@ private fun buildSections(
                 listOf(
                     Field(text = "*Filnavn* \n$filnavn"),
                     Field(text = "*Dato* \n${LocalDate.now()}"),
+                    Field(text = "*Nav Saksnummer* \n$saksnummer"),
                 ),
         )
 
@@ -94,7 +99,7 @@ private fun buildSections(
     if (taggedPeople.isNotEmpty()) {
         val tagText =
             buildString {
-                append("*Ansvarlige:* ${taggedPeople.joinToString(" ")}")
+                append("*Ansvarlige:* ${taggedPeople.joinToString(" "){ it.slackId }}")
                 if (rutineLink != null) {
                     append("\n*Rutine:* <$rutineLink|Klikk her for rutine>")
                 }

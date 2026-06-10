@@ -23,6 +23,7 @@ import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
 import no.nav.sokos.ske.krav.domain.Status
+import no.nav.sokos.ske.krav.domain.TaggablePeople
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
@@ -121,7 +122,7 @@ internal class StatusServiceIntegrationTest :
             }
             Then("Alert skal ikke sendes") {
                 coVerify(exactly = 0) {
-                    slackClient.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any())
+                    slackClient.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any())
                 }
             }
         }
@@ -206,7 +207,7 @@ internal class StatusServiceIntegrationTest :
                     val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
                     coVerify(exactly = 1) {
-                        slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<String>>(), any())
+                        slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
                     }
                     sendAlertFilenameSlot.captured shouldBe fileName
                     sendAlertMessagesSlot.captured shouldBe addErrorMessagesSlot.groupBy({ it.first }, { it.second })
