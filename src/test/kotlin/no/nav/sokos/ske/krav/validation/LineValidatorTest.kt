@@ -263,9 +263,9 @@ Then("valideringen skal varsle at referansen mangler og tagge produktleder") {
             }
             When("kravlinje er opprett og referansenummergammelsak er tom") {
                 val result = runValidation(okLinje.copy(referansenummerGammelSak = ""))
-                Then("valideringen er ok") {
-                    assertInstanceOf<ValidationResult.Success>(result)
-                }
+Then("valideringen er ok") {
+    result.shouldBeInstanceOf<ValidationResult.Success>()
+}
             }
 
             When("kravlinje er stopp og referansenummergammelsak ikke er tom, men er invalid") {
