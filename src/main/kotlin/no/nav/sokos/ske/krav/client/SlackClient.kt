@@ -22,12 +22,13 @@ class SlackClient(
         messages: Map<String, List<String>>,
         taggedPeople: List<TaggablePeople> = emptyList(),
         rutineLink: String? = null,
+        saksnummer: String = "",
     ) {
         client
             .post {
                 url(slackEndpoint)
                 contentType(ContentType.Application.Json)
-                setBody(createSlackMessage(header, fileName, messages, taggedPeople, rutineLink))
+                setBody(createSlackMessage(header, fileName, messages, taggedPeople, rutineLink, saksnummer))
             }
     }
 }

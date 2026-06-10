@@ -339,7 +339,7 @@ internal class SkeServiceIntegrationTest :
                 skeService.handleNewKrav()
 
                 coVerify(exactly = 2) {
-                    slackServiceSpy.addError(any(), any(), any<Pair<String, String>>())
+                    slackServiceSpy.addError(any(), any(), any<Pair<String, String>>(), any<String>())
                 }
 
                 val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()

@@ -78,6 +78,7 @@ class StatusService(
                 fileName = krav.filnavn,
                 header = feilmeldingHeader,
                 Pair(feilmelding.title, feilmelding.detail),
+                krav.saksnummerNAV,
             )
             logger.error { "$funksjonsKall feilet: ${feilmelding.title}" }
         }
@@ -109,7 +110,7 @@ class StatusService(
         logger.info("Asynk Valideringsfeil mottatt ")
         valideringsfeilListe.forEach { valideringsFeil ->
             logger.warn { "Asynk valideringsfeil mottatt: ${ valideringsFeil.message }" }
-            slackService.addError(krav.filnavn, "Asynk valideringsfeil", Pair(valideringsFeil.error, valideringsFeil.message))
+            slackService.addError(krav.filnavn, "Asynk valideringsfeil", Pair(valideringsFeil.error, valideringsFeil.message), krav.saksnummerNAV)
         }
 
         val feilmeldinger =

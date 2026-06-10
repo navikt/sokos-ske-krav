@@ -44,7 +44,7 @@ internal class StatusServiceIntegrationTest :
 
         val slackClient =
             mockk<SlackClient> {
-                coJustRun { sendMessage(any(), any(), any(), any(), any()) }
+                coJustRun { sendMessage(any(), any(), any(), any(), any(), any()) }
             }
 
         val slackService = spyk(SlackService(slackClient))
@@ -122,7 +122,7 @@ internal class StatusServiceIntegrationTest :
             }
             Then("Alert skal ikke sendes") {
                 coVerify(exactly = 0) {
-                    slackClient.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any())
+                    slackClient.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any(), any<String>())
                 }
             }
         }
@@ -191,7 +191,7 @@ internal class StatusServiceIntegrationTest :
                 val addErrorMessagesSlot = mutableListOf<Pair<String, String>>()
 
                 coVerify(exactly = 5) {
-                    slackService.addError(capture(addErrorFilenameSlots), any<String>(), capture(addErrorMessagesSlot))
+                    slackService.addError(capture(addErrorFilenameSlots), any<String>(), capture(addErrorMessagesSlot), saksnummer = any<String>())
                 }
 
                 Then("Skal 5 feilmeldinger dannes") {
@@ -207,7 +207,7 @@ internal class StatusServiceIntegrationTest :
                     val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
                     coVerify(exactly = 1) {
-                        slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
+                        slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any(), any<String>())
                     }
                     sendAlertFilenameSlot.captured shouldBe fileName
                     sendAlertMessagesSlot.captured shouldBe addErrorMessagesSlot.groupBy({ it.first }, { it.second })
