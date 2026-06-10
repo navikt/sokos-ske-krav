@@ -247,11 +247,11 @@ internal class LineValidatorTest :
         Given("nå skal jeg så seks forskjellige scenarier av referansenummergammelsak vs ") {
             When("kravlinje er stopp og referansenummergammelsak er tom") {
                 val result = runValidation(stoppLinje.copy(referansenummerGammelSak = ""))
-                Then("valideringen skal varsle at referansen mangler og tagge produktleder") {
-                    assertInstanceOf<ValidationResult.Error>(result)
-                    result.messages.size shouldBe 1
-                    result.messages.first().second shouldBe "ReferanseNummerGammelSak mangler for stopp i fil. Linje: 1"
-                }
+Then("valideringen skal varsle at referansen mangler og tagge produktleder") {
+    val error = result.shouldBeInstanceOf<ValidationResult.Error>()
+    error.messages.size shouldBe 1
+    error.messages.first().second shouldBe "ReferanseNummerGammelSak mangler for stopp i fil. Linje: 1"
+}
             }
             When("kravlinje er endring og referansenummergammelsak er tom") {
                 val result = runValidation(endringsLinje(" "))
