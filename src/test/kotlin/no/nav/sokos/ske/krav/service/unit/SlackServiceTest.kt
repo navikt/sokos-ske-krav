@@ -3,7 +3,7 @@ package no.nav.sokos.ske.krav.service.unit
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import io.mockk.coEvery
+import io.mockk.coJustRun
 import io.mockk.mockk
 
 import no.nav.sokos.ske.krav.client.SlackClient
@@ -26,11 +26,7 @@ internal class SlackServiceTest :
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any()) } answers {
-                        headerSlots.add(firstArg())
-                        fileNameSlots.add(secondArg())
-                        errorSlots.add(thirdArg())
-                    }
+                    coJustRun { sendMessage(capture(headerSlots), capture(fileNameSlots), capture(errorSlots), any<List<TaggablePeople>>(), any()) }
                 }
 
             val slackService = SlackService(slackClient)
@@ -60,12 +56,11 @@ internal class SlackServiceTest :
             val headerSlots = mutableListOf<String>()
             val fileNameSlots = mutableListOf<String>()
             val errorSlots = mutableListOf<Map<String, List<String>>>()
+
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any()) } answers {
-                        headerSlots.add(firstArg())
-                        fileNameSlots.add(secondArg())
-                        errorSlots.add(thirdArg())
+                    coJustRun {
+                        sendMessage(capture(headerSlots), capture(fileNameSlots), capture(errorSlots), any(), any())
                     }
                 }
 
@@ -107,15 +102,12 @@ internal class SlackServiceTest :
         }
 
         test("sendErrors tagger riktige personer basert på kjent feiltype") {
-            val taggedPeopleSlot = mutableListOf<List<String>>()
+            val taggedPeopleSlot = mutableListOf<List<TaggablePeople>>()
             val rutineLinkSlot = mutableListOf<String?>()
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any()) } answers {
-                        taggedPeopleSlot.add(arg(3))
-                        rutineLinkSlot.add(arg(4))
-                    }
+                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot)) }
                 }
 
             val slackService = SlackService(slackClient)
@@ -127,15 +119,12 @@ internal class SlackServiceTest :
         }
 
         test("sendErrors tagger riktige personer og inkluderer rutinelenke for ORGANISASJON_ER_OPPHOERT") {
-            val taggedPeopleSlot = mutableListOf<List<String>>()
+            val taggedPeopleSlot = mutableListOf<List<TaggablePeople>>()
             val rutineLinkSlot = mutableListOf<String?>()
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any()) } answers {
-                        taggedPeopleSlot.add(arg(3))
-                        rutineLinkSlot.add(arg(4))
-                    }
+                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot)) }
                 }
 
             val slackService = SlackService(slackClient)
@@ -147,15 +136,12 @@ internal class SlackServiceTest :
         }
 
         test("sendErrors tagger TRINE ved Fant ikke gyldig kravidentifikator") {
-            val taggedPeopleSlot = mutableListOf<List<String>>()
+            val taggedPeopleSlot = mutableListOf<List<TaggablePeople>>()
             val rutineLinkSlot = mutableListOf<String?>()
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any()) } answers {
-                        taggedPeopleSlot.add(arg(3))
-                        rutineLinkSlot.add(arg(4))
-                    }
+                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot)) }
                 }
 
             val slackService = SlackService(slackClient)
@@ -171,15 +157,12 @@ internal class SlackServiceTest :
         }
 
         test("sendErrors tagger Lene når feiltypen er ukjent") {
-            val taggedPeopleSlot = mutableListOf<List<String>>()
+            val taggedPeopleSlot = mutableListOf<List<TaggablePeople>>()
             val rutineLinkSlot = mutableListOf<String?>()
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any()) } answers {
-                        taggedPeopleSlot.add(arg(3))
-                        rutineLinkSlot.add(arg(4))
-                    }
+                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot)) }
                 }
 
             val slackService = SlackService(slackClient)
@@ -194,13 +177,10 @@ internal class SlackServiceTest :
             val headerSlots = mutableListOf<String>()
             val fileNameSlots = mutableListOf<String>()
             val errorSlots = mutableListOf<Map<String, List<String>>>()
+
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coEvery { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any()) } answers {
-                        headerSlots.add(firstArg())
-                        fileNameSlots.add(secondArg())
-                        errorSlots.add(thirdArg())
-                    }
+                    coJustRun { sendMessage(capture(headerSlots), capture(fileNameSlots), capture(errorSlots), any<List<TaggablePeople>>(), any()) }
                 }
 
             val slackService = SlackService(slackClient)

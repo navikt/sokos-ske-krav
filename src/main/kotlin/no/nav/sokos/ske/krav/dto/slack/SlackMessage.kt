@@ -99,7 +99,7 @@ private fun buildSections(
     if (taggedPeople.isNotEmpty()) {
         val tagText =
             buildString {
-                append("*Ansvarlige:* ${taggedPeople.joinToString(" "){ it.slackId }}")
+                append("*Ansvarlige:* ${taggedPeople.joinToString(" ") { it.slackId }}")
                 if (rutineLink != null) {
                     append("\n*Rutine:* <$rutineLink|Klikk her for rutine>")
                 }
