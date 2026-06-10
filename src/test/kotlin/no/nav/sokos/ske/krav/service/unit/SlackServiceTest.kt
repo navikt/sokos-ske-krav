@@ -26,7 +26,7 @@ internal class SlackServiceTest :
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coJustRun { sendMessage(capture(headerSlots), capture(fileNameSlots), capture(errorSlots), any<List<TaggablePeople>>(), any()) }
+                    coJustRun { sendMessage(capture(headerSlots), capture(fileNameSlots), capture(errorSlots), any<List<TaggablePeople>>(), any(), any()) }
                 }
 
             val slackService = SlackService(slackClient)
@@ -60,7 +60,7 @@ internal class SlackServiceTest :
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
                     coJustRun {
-                        sendMessage(capture(headerSlots), capture(fileNameSlots), capture(errorSlots), any(), any())
+                        sendMessage(capture(headerSlots), capture(fileNameSlots), capture(errorSlots), any(), any(), any())
                     }
                 }
 
@@ -107,7 +107,7 @@ internal class SlackServiceTest :
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot)) }
+                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot), any()) }
                 }
 
             val slackService = SlackService(slackClient)
@@ -124,7 +124,7 @@ internal class SlackServiceTest :
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot)) }
+                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot), any()) }
                 }
 
             val slackService = SlackService(slackClient)
@@ -141,7 +141,7 @@ internal class SlackServiceTest :
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot)) }
+                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot), any()) }
                 }
 
             val slackService = SlackService(slackClient)
@@ -162,7 +162,7 @@ internal class SlackServiceTest :
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot)) }
+                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot), any()) }
                 }
 
             val slackService = SlackService(slackClient)
@@ -180,7 +180,7 @@ internal class SlackServiceTest :
 
             val slackClient =
                 mockk<SlackClient>(relaxed = true) {
-                    coJustRun { sendMessage(capture(headerSlots), capture(fileNameSlots), capture(errorSlots), any<List<TaggablePeople>>(), any()) }
+                    coJustRun { sendMessage(capture(headerSlots), capture(fileNameSlots), capture(errorSlots), any<List<TaggablePeople>>(), any(), any()) }
                 }
 
             val slackService = SlackService(slackClient)
