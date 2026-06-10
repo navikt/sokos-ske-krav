@@ -13,6 +13,7 @@ import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.HOVEDSTOL_
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.KRAVTYPE_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.PERIODE_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.SAKSNUMMER_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.TILLEGGSFRISTDATO_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.UTBETALINGSDATO_ERROR
@@ -25,6 +26,8 @@ import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIOD
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIODE_FOM_WRONG_FORMAT
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIODE_TOM_WRONG_FORMAT
+import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.REFERANSENUMMERGAMMELSAK_MANGLER_FOR_ENDRING
+import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.SAKSNUMMER_WRONG_FORMAT
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD
@@ -83,8 +86,15 @@ object LineValidationRules {
                         add(Pair(KRAVTYPE_ERROR, "$KRAVTYPE_DOES_NOT_EXIST: ($kravKode) sammen med ($kodeHjemmel). Linje: $linjenummer"))
                     }
 
-                    if (!referanseNummerGammelSakIsValid(referansenummerGammelSak, isOpprettKrav())) {
-                        add(Pair(REFERANSENUMMERGAMMELSAK_ERROR, "$REFERANSENUMMERGAMMELSAK_WRONG_FORMAT: ($referansenummerGammelSak). Linje: $linjenummer"))
+                    if (!isOpprettKrav()) {
+                        if (referansenummerGammelSak.isBlank()) {
+                            when (isEndring()) {
+                                true -> add(Pair(REFERANSENUMMERGAMMELSAK_MISSING, "$REFERANSENUMMERGAMMELSAK_MANGLER_FOR_ENDRING. Linje: $linjenummer"))
+                                false -> add(Pair(REFERANSENUMMERGAMMELSAK_MISSING, "$REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP. Linje: $linjenummer"))
+                            }
+                        } else if (!referanseNummerGammelSakIsValid(referansenummerGammelSak, isOpprettKrav())) {
+                            add(Pair(REFERANSENUMMERGAMMELSAK_ERROR, "$REFERANSENUMMERGAMMELSAK_WRONG_FORMAT: ($referansenummerGammelSak). Linje: $linjenummer"))
+                        }
                     }
                 }
             }
@@ -190,6 +200,8 @@ object LineValidationRules {
         const val UNKNOWN_DATE_ERROR = "Ukjent datofeil"
         const val SAKSNUMMER_WRONG_FORMAT = "Saksnummer er feil formattert i fil"
         const val REFERANSENUMMERGAMMELSAK_WRONG_FORMAT = "ReferanseNummerGammelSak er feil formattert i fil"
+        const val REFERANSENUMMERGAMMELSAK_MANGLER_FOR_ENDRING = "ReferanseNummerGammelSak mangler for endring i fil"
+        const val REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP = "ReferanseNummerGammelSak mangler for stopp i fil"
         const val KRAVTYPE_DOES_NOT_EXIST = "Kravtype finnes ikke definert for oversending til skatt"
         const val TILLEGGSFRISTDATO_TOO_OLD = "Tilleggsfristdato kan ikke være lengre tilbake i tid enn 10 måneder fra dagens dato"
         const val TILLEGGSFRISTDATO_WRONG_FORMAT = "Tilleggsfristdato er feil formattert i fil"
@@ -204,6 +216,7 @@ object LineValidationRules {
         const val PERIODE_ERROR = "Feil med periode"
         const val SAKSNUMMER_ERROR = "Feil med saksnummer"
         const val REFERANSENUMMERGAMMELSAK_ERROR = "Feil med ReferanseNummerGammelSak"
+        const val REFERANSENUMMERGAMMELSAK_MISSING = "Manglende ReferanseNummerGammelSak"
         const val KRAVTYPE_ERROR = "Kravtype finnes ikke definert for oversending til skatt"
         const val TILLEGGSFRISTDATO_ERROR = "Feil med tilleggsfristdato"
         const val GJELDERID_ERROR = "Feil med gjelderId"

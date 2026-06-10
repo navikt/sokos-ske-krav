@@ -1,5 +1,6 @@
 package no.nav.sokos.ske.krav.service.unit
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
@@ -15,9 +16,36 @@ import no.nav.sokos.ske.krav.domain.TaggablePeople.MARITA
 import no.nav.sokos.ske.krav.domain.TaggablePeople.STEINAR
 import no.nav.sokos.ske.krav.domain.TaggablePeople.TRINE
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
+import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING
 
 internal class SlackServiceTest :
     FunSpec({
+
+        test("missing referansenummer gammel sak should tag produktleder with a specific error message for that") {
+            val errorSlots = mutableListOf<Map<String, List<String>>>()
+            val taggedPeopleSlot = mutableListOf<List<TaggablePeople>>()
+
+            val slackClient =
+                mockk<SlackClient>(relaxed = true) {
+                    coJustRun { sendMessage(any<String>(), any<String>(), capture(errorSlots), capture(taggedPeopleSlot), any(), any()) }
+                }
+            val slackService = SlackService(slackClient)
+
+            slackService.addError(
+                "file3.txt",
+                "Validation",
+                mapOf(
+                    REFERANSENUMMERGAMMELSAK_MISSING to listOf("hva som helst"),
+                ),
+            )
+
+            slackService.sendErrors()
+
+            assertSoftly {
+                errorSlots[0][REFERANSENUMMERGAMMELSAK_MISSING] shouldContainExactly listOf(("hva som helst"))
+                taggedPeopleSlot[0] shouldContainExactly listOf(LENE)
+            }
+        }
 
         test("addError adds error messages to SlackService") {
             val headerSlots = mutableListOf<String>()
