@@ -7,9 +7,8 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.justRun
 import io.mockk.mockk
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotliquery.TransactionalSession
-import org.junit.jupiter.api.assertInstanceOf
-
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.copybook.KravLinje
