@@ -270,11 +270,11 @@ Then("valideringen er ok") {
 
             When("kravlinje er stopp og referansenummergammelsak ikke er tom, men er invalid") {
                 val result = runValidation(stoppLinje.copy(referansenummerGammelSak = "!invalid?"))
-                Then("valideringen skal varsle at formatet er feil") {
-                    assertInstanceOf<ValidationResult.Error>(result)
-                    result.messages.size shouldBe 1
-                    result.messages.first().second shouldBe "ReferanseNummerGammelSak er feil formattert i fil: (!invalid?). Linje: 1"
-                }
+Then("valideringen skal varsle at formatet er feil") {
+    val error = result.shouldBeInstanceOf<ValidationResult.Error>()
+    error.messages.size shouldBe 1
+    error.messages.first().second shouldBe "ReferanseNummerGammelSak er feil formattert i fil: (!invalid?). Linje: 1"
+}
             }
             When("kravlinje er endring og referansenummergammelsak ikke er tom, men er invalid") {
                 val result = runValidation(endringsLinje("!invalid?"))
