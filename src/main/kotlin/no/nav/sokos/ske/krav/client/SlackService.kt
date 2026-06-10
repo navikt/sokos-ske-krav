@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.client
 
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
+import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING
 
 internal data class ErrorHeader(
     val header: String,
@@ -35,6 +36,10 @@ private enum class Tags(
     FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR(
         listOf(TRINE),
         errorKey = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR,
+    ),
+    REFERANSENUMMERGAMMELSAK_MANGLER(
+        personer = listOf(LENE),
+        errorKey = REFERANSENUMMERGAMMELSAK_MISSING,
     ),
     ;
 
