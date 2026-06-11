@@ -118,18 +118,15 @@ dependencies {
 configurations.all {
     resolutionStrategy {
         eachDependency {
-            // Active Netty overrides (Dependabot alerts GHSA-57rv-r2g8-2cj3, GHSA-rwm7-x88c-3g2p)
-            if (requested.group == "io.netty" && requested.name == "netty-codec-http") {
-                useVersion("4.2.13.Final")
-                because("Netty HttpClientCodec response desynchronization (GHSA-57rv-r2g8-2cj3). Affected version >= 4.2.11.Final, < 4.2.13.Final")
-            }
-            if (requested.group == "io.netty" && requested.name == "netty-codec-http2") {
-                useVersion("4.2.13.Final")
-                because("Netty HttpClientCodec response desynchronization (GHSA-57rv-r2g8-2cj3). Affected version >= 4.2.11.Final, < 4.2.13.Final")
-            }
-            if (requested.group == "io.netty" && requested.name == "netty-transport-native-epoll") {
-                useVersion("4.2.13.Final")
-                because("Netty epoll transport denial of service via RST on half-closed TCP connection (GHSA-rwm7-x88c-3g2p). Affected version >= 4.2.12.Final, < 4.2.13.Final")
+            // Consolidated Netty override: fixes HIGH-severity production Dependabot alerts
+            // #67 (GHSA-3qp7-7mw8-wx86 / CVE-2026-44249) and #68 (GHSA-x4gw-5cx5-pgmh / CVE-2026-45416)
+            // affecting io.netty:netty-handler. Aligns all Netty modules to 4.2.15.Final.
+            if (requested.group == "io.netty") {
+                useVersion("4.2.15.Final")
+                because(
+                    "Resolves production Dependabot alerts #67 (GHSA-3qp7-7mw8-wx86) and #68 (GHSA-x4gw-5cx5-pgmh). " +
+                        "All Netty modules aligned to 4.2.15.Final (first patched version).",
+                )
             }
         }
     }
