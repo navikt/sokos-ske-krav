@@ -1,8 +1,9 @@
 package no.nav.sokos.ske.krav.service
 
-import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import javax.sql.DataSource
 
 import kotlin.time.Duration.Companion.milliseconds
@@ -306,7 +307,7 @@ class SkeService(
     }
 
     fun checkForStangendeKrav() {
-        val now = LocalDateTime.now()
+        val now = LocalDate.now()
         val stangendeKrav =
             kravRepository
                 .getAllStangendeKrav()
@@ -317,7 +318,7 @@ class SkeService(
             buildString {
                 append("${stangendeKrav.size} krav er blitt forsøkt resendt i over 24 timer: \n")
                 stangendeKrav
-                    .groupBy { Duration.between(it.tidspunktSendt, now).toDays() }
+                    .groupBy { ChronoUnit.DAYS.between(it.tidspunktSendt?.toLocalDate(), now) }
                     .toSortedMap()
                     .forEach { (day, kravPerDay) ->
                         kravPerDay
