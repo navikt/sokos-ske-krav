@@ -23,7 +23,6 @@ import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.util.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.transaction
-import no.nav.sokos.ske.krav.validation.FileValidator.ErrorKeys
 
 internal class FileValidatorIntegrationTest :
     BehaviorSpec({
@@ -85,9 +84,9 @@ internal class FileValidatorIntegrationTest :
 
                     with(filValideringsfeil.first()) {
                         filnavn shouldBe fileNameOnSftp
-                        feilmelding shouldContain ErrorKeys.FEIL_I_ANTALL
-                        feilmelding shouldNotContain ErrorKeys.FEIL_I_SUM
-                        feilmelding shouldNotContain ErrorKeys.FEIL_I_DATO
+                        feilmelding shouldContain ErrorKeys.FEIL_I_ANTALL.value
+                        feilmelding shouldNotContain ErrorKeys.FEIL_I_SUM.value
+                        feilmelding shouldNotContain ErrorKeys.FEIL_I_DATO.value
                     }
                 }
                 And("Alert skal sendes til slack") {
@@ -102,7 +101,7 @@ internal class FileValidatorIntegrationTest :
                     sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
                     capturedSendAlertMessages.shouldHaveSize(1)
-                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_ANTALL } shouldHaveSize 1
+                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_ANTALL.value } shouldHaveSize 1
                 }
             }
         }
@@ -126,9 +125,9 @@ internal class FileValidatorIntegrationTest :
                     filValideringsfeils.shouldHaveSize(1)
                     with(filValideringsfeils.first()) {
                         filnavn shouldBe fileNameOnSftp
-                        feilmelding shouldContain ErrorKeys.FEIL_I_SUM
-                        feilmelding shouldNotContain ErrorKeys.FEIL_I_ANTALL
-                        feilmelding shouldNotContain ErrorKeys.FEIL_I_DATO
+                        feilmelding shouldContain ErrorKeys.FEIL_I_SUM.value
+                        feilmelding shouldNotContain ErrorKeys.FEIL_I_ANTALL.value
+                        feilmelding shouldNotContain ErrorKeys.FEIL_I_DATO.value
                     }
                 }
                 And("Alert skal sendes til slack") {
@@ -143,7 +142,7 @@ internal class FileValidatorIntegrationTest :
                     sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
                     capturedSendAlertMessages.shouldHaveSize(1)
-                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_SUM }.shouldHaveSize(1)
+                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_SUM.value }.shouldHaveSize(1)
                 }
             }
         }
@@ -167,9 +166,9 @@ internal class FileValidatorIntegrationTest :
                     filValideringsfeils.shouldHaveSize(1)
                     with(filValideringsfeils.first()) {
                         filnavn shouldBe fileNameOnSftp
-                        feilmelding shouldContain ErrorKeys.FEIL_I_DATO
-                        feilmelding shouldNotContain ErrorKeys.FEIL_I_SUM
-                        feilmelding shouldNotContain ErrorKeys.FEIL_I_ANTALL
+                        feilmelding shouldContain ErrorKeys.FEIL_I_DATO.value
+                        feilmelding shouldNotContain ErrorKeys.FEIL_I_SUM.value
+                        feilmelding shouldNotContain ErrorKeys.FEIL_I_ANTALL.value
                     }
                 }
                 And("Alert skal sendes til slack") {
@@ -184,7 +183,7 @@ internal class FileValidatorIntegrationTest :
                     sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
                     val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
                     capturedSendAlertMessages.shouldHaveSize(1)
-                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_DATO }.shouldHaveSize(1)
+                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_DATO.value }.shouldHaveSize(1)
                 }
             }
         }
@@ -208,10 +207,10 @@ internal class FileValidatorIntegrationTest :
                     with(filValideringsfeils) {
                         shouldHaveSize(4)
                         count { it.filnavn == fileNameOnSftp } shouldBe 4
-                        count { it.feilmelding.contains(ErrorKeys.FEIL_I_DATO) } shouldBe 1
-                        count { it.feilmelding.contains(ErrorKeys.FEIL_I_SUM) } shouldBe 1
-                        count { it.feilmelding.contains(ErrorKeys.FEIL_I_ANTALL) } shouldBe 1
-                        count { it.feilmelding.contains(ErrorKeys.FAGSYSTEMID_MANGLER) } shouldBe 1
+                        count { it.feilmelding.contains(ErrorKeys.FEIL_I_DATO.value) } shouldBe 1
+                        count { it.feilmelding.contains(ErrorKeys.FEIL_I_SUM.value) } shouldBe 1
+                        count { it.feilmelding.contains(ErrorKeys.FEIL_I_ANTALL.value) } shouldBe 1
+                        count { it.feilmelding.contains(ErrorKeys.FAGSYSTEMID_MANGLER.value) } shouldBe 1
                     }
                 }
                 And("Alert skal sendes til slack") {
@@ -227,10 +226,10 @@ internal class FileValidatorIntegrationTest :
                     val capturedSendAlertMessages: Map<String, List<Pair<String, String>>> = sendAlertMessagesSlot.captured.groupBy { it.first }
                     with(capturedSendAlertMessages) {
                         shouldHaveSize(4)
-                        get(ErrorKeys.FEIL_I_DATO)?.shouldHaveSize(1)
-                        get(ErrorKeys.FEIL_I_SUM)?.shouldHaveSize(1)
-                        get(ErrorKeys.FEIL_I_ANTALL)?.shouldHaveSize(1)
-                        get(ErrorKeys.FAGSYSTEMID_MANGLER)?.shouldHaveSize(1)
+                        get(ErrorKeys.FEIL_I_DATO.value)?.shouldHaveSize(1)
+                        get(ErrorKeys.FEIL_I_SUM.value)?.shouldHaveSize(1)
+                        get(ErrorKeys.FEIL_I_ANTALL.value)?.shouldHaveSize(1)
+                        get(ErrorKeys.FAGSYSTEMID_MANGLER.value)?.shouldHaveSize(1)
                     }
                 }
             }

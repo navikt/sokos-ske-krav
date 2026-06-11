@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
-import no.nav.sokos.ske.krav.validation.FileValidator.ErrorKeys
 
 internal class FileValidatorTest :
     BehaviorSpec({

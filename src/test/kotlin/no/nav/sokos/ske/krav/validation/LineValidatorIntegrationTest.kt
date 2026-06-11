@@ -27,7 +27,6 @@ import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.util.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.transaction
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages
 import no.nav.sokos.ske.krav.validation.LineValidationRules.errorDate
 
@@ -139,14 +138,14 @@ internal class LineValidatorIntegrationTest :
                     Then("Skal én feilmelding dannes") {
                         capturedSendAlertMessages.shouldHaveSize(1)
 
-                        capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
+                        capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR.value] shouldBe null
+                        capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR.value] shouldBe null
+                        capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR.value] shouldBe null
+                        capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR.value] shouldBe null
+                        capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR.value] shouldBe null
+                        capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR.value] shouldNotBe null
 
-                        with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
+                        with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR.value]!!) {
                             shouldHaveSize(1)
                             first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
                         }
@@ -227,24 +226,24 @@ internal class LineValidatorIntegrationTest :
                     Then("Skal 3 feilmeldinger dannes") {
                         capturedAddErrorMessages.shouldHaveSize(3)
 
-                        capturedAddErrorMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
-                        capturedAddErrorMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
-                        capturedAddErrorMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldBe null
+                        capturedAddErrorMessages[ErrorKeys.UTBETALINGSDATO_ERROR.value] shouldBe null
+                        capturedAddErrorMessages[ErrorKeys.PERIODE_ERROR.value] shouldBe null
+                        capturedAddErrorMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR.value] shouldBe null
 
-                        capturedAddErrorMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldNotBe null
-                        capturedAddErrorMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldNotBe null
-                        capturedAddErrorMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
+                        capturedAddErrorMessages[ErrorKeys.VEDTAKSDATO_ERROR.value] shouldNotBe null
+                        capturedAddErrorMessages[ErrorKeys.SAKSNUMMER_ERROR.value] shouldNotBe null
+                        capturedAddErrorMessages[ErrorKeys.KRAVTYPE_ERROR.value] shouldNotBe null
 
-                        with(capturedAddErrorMessages[ErrorKeys.VEDTAKSDATO_ERROR]!!) {
+                        with(capturedAddErrorMessages[ErrorKeys.VEDTAKSDATO_ERROR.value]!!) {
                             shouldHaveSize(1)
                             first() shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
                         }
-                        with(capturedAddErrorMessages[ErrorKeys.SAKSNUMMER_ERROR]!!) {
+                        with(capturedAddErrorMessages[ErrorKeys.SAKSNUMMER_ERROR.value]!!) {
                             shouldHaveSize(1)
                             first() shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
                         }
 
-                        with(capturedAddErrorMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
+                        with(capturedAddErrorMessages[ErrorKeys.KRAVTYPE_ERROR.value]!!) {
                             shouldHaveSize(1)
                             first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
                         }
@@ -331,13 +330,13 @@ internal class LineValidatorIntegrationTest :
 
                         capturedSendAlertMessages.shouldHaveSize(1)
 
-                        capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
-                        with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
+                        capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR.value] shouldBe null
+                        capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR.value] shouldBe null
+                        capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR.value] shouldBe null
+                        capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR.value] shouldBe null
+                        capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR.value] shouldBe null
+                        capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR.value] shouldNotBe null
+                        with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR.value]!!) {
                             shouldHaveSize(6)
                             filter { it.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.shouldHaveSize(6)
                         }
@@ -410,28 +409,28 @@ internal class LineValidatorIntegrationTest :
                     Then("Skal 9 feilmeldinger dannes") {
                         capturedSendAlertMessages.shouldHaveSize(4)
 
-                        capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldNotBe null
-                        capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldNotBe null
-                        capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldNotBe null
-                        capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
+                        capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR.value] shouldBe null
+                        capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR.value] shouldBe null
+                        capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR.value] shouldNotBe null
+                        capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR.value] shouldNotBe null
+                        capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR.value] shouldNotBe null
+                        capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR.value] shouldNotBe null
 
-                        with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
+                        with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR.value]!!) {
                             shouldHaveSize(6)
                             filter { it.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.shouldHaveSize(6)
                         }
 
-                        with(capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR]!!) {
+                        with(capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR.value]!!) {
                             shouldHaveSize(1)
                             filter { it.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT) }.shouldHaveSize(1)
                         }
 
-                        with(capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR]!!) {
+                        with(capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR.value]!!) {
                             shouldHaveSize(1)
                             filter { it.contains(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT) }.shouldHaveSize(1)
                         }
-                        with(capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR]!!) {
+                        with(capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR.value]!!) {
                             shouldHaveSize(1)
                             filter { it.contains(ErrorMessages.SAKSNUMMER_WRONG_FORMAT) }.shouldHaveSize(1)
                         }
@@ -448,12 +447,12 @@ internal class LineValidatorIntegrationTest :
                         val capturedErrorMessages = sendAlertMessagesSlot.captured
                         Then("Skal de 6 like feilmeldingene aggregeres til én") {
                             capturedErrorMessages.shouldHaveSize(4)
-                            capturedErrorMessages.keys.filter { it.contains(ErrorKeys.KRAVTYPE_ERROR) }.shouldHaveSize(1)
+                            capturedErrorMessages.keys.filter { it.contains(ErrorKeys.KRAVTYPE_ERROR.value) }.shouldHaveSize(1)
                         }
                         Then("Skal de 3 ulike feilmeldingene ikke aggregeres") {
-                            capturedErrorMessages.keys.filter { it.contains(ErrorKeys.VEDTAKSDATO_ERROR) }.shouldHaveSize(1)
-                            capturedErrorMessages.keys.filter { it.contains(ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR) }.shouldHaveSize(1)
-                            capturedErrorMessages.keys.filter { it.contains(ErrorKeys.SAKSNUMMER_ERROR) }.shouldHaveSize(1)
+                            capturedErrorMessages.keys.filter { it.contains(ErrorKeys.VEDTAKSDATO_ERROR.value) }.shouldHaveSize(1)
+                            capturedErrorMessages.keys.filter { it.contains(ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR.value) }.shouldHaveSize(1)
+                            capturedErrorMessages.keys.filter { it.contains(ErrorKeys.SAKSNUMMER_ERROR.value) }.shouldHaveSize(1)
                         }
                     }
                 }

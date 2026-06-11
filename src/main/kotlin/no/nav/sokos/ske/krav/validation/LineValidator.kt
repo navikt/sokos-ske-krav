@@ -29,7 +29,7 @@ class LineValidator(
                     }
 
                     is ValidationResult.Error -> {
-                        slackMessages.addAll(result.messages)
+                        slackMessages.addAll(result.messages.map { it.first.value to it.second })
 
                         dataSource.transaction { session ->
                             filValideringsfeilRepository.insertLineFilValideringsfeil(session, file.name, linje, result.messages.joinToString { pair -> pair.second })

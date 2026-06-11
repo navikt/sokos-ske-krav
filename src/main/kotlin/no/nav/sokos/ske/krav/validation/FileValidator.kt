@@ -8,14 +8,6 @@ import no.nav.sokos.ske.krav.copybook.ParseResult
 import no.nav.sokos.ske.krav.domain.Avsender
 
 class FileValidator {
-    object ErrorKeys {
-        const val PARSE_EXCEPTION = "Exception i parsing av fil"
-        const val FEIL_I_ANTALL = "Antall krav stemmer ikke med antallet i siste linje"
-        const val FEIL_I_SUM = "Sum alle linjer stemmer ikke med sum i siste linje"
-        const val FEIL_I_DATO = "Dato sendt er avvikende mellom første og siste linje fra OS"
-        const val FAGSYSTEMID_MANGLER = "fagsystemId mangler i en eller flere kravlinjer"
-    }
-
     fun validateFile(content: List<String>): ValidationResult =
         when (val parseResult = FileParser(content).parseResult) {
             is ParseResult.Success -> {
@@ -37,7 +29,7 @@ class FileValidator {
         lastLine: KontrollLinjeFooter,
         firstLine: KontrollLinjeHeader,
         kravLinjer: List<KravLinje>,
-    ): List<Pair<String, String>> =
+    ): List<Pair<ErrorKeys, String>> =
         buildList {
             if (lastLine.antallTransaksjoner != kravLinjer.size) {
                 add(ErrorKeys.FEIL_I_ANTALL to "Antall krav: ${kravLinjer.size}, Antall i siste linje: ${lastLine.antallTransaksjoner}\n")

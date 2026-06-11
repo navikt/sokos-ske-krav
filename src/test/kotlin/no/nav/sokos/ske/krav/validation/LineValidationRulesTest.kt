@@ -89,7 +89,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.VEDTAKSDATO_ERROR
+                        first().first shouldBe ErrorKeys.VEDTAKSDATO_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
                     }
                 }
@@ -104,7 +104,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.VEDTAKSDATO_ERROR
+                        first().first shouldBe ErrorKeys.VEDTAKSDATO_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
                     }
                 }
@@ -137,7 +137,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.UTBETALINGSDATO_ERROR
+                        first().first shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
                     }
                 }
@@ -153,7 +153,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.UTBETALINGSDATO_ERROR
+                        first().first shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
                     }
                 }
@@ -167,7 +167,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.UTBETALINGSDATO_ERROR
+                        first().first shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
                     }
                 }
@@ -214,7 +214,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.TILLEGGSFRISTDATO_ERROR
+                        first().first shouldBe ErrorKeys.TILLEGGSFRISTDATO_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD
                         first().second shouldContain tilleggsfristDato.toString()
                         first().second shouldContain krav.saksnummerNav
@@ -250,7 +250,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.PERIODE_ERROR
+                        first().first shouldBe ErrorKeys.PERIODE_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE
                     }
                 }
@@ -296,7 +296,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.PERIODE_ERROR
+                        first().first shouldBe ErrorKeys.PERIODE_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM
                     }
                 }
@@ -312,7 +312,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.PERIODE_ERROR
+                        first().first shouldBe ErrorKeys.PERIODE_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.PERIODE_FOM_WRONG_FORMAT
                     }
                 }
@@ -327,7 +327,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.PERIODE_ERROR
+                        first().first shouldBe ErrorKeys.PERIODE_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.PERIODE_TOM_WRONG_FORMAT
                     }
                 }
@@ -346,7 +346,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.KRAVTYPE_ERROR
+                        first().first shouldBe ErrorKeys.KRAVTYPE_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
                     }
                 }
@@ -366,7 +366,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.SAKSNUMMER_ERROR
+                        first().first shouldBe ErrorKeys.SAKSNUMMER_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.SAKSNUMMER_WRONG_FORMAT
                     }
                 }
@@ -385,7 +385,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+                        first().first shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
                     }
                 }
@@ -405,7 +405,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.GJELDERID_ERROR
+                        first().first shouldBe ErrorKeys.GJELDERID_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.GJELDERID_MISSING
                     }
                 }
@@ -425,7 +425,7 @@ internal class LineValidationRulesTest :
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
-                        first().first shouldBe LineValidationRules.ErrorKeys.HOVEDSTOL_ERROR
+                        first().first shouldBe ErrorKeys.HOVEDSTOL_ERROR
                         first().second shouldContain LineValidationRules.ErrorMessages.BELOP_NEGATIVE
                     }
                 }

@@ -14,6 +14,7 @@ import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.util.transaction
+import no.nav.sokos.ske.krav.validation.ErrorKeys
 import no.nav.sokos.ske.krav.validation.FileValidator
 import no.nav.sokos.ske.krav.validation.ValidationResult
 
@@ -102,7 +103,7 @@ class FtpService(
 
     private suspend fun handleValidationError(
         fileName: String,
-        errorMessages: List<Pair<String, String>>,
+        errorMessages: List<Pair<ErrorKeys, String>>,
         directory: Directories,
     ) {
         moveFile(fileName, directory, Directories.FAILED)
@@ -111,17 +112,17 @@ class FtpService(
 
         dataSource.transaction { session ->
             errorMessages.forEach { (errorKey, message) ->
-                filValideringsfeilRepository.insertFilValideringsfeil(session, fileName, "$errorKey: $message")
+                filValideringsfeilRepository.insertFilValideringsfeil(session, fileName, "${errorKey.value}: $message")
             }
         }
     }
 
     private suspend fun logErrors(
         fileName: String,
-        errorMessages: List<Pair<String, String>>,
+        errorMessages: List<Pair<ErrorKeys, String>>,
     ) {
         logger.warn("*** Feil i validering av fil $fileName ***")
-        slackService.addError(fileName, "Feil i validering av fil", errorMessages)
+        slackService.addError(fileName, "Feil i validering av fil", errorMessages.map { it.first.value to it.second })
         slackService.sendErrors()
     }
 }

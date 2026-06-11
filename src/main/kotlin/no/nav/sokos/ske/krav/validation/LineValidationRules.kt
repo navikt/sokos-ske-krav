@@ -7,17 +7,6 @@ import java.time.format.DateTimeFormatter
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.StonadsType
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.FAGSYSTEMID_ERROR
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.GJELDERID_ERROR
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.HOVEDSTOL_ERROR
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.KRAVTYPE_ERROR
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.PERIODE_ERROR
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.SAKSNUMMER_ERROR
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.TILLEGGSFRISTDATO_ERROR
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.UTBETALINGSDATO_ERROR
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.VEDTAKSDATO_ERROR
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.BELOP_NEGATIVE
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.FAGSYSTEMID_MISSING
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.GJELDERID_MISSING
@@ -48,48 +37,48 @@ object LineValidationRules {
             buildList {
                 with(krav) {
                     checkVedtaksDato(vedtaksDato)?.let { message ->
-                        add(Pair(VEDTAKSDATO_ERROR, "$message: (Vedtaksdato: $vedtaksDato). Linje: $linjenummer"))
+                        add(Pair(ErrorKeys.VEDTAKSDATO_ERROR, "$message: (Vedtaksdato: $vedtaksDato). Linje: $linjenummer"))
                     }
 
                     checkUtbetalingsDato(utbetalDato, vedtaksDato, avsender)?.let { message ->
-                        add(Pair(UTBETALINGSDATO_ERROR, "$message: (Utbetalingsdato: $utbetalDato). Linje: $linjenummer"))
+                        add(Pair(ErrorKeys.UTBETALINGSDATO_ERROR, "$message: (Utbetalingsdato: $utbetalDato). Linje: $linjenummer"))
                     }
 
                     checkPeriode(periodeFOM.toDate(), periodeTOM.toDate())?.let { message ->
-                        add(Pair(PERIODE_ERROR, "$message: (FOM:$periodeFOM, TOM: $periodeTOM). Linje: $linjenummer"))
+                        add(Pair(ErrorKeys.PERIODE_ERROR, "$message: (FOM:$periodeFOM, TOM: $periodeTOM). Linje: $linjenummer"))
                     }
 
                     checkTilleggsfristDato(tilleggsfrist)?.let { message ->
-                        add(Pair(TILLEGGSFRISTDATO_ERROR, "$message: (Tilleggsfristdato: $tilleggsfrist). Saksnummer: $saksnummerNav. Linje: $linjenummer"))
+                        add(Pair(ErrorKeys.TILLEGGSFRISTDATO_ERROR, "$message: (Tilleggsfristdato: $tilleggsfrist). Saksnummer: $saksnummerNav. Linje: $linjenummer"))
                     }
 
                     if (avsender.trim() == Avsender.OB04.name) {
                         checkFagsystemId(fagsystemId)?.let { message ->
-                            add(Pair(FAGSYSTEMID_ERROR, "$message. Linje: $linjenummer"))
+                            add(Pair(ErrorKeys.FAGSYSTEMID_ERROR, "$message. Linje: $linjenummer"))
                         }
                     }
 
                     checkGjelderId(gjelderId)?.let { message ->
-                        add(Pair(GJELDERID_ERROR, "$message. Linje: $linjenummer"))
+                        add(Pair(ErrorKeys.GJELDERID_ERROR, "$message. Linje: $linjenummer"))
                     }
 
                     checkBelop(belop)?.let { message ->
-                        add(Pair(HOVEDSTOL_ERROR, "$message: (Beløp: $belop). Linje: $linjenummer"))
+                        add(Pair(ErrorKeys.HOVEDSTOL_ERROR, "$message: (Beløp: $belop). Linje: $linjenummer"))
                     }
 
                     if (!saksNummerIsValid(saksnummerNav)) {
-                        add(Pair(SAKSNUMMER_ERROR, "$SAKSNUMMER_WRONG_FORMAT: ($saksnummerNav). Linje: $linjenummer"))
+                        add(Pair(ErrorKeys.SAKSNUMMER_ERROR, "$SAKSNUMMER_WRONG_FORMAT: ($saksnummerNav). Linje: $linjenummer"))
                     }
 
                     if (!kravTypeIsValid(krav)) {
-                        add(Pair(KRAVTYPE_ERROR, "$KRAVTYPE_DOES_NOT_EXIST: ($kravKode) sammen med ($kodeHjemmel). Linje: $linjenummer"))
+                        add(Pair(ErrorKeys.KRAVTYPE_ERROR, "$KRAVTYPE_DOES_NOT_EXIST: ($kravKode) sammen med ($kodeHjemmel). Linje: $linjenummer"))
                     }
 
                     if (!isOpprettKrav()) {
                         if (isStopp() && referansenummerGammelSak.isEmpty()) {
-                            add(Pair(REFERANSENUMMERGAMMELSAK_MISSING, "$REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP. Linje: $linjenummer"))
+                            add(Pair(ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING, "$REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP. Linje: $linjenummer"))
                         } else if (!saksNummerIsValid(referansenummerGammelSak)) {
-                            add(Pair(REFERANSENUMMERGAMMELSAK_ERROR, "$REFERANSENUMMERGAMMELSAK_WRONG_FORMAT: ($referansenummerGammelSak). Linje: $linjenummer"))
+                            add(Pair(ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR, "$REFERANSENUMMERGAMMELSAK_WRONG_FORMAT: ($referansenummerGammelSak). Linje: $linjenummer"))
                         }
                     }
                 }
@@ -198,20 +187,6 @@ object LineValidationRules {
         const val GJELDERID_MISSING = "gjelderId mangler"
         const val FAGSYSTEMID_MISSING = "fagsystemId mangler"
         const val BELOP_NEGATIVE = "Beløp kan ikke være negativt"
-    }
-
-    object ErrorKeys {
-        const val VEDTAKSDATO_ERROR = "Feil med vedtaksdato"
-        const val UTBETALINGSDATO_ERROR = "Feil med utbetalingsdato"
-        const val PERIODE_ERROR = "Feil med periode"
-        const val SAKSNUMMER_ERROR = "Feil med saksnummer"
-        const val REFERANSENUMMERGAMMELSAK_ERROR = "Feil med ReferanseNummerGammelSak"
-        const val REFERANSENUMMERGAMMELSAK_MISSING = "Manglende ReferanseNummerGammelSak"
-        const val KRAVTYPE_ERROR = "Kravtype finnes ikke definert for oversending til skatt"
-        const val TILLEGGSFRISTDATO_ERROR = "Feil med tilleggsfristdato"
-        const val GJELDERID_ERROR = "Feil med gjelderId"
-        const val FAGSYSTEMID_ERROR = "Feil med fagsystemId"
-        const val HOVEDSTOL_ERROR = "Feil med hovedstol"
     }
 
     private fun String.toDate() =

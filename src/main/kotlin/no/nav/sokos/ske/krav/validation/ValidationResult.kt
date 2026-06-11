@@ -8,6 +8,6 @@ sealed class ValidationResult {
     ) : ValidationResult()
 
     data class Error(
-        val messages: List<Pair<String, String>>,
+        val messages: List<Pair<ErrorKeys, String>>,
     ) : ValidationResult()
 }
