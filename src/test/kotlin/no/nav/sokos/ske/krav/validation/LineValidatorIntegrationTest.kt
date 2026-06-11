@@ -17,6 +17,7 @@ import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.domain.Status
+import no.nav.sokos.ske.krav.domain.TaggablePeople
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.filvalideringsFeilRepository
@@ -81,7 +82,7 @@ internal class LineValidatorIntegrationTest :
                     }
                     Then("Alert skal ikke sendes") {
                         coVerify(exactly = 0) {
-                            slackClientSpy.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<String>>(), any())
+                            slackClientSpy.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any())
                         }
                     }
                 }
@@ -154,7 +155,7 @@ internal class LineValidatorIntegrationTest :
                         val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
                         coVerify(exactly = 1) {
-                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<String>>(), any())
+                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
                         }
                         sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
 
@@ -254,7 +255,7 @@ internal class LineValidatorIntegrationTest :
                         val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
                         coVerify(exactly = 1) {
-                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<String>>(), any())
+                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
                         }
                         sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
 
@@ -346,7 +347,7 @@ internal class LineValidatorIntegrationTest :
                         val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
                         coVerify(exactly = 1) {
-                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<String>>(), any())
+                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
                         }
                         sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
 
@@ -440,7 +441,7 @@ internal class LineValidatorIntegrationTest :
                         val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
                         coVerify(exactly = 1) {
-                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFileNameSlot), capture(sendAlertMessagesSlot), any<List<String>>(), any())
+                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFileNameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
                         }
                         sendAlertFileNameSlot.captured shouldBe fileNameOnSftp
                         val capturedErrorMessages = sendAlertMessagesSlot.captured

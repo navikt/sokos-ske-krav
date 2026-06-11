@@ -5,6 +5,7 @@ import java.time.LocalDate
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.justRun
 import io.mockk.mockk
 import kotliquery.TransactionalSession
@@ -18,6 +19,7 @@ import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.service.FtpFil
 import no.nav.sokos.ske.krav.validation.LineValidationRules.errorDate
+import no.nav.sokos.ske.krav.validation.LineValidationRules.runValidation
 
 internal class LineValidatorTest :
     BehaviorSpec({
@@ -242,36 +244,89 @@ internal class LineValidatorTest :
                 }
             }
         }
+
+        Given("Kravlinje skal valideres med hensyn på kravtype og referansenummerGammelSak") {
+            When("kravlinje er stopp og referansenummergammelsak er tom") {
+                val result = runValidation(stoppLinje.copy(referansenummerGammelSak = ""))
+                Then("valideringen skal varsle at referansen mangler og tagge produktleder") {
+                    val error = result.shouldBeInstanceOf<ValidationResult.Error>()
+                    error.messages.size shouldBe 1
+                    error.messages.first().second shouldBe "ReferanseNummerGammelSak mangler for stopp i fil. Linje: 1"
+                }
+            }
+            When("kravlinje er endring og referansenummergammelsak er tom") {
+                val result = runValidation(endringsLinje(" "))
+                Then("valideringen skal varsle at referansen mangler og tagge produktleder") {
+                    val error = result.shouldBeInstanceOf<ValidationResult.Error>()
+                    error.messages.size shouldBe 1
+                    error.messages.first().second shouldBe "ReferanseNummerGammelSak mangler for endring i fil. Linje: 1"
+                }
+            }
+            When("kravlinje er opprett og referansenummergammelsak er tom") {
+                val result = runValidation(okLinje.copy(referansenummerGammelSak = ""))
+                Then("valideringen er ok") {
+                    result.shouldBeInstanceOf<ValidationResult.Success>()
+                }
+            }
+
+            When("kravlinje er stopp og referansenummergammelsak ikke er tom, men er invalid") {
+                val result = runValidation(stoppLinje.copy(referansenummerGammelSak = "!invalid?"))
+                Then("valideringen skal varsle at formatet er feil") {
+                    val error = result.shouldBeInstanceOf<ValidationResult.Error>()
+                    error.messages.size shouldBe 1
+                    error.messages.first().second shouldBe "ReferanseNummerGammelSak er feil formattert i fil: (!invalid?). Linje: 1"
+                }
+            }
+            When("kravlinje er endring og referansenummergammelsak ikke er tom, men er invalid") {
+                val result = runValidation(endringsLinje("!invalid?"))
+                Then("valideringen skal varsle at formatet er feil") {
+                    val error = result.shouldBeInstanceOf<ValidationResult.Error>()
+                    error.messages.size shouldBe 1
+                    error.messages.first().second shouldBe "ReferanseNummerGammelSak er feil formattert i fil: (!invalid?). Linje: 1"
+                }
+            }
+            When("kravlinje er opprett og referansenummergammelsak ikke er tom, men er invalid") {
+                val result = runValidation(okLinje.copy(referansenummerGammelSak = "!invalid?"))
+                Then("valideringen skal varsle at formatet er feil") {
+                    val error = result.shouldBeInstanceOf<ValidationResult.Error>()
+                    error.messages.size shouldBe 1
+                    error.messages.first().second shouldBe "ReferanseNummerGammelSak er feil formattert i fil: (!invalid?). Linje: 1"
+                }
+            }
+        }
     })
 
-private fun getKravlinjer(): MutableList<KravLinje> {
-    val okLinje =
-        KravLinje(
-            linjenummer = 1,
-            saksnummerNav = "saksnummer",
-            belop = BigDecimal.ONE,
-            vedtaksDato = LocalDate.now(),
-            gjelderId = "gjelderID",
-            periodeFOM = "20231201",
-            periodeTOM = "20231212",
-            kravKode = "KS KS",
-            referansenummerGammelSak = "refgammelsak",
-            transaksjonsDato = "20230112",
-            enhetBosted = "bosted",
-            enhetBehandlende = "beh",
-            kodeHjemmel = "T",
-            kodeArsak = "arsak",
-            belopRente = BigDecimal.ONE,
-            fremtidigYtelse = BigDecimal.ONE,
-            utbetalDato = LocalDate.now().minusDays(1),
-            fagsystemId = "1234",
-            avsender = Avsender.OB04.name,
-        )
-    return mutableListOf(
+private val okLinje =
+    KravLinje(
+        linjenummer = 1,
+        saksnummerNav = "saksnummer",
+        belop = BigDecimal.ONE,
+        vedtaksDato = LocalDate.now(),
+        gjelderId = "gjelderID",
+        periodeFOM = "20231201",
+        periodeTOM = "20231212",
+        kravKode = "KS KS",
+        referansenummerGammelSak = "",
+        transaksjonsDato = "20230112",
+        enhetBosted = "bosted",
+        enhetBehandlende = "beh",
+        kodeHjemmel = "T",
+        kodeArsak = "arsak",
+        belopRente = BigDecimal.ONE,
+        fremtidigYtelse = BigDecimal.ONE,
+        utbetalDato = LocalDate.now().minusDays(1),
+        fagsystemId = "1234",
+        avsender = Avsender.OB04.name,
+    )
+private val stoppLinje = okLinje.copy(belop = BigDecimal.ZERO)
+
+private fun endringsLinje(refnrGammelSak: String) = stoppLinje.copy(belop = BigDecimal.TWO, referansenummerGammelSak = refnrGammelSak)
+
+private fun getKravlinjer(): MutableList<KravLinje> =
+    mutableListOf(
         okLinje,
         okLinje.copy(linjenummer = 2, saksnummerNav = "saksnummer2"),
         okLinje.copy(linjenummer = 3, saksnummerNav = "saksnummer3"),
         okLinje.copy(linjenummer = 4, saksnummerNav = "saksnummer4"),
         okLinje.copy(linjenummer = 5, saksnummerNav = "saksnummer5"),
     )
-}

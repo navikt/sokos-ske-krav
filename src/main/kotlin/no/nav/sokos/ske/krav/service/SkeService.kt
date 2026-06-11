@@ -252,7 +252,7 @@ class SkeService(
     ) {
         if (shouldAlert) {
             val errorPair = feilResponse?.let { Pair(feilResponse.title, feilResponse.detail) } ?: Pair("Ukjent feil", "Kunne ikke parse feilresponse")
-            slackService.addError(requestResult.krav.filnavn, "Feil fra SKE", errorPair)
+            slackService.addError(requestResult.krav.filnavn, "Feil fra SKE", errorPair, requestResult.krav.saksnummerNAV)
         }
 
         saveErrorMessage(

@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.client
 
-import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
+import no.nav.sokos.ske.krav.domain.SlackTags
+import no.nav.sokos.ske.krav.domain.TaggablePeople
 
 internal data class ErrorHeader(
     val header: String,
@@ -10,38 +11,8 @@ internal data class ErrorHeader(
 internal data class FileErrors(
     val fileName: String,
     val headers: MutableList<ErrorHeader>,
+    val saksnummer: String? = null,
 )
-
-private const val LENE = "<@U08S6FA0XSS>"
-private const val TRINE = "<@UDCM6F8V8>"
-private const val MARITA = "<@UCG179DPT>"
-private const val LINE_ANITA = "<@U02AVNPT3T9>"
-private const val STEINAR = "<@U796MGBA9>"
-
-private enum class Tags(
-    val personer: List<String>,
-    val rutineLink: String? = null,
-    val errorKey: String? = null,
-) {
-    PERSON_EKSISTERER_IKKE(listOf(LENE, TRINE)),
-    PERSON_ER_DOED(listOf(LENE, TRINE)),
-    ORGANISASJONSNUMMER_FINNES_IKKE(listOf(LENE, TRINE)),
-    ORGANISASJON_ER_OPPHOERT(
-        listOf(MARITA, LINE_ANITA, STEINAR),
-        "https://confluence.adeo.no/spaces/TOB/pages/791026050/Rutine+for+manuell+h%C3%A5ndtering+av+innkrevingskrav+til+skatteetaten+SKE",
-    ),
-    PERSON_ER_SLETTET(listOf(LENE, TRINE)),
-    ORGANISASJON_ER_SLETTET(listOf(LENE, TRINE)),
-    FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR(
-        listOf(TRINE),
-        errorKey = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR,
-    ),
-    ;
-
-    companion object {
-        val lookupMap: Map<String, Tags> = entries.associateBy { it.errorKey ?: it.name }
-    }
-}
 
 class SlackService(
     private val slackClient: SlackClient = SlackClient(),
@@ -52,10 +23,11 @@ class SlackService(
         fileName: String,
         header: String,
         messages: Map<String, List<String>>,
+        saksnummer: String? = null,
     ) {
         val fileError =
             errorTracking.find { it.fileName == fileName }
-                ?: FileErrors(fileName, mutableListOf()).also { errorTracking.add(it) }
+                ?: FileErrors(fileName, mutableListOf(), saksnummer).also { errorTracking.add(it) }
 
         val headerEntry =
             fileError.headers.find { it.header == header }
@@ -71,18 +43,20 @@ class SlackService(
         fileName: String,
         header: String,
         messages: Pair<String, String>,
+        saksnummer: String? = null,
     ) {
         val map = mapOf(messages.first to listOf(messages.second))
-        addError(fileName, header, map)
+        addError(fileName, header, map, saksnummer)
     }
 
     fun addError(
         fileName: String,
         header: String,
         messages: List<Pair<String, String>>,
+        saksnummer: String? = null, // TODO: I en annen branch, refaktorer validator slik at saksnummer kan sendes inn
     ) {
         val map = messages.groupBy({ it.first }, { it.second })
-        addError(fileName, header, map)
+        addError(fileName, header, map, saksnummer)
     }
 
     private fun consolidateErrors() {
@@ -104,10 +78,11 @@ class SlackService(
         consolidateErrors()
         errorTracking.forEach { fileErrors ->
             fileErrors.headers.forEach { header ->
-                val matchedTags = header.errors.keys.mapNotNull { errorType -> Tags.lookupMap[errorType] }
-                val taggedPeople = matchedTags.flatMap { it.personer }.distinct()
-                val rutineLink = matchedTags.firstNotNullOfOrNull { it.rutineLink }
-                slackClient.sendMessage(header.header, fileErrors.fileName, header.errors, taggedPeople, rutineLink)
+                val matchedTags = header.errors.keys.map { errorType -> SlackTags.lookupMap[errorType] }
+
+                val taggedPeople = matchedTags.flatMap { it?.personer ?: listOf(TaggablePeople.LENE) }.distinct()
+                val rutineLink = matchedTags.firstNotNullOfOrNull { it?.rutineLink }
+                slackClient.sendMessage(header.header, fileErrors.fileName, header.errors, taggedPeople, rutineLink, fileErrors.saksnummer ?: "")
             }
         }
 
