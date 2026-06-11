@@ -254,14 +254,6 @@ internal class LineValidatorTest :
                     error.messages.first().second shouldBe "ReferanseNummerGammelSak mangler for stopp i fil. Linje: 1"
                 }
             }
-            When("kravlinje er endring og referansenummergammelsak er tom") {
-                val result = runValidation(endringsLinje(" "))
-                Then("valideringen skal varsle at referansen mangler og tagge produktleder") {
-                    val error = result.shouldBeInstanceOf<ValidationResult.Error>()
-                    error.messages.size shouldBe 1
-                    error.messages.first().second shouldBe "ReferanseNummerGammelSak mangler for endring i fil. Linje: 1"
-                }
-            }
             When("kravlinje er opprett og referansenummergammelsak er tom") {
                 val result = runValidation(okLinje.copy(referansenummerGammelSak = ""))
                 Then("valideringen er ok") {

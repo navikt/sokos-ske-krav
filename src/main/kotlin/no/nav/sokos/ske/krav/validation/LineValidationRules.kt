@@ -26,7 +26,6 @@ import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIOD
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIODE_FOM_WRONG_FORMAT
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.PERIODE_TOM_WRONG_FORMAT
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.REFERANSENUMMERGAMMELSAK_MANGLER_FOR_ENDRING
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
 import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages.SAKSNUMMER_WRONG_FORMAT
@@ -87,12 +86,9 @@ object LineValidationRules {
                     }
 
                     if (!isOpprettKrav()) {
-                        if (referansenummerGammelSak.isBlank()) {
-                            when (isEndring()) {
-                                true -> add(Pair(REFERANSENUMMERGAMMELSAK_MISSING, "$REFERANSENUMMERGAMMELSAK_MANGLER_FOR_ENDRING. Linje: $linjenummer"))
-                                false -> add(Pair(REFERANSENUMMERGAMMELSAK_MISSING, "$REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP. Linje: $linjenummer"))
-                            }
-                        } else if (!referanseNummerGammelSakIsValid(referansenummerGammelSak, isOpprettKrav())) {
+                        if (isStopp() && referansenummerGammelSak.isEmpty()) {
+                            add(Pair(REFERANSENUMMERGAMMELSAK_MISSING, "$REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP. Linje: $linjenummer"))
+                        } else if (!saksNummerIsValid(referansenummerGammelSak)) {
                             add(Pair(REFERANSENUMMERGAMMELSAK_ERROR, "$REFERANSENUMMERGAMMELSAK_WRONG_FORMAT: ($referansenummerGammelSak). Linje: $linjenummer"))
                         }
                     }
@@ -163,11 +159,6 @@ object LineValidationRules {
     // Saksnummer
     private fun saksNummerIsValid(navSaksnr: String) = navSaksnr.matches("^[a-zA-Z0-9-/]+$".toRegex())
 
-    private fun referanseNummerGammelSakIsValid(
-        referansenummerGammelSak: String,
-        isOpprettKrav: Boolean,
-    ) = if (!isOpprettKrav) saksNummerIsValid(referansenummerGammelSak) else true
-
     // Kravtype
     private fun kravTypeIsValid(krav: KravLinje): Boolean =
         try {
@@ -200,7 +191,6 @@ object LineValidationRules {
         const val UNKNOWN_DATE_ERROR = "Ukjent datofeil"
         const val SAKSNUMMER_WRONG_FORMAT = "Saksnummer er feil formattert i fil"
         const val REFERANSENUMMERGAMMELSAK_WRONG_FORMAT = "ReferanseNummerGammelSak er feil formattert i fil"
-        const val REFERANSENUMMERGAMMELSAK_MANGLER_FOR_ENDRING = "ReferanseNummerGammelSak mangler for endring i fil"
         const val REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP = "ReferanseNummerGammelSak mangler for stopp i fil"
         const val KRAVTYPE_DOES_NOT_EXIST = "Kravtype finnes ikke definert for oversending til skatt"
         const val TILLEGGSFRISTDATO_TOO_OLD = "Tilleggsfristdato kan ikke være lengre tilbake i tid enn 10 måneder fra dagens dato"
