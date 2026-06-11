@@ -305,14 +305,14 @@ class SkeService(
         }
     }
 
-    fun checkForStangendeKrav() {
-        val now = LocalDateTime.now()
+    fun checkForStangendeKravAt(now: LocalDateTime) {
         val stangendeKrav =
             kravRepository
                 .getAllStangendeKrav()
                 .filterNot { it.tidspunktSendt == null }
 
         if (stangendeKrav.isEmpty()) return
+
         val logMessage =
             buildString {
                 append("${stangendeKrav.size} krav er blitt forsøkt resendt i over 24 timer: \n")
@@ -331,6 +331,8 @@ class SkeService(
 
         logger.error { logMessage }
     }
+
+    fun checkForStangendeKrav() = checkForStangendeKravAt(LocalDateTime.now())
 
     private fun logResult(result: List<RequestResult>) {
         result.partition { it.httpStatusCode.isSuccess() }.also { (successful, unsuccessful) ->

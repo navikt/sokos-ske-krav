@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.service.integration
 
+import java.time.LocalDateTime
+
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
@@ -463,7 +465,7 @@ internal class SkeServiceIntegrationTest :
                 DBListener.loadInitScripts("SQLscript/krav/ToStangendeKravFraEttSystem.sql")
 
                 Then("Skal det kun telles for det systemet") {
-                    setupSkeServiceMock(kravRepository = kravRepository).checkForStangendeKrav()
+                    setupSkeServiceMock(kravRepository = kravRepository).checkForStangendeKravAt(LocalDateTime.parse("2026-03-04T12:00:00"))
                     val message = logAppender.list.map { it.formattedMessage }.single()
                     message shouldContain "2 krav er blitt forsøkt resendt i over 24 timer"
                     message shouldContain "2 krav fra OB04 har blitt forsøkt resendt i 1 dag(er)"
@@ -476,7 +478,7 @@ internal class SkeServiceIntegrationTest :
                 DBListener.loadInitScripts("SQLscript/krav/FireStangendeKravFraTreSystemer.sql")
 
                 Then("Skal det telles per system") {
-                    setupSkeServiceMock(kravRepository = kravRepository).checkForStangendeKrav()
+                    setupSkeServiceMock(kravRepository = kravRepository).checkForStangendeKravAt(LocalDateTime.parse("2026-03-04T12:00:00"))
                     val message = logAppender.list.map { it.formattedMessage }.single()
                     message shouldContain "4 krav er blitt forsøkt resendt i over 24 timer"
                     message shouldContain "2 krav fra OB04 har blitt forsøkt resendt i 1 dag(er)"
