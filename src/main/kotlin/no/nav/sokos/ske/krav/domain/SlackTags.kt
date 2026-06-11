@@ -6,6 +6,7 @@ import no.nav.sokos.ske.krav.domain.TaggablePeople.MARITA
 import no.nav.sokos.ske.krav.domain.TaggablePeople.STEINAR
 import no.nav.sokos.ske.krav.domain.TaggablePeople.TRINE
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
+import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING
 
 enum class TaggablePeople(
     val slackId: String,
@@ -37,6 +38,10 @@ enum class SlackTags(
     FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR(
         listOf(TRINE),
         errorKey = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR,
+    ),
+    REFERANSENUMMERGAMMELSAK_MANGLER(
+        personer = listOf(LENE),
+        errorKey = REFERANSENUMMERGAMMELSAK_MISSING,
     ),
     ;
 
