@@ -118,55 +118,18 @@ dependencies {
 configurations.all {
     resolutionStrategy {
         eachDependency {
-            // ./gradlew dependencies --configuration runtimeClasspath | grep logback-core
-
-            // Critical
-            if (requested.group == "org.lz4" && requested.name == "lz4-java") {
-                useTarget("at.yawk.lz4:lz4-java:1.11.0")
-                because("Prefer the patched fork for vulnerability fix")
-            }
-            // High
-            if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-core") {
-                useVersion("2.21.1")
-                because("jackson-core: Number Length Constraint Bypass in Async Parser Leads to Potential DoS Condition. Affected version >= 2.19.0, < 2.21.1")
-            }
-            if (requested.group == "tools.jackson.core" && requested.name == "jackson-core") {
-                useVersion("3.1.1")
-                because("Jackson Core: Document length constraint bypass in blocking, async, and DataInput parsers. Affected version >= 3.0.0, <= 3.1.0")
-            }
-            if (requested.group == "org.eclipse.jetty" && requested.name == "jetty-server") {
-                useVersion("9.4.57.v20241219")
-                because("Eclipse Jetty's ThreadLimitHandler.getRemote() vulnerable to remote DoS attacks. Affected version >= 9.3.12, <= 9.4.55")
-            }
-            if (requested.group == "org.xerial.snappy" && requested.name == "snappy-java") {
-                useVersion("1.1.10.4")
-                because("snappy-java's missing upper bound check on chunk length can lead to Denial of Service (DoS) impact. Affected version <= 1.1.10.3")
-            }
+            // Active Netty overrides (Dependabot alerts GHSA-57rv-r2g8-2cj3, GHSA-rwm7-x88c-3g2p)
             if (requested.group == "io.netty" && requested.name == "netty-codec-http") {
                 useVersion("4.2.13.Final")
-                because("Netty HttpClientCodec response desynchronization (GHSA-57rv-r2g8-2cj3). Affected version = 4.2.11.Final, < 4.2.13.Final")
+                because("Netty HttpClientCodec response desynchronization (GHSA-57rv-r2g8-2cj3). Affected version >= 4.2.11.Final, < 4.2.13.Final")
             }
             if (requested.group == "io.netty" && requested.name == "netty-codec-http2") {
                 useVersion("4.2.13.Final")
-                because("Netty HttpClientCodec response desynchronization (GHSA-57rv-r2g8-2cj3). Affected version = 4.2.11.Final, < 4.2.13.Final")
-            }
-            if (requested.group == "ch.qos.logback" && requested.name == "logback-core") {
-                val requestedVersion = requested.version ?: ""
-                if (requestedVersion.startsWith("1.3.") && requestedVersion < "1.3.15") {
-                    useVersion("1.3.15")
-                    because("CVE-2024-12798: JaninoEventEvaluator ACE vulnerability. Affected version <= 1.3.14")
-                }
+                because("Netty HttpClientCodec response desynchronization (GHSA-57rv-r2g8-2cj3). Affected version >= 4.2.11.Final, < 4.2.13.Final")
             }
             if (requested.group == "io.netty" && requested.name == "netty-transport-native-epoll") {
                 useVersion("4.2.13.Final")
-                because("Netty epoll transport denial of service via RST on half-closed TCP connection (GHSA-rwm7-x88c-3g2p). Affected version = 4.2.12.Final")
-            }
-
-            // Moderate
-            // Test
-            if (requested.group == "org.apache.commons " && requested.name == "commons-compress") { // ./gradlew dependencies --configuration testRuntimeClasspath | grep commons-compress
-                useVersion("1.26.0")
-                because("Apache Commons Compress: OutOfMemoryError unpacking broken Pack200 filet. Affected version >= 1.21, < 1.26.0")
+                because("Netty epoll transport denial of service via RST on half-closed TCP connection (GHSA-rwm7-x88c-3g2p). Affected version >= 4.2.12.Final, < 4.2.13.Final")
             }
         }
     }
