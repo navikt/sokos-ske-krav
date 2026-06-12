@@ -26,4 +26,26 @@ enum class ErrorKeys(
 
 enum class ErrorMessages(
     val description: String,
-)
+) {
+    VEDTAKSDATO_WRONG_FORMAT("Vedtaksdato er feil formattert i fil"),
+    VEDTAKSDATO_IS_IN_FUTURE("Vedtaksdato kan ikke være i fremtiden"),
+    UTBETALINGSDATO_WRONG_FORMAT("Utbetalingsdato er feil formattert i fil"),
+    UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO("Utbetalingsdato må være tidligere enn vedtaksdato"),
+    PERIODE_FOM_WRONG_FORMAT("FOM er feil formattert i fil"),
+    PERIODE_TOM_WRONG_FORMAT("TOM er feil formattert i fil"),
+    PERIODE_FOM_IS_AFTER_PERIODE_TOM("Periode FOM kan ikke være etter TOM"),
+    PERIODE_TOM_IS_IN_INVALID_FUTURE("Periode TOM kan ikke være etter inneværende måned"),
+    UNKNOWN_DATE_ERROR("Ukjent datofeil"),
+    SAKSNUMMER_WRONG_FORMAT("Saksnummer er feil formattert i fil"),
+    REFERANSENUMMERGAMMELSAK_WRONG_FORMAT("ReferanseNummerGammelSak er feil formattert i fil"),
+    REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP("ReferanseNummerGammelSak mangler for stopp i fil"),
+    KRAVTYPE_DOES_NOT_EXIST("Kravtype finnes ikke definert for oversending til skatt"),
+    TILLEGGSFRISTDATO_TOO_OLD("Tilleggsfristdato kan ikke være lengre tilbake i tid enn 10 måneder fra dagens dato"),
+    TILLEGGSFRISTDATO_WRONG_FORMAT("Tilleggsfristdato er feil formattert i fil"),
+    GJELDERID_MISSING("gjelderId mangler"),
+    FAGSYSTEMID_MISSING("fagsystemId mangler"),
+    BELOP_NEGATIVE("Beløp kan ikke være negativt"),
+    ;
+
+    override fun toString() = description
+}

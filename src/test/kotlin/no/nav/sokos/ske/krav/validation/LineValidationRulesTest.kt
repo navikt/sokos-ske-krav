@@ -90,7 +90,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.VEDTAKSDATO_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
+                        first().second shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE.description
                     }
                 }
             }
@@ -105,7 +105,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.VEDTAKSDATO_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
+                        first().second shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description
                     }
                 }
             }
@@ -138,7 +138,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
+                        first().second shouldContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description
                     }
                 }
             }
@@ -154,7 +154,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
+                        first().second shouldContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description
                     }
                 }
             }
@@ -168,7 +168,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
+                        first().second shouldContain ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT.description
                     }
                 }
             }
@@ -215,7 +215,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.TILLEGGSFRISTDATO_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD
+                        first().second shouldContain ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD.description
                         first().second shouldContain tilleggsfristDato.toString()
                         first().second shouldContain krav.saksnummerNav
                         first().second shouldContain krav.linjenummer.toString()
@@ -251,7 +251,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.PERIODE_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE
+                        first().second shouldContain ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE.description
                     }
                 }
             }
@@ -297,7 +297,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.PERIODE_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM
+                        first().second shouldContain ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM.description
                     }
                 }
             }
@@ -313,7 +313,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.PERIODE_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.PERIODE_FOM_WRONG_FORMAT
+                        first().second shouldContain ErrorMessages.PERIODE_FOM_WRONG_FORMAT.description
                     }
                 }
             }
@@ -328,7 +328,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.PERIODE_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.PERIODE_TOM_WRONG_FORMAT
+                        first().second shouldContain ErrorMessages.PERIODE_TOM_WRONG_FORMAT.description
                     }
                 }
             }
@@ -347,7 +347,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.KRAVTYPE_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                        first().second shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
                     }
                 }
             }
@@ -367,7 +367,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.SAKSNUMMER_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+                        first().second shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description
                     }
                 }
             }
@@ -386,7 +386,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
+                        first().second shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
                     }
                 }
             }
@@ -406,7 +406,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.GJELDERID_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.GJELDERID_MISSING
+                        first().second shouldContain ErrorMessages.GJELDERID_MISSING.description
                     }
                 }
             }
@@ -426,7 +426,7 @@ internal class LineValidationRulesTest :
                     with((validationResult as ValidationResult.Error).messages) {
                         size shouldBe 1
                         first().first shouldBe ErrorKeys.HOVEDSTOL_ERROR
-                        first().second shouldContain LineValidationRules.ErrorMessages.BELOP_NEGATIVE
+                        first().second shouldContain ErrorMessages.BELOP_NEGATIVE.description
                     }
                 }
             }

@@ -27,7 +27,6 @@ import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.util.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.transaction
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages
 import no.nav.sokos.ske.krav.validation.LineValidationRules.errorDate
 
 internal class LineValidatorIntegrationTest :
@@ -108,21 +107,21 @@ internal class LineValidatorIntegrationTest :
                         }
                     insertedFiles.shouldHaveSize(1)
                     with(insertedFiles.first().feilmelding) {
-                        shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
+                        shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description)
 
-                        shouldNotContain(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE)
-                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO)
-                        shouldNotContain(ErrorMessages.PERIODE_FOM_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.PERIODE_TOM_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM)
-                        shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
-                        shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR)
-                        shouldNotContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
-                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
+                        shouldNotContain(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description)
+                        shouldNotContain(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE.description)
+                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT.description)
+                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description)
+                        shouldNotContain(ErrorMessages.PERIODE_FOM_WRONG_FORMAT.description)
+                        shouldNotContain(ErrorMessages.PERIODE_TOM_WRONG_FORMAT.description)
+                        shouldNotContain(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM.description)
+                        shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE.description)
+                        shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR.description)
+                        shouldNotContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description)
+                        shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description)
+                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD.description)
+                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT.description)
                     }
                 }
 
@@ -147,7 +146,7 @@ internal class LineValidatorIntegrationTest :
 
                         with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR.value]!!) {
                             shouldHaveSize(1)
-                            first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                            first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
                         }
                     }
                     Then("Skal én feilmelding sendes") {
@@ -194,21 +193,21 @@ internal class LineValidatorIntegrationTest :
 
                     insertedFiles.shouldHaveSize(1)
                     with(insertedFiles.first().feilmelding) {
-                        shouldContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
-                        shouldContain(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE)
-                        shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
+                        shouldContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description)
+                        shouldContain(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE.description)
+                        shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description)
 
-                        shouldNotContain(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO)
-                        shouldNotContain(ErrorMessages.PERIODE_FOM_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.PERIODE_TOM_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM)
-                        shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
-                        shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR)
-                        shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
-                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
+                        shouldNotContain(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description)
+                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT.description)
+                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description)
+                        shouldNotContain(ErrorMessages.PERIODE_FOM_WRONG_FORMAT.description)
+                        shouldNotContain(ErrorMessages.PERIODE_TOM_WRONG_FORMAT.description)
+                        shouldNotContain(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM.description)
+                        shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE.description)
+                        shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR.description)
+                        shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description)
+                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD.description)
+                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT.description)
                     }
                 }
 
@@ -236,16 +235,16 @@ internal class LineValidatorIntegrationTest :
 
                         with(capturedAddErrorMessages[ErrorKeys.VEDTAKSDATO_ERROR.value]!!) {
                             shouldHaveSize(1)
-                            first() shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
+                            first() shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE.description
                         }
                         with(capturedAddErrorMessages[ErrorKeys.SAKSNUMMER_ERROR.value]!!) {
                             shouldHaveSize(1)
-                            first() shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+                            first() shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description
                         }
 
                         with(capturedAddErrorMessages[ErrorKeys.KRAVTYPE_ERROR.value]!!) {
                             shouldHaveSize(1)
-                            first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                            first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
                         }
                     }
 
@@ -295,21 +294,21 @@ internal class LineValidatorIntegrationTest :
                     insertedFiles.shouldHaveSize(6)
                     insertedFiles.forAll {
                         with(it.feilmelding) {
-                            shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
+                            shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description)
 
-                            shouldNotContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE)
-                            shouldNotContain(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO)
-                            shouldNotContain(ErrorMessages.PERIODE_FOM_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.PERIODE_TOM_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM)
-                            shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
-                            shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR)
-                            shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
-                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
+                            shouldNotContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description)
+                            shouldNotContain(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE.description)
+                            shouldNotContain(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description)
+                            shouldNotContain(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT.description)
+                            shouldNotContain(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description)
+                            shouldNotContain(ErrorMessages.PERIODE_FOM_WRONG_FORMAT.description)
+                            shouldNotContain(ErrorMessages.PERIODE_TOM_WRONG_FORMAT.description)
+                            shouldNotContain(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM.description)
+                            shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE.description)
+                            shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR.description)
+                            shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description)
+                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD.description)
+                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT.description)
                         }
                     }
                 }
@@ -338,7 +337,7 @@ internal class LineValidatorIntegrationTest :
                         capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR.value] shouldNotBe null
                         with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR.value]!!) {
                             shouldHaveSize(6)
-                            filter { it.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.shouldHaveSize(6)
+                            filter { it.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description) }.shouldHaveSize(6)
                         }
                     }
 
@@ -354,7 +353,7 @@ internal class LineValidatorIntegrationTest :
                         val capturedErrorMessages = sendAlertMessagesSlot.captured
 
                         capturedErrorMessages.shouldHaveSize(1)
-                        capturedErrorMessages.keys.first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                        capturedErrorMessages.keys.first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
                     }
                 }
             }
@@ -389,10 +388,10 @@ internal class LineValidatorIntegrationTest :
 
                     insertedFiles.shouldHaveSize(6)
                     with(insertedFiles) {
-                        filter { it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.shouldHaveSize(6)
-                        filter { it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT) }.shouldHaveSize(1)
-                        filter { it.feilmelding.contains(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT) }.shouldHaveSize(1)
-                        filter { it.feilmelding.contains(ErrorMessages.SAKSNUMMER_WRONG_FORMAT) }.shouldHaveSize(1)
+                        filter { it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description) }.shouldHaveSize(6)
+                        filter { it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description) }.shouldHaveSize(1)
+                        filter { it.feilmelding.contains(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description) }.shouldHaveSize(1)
+                        filter { it.feilmelding.contains(ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description) }.shouldHaveSize(1)
                     }
                 }
 
@@ -418,21 +417,21 @@ internal class LineValidatorIntegrationTest :
 
                         with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR.value]!!) {
                             shouldHaveSize(6)
-                            filter { it.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.shouldHaveSize(6)
+                            filter { it.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description) }.shouldHaveSize(6)
                         }
 
                         with(capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR.value]!!) {
                             shouldHaveSize(1)
-                            filter { it.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT) }.shouldHaveSize(1)
+                            filter { it.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description) }.shouldHaveSize(1)
                         }
 
                         with(capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR.value]!!) {
                             shouldHaveSize(1)
-                            filter { it.contains(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT) }.shouldHaveSize(1)
+                            filter { it.contains(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description) }.shouldHaveSize(1)
                         }
                         with(capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR.value]!!) {
                             shouldHaveSize(1)
-                            filter { it.contains(ErrorMessages.SAKSNUMMER_WRONG_FORMAT) }.shouldHaveSize(1)
+                            filter { it.contains(ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description) }.shouldHaveSize(1)
                         }
                     }
 
