@@ -100,7 +100,7 @@ class FileParser(
                 avsender = avsender,
             )
         } catch (e: ParseException) {
-            ErrorLinje("Parsingfeil på linje #$index: ${e.message}")
+            ErrorLinje("Parsingfeil på linje $index: ${e.message}")
         }
     }
 
