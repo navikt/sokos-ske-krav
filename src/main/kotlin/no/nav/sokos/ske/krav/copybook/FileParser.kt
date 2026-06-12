@@ -4,52 +4,54 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-import io.github.resilience4j.core.functions.Either
 import io.ktor.http.parsing.ParseException
 
-import no.nav.sokos.ske.krav.validation.FileValidator
 import no.nav.sokos.ske.krav.validation.LineValidationRules
 
 class FileParser(
     private val content: List<String>,
 ) {
-    val kontrollLinjeHeader: Either<KontrollLinjeHeader, ParseException> =
-        try {
-            Either.left(kontrollLinjeHeaderParser(content.first()))
-        } catch (e: ParseException) {
-            Either.right(e)
-        } catch (_: NoSuchElementException) {
-            Either.right(ParseException("Filen har ikke en første linje"))
+    val parseResult: ParseResult = parse()
+
+    private fun parse(): ParseResult {
+        val header =
+            try {
+                kontrollLinjeHeaderParser(content.first())
+            } catch (e: ParseException) {
+                return ParseResult.Error(listOf(e.message))
+            } catch (_: NoSuchElementException) {
+                return ParseResult.Error(listOf("Filen har ikke en første linje"))
+            }
+
+        val footer =
+            try {
+                kontrollLinjeFooterParser(content.last())
+            } catch (e: ParseException) {
+                return ParseResult.Error(listOf(e.message))
+            } catch (_: NoSuchElementException) {
+                return ParseResult.Error(listOf("Filen har ikke en siste linje"))
+            }
+
+        val linjer =
+            if (content.size > 1) {
+                content.subList(1, content.lastIndex).mapIndexed { index, linje ->
+                    kravLinjeParser(linje, index + 1, header.avsender)
+                }
+            } else {
+                emptyList()
+            }
+
+        val lineErrors = linjer.filterIsInstance<ErrorLinje>()
+        if (lineErrors.isNotEmpty()) {
+            return ParseResult.Error(lineErrors.map { it.message })
         }
 
-    val kontrollLinjeFooter: Either<KontrollLinjeFooter, ParseException> =
-        try {
-            Either.left(kontrollLinjeFooterParser(content.last()))
-        } catch (e: ParseException) {
-            Either.right(e)
-        } catch (_: NoSuchElementException) {
-            Either.right(ParseException("Filen har ikke en siste linje"))
-        }
-
-    val linjer: List<FtpLinje> = parseKravLinjer()
-
-    fun kravLinjer(): List<KravLinje> = linjer.filterIsInstance<KravLinje>()
-
-    private fun parseKravLinjer(): List<FtpLinje> =
-        if (kontrollLinjeHeader.isLeft && content.size > 1) {
-            content.subList(1, content.lastIndex).mapIndexed { index, linje -> kravLinjeParser(linje, index + 1, kontrollLinjeHeader.left.avsender) }
-        } else {
-            emptyList()
-        }
-
-    fun harFeil() = kontrollLinjeHeader.isRight || kontrollLinjeFooter.isRight || linjer.any { it is ErrorLinje }
-
-    fun errors(): List<Pair<String, String>> =
-        buildList {
-            if (kontrollLinjeHeader.isRight) add(FileValidator.ErrorKeys.PARSE_EXCEPTION to (kontrollLinjeHeader.get().message ?: "Ukjent feil"))
-            if (kontrollLinjeFooter.isRight) add(FileValidator.ErrorKeys.PARSE_EXCEPTION to (kontrollLinjeFooter.get().message ?: "Ukjent feil"))
-            linjer.filterIsInstance<ErrorLinje>().forEach { add(FileValidator.ErrorKeys.PARSE_EXCEPTION to it.message) }
-        }
+        return ParseResult.Success(
+            kontrollLinjeHeader = header,
+            kontrollLinjeFooter = footer,
+            kravLinjer = linjer.filterIsInstance<KravLinje>(),
+        )
+    }
 
     private fun kontrollLinjeHeaderParser(linje: String): KontrollLinjeHeader =
         KontrollLinjeHeader(
