@@ -889,6 +889,11 @@ gh pr create \
   --base main
 ```
 
+Do not add `Co-authored-by` trailers to any commit. Do not add yourself, GitHub
+Copilot, or any AI tool as a co-author. The commit must contain only the commit
+message — no trailers, sign-offs, or co-author attributions. This is required by
+branch protection rules that reject commits with unverified co-author signatures.
+
 The pull request title and body are determined by the operating mode and results:
 
 * **Title**: Use the wording specified in the "Pull request title" section above
