@@ -879,15 +879,26 @@ reported as outside scope, not fixed.
 After all validation passes, create one branch and one pull request.
 
 ```bash
-git checkout -b fix/dependabot-production-alerts
+git checkout -b chore/update-dependencies
 git add -A
 git commit -m "fix: remediate production Dependabot vulnerabilities"
-git push origin fix/dependabot-production-alerts
+git push origin chore/update-dependencies
 gh pr create \
   --title "Fix high- and critical-severity production Dependabot alerts" \
   --body "<contents of pull request description>" \
   --base main
 ```
+
+Branch names must always use the `chore/` prefix and describe the change
+concisely. Do not use `fix/`, `feat/`, or any other prefix. Choose a name that
+reflects what was updated.
+
+Examples:
+
+* `chore/update-dependencies` — general multi-package update
+* `chore/update-netty-dependencies` — update targeting netty packages
+* `chore/update-jackson-to-2.17.1` — single-package update with version
+* `chore/resolve-spring-vulnerabilities` — spring-related alerts
 
 Do not add `Co-authored-by` trailers to any commit. Do not add yourself, GitHub
 Copilot, or any AI tool as a co-author. The commit must contain only the commit
