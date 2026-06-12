@@ -108,17 +108,37 @@ In this mode:
 - do not search the public internet or external vulnerability sources
 - use the version supplied by the user exactly as requested
 - change only the relevant `build.gradle.kts` file
-- still review existing resolution strategies and dependency constraints in that
-  file
-- perform cleanup in this order:
-    1. identify every existing active rule in the file
-    2. consolidate duplicate or overlapping active rules when behavior is
-       equivalent
-    3. remove stale or inactive rules that no longer affect resolution
-    4. keep only the rules that still influence resolution
 
 If the target dependency or version is missing or ambiguous, ask for
 clarification before editing.
+
+#### Mandatory consolidation and cleanup (manual mode)
+
+After adding the requested resolution strategy, you MUST ALWAYS perform the
+following consolidation and cleanup steps in the same `build.gradle.kts` file.
+These steps are not optional. Do not skip them. Do not wait for the user to
+request them. Execute them every time, unconditionally.
+
+1. **Identify** every existing active resolution rule, dependency constraint,
+   and force directive in the file.
+2. **Consolidate** duplicate or overlapping active rules when their resulting
+   behavior is equivalent. For example, two `resolutionStrategy.force` entries
+   for the same module at the same version become one entry.
+3. **Remove** stale or inactive rules that no longer affect resolution — rules
+   targeting modules not present in the dependency graph, rules superseded by
+   a platform/BOM, or rules whose forced version is already the natural
+   resolution.
+4. **Verify** consolidation correctness by running:
+   ```bash
+   ./gradlew dependencies --configuration runtimeClasspath
+   ```
+   Confirm that the resolved graph after cleanup matches the intended
+   resolution. If consolidation changes behavior, revert that consolidation.
+5. **Keep** only rules that still actively influence version resolution.
+
+The task is not complete until consolidation and cleanup have been performed and
+verified. A manual-mode run that adds a rule without consolidating and cleaning
+up existing rules is an incomplete run.
 
 ### Immutable production-only rule
 
@@ -453,17 +473,11 @@ they prevent safe remediation.
 This cleanup is **mandatory in every agent run**, regardless of whether eligible
 alerts exist or will be remediated.
 
-In manual resolution-strategy mode, limit the cleanup to the relevant
-`build.gradle.kts` file and the user-specified override that you are adding.
-Do not inspect unrelated repository files or alert data.
-
-Still perform local override cleanup in that file:
-
-* review existing `resolutionStrategy` overrides and dependency constraints
-* identify every existing active rule in the file
-* consolidate duplicate or overlapping active rules when behavior is equivalent
-* remove stale or inactive rules that no longer affect resolution
-* keep only the rules that still influence resolution
+In manual resolution-strategy mode, this cleanup is equally mandatory — it is
+defined in the "Mandatory consolidation and cleanup (manual mode)" section
+above. Limit the scope to the relevant `build.gradle.kts` file. Do not inspect
+unrelated repository files or alert data. Do not skip consolidation or stale
+rule removal — these are required steps, not optional enhancements.
 
 When testing alert eligibility, Gradle files must be inspected using tools
 provided in the next section. During that inspection:
@@ -905,6 +919,20 @@ The task is complete only when:
 * one branch was created with coherent commits
 * one pull request was prepared with a complete summary
 * the pull request was created (not merged)
+
+### Manual resolution-strategy mode completion criteria
+
+In manual resolution-strategy mode, the task is complete only when:
+
+* the requested resolution strategy was added with the exact version supplied
+* existing rules were consolidated (duplicates and overlaps merged)
+* stale or inactive rules were removed
+* the resolved dependency graph was verified after cleanup
+* repository validation was run
+* one branch was created and one pull request was opened
+
+A manual-mode run that skips consolidation or stale-rule removal is incomplete,
+even if the requested rule was successfully added.
 
 Never claim that all Dependabot alerts are fixed when alerts were deliberately
 excluded by severity or dependency scope.
