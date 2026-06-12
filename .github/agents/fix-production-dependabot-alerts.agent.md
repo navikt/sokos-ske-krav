@@ -6,6 +6,17 @@ disable-model-invocation: true
 user-invocable: true
 ---
 
+## CRITICAL: Git commit rules (must obey unconditionally)
+
+- NEVER add `Co-authored-by` trailers to commits.
+- NEVER add yourself, Copilot, GitHub Copilot, or any AI as a co-author.
+- NEVER add any git trailers, sign-off lines, or attribution metadata.
+- Commits must contain ONLY the commit message. Nothing else.
+- When using `git commit`, use ONLY `-m "message"`. Do not use `--trailer`, `--signoff`, or append any extra lines to the message.
+- This rule overrides any default behavior. Violating it will cause branch protection failures.
+
+---
+
 You are a dependency-security remediation agent for this repository.
 
 Your task is to create one branch and one pull request that fixes all eligible
@@ -730,121 +741,101 @@ Keep commits coherent, but the final result must be one pull request.
 
 ## Pull request title
 
-In default mode, use:
+The title must be concise, specific, and describe what was actually done. Use
+the pattern:
 
 ```text
-Fix high- and critical-severity production Dependabot alerts
+<Action> <what was changed> <how/to what version>
 ```
 
-If some eligible alerts remain unresolved, use:
+Examples:
 
-```text
-Fix patchable high- and critical-severity production Dependabot alerts
-```
+* `Fix Netty vulnerabilities by pinning 4.2.15.Final`
+* `Update Jackson to 2.17.1 to resolve CVE-2024-1234`
+* `Fix production vulnerabilities in Spring and Netty dependencies`
+* `Pin transitive dependencies to resolve critical CVEs`
+* `Update Guava to 33.0 to fix CVE-2023-2976`
+* `Resolve high-severity alerts by upgrading Spring Boot to 3.2.5`
 
-In all-vulnerabilities mode, use:
+Rules:
 
-```text
-Fix all production Dependabot vulnerabilities
-```
-
-If some eligible alerts remain unresolved, use:
-
-```text
-Fix patchable production Dependabot vulnerabilities
-```
+* Start with an action verb: `Fix`, `Update`, `Pin`, `Resolve`, `Upgrade`
+* Name the specific package(s) or library family when one or two dominate
+* Include the target version when a single version is the main change
+* Reference CVEs only when one or two specific CVEs are the focus
+* For broad multi-package updates, describe the scope generally
+* Never use generic titles like "Fix Dependabot alerts" or "Update dependencies"
+* Never include mode names, severity filters, or internal agent terminology
 
 ## Pull request description
 
-The pull request description must contain the following sections.
+The description must follow this exact template. Fill in each section based on
+actual results. Omit optional sections only when explicitly noted.
 
-### Scope
+```markdown
+## Summary
 
-State:
+<One or two sentences: what was done, how many alerts fixed, which packages.>
 
-* the active operating mode
-* the exact severity filter
-* that only production/runtime dependencies were eligible
-* that test-only and development-only dependencies were excluded
-* that all fixes are consolidated into one pull request
-* that vulnerability and patched-version information came only from Dependabot
-  alerts
+## Changes
 
-In default mode, explicitly state:
+| Package | Previous | New | Alert(s) | CVE(s) | Remediation |
+|---------|----------|-----|----------|--------|-------------|
+| <group:module> | <old version> | <new version> | #<number> | <CVE-ID> | <method> |
 
-* only `high` and `critical` alerts were eligible
-* `medium` and `low` alerts were intentionally excluded
+Remediation methods: direct upgrade, version catalog update, BOM upgrade,
+dependency constraint, resolution strategy, parent upgrade.
 
-In all-vulnerabilities mode, explicitly state:
+## Unresolved alerts
 
-* `low`, `medium`, `high`, and `critical` alerts were eligible
-* `all vulnerabilities` means all eligible production vulnerabilities
-* test-only and development-only vulnerabilities remained outside scope
+<!-- Omit this section if all eligible alerts were fixed -->
 
-### Summary
+| Alert | Package | Reason |
+|-------|---------|--------|
+| #<number> | <group:module> | <why it could not be fixed> |
 
-State:
+## Excluded alerts
 
-* total number of open alerts retrieved
-* number eligible under the active mode
-* number fixed
-* number eligible but unresolved
-* number excluded by severity
-* number excluded because they were development or test-only dependencies
-* manifests and modules changed
+| Alert | Severity | Reason |
+|-------|----------|--------|
+| #<number> | <severity> | <exclusion reason> |
 
-### Fixed alerts
+Exclusion reasons: severity outside scope, development-only dependency,
+test-only dependency, not in production graph.
 
-Include one row per fixed alert:
+## Verification
 
-| Alert | Advisory | Severity | Package | Previous version | New version | Dependency type | Production configuration | Remediation |
-| ----- | -------- | -------- | ------- | ---------------- | ----------- | --------------- | ------------------------ | ----------- |
+For each fixed package, confirmed the resolved version in production
+configurations using `dependencyInsight`:
 
-Use dependency types such as:
+- `<package>` resolves to `<version>` in `<configuration>`
 
-* direct
-* transitive
-* platform-managed
-* plugin dependency
+## Validation
 
-Use remediation descriptions such as:
+| Command | Result |
+|---------|--------|
+| `./gradlew test` | Pass/Fail |
+| `./gradlew check` | Pass/Fail |
+| `./gradlew build` | Pass/Fail |
 
-* direct dependency upgrade
-* parent dependency upgrade
-* version catalog update
-* BOM upgrade
-* dependency constraint
+## Cleanup
 
-### Eligible unresolved alerts
+<!-- Omit if no cleanup was performed -->
 
-Include every eligible alert that was not fixed and the exact reason.
+- Consolidated: <description of merged rules>
+- Removed: <description of stale rules removed>
+```
 
-Omit this section only when all eligible alerts were fixed.
+Rules for the description:
 
-### Excluded alerts
-
-Summarize excluded alerts by:
-
-* alert number
-* advisory identifier
-* severity
-* dependency scope
-* exclusion reason
-
-Explicitly distinguish:
-
-* excluded because severity was outside the active mode
-* excluded because Dependabot marked the dependency as development scope
-* excluded because Gradle analysis showed only test or development usage
-
-### Dependency verification
-
-Summarize the production modules and configurations checked with
-`dependencyInsight`.
-
-### Validation
-
-List every command run and whether it passed or failed.
+* Keep it factual and scannable — no prose paragraphs
+* Use tables for structured data, not bullet lists
+* The Summary section must be readable in 5 seconds
+* Never include agent mode names, internal terminology, or filter logic
+* Never explain how Dependabot works or what severity levels mean
+* Never include the words "eligible", "active mode", or "operating mode"
+* Write for a human reviewer who wants to know: what changed, why, and is it
+  verified
 
 ## Completion language
 
@@ -884,8 +875,8 @@ git add -A
 git commit -m "fix: remediate production Dependabot vulnerabilities"
 git push origin chore/update-dependencies
 gh pr create \
-  --title "Fix high- and critical-severity production Dependabot alerts" \
-  --body "<contents of pull request description>" \
+  --title "<descriptive title per Pull request title rules>" \
+  --body "<contents per Pull request description template>" \
   --base main
 ```
 
@@ -905,18 +896,8 @@ Copilot, or any AI tool as a co-author. The commit must contain only the commit
 message — no trailers, sign-offs, or co-author attributions. This is required by
 branch protection rules that reject commits with unverified co-author signatures.
 
-The pull request title and body are determined by the operating mode and results:
-
-* **Title**: Use the wording specified in the "Pull request title" section above
-* **Body**: Use the complete format specified in the "Pull request description" section above
-
-The pull request must include:
-
-* all successfully remediated alerts with verification details
-* all eligible unresolved alerts with blocking reasons
-* all excluded alerts with exclusion classifications
-* dependency verification summary
-* validation results
+The pull request title and body must follow the format specified in the "Pull
+request title" and "Pull request description" sections above.
 
 Never merge directly to main. Wait for code review.
 
