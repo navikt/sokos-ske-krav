@@ -5,6 +5,7 @@ import no.nav.sokos.ske.krav.copybook.FileParser
 import no.nav.sokos.ske.krav.copybook.KontrollLinjeFooter
 import no.nav.sokos.ske.krav.copybook.KontrollLinjeHeader
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.copybook.ParseResult
 import no.nav.sokos.ske.krav.domain.Avsender
 
 private val logger = mu.KotlinLogging.logger {}
@@ -23,21 +24,24 @@ class FileValidator(
     suspend fun validateFile(
         content: List<String>,
         fileName: String,
-    ): ValidationResult {
-        val parser = FileParser(content)
+    ): ValidationResult =
+        when (val parseResult = FileParser(content).parseResult) {
+            is ParseResult.Success -> {
+                val validationErrors = validateLines(parseResult.kontrollLinjeFooter, parseResult.kontrollLinjeHeader, parseResult.kravLinjer)
+                if (validationErrors.isNotEmpty()) {
+                    logErrors(fileName, validationErrors)
+                    ValidationResult.Error(messages = validationErrors)
+                } else {
+                    ValidationResult.Success(parseResult.kravLinjer)
+                }
+            }
 
-        if (parser.harFeil()) {
-            val errorMessages = parser.errors()
-            logErrors(fileName, errorMessages)
-            return ValidationResult.Error(messages = errorMessages)
+            is ParseResult.Error -> {
+                val messages = parseResult.messages.map { ErrorKeys.PARSE_EXCEPTION to it }
+                logErrors(fileName, messages)
+                ValidationResult.Error(messages = messages)
+            }
         }
-        val validationErrors = validateLines(parser.kontrollLinjeFooter.left, parser.kontrollLinjeHeader.left, parser.kravLinjer())
-        if (validationErrors.isNotEmpty()) {
-            logErrors(fileName, validationErrors)
-            return ValidationResult.Error(messages = validationErrors)
-        }
-        return ValidationResult.Success(parser.kravLinjer())
-    }
 
     private suspend fun logErrors(
         fileName: String,
