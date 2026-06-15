@@ -180,7 +180,7 @@ internal class SlackServiceTest :
             )
             slackService.sendErrors()
 
-            taggedPeopleSlot[0] shouldContainExactly listOf(TRINE)
+            taggedPeopleSlot[0] shouldContainExactly listOf(LENE)
             rutineLinkSlot[0] shouldBe null
         }
 

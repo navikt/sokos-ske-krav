@@ -42,7 +42,7 @@ En visuell forklaring:
 | Endring   | C              | B                          | Kan ikke bruke B i Avstemming, for SKE har inget krav med saksnummer B. Kan dermed ikke finne kravidentifikator |
 
 ### Varsling
-Systemet oppdager dette automatisk når Avstemming-API-et returnerer 404 (ikke en asynkron SKE-valideringsfeil). Det sendes en Slack-melding til `#team-best-slackbot-prod` med feilmeldingen `Fant ikke gyldig kravidentifikator`, og **Trine** tagges.
+Systemet oppdager dette automatisk når Avstemming-API-et returnerer 404 (ikke en asynkron SKE-valideringsfeil). Det sendes en Slack-melding til `#team-best-slackbot-prod` med feilmeldingen `Fant ikke gyldig kravidentifikator`, og **Lene** tagges.
 
 ### Løsning
 Rapporter til produkteier/produktleder. Dette må håndteres manuelt og en Jira sak i Skatt sitt system vil opprettes.
