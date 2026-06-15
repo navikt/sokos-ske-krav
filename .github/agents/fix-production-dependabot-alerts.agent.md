@@ -222,7 +222,7 @@ gh api \
   -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
   "/repos/${GITHUB_REPOSITORY}/dependabot/alerts?state=open&per_page=100"
-````
+```
 
 Handle all pages. Do not assume that the first page contains every alert.
 
