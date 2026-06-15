@@ -19,20 +19,20 @@ Three tables managed by Flyway migrations in `src/main/resources/db/migration/`:
 
 ## Migration File Naming
 
-Follow Flyway naming convention: `V{version}__{description}.sql`
+Follow Flyway naming convention: `V{major}.{minor}.{patch}__{description}.sql`
 
 ### Examples
 
 ```
-V1__initial_schema.sql
-V2__add_status_column.sql
-V3__add_user_indexes.sql
-V4__alter_table_constraints.sql
+V1.0.0__create_tables.sql
+V1.0.1__ny_kolonne_rapporter_i_feilmelding.sql
+V1.0.2__ny_kolonne_rapporter_i_valideringsfeil.sql
+V1.0.3__rename_valideringsfeil_til_filvalidateringsfeil.sql
 ```
 
 ### Rules
 
-- Version numbers must be sequential (1, 2, 3, ...)
+- Version numbers use semantic versioning (`major.minor.patch`)
 - Use double underscore `__` between version and description
 - Description should be lowercase with underscores
 - **NEVER modify existing migrations** — always create new ones
@@ -47,7 +47,7 @@ V4__alter_table_constraints.sql
 
 ### ✅ Always
 
-- Follow `V{n}__{description}.sql` naming
+- Follow `V{major}.{minor}.{patch}__{description}.sql` naming
 - Add indexes for all foreign keys and frequently filtered columns
 - Include `tidspunkt_opprettet TIMESTAMP NOT NULL DEFAULT NOW()`
 - Use `BIGSERIAL` for primary keys
@@ -64,6 +64,6 @@ V4__alter_table_constraints.sql
 
 - Modify existing migration files
 - Skip version numbers
-- Use single underscore in naming (`V1_initial` → wrong, use `V1__initial`)
+- Use single underscore in naming (`V1.0.0_initial` → wrong, use `V1.0.0__initial`)
 - Deploy untested migrations to production
 - Run DDL outside of Flyway (including in application code)

@@ -58,3 +58,15 @@ data class KontrollLinjeFooter(
     val antallTransaksjoner: Int,
     val sumAlleTransaksjoner: BigDecimal,
 )
+
+sealed class ParseResult {
+    data class Success(
+        val kontrollLinjeHeader: KontrollLinjeHeader,
+        val kontrollLinjeFooter: KontrollLinjeFooter,
+        val kravLinjer: List<KravLinje>,
+    ) : ParseResult()
+
+    data class Error(
+        val messages: List<String>,
+    ) : ParseResult()
+}

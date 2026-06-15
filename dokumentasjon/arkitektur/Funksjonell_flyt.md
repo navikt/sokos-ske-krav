@@ -8,6 +8,7 @@ Applikasjonen kjører to periodiske jobber:
 |----------------------------------------------------------------------------------------------|----------------------------------|---------------------------------------------------------------------|
 | [`handleNewKrav`](../../src/main/kotlin/no/nav/sokos/ske/krav/service/SkeService.kt)         | Konfigurerbart (default 5 timer) | Henter nye filer fra SFTP, validerer, lagrer og sender krav til SKE |
 | [`checkForStangendeKrav`](../../src/main/kotlin/no/nav/sokos/ske/krav/service/SkeService.kt) | Hvert 24. time                   | Logger feilmelding dersom krav har stått uten reskontroføring for lenge |
+| [`deleteOldData`](../../src/main/kotlin/no/nav/sokos/ske/krav/Application.kt)                | Hvert 24. time                   | Sletter gamle data fra databasen                                    |
 
 ---
 ## 1. Hovedflyt – behandling av nye kravfiler

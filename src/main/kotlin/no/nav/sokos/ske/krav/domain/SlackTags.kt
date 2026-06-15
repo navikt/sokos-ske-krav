@@ -36,7 +36,7 @@ enum class SlackTags(
 
     // Custom
     FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR(
-        listOf(TRINE),
+        listOf(LENE),
         errorKey = FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR,
     ),
     REFERANSENUMMERGAMMELSAK_MANGLER(

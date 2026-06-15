@@ -5,28 +5,28 @@ import java.time.LocalDate
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 
-import no.nav.sokos.ske.krav.copybook.ErrorLinje
 import no.nav.sokos.ske.krav.copybook.FileParser
 import no.nav.sokos.ske.krav.copybook.KontrollLinjeFooter
 import no.nav.sokos.ske.krav.copybook.KontrollLinjeHeader
+import no.nav.sokos.ske.krav.copybook.ParseResult
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 
 internal class FileParserTest :
     FunSpec({
         val altOkFil = getFileContent("innsender/OppdragFil.txt")
-        val altOkParser = FileParser(altOkFil)
+        val altOkResult = FileParser(altOkFil).parseResult.shouldBeInstanceOf<ParseResult.Success>()
 
         test("Alle linjer skal være av type KravLinje") {
-            val kravLinjer = altOkParser.kravLinjer()
-            kravLinjer.size shouldBe 101
-            kravLinjer.forEach { kravLinje ->
+            altOkResult.kravLinjer.size shouldBe 101
+            altOkResult.kravLinjer.forEach { kravLinje ->
                 kravLinje.avsender shouldBe Avsender.OB04.name
             }
         }
 
         test("startlinje skal være av type KontrollLinjeHeader") {
-            altOkParser.kontrollLinjeHeader.left shouldBe
+            altOkResult.kontrollLinjeHeader shouldBe
                 KontrollLinjeHeader(
                     transaksjonsDato = "20230526221340",
                     avsender = Avsender.OB04.name,
@@ -34,7 +34,7 @@ internal class FileParserTest :
         }
 
         test("sluttLinje skal være av type KontrollLinjeFooter") {
-            altOkParser.kontrollLinjeFooter.left shouldBe
+            altOkResult.kontrollLinjeFooter shouldBe
                 KontrollLinjeFooter(
                     transaksjonTimestamp = "20230526221340",
                     avsender = Avsender.OB04.name,
@@ -44,25 +44,29 @@ internal class FileParserTest :
         }
 
         test("Ugyldig BigDecimal skal gi en ErrorLinje") {
-            FileParser(
-                getFileContent("validering/filvalidering/FeilParsingBigDecimal.txt"),
-            ).linjer.filterIsInstance<ErrorLinje>().size shouldBe 5
+            val result = FileParser(getFileContent("validering/filvalidering/FeilParsingBigDecimal.txt")).parseResult
+            result.shouldBeInstanceOf<ParseResult.Error>()
+            result.messages.size shouldBe 5
         }
 
         test("Ugyldig Int i footeren skal gi feil i kontrollLinje") {
-            FileParser(
-                getFileContent("validering/filvalidering/FeilParsingInt.txt"),
-            ).kontrollLinjeFooter.isRight shouldBe true
+            val result =
+                FileParser(
+                    getFileContent("validering/filvalidering/FeilParsingInt.txt"),
+                ).parseResult.shouldBeInstanceOf<ParseResult.Error>()
+            result.messages.any { it.contains("Feil i parsing av Int") } shouldBe true
         }
 
         test("Feil encoded Ø skal erstattes med Ø") {
             val kravMedFeilEncoding = getFileContent("validering/filvalidering/FeilEncoding.txt")
-            FileParser(kravMedFeilEncoding).kravLinjer().filter { linje -> linje.kravKode == "FA FØ" }.size shouldBe 1
+            val result = FileParser(kravMedFeilEncoding).parseResult.shouldBeInstanceOf<ParseResult.Success>()
+            result.kravLinjer.filter { it.kravKode == "FA FØ" }.size shouldBe 1
         }
 
         test("Hvis linje ikke har fremtidig ytelse skal den settes til 0") {
             val utenFremtidigYtelse = getFileContent("krav/UtenFremtidigYtelse.txt")
-            FileParser(utenFremtidigYtelse).kravLinjer().run {
+            val result = FileParser(utenFremtidigYtelse).parseResult.shouldBeInstanceOf<ParseResult.Success>()
+            result.kravLinjer.run {
                 first { it.saksnummerNav == "FinnesIkke" }.fremtidigYtelse shouldBe BigDecimal.ZERO
                 first { it.saksnummerNav == "Dnummer1" }.fremtidigYtelse shouldBe BigDecimal.ZERO
                 first { it.saksnummerNav == "Dnummer2" }.fremtidigYtelse shouldBe BigDecimal.ZERO
@@ -73,15 +77,12 @@ internal class FileParserTest :
         }
 
         test("Hvis tilleggsfrist ikke finnes skal vi få null på feltet") {
-            val kravLinjer = altOkParser.kravLinjer()
-            val linjerUtenTilleggsfrist = kravLinjer.filter { it.tilleggsfrist == null }
-
+            val linjerUtenTilleggsfrist = altOkResult.kravLinjer.filter { it.tilleggsfrist == null }
             linjerUtenTilleggsfrist.size shouldBe 95
         }
 
         test("Hvis tilleggsfrist finnes, skal vi få riktig dato utledet fra feltet") {
-            val kravLinjer = altOkParser.kravLinjer()
-            val linjerMedTilleggsfrist = kravLinjer.filter { it.tilleggsfrist != null }
+            val linjerMedTilleggsfrist = altOkResult.kravLinjer.filter { it.tilleggsfrist != null }
 
             linjerMedTilleggsfrist.size shouldBe 6
 
@@ -94,11 +95,7 @@ internal class FileParserTest :
         }
 
         test("Tilleggsfrist håndteres korrekt i krav/MedTilleggsfrist.txt") {
-            val kravLinjer =
-                FileParser(
-                    getFileContent("krav/MedTilleggsfrist.txt"),
-                ).kravLinjer()
-
-            kravLinjer.first().tilleggsfrist shouldBe LocalDate.of(2025, 3, 1)
+            val result = FileParser(getFileContent("krav/MedTilleggsfrist.txt")).parseResult.shouldBeInstanceOf<ParseResult.Success>()
+            result.kravLinjer.first().tilleggsfrist shouldBe LocalDate.of(2025, 3, 1)
         }
     })

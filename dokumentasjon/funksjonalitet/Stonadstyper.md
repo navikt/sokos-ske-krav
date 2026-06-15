@@ -15,14 +15,17 @@ Dersom en kombinasjon av kravkode og hjemmelkode ikke finnes i tabellen nedenfor
 | StonadsType (intern)                             | Kravkode | Hjemmelkode |
 |--------------------------------------------------|----------|-------------|
 | TILBAKEKREVING_ALDERSPENSJON                     | PE AP    | T           |
+| TILBAKEKREVING_ALDERSPENSJON_AVREGNING           | PE AP    | TA          |
 | TILBAKEKREVING_ARBEIDSAVKLARINGSPENGER           | AAP AAP  | T           |
 | TILBAKEKREVING_ARBEIDSAVKLARINGSPENGER           | AE AA    | AT          |
 | TILBAKEKREVING_ATTFOERINGSPENGER                 | AE AP    | AT          |
 | TILBAKEKREVING_ATTFOERINGSYTELSER                | AE AY    | AT          |
 | TILBAKEKREVING_AVTALEFESTET_PENSJON              | PE XP    | T           |
+| TILBAKEKREVING_AVTALEFESTET_PENSJON_ETTEROPPGJOER | PE XP   | A           |
 | TILBAKEKREVING_AVTALEFESTET_PENSJON_PRIVATSEKTOR | PE AF    | T           |
 | TILBAKEKREVING_BARNETRYGD                        | BA OR    | T           |
 | TILBAKEKREVING_BARNEPENSJON                      | PE BP    | T           |
+| TILBAKEKREVING_BEHOVSPROEVET_GRAVFERDSHJELP      | GS GB    | T           |
 | TILBAKEKREVING_DAGPENGER                         | DP DP    | T           |
 | TILBAKEKREVING_DAGPENGER                         | AE DP    | AT          |
 | TILBAKEKREVING_ENGANGSSTOENAD_VED_FOEDSEL        | FA FE    | T           |
@@ -31,10 +34,16 @@ Dersom en kombinasjon av kravkode og hjemmelkode ikke finnes i tabellen nedenfor
 | TILBAKEKREVING_GAMMEL_YRKESSKADEPENSJON          | PE GY    | T           |
 | TILBAKEKREVING_GJENLEVENDE_PENSJON               | PE GP    | T           |
 | TILBAKEKREVING_GJENLEVENDE_PENSJON_AVREGNING     | PE GP    | TA          |
+| TILBAKEKREVING_GRAVFERDSSTOENAD                  | GS GD    | T           |
+| TILBAKEKREVING_GRUNNSTOENAD                      | GH GS    | T           |
+| TILBAKEKREVING_HJELPESTOENAD                     | GH HS    | T           |
 | TILBAKEKREVING_KOMPENSASJON_NAERING_OG_FRILANS   | FR SN    | T           |
 | TILBAKEKREVING_KONTANTSTOETTE                    | KS KS    | T           |
+| TILBAKEKREVING_KONTANTSTOETTE_UTLAND             | KS EU    | T           |
 | TILBAKEKREVING_KRIGSPENSJON                      | PE KP    | T           |
 | TILBAKEKREVING_LOENNSKOMPENSASJON                | LK RF    | T           |
+| TILBAKEKREVING_MENERSTATNING_YRKESSKADE          | YS YE    | T           |
+| TILBAKEKREVING_MENERSTATNING_YRKESSYKDOM         | YS YS    | T           |
 | TILBAKEKREVING_MOBILITETSFREMMENDE_STOENADER     | AE MS    | AT          |
 | TILBAKEKREVING_OMSORGSPENGER                     | BS OM    | T           |
 | TILBAKEKREVING_OMSTILLINGSSTOENAD                | OM OM    | T           |
@@ -43,26 +52,42 @@ Dersom en kombinasjon av kravkode og hjemmelkode ikke finnes i tabellen nedenfor
 | TILBAKEKREVING_OVERGANGSSTOENAD                  | EF OG    | T           |
 | TILBAKEKREVING_PERMITTERINGSPENGER_KORONA        | LK LK    | T           |
 | TILBAKEKREVING_PLEIEPENGER_BARN                  | BS PN    | T           |
+| TILBAKEKREVING_PLEIEPENGER_BARN                  | BS PB    | T           |
 | TILBAKEKREVING_PLEIEPENGER_NAERSTAAENDE          | BS PP    | T           |
 | TILBAKEKREVING_SPESIALUTBETALING                 | AE SU    | AT          |
+| TILBAKEKREVING_STOENAD_BAARETRANSPORT            | GS BT    | T           |
+| TILBAKEKREVING_STOENAD_MOPEDBIL                  | HJ MP    | GX          |
+| TILBAKEKREVING_STOENAD_MOTORKJOERETOEY_GR1       | HJ M1    | GX          |
+| TILBAKEKREVING_STOENAD_MOTORKJOERETOEY_GR2       | HJ M2    | GX          |
+| TILBAKEKREVING_STOENAD_ORTOPEDISKE_HJELPEMIDLER  | HT OH    | T           |
+| TILBAKEKREVING_STOENAD_SPESIALUTSTYR_BIL         | HJ MU    | GX          |
 | TILBAKEKREVING_STOENAD_TIL_BARNETILSYN           | EF BT    | T           |
 | TILBAKEKREVING_SUPPLERENDE_STOENAD_ALDERSPENSJON | SU AP    | T           |
+| TILBAKEKREVING_SUPPLERENDE_STOENAD_EKTEFELLE_OVER_67  | SU EO | T          |
+| TILBAKEKREVING_SUPPLERENDE_STOENAD_EKTEFELLE_UNDER_67 | SU EU | T          |
+| TILBAKEKREVING_SUPPLERENDE_STOENAD_ENSLIG_MINDREAARIG | SU EN | T          |
+| TILBAKEKREVING_SUPPLERENDE_STOENAD_ENSLIG_VOKSEN | SU EV   | T           |
 | TILBAKEKREVING_SUPPLERENDE_STOENAD_UFOEREPENSJON | SU UF    | T           |
 | TILBAKEKREVING_SVANGERSKAPSPENGER                | FA SV    | T           |
 | TILBAKEKREVING_SYKEPENGER                        | KT SP    | T           |
+| TILBAKEKREVING_SYKEPENGER                        | SP SP    | T           |
 | TILBAKEKREVING_TIDLIGERE_FAMILIEPLEIER_PENSJON   | PE FP    | T           |
+| TILBAKEKREVING_TIDLIGERE_FAMILIEPLEIER_PENSJON_AVREGNING | PE FP | TA      |
 | TILBAKEKREVING_TILLEGGSTOENAD                    | TS TS    | T           |
 | TILBAKEKREVING_TILLEGGSTOENAD                    | AE TA    | AT          |
 | TILBAKEKREVING_TILLEGGSTOENAD                    | AE TT    | AT          |
 | TILBAKEKREVING_TILLEGGSTOENADER                  | AE TS    | AT          |
+| TILBAKEKREVING_TILSKUDD_RIMELIGE_HJELPEMIDLER    | HJ DA    | T           |
 | TILBAKEKREVING_TILTAKSPENGER                     | TP TP    | T           |
 | TILBAKEKREVING_TILTAKSPENGER                     | AE IS    | AT          |
 | TILBAKEKREVING_UFOEREPENSJON                     | PE UP    | T           |
+| TILBAKEKREVING_UFOEREPENSJON_AVREGNING           | PE UP    | TA          |
 | TILBAKEKREVING_UFOERETRYGD                       | PE UT    | T           |
 | TILBAKEKREVING_UFOERETRYGD_AVREGNING             | PE UT    | TA          |
 | TILBAKEKREVING_UFOERETRYGD_ETTEROPPGJOER         | PE UT    | EU          |
 | TILBAKEKREVING_UNGDOMSPROGRAMYTELSEN             | UNG      | T           |
 | TILBAKEKREVING_UTDANNINGSSTOENAD                 | EF UT    | T           |
+| TILBAKEKREVING_UTVIDET_BARNETRYGD                | BA UT    | T           |
 
 ## Legge til ny stønadstype
 

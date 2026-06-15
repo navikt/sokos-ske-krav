@@ -9,6 +9,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 
 import no.nav.sokos.ske.krav.copybook.FileParser
+import no.nav.sokos.ske.krav.copybook.ParseResult
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dataSource
@@ -185,7 +186,7 @@ internal class RepositoryTestKrav :
 
             val filnavn = "TiNyeKrav1Endring1Stopp.txt"
             val liste = getFileContent("krav/$filnavn")
-            val kravlinjer = FileParser(liste).kravLinjer()
+            val kravlinjer = (FileParser(liste).parseResult as ParseResult.Success).kravLinjer
 
             val lagredeKrav =
                 dataSource.transaction { session ->
