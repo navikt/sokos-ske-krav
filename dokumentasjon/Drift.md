@@ -34,7 +34,7 @@ Husk at du alltid må ha tillatelse fra prosjektleder, samt en Jirasak før du g
 ## Ting som kan gå galt
 Se [Feilretting guide](Feilretting_Guide.md) for detaljer om hva som kan gå galt og hvordan vi håndterer de forskjellige scenarioene
 ### Funksjonelle feil
-De aller fleste feilene er på grunn av feil i valideringsregler mot Skatteetaten, samt asynkron validering. Se liste over valideringsregler [her](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler).  
+De aller fleste feilene er på grunn av feil i valideringsregler mot Skatteetaten, samt asynkron validering. Se liste over valideringsregler [her](https://skatteetaten.github.io/api-dokumentasjon/api/innkrevingsoppdrag?tab=Feilkoder).  
 Feil vil bli sendt som alert til slackkanalen #team-best-slackbot-prod med informasjon om hva som gikk galt, samt filnavn og dato. 
 De aller fleste feilene er forårsaket av endringer på krav som ikke er blitt reskontroført (eller såkalte "dobbel endring på migrerte krav"), og krav på organisasjoner som er opphørt. Disse sakene håndteres av produkteier som må igangsette en manuell rutine direkte med Skatteetaten. 
 Av feilene som dukker opp i #team-best-slackbot-prod er det ingenting som kan løses av en utvikler.

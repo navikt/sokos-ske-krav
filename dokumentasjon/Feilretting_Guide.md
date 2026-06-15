@@ -6,12 +6,12 @@ I de aller fleste tilfeller skal vi kun rapportere feilen til fagressurs eller p
 Alle feil, med unntak av validering som skjer på vår side, vil vises på [denne siden](https://sokos-ske-krav.intern.nav.no/rapporter/avstemming) med informasjon som trengs for å feilsøke og rapportere. Produkteier og teknisk domenespesialist har tilgang til denne siden.
 
 De vanligste feilene er:
-* Synkrone valideringsfeil ( [dokumentasjon Nav spesifikke regler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/oppdragsgiverspesifikke-valideringsregler/nav#synkrone-valideringsregler) , [dokumentasjon fellesregler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler)  )
+* Synkrone valideringsfeil ( [dokumentasjon SKE](https://skatteetaten.github.io/api-dokumentasjon/api/innkrevingsoppdrag?tab=Feilkoder) )
     * Kravtype finnes ikke for organisasjon/person
     * "Dobbel endring på migrert krav"
     * Det finnes et krav med samme saksnummer
     * Skatt har ikke lagt inn en kravtype som er definert i systemet vårt
-* Asynkron valideringsfeil ( [dokumentasjon](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/oppdragsgiverspesifikke-valideringsregler/nav#asynkrone-valideringsregler) )
+* Asynkron valideringsfeil
     * Person er død
     * Organisasjon er opphørt
 * Det "stanger" mellom Skatt og PAK og krav blir ikke reskontroførte
@@ -78,7 +78,7 @@ Dersom filvalidering feiler vil en melding bli sendt til Slack og filen vil flyt
 
 
 ### Linjevalidering
-Enkeltlinjer blir validert i [`LineValidator.kt`](../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidator.kt) i henhold til [Skatteetatens regler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler).
+Enkeltlinjer blir validert i [`LineValidator.kt`](../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidator.kt) i henhold til [Skatteetatens regler](https://skatteetaten.github.io/api-dokumentasjon/api/innkrevingsoppdrag?tab=Feilkoder).
 
 * Saksnummer er på ugyldig format (må være "^[a-zA-Z0-9-/]+$")
 * Vedtaksdato kan ikke være i fremtiden
