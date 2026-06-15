@@ -2,7 +2,7 @@
 name: Fix Production Dependabot Alerts
 description: Creates one PR fixing high- and critical-severity production Dependabot alerts, or all production vulnerabilities when explicitly requested
 target: github-copilot
-disable-model-invocation: true
+disable-model-invocation: false
 user-invocable: true
 ---
 
