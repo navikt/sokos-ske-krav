@@ -50,9 +50,11 @@ internal class FileParserTest :
         }
 
         test("Ugyldig Int i footeren skal gi feil i kontrollLinje") {
-            FileParser(
-                getFileContent("validering/filvalidering/FeilParsingInt.txt"),
-            ).parseResult.shouldBeInstanceOf<ParseResult.Error>()
+            val result =
+                FileParser(
+                    getFileContent("validering/filvalidering/FeilParsingInt.txt"),
+                ).parseResult.shouldBeInstanceOf<ParseResult.Error>()
+            result.messages.any { it.contains("Feil i parsing av Int") } shouldBe true
         }
 
         test("Feil encoded Ø skal erstattes med Ø") {
