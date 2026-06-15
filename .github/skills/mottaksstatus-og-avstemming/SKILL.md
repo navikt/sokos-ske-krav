@@ -9,7 +9,7 @@ After krav are sent to SKE, three subsystems handle the remaining lifecycle. Thi
 
 ## StatusService — mottaksstatus polling
 
-Runs on the scheduler (`launchJob(statusService::getMottaksStatus, ...)`). Picks up every krav with status in `{KRAV_SENDT, MOTTATT_UNDERBEHANDLING, …}` and asks SKE's `/mottaksstatus/{kravidentifikatorSKE}` endpoint for the current state.
+Runs on the scheduler (`launchJob(statusService::getMottaksStatus, ...)`). Picks up every krav with status in `{KRAV_SENDT, MOTTATT_UNDER_BEHANDLING, …}` and asks SKE's `/mottaksstatus/{kravidentifikatorSKE}` endpoint for the current state.
 
 ```kotlin
 class StatusService(
@@ -54,7 +54,7 @@ Classification (`KravLinje.isStopp() = belop.toDouble().roundToLong() == 0L`) is
 
 ## Avstemming / Rapport — manual reconciliation UI
 
-Some krav end up in states that need human follow-up (e.g. `HTTP400_*`, stuck in `MOTTATT_UNDERBEHANDLING` for too long). `RapportService` + `AvstemmingRouting` expose an authenticated HTML page for operators.
+Some krav end up in states that need human follow-up (e.g. `HTTP400_*`, stuck in `MOTTATT_UNDER_BEHANDLING` for too long). `RapportService` + `AvstemmingRouting` expose an authenticated HTML page for operators.
 
 ### `@Frontend` opt-in
 

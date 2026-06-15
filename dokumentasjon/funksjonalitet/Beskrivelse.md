@@ -7,7 +7,7 @@ Fagsystemet OS/Z legger flatfiler (fixed record-format) av innkrevingsoppdrag p�
 - **Kravlinjer** – n antall krav som skal overføres til Skatteetaten
 - **Footer** – siste linje, inneholder antall transaksjoner og samlet beløp                    
 
-Oppbygninen av flatfilene er dokumentert detaljert i [Confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=176706565)
+Oppbyggingen av flatfilene er dokumentert detaljert i [Confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=176706565)
 
 ## Validering
 

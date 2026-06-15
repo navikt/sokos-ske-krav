@@ -24,8 +24,8 @@ Vi har to måter å trigge innlesing av filen på:
 SFTP filer for testing kan man finne [her](testfiler). De er i copybook format som stormaskin/COBOL opererer med.
 For å kunne bruke disse til testing må først må man erstatte saksnummerene med nye så vi ikke sender inn duplikater.
 
-- Endring av saksnummer gjøres med pythonscriptet `docs/testing/scripts/ErstattSaksnummer.py`
-- Kopiering av saksnummer til referansenummer gjøres med pythonscriptet `docs/testing/scripts/KopierSaksnummer.py`
+- Endring av saksnummer gjøres med pythonscriptet `dokumentasjon/testing/scripts/ErstattSaksnummer.py`
+- Kopiering av saksnummer til referansenummer gjøres med pythonscriptet `dokumentasjon/testing/scripts/KopierSaksnummer.py`
 - Installer python3 (MACOS og brew: `brew install python`) (Linux: `sudo apt install python3`)
 - Kopier scriptene og filene til en mappe lokalt på din maskin
 
@@ -44,7 +44,7 @@ Testfilene er navngitt Fil-A, Fil-B, og Fil-C og organisert i mapper med testfil
   - Resultatfil: [Fil-C_Resultat.md](testfiler/OS/Fil-C/Fil-C_Resultat.md)
   
 
-- Kopier filer og script (`docs/testing/scripts/ErstattSaksnummer.py`) til en mappe lokalt på din maskin
+- Kopier filer og script (`dokumentasjon/testing/scripts/ErstattSaksnummer.py`) til en mappe lokalt på din maskin
 - For Fil-A, Fil-B og Fil-C kjør `python3 ErstattSaksnummer.py Fil-x.txt` Hvor x er A..C
 - [Logg inn på SFTP serveren](#sftp-tilkobling)
 - Legg én fil i `/inbound` mappen og [trigg innlesing](#trigge-innlesing-av-fil)

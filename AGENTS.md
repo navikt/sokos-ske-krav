@@ -17,7 +17,7 @@ SFTP → FtpService → FileParser/FileValidator → LineValidator
 | `src/main/kotlin/.../Application.kt` | Entry point; registers scheduled jobs via coroutine loop |
 | `src/main/kotlin/.../service/SkeService.kt` | Main orchestrator — calls FTP, validate, send, resend |
 | `src/main/kotlin/.../copybook/FileParser.kt` | Fixed-width column parser (byte offsets per field) |
-| `src/main/kotlin/.../domain/StonadsType.kt` | Maps `(avsender, kravKode)` pairs to ytelsestype enum |
+| `src/main/kotlin/.../domain/StonadsType.kt` | Maps `(kravKode, kodeHjemmel)` pairs to stønadstype enum |
 | `src/main/kotlin/.../domain/Status.kt` | All DB status strings — check here before writing status queries |
 | `src/main/kotlin/.../util/RequestResult.kt` | `defineStatus()` maps SKE HTTP responses to `Status` enum; also holds SKE error-type string constants |
 | `src/main/kotlin/.../config/PropertiesConfig.kt` | HOCON-based config; profile selected via `NAIS_CLUSTER_NAME` env var |
@@ -61,7 +61,7 @@ dataSource.asyncTransaction { tx -> tx.insertAllNewKrav(kravLinjer) }
 ```
 
 ### Status Transitions
-Newly parsed krav start as `KRAV_IKKE_SENDT`. After sending: `KRAV_SENDT` → `MOTTATT_UNDERBEHANDLING` → `RESKONTROFOERT`. Error statuses map directly to HTTP codes (e.g. `HTTP503_UTILGJENGELIG_TJENESTE`). Resend queues are selected by status in `KravRepository.getAllKravForResending()`.
+Newly parsed krav start as `KRAV_IKKE_SENDT`. After sending: `KRAV_SENDT` → `MOTTATT_UNDER_BEHANDLING` → `RESKONTROFOERT`. Error statuses map directly to HTTP codes (e.g. `HTTP503_UTILGJENGELIG_TJENESTE`). Resend queues are selected by status in `KravRepository.getAllKravForResending()`.
 
 ### Sensitive Logging
 Use `TEAM_LOGS_MARKER` for any log entry that may contain PII/sensitive data:

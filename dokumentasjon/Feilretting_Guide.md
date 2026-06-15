@@ -5,8 +5,6 @@ Denne guiden er ment for utviklere for å feilsøke og feilrette problemer i sok
 I de aller fleste tilfeller skal vi kun rapportere feilen til fagressurs eller produktleder, og så vil de håndtere videre kommunikasjon med Skatteetaten og brukere av fagsystemene.
 Alle feil, med unntak av validering som skjer på vår side, vil vises på [denne siden](https://sokos-ske-krav.intern.nav.no/rapporter/avstemming) med informasjon som trengs for å feilsøke og rapportere. Produkteier og teknisk domenespesialist har tilgang til denne siden.
 
-
-
 De vanligste feilene er:
 * Synkrone valideringsfeil ( [dokumentasjon Nav spesifikke regler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/oppdragsgiverspesifikke-valideringsregler/nav#synkrone-valideringsregler) , [dokumentasjon fellesregler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler)  )
     * Kravtype finnes ikke for organisasjon/person
@@ -19,7 +17,7 @@ De vanligste feilene er:
 * Det "stanger" mellom Skatt og PAK og krav blir ikke reskontroførte
 * Feil i kommunikasjon med SKE
 * Feil i rutiner for fagsystemene. For eksempel at de sender inn krav med feil dato, eller at de sender inn det samme kravet to ganger
- 
+
 ### Hvor og hvordan finne informasjon
 - Slackkanal for funksjonelle feil: #team-best-slackbot-prod
 - Slackkanal for tekniske feil: #team-mob-alerts-prod
