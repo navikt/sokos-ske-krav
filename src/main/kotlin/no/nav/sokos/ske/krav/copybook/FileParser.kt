@@ -14,43 +14,47 @@ class FileParser(
     val parseResult: ParseResult = parse()
 
     private fun parse(): ParseResult {
-        val header =
-            try {
-                kontrollLinjeHeaderParser(content.first())
-            } catch (e: ParseException) {
-                return ParseResult.Error(listOf(e.message))
-            } catch (_: NoSuchElementException) {
-                return ParseResult.Error(listOf("Filen har ikke en første linje"))
-            }
-
-        val footer =
-            try {
-                kontrollLinjeFooterParser(content.last())
-            } catch (e: ParseException) {
-                return ParseResult.Error(listOf(e.message))
-            } catch (_: NoSuchElementException) {
-                return ParseResult.Error(listOf("Filen har ikke en siste linje"))
-            }
+        val headerResult = runCatching { kontrollLinjeHeaderParser(content.first()) }
+        val footerResult = runCatching { kontrollLinjeFooterParser(content.last()) }
 
         val linjer =
-            if (content.size > 1) {
-                content.subList(1, content.lastIndex).mapIndexed { index, linje ->
-                    kravLinjeParser(linje, index + 1, header.avsender)
+            headerResult.fold(
+                onSuccess = { header ->
+                    content.drop(1).dropLast(1).mapIndexed { index, linje ->
+                        kravLinjeParser(linje, index + 1, header.avsender)
+                    }
+                },
+                onFailure = { emptyList() },
+            )
+
+        val errors =
+            buildList {
+                headerResult.onFailure { e ->
+                    when (e) {
+                        is ParseException -> add(e.message)
+                        is NoSuchElementException -> add("Filen har ikke en første linje")
+                        else -> throw e
+                    }
                 }
-            } else {
-                emptyList()
+                footerResult.onFailure { e ->
+                    when (e) {
+                        is ParseException -> add(e.message)
+                        is NoSuchElementException -> add("Filen har ikke en siste linje")
+                        else -> throw e
+                    }
+                }
+                addAll(linjer.filterIsInstance<ErrorLinje>().map { it.message })
             }
 
-        val lineErrors = linjer.filterIsInstance<ErrorLinje>()
-        if (lineErrors.isNotEmpty()) {
-            return ParseResult.Error(lineErrors.map { it.message })
+        return if (errors.isEmpty()) {
+            ParseResult.Success(
+                kontrollLinjeHeader = headerResult.getOrThrow(),
+                kontrollLinjeFooter = footerResult.getOrThrow(),
+                kravLinjer = linjer.filterIsInstance<KravLinje>(),
+            )
+        } else {
+            ParseResult.Error(errors)
         }
-
-        return ParseResult.Success(
-            kontrollLinjeHeader = header,
-            kontrollLinjeFooter = footer,
-            kravLinjer = linjer.filterIsInstance<KravLinje>(),
-        )
     }
 
     private fun kontrollLinjeHeaderParser(linje: String): KontrollLinjeHeader =
