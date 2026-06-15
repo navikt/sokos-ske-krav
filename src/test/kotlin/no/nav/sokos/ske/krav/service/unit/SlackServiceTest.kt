@@ -163,7 +163,7 @@ internal class SlackServiceTest :
             rutineLinkSlot[0] shouldBe "https://confluence.adeo.no/spaces/TOB/pages/791026050/Rutine+for+manuell+h%C3%A5ndtering+av+innkrevingskrav+til+skatteetaten+SKE"
         }
 
-        test("sendErrors tagger TRINE ved Fant ikke gyldig kravidentifikator") {
+        test("sendErrors tagger Lene ved Fant ikke gyldig kravidentifikator") {
             val taggedPeopleSlot = mutableListOf<List<TaggablePeople>>()
             val rutineLinkSlot = mutableListOf<String?>()
 
@@ -180,7 +180,7 @@ internal class SlackServiceTest :
             )
             slackService.sendErrors()
 
-            taggedPeopleSlot[0] shouldContainExactly listOf(TRINE)
+            taggedPeopleSlot[0] shouldContainExactly listOf(LENE)
             rutineLinkSlot[0] shouldBe null
         }
 
