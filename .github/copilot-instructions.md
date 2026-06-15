@@ -26,7 +26,7 @@ SFTP /inbound → FtpService → FileValidator → LineValidator
   → RapportService + /rapporter/avstemming (manual operator follow-up for stuck krav)
 ```
 
-Status lifecycle: `KRAV_IKKE_SENDT → KRAV_SENDT → MOTTATT_UNDERBEHANDLING → RESKONTROFOERT/MIGRERT`. Retryable error states (`HTTP409_*_RESEND`, `HTTP500_*`, `HTTP503_*`) are re-picked by `resendKrav()`. `defineStatus()` in `RequestResult.kt` maps HTTP errors to `Status`.
+Status lifecycle: `KRAV_IKKE_SENDT → KRAV_SENDT → MOTTATT_UNDER_BEHANDLING → RESKONTROFOERT/MIGRERT`. Retryable error states (`HTTP409_*_RESEND`, `HTTP500_*`, `HTTP503_*`) are re-picked by `resendKrav()`. `defineStatus()` in `RequestResult.kt` maps HTTP errors to `Status`.
 
 ## Key classes
 

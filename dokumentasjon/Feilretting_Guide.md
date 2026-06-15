@@ -5,21 +5,19 @@ Denne guiden er ment for utviklere for å feilsøke og feilrette problemer i sok
 I de aller fleste tilfeller skal vi kun rapportere feilen til fagressurs eller produktleder, og så vil de håndtere videre kommunikasjon med Skatteetaten og brukere av fagsystemene.
 Alle feil, med unntak av validering som skjer på vår side, vil vises på [denne siden](https://sokos-ske-krav.intern.nav.no/rapporter/avstemming) med informasjon som trengs for å feilsøke og rapportere. Produkteier og teknisk domenespesialist har tilgang til denne siden.
 
-
-
 De vanligste feilene er:
-* Synkrone valideringsfeil ( [dokumentasjon Nav spesifikke regler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/oppdragsgiverspesifikke-valideringsregler/nav#synkrone-valideringsregler) , [dokumentasjon fellesregler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler)  )
+* Synkrone valideringsfeil ( [dokumentasjon SKE](https://skatteetaten.github.io/api-dokumentasjon/api/innkrevingsoppdrag?tab=Feilkoder) )
     * Kravtype finnes ikke for organisasjon/person
     * "Dobbel endring på migrert krav"
     * Det finnes et krav med samme saksnummer
     * Skatt har ikke lagt inn en kravtype som er definert i systemet vårt
-* Asynkron valideringsfeil ( [dokumentasjon](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/oppdragsgiverspesifikke-valideringsregler/nav#asynkrone-valideringsregler) )
+* Asynkron valideringsfeil
     * Person er død
     * Organisasjon er opphørt
 * Det "stanger" mellom Skatt og PAK og krav blir ikke reskontroførte
 * Feil i kommunikasjon med SKE
 * Feil i rutiner for fagsystemene. For eksempel at de sender inn krav med feil dato, eller at de sender inn det samme kravet to ganger
- 
+
 ### Hvor og hvordan finne informasjon
 - Slackkanal for funksjonelle feil: #team-best-slackbot-prod
 - Slackkanal for tekniske feil: #team-mob-alerts-prod
@@ -80,7 +78,7 @@ Dersom filvalidering feiler vil en melding bli sendt til Slack og filen vil flyt
 
 
 ### Linjevalidering
-Enkeltlinjer blir validert i [`LineValidator.kt`](../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidator.kt) i henhold til [Skatteetatens regler](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler).
+Enkeltlinjer blir validert i [`LineValidator.kt`](../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidator.kt) i henhold til [Skatteetatens regler](https://skatteetaten.github.io/api-dokumentasjon/api/innkrevingsoppdrag?tab=Feilkoder).
 
 * Saksnummer er på ugyldig format (må være "^[a-zA-Z0-9-/]+$")
 * Vedtaksdato kan ikke være i fremtiden

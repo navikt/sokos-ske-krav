@@ -33,7 +33,7 @@ Filvalidering kjøres på hele filen umiddelbart etter nedlasting fra SFTP. File
 
 ## 2. Linjevalidering ([`LineValidationRules`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidationRules.kt))
 
-Linjevalidering kjøres på hver enkelt kravlinje etter at filvalideringen er godkjent. Valideringsreglene speiler SKEs synkrone valideringsregler (se [SKE sin dokumentasjon](https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler)).
+Linjevalidering kjøres på hver enkelt kravlinje etter at filvalideringen er godkjent. Valideringsreglene speiler SKEs synkrone valideringsregler (se [SKE sin dokumentasjon](https://skatteetaten.github.io/api-dokumentasjon/api/innkrevingsoppdrag?tab=Feilkoder)).
 
 En spesialverdi brukes som sentinel-dato for feilformaterte datoer: `21240101` (år 2124). Alle datoer som ikke lar seg parse returneres som denne verdien for å gi meningsfylte feilmeldinger fremfor unntak.
 
