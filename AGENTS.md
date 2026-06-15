@@ -92,3 +92,9 @@ Config is layered: `application-{env}.conf` overrides `application.conf`, merged
 - Direct push to `main` is blocked; PRs required.
 - Manual deploy to test: trigger GitHub Actions on a PR branch.
 
+## Hard Rules for AI Agents
+
+- **NEVER merge PRs or branches** unless explicitly told to with the exact words "merge this PR/branch".
+- **NEVER delete branches** unless explicitly told to.
+- After creating a PR, STOP. Do not merge it, do not enable auto-merge, do not delete the source branch.
+
