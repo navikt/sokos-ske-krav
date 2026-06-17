@@ -32,6 +32,7 @@ import no.nav.sokos.ske.krav.util.decodeTo
 import no.nav.sokos.ske.krav.util.defineStatus
 import no.nav.sokos.ske.krav.util.transaction
 import no.nav.sokos.ske.krav.validation.LineValidator
+import no.nav.sokos.ske.krav.validation.ValidationResult
 
 const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRING_RENTE = "ENDRING_RENTE"
@@ -108,13 +109,11 @@ class SkeService(
 
     private suspend fun processFile(file: FtpFil) {
         logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
-        val validatedLines = LineValidator(dataSource, filValideringsfeilRepository).validateNewLines(file)
 
-        handleValidationResults(file, validatedLines)
+        val validatedLines = LineValidator().validateNewLines(file.kravLinjer)
+        handleValidationResults(file.name, validatedLines)
+        slackService.sendErrors()
 
-        dataSource.transaction { session ->
-            kravRepository.insertAllNewKrav(session, validatedLines, file.name)
-        }
         ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
     }
 
@@ -234,15 +233,47 @@ class SkeService(
     }
 
     private fun handleValidationResults(
-        file: FtpFil,
-        validatedLines: List<KravLinje>,
+        filename: String,
+        validationResults: List<ValidationResult>,
     ) {
-        if (file.kravLinjer.size > validatedLines.size) {
-            logger.warn("Ved validering av linjer i fil ${file.name} har ${file.kravLinjer.size - validatedLines.size} linjer velideringsfeil ")
+        val validKrav = mutableListOf<KravLinje>()
+        val invalidKrav = mutableListOf<Pair<KravLinje, String>>()
+        val slackMessages = mutableListOf<Pair<String, String>>()
+
+        validationResults.forEach { result ->
+            when (result) {
+                is ValidationResult.Error -> {
+                    slackMessages.addAll(result.messages.map { it.first.value to it.second })
+                    result.originalLines?.forEach { line ->
+                        invalidKrav.add(line to result.messages.joinToString { it.second })
+                    }
+                }
+                is ValidationResult.Success -> {
+                    validKrav.addAll(result.kravLinjer)
+                }
+            }
         }
-        if (validatedLines.size >= 1000) {
+
+        if (invalidKrav.isNotEmpty()) {
+            logger.warn("Ved validering av linjer i fil $filename har ${invalidKrav.size} linjer velideringsfeil ")
+        }
+
+        if (slackMessages.isNotEmpty()) {
+            logger.warn("Feil i validering av linjer i fil $filename: ${slackMessages.joinToString { it.second }}")
+            slackService.addError(filename, "Feil i linjevalidering", slackMessages)
+        }
+
+        if (validKrav.size >= 1000) {
             logger.info("***Stor fil. Blokkerer kjøring***")
             haltRun = true
+        }
+
+        dataSource.transaction { session ->
+            kravRepository.insertAllNewKrav(session, validKrav, filename)
+            // TODO: Batch insert
+            invalidKrav.forEach { line ->
+                filValideringsfeilRepository.insertLineFilValideringsfeil(session, filename, line.first, line.second)
+            }
         }
     }
 

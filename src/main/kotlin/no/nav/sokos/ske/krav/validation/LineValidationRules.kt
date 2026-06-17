@@ -68,9 +68,9 @@ object LineValidationRules {
             }
 
         return if (errorMessages.isNotEmpty()) {
-            ValidationResult.Error(errorMessages)
+            ValidationResult.Error(errorMessages, listOf(krav.markedAsValidationError()))
         } else {
-            ValidationResult.Success(listOf(krav))
+            ValidationResult.Success(listOf(krav.markedAsValid()))
         }
     }
 

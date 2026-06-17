@@ -4,6 +4,9 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
@@ -45,8 +48,8 @@ internal class LineValidationRulesTest :
                 }
                 And("Linje skal returneres") {
                     with((validationResult as ValidationResult.Success).kravLinjer) {
-                        size shouldBe 1
-                        first() shouldBe okLinje
+                        shouldHaveSize(1)
+                        first() shouldBe okLinje.markedAsValid()
                     }
                 }
             }
@@ -60,8 +63,8 @@ internal class LineValidationRulesTest :
                 }
                 And("Linje skal returneres") {
                     with((validationResult as ValidationResult.Success).kravLinjer) {
-                        size shouldBe 1
-                        first() shouldBe krav
+                        shouldHaveSize(1)
+                        first() shouldBe krav.markedAsValid()
                     }
                 }
             }
@@ -73,8 +76,8 @@ internal class LineValidationRulesTest :
                 }
                 And("Linje skal returneres") {
                     with((validationResult as ValidationResult.Success).kravLinjer) {
-                        size shouldBe 1
-                        first() shouldBe krav
+                        shouldHaveSize(1)
+                        first() shouldBe krav.markedAsValid()
                     }
                 }
             }
@@ -87,10 +90,18 @@ internal class LineValidationRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        first().first shouldBe ErrorKeys.VEDTAKSDATO_ERROR
-                        first().second shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE.description
+                    with((validationResult as ValidationResult.Error)) {
+                        messages.shouldHaveSize(1)
+                        messages.first().should {
+                            it.first shouldBe ErrorKeys.VEDTAKSDATO_ERROR
+                            it.second shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE.description
+                        }
+
+                        originalLines.should {
+                            it.shouldNotBeNull()
+                            it.shouldHaveSize(1)
+                            it.first() shouldBe krav.markedAsValidationError()
+                        }
                     }
                 }
             }
@@ -102,10 +113,18 @@ internal class LineValidationRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        first().first shouldBe ErrorKeys.VEDTAKSDATO_ERROR
-                        first().second shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description
+                    with((validationResult as ValidationResult.Error)) {
+                        messages.shouldHaveSize(1)
+                        messages.first().should {
+                            it.first shouldBe ErrorKeys.VEDTAKSDATO_ERROR
+                            it.second shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description
+                        }
+
+                        originalLines.should {
+                            it.shouldNotBeNull()
+                            it.shouldHaveSize(1)
+                            it.first() shouldBe krav.markedAsValidationError()
+                        }
                     }
                 }
             }
@@ -121,8 +140,8 @@ internal class LineValidationRulesTest :
                 }
                 And("Linje skal returneres") {
                     with((validationResult as ValidationResult.Success).kravLinjer) {
-                        size shouldBe 1
-                        first() shouldBe krav
+                        shouldHaveSize(1)
+                        first() shouldBe krav.markedAsValid()
                     }
                 }
             }
@@ -135,10 +154,18 @@ internal class LineValidationRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        first().first shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
-                        first().second shouldContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description
+                    with((validationResult as ValidationResult.Error)) {
+                        messages.shouldHaveSize(1)
+                        messages.first().should {
+                            it.first shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
+                            it.second shouldContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description
+                        }
+
+                        originalLines.should {
+                            it.shouldNotBeNull()
+                            it.shouldHaveSize(1)
+                            it.first() shouldBe krav.markedAsValidationError()
+                        }
                     }
                 }
             }
@@ -151,10 +178,18 @@ internal class LineValidationRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        first().first shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
-                        first().second shouldContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description
+                    with((validationResult as ValidationResult.Error)) {
+                        messages.shouldHaveSize(1)
+                        messages.first().should {
+                            it.first shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
+                            it.second shouldContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description
+                        }
+
+                        originalLines.should {
+                            it.shouldNotBeNull()
+                            it.shouldHaveSize(1)
+                            it.first() shouldBe krav.markedAsValidationError()
+                        }
                     }
                 }
             }
@@ -165,10 +200,18 @@ internal class LineValidationRulesTest :
                     (validationResult is ValidationResult.Error) shouldBe true
                 }
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        first().first shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
-                        first().second shouldContain ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT.description
+                    with((validationResult as ValidationResult.Error)) {
+                        messages.shouldHaveSize(1)
+                        messages.first().should {
+                            it.first shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
+                            it.second shouldContain ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT.description
+                        }
+
+                        originalLines.should {
+                            it.shouldNotBeNull()
+                            it.shouldHaveSize(1)
+                            it.first() shouldBe krav.markedAsValidationError()
+                        }
                     }
                 }
             }
@@ -180,8 +223,8 @@ internal class LineValidationRulesTest :
                 }
                 And("Linje skal returneres") {
                     with((validationResult as ValidationResult.Success).kravLinjer) {
-                        size shouldBe 1
-                        first() shouldBe krav
+                        shouldHaveSize(1)
+                        first() shouldBe krav.markedAsValid()
                     }
                 }
             }
@@ -197,8 +240,8 @@ internal class LineValidationRulesTest :
                 }
                 And("Linje skal returneres") {
                     with((validationResult as ValidationResult.Success).kravLinjer) {
-                        size shouldBe 1
-                        first() shouldBe krav
+                        shouldHaveSize(1)
+                        first() shouldBe krav.markedAsValid()
                     }
                 }
             }
@@ -212,13 +255,21 @@ internal class LineValidationRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        first().first shouldBe ErrorKeys.TILLEGGSFRISTDATO_ERROR
-                        first().second shouldContain ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD.description
-                        first().second shouldContain tilleggsfristDato.toString()
-                        first().second shouldContain krav.saksnummerNav
-                        first().second shouldContain krav.linjenummer.toString()
+                    with((validationResult as ValidationResult.Error)) {
+                        messages.shouldHaveSize(1)
+                        messages.first().should {
+                            it.first shouldBe ErrorKeys.TILLEGGSFRISTDATO_ERROR
+                            it.second shouldContain ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD.description
+                            it.second shouldContain tilleggsfristDato.toString()
+                            it.second shouldContain krav.saksnummerNav
+                            it.second shouldContain krav.linjenummer.toString()
+                        }
+
+                        originalLines.should {
+                            it.shouldNotBeNull()
+                            it.shouldHaveSize(1)
+                            it.first() shouldBe krav.markedAsValidationError()
+                        }
                     }
                 }
             }
@@ -249,7 +300,7 @@ internal class LineValidationRulesTest :
 
                 And("Feilmelding skal returneres") {
                     with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
+                        shouldHaveSize(1)
                         first().first shouldBe ErrorKeys.PERIODE_ERROR
                         first().second shouldContain ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE.description
                     }
@@ -265,8 +316,8 @@ internal class LineValidationRulesTest :
 
                 And("Linje skal returneres") {
                     with((validationResult as ValidationResult.Success).kravLinjer) {
-                        size shouldBe 1
-                        first() shouldBe krav
+                        shouldHaveSize(1)
+                        first() shouldBe krav.markedAsValid()
                     }
                 }
             }
@@ -280,8 +331,8 @@ internal class LineValidationRulesTest :
 
                 And("Linje skal returneres") {
                     with((validationResult as ValidationResult.Success).kravLinjer) {
-                        size shouldBe 1
-                        first() shouldBe krav
+                        shouldHaveSize(1)
+                        first() shouldBe krav.markedAsValid()
                     }
                 }
             }
@@ -294,10 +345,18 @@ internal class LineValidationRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        first().first shouldBe ErrorKeys.PERIODE_ERROR
-                        first().second shouldContain ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM.description
+                    with((validationResult as ValidationResult.Error)) {
+                        messages.shouldHaveSize(1)
+                        messages.first().should {
+                            it.first shouldBe ErrorKeys.PERIODE_ERROR
+                            it.second shouldContain ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM.description
+                        }
+
+                        originalLines.should {
+                            it.shouldNotBeNull()
+                            it.shouldHaveSize(1)
+                            it.first() shouldBe krav.markedAsValidationError()
+                        }
                     }
                 }
             }
@@ -310,10 +369,18 @@ internal class LineValidationRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        first().first shouldBe ErrorKeys.PERIODE_ERROR
-                        first().second shouldContain ErrorMessages.PERIODE_FOM_WRONG_FORMAT.description
+                    with((validationResult as ValidationResult.Error)) {
+                        messages.shouldHaveSize(1)
+                        messages.first().should {
+                            it.first shouldBe ErrorKeys.PERIODE_ERROR
+                            it.second shouldContain ErrorMessages.PERIODE_FOM_WRONG_FORMAT.description
+                        }
+
+                        originalLines.should {
+                            it.shouldNotBeNull()
+                            it.shouldHaveSize(1)
+                            it.first() shouldBe krav.markedAsValidationError()
+                        }
                     }
                 }
             }
@@ -325,10 +392,18 @@ internal class LineValidationRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        first().first shouldBe ErrorKeys.PERIODE_ERROR
-                        first().second shouldContain ErrorMessages.PERIODE_TOM_WRONG_FORMAT.description
+                    with((validationResult as ValidationResult.Error)) {
+                        messages.shouldHaveSize(1)
+                        messages.first().should {
+                            it.first shouldBe ErrorKeys.PERIODE_ERROR
+                            it.second shouldContain ErrorMessages.PERIODE_TOM_WRONG_FORMAT.description
+                        }
+
+                        originalLines.should {
+                            it.shouldNotBeNull()
+                            it.shouldHaveSize(1)
+                            it.first() shouldBe krav.markedAsValidationError()
+                        }
                     }
                 }
             }
@@ -344,10 +419,18 @@ internal class LineValidationRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        first().first shouldBe ErrorKeys.KRAVTYPE_ERROR
-                        first().second shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                    with((validationResult as ValidationResult.Error)) {
+                        messages.shouldHaveSize(1)
+                        messages.first().should {
+                            it.first shouldBe ErrorKeys.KRAVTYPE_ERROR
+                            it.second shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                        }
+
+                        originalLines.should {
+                            it.shouldNotBeNull()
+                            it.shouldHaveSize(1)
+                            it.first() shouldBe krav.markedAsValidationError()
+                        }
                     }
                 }
             }
@@ -364,10 +447,12 @@ internal class LineValidationRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        first().first shouldBe ErrorKeys.SAKSNUMMER_ERROR
-                        first().second shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description
+                    with((validationResult as ValidationResult.Error)) {
+                        messages.shouldHaveSize(1)
+                        messages.first().should {
+                            it.first shouldBe ErrorKeys.SAKSNUMMER_ERROR
+                            it.second shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description
+                        }
                     }
                 }
             }
@@ -383,10 +468,18 @@ internal class LineValidationRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        first().first shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
-                        first().second shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                    with((validationResult as ValidationResult.Error)) {
+                        messages.shouldHaveSize(1)
+                        messages.first().should {
+                            it.first shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+                            it.second shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                        }
+
+                        originalLines.should {
+                            it.shouldNotBeNull()
+                            it.shouldHaveSize(1)
+                            it.first() shouldBe krav.markedAsValidationError()
+                        }
                     }
                 }
             }
@@ -403,10 +496,18 @@ internal class LineValidationRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        first().first shouldBe ErrorKeys.GJELDERID_ERROR
-                        first().second shouldContain ErrorMessages.GJELDERID_MISSING.description
+                    with((validationResult as ValidationResult.Error)) {
+                        messages.shouldHaveSize(1)
+                        messages.first().should {
+                            it.first shouldBe ErrorKeys.GJELDERID_ERROR
+                            it.second shouldContain ErrorMessages.GJELDERID_MISSING.description
+                        }
+
+                        originalLines.should {
+                            it.shouldNotBeNull()
+                            it.shouldHaveSize(1)
+                            it.first() shouldBe krav.markedAsValidationError()
+                        }
                     }
                 }
             }
@@ -423,10 +524,18 @@ internal class LineValidationRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        first().first shouldBe ErrorKeys.HOVEDSTOL_ERROR
-                        first().second shouldContain ErrorMessages.BELOP_NEGATIVE.description
+                    with((validationResult as ValidationResult.Error)) {
+                        messages.shouldHaveSize(1)
+                        messages.first().should {
+                            it.first shouldBe ErrorKeys.HOVEDSTOL_ERROR
+                            it.second shouldContain ErrorMessages.BELOP_NEGATIVE.description
+                        }
+
+                        originalLines.should {
+                            it.shouldNotBeNull()
+                            it.shouldHaveSize(1)
+                            it.first() shouldBe krav.markedAsValidationError()
+                        }
                     }
                 }
             }

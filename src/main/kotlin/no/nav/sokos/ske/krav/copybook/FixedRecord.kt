@@ -42,9 +42,9 @@ data class KravLinje(
 
     fun isOpprettKrav() = !isEndring() && !isStopp()
 
-    fun markAsValid() = copy(status = Status.KRAV_IKKE_SENDT.value)
+    fun markedAsValid() = copy(status = Status.KRAV_IKKE_SENDT.value)
 
-    fun markAsValidationError() = copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
+    fun markedAsValidationError() = copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
 }
 
 data class KontrollLinjeHeader(
