@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter
 
 import io.ktor.http.parsing.ParseException
 
-import no.nav.sokos.ske.krav.validation.LineValidationRules
+import no.nav.sokos.ske.krav.validation.LineValidator
 
 class FileParser(
     private val content: List<String>,
@@ -142,7 +142,7 @@ class FileParser(
     ): LocalDate =
         runCatching {
             LocalDate.parse(getString(start, end), DateTimeFormatter.ofPattern("yyyyMMdd"))
-        }.getOrDefault(LineValidationRules.errorDate)
+        }.getOrDefault(LineValidator.errorDate)
 
     private fun String.getOptionalDate(
         start: Int,

@@ -20,7 +20,7 @@ import no.nav.sokos.ske.krav.dto.ske.requests.TilbakeKrevingsPeriode
 import no.nav.sokos.ske.krav.dto.ske.requests.TilleggsinformasjonNav
 import no.nav.sokos.ske.krav.dto.ske.requests.Valuta
 import no.nav.sokos.ske.krav.dto.ske.requests.YtelseForAvregningBeloep
-import no.nav.sokos.ske.krav.validation.LineValidationRules
+import no.nav.sokos.ske.krav.validation.LineValidator
 
 // https://app.swaggerhub.com/apis-docs/skatteetaten/oppdragsinnkreving-api
 fun createOpprettKravRequest(krav: Krav) =
@@ -39,7 +39,7 @@ fun createOpprettKravRequest(krav: Krav) =
                 krav.utbetalDato
                     .toKotlinLocalDate()
                     .takeIf {
-                        it != LineValidationRules.errorDate.toKotlinLocalDate() &&
+                        it != LineValidator.errorDate.toKotlinLocalDate() &&
                             it != krav.vedtaksDato.toKotlinLocalDate() &&
                             it < krav.vedtaksDato.toKotlinLocalDate()
                     }
