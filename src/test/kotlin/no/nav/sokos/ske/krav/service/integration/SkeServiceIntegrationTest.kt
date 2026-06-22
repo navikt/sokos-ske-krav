@@ -184,7 +184,6 @@ internal class SkeServiceIntegrationTest :
                     }
 
                     And("Én alert med én feilmelding skal sendes") {
-                        // TODO: Add navSaksnummer
                         val sendAlertFilenameSlot = slot<String>()
                         val sendAlertMessageSlot = slot<Map<String, List<String>>>()
 
@@ -246,7 +245,6 @@ internal class SkeServiceIntegrationTest :
                     }
 
                     And("én alert med tre feilmeldinger skal sendes") {
-                        // TODO: Add saksnummer
                         val sendAlertFilenameSlot = slot<String>()
                         val sendAlertMessageSlot = slot<Map<String, List<String>>>()
 
@@ -314,7 +312,6 @@ internal class SkeServiceIntegrationTest :
                     }
 
                     And("Én alert med én feilmelding skal sendes") {
-                        // TODO: Add navSaksnummer
                         val sendAlertFilenameSlot = slot<String>()
                         val sendAlertMessageSlot = slot<Map<String, List<String>>>()
 
@@ -380,7 +377,6 @@ internal class SkeServiceIntegrationTest :
                     }
 
                     When("Én alert sendes") {
-                        // TODO: Add saksnummer
                         val sendAlertFilenameSlot = slot<String>()
                         val sendAlertMessageSlot = slot<Map<String, List<String>>>()
 

@@ -8,6 +8,8 @@ import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.StonadsType
 import no.nav.sokos.ske.krav.metrics.Metrics
+import no.nav.sokos.ske.krav.validation.ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+import no.nav.sokos.ske.krav.validation.ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
 
 class LineValidator {
     fun validateNewLines(kravLines: List<KravLinje>): List<ValidationResult> =
@@ -27,15 +29,15 @@ class LineValidator {
             buildList {
                 with(krav) {
                     checkVedtaksDato(vedtaksDato)?.let { message ->
-                        add(Pair(ErrorKeys.VEDTAKSDATO_ERROR, "$message: (Vedtaksdato: $vedtaksDato). Linje: $linjenummer"))
+                        add(Pair(ErrorKeys.VEDTAKSDATO_ERROR, "$message: (Vedtaksdato: $vedtaksDato). Saksnummer: $saksnummerNav. Linje: $linjenummer"))
                     }
 
                     checkUtbetalingsDato(utbetalDato, vedtaksDato, avsender)?.let { message ->
-                        add(Pair(ErrorKeys.UTBETALINGSDATO_ERROR, "$message: (Utbetalingsdato: $utbetalDato). Linje: $linjenummer"))
+                        add(Pair(ErrorKeys.UTBETALINGSDATO_ERROR, "$message: (Utbetalingsdato: $utbetalDato). Saksnummer: $saksnummerNav. Linje: $linjenummer"))
                     }
 
                     checkPeriode(periodeFOM.toDate(), periodeTOM.toDate())?.let { message ->
-                        add(Pair(ErrorKeys.PERIODE_ERROR, "$message: (FOM:$periodeFOM, TOM: $periodeTOM). Linje: $linjenummer"))
+                        add(Pair(ErrorKeys.PERIODE_ERROR, "$message: (FOM:$periodeFOM, TOM: $periodeTOM). Saksnummer: $saksnummerNav. Linje: $linjenummer"))
                     }
 
                     checkTilleggsfristDato(tilleggsfrist)?.let { message ->
@@ -44,16 +46,16 @@ class LineValidator {
 
                     if (avsender.trim() == Avsender.OB04.name) {
                         checkFagsystemId(fagsystemId)?.let { message ->
-                            add(Pair(ErrorKeys.FAGSYSTEMID_ERROR, "$message. Linje: $linjenummer"))
+                            add(Pair(ErrorKeys.FAGSYSTEMID_ERROR, "$message. Saksnummer: $saksnummerNav. Linje: $linjenummer"))
                         }
                     }
 
                     checkGjelderId(gjelderId)?.let { message ->
-                        add(Pair(ErrorKeys.GJELDERID_ERROR, "$message. Linje: $linjenummer"))
+                        add(Pair(ErrorKeys.GJELDERID_ERROR, "$message. Saksnummer: $saksnummerNav. Linje: $linjenummer"))
                     }
 
                     checkBelop(belop)?.let { message ->
-                        add(Pair(ErrorKeys.HOVEDSTOL_ERROR, "$message: (Beløp: $belop). Linje: $linjenummer"))
+                        add(Pair(ErrorKeys.HOVEDSTOL_ERROR, "$message: (Beløp: $belop). Saksnummer: $saksnummerNav. Linje: $linjenummer"))
                     }
 
                     if (!saksNummerIsValid(saksnummerNav)) {
@@ -61,14 +63,16 @@ class LineValidator {
                     }
 
                     if (!kravTypeIsValid(krav)) {
-                        add(Pair(ErrorKeys.KRAVTYPE_ERROR, "${ErrorMessages.KRAVTYPE_DOES_NOT_EXIST}: ($kravKode) sammen med ($kodeHjemmel). Linje: $linjenummer"))
+                        add(Pair(ErrorKeys.KRAVTYPE_ERROR, "${ErrorMessages.KRAVTYPE_DOES_NOT_EXIST}: ($kravKode) sammen med ($kodeHjemmel). Saksnummer: $saksnummerNav. Linje: $linjenummer"))
                     }
 
                     if (!isOpprettKrav()) {
                         if (isStopp() && referansenummerGammelSak.isEmpty()) {
-                            add(Pair(ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING, "${ErrorMessages.REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP}. Linje: $linjenummer"))
+                            add(Pair(ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING, "${ErrorMessages.REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP}. Saksnummer: $saksnummerNav. Linje: $linjenummer"))
                         } else if (!saksNummerIsValid(referansenummerGammelSak)) {
-                            add(Pair(ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR, "${ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT}: ($referansenummerGammelSak). Linje: $linjenummer"))
+                            add(
+                                Pair(REFERANSENUMMERGAMMELSAK_ERROR, "${REFERANSENUMMERGAMMELSAK_WRONG_FORMAT}: ($referansenummerGammelSak). Saksnummer: $saksnummerNav. Linje: $linjenummer"),
+                            )
                         }
                     }
                 }
