@@ -5,12 +5,12 @@ import java.math.BigDecimal
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forExactly
-import io.kotest.inspectors.forNone
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 
 import no.nav.sokos.ske.krav.copybook.KravLinje
@@ -105,18 +105,18 @@ internal class LineValidatorIntegrationTest :
                         message shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
                     }
 
-                    messages.forNone { (_, message) ->
-                        message shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description
-                        message shouldContain ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT.description
-                        message shouldContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description
-                        message shouldContain ErrorMessages.PERIODE_FOM_WRONG_FORMAT.description
-                        message shouldContain ErrorMessages.PERIODE_TOM_WRONG_FORMAT.description
-                        message shouldContain ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM.description
-                        message shouldContain ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE.description
-                        message shouldContain ErrorMessages.UNKNOWN_DATE_ERROR.description
-                        message shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
-                        message shouldContain ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD.description
-                        message shouldContain ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT.description
+                    messages.forAll { (_, message) ->
+                        message shouldNotContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description
+                        message shouldNotContain ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT.description
+                        message shouldNotContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description
+                        message shouldNotContain ErrorMessages.PERIODE_FOM_WRONG_FORMAT.description
+                        message shouldNotContain ErrorMessages.PERIODE_TOM_WRONG_FORMAT.description
+                        message shouldNotContain ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM.description
+                        message shouldNotContain ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE.description
+                        message shouldNotContain ErrorMessages.UNKNOWN_DATE_ERROR.description
+                        message shouldNotContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                        message shouldNotContain ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD.description
+                        message shouldNotContain ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT.description
                     }
                 }
             }
