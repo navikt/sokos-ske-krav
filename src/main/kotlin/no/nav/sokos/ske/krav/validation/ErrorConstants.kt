@@ -3,7 +3,7 @@ package no.nav.sokos.ske.krav.validation
 enum class ErrorKeys(
     val value: String,
 ) {
-    // File validatation error keys
+    // File validation error keys
     PARSE_EXCEPTION("Exception i parsing av fil"),
     FEIL_I_ANTALL("Antall krav stemmer ikke med antallet i siste linje"),
     FEIL_I_SUM("Sum alle linjer stemmer ikke med sum i siste linje"),
