@@ -3,7 +3,6 @@ package no.nav.sokos.ske.krav.validation
 import java.math.BigDecimal
 import java.time.LocalDate
 
-import com.sun.org.apache.xml.internal.serializer.utils.Utils.messages
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.inspectors.forExactly
 import io.kotest.matchers.collections.shouldHaveSize
