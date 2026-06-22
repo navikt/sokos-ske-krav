@@ -54,7 +54,7 @@ internal class LineValidatorIntegrationTest :
             val okKrav = validatedLines.filterIsInstance<ValidationResult.Success>()
             val errorKrav = validatedLines.filterIsInstance<ValidationResult.Error>()
 
-            Then("Skal validering returnere én ValidationResult.Failure og ${kravLines.size - 1} ValidationResult.Success") {
+            Then("Skal validering returnere én ValidationResult.Error og ${kravLines.size - 1} ValidationResult.Success") {
                 validatedLines shouldHaveSize kravLines.size
                 errorKrav shouldHaveSize 1
                 okKrav shouldHaveSize kravLines.size - 1
@@ -83,7 +83,7 @@ internal class LineValidatorIntegrationTest :
             val okKrav = validatedLines.filterIsInstance<ValidationResult.Success>()
             val errorKrav = validatedLines.filterIsInstance<ValidationResult.Error>()
 
-            Then("Skal validering returnere 1 ValidationResult.Failuer og ${kravLines.size - 1} ValidationResult.Success") {
+            Then("Skal validering returnere 1 ValidationResult.Error og ${kravLines.size - 1} ValidationResult.Success") {
                 validatedLines shouldHaveSize kravLines.size
                 errorKrav shouldHaveSize 1
                 okKrav shouldHaveSize kravLines.size - 1
@@ -128,7 +128,7 @@ internal class LineValidatorIntegrationTest :
             val okKrav = validatedLines.filterIsInstance<ValidationResult.Success>()
             val errorKrav = validatedLines.filterIsInstance<ValidationResult.Error>()
 
-            Then("Skal validering returnere 6 ValidationResult.Error og ${kravLines - 6} ValidationResult.Success") {
+            Then("Skal validering returnere 6 ValidationResult.Error og ${kravLines.size - 6} ValidationResult.Success") {
                 validatedLines shouldHaveSize kravLines.size
                 errorKrav shouldHaveSize 6
                 okKrav shouldHaveSize kravLines.size - 6
@@ -151,7 +151,7 @@ internal class LineValidatorIntegrationTest :
             val okKrav = validatedLines.filterIsInstance<ValidationResult.Success>()
             val errorKrav = validatedLines.filterIsInstance<ValidationResult.Error>()
 
-            Then("Skal validering returnere 6 ValidationResult.Error og ${kravLines - 6} ValidationResult.Success") {
+            Then("Skal validering returnere 6 ValidationResult.Error og ${kravLines.size - 6} ValidationResult.Success") {
                 validatedLines shouldHaveSize kravLines.size
                 okKrav shouldHaveSize kravLines.size - 6
                 errorKrav shouldHaveSize 6
