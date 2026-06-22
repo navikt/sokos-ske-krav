@@ -34,6 +34,7 @@ import no.nav.sokos.ske.krav.util.transaction
 import no.nav.sokos.ske.krav.validation.LineValidator
 import no.nav.sokos.ske.krav.validation.ValidationResult
 
+// TODO: Convert to enum
 const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRING_RENTE = "ENDRING_RENTE"
 const val ENDRING_HOVEDSTOL = "ENDRING_HOVEDSTOL"
@@ -270,10 +271,7 @@ class SkeService(
 
         dataSource.transaction { session ->
             kravRepository.insertAllNewKrav(session, validKrav, filename)
-            // TODO: Batch insert
-            invalidKrav.forEach { line ->
-                filValideringsfeilRepository.insertLineFilValideringsfeil(session, filename, line.first, line.second)
-            }
+            filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
         }
     }
 

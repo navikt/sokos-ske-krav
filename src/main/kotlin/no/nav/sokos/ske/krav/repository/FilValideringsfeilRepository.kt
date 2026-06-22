@@ -6,6 +6,7 @@ import javax.sql.DataSource
 import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
+import org.intellij.lang.annotations.Language
 
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
@@ -47,6 +48,13 @@ class FilValideringsfeilRepository(
         )
     }
 
+    @Language("SQL")
+    private val insertFilValideringsfeilStatement =
+        """
+        insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
+        values (:filnavn, :linjenummer, :saksnummerNav, :kravlinje, :feilmelding)
+        """.trimIndent()
+
     fun insertLineFilValideringsfeil(
         session: TransactionalSession,
         filnavn: String,
@@ -55,11 +63,7 @@ class FilValideringsfeilRepository(
     ) {
         session.update(
             queryOf(
-                // language=SQL
-                """
-                insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
-                values (:filnavn, :linjenummer, :saksnummerNav, :kravlinje, :feilmelding)
-                """.trimIndent(),
+                insertFilValideringsfeilStatement,
                 mapOf(
                     "filnavn" to filnavn,
                     "linjenummer" to kravlinje.linjenummer,
@@ -68,6 +72,27 @@ class FilValideringsfeilRepository(
                     "feilmelding" to feilmelding,
                 ),
             ),
+        )
+    }
+
+    fun insertAllLineFilValideringsfeil(
+        session: TransactionalSession,
+        filename: String,
+        kravlinjer: List<Pair<KravLinje, String>>,
+    ) {
+        val params: List<Map<String, Any>> =
+            kravlinjer.map { (kravlinje, feilmelding) ->
+                mapOf(
+                    "filnavn" to filename,
+                    "linjenummer" to kravlinje.linjenummer,
+                    "saksnummerNav" to kravlinje.saksnummerNav,
+                    "kravlinje" to kravlinje.toString(),
+                    "feilmelding" to feilmelding,
+                )
+            }
+        session.batchPreparedNamedStatement(
+            insertFilValideringsfeilStatement,
+            params,
         )
     }
 

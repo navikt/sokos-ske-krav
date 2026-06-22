@@ -29,7 +29,7 @@ enum class Endpoint(
 
 data class MockResponse(
     val originEndpoint: Endpoint,
-    val content: String,
+    val content: String = "",
     val statusCode: HttpStatusCode = HttpStatusCode.OK,
 )
 
