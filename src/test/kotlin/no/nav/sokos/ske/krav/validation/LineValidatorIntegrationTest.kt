@@ -73,17 +73,16 @@ internal class LineValidatorIntegrationTest :
                     validatedLines.shouldHaveSize(ftpFil.kravLinjer.size)
                     validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }.shouldBeEmpty()
                 }
-
-                When("Feilmeldinger håndteres") {
-                    Then("Feilmeldinger skal ikke dannes") {
-                        coVerify(exactly = 0) {
-                            slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
-                        }
+            }
+            When("Feilmeldinger håndteres") {
+                Then("Feilmeldinger skal ikke dannes") {
+                    coVerify(exactly = 0) {
+                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
                     }
-                    Then("Alert skal ikke sendes") {
-                        coVerify(exactly = 0) {
-                            slackClientSpy.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any())
-                        }
+                }
+                Then("Alert skal ikke sendes") {
+                    coVerify(exactly = 0) {
+                        slackClientSpy.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any())
                     }
                 }
             }
@@ -125,43 +124,42 @@ internal class LineValidatorIntegrationTest :
                         shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
                     }
                 }
+            }
+            When("Feilmeldinger håndteres") {
+                val addErrorFilenameSlot = slot<String>()
+                val addErrorMessagesSlot = slot<List<Pair<String, String>>>()
+                coVerify(exactly = 1) {
+                    slackServiceSpy.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessagesSlot))
+                }
 
-                When("Feilmeldinger håndteres") {
-                    val addErrorFilenameSlot = slot<String>()
-                    val addErrorMessagesSlot = slot<List<Pair<String, String>>>()
+                addErrorFilenameSlot.captured shouldBe fileNameOnSftp
+                val capturedSendAlertMessages: Map<String, List<String>> = addErrorMessagesSlot.captured.groupBy({ it.first }, { it.second })
+                Then("Skal én feilmelding dannes") {
+                    capturedSendAlertMessages.shouldHaveSize(1)
+
+                    capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldBe null
+                    capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
+                    capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
+                    capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldBe null
+                    capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldBe null
+                    capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
+
+                    with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
+                        shouldHaveSize(1)
+                        first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                    }
+                }
+                Then("Skal én feilmelding sendes") {
+                    val sendAlertFilenameSlot = slot<String>()
+                    val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
+
                     coVerify(exactly = 1) {
-                        slackServiceSpy.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessagesSlot))
+                        slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
                     }
+                    sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
 
-                    addErrorFilenameSlot.captured shouldBe fileNameOnSftp
-                    val capturedSendAlertMessages: Map<String, List<String>> = addErrorMessagesSlot.captured.groupBy({ it.first }, { it.second })
-                    Then("Skal én feilmelding dannes") {
-                        capturedSendAlertMessages.shouldHaveSize(1)
-
-                        capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
-
-                        with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
-                            shouldHaveSize(1)
-                            first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
-                        }
-                    }
-                    Then("Skal én feilmelding sendes") {
-                        val sendAlertFilenameSlot = slot<String>()
-                        val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
-
-                        coVerify(exactly = 1) {
-                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
-                        }
-                        sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
-
-                        val capturedErrorMessages = sendAlertMessagesSlot.captured
-                        capturedErrorMessages shouldBe capturedSendAlertMessages
-                    }
+                    val capturedErrorMessages = sendAlertMessagesSlot.captured
+                    capturedErrorMessages shouldBe capturedSendAlertMessages
                 }
             }
         }
@@ -211,57 +209,56 @@ internal class LineValidatorIntegrationTest :
                         shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
                     }
                 }
+            }
+            When("Feilmeldinger håndteres") {
+                val addErrorFilenameSlot = slot<String>()
+                val addErrorMessagesSlot = slot<List<Pair<String, String>>>()
 
-                When("Feilmeldinger håndteres") {
-                    val addErrorFilenameSlot = slot<String>()
-                    val addErrorMessagesSlot = slot<List<Pair<String, String>>>()
+                coVerify(exactly = 1) {
+                    slackServiceSpy.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessagesSlot))
+                }
+
+                addErrorFilenameSlot.captured shouldBe fileNameOnSftp
+                val capturedAddErrorMessages: Map<String, List<String>> = addErrorMessagesSlot.captured.groupBy({ it.first }, { it.second })
+
+                Then("Skal 3 feilmeldinger dannes") {
+                    capturedAddErrorMessages.shouldHaveSize(3)
+
+                    capturedAddErrorMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
+                    capturedAddErrorMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
+                    capturedAddErrorMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldBe null
+
+                    capturedAddErrorMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldNotBe null
+                    capturedAddErrorMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldNotBe null
+                    capturedAddErrorMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
+
+                    with(capturedAddErrorMessages[ErrorKeys.VEDTAKSDATO_ERROR]!!) {
+                        shouldHaveSize(1)
+                        first() shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
+                    }
+                    with(capturedAddErrorMessages[ErrorKeys.SAKSNUMMER_ERROR]!!) {
+                        shouldHaveSize(1)
+                        first() shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+                    }
+
+                    with(capturedAddErrorMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
+                        shouldHaveSize(1)
+                        first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                    }
+                }
+
+                Then("Skal 3 feilmeldinger sendes") {
+
+                    val sendAlertFilenameSlot = slot<String>()
+                    val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
                     coVerify(exactly = 1) {
-                        slackServiceSpy.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessagesSlot))
+                        slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
                     }
+                    sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
 
-                    addErrorFilenameSlot.captured shouldBe fileNameOnSftp
-                    val capturedAddErrorMessages: Map<String, List<String>> = addErrorMessagesSlot.captured.groupBy({ it.first }, { it.second })
-
-                    Then("Skal 3 feilmeldinger dannes") {
-                        capturedAddErrorMessages.shouldHaveSize(3)
-
-                        capturedAddErrorMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
-                        capturedAddErrorMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
-                        capturedAddErrorMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldBe null
-
-                        capturedAddErrorMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldNotBe null
-                        capturedAddErrorMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldNotBe null
-                        capturedAddErrorMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
-
-                        with(capturedAddErrorMessages[ErrorKeys.VEDTAKSDATO_ERROR]!!) {
-                            shouldHaveSize(1)
-                            first() shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
-                        }
-                        with(capturedAddErrorMessages[ErrorKeys.SAKSNUMMER_ERROR]!!) {
-                            shouldHaveSize(1)
-                            first() shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
-                        }
-
-                        with(capturedAddErrorMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
-                            shouldHaveSize(1)
-                            first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
-                        }
-                    }
-
-                    Then("Skal 3 feilmeldinger sendes") {
-
-                        val sendAlertFilenameSlot = slot<String>()
-                        val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
-
-                        coVerify(exactly = 1) {
-                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
-                        }
-                        sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
-
-                        val capturedErrorMessages = sendAlertMessagesSlot.captured
-                        capturedErrorMessages shouldBe capturedAddErrorMessages
-                    }
+                    val capturedErrorMessages = sendAlertMessagesSlot.captured
+                    capturedErrorMessages shouldBe capturedAddErrorMessages
                 }
             }
         }
@@ -313,49 +310,48 @@ internal class LineValidatorIntegrationTest :
                         }
                     }
                 }
+            }
+            When("Feilmeldinger håndteres") {
+                val addErrorFilenameSlot = slot<String>()
+                val headerSlot = slot<String>()
+                val addErrorMessagesSlot = slot<List<Pair<String, String>>>()
 
-                When("Feilmeldinger håndteres") {
-                    val addErrorFilenameSlot = slot<String>()
-                    val headerSlot = slot<String>()
-                    val addErrorMessagesSlot = slot<List<Pair<String, String>>>()
+                coVerify(exactly = 1) {
+                    slackServiceSpy.addError(capture(addErrorFilenameSlot), capture(headerSlot), capture(addErrorMessagesSlot))
+                }
+
+                addErrorFilenameSlot.captured shouldBe fileNameOnSftp
+                val capturedSendAlertMessages: Map<String, List<String>> = addErrorMessagesSlot.captured.groupBy({ it.first }, { it.second })
+
+                Then("Skal 6 feilmeldinger dannes") {
+
+                    capturedSendAlertMessages.shouldHaveSize(1)
+
+                    capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldBe null
+                    capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
+                    capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
+                    capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldBe null
+                    capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldBe null
+                    capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
+                    with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
+                        shouldHaveSize(6)
+                        filter { it.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.shouldHaveSize(6)
+                    }
+                }
+
+                Then("Skal 1 alert sendes") {
+                    val sendAlertFilenameSlot = slot<String>()
+                    val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
                     coVerify(exactly = 1) {
-                        slackServiceSpy.addError(capture(addErrorFilenameSlot), capture(headerSlot), capture(addErrorMessagesSlot))
+                        slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
                     }
+                    sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
 
-                    addErrorFilenameSlot.captured shouldBe fileNameOnSftp
-                    val capturedSendAlertMessages: Map<String, List<String>> = addErrorMessagesSlot.captured.groupBy({ it.first }, { it.second })
+                    val capturedErrorMessages = sendAlertMessagesSlot.captured
 
-                    Then("Skal 6 feilmeldinger dannes") {
-
-                        capturedSendAlertMessages.shouldHaveSize(1)
-
-                        capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
-                        with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
-                            shouldHaveSize(6)
-                            filter { it.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.shouldHaveSize(6)
-                        }
-                    }
-
-                    Then("Skal 1 alert sendes") {
-                        val sendAlertFilenameSlot = slot<String>()
-                        val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
-
-                        coVerify(exactly = 1) {
-                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
-                        }
-                        sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
-
-                        val capturedErrorMessages = sendAlertMessagesSlot.captured
-
-                        capturedErrorMessages.shouldHaveSize(1)
-                        capturedErrorMessages.keys.first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
-                    }
+                    capturedErrorMessages.shouldHaveSize(1)
+                    capturedErrorMessages.keys.first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
                 }
             }
         }
@@ -395,66 +391,64 @@ internal class LineValidatorIntegrationTest :
                         filter { it.feilmelding.contains(ErrorMessages.SAKSNUMMER_WRONG_FORMAT) }.shouldHaveSize(1)
                     }
                 }
+            }
+            When("Feilmeldinger håndteres") {
+                val addErrorFilenameSlot = slot<String>()
+                val addErrorMessageSlot = slot<MutableList<Pair<String, String>>>()
 
-                When("Feilmeldinger håndteres") {
-                    val addErrorFilenameSlot = slot<String>()
-                    val addErrorMessageSlot = slot<MutableList<Pair<String, String>>>()
+                coVerify(exactly = 1) {
+                    slackServiceSpy.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessageSlot))
+                }
 
-                    coVerify(exactly = 1) {
-                        slackServiceSpy.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessageSlot))
+                addErrorFilenameSlot.captured shouldBe fileNameOnSftp
+                val capturedSendAlertMessages: Map<String, List<String>> = addErrorMessageSlot.captured.groupBy({ it.first }, { it.second })
+                Then("Skal 9 feilmeldinger dannes") {
+                    capturedSendAlertMessages.shouldHaveSize(4)
+
+                    capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
+                    capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
+                    capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldNotBe null
+                    capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldNotBe null
+                    capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldNotBe null
+                    capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
+
+                    with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
+                        shouldHaveSize(6)
+                        filter { it.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.shouldHaveSize(6)
                     }
 
-                    addErrorFilenameSlot.captured shouldBe fileNameOnSftp
-                    val capturedSendAlertMessages: Map<String, List<String>> = addErrorMessageSlot.captured.groupBy({ it.first }, { it.second })
-                    Then("Skal 9 feilmeldinger dannes") {
-                        capturedSendAlertMessages.shouldHaveSize(4)
-
-                        capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
-                        capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldNotBe null
-                        capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldNotBe null
-                        capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldNotBe null
-                        capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
-
-                        with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
-                            shouldHaveSize(6)
-                            filter { it.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.shouldHaveSize(6)
-                        }
-
-                        with(capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR]!!) {
-                            shouldHaveSize(1)
-                            filter { it.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT) }.shouldHaveSize(1)
-                        }
-
-                        with(capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR]!!) {
-                            shouldHaveSize(1)
-                            filter { it.contains(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT) }.shouldHaveSize(1)
-                        }
-                        with(capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR]!!) {
-                            shouldHaveSize(1)
-                            filter { it.contains(ErrorMessages.SAKSNUMMER_WRONG_FORMAT) }.shouldHaveSize(1)
-                        }
+                    with(capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR]!!) {
+                        shouldHaveSize(1)
+                        filter { it.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT) }.shouldHaveSize(1)
                     }
 
-                    When("Alert sendes") {
-                        val sendAlertFileNameSlot = slot<String>()
-                        val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
-
-                        coVerify(exactly = 1) {
-                            slackClientSpy.sendMessage(any<String>(), capture(sendAlertFileNameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
-                        }
-                        sendAlertFileNameSlot.captured shouldBe fileNameOnSftp
-                        val capturedErrorMessages = sendAlertMessagesSlot.captured
-                        Then("Skal de 6 like feilmeldingene aggregeres til én") {
-                            capturedErrorMessages.shouldHaveSize(4)
-                            capturedErrorMessages.keys.filter { it.contains(ErrorKeys.KRAVTYPE_ERROR) }.shouldHaveSize(1)
-                        }
-                        Then("Skal de 3 ulike feilmeldingene ikke aggregeres") {
-                            capturedErrorMessages.keys.filter { it.contains(ErrorKeys.VEDTAKSDATO_ERROR) }.shouldHaveSize(1)
-                            capturedErrorMessages.keys.filter { it.contains(ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR) }.shouldHaveSize(1)
-                            capturedErrorMessages.keys.filter { it.contains(ErrorKeys.SAKSNUMMER_ERROR) }.shouldHaveSize(1)
-                        }
+                    with(capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR]!!) {
+                        shouldHaveSize(1)
+                        filter { it.contains(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT) }.shouldHaveSize(1)
                     }
+                    with(capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR]!!) {
+                        shouldHaveSize(1)
+                        filter { it.contains(ErrorMessages.SAKSNUMMER_WRONG_FORMAT) }.shouldHaveSize(1)
+                    }
+                }
+            }
+            When("Alert sendes") {
+                val sendAlertFileNameSlot = slot<String>()
+                val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
+
+                coVerify(exactly = 1) {
+                    slackClientSpy.sendMessage(any<String>(), capture(sendAlertFileNameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
+                }
+                sendAlertFileNameSlot.captured shouldBe fileNameOnSftp
+                val capturedErrorMessages = sendAlertMessagesSlot.captured
+                Then("Skal de 6 like feilmeldingene aggregeres til én") {
+                    capturedErrorMessages.shouldHaveSize(4)
+                    capturedErrorMessages.keys.filter { it.contains(ErrorKeys.KRAVTYPE_ERROR) }.shouldHaveSize(1)
+                }
+                Then("Skal de 3 ulike feilmeldingene ikke aggregeres") {
+                    capturedErrorMessages.keys.filter { it.contains(ErrorKeys.VEDTAKSDATO_ERROR) }.shouldHaveSize(1)
+                    capturedErrorMessages.keys.filter { it.contains(ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR) }.shouldHaveSize(1)
+                    capturedErrorMessages.keys.filter { it.contains(ErrorKeys.SAKSNUMMER_ERROR) }.shouldHaveSize(1)
                 }
             }
         }
