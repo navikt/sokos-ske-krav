@@ -53,10 +53,9 @@ class SlackService(
         fileName: String,
         header: String,
         messages: List<Pair<String, String>>,
-        saksnummer: String? = null, // TODO: I en annen branch, refaktorer validator slik at saksnummer kan sendes inn
     ) {
         val map = messages.groupBy({ it.first }, { it.second })
-        addError(fileName, header, map, saksnummer)
+        addError(fileName, header, map)
     }
 
     private fun consolidateErrors() {

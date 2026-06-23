@@ -6,16 +6,23 @@ import ch.qos.logback.core.read.ListAppender
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.inspectors.forAll
+import io.kotest.inspectors.forExactly
 import io.kotest.inspectors.forNone
+import io.kotest.inspectors.forValuesExactly
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpStatusCode
+import io.mockk.clearMocks
 import io.mockk.coEvery
+import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.spyk
 import org.slf4j.LoggerFactory
 
@@ -28,6 +35,7 @@ import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.Status.HTTP403_INGEN_TILGANG
 import no.nav.sokos.ske.krav.domain.Status.KRAV_SENDT
+import no.nav.sokos.ske.krav.domain.TaggablePeople
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
@@ -42,6 +50,7 @@ import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.service.SkeService
 import no.nav.sokos.ske.krav.util.getAllKrav
+import no.nav.sokos.ske.krav.util.getAllValideringsFeil
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
@@ -57,6 +66,8 @@ import no.nav.sokos.ske.krav.util.mockHttpResponse
 import no.nav.sokos.ske.krav.util.setupSkeServiceMock
 import no.nav.sokos.ske.krav.util.setupSkeServiceMockWithMockEngine
 import no.nav.sokos.ske.krav.util.transaction
+import no.nav.sokos.ske.krav.validation.ErrorKeys
+import no.nav.sokos.ske.krav.validation.ErrorMessages
 import no.nav.sokos.ske.krav.validation.FileValidator
 
 internal class SkeServiceIntegrationTest :
@@ -73,8 +84,9 @@ internal class SkeServiceIntegrationTest :
             FtpService(
                 dataSource = dataSource,
                 sftpConfig = SftpConfig(SftpListener.sftpProperties),
-                fileValidator = FileValidator(mockk<SlackService>(relaxed = true)),
+                fileValidator = FileValidator(),
                 filValideringsfeilRepository = filvalideringsFeilRepository,
+                slackService = mockk(relaxed = true),
             )
         }
 
@@ -88,23 +100,327 @@ internal class SkeServiceIntegrationTest :
         }
 
         Given("Det finnes en fil i INBOUND") {
-            DBListener.clearDB()
-            SftpListener.putFiles(listOf("krav/TiNyeKrav.txt"), Directories.INBOUND)
+            val skeClient =
+                SkeClient(
+                    client = MockHttpClient.client(MockResponse(Endpoint.AVSTEMMING)),
+                    tokenProvider = mockk(relaxed = true),
+                )
+            val slackClientMock =
+                mockk<SlackClient> {
+                    coJustRun { sendMessage(any(), any(), any(), any(), any(), any()) }
+                }
+            val slackService = spyk(SlackService(slackClientMock), recordPrivateCalls = true)
+
             val skeService =
                 setupSkeServiceMock(
+                    skeClient = skeClient,
                     ftpService = ftpService,
+                    slackService = slackService,
                     filValideringsfeilRepository = filvalideringsFeilRepository,
                     feilmeldingRepository = feilmeldingRepository,
                     kravRepository = kravRepository,
                 )
 
-            Then("Skal alle validerte linjer lagres i database") {
+            fun resetState() {
+                DBListener.clearDB()
+                clearMocks(slackClientMock, slackService, answers = false)
+            }
+
+            When("Alle linjer er ok") {
+                DBListener.clearDB()
+                SftpListener.putFile("krav/TiNyeKrav.txt")
                 skeService.handleNewKrav()
-                val allKrav =
+
+                Then("Skal alle krav lagres i database") {
+                    val allKrav =
+                        dataSource.transaction { session ->
+                            kravRepository.getAllKrav(session)
+                        }
+                    allKrav.shouldHaveSize(10)
+                }
+
+                And("Ingen feil skal lagres i databasen") {
+                    val allFilvalideringsFeil =
+                        dataSource.transaction { session ->
+                            filvalideringsFeilRepository.getAllValideringsFeil(session)
+                        }
+
+                    allFilvalideringsFeil.shouldBeEmpty()
+                }
+            }
+
+            When("Én linje har én feil") {
+                resetState()
+                val fileName = "EnLinjeFeilKravtype.txt"
+                SftpListener.putFile("validering/linjevalidering/$fileName")
+                skeService.handleNewKrav()
+
+                Then("Skal én feil og alle krav lagres i databasen") {
                     dataSource.transaction { session ->
-                        kravRepository.getAllKrav(session)
+                        kravRepository.getAllKrav(session).groupBy { it.linjenummer }.should { kravene ->
+                            kravene shouldHaveSize 10
+                            kravene.forValuesExactly(1) { it shouldHaveSize 2 }
+                        }
+                        filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 1
                     }
-                allKrav.shouldHaveSize(10)
+                }
+
+                And("Feilmeldinger håndteres") {
+                    Then("Skal én feilmelding dannes") {
+                        val addErrorFilenameSlot = slot<String>()
+                        val addErrorMessageSlot = slot<List<Pair<String, String>>>()
+
+                        coVerify(exactly = 1) {
+                            slackService.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessageSlot))
+                        }
+                        addErrorFilenameSlot.captured shouldBe fileName
+                        addErrorMessageSlot.captured.should { errorMessages ->
+                            errorMessages shouldHaveSize 1
+                            errorMessages.forExactly(1) { (errorKey, content) ->
+                                errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR.value
+                                content shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                            }
+                        }
+                    }
+
+                    And("Én alert med én feilmelding skal sendes") {
+                        val sendAlertFilenameSlot = slot<String>()
+                        val sendAlertMessageSlot = slot<Map<String, List<String>>>()
+
+                        coVerify(exactly = 1) {
+                            slackClientMock.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessageSlot), any<List<TaggablePeople>>(), any<String>(), any<String>())
+                        }
+                        sendAlertFilenameSlot.captured shouldBe fileName
+                        sendAlertMessageSlot.captured.should { alertMessages ->
+                            alertMessages shouldHaveSize 1
+                            alertMessages.forExactly(1) { (errorKey, errorMessages) ->
+                                errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR.value
+                                errorMessages shouldHaveSize 1
+                                errorMessages.forExactly(1) { content ->
+                                    content shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            When("Én linje har tre forskjellige feil") {
+                resetState()
+                val fileName = "EnLinjeFlereFeil.txt"
+                SftpListener.putFile("validering/linjevalidering/$fileName")
+                skeService.handleNewKrav()
+
+                Then("Skal én feil og alle krav lagres i databasen") {
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 10
+                        filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 1
+                    }
+                }
+
+                And("Feilmeldinger håndteres") {
+                    Then("Skal tre feilmeldinger dannes") {
+                        val addErrorFilenameSlot = slot<String>()
+                        val addErrorMessageSlot = slot<List<Pair<String, String>>>()
+
+                        coVerify(exactly = 1) {
+                            slackService.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessageSlot))
+                        }
+                        addErrorFilenameSlot.captured shouldBe fileName
+                        addErrorMessageSlot.captured.should { errorMessages ->
+                            errorMessages shouldHaveSize 3
+                            errorMessages.forExactly(1) { (errorKey, content) ->
+                                errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR.value
+                                content shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                            }
+                            errorMessages.forExactly(1) { (errorKey, content) ->
+                                errorKey shouldBe ErrorKeys.VEDTAKSDATO_ERROR.value
+                                content shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE.description
+                            }
+                            errorMessages.forExactly(1) { (errorKey, content) ->
+                                errorKey shouldBe ErrorKeys.SAKSNUMMER_ERROR.value
+                                content shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description
+                            }
+                        }
+                    }
+
+                    And("én alert med tre feilmeldinger skal sendes") {
+                        val sendAlertFilenameSlot = slot<String>()
+                        val sendAlertMessageSlot = slot<Map<String, List<String>>>()
+
+                        coVerify(exactly = 1) {
+                            slackClientMock.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessageSlot), any<List<TaggablePeople>>(), any<String>(), any<String>())
+                        }
+                        sendAlertFilenameSlot.captured shouldBe fileName
+                        sendAlertMessageSlot.captured.should { alertMessages ->
+                            alertMessages shouldHaveSize 3
+                            alertMessages.forExactly(1) { (errorKey, errorMessages) ->
+                                errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR.value
+                                errorMessages shouldHaveSize 1
+                                errorMessages.forExactly(1) { content ->
+                                    content shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                                }
+                            }
+                            alertMessages.forExactly(1) { (errorKey, errorMessages) ->
+                                errorKey shouldBe ErrorKeys.VEDTAKSDATO_ERROR.value
+                                errorMessages shouldHaveSize 1
+                                errorMessages.forExactly(1) { content ->
+                                    content shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE.description
+                                }
+                            }
+                            alertMessages.forExactly(1) { (errorKey, errorMessages) ->
+                                errorKey shouldBe ErrorKeys.SAKSNUMMER_ERROR.value
+                                errorMessages shouldHaveSize 1
+                                errorMessages.forExactly(1) { content ->
+                                    content shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            When("Seks linjer har samme type feil") {
+                resetState()
+                val fileName = "SeksLinjerSammeTypeFeil.txt"
+                SftpListener.putFile("validering/linjevalidering/$fileName")
+                skeService.handleNewKrav()
+
+                Then("Skal seks feil og alle krav lagres i databasen") {
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 10
+                        filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 6
+                    }
+                }
+
+                And("Feilmeldinger håndteres") {
+                    Then("Skal seks feilmeldinger dannes") {
+                        val addErrorFilenameSlot = slot<String>()
+                        val addErrorMessageSlot = slot<List<Pair<String, String>>>()
+
+                        coVerify(exactly = 1) {
+                            slackService.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessageSlot))
+                        }
+                        addErrorFilenameSlot.captured shouldBe fileName
+                        addErrorMessageSlot.captured.should { errorMessages ->
+                            errorMessages shouldHaveSize 6
+                            errorMessages.forExactly(6) { (errorKey, content) ->
+                                errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR.value
+                                content shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                            }
+                        }
+                    }
+
+                    And("Én alert med én feilmelding skal sendes") {
+                        val sendAlertFilenameSlot = slot<String>()
+                        val sendAlertMessageSlot = slot<Map<String, List<String>>>()
+
+                        coVerify(exactly = 1) {
+                            slackClientMock.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessageSlot), any<List<TaggablePeople>>(), any<String>(), any<String>())
+                        }
+                        sendAlertFilenameSlot.captured shouldBe fileName
+                        sendAlertMessageSlot.captured.should { alertMessages ->
+                            alertMessages shouldHaveSize 1
+                            alertMessages.forExactly(1) { (errorKey, errorMessages) ->
+                                errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR.value
+                                errorMessages shouldHaveSize 1
+                                errorMessages.forExactly(1) { content ->
+                                    content shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            When("Seks linjer har samme type feil og tre av disse linjene har ulike feil") {
+                resetState()
+                val fileName = "SeksLinjerSammeOgUlikeFeil.txt"
+                SftpListener.putFile("validering/linjevalidering/$fileName")
+                skeService.handleNewKrav()
+
+                Then("Skal seks feil og alle krav lagres i databasen") {
+                    dataSource.transaction { session ->
+                        kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 10
+                        filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 6
+                    }
+                }
+
+                And("Feilmeldinger håndteres") {
+                    Then("Skal ni feilmeldinger dannes") {
+                        val addErrorFilenameSlot = slot<String>()
+                        val addErrorMessageSlot = slot<List<Pair<String, String>>>()
+
+                        coVerify(exactly = 1) {
+                            slackService.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessageSlot))
+                        }
+                        addErrorFilenameSlot.captured shouldBe fileName
+                        addErrorMessageSlot.captured.should { errorMessages ->
+                            errorMessages shouldHaveSize 9
+                            errorMessages.forExactly(6) { (errorKey, content) ->
+                                errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR.value
+                                content shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                            }
+                            errorMessages.forExactly(1) { (errorKey, content) ->
+                                errorKey shouldBe ErrorKeys.VEDTAKSDATO_ERROR.value
+                                content shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description
+                            }
+                            errorMessages.forExactly(1) { (errorKey, content) ->
+                                errorKey shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR.value
+                                content shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                            }
+                            errorMessages.forExactly(1) { (errorKey, content) ->
+                                errorKey shouldBe ErrorKeys.SAKSNUMMER_ERROR.value
+                                content shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description
+                            }
+                        }
+                    }
+
+                    And("Én alert sendes") {
+                        val sendAlertFilenameSlot = slot<String>()
+                        val sendAlertMessageSlot = slot<Map<String, List<String>>>()
+
+                        coVerify(exactly = 1) {
+                            slackClientMock.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessageSlot), any<List<TaggablePeople>>(), any<String>(), any<String>())
+                        }
+                        sendAlertFilenameSlot.captured shouldBe fileName
+                        val sendAlertMessage = sendAlertMessageSlot.captured
+                        sendAlertMessage shouldHaveSize 4
+                        Then("Skal de seks like feilmeldingene aggregeres til én") {
+                            sendAlertMessage.forExactly(1) { (errorKey, errorMessages) ->
+                                errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR.value
+                                errorMessages shouldHaveSize 1
+                                errorMessages.forExactly(1) { content ->
+                                    content shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                                }
+                            }
+                        }
+
+                        And("De tre ulike feilmeldingene skall ikke aggregeres") {
+                            sendAlertMessage.forExactly(1) { (errorKey, errorMessages) ->
+                                errorKey shouldBe ErrorKeys.VEDTAKSDATO_ERROR.value
+                                errorMessages shouldHaveSize 1
+                                errorMessages.forExactly(1) { content ->
+                                    content shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description
+                                }
+                            }
+                            sendAlertMessage.forExactly(1) { (errorKey, errorMessages) ->
+                                errorKey shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR.value
+                                errorMessages shouldHaveSize 1
+                                errorMessages.forExactly(1) { content ->
+                                    content shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                                }
+                            }
+                            sendAlertMessage.forExactly(1) { (errorKey, errorMessages) ->
+                                errorKey shouldBe ErrorKeys.SAKSNUMMER_ERROR.value
+                                errorMessages shouldHaveSize 1
+                                errorMessages.forExactly(1) { content ->
+                                    content shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 

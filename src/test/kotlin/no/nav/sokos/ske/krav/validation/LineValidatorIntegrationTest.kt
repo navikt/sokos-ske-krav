@@ -1,454 +1,301 @@
 package no.nav.sokos.ske.krav.validation
 
+import java.math.BigDecimal
+
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.inspectors.forAll
-import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.inspectors.forExactly
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.maps.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
-import io.mockk.coVerify
-import io.mockk.slot
-import io.mockk.spyk
+import io.kotest.matchers.types.shouldBeInstanceOf
 
-import no.nav.sokos.ske.krav.client.SlackClient
-import no.nav.sokos.ske.krav.client.SlackService
-import no.nav.sokos.ske.krav.config.SftpConfig
+import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Status
-import no.nav.sokos.ske.krav.domain.TaggablePeople
-import no.nav.sokos.ske.krav.listener.DBListener
-import no.nav.sokos.ske.krav.listener.DBListener.dataSource
-import no.nav.sokos.ske.krav.listener.DBListener.filvalideringsFeilRepository
-import no.nav.sokos.ske.krav.listener.SftpListener
-import no.nav.sokos.ske.krav.service.Directories
-import no.nav.sokos.ske.krav.service.FtpService
-import no.nav.sokos.ske.krav.util.getFilValideringsFeilForFil
-import no.nav.sokos.ske.krav.util.http.MockHttpClient
-import no.nav.sokos.ske.krav.util.transaction
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorMessages
-import no.nav.sokos.ske.krav.validation.LineValidationRules.errorDate
+import no.nav.sokos.ske.krav.domain.Status.VALIDERINGSFEIL_AV_LINJE_I_FIL
+import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 
 internal class LineValidatorIntegrationTest :
     BehaviorSpec({
-        extensions(SftpListener, DBListener)
+        val fileValidator = FileValidator()
+        val lineValidator = LineValidator()
 
-        fun setupServices(): Triple<SlackClient, SlackService, LineValidator> {
-            val slackClientSpy = spyk(SlackClient(client = MockHttpClient.slackClient))
-            val slackServiceSpy = spyk(SlackService(slackClientSpy), recordPrivateCalls = true)
-            val lineValidatorSpy = spyk(LineValidator(dataSource, filvalideringsFeilRepository, slackService = slackServiceSpy), recordPrivateCalls = true)
-            return Triple(slackClientSpy, slackServiceSpy, lineValidatorSpy)
+        fun getKravLinesFor(filename: String): List<KravLinje> {
+            val fileContent = getFileContent(filename)
+            val validatedFile = fileValidator.validateFile(fileContent)
+
+            return if (validatedFile is ValidationResult.Success) validatedFile.kravLinjer else emptyList()
         }
-
-        fun setupFtpService(slackServiceSpy: SlackService): FtpService =
-            FtpService(
-                dataSource = dataSource,
-                sftpConfig = SftpConfig(SftpListener.sftpProperties),
-                fileValidator = FileValidator(slackService = slackServiceSpy),
-                filValideringsfeilRepository = filvalideringsFeilRepository,
-            )
 
         Given("Alle linjer er ok") {
-            val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
-            val ftpService = setupFtpService(slackServiceSpy)
-            val fileName = "AllValideringOk.txt"
-            SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
+            val kravLines = getKravLinesFor("AllValideringOk.txt")
+            val validatedLines = lineValidator.validateNewLines(kravLines)
 
-            val ftpFil = ftpService.getValidatedFiles().first { it.name == fileName }
-
-            When("Linjer valideres") {
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil)
-
-                Then("Skal ingen feil lagres i database") {
-                    val insertedFiles =
-                        dataSource.transaction { session ->
-                            filvalideringsFeilRepository.getFilValideringsFeilForFil(session, fileName)
-                        }
-                    insertedFiles.shouldBeEmpty()
-                }
-
-                Then("Ingen linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
-                    validatedLines.shouldHaveSize(ftpFil.kravLinjer.size)
-                    validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }.shouldBeEmpty()
+            Then("Skal validerering returnere ${kravLines.size} ValidationResult.Success") {
+                validatedLines shouldHaveSize kravLines.size
+                validatedLines.forAll {
+                    it.shouldBeInstanceOf<ValidationResult.Success>()
                 }
             }
-            When("Feilmeldinger håndteres") {
-                Then("Feilmeldinger skal ikke dannes") {
-                    coVerify(exactly = 0) {
-                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
-                    }
-                }
-                Then("Alert skal ikke sendes") {
-                    coVerify(exactly = 0) {
-                        slackClientSpy.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any())
-                    }
+
+            And("Skal alle linjene ha status KRAV_IKKE_SENDT") {
+                validatedLines.flatMap { (it as ValidationResult.Success).kravLinjer }.forAll {
+                    it.status shouldBe Status.KRAV_IKKE_SENDT.value
                 }
             }
         }
 
-        Given("1 linje har 1 feil") {
-            val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
-            val ftpService = setupFtpService(slackServiceSpy)
-            val fileName = "validering/linjevalidering/EnLinjeFeilKravtype.txt"
-            val fileNameOnSftp = fileName.substringAfterLast("/")
-            SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
+        Given("Én linje har én feil") {
+            val kravLines = getKravLinesFor("validering/linjevalidering/EnLinjeFeilKravtype.txt")
+            val validatedLines = lineValidator.validateNewLines(kravLines)
+            val okKrav = validatedLines.filterIsInstance<ValidationResult.Success>()
+            val errorKrav = validatedLines.filterIsInstance<ValidationResult.Error>()
 
-            val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
+            Then("Skal validering returnere én ValidationResult.Error og ${kravLines.size - 1} ValidationResult.Success") {
+                validatedLines shouldHaveSize kravLines.size
+                errorKrav shouldHaveSize 1
+                okKrav shouldHaveSize kravLines.size - 1
+            }
 
-            When("Linjer valideres") {
-                lineValidatorSpy.validateNewLines(ftpFil)
-
-                Then("Skal én feil lagres i database") {
-                    val insertedFiles =
-                        dataSource.transaction { session ->
-                            filvalideringsFeilRepository.getFilValideringsFeilForFil(session, fileNameOnSftp)
-                        }
-                    insertedFiles.shouldHaveSize(1)
-                    with(insertedFiles.first().feilmelding) {
-                        shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
-
-                        shouldNotContain(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE)
-                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO)
-                        shouldNotContain(ErrorMessages.PERIODE_FOM_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.PERIODE_TOM_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM)
-                        shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
-                        shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR)
-                        shouldNotContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
-                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
-                    }
+            And("Skal feil-linjen ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
+                errorKrav.first().originalLines?.forAll {
+                    it.status shouldBe VALIDERINGSFEIL_AV_LINJE_I_FIL.value
                 }
             }
-            When("Feilmeldinger håndteres") {
-                val addErrorFilenameSlot = slot<String>()
-                val addErrorMessagesSlot = slot<List<Pair<String, String>>>()
-                coVerify(exactly = 1) {
-                    slackServiceSpy.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessagesSlot))
-                }
 
-                addErrorFilenameSlot.captured shouldBe fileNameOnSftp
-                val capturedSendAlertMessages: Map<String, List<String>> = addErrorMessagesSlot.captured.groupBy({ it.first }, { it.second })
-                Then("Skal én feilmelding dannes") {
-                    capturedSendAlertMessages.shouldHaveSize(1)
-
-                    capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldBe null
-                    capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
-                    capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
-                    capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldBe null
-                    capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldBe null
-                    capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
-
-                    with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
-                        shouldHaveSize(1)
-                        first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+            And("Skal feil-linjen ha én feilmelding") {
+                errorKrav.first().messages.should { messages ->
+                    messages shouldHaveSize 1
+                    messages.forExactly(1) { (errorKey, message) ->
+                        errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR
+                        message shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
                     }
-                }
-                Then("Skal én feilmelding sendes") {
-                    val sendAlertFilenameSlot = slot<String>()
-                    val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
-
-                    coVerify(exactly = 1) {
-                        slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
-                    }
-                    sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
-
-                    val capturedErrorMessages = sendAlertMessagesSlot.captured
-                    capturedErrorMessages shouldBe capturedSendAlertMessages
                 }
             }
         }
 
         Given("1 linje har 3 forskjellige feil") {
-            val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
-            val ftpService = setupFtpService(slackServiceSpy)
-            val fileName = "validering/linjevalidering/EnLinjeFlereFeil.txt"
-            val fileNameOnSftp = fileName.substringAfterLast("/")
-            SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
+            val kravLines = getKravLinesFor("validering/linjevalidering/EnLinjeFlereFeil.txt")
+            val validatedLines = lineValidator.validateNewLines(kravLines)
+            val okKrav = validatedLines.filterIsInstance<ValidationResult.Success>()
+            val errorKrav = validatedLines.filterIsInstance<ValidationResult.Error>()
 
-            val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
-
-            When("Linjer valideres") {
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil)
-
-                Then("1 returnert linje skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
-                    validatedLines.shouldHaveSize(ftpFil.kravLinjer.size)
-                    with(validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }) {
-                        shouldHaveSize(1)
-                        filter { it.kravKode == "MJ AU" }.shouldHaveSize(1)
-                        filter { it.saksnummerNav == "saksnummer_øOB" }.shouldHaveSize(1)
-                    }
-                }
-                Then("Skal 3 feil lagres som én feilmelding i database") {
-                    val insertedFiles =
-                        dataSource.transaction { session ->
-                            filvalideringsFeilRepository.getFilValideringsFeilForFil(session, fileNameOnSftp)
-                        }
-
-                    insertedFiles.shouldHaveSize(1)
-                    with(insertedFiles.first().feilmelding) {
-                        shouldContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
-                        shouldContain(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE)
-                        shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
-
-                        shouldNotContain(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO)
-                        shouldNotContain(ErrorMessages.PERIODE_FOM_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.PERIODE_TOM_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM)
-                        shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
-                        shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR)
-                        shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
-                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
-                        shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
-                    }
-                }
+            Then("Skal validering returnere 1 ValidationResult.Error og ${kravLines.size - 1} ValidationResult.Success") {
+                validatedLines shouldHaveSize kravLines.size
+                errorKrav shouldHaveSize 1
+                okKrav shouldHaveSize kravLines.size - 1
             }
-            When("Feilmeldinger håndteres") {
-                val addErrorFilenameSlot = slot<String>()
-                val addErrorMessagesSlot = slot<List<Pair<String, String>>>()
 
-                coVerify(exactly = 1) {
-                    slackServiceSpy.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessagesSlot))
-                }
-
-                addErrorFilenameSlot.captured shouldBe fileNameOnSftp
-                val capturedAddErrorMessages: Map<String, List<String>> = addErrorMessagesSlot.captured.groupBy({ it.first }, { it.second })
-
-                Then("Skal 3 feilmeldinger dannes") {
-                    capturedAddErrorMessages.shouldHaveSize(3)
-
-                    capturedAddErrorMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
-                    capturedAddErrorMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
-                    capturedAddErrorMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldBe null
-
-                    capturedAddErrorMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldNotBe null
-                    capturedAddErrorMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldNotBe null
-                    capturedAddErrorMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
-
-                    with(capturedAddErrorMessages[ErrorKeys.VEDTAKSDATO_ERROR]!!) {
-                        shouldHaveSize(1)
-                        first() shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
+            And("Skal feil-linjene ha 3 forskjellige feilmelding") {
+                errorKrav.first().messages.should { messages ->
+                    messages shouldHaveSize 3
+                    messages.forExactly(1) { (errorKey, message) ->
+                        errorKey shouldBe ErrorKeys.SAKSNUMMER_ERROR
+                        message shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description
                     }
-                    with(capturedAddErrorMessages[ErrorKeys.SAKSNUMMER_ERROR]!!) {
-                        shouldHaveSize(1)
-                        first() shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+                    messages.forExactly(1) { (errorKey, message) ->
+                        errorKey shouldBe ErrorKeys.VEDTAKSDATO_ERROR
+                        message shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE.description
+                    }
+                    messages.forExactly(1) { (errorKey, message) ->
+                        errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR
+                        message shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
                     }
 
-                    with(capturedAddErrorMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
-                        shouldHaveSize(1)
-                        first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                    messages.forAll { (_, message) ->
+                        message shouldNotContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description
+                        message shouldNotContain ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT.description
+                        message shouldNotContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description
+                        message shouldNotContain ErrorMessages.PERIODE_FOM_WRONG_FORMAT.description
+                        message shouldNotContain ErrorMessages.PERIODE_TOM_WRONG_FORMAT.description
+                        message shouldNotContain ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM.description
+                        message shouldNotContain ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE.description
+                        message shouldNotContain ErrorMessages.UNKNOWN_DATE_ERROR.description
+                        message shouldNotContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                        message shouldNotContain ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD.description
+                        message shouldNotContain ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT.description
                     }
-                }
-
-                Then("Skal 3 feilmeldinger sendes") {
-
-                    val sendAlertFilenameSlot = slot<String>()
-                    val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
-
-                    coVerify(exactly = 1) {
-                        slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
-                    }
-                    sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
-
-                    val capturedErrorMessages = sendAlertMessagesSlot.captured
-                    capturedErrorMessages shouldBe capturedAddErrorMessages
                 }
             }
         }
 
         Given("6 linjer har samme type feil") {
-            val fileName = "validering/linjevalidering/SeksLinjerSammeTypeFeil.txt"
-            val fileNameOnSftp = fileName.substringAfterLast("/")
-            SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
+            val kravLines = getKravLinesFor("validering/linjevalidering/SeksLinjerSammeTypeFeil.txt")
+            val validatedLines = lineValidator.validateNewLines(kravLines)
+            val okKrav = validatedLines.filterIsInstance<ValidationResult.Success>()
+            val errorKrav = validatedLines.filterIsInstance<ValidationResult.Error>()
 
-            val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
-            val ftpService = setupFtpService(slackServiceSpy)
-            val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
-            ftpFil.kravLinjer.shouldHaveSize(10)
-
-            When("Linjer valideres") {
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil)
-                Then("6 returnerte linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
-                    validatedLines.shouldHaveSize(ftpFil.kravLinjer.size)
-                    with(validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }) {
-                        shouldHaveSize(6)
-                        filter { it.kravKode == "MJ AU" }.shouldHaveSize(6)
-                    }
-                }
-
-                Then("Skal 6 feil lagres i database") {
-                    val insertedFiles =
-                        dataSource.transaction { session ->
-                            filvalideringsFeilRepository.getFilValideringsFeilForFil(session, fileNameOnSftp)
-                        }
-
-                    insertedFiles.shouldHaveSize(6)
-                    insertedFiles.forAll {
-                        with(it.feilmelding) {
-                            shouldContain(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST)
-
-                            shouldNotContain(ErrorMessages.SAKSNUMMER_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE)
-                            shouldNotContain(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO)
-                            shouldNotContain(ErrorMessages.PERIODE_FOM_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.PERIODE_TOM_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM)
-                            shouldNotContain(ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE)
-                            shouldNotContain(ErrorMessages.UNKNOWN_DATE_ERROR)
-                            shouldNotContain(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT)
-                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD)
-                            shouldNotContain(ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT)
-                        }
-                    }
-                }
+            Then("Skal validering returnere 6 ValidationResult.Error og ${kravLines.size - 6} ValidationResult.Success") {
+                validatedLines shouldHaveSize kravLines.size
+                errorKrav shouldHaveSize 6
+                okKrav shouldHaveSize kravLines.size - 6
             }
-            When("Feilmeldinger håndteres") {
-                val addErrorFilenameSlot = slot<String>()
-                val headerSlot = slot<String>()
-                val addErrorMessagesSlot = slot<List<Pair<String, String>>>()
 
-                coVerify(exactly = 1) {
-                    slackServiceSpy.addError(capture(addErrorFilenameSlot), capture(headerSlot), capture(addErrorMessagesSlot))
-                }
-
-                addErrorFilenameSlot.captured shouldBe fileNameOnSftp
-                val capturedSendAlertMessages: Map<String, List<String>> = addErrorMessagesSlot.captured.groupBy({ it.first }, { it.second })
-
-                Then("Skal 6 feilmeldinger dannes") {
-
-                    capturedSendAlertMessages.shouldHaveSize(1)
-
-                    capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldBe null
-                    capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
-                    capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
-                    capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldBe null
-                    capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldBe null
-                    capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
-                    with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
-                        shouldHaveSize(6)
-                        filter { it.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.shouldHaveSize(6)
+            And("Skal alle feil-linjene ha samme feil") {
+                errorKrav.forAll {
+                    it.messages shouldHaveSize 1
+                    it.messages.forExactly(1) { (errorKey, message) ->
+                        errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR
+                        message shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
                     }
-                }
-
-                Then("Skal 1 alert sendes") {
-                    val sendAlertFilenameSlot = slot<String>()
-                    val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
-
-                    coVerify(exactly = 1) {
-                        slackClientSpy.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
-                    }
-                    sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
-
-                    val capturedErrorMessages = sendAlertMessagesSlot.captured
-
-                    capturedErrorMessages.shouldHaveSize(1)
-                    capturedErrorMessages.keys.first() shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
                 }
             }
         }
-        Given("6 linjer har samme type feil og 3 linjer har ulike feil") {
-            val fileName = "validering/linjevalidering/SeksLinjerSammeOgUlikeFeil.txt"
-            val fileNameOnSftp = fileName.substringAfterLast("/")
-            SftpListener.putFiles(listOf(fileName), Directories.INBOUND)
-            val (slackClientSpy, slackServiceSpy, lineValidatorSpy) = setupServices()
-            val ftpService = setupFtpService(slackServiceSpy)
-            val ftpFil = ftpService.getValidatedFiles().first { it.name == fileNameOnSftp }
-            ftpFil.kravLinjer.shouldHaveSize(10)
-            When("Linjer valideres") {
 
-                val validatedLines = lineValidatorSpy.validateNewLines(ftpFil)
+        Given("6 linjer har samme type feil og 3 av disse linjene har ulike feil") {
+            val kravLines = getKravLinesFor("validering/linjevalidering/SeksLinjerSammeOgUlikeFeil.txt")
+            val validatedLines = lineValidator.validateNewLines(kravLines)
+            val okKrav = validatedLines.filterIsInstance<ValidationResult.Success>()
+            val errorKrav = validatedLines.filterIsInstance<ValidationResult.Error>()
 
-                Then("6 returnerte linjer skal ha status VALIDERINGSFEIL_AV_LINJE_I_FIL") {
-                    validatedLines.shouldHaveSize(ftpFil.kravLinjer.size)
-                    with(validatedLines.filter { it.status == Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }) {
-                        shouldHaveSize(6)
-                        filter { it.kravKode == "MJ AU" }.shouldHaveSize(6)
-                        filter { it.saksnummerNav == "saksnummernav_ø" }.shouldHaveSize(1)
-                        filter { it.referansenummerGammelSak == "OB0refgammel_ø" }.shouldHaveSize(1)
-                        filter { it.vedtaksDato.isEqual(errorDate) }.shouldHaveSize(1)
-                    }
+            Then("Skal validering returnere 6 ValidationResult.Error og ${kravLines.size - 6} ValidationResult.Success") {
+                validatedLines shouldHaveSize kravLines.size
+                okKrav shouldHaveSize kravLines.size - 6
+                errorKrav shouldHaveSize 6
+            }
+
+            And("Skal feil-linjene ha 9 feil meldinger") {
+                val errorMessages = errorKrav.flatMap { it.messages }
+                errorMessages shouldHaveSize 9
+                errorMessages.forExactly(6) { (errorKey, message) ->
+                    errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR
+                    message shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
                 }
-                Then("Skal 6 feil lagres  i database ") {
-                    val insertedFiles =
-                        dataSource.transaction { session ->
-                            filvalideringsFeilRepository.getFilValideringsFeilForFil(session, fileNameOnSftp)
-                        }
+                errorMessages.forExactly(1) { (errorKey, message) ->
+                    errorKey shouldBe ErrorKeys.VEDTAKSDATO_ERROR
+                    message shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description
+                }
+                errorMessages.forExactly(1) { (errorKey, message) ->
+                    errorKey shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+                    message shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                }
 
-                    insertedFiles.shouldHaveSize(6)
-                    with(insertedFiles) {
-                        filter { it.feilmelding.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.shouldHaveSize(6)
-                        filter { it.feilmelding.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT) }.shouldHaveSize(1)
-                        filter { it.feilmelding.contains(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT) }.shouldHaveSize(1)
-                        filter { it.feilmelding.contains(ErrorMessages.SAKSNUMMER_WRONG_FORMAT) }.shouldHaveSize(1)
+                errorMessages.forExactly(1) { (errorKey, message) ->
+                    errorKey shouldBe ErrorKeys.SAKSNUMMER_ERROR
+                    message shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description
+                }
+            }
+        }
+
+        Given("FagsystemId mangles") {
+            fun List<KravLinje>.removeFagsystemIdForIndex(lineIndex: Int) =
+                this.mapIndexed { index, line ->
+                    if (index == lineIndex) line.copy(fagsystemId = "") else line
+                }
+
+            When("Avsender er OB04") {
+                val kravLines = getKravLinesFor("innsender/OppdragFil.txt").removeFagsystemIdForIndex(0)
+
+                Then("Skal validering returnere én ValidationResult.Error") {
+                    val validatedLines = lineValidator.validateNewLines(kravLines)
+                    validatedLines.first().shouldBeInstanceOf<ValidationResult.Error>()
+                    validatedLines.subList(1, validatedLines.size).forAll {
+                        it.shouldBeInstanceOf<ValidationResult.Success>()
                     }
                 }
             }
-            When("Feilmeldinger håndteres") {
-                val addErrorFilenameSlot = slot<String>()
-                val addErrorMessageSlot = slot<MutableList<Pair<String, String>>>()
 
-                coVerify(exactly = 1) {
-                    slackServiceSpy.addError(capture(addErrorFilenameSlot), any<String>(), capture(addErrorMessageSlot))
-                }
+            When("Avsender er Arena") {
+                val kravLines = getKravLinesFor("innsender/ArenaFil.txt").removeFagsystemIdForIndex(0)
 
-                addErrorFilenameSlot.captured shouldBe fileNameOnSftp
-                val capturedSendAlertMessages: Map<String, List<String>> = addErrorMessageSlot.captured.groupBy({ it.first }, { it.second })
-                Then("Skal 9 feilmeldinger dannes") {
-                    capturedSendAlertMessages.shouldHaveSize(4)
-
-                    capturedSendAlertMessages[ErrorKeys.UTBETALINGSDATO_ERROR] shouldBe null
-                    capturedSendAlertMessages[ErrorKeys.PERIODE_ERROR] shouldBe null
-                    capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR] shouldNotBe null
-                    capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR] shouldNotBe null
-                    capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR] shouldNotBe null
-                    capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR] shouldNotBe null
-
-                    with(capturedSendAlertMessages[ErrorKeys.KRAVTYPE_ERROR]!!) {
-                        shouldHaveSize(6)
-                        filter { it.contains(ErrorMessages.KRAVTYPE_DOES_NOT_EXIST) }.shouldHaveSize(6)
-                    }
-
-                    with(capturedSendAlertMessages[ErrorKeys.VEDTAKSDATO_ERROR]!!) {
-                        shouldHaveSize(1)
-                        filter { it.contains(ErrorMessages.VEDTAKSDATO_WRONG_FORMAT) }.shouldHaveSize(1)
-                    }
-
-                    with(capturedSendAlertMessages[ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR]!!) {
-                        shouldHaveSize(1)
-                        filter { it.contains(ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT) }.shouldHaveSize(1)
-                    }
-                    with(capturedSendAlertMessages[ErrorKeys.SAKSNUMMER_ERROR]!!) {
-                        shouldHaveSize(1)
-                        filter { it.contains(ErrorMessages.SAKSNUMMER_WRONG_FORMAT) }.shouldHaveSize(1)
+                Then("Skal validering returnere alle linjer som ValidationResult.Success") {
+                    lineValidator.validateNewLines(kravLines).forAll {
+                        it.shouldBeInstanceOf<ValidationResult.Success>()
                     }
                 }
             }
-            When("Alert sendes") {
-                val sendAlertFileNameSlot = slot<String>()
-                val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
 
-                coVerify(exactly = 1) {
-                    slackClientSpy.sendMessage(any<String>(), capture(sendAlertFileNameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any())
+            When("Avsender er Pesys") {
+                val kravLines = getKravLinesFor("innsender/PesysFil.txt").removeFagsystemIdForIndex(0)
+
+                Then("Skal validering returnere ValidationResult.Success") {
+                    lineValidator.validateNewLines(kravLines).forAll {
+                        it.shouldBeInstanceOf<ValidationResult.Success>()
+                    }
                 }
-                sendAlertFileNameSlot.captured shouldBe fileNameOnSftp
-                val capturedErrorMessages = sendAlertMessagesSlot.captured
-                Then("Skal de 6 like feilmeldingene aggregeres til én") {
-                    capturedErrorMessages.shouldHaveSize(4)
-                    capturedErrorMessages.keys.filter { it.contains(ErrorKeys.KRAVTYPE_ERROR) }.shouldHaveSize(1)
+            }
+
+            When("Avsender er Infotrygd") {
+                val kravLines = getKravLinesFor("innsender/InfotrygdFil.txt").removeFagsystemIdForIndex(0)
+
+                Then("Skal validering returnere ValidationResult.Success") {
+                    lineValidator.validateNewLines(kravLines).forAll {
+                        it.shouldBeInstanceOf<ValidationResult.Success>()
+                    }
                 }
-                Then("Skal de 3 ulike feilmeldingene ikke aggregeres") {
-                    capturedErrorMessages.keys.filter { it.contains(ErrorKeys.VEDTAKSDATO_ERROR) }.shouldHaveSize(1)
-                    capturedErrorMessages.keys.filter { it.contains(ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR) }.shouldHaveSize(1)
-                    capturedErrorMessages.keys.filter { it.contains(ErrorKeys.SAKSNUMMER_ERROR) }.shouldHaveSize(1)
+            }
+        }
+
+        Given("ReferansenummerGammelSak er tom") {
+            fun KravLinje.removeReferansenummerGammelSak() = copy(referansenummerGammelSak = "")
+            val kravLinje = getKravLinesFor("innsender/PesysFil.txt")
+            val stoppKrav = kravLinje.find { it.isStopp() }?.removeReferansenummerGammelSak().shouldNotBeNull()
+
+            When("kravlinje er stopp") {
+                Then("Skal validering returnere en ValidationResult.Error") {
+                    val validatedKrav = lineValidator.validateNewLines(listOf(stoppKrav)).first()
+                    validatedKrav.shouldBeInstanceOf<ValidationResult.Error>()
+                    validatedKrav.messages shouldHaveSize 1
+                    validatedKrav.messages.forExactly(1) { (errorKey, message) ->
+                        errorKey shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING
+                        message shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP.description
+                    }
+                }
+            }
+
+            When("kravlinje er opprett") {
+                val nyttKrav = kravLinje.find { it.isOpprettKrav() }?.removeReferansenummerGammelSak().shouldNotBeNull()
+                Then("Skal validering returnere ValidationResult.Success") {
+                    val validatedKrav = lineValidator.validateNewLines(listOf(nyttKrav)).first()
+                    validatedKrav.shouldBeInstanceOf<ValidationResult.Success>()
+                }
+            }
+        }
+
+        Given("ReferansenummerGammelSak er invalid") {
+            fun KravLinje.invalidateReferensenummerGammelSak() = copy(referansenummerGammelSak = "!invalid?")
+            val kravLinje = getKravLinesFor("innsender/PesysFil.txt")
+
+            val stoppKrav = kravLinje.find { it.isStopp() }?.invalidateReferensenummerGammelSak().shouldNotBeNull()
+            val endringKrav = stoppKrav.copy(belop = BigDecimal.ONE)
+
+            When("KravLinje er stopp") {
+                val validatedKrav = lineValidator.validateNewLines(listOf(stoppKrav)).first()
+                Then("Skal validering returnere ValidationResult.Error") {
+                    validatedKrav.shouldBeInstanceOf<ValidationResult.Error>()
+                    validatedKrav.messages shouldHaveSize 1
+                    validatedKrav.messages.forExactly(1) { (errorKey, message) ->
+                        errorKey shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+                        message shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                    }
+                }
+            }
+
+            When("Kravlinje er endring") {
+                val validatedKrav = lineValidator.validateNewLines(listOf(endringKrav)).first()
+                Then("Skal validering returnere ValidationResult.Error") {
+                    validatedKrav.shouldBeInstanceOf<ValidationResult.Error>()
+                    validatedKrav.messages shouldHaveSize 1
+                    validatedKrav.messages.forExactly(1) { (errorKey, message) ->
+                        errorKey shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+                        message shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                    }
+                }
+            }
+
+            When("Kravlinje er opprett") {
+                val nyttKrav = kravLinje.find { it.isOpprettKrav() }?.invalidateReferensenummerGammelSak().shouldNotBeNull()
+                val validatedKrav = lineValidator.validateNewLines(listOf(nyttKrav)).first()
+                Then("Skal validering returnere ValidationResult.Error") {
+                    validatedKrav.shouldBeInstanceOf<ValidationResult.Error>()
+                    validatedKrav.messages shouldHaveSize 1
+                    validatedKrav.messages.forExactly(1) { (errorKey, message) ->
+                        errorKey shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+                        message shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                    }
                 }
             }
         }

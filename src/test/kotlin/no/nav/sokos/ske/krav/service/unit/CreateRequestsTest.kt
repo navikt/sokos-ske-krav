@@ -27,7 +27,7 @@ import no.nav.sokos.ske.krav.util.createEndreHovedstolRequest
 import no.nav.sokos.ske.krav.util.createEndreRenteRequest
 import no.nav.sokos.ske.krav.util.createOpprettKravRequest
 import no.nav.sokos.ske.krav.util.createStoppKravRequest
-import no.nav.sokos.ske.krav.validation.LineValidationRules
+import no.nav.sokos.ske.krav.validation.LineValidator
 
 internal class CreateRequestsTest :
     BehaviorSpec({
@@ -127,7 +127,7 @@ internal class CreateRequestsTest :
                 val kravTable =
                     kravTableMockk(
                         tilleggsfristParam = null,
-                        utbetalDatoParam = LineValidationRules.errorDate,
+                        utbetalDatoParam = LineValidator.errorDate,
                     )
                 Then("Skal foreldelsesFristensUtgangspunkt være null") {
                     createOpprettKravRequest(kravTable).run {

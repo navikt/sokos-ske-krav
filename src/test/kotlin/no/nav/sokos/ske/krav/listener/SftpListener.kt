@@ -66,6 +66,11 @@ object SftpListener : TestListener {
         return File("src/test/resources/privateKey").apply { writeText(pem) }
     }
 
+    fun putFile(
+        fileName: String,
+        directory: Directories = Directories.INBOUND,
+    ) = putFiles(listOf(fileName), directory)
+
     fun putFiles(
         fileNames: List<String>,
         directory: Directories = Directories.INBOUND,

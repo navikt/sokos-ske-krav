@@ -16,7 +16,7 @@ import no.nav.sokos.ske.krav.domain.TaggablePeople.MARITA
 import no.nav.sokos.ske.krav.domain.TaggablePeople.STEINAR
 import no.nav.sokos.ske.krav.domain.TaggablePeople.TRINE
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING
+import no.nav.sokos.ske.krav.validation.ErrorKeys
 
 internal class SlackServiceTest :
     FunSpec({
@@ -35,14 +35,14 @@ internal class SlackServiceTest :
                 "file3.txt",
                 "Validation",
                 mapOf(
-                    REFERANSENUMMERGAMMELSAK_MISSING to listOf("hva som helst"),
+                    ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING.value to listOf("hva som helst"),
                 ),
             )
 
             slackService.sendErrors()
 
             assertSoftly {
-                errorSlots[0][REFERANSENUMMERGAMMELSAK_MISSING] shouldContainExactly listOf(("hva som helst"))
+                errorSlots[0][ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING.value] shouldContainExactly listOf(("hva som helst"))
                 taggedPeopleSlot[0] shouldContainExactly listOf(LENE)
             }
         }

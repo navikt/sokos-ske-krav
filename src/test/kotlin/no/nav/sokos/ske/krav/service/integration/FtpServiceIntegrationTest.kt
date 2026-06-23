@@ -15,6 +15,7 @@ import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.util.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.util.transaction
+import no.nav.sokos.ske.krav.validation.ErrorKeys
 import no.nav.sokos.ske.krav.validation.FileValidator
 
 private const val FILE_OK = "AllValideringOk.txt"
@@ -30,8 +31,9 @@ internal class FtpServiceIntegrationTest :
             FtpService(
                 dataSource = DBListener.dataSource,
                 sftpConfig = SftpConfig(SftpListener.sftpProperties),
-                fileValidator = FileValidator(mockk<SlackService>(relaxed = true)),
+                fileValidator = FileValidator(),
                 filValideringsfeilRepository = filvalideringsFeilRepository,
+                slackService = mockk<SlackService>(relaxed = true),
             )
         }
 
@@ -60,7 +62,7 @@ internal class FtpServiceIntegrationTest :
                             filvalideringsFeilRepository.getFilValideringsFeilForFil(session, FILE_ERROR_NAME)
                         }
                     filValideringsfeil.shouldHaveSize(1)
-                    filValideringsfeil.first().feilmelding shouldBe "${FileValidator.ErrorKeys.FEIL_I_ANTALL}: Antall krav: 16, Antall i siste linje: 101"
+                    filValideringsfeil.first().feilmelding shouldBe "${ErrorKeys.FEIL_I_ANTALL.value}: Antall krav: 16, Antall i siste linje: 101"
                 }
             }
         }
