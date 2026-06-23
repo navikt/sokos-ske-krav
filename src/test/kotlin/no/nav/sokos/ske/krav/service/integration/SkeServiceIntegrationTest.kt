@@ -165,7 +165,7 @@ internal class SkeServiceIntegrationTest :
                     }
                 }
 
-                When("Feilmeldinger håndteres") {
+                And("Feilmeldinger håndteres") {
                     Then("Skal én feilmelding dannes") {
                         val addErrorFilenameSlot = slot<String>()
                         val addErrorMessageSlot = slot<List<Pair<String, String>>>()
@@ -218,7 +218,7 @@ internal class SkeServiceIntegrationTest :
                     }
                 }
 
-                When("Feilmeldinger håndteres") {
+                And("Feilmeldinger håndteres") {
                     Then("Skal tre feilmeldinger dannes") {
                         val addErrorFilenameSlot = slot<String>()
                         val addErrorMessageSlot = slot<List<Pair<String, String>>>()
@@ -293,7 +293,7 @@ internal class SkeServiceIntegrationTest :
                     }
                 }
 
-                When("Feilmeldinger håndteres") {
+                And("Feilmeldinger håndteres") {
                     Then("Skal seks feilmeldinger dannes") {
                         val addErrorFilenameSlot = slot<String>()
                         val addErrorMessageSlot = slot<List<Pair<String, String>>>()
@@ -346,7 +346,7 @@ internal class SkeServiceIntegrationTest :
                     }
                 }
 
-                When("Feilmeldinger håndteres") {
+                And("Feilmeldinger håndteres") {
                     Then("Skal ni feilmeldinger dannes") {
                         val addErrorFilenameSlot = slot<String>()
                         val addErrorMessageSlot = slot<List<Pair<String, String>>>()
@@ -376,7 +376,7 @@ internal class SkeServiceIntegrationTest :
                         }
                     }
 
-                    When("Én alert sendes") {
+                    And("Én alert sendes") {
                         val sendAlertFilenameSlot = slot<String>()
                         val sendAlertMessageSlot = slot<Map<String, List<String>>>()
 
