@@ -21,7 +21,7 @@ repositories {
     maven { url = uri("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
 }
 
-val ktorVersion = "3.4.3"
+val ktorVersion = "3.5.0"
 val jschVersion = "2.28.0"
 val nimbusVersion = "10.9"
 val kotlinxSerializationVersion = "1.11.0"
