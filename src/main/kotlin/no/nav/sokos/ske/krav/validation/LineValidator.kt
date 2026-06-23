@@ -140,7 +140,9 @@ class LineValidator {
     private fun checkBelop(belop: BigDecimal): ErrorMessages? = if (belop < BigDecimal.ZERO) ErrorMessages.BELOP_NEGATIVE else null
 
     // Saksnummer
-    private fun saksNummerIsValid(navSaksnr: String) = navSaksnr.matches("^[a-zA-Z0-9-/]+$".toRegex())
+    private val saksNummerRegex = "^[a-zA-Z0-9-/]+$".toRegex()
+
+    private fun saksNummerIsValid(navSaksnr: String) = navSaksnr.matches(saksNummerRegex)
 
     // Kravtype
     private fun kravTypeIsValid(krav: KravLinje): Boolean =
@@ -162,12 +164,13 @@ class LineValidator {
 
     private fun String.toDate() =
         runCatching {
-            LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyyMMdd"))
+            LocalDate.parse(this, dateFormatter)
         }.getOrElse {
             errorDate
         }
 
     companion object {
-        val errorDate: LocalDate = LocalDate.parse("21240101", DateTimeFormatter.ofPattern("yyyyMMdd"))
+        private val dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+        val errorDate: LocalDate = LocalDate.parse("21240101", dateFormatter)
     }
 }
