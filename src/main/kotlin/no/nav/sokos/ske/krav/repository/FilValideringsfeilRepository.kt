@@ -6,7 +6,6 @@ import javax.sql.DataSource
 import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
-import org.intellij.lang.annotations.Language
 
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
@@ -48,7 +47,7 @@ class FilValideringsfeilRepository(
         )
     }
 
-    @Language("SQL")
+    //language=sql
     private val insertFilValideringsfeilStatement =
         """
         insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)

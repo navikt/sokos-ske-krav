@@ -131,7 +131,7 @@ internal class SkeServiceIntegrationTest :
                 SftpListener.putFile("krav/TiNyeKrav.txt")
                 skeService.handleNewKrav()
 
-                Then("Skal alle validerte linjer lagres i database") {
+                Then("Skal alle krav lagres i database") {
                     val allKrav =
                         dataSource.transaction { session ->
                             kravRepository.getAllKrav(session)
@@ -155,10 +155,10 @@ internal class SkeServiceIntegrationTest :
                 SftpListener.putFile("validering/linjevalidering/$fileName")
                 skeService.handleNewKrav()
 
-                Then("Skal én feil lagres i databasen") {
+                Then("Skal én feil og alle krav lagres i databasen") {
                     dataSource.transaction { session ->
                         kravRepository.getAllKrav(session).groupBy { it.linjenummer }.should { kravene ->
-                            kravene shouldHaveSize 9
+                            kravene shouldHaveSize 10
                             kravene.forValuesExactly(1) { it shouldHaveSize 2 }
                         }
                         filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 1
@@ -211,9 +211,9 @@ internal class SkeServiceIntegrationTest :
                 SftpListener.putFile("validering/linjevalidering/$fileName")
                 skeService.handleNewKrav()
 
-                Then("Skal én feil lagres i databasen") {
+                Then("Skal én feil og alle krav lagres i databasen") {
                     dataSource.transaction { session ->
-                        kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 9
+                        kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 10
                         filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 1
                     }
                 }
@@ -286,9 +286,9 @@ internal class SkeServiceIntegrationTest :
                 SftpListener.putFile("validering/linjevalidering/$fileName")
                 skeService.handleNewKrav()
 
-                Then("Skal seks feil lagres i databasen") {
+                Then("Skal seks feil og alle krav lagres i databasen") {
                     dataSource.transaction { session ->
-                        kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 4
+                        kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 10
                         filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 6
                     }
                 }
@@ -339,9 +339,9 @@ internal class SkeServiceIntegrationTest :
                 SftpListener.putFile("validering/linjevalidering/$fileName")
                 skeService.handleNewKrav()
 
-                Then("Skal seks feil lagres i databasen") {
+                Then("Skal seks feil og alle krav lagres i databasen") {
                     dataSource.transaction { session ->
-                        kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 4
+                        kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 10
                         filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 6
                     }
                 }

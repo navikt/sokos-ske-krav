@@ -237,7 +237,7 @@ class SkeService(
         filename: String,
         validationResults: List<ValidationResult>,
     ) {
-        val validKrav = mutableListOf<KravLinje>()
+        val allKrav = mutableListOf<KravLinje>()
         val invalidKrav = mutableListOf<Pair<KravLinje, String>>()
         val slackMessages = mutableListOf<Pair<String, String>>()
 
@@ -247,16 +247,17 @@ class SkeService(
                     slackMessages.addAll(result.messages.map { it.first.value to it.second })
                     result.originalLines?.forEach { line ->
                         invalidKrav.add(line to result.messages.joinToString { it.second })
+                        allKrav.add(line)
                     }
                 }
                 is ValidationResult.Success -> {
-                    validKrav.addAll(result.kravLinjer)
+                    allKrav.addAll(result.kravLinjer)
                 }
             }
         }
 
         if (invalidKrav.isNotEmpty()) {
-            logger.warn("Ved validering av linjer i fil $filename har ${invalidKrav.size} linjer velideringsfeil ")
+            logger.warn("Ved validering av linjer i fil $filename har ${invalidKrav.size} linjer valideringsfeil ")
         }
 
         if (slackMessages.isNotEmpty()) {
@@ -264,13 +265,13 @@ class SkeService(
             slackService.addError(filename, "Feil i linjevalidering", slackMessages)
         }
 
-        if (validKrav.size >= 1000) {
+        if (allKrav.size >= 1000) {
             logger.info("***Stor fil. Blokkerer kjøring***")
             haltRun = true
         }
 
         dataSource.transaction { session ->
-            kravRepository.insertAllNewKrav(session, validKrav, filename)
+            kravRepository.insertAllNewKrav(session, allKrav, filename)
             filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
         }
     }
