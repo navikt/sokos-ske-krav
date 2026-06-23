@@ -128,6 +128,10 @@ configurations.all {
                         "All Netty modules aligned to 4.2.15.Final (first patched version).",
                 )
             }
+            if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-core") {
+                useVersion("2.21.1")
+                because("jackson-core: Number Length Constraint Bypass in Async Parser Leads to Potential DoS Condition. Affected version >= 2.19.0, < 2.21.1")
+            }
         }
     }
 }
