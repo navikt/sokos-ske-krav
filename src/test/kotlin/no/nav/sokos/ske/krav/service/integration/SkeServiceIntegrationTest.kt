@@ -54,6 +54,7 @@ import no.nav.sokos.ske.krav.util.getAllValideringsFeil
 import no.nav.sokos.ske.krav.util.http.Endpoint
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
 import no.nav.sokos.ske.krav.util.http.MockResponse
+import no.nav.sokos.ske.krav.util.http.MockResponsesBody
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.avskrivKravResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.avstemmingResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody.genericFeilResponse
@@ -760,6 +761,51 @@ internal class SkeServiceIntegrationTest :
                     get(Status.HTTP500_ANNEN_SERVER_FEIL).shouldBeNull()
                     get(Status.HTTP500_INTERN_TJENERFEIL).shouldBeNull()
                     get(Status.HTTP503_UTILGJENGELIG_TJENESTE).shouldBeNull()
+                }
+            }
+        }
+
+        Given("En endring feiler med 409 innkrevingsoppdrag-er-ikke-reskontrofoert") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/krav/ToEndredeKrav.sql")
+
+            val endreRenterKall = MockResponse(Endpoint.ENDRE_RENTER, MockResponsesBody.innkrevingsOppdragErIkkeReskontrofoertResponse(), HttpStatusCode.Conflict)
+            val endreHovedStolKall = MockResponse(Endpoint.ENDRE_HOVEDSTOL, MockResponsesBody.innkrevingsOppdragErIkkeReskontrofoertResponse(), HttpStatusCode.Conflict)
+            val mottaksstatusKall = MockResponse(Endpoint.MOTTAKSSTATUS, mottaksStatusResponse(), HttpStatusCode.OK)
+
+            val httpClient = MockHttpClient.client(endreRenterKall, endreHovedStolKall, mottaksstatusKall)
+            val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    httpClient,
+                    ftpService,
+                    slackService = slackServiceSpy,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
+
+            Then("skal feilmelding sendes til Slack kun én gang per krav selv om resend feiler igjen") {
+                skeService.handleNewKrav()
+
+                coVerify(exactly = 4) {
+                    slackServiceSpy.addError(any(), any(), any<Pair<String, String>>(), any<String>())
+                }
+            }
+
+            And("feilmeldinger skal fortsatt lagres i databasen for begge forsøk") {
+                val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
+                feilmeldinger.shouldHaveSize(8)
+                feilmeldinger.forAll {
+                    it.melding shouldContain "Innkrevingsoppdrag er ikke reskontrofoert"
+                }
+            }
+
+            And("krav skal ha resend-status i databasen") {
+                val allKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
+                allKrav.shouldHaveSize(4)
+                allKrav.forAll {
+                    it.status shouldBe Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND
                 }
             }
         }
