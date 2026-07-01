@@ -4,7 +4,23 @@ import java.time.LocalDate
 
 import kotlinx.serialization.Serializable
 
-import no.nav.sokos.ske.krav.domain.TaggablePeople
+import no.nav.sokos.ske.krav.dto.slack.BlockType.DIVIDER
+import no.nav.sokos.ske.krav.dto.slack.BlockType.HEADER
+import no.nav.sokos.ske.krav.dto.slack.BlockType.SECTION
+import no.nav.sokos.ske.krav.validation.ErrorCategory
+
+private const val TEXT_TYPE_PLAIN = "plain_text"
+private const val TEXT_TYPE_MRKDWN = "mrkdwn"
+private const val EMOJI_PACKAGE = ":package:"
+private const val EMOJI_ERROR = ":error:"
+private const val FILENAME_HEADER = "*Filnavn*"
+private const val DATE_HEADER = "*Dato*"
+private const val ERROR_HEADER = "*Feilmelding*"
+private const val INFO_HEADER = "*Info*"
+private const val CASE_NUMBER_HEADER = "*Saksnummer:*"
+private const val RESPONSIBLE_HEADER = "*Ansvarlige:*"
+private const val ROUTINE_LINK_HEADER = "*Rutine*"
+private const val ROUTINE_LINK_TEXT = "Klikk her for rutine"
 
 @Serializable
 data class Data(
@@ -21,92 +37,99 @@ data class Block(
 
 @Serializable
 data class Text(
-    val type: String = "plain_text",
     val text: String,
+    val type: String = TEXT_TYPE_PLAIN,
     val emoji: Boolean? = null,
 )
 
 @Serializable
 data class Field(
-    val type: String = "mrkdwn",
     val text: String,
+    val type: String = TEXT_TYPE_MRKDWN,
 )
+
+enum class BlockType {
+    DIVIDER,
+    HEADER,
+    SECTION,
+    ;
+
+    override fun toString(): String = name.lowercase()
+}
+
+private val dividerBlock = Block(DIVIDER.toString())
 
 fun createSlackMessage(
-    feilHeader: String,
-    filnavn: String,
-    content: Map<String, List<String>>,
-    taggedPeople: List<TaggablePeople> = emptyList(),
-    rutineLink: String? = null,
-    saksnummer: String = "",
-) = Data(
-    text = ":package: $feilHeader",
-    blocks = buildSections(feilHeader, filnavn, content, taggedPeople, rutineLink, saksnummer),
-)
+    alertTitle: ErrorCategory,
+    filename: String,
+    extraTags: ExtraTags,
+    errorDetails: List<ErrorDetails>,
+): Data {
+    val blocks =
+        buildList {
+            add(headerBlock(alertTitle))
+            add(dividerBlock)
+            add(filenameBlock(filename))
+            add(dividerBlock)
 
-private fun buildSections(
-    feilHeader: String,
-    filnavn: String,
-    content: Map<String, List<String>>,
-    taggedPeople: List<TaggablePeople>,
-    rutineLink: String?,
-    saksnummer: String,
-): MutableList<Block> {
-    val dividerBlock = Block(type = "divider")
-    val headerBlock =
-        Block(
-            type = "header",
-            text =
-                Text(
-                    type = "plain_text",
-                    text = ":error:  $feilHeader  ",
-                    emoji = true,
-                ),
-        )
-    val filnavnBlock =
-        Block(
-            type = "section",
-            fields =
-                listOf(
-                    Field(text = "*Filnavn* \n$filnavn"),
-                    Field(text = "*Dato* \n${LocalDate.now()}"),
-                    Field(text = "*Nav Saksnummer* \n$saksnummer"),
-                ),
-        )
+            errorDetails.forEach {
+                add(errorBlock(it))
+            }
 
-    val feilmeldinger =
-        content.flatMap { (errorType, errors) ->
-            errors.map { error ->
-                Block(
-                    type = "section",
-                    fields =
-                        listOf(
-                            Field(text = "*Feilmelding*\n$errorType"),
-                            Field(text = "*Info*\n$error"),
-                        ),
-                )
+            add(dividerBlock)
+            add(extraTagsBlock(extraTags))
+            add(dividerBlock)
+        }
+
+    return Data("$EMOJI_PACKAGE ${alertTitle.value}", blocks)
+}
+
+fun headerBlock(alertTitle: ErrorCategory) =
+    Block(
+        type = HEADER.toString(),
+        text =
+            Text(
+                type = TEXT_TYPE_PLAIN,
+                text = "$EMOJI_ERROR $alertTitle",
+                emoji = true,
+            ),
+    )
+
+fun filenameBlock(filename: String) =
+    Block(
+        type = SECTION.toString(),
+        fields =
+            listOf(
+                Field("$FILENAME_HEADER \n$filename"),
+                Field("$DATE_HEADER \n${LocalDate.now()}"),
+            ),
+    )
+
+fun errorBlock(errorDetails: ErrorDetails) =
+    Block(
+        type = SECTION.toString(),
+        fields =
+            listOf(
+                Field("$ERROR_HEADER \n${errorDetails.header}"),
+                Field("$INFO_HEADER \n${errorDetails.description}\n$CASE_NUMBER_HEADER ${errorDetails.caseNumber}"),
+            ),
+    )
+
+fun extraTagsBlock(extraTags: ExtraTags): Block {
+    val txt =
+        buildString {
+            append("$RESPONSIBLE_HEADER ${extraTags.people.joinToString(" ") { it.slackId }}")
+            extraTags.rutineLink.forEach {
+                append("\n$ROUTINE_LINK_HEADER <$it|$ROUTINE_LINK_TEXT>")
             }
         }
 
-    val blocks = mutableListOf<Block>()
-    blocks.add(headerBlock)
-    blocks.add(dividerBlock)
-    blocks.add(filnavnBlock)
-    blocks.add(dividerBlock)
-    blocks.addAll(feilmeldinger)
-    blocks.add(dividerBlock)
-
-    if (taggedPeople.isNotEmpty()) {
-        val tagText =
-            buildString {
-                append("*Ansvarlige:* ${taggedPeople.joinToString(" ") { it.slackId }}")
-                if (rutineLink != null) {
-                    append("\n*Rutine:* <$rutineLink|Klikk her for rutine>")
-                }
-            }
-        blocks.add(Block(type = "section", text = Text(type = "mrkdwn", text = tagText)))
-        blocks.add(dividerBlock)
-    }
-
-    return blocks
+    return Block(
+        type = SECTION.toString(),
+        text =
+            Text(
+                text = txt,
+                type = TEXT_TYPE_MRKDWN,
+            ),
+    )
 }

@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.validation
 
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.dto.slack.ErrorDetails
 
 sealed class ValidationResult {
     data class Success(
@@ -8,7 +9,8 @@ sealed class ValidationResult {
     ) : ValidationResult()
 
     data class Error(
-        val messages: List<Pair<ErrorKeys, String>>,
+        val messages: List<Pair<ErrorKeys, String>> = emptyList(),
+        val errors: List<ErrorDetails>,
         val originalLines: List<KravLinje>? = null,
     ) : ValidationResult()
 }

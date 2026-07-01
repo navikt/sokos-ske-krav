@@ -1,9 +1,9 @@
 package no.nav.sokos.ske.krav.validation
 
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.inspectors.forOne
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
@@ -12,18 +12,22 @@ import io.mockk.slot
 import io.mockk.spyk
 
 import no.nav.sokos.ske.krav.client.SlackClient
-import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.SftpConfig
+import no.nav.sokos.ske.krav.dto.slack.ErrorDetails
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.filvalideringsFeilRepository
 import no.nav.sokos.ske.krav.listener.SftpListener
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.FtpService
+import no.nav.sokos.ske.krav.service.SlackService
 import no.nav.sokos.ske.krav.util.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
+import no.nav.sokos.ske.krav.util.shouldBe
 import no.nav.sokos.ske.krav.util.transaction
+import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_VALIDERING_AV_FIL
 
+// TODO: Merge with FtpServiceIntegrationTest
 internal class FileValidatorIntegrationTest :
     BehaviorSpec({
         extensions(SftpListener, DBListener)
@@ -59,7 +63,7 @@ internal class FileValidatorIntegrationTest :
 
                 And("Alert skal ikke sendes") {
                     coVerify(exactly = 0) {
-                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
+                        slackServiceSpy.addErrors(any<String>(), any<ErrorCategory>(), any<List<ErrorDetails>>())
                     }
                 }
             }
@@ -91,17 +95,17 @@ internal class FileValidatorIntegrationTest :
                 }
                 And("Alert skal sendes til slack") {
                     val sendAlertFilenameSlot = slot<String>()
-                    val sendAlertHeaderSlot = slot<String>()
-                    val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
+                    val sendAlertHeaderSlot = slot<ErrorCategory>()
+                    val sendAlertMessagesSlot = slot<List<ErrorDetails>>()
 
                     coVerify(exactly = 1) {
-                        slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
+                        slackServiceSpy.addErrors(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
-                    sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
-                    val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
+                    sendAlertHeaderSlot.captured shouldBe FEIL_I_VALIDERING_AV_FIL
+                    val capturedSendAlertMessages: List<ErrorDetails> = sendAlertMessagesSlot.captured
                     capturedSendAlertMessages.shouldHaveSize(1)
-                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_ANTALL.value } shouldHaveSize 1
+                    capturedSendAlertMessages.first().header shouldBe ErrorKeys.FEIL_I_ANTALL
                 }
             }
         }
@@ -132,17 +136,18 @@ internal class FileValidatorIntegrationTest :
                 }
                 And("Alert skal sendes til slack") {
                     val sendAlertFilenameSlot = slot<String>()
-                    val sendAlertHeaderSlot = slot<String>()
-                    val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
+                    val sendAlertHeaderSlot = slot<ErrorCategory>()
+                    val sendAlertMessagesSlot = slot<List<ErrorDetails>>()
 
                     coVerify(exactly = 1) {
-                        slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
+                        slackServiceSpy.addErrors(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
-                    sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
-                    val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
-                    capturedSendAlertMessages.shouldHaveSize(1)
-                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_SUM.value }.shouldHaveSize(1)
+                    sendAlertHeaderSlot.captured shouldBe FEIL_I_VALIDERING_AV_FIL
+                    with(sendAlertMessagesSlot.captured) {
+                        shouldHaveSize(1)
+                        first().header shouldBe ErrorKeys.FEIL_I_SUM
+                    }
                 }
             }
         }
@@ -173,17 +178,17 @@ internal class FileValidatorIntegrationTest :
                 }
                 And("Alert skal sendes til slack") {
                     val sendAlertFilenameSlot = slot<String>()
-                    val sendAlertHeaderSlot = slot<String>()
-                    val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
+                    val sendAlertHeaderSlot = slot<ErrorCategory>()
+                    val sendAlertMessagesSlot = slot<List<ErrorDetails>>()
 
                     coVerify(exactly = 1) {
-                        slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
+                        slackServiceSpy.addErrors(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
-                    sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
-                    val capturedSendAlertMessages: List<Pair<String, String>> = sendAlertMessagesSlot.captured
+                    sendAlertHeaderSlot.captured shouldBe FEIL_I_VALIDERING_AV_FIL
+                    val capturedSendAlertMessages: List<ErrorDetails> = sendAlertMessagesSlot.captured
                     capturedSendAlertMessages.shouldHaveSize(1)
-                    capturedSendAlertMessages.filter { it.first == ErrorKeys.FEIL_I_DATO.value }.shouldHaveSize(1)
+                    capturedSendAlertMessages.first().header shouldBe ErrorKeys.FEIL_I_DATO
                 }
             }
         }
@@ -215,21 +220,20 @@ internal class FileValidatorIntegrationTest :
                 }
                 And("Alert skal sendes til slack") {
                     val sendAlertFilenameSlot = slot<String>()
-                    val sendAlertHeaderSlot = slot<String>()
-                    val sendAlertMessagesSlot = slot<List<Pair<String, String>>>()
+                    val sendAlertHeaderSlot = slot<ErrorCategory>()
+                    val sendAlertMessagesSlot = slot<List<ErrorDetails>>()
 
                     coVerify(exactly = 1) {
-                        slackServiceSpy.addError(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
+                        slackServiceSpy.addErrors(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameSlot.captured shouldBe fileNameOnSftp
-                    sendAlertHeaderSlot.captured shouldBe "Feil i validering av fil"
-                    val capturedSendAlertMessages: Map<String, List<Pair<String, String>>> = sendAlertMessagesSlot.captured.groupBy { it.first }
-                    with(capturedSendAlertMessages) {
+                    sendAlertHeaderSlot.captured shouldBe FEIL_I_VALIDERING_AV_FIL
+                    with(sendAlertMessagesSlot.captured) {
                         shouldHaveSize(4)
-                        get(ErrorKeys.FEIL_I_DATO.value)?.shouldHaveSize(1)
-                        get(ErrorKeys.FEIL_I_SUM.value)?.shouldHaveSize(1)
-                        get(ErrorKeys.FEIL_I_ANTALL.value)?.shouldHaveSize(1)
-                        get(ErrorKeys.FAGSYSTEMID_MANGLER.value)?.shouldHaveSize(1)
+                        forOne { it.header shouldBe ErrorKeys.FEIL_I_DATO }
+                        forOne { it.header shouldBe ErrorKeys.FEIL_I_SUM }
+                        forOne { it.header shouldBe ErrorKeys.FEIL_I_ANTALL }
+                        forOne { it.header shouldBe ErrorKeys.FAGSYSTEMID_MANGLER }
                     }
                 }
             }
@@ -252,7 +256,7 @@ internal class FileValidatorIntegrationTest :
 
                 And("Alert skal ikke sendes") {
                     coVerify(exactly = 0) {
-                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
+                        slackServiceSpy.addErrors(any<String>(), any<ErrorCategory>(), any<List<ErrorDetails>>())
                     }
                 }
             }
@@ -276,7 +280,7 @@ internal class FileValidatorIntegrationTest :
 
                 And("Alert skal ikke sendes") {
                     coVerify(exactly = 0) {
-                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
+                        slackServiceSpy.addErrors(any<String>(), any<ErrorCategory>(), any<List<ErrorDetails>>())
                     }
                 }
             }
@@ -300,7 +304,7 @@ internal class FileValidatorIntegrationTest :
 
                 And("Alert skal ikke sendes") {
                     coVerify(exactly = 0) {
-                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
+                        slackServiceSpy.addErrors(any<String>(), any<ErrorCategory>(), any<List<ErrorDetails>>())
                     }
                 }
             }
@@ -324,7 +328,7 @@ internal class FileValidatorIntegrationTest :
 
                 And("Alert skal ikke sendes") {
                     coVerify(exactly = 0) {
-                        slackServiceSpy.addError(any<String>(), any<String>(), any<List<Pair<String, String>>>())
+                        slackServiceSpy.addErrors(any<String>(), any<ErrorCategory>(), any<List<ErrorDetails>>())
                     }
                 }
             }
