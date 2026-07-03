@@ -46,6 +46,18 @@ object MockResponsesBody {
         }
         """.trimIndent()
 
+    fun innkrevingsOppdragErIkkeReskontrofoertResponse() =
+        //language=json
+        """      
+        {
+            "type":"tag:skatteetaten.no,2024:innkreving:innkrevingsoppdrag:innkrevingsoppdrag-er-ikke-reskontrofoert",
+            "title":"Innkrevingsoppdrag er ikke reskontrofoert",
+            "status":409,
+            "detail":"Innkrevingsoppdrag er ikke reskontrofoert",
+            "instance":"/api/innkreving/innkrevingsoppdrag/v1/innkrevingsoppdrag/hovedstol"
+        }
+        """.trimIndent()
+
     fun genericFeilResponse(kravIdentifikator: String = "1234") =
         //language=json
         """      
