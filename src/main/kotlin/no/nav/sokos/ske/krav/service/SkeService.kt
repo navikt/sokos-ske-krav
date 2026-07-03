@@ -63,7 +63,7 @@ class SkeService(
             return
         }
 
-        resendKrav()
+        resendKrav(shouldAlert = false)
         sendNewFilesToSKE()
         delay(5000.milliseconds)
         resendKrav()
@@ -76,13 +76,13 @@ class SkeService(
         }
     }
 
-    private suspend fun resendKrav() {
+    private suspend fun resendKrav(shouldAlert: Boolean = true) {
         statusService.getMottaksStatus()
         val allKravForResending = kravRepository.getAllKravForResending()
         if (allKravForResending.isEmpty()) return
 
         logger.info("Resender ${allKravForResending.size} krav")
-        sendKrav(allKravForResending).also {
+        sendKrav(allKravForResending, shouldAlert).also {
             Metrics.numberOfKravResent.increment(it.size.toDouble())
         }
     }
@@ -118,7 +118,10 @@ class SkeService(
         ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
     }
 
-    private suspend fun sendKrav(kravList: List<Krav>): List<RequestResult> {
+    private suspend fun sendKrav(
+        kravList: List<Krav>,
+        shouldAlert: Boolean = true,
+    ): List<RequestResult> {
         if (kravList.isNotEmpty()) logger.info("Sender ${kravList.size}")
 
         val allResponses =
@@ -127,7 +130,7 @@ class SkeService(
                 stoppKravService.sendAllStoppKrav(kravList.filter { it.kravtype == STOPP_KRAV })
 
         updateSentKrav(allResponses)
-        handleErrors(allResponses)
+        handleErrors(allResponses, shouldAlert)
         return allResponses
     }
 
@@ -250,6 +253,7 @@ class SkeService(
                         allKrav.add(line)
                     }
                 }
+
                 is ValidationResult.Success -> {
                     allKrav.addAll(result.kravLinjer)
                 }
@@ -296,11 +300,14 @@ class SkeService(
         )
     }
 
-    private fun handleErrors(responses: List<RequestResult>) {
+    private fun handleErrors(
+        responses: List<RequestResult>,
+        shouldAlert: Boolean = true,
+    ) {
         responses
             .filterNot { it.httpStatusCode.isSuccess() }
             .forEach { result ->
-                handleError(result, result.feilResponse)
+                handleError(result, result.feilResponse, shouldAlert)
             }
     }
 
