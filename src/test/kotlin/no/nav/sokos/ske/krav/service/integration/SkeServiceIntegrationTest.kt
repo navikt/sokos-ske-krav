@@ -789,7 +789,7 @@ internal class SkeServiceIntegrationTest :
                 skeService.handleNewKrav()
 
                 coVerify(exactly = 4) {
-                    slackServiceSpy.addError(any(), any(), any<Pair<String, String>>(), any<String>())
+                    slackServiceSpy.addError(any<String>(), any<ErrorCategory>(), any<ErrorDetails>())
                 }
             }
 
