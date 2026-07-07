@@ -251,7 +251,7 @@ class SkeService(
                 is ValidationResult.Error -> {
                     slackMessages.addAll(result.errors)
                     result.originalLines?.forEach { line ->
-                        invalidKrav.add(line to result.messages.joinToString { it.second })
+                        invalidKrav.add(line to result.errors.joinToString { it.description })
                         allKrav.add(line)
                     }
                 }

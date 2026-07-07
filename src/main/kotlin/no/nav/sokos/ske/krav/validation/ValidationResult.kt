@@ -9,7 +9,6 @@ sealed class ValidationResult {
     ) : ValidationResult()
 
     data class Error(
-        val messages: List<Pair<ErrorKeys, String>> = emptyList(),
         val errors: List<ErrorDetails>,
         val originalLines: List<KravLinje>? = null,
     ) : ValidationResult()
