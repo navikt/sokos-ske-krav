@@ -52,11 +52,12 @@ class SlackService(
                 .groupBy { it.header }
                 .forEach { (key, errors) ->
                     if (errors.size > 5) {
+                        val caseNumbers = errors.mapNotNull { it.caseNumber }.distinct().joinToString()
                         val consolidatedError =
                             ErrorDetails(
                                 header = key,
                                 description = "${errors.size} av samme type feil: $key. Sjekk avstemming",
-                                caseNumber = errors.joinToString { it.caseNumber ?: "" },
+                                caseNumber = caseNumbers,
                             )
 
                         allError.add(consolidatedError)

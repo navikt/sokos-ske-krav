@@ -111,7 +111,7 @@ fun errorBlock(errorDetails: ErrorDetails) =
         fields =
             listOf(
                 Field("$ERROR_HEADER \n${errorDetails.header}"),
-                Field("$INFO_HEADER \n${errorDetails.description}\n$CASE_NUMBER_HEADER ${errorDetails.caseNumber}"),
+                Field("$INFO_HEADER \n${errorDetails.description}\n$CASE_NUMBER_HEADER ${errorDetails.caseNumber ?: "Ingen"}"),
             ),
     )
 
