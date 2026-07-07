@@ -17,7 +17,6 @@ enum class TaggablePeople(
     val slackId: String,
 ) {
     LENE("<@U08S6FA0XSS>"), // Produktleder
-    TRINE("<@UDCM6F8V8>"), // Produkteier
     MARITA("<@UCG179DPT>"), // Fagressurs
     LINE_ANITA("<@U02AVNPT3T9>"), // Fagressurs
     STEINAR("<@U796MGBA9>"), // Teknisk domenespesialist

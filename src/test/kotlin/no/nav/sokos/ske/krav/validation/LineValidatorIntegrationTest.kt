@@ -176,15 +176,15 @@ internal class LineValidatorIntegrationTest :
                     description shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
                     caseNumber.shouldNotBeNull()
                 }
-                errorDetails.forExactly(1) { (errorKey, descrption, caseNumber) ->
+                errorDetails.forExactly(1) { (errorKey, description, caseNumber) ->
                     errorKey shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
-                    descrption shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
+                    description shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
                     caseNumber.shouldNotBeNull()
                 }
 
-                errorDetails.forExactly(1) { (errorKey, descrption, caseNumber) ->
+                errorDetails.forExactly(1) { (errorKey, description, caseNumber) ->
                     errorKey shouldBe ErrorKeys.SAKSNUMMER_ERROR
-                    descrption shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+                    description shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
                     caseNumber.shouldNotBeNull()
                 }
             }
