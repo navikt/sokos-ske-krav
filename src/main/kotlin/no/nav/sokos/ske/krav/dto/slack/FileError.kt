@@ -1,5 +1,6 @@
 package no.nav.sokos.ske.krav.dto.slack
 
+import no.nav.sokos.ske.krav.config.PropertiesConfig.slackConfig
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR
 import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.ORGANISASJONSNUMMER_FINNES_IKKE
@@ -12,15 +13,6 @@ import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.REFERANSENUMMERGAMMEL
 import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.ROUTINE_LINK_ORGANISASJON_ER_OPPHOERT
 import no.nav.sokos.ske.krav.validation.ErrorCategory
 import no.nav.sokos.ske.krav.validation.ErrorKeys
-
-enum class TaggablePeople(
-    val slackId: String,
-) {
-    LENE("<@U08S6FA0XSS>"), // Produktleder
-    MARITA("<@UCG179DPT>"), // Fagressurs
-    LINE_ANITA("<@U02AVNPT3T9>"), // Fagressurs
-    STEINAR("<@U796MGBA9>"), // Teknisk domenespesialist
-}
 
 data class FileError(
     val alertTitle: ErrorCategory,
@@ -38,11 +30,10 @@ data class FileError(
             when {
                 error.isError(ORGANISASJON_ER_OPPHOERT) -> {
                     extraTags.rutineLink.add(ROUTINE_LINK_ORGANISASJON_ER_OPPHOERT)
-                    extraTags.people.addAll(
+                    extraTags.peopleSlackId.addAll(
                         setOf(
-                            TaggablePeople.MARITA,
-                            TaggablePeople.LINE_ANITA,
-                            TaggablePeople.STEINAR,
+                            slackConfig.slackIdDomainSpecialists,
+                            slackConfig.slackIdTechnicalSpecialist,
                         ),
                     )
                 }
@@ -53,10 +44,10 @@ data class FileError(
                     error.isError(ORGANISASJON_ER_SLETTET) ||
                     error.isError(FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR) ||
                     error.isError(REFERANSENUMMERGAMMELSAK_MANGLER) -> {
-                    extraTags.people.add(TaggablePeople.LENE)
+                    extraTags.peopleSlackId.add(slackConfig.slackIdProductLeader)
                 }
                 else -> {
-                    extraTags.people.add(TaggablePeople.LENE)
+                    extraTags.peopleSlackId.add(slackConfig.slackIdProductLeader)
                 }
             }
         }
@@ -74,7 +65,7 @@ data class ErrorDetails(
 }
 
 data class ExtraTags(
-    val people: MutableSet<TaggablePeople> = mutableSetOf(),
+    val peopleSlackId: MutableSet<String> = mutableSetOf(),
     val rutineLink: MutableSet<String> = mutableSetOf(),
 ) {
     companion object {

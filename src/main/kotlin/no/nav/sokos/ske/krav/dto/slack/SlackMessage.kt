@@ -118,7 +118,7 @@ fun errorBlock(errorDetails: ErrorDetails) =
 fun extraTagsBlock(extraTags: ExtraTags): Block {
     val txt =
         buildString {
-            append("$RESPONSIBLE_HEADER ${extraTags.people.joinToString(" ") { it.slackId }}")
+            append("$RESPONSIBLE_HEADER ${extraTags.peopleSlackId.joinToString()}")
             extraTags.rutineLink.forEach {
                 append("\n$ROUTINE_LINK_HEADER <$it|$ROUTINE_LINK_TEXT>")
             }

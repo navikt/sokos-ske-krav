@@ -5,7 +5,6 @@ import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forOne
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
@@ -29,7 +28,6 @@ import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.PERSON_EKSISTERER_IKK
 import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.PERSON_ER_DOED
 import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.PERSON_ER_SLETTET
 import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.REFERANSENUMMERGAMMELSAK_MANGLER
-import no.nav.sokos.ske.krav.dto.slack.TaggablePeople
 import no.nav.sokos.ske.krav.service.SlackService
 import no.nav.sokos.ske.krav.util.shouldBe
 import no.nav.sokos.ske.krav.util.shouldContain
@@ -39,6 +37,10 @@ import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_LINJEVALIDERING
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_VALIDERING_AV_FIL
 import no.nav.sokos.ske.krav.validation.ErrorKeys
 import no.nav.sokos.ske.krav.validation.ErrorMessages
+
+private const val PRODUCT_LEADER = "productLeaderId"
+private const val DOMAIN_SPECIALIST = "domainSpecialistId"
+private const val TECHNICAL_SPECIALIST = "technicalSpecialistId"
 
 class SlackServiceTest :
     FunSpec({
@@ -72,9 +74,9 @@ class SlackServiceTest :
             trackedErrors.first().should { fileError ->
                 fileError.alertTitle shouldBe FEIL_I_VALIDERING_AV_FIL
                 fileError.filename shouldBe filename
-                fileError.extraTags.people.should { taggablePeople ->
-                    taggablePeople shouldHaveSize 1
-                    taggablePeople.first() shouldBe TaggablePeople.LENE
+                fileError.extraTags.peopleSlackId.should { peopleSlackId ->
+                    peopleSlackId shouldHaveSize 1
+                    peopleSlackId.single() shouldContain PRODUCT_LEADER
                 }
                 fileError.errorDetails.should { errorDetails ->
                     errorDetails shouldHaveSize 1
@@ -193,9 +195,14 @@ class SlackServiceTest :
 
             val trackedErrors = slackService.trackedErrors()
             with(trackedErrors.single().extraTags) {
-                people.should {
-                    it shouldHaveSize 3
-                    it.shouldContainExactlyInAnyOrder(TaggablePeople.MARITA, TaggablePeople.LINE_ANITA, TaggablePeople.STEINAR)
+                peopleSlackId.should {
+                    it shouldHaveSize 2
+                    it.forOne { slackId ->
+                        slackId shouldContain DOMAIN_SPECIALIST
+                    }
+                    it.forOne { slackId ->
+                        slackId shouldContain TECHNICAL_SPECIALIST
+                    }
                 }
                 rutineLink.shouldNotBeEmpty()
             }
@@ -221,7 +228,10 @@ class SlackServiceTest :
             val trackedErrors = slackService.trackedErrors()
             trackedErrors shouldHaveSize 8
             trackedErrors.forAll { fileError ->
-                fileError.extraTags.people.shouldContainExactly(TaggablePeople.LENE)
+                fileError.extraTags.peopleSlackId.should {
+                    it shouldHaveSize 1
+                    it.single() shouldContain PRODUCT_LEADER
+                }
                 fileError.extraTags.rutineLink.shouldBeEmpty()
             }
         }
@@ -243,7 +253,18 @@ class SlackServiceTest :
 
             val trackedErrors = slackService.trackedErrors()
             with(trackedErrors.single().extraTags) {
-                people.shouldContainExactlyInAnyOrder(TaggablePeople.MARITA, TaggablePeople.LINE_ANITA, TaggablePeople.STEINAR, TaggablePeople.LENE)
+                peopleSlackId.should {
+                    it shouldHaveSize 3
+                    it.forOne { slackId ->
+                        slackId shouldContain DOMAIN_SPECIALIST
+                    }
+                    it.forOne { slackId ->
+                        slackId shouldContain TECHNICAL_SPECIALIST
+                    }
+                    it.forOne { slackId ->
+                        slackId shouldContain PRODUCT_LEADER
+                    }
+                }
                 rutineLink.shouldNotBeEmpty()
             }
         }
@@ -266,7 +287,18 @@ class SlackServiceTest :
 
             val trackedErrors = slackService.trackedErrors()
             with(trackedErrors.single().extraTags) {
-                people.shouldContainExactlyInAnyOrder(TaggablePeople.MARITA, TaggablePeople.LINE_ANITA, TaggablePeople.STEINAR, TaggablePeople.LENE)
+                peopleSlackId.should {
+                    it shouldHaveSize 3
+                    it.forOne { slackId ->
+                        slackId shouldContain DOMAIN_SPECIALIST
+                    }
+                    it.forOne { slackId ->
+                        slackId shouldContain TECHNICAL_SPECIALIST
+                    }
+                    it.forOne { slackId ->
+                        slackId shouldContain PRODUCT_LEADER
+                    }
+                }
                 rutineLink.shouldNotBeEmpty()
             }
         }
@@ -358,14 +390,25 @@ class SlackServiceTest :
             filenames.shouldContainExactly(filename1, filename2, filename1, filename2)
 
             extraTags shouldHaveSize 4
-            extraTags.take(2).forEach {
-                it.people.shouldContainExactly(TaggablePeople.LENE)
-                it.rutineLink.shouldBeEmpty()
+            extraTags.take(2).forEach { tags ->
+                tags.peopleSlackId.should { slackId ->
+                    slackId shouldHaveSize 1
+                    slackId.single() shouldContain PRODUCT_LEADER
+                }
+                tags.rutineLink.shouldBeEmpty()
             }
 
-            extraTags.takeLast(2).forEach {
-                it.people.shouldContainExactlyInAnyOrder(TaggablePeople.MARITA, TaggablePeople.LINE_ANITA, TaggablePeople.STEINAR)
-                it.rutineLink.shouldNotBeEmpty()
+            extraTags.takeLast(2).forEach { tags ->
+                tags.peopleSlackId.should { slackId ->
+                    slackId shouldHaveSize 2
+                    slackId.forOne {
+                        it shouldContain DOMAIN_SPECIALIST
+                    }
+                    slackId.forOne {
+                        it shouldContain TECHNICAL_SPECIALIST
+                    }
+                }
+                tags.rutineLink.shouldNotBeEmpty()
             }
 
             errors shouldHaveSize 4
