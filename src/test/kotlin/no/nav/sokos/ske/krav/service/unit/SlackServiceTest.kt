@@ -226,7 +226,7 @@ class SlackServiceTest :
             }
         }
 
-        test("addErrors tagger alle riktige personner når det er flere forskjellige feil") {
+        test("addErrors tagger alle riktige personer når det er flere forskjellige feil") {
             val error1 =
                 ErrorDetails(
                     ExtraTags.ORGANISASJON_ER_OPPHOERT,
@@ -248,7 +248,7 @@ class SlackServiceTest :
             }
         }
 
-        test("addErrors oppdaterer extraTags med nye personner når vi legger til en ny feil") {
+        test("addErrors oppdaterer extraTags med nye personer når vi legger til en ny feil") {
             val error1 =
                 ErrorDetails(
                     "PERSON_EKSISTERER_IKKE",
@@ -271,7 +271,7 @@ class SlackServiceTest :
             }
         }
 
-        test("sendError erstatter ikke meldinger når det er <= 5 errors") {
+        test("sendErrors erstatter ikke meldinger når det er <= 5 errors") {
             val errors =
                 List(5) {
                     ErrorDetails(
@@ -294,7 +294,7 @@ class SlackServiceTest :
             }
         }
 
-        test("sendError erstatter meldinger når det er >= 5 errors") {
+        test("sendErrors erstatter meldinger når det er >= 5 errors") {
             val errors =
                 List(6) {
                     ErrorDetails(
@@ -319,7 +319,7 @@ class SlackServiceTest :
             }
         }
 
-        test("sendError sender én slack melding per fil og feil type") {
+        test("sendErrors sender én slack melding per fil og feil type") {
             val filename1 = "file1.txt"
             val filename2 = "file2.txt"
 
