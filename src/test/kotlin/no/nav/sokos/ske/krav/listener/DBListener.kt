@@ -6,7 +6,6 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.Spec
-import io.ktor.server.config.ApplicationConfig
 import kotliquery.queryOf
 import org.testcontainers.containers.JdbcDatabaseContainer
 import org.testcontainers.containers.PostgreSQLContainer
@@ -23,10 +22,6 @@ import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.transaction
 
 object DBListener : TestListener {
-    init {
-        PropertiesConfig.load(ApplicationConfig("application-test.conf"))
-    }
-
     private val container by lazy {
         PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:16.6")).apply {
             withReuse(false)
