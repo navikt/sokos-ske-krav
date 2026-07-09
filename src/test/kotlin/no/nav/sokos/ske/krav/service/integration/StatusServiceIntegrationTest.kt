@@ -7,6 +7,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.core.test.TestCase
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
@@ -20,15 +21,16 @@ import org.slf4j.LoggerFactory
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
-import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager
 import no.nav.sokos.ske.krav.domain.Status
-import no.nav.sokos.ske.krav.domain.TaggablePeople
+import no.nav.sokos.ske.krav.dto.slack.ErrorDetails
+import no.nav.sokos.ske.krav.dto.slack.ExtraTags
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.security.MaskinportenAccessTokenProvider
+import no.nav.sokos.ske.krav.service.SlackService
 import no.nav.sokos.ske.krav.service.StatusService
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.http.Endpoint
@@ -37,6 +39,7 @@ import no.nav.sokos.ske.krav.util.http.MockResponse
 import no.nav.sokos.ske.krav.util.http.MockResponsesBody
 import no.nav.sokos.ske.krav.util.isGivenTest
 import no.nav.sokos.ske.krav.util.transaction
+import no.nav.sokos.ske.krav.validation.ErrorCategory
 
 internal class StatusServiceIntegrationTest :
     BehaviorSpec({
@@ -44,7 +47,7 @@ internal class StatusServiceIntegrationTest :
 
         val slackClient =
             mockk<SlackClient> {
-                coJustRun { sendMessage(any(), any(), any(), any(), any(), any()) }
+                coJustRun { sendMessage(any<ErrorCategory>(), any<String>(), any<ExtraTags>(), any<List<ErrorDetails>>()) }
             }
 
         val slackService = spyk(SlackService(slackClient))
@@ -122,7 +125,7 @@ internal class StatusServiceIntegrationTest :
             }
             Then("Alert skal ikke sendes") {
                 coVerify(exactly = 0) {
-                    slackClient.sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), any<List<TaggablePeople>>(), any(), any<String>())
+                    slackClient.sendMessage(any<ErrorCategory>(), any<String>(), any<ExtraTags>(), any<List<ErrorDetails>>())
                 }
             }
         }
@@ -188,29 +191,39 @@ internal class StatusServiceIntegrationTest :
 
             When("Feilmeldinger håndteres") {
                 val addErrorFilenameSlots = mutableListOf<String>()
-                val addErrorMessagesSlot = mutableListOf<Pair<String, String>>()
+                val addErrorMessagesSlot = mutableListOf<ErrorDetails>()
 
                 coVerify(exactly = 5) {
-                    slackService.addError(capture(addErrorFilenameSlots), any<String>(), capture(addErrorMessagesSlot), saksnummer = any<String>())
+                    slackService.addError(capture(addErrorFilenameSlots), any<ErrorCategory>(), capture(addErrorMessagesSlot))
                 }
 
                 Then("Skal 5 feilmeldinger dannes") {
                     addErrorFilenameSlots.filter { it == fileName }.shouldHaveSize(5)
                     addErrorMessagesSlot.shouldHaveSize(5)
                     addErrorMessagesSlot.forEach {
-                        it.first shouldBe status
-                        it.second shouldBe "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke"
+                        it.header shouldBe status
+                        it.description shouldBe "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke"
+                        it.caseNumber.shouldNotBeNull()
                     }
                 }
-                Then("Skal 3 feilmeldinger sendes") {
+
+                And("Én alert med fem feilmeldinger skal sendes") {
                     val sendAlertFilenameSlot = slot<String>()
-                    val sendAlertMessagesSlot = slot<Map<String, List<String>>>()
+                    val sendAlertExtraTags = slot<ExtraTags>()
+                    val sendAlertMessagesSlot = slot<List<ErrorDetails>>()
 
                     coVerify(exactly = 1) {
-                        slackClient.sendMessage(any<String>(), capture(sendAlertFilenameSlot), capture(sendAlertMessagesSlot), any<List<TaggablePeople>>(), any(), any<String>())
+                        slackClient.sendMessage(any<ErrorCategory>(), capture(sendAlertFilenameSlot), capture(sendAlertExtraTags), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameSlot.captured shouldBe fileName
-                    sendAlertMessagesSlot.captured shouldBe addErrorMessagesSlot.groupBy({ it.first }, { it.second })
+                    with(sendAlertMessagesSlot.captured) {
+                        shouldHaveSize(5)
+                        forEach {
+                            it.header shouldBe status
+                            it.description shouldBe "Organisasjon med organisasjonsnummer=xxxxxxxxx finnes ikke"
+                            it.caseNumber.shouldNotBeNull()
+                        }
+                    }
                 }
             }
         }

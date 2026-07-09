@@ -9,14 +9,15 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.Status.VALIDERINGSFEIL_AV_LINJE_I_FIL
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
+import no.nav.sokos.ske.krav.util.shouldBe
+import no.nav.sokos.ske.krav.util.shouldContain
+import no.nav.sokos.ske.krav.util.shouldNotContain
 
 internal class LineValidatorIntegrationTest :
     BehaviorSpec({
@@ -67,11 +68,12 @@ internal class LineValidatorIntegrationTest :
             }
 
             And("Skal feil-linjen ha én feilmelding") {
-                errorKrav.first().messages.should { messages ->
-                    messages shouldHaveSize 1
-                    messages.forExactly(1) { (errorKey, message) ->
-                        errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR
-                        message shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                errorKrav.first().errors.should { errors ->
+                    errors shouldHaveSize 1
+                    errors.first().should {
+                        it.header shouldBe ErrorKeys.KRAVTYPE_ERROR
+                        it.description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                        it.caseNumber.shouldNotBeNull()
                     }
                 }
             }
@@ -90,33 +92,36 @@ internal class LineValidatorIntegrationTest :
             }
 
             And("Skal feil-linjene ha 3 forskjellige feilmelding") {
-                errorKrav.first().messages.should { messages ->
-                    messages shouldHaveSize 3
-                    messages.forExactly(1) { (errorKey, message) ->
-                        errorKey shouldBe ErrorKeys.SAKSNUMMER_ERROR
-                        message shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description
+                errorKrav.first().errors.should { errors ->
+                    errors shouldHaveSize 3
+                    errors.forExactly(1) { (header, description, caseNumber) ->
+                        header shouldBe ErrorKeys.SAKSNUMMER_ERROR
+                        description shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+                        caseNumber.shouldNotBeNull()
                     }
-                    messages.forExactly(1) { (errorKey, message) ->
-                        errorKey shouldBe ErrorKeys.VEDTAKSDATO_ERROR
-                        message shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE.description
+                    errors.forExactly(1) { (header, description, caseNumber) ->
+                        header shouldBe ErrorKeys.VEDTAKSDATO_ERROR
+                        description shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
+                        caseNumber.shouldNotBeNull()
                     }
-                    messages.forExactly(1) { (errorKey, message) ->
-                        errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR
-                        message shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                    errors.forExactly(1) { (header, description, caseNumber) ->
+                        header shouldBe ErrorKeys.KRAVTYPE_ERROR
+                        description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                        caseNumber.shouldNotBeNull()
                     }
 
-                    messages.forAll { (_, message) ->
-                        message shouldNotContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description
-                        message shouldNotContain ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT.description
-                        message shouldNotContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description
-                        message shouldNotContain ErrorMessages.PERIODE_FOM_WRONG_FORMAT.description
-                        message shouldNotContain ErrorMessages.PERIODE_TOM_WRONG_FORMAT.description
-                        message shouldNotContain ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM.description
-                        message shouldNotContain ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE.description
-                        message shouldNotContain ErrorMessages.UNKNOWN_DATE_ERROR.description
-                        message shouldNotContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
-                        message shouldNotContain ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD.description
-                        message shouldNotContain ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT.description
+                    errors.forAll { (_, description, _) ->
+                        description shouldNotContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
+                        description shouldNotContain ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
+                        description shouldNotContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
+                        description shouldNotContain ErrorMessages.PERIODE_FOM_WRONG_FORMAT
+                        description shouldNotContain ErrorMessages.PERIODE_TOM_WRONG_FORMAT
+                        description shouldNotContain ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM
+                        description shouldNotContain ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE
+                        description shouldNotContain ErrorMessages.UNKNOWN_DATE_ERROR
+                        description shouldNotContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
+                        description shouldNotContain ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD
+                        description shouldNotContain ErrorMessages.TILLEGGSFRISTDATO_WRONG_FORMAT
                     }
                 }
             }
@@ -135,11 +140,12 @@ internal class LineValidatorIntegrationTest :
             }
 
             And("Skal alle feil-linjene ha samme feil") {
-                errorKrav.forAll {
-                    it.messages shouldHaveSize 1
-                    it.messages.forExactly(1) { (errorKey, message) ->
-                        errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR
-                        message shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                errorKrav.forAll { errors ->
+                    errors.errors shouldHaveSize 1
+                    errors.errors.first().should {
+                        it.header shouldBe ErrorKeys.KRAVTYPE_ERROR
+                        it.description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                        it.caseNumber.shouldNotBeNull()
                     }
                 }
             }
@@ -158,24 +164,28 @@ internal class LineValidatorIntegrationTest :
             }
 
             And("Skal feil-linjene ha 9 feil meldinger") {
-                val errorMessages = errorKrav.flatMap { it.messages }
-                errorMessages shouldHaveSize 9
-                errorMessages.forExactly(6) { (errorKey, message) ->
-                    errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR
-                    message shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                val errorDetails = errorKrav.flatMap { it.errors }
+                errorDetails shouldHaveSize 9
+                errorDetails.forExactly(6) { (header, description, caseNumber) ->
+                    header shouldBe ErrorKeys.KRAVTYPE_ERROR
+                    description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                    caseNumber.shouldNotBeNull()
                 }
-                errorMessages.forExactly(1) { (errorKey, message) ->
+                errorDetails.forExactly(1) { (errorKey, description, caseNumber) ->
                     errorKey shouldBe ErrorKeys.VEDTAKSDATO_ERROR
-                    message shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description
+                    description shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
+                    caseNumber.shouldNotBeNull()
                 }
-                errorMessages.forExactly(1) { (errorKey, message) ->
+                errorDetails.forExactly(1) { (errorKey, description, caseNumber) ->
                     errorKey shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
-                    message shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                    description shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
+                    caseNumber.shouldNotBeNull()
                 }
 
-                errorMessages.forExactly(1) { (errorKey, message) ->
+                errorDetails.forExactly(1) { (errorKey, description, caseNumber) ->
                     errorKey shouldBe ErrorKeys.SAKSNUMMER_ERROR
-                    message shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description
+                    description shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+                    caseNumber.shouldNotBeNull()
                 }
             }
         }
@@ -238,10 +248,11 @@ internal class LineValidatorIntegrationTest :
                 Then("Skal validering returnere en ValidationResult.Error") {
                     val validatedKrav = lineValidator.validateNewLines(listOf(stoppKrav)).first()
                     validatedKrav.shouldBeInstanceOf<ValidationResult.Error>()
-                    validatedKrav.messages shouldHaveSize 1
-                    validatedKrav.messages.forExactly(1) { (errorKey, message) ->
-                        errorKey shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING
-                        message shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP.description
+                    validatedKrav.errors shouldHaveSize 1
+                    validatedKrav.errors.first().should {
+                        it.header shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING
+                        it.description shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_MANGLER_FOR_STOPP
+                        it.caseNumber.shouldNotBeNull()
                     }
                 }
             }
@@ -266,10 +277,11 @@ internal class LineValidatorIntegrationTest :
                 val validatedKrav = lineValidator.validateNewLines(listOf(stoppKrav)).first()
                 Then("Skal validering returnere ValidationResult.Error") {
                     validatedKrav.shouldBeInstanceOf<ValidationResult.Error>()
-                    validatedKrav.messages shouldHaveSize 1
-                    validatedKrav.messages.forExactly(1) { (errorKey, message) ->
-                        errorKey shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
-                        message shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                    validatedKrav.errors shouldHaveSize 1
+                    validatedKrav.errors.first().should {
+                        it.header shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+                        it.description shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
+                        it.caseNumber.shouldNotBeNull()
                     }
                 }
             }
@@ -278,10 +290,11 @@ internal class LineValidatorIntegrationTest :
                 val validatedKrav = lineValidator.validateNewLines(listOf(endringKrav)).first()
                 Then("Skal validering returnere ValidationResult.Error") {
                     validatedKrav.shouldBeInstanceOf<ValidationResult.Error>()
-                    validatedKrav.messages shouldHaveSize 1
-                    validatedKrav.messages.forExactly(1) { (errorKey, message) ->
-                        errorKey shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
-                        message shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                    validatedKrav.errors shouldHaveSize 1
+                    validatedKrav.errors.first().should {
+                        it.header shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+                        it.description shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
+                        it.caseNumber.shouldNotBeNull()
                     }
                 }
             }
@@ -291,10 +304,11 @@ internal class LineValidatorIntegrationTest :
                 val validatedKrav = lineValidator.validateNewLines(listOf(nyttKrav)).first()
                 Then("Skal validering returnere ValidationResult.Error") {
                     validatedKrav.shouldBeInstanceOf<ValidationResult.Error>()
-                    validatedKrav.messages shouldHaveSize 1
-                    validatedKrav.messages.forExactly(1) { (errorKey, message) ->
-                        errorKey shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
-                        message shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                    validatedKrav.errors shouldHaveSize 1
+                    validatedKrav.errors.first().should {
+                        it.header shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+                        it.description shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
+                        it.caseNumber.shouldNotBeNull()
                     }
                 }
             }

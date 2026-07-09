@@ -1,8 +1,24 @@
 package no.nav.sokos.ske.krav.validation
 
+enum class ErrorCategory(
+    val value: String,
+) {
+    FEIL_I_VALIDERING_AV_FIL("Feil i validering av fil"),
+    FEIL_I_LINJEVALIDERING("Feil i linjevalidering"),
+    FEIL_FRA_SKE("Feil fra SKE"),
+    FEIL_I_OPPDATERING_AV_MOTTAKSSTATUS("Feil i oppdatering av mottaksstatus"),
+    FEIL_I_HENTING_AV_VALIDERINGSFEIL("Feil i henting av valideringsfeil"),
+    FEIL_I_ASYNK_VALIDERING("Asynk valideringsfeil"),
+    ;
+
+    override fun toString() = value
+}
+
 enum class ErrorKeys(
     val value: String,
 ) {
+    UKJENT_FEIL("Ukjent feil"),
+
     // File validation error keys
     PARSE_EXCEPTION("Exception i parsing av fil"),
     FEIL_I_ANTALL("Antall krav stemmer ikke med antallet i siste linje"),
