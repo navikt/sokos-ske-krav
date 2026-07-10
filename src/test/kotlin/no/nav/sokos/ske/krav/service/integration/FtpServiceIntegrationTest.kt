@@ -149,7 +149,7 @@ internal class FtpServiceIntegrationTest :
                     }
                 }
 
-                And("Alert skal sendes til slack") {
+                And("Alert skal sendes til Slack") {
                     val sendAlertFilenameSlot = slot<String>()
                     val sendAlertHeaderSlot = slot<ErrorCategory>()
                     val sendAlertMessagesSlot = slot<List<ErrorDetails>>()
@@ -198,7 +198,7 @@ internal class FtpServiceIntegrationTest :
                     }
                 }
 
-                And("Alert skal sendes til slack") {
+                And("Alert skal sendes til Slack") {
                     val sendAlertFilenameSlot = slot<String>()
                     val sendAlertHeaderSlot = slot<ErrorCategory>()
                     val sendAlertMessagesSlot = slot<List<ErrorDetails>>()
@@ -249,7 +249,7 @@ internal class FtpServiceIntegrationTest :
                     }
                 }
 
-                And("Alert skal sendes til slack") {
+                And("Alert skal sendes til Slack") {
                     val sendAlertFilenameSlot = slot<String>()
                     val sendAlertHeaderSlot = slot<ErrorCategory>()
                     val sendAlertMessagesSlot = slot<List<ErrorDetails>>()
@@ -270,6 +270,139 @@ internal class FtpServiceIntegrationTest :
                 And("Filen skal flyttes til \"inbound\\feilfiler\"") {
                     ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
                     ftpService.listFiles(Directories.FAILED).shouldContainExactly(filename)
+                }
+            }
+        }
+
+        Given("Det finnes en fil som har alle typer feil i \"inbound\" på FTP-serveren") {
+            val filename = "AlleTyperFeil.txt"
+            SftpListener.putFile(filenameWithPath(filename), Directories.INBOUND)
+
+            When("Filen valideres") {
+                val validatedFiles = ftpService.getValidatedFiles()
+
+                Then("Skal en tom liste returneres") {
+                    validatedFiles.shouldBeEmpty()
+                }
+
+                And("Feilen skal lagres i database") {
+                    val filValideringsfeil =
+                        dataSource.transaction { session ->
+                            filvalideringsFeilRepository.getAllValideringsFeil(session)
+                        }
+
+                    filValideringsfeil shouldHaveSize 4
+                    filValideringsfeil.forOne {
+                        it.feilmelding shouldContain ErrorKeys.FEIL_I_DATO.value
+                    }
+                    filValideringsfeil.forOne {
+                        it.feilmelding shouldContain ErrorKeys.FEIL_I_SUM.value
+                    }
+                    filValideringsfeil.forOne {
+                        it.feilmelding shouldContain ErrorKeys.FEIL_I_ANTALL.value
+                    }
+                    filValideringsfeil.forOne {
+                        it.feilmelding shouldContain ErrorKeys.FAGSYSTEMID_MANGLER.value
+                    }
+                }
+
+                And("Alert skal sendes til Slack") {
+                    val sendAlertFilenameSlot = slot<String>()
+                    val sendAlertHeaderSlot = slot<ErrorCategory>()
+                    val sendAlertMessagesSlot = slot<List<ErrorDetails>>()
+
+                    coVerify(exactly = 1) { slackService.addErrors(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot)) }
+                    sendAlertFilenameSlot.captured shouldBe filename
+                    sendAlertHeaderSlot.captured shouldBe ErrorCategory.FEIL_I_VALIDERING_AV_FIL
+                    with(sendAlertMessagesSlot.captured) {
+                        shouldHaveSize(4)
+                        forOne { it.header shouldBe ErrorKeys.FEIL_I_DATO }
+                        forOne { it.header shouldBe ErrorKeys.FEIL_I_SUM }
+                        forOne { it.header shouldBe ErrorKeys.FEIL_I_ANTALL }
+                        forOne { it.header shouldBe ErrorKeys.FAGSYSTEMID_MANGLER }
+                    }
+                    coVerify(exactly = 1) { slackService.sendErrors() }
+                }
+
+                And("Filen skal flyttes til \"inbound\\feilfiler\"") {
+                    ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
+                    ftpService.listFiles(Directories.FAILED).shouldContainExactly(filename)
+                }
+            }
+        }
+
+        Given("Det finnes tre filer fra Arena, Pesys og Infotrygd som alltid mangler fagsystemID i \"inbound\" på FTP-serveren") {
+            fun filenameWithInnsenderPath(filename: String) = "innsender/$filename"
+
+            val filenameArena = "ArenaFil.txt"
+            val filenamePesys = "PesysFil.txt"
+            val filenameInfotrygd = "InfotrygdFil.txt"
+            val files =
+                listOf(
+                    filenameWithInnsenderPath(filenameArena),
+                    filenameWithInnsenderPath(filenamePesys),
+                    filenameWithInnsenderPath(filenameInfotrygd),
+                )
+            SftpListener.putFiles(files, Directories.INBOUND)
+
+            When("Filene valideres") {
+                val validatedFiles = ftpService.getValidatedFiles()
+                Then("Skal tre FtpFil objekt med alle kravlinjene returneres") {
+                    validatedFiles shouldHaveSize 3
+                    validatedFiles.forOne { (name, lines) ->
+                        name shouldBe filenameArena
+                        lines shouldHaveSize 18
+                    }
+                    validatedFiles.forOne { (name, lines) ->
+                        name shouldBe filenamePesys
+                        lines shouldHaveSize 3
+                    }
+                    validatedFiles.forOne { (name, lines) ->
+                        name shouldBe filenameInfotrygd
+                        lines shouldHaveSize 6
+                    }
+                }
+                And("Ingen feil skal lagres i database") {
+                    dataSource.transaction { session ->
+                        filvalideringsFeilRepository.getAllValideringsFeil(session).shouldBeEmpty()
+                    }
+                }
+                And("Alert skal ikke sendes til Slack") {
+                    verify(exactly = 0) { slackService.addErrors(any(), any(), any()) }
+                    coVerify(exactly = 0) { slackService.sendErrors() }
+                }
+                And("Filene skal forbli i \"inbound\"") {
+                    ftpService.listFiles(Directories.INBOUND).shouldContainExactlyInAnyOrder(filenameArena, filenamePesys, filenameInfotrygd)
+                    ftpService.listFiles(Directories.FAILED).shouldBeEmpty()
+                }
+            }
+        }
+
+        Given("Det finnes en fil med tillegsrist i \"inbound\" på FTP-serveren") {
+            val filename = "MedTilleggsfrist.txt"
+            SftpListener.putFile("krav/$filename")
+
+            When("Filen valideres") {
+                val validatedFiles = ftpService.getValidatedFiles()
+                Then("Skal én FtpFil objekt returneres med alle kravlinjene") {
+                    validatedFiles shouldHaveSize 1
+                    validatedFiles.single().should { file ->
+                        file.name shouldBe filename
+                        file.kravLinjer shouldHaveSize 1
+                    }
+                }
+                And("Ingen feil skal lagres i database") {
+                    dataSource.transaction { session ->
+                        filvalideringsFeilRepository.getAllValideringsFeil(session).shouldBeEmpty()
+                    }
+                }
+                And("Alert skal ikke sendes til Slack") {
+                    verify(exactly = 0) { slackService.addErrors(any(), any(), any()) }
+                    coVerify(exactly = 0) { slackService.sendErrors() }
+                }
+                And("Filene skal forbli i \"inbound\"") {
+                    ftpService.listFiles(Directories.INBOUND).shouldContainExactly(filename)
+                    ftpService.listFiles(Directories.FAILED).shouldBeEmpty()
                 }
             }
         }
@@ -295,7 +428,7 @@ internal class FtpServiceIntegrationTest :
                 }
 
                 And("Begge filene skal forbli i \"inbound\"") {
-                    ftpService.listFiles(Directories.INBOUND).shouldContainExactly(FILE_OK, validFile2)
+                    ftpService.listFiles(Directories.INBOUND).shouldContainExactlyInAnyOrder(FILE_OK, validFile2)
                     ftpService.listFiles(Directories.FAILED).shouldBeEmpty()
                 }
             }
@@ -366,7 +499,7 @@ internal class FtpServiceIntegrationTest :
                         feil.feilmelding shouldNotContain ErrorKeys.FEIL_I_ANTALL.value
                     }
                 }
-                And("Alert skal sendes til slack") {
+                And("Alert skal sendes til Slack") {
                     val sendAlertFilenamesSlot = mutableListOf<String>()
                     val sendAlertMessagesSlot = mutableListOf<List<ErrorDetails>>()
 
