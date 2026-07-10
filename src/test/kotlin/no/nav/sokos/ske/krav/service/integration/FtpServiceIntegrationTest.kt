@@ -15,6 +15,7 @@ import io.mockk.coVerify
 import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.dto.slack.ErrorDetails
@@ -89,7 +90,8 @@ internal class FtpServiceIntegrationTest :
                 }
 
                 And("Alert skal ikke sendes") {
-                    coVerify(exactly = 0) { slackService.addErrors(any(), any(), any()) }
+                    verify(exactly = 0) { slackService.addErrors(any<String>(), any<ErrorCategory>(), any<List<ErrorDetails>>()) }
+                    coVerify(exactly = 0) { slackService.sendErrors() }
                 }
             }
         }
@@ -111,7 +113,8 @@ internal class FtpServiceIntegrationTest :
                     }
                 }
                 And("Alert skal ikke sendes") {
-                    coVerify(exactly = 0) { slackService.addErrors(any(), any(), any()) }
+                    verify(exactly = 0) { slackService.addErrors(any<String>(), any<ErrorCategory>(), any<List<ErrorDetails>>()) }
+                    coVerify(exactly = 0) { slackService.sendErrors() }
                 }
                 And("Filen skal forbli i \"inbound\"") {
                     ftpService.listFiles(Directories.INBOUND).shouldContainExactly(FILE_OK)
@@ -149,7 +152,7 @@ internal class FtpServiceIntegrationTest :
                     val sendAlertFilenameSlot = slot<String>()
                     val sendAlertHeaderSlot = slot<ErrorCategory>()
                     val sendAlertMessagesSlot = slot<List<ErrorDetails>>()
-                    coVerify(exactly = 1) {
+                    verify(exactly = 1) {
                         slackService.addErrors(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
 
@@ -159,6 +162,8 @@ internal class FtpServiceIntegrationTest :
                         shouldHaveSize(1)
                         single().header shouldBe ErrorKeys.FEIL_I_ANTALL
                     }
+
+                    coVerify(exactly = 1) { slackService.sendErrors() }
                 }
 
                 And("Filen skal flyttes til \"inbound\\feilfiler\"") {
@@ -168,7 +173,7 @@ internal class FtpServiceIntegrationTest :
             }
         }
 
-        Given("Det finnes en fil som har feil sum i kontoll-linjen i \"inbound\" på FTP-serveren") {
+        Given("Det finnes en fil som har feil sum i kontroll-linjen i \"inbound\" på FTP-serveren") {
             val filename = "FeilSum.txt"
             SftpListener.putFile(filenameWithPath(filename), Directories.INBOUND)
             When("Filen valideres") {
@@ -197,7 +202,7 @@ internal class FtpServiceIntegrationTest :
                     val sendAlertHeaderSlot = slot<ErrorCategory>()
                     val sendAlertMessagesSlot = slot<List<ErrorDetails>>()
 
-                    coVerify(exactly = 1) {
+                    verify(exactly = 1) {
                         slackService.addErrors(capture(sendAlertFilenameslot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameslot.captured shouldBe filename
@@ -206,6 +211,8 @@ internal class FtpServiceIntegrationTest :
                         shouldHaveSize(1)
                         single().header shouldBe ErrorKeys.FEIL_I_SUM
                     }
+
+                    coVerify(exactly = 1) { slackService.sendErrors() }
                 }
 
                 And("Filen skal flyttes til \"inbound\\feilfiler\"") {
@@ -246,7 +253,7 @@ internal class FtpServiceIntegrationTest :
                     val sendAlertHeaderSlot = slot<ErrorCategory>()
                     val sendAlertMessagesSlot = slot<List<ErrorDetails>>()
 
-                    coVerify(exactly = 1) {
+                    verify(exactly = 1) {
                         slackService.addErrors(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot))
                     }
                     sendAlertFilenameSlot.captured shouldBe filename
@@ -255,6 +262,8 @@ internal class FtpServiceIntegrationTest :
                         shouldHaveSize(1)
                         single().header shouldBe ErrorKeys.FEIL_I_DATO
                     }
+
+                    coVerify(exactly = 1) { slackService.sendErrors() }
                 }
 
                 And("Filen skal flyttes til \"inbound\\feilfiler\"") {
