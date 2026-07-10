@@ -311,7 +311,7 @@ internal class FtpServiceIntegrationTest :
                     val sendAlertHeaderSlot = slot<ErrorCategory>()
                     val sendAlertMessagesSlot = slot<List<ErrorDetails>>()
 
-                    coVerify(exactly = 1) { slackService.addErrors(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot)) }
+                    verify(exactly = 1) { slackService.addErrors(capture(sendAlertFilenameSlot), capture(sendAlertHeaderSlot), capture(sendAlertMessagesSlot)) }
                     sendAlertFilenameSlot.captured shouldBe filename
                     sendAlertHeaderSlot.captured shouldBe ErrorCategory.FEIL_I_VALIDERING_AV_FIL
                     with(sendAlertMessagesSlot.captured) {
@@ -378,7 +378,7 @@ internal class FtpServiceIntegrationTest :
             }
         }
 
-        Given("Det finnes en fil med tillegsrist i \"inbound\" på FTP-serveren") {
+        Given("Det finnes en fil med tilleggsfrist i \"inbound\" på FTP-serveren") {
             val filename = "MedTilleggsfrist.txt"
             SftpListener.putFile("krav/$filename")
 
@@ -516,7 +516,7 @@ internal class FtpServiceIntegrationTest :
                     sendAlertMessagesSlot.forOne {
                         it shouldHaveSize 1
                         it.single().should { errorDetail ->
-                            errorDetail.header shouldBe ErrorKeys.FEIL_I_DATO.value
+                            errorDetail.header shouldBe ErrorKeys.FEIL_I_SUM
                         }
                     }
 
