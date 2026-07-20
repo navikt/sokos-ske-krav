@@ -7,6 +7,9 @@ import javax.sql.DataSource
 import kotlinx.io.Buffer
 
 import io.kotest.core.test.TestCase
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.ktor.client.HttpClient
 import io.ktor.client.call.HttpClientCall
 import io.ktor.client.statement.HttpResponse
@@ -20,7 +23,6 @@ import kotliquery.TransactionalSession
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
-import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
@@ -31,9 +33,12 @@ import no.nav.sokos.ske.krav.service.EndreKravService
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.service.OpprettKravService
 import no.nav.sokos.ske.krav.service.SkeService
+import no.nav.sokos.ske.krav.service.SlackService
 import no.nav.sokos.ske.krav.service.StatusService
 import no.nav.sokos.ske.krav.service.StoppKravService
 import no.nav.sokos.ske.krav.util.http.MockHttpClient
+import no.nav.sokos.ske.krav.validation.ErrorKeys
+import no.nav.sokos.ske.krav.validation.ErrorMessages
 
 object FtpTestUtil {
     fun fileAsString(fileName: String): String = fileAs(fileName, Reader::readText)
@@ -51,6 +56,12 @@ object FtpTestUtil {
 }
 
 fun TestCase.isGivenTest(): Boolean = name.prefix == "Given: "
+
+infix fun String.shouldBe(expected: ErrorKeys) = this.shouldBe(expected.value)
+
+infix fun String.shouldContain(expected: ErrorMessages) = this.shouldContain(expected.description)
+
+infix fun String.shouldNotContain(expected: ErrorMessages) = this.shouldNotContain(expected.description)
 
 private val mockSkeClient =
     mockk<SkeClient> {

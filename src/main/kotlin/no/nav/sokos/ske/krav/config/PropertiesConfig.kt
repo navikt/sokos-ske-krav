@@ -135,6 +135,9 @@ data class PostgresConfig(
 @Serializable
 data class SlackConfig(
     val url: String,
+    val slackIdProductLeader: String,
+    val slackIdDomainSpecialists: String,
+    val slackIdTechnicalSpecialist: String,
 )
 
 @Serializable

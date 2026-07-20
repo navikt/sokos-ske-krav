@@ -46,7 +46,6 @@ val testContainerVersion = "1.21.4"
 val sshdSftpVersion = "2.18.0"
 
 // Logging
-val janinoVersion = "3.1.12"
 val kotlinLoggingVersion = "3.0.5"
 val logbackVersion = "1.5.34"
 val logstashVersion = "9.0"
@@ -97,7 +96,6 @@ dependencies {
 
     // Logging
     implementation("io.github.microutils:kotlin-logging-jvm:$kotlinLoggingVersion")
-    runtimeOnly("org.codehaus.janino:janino:$janinoVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
 

@@ -7,7 +7,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 
 import no.nav.sokos.ske.krav.client.SkeClient
-import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.domain.Krav
@@ -16,11 +15,15 @@ import no.nav.sokos.ske.krav.dto.ske.requests.KravidentifikatorType
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
 import no.nav.sokos.ske.krav.dto.ske.responses.MottaksStatusResponse
 import no.nav.sokos.ske.krav.dto.ske.responses.ValideringsFeilResponse
+import no.nav.sokos.ske.krav.dto.slack.ErrorDetails
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.util.createKravidentifikatorPair
 import no.nav.sokos.ske.krav.util.decodeTo
 import no.nav.sokos.ske.krav.util.transaction
+import no.nav.sokos.ske.krav.validation.ErrorCategory
+import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_HENTING_AV_VALIDERINGSFEIL
+import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_OPPDATERING_AV_MOTTAKSSTATUS
 
 private val logger = mu.KotlinLogging.logger {}
 
@@ -61,7 +64,7 @@ class StatusService(
         return if (response.status.isSuccess()) {
             responseBody.decodeTo<MottaksStatusResponse>()?.also { updateMottaksStatus(it, kravidentifikator to kravidentifikatorType, krav) }
         } else {
-            handleFailedStatusResponse(responseBody, krav, "Feil i oppdatering av mottaksstatus", "getMottaksStatus")
+            handleFailedStatusResponse(responseBody, krav, FEIL_I_OPPDATERING_AV_MOTTAKSSTATUS, "getMottaksStatus")
             null
         }
     }
@@ -69,16 +72,15 @@ class StatusService(
     private fun handleFailedStatusResponse(
         responseBody: String,
         krav: Krav,
-        feilmeldingHeader: String,
+        feilmeldingHeader: ErrorCategory,
         funksjonsKall: String,
     ) {
         val feilmelding = responseBody.decodeTo<FeilResponse>()
         if (feilmelding != null) {
             slackService.addError(
-                fileName = krav.filnavn,
-                header = feilmeldingHeader,
-                Pair(feilmelding.title, feilmelding.detail),
-                krav.saksnummerNAV,
+                filename = krav.filnavn,
+                alertTitle = feilmeldingHeader,
+                errorDetails = ErrorDetails(feilmelding.title, feilmelding.detail, krav.saksnummerNAV),
             )
             logger.error { "$funksjonsKall feilet: ${feilmelding.title}" }
         }
@@ -102,7 +104,7 @@ class StatusService(
         val response = skeClient.getValideringsfeil(kravIdentifikatorPair.first, kravIdentifikatorPair.second)
         val responseBody = response.bodyAsText()
         if (!response.status.isSuccess()) {
-            handleFailedStatusResponse(responseBody, krav, "Feil i henting av valideringsfeil", "getValideringsfeil")
+            handleFailedStatusResponse(responseBody, krav, FEIL_I_HENTING_AV_VALIDERINGSFEIL, "getValideringsfeil")
             return
         }
 
@@ -110,7 +112,7 @@ class StatusService(
         logger.info("Asynk Valideringsfeil mottatt ")
         valideringsfeilListe.forEach { valideringsFeil ->
             logger.warn { "Asynk valideringsfeil mottatt: ${ valideringsFeil.message }" }
-            slackService.addError(krav.filnavn, "Asynk valideringsfeil", Pair(valideringsFeil.error, valideringsFeil.message), krav.saksnummerNAV)
+            slackService.addError(krav.filnavn, ErrorCategory.FEIL_I_ASYNK_VALIDERING, ErrorDetails(valideringsFeil.error, valideringsFeil.message, krav.saksnummerNAV))
         }
 
         val feilmeldinger =

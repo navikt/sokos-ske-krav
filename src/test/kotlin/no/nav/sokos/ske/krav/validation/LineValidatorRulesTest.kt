@@ -4,15 +4,17 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.inspectors.forExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
+import no.nav.sokos.ske.krav.util.shouldBe
+import no.nav.sokos.ske.krav.util.shouldContain
 
 internal class LineValidatorRulesTest :
     BehaviorSpec({
@@ -82,11 +84,12 @@ internal class LineValidatorRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
+                    with((validationResult as ValidationResult.Error).errors) {
                         shouldHaveSize(1)
-                        forExactly(1) { (errorKey, message) ->
-                            errorKey shouldBe ErrorKeys.VEDTAKSDATO_ERROR
-                            message shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE.description
+                        first().should {
+                            it.header shouldBe ErrorKeys.VEDTAKSDATO_ERROR
+                            it.description shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
+                            it.caseNumber.shouldNotBeNull()
                         }
                     }
                 }
@@ -108,11 +111,12 @@ internal class LineValidatorRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
+                    with((validationResult as ValidationResult.Error).errors) {
                         shouldHaveSize(1)
-                        forExactly(1) { (errorKey, message) ->
-                            errorKey shouldBe ErrorKeys.VEDTAKSDATO_ERROR
-                            message shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description
+                        first().should {
+                            it.header shouldBe ErrorKeys.VEDTAKSDATO_ERROR
+                            it.description shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
+                            it.caseNumber.shouldNotBeNull()
                         }
                     }
                 }
@@ -155,11 +159,12 @@ internal class LineValidatorRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
+                    with((validationResult as ValidationResult.Error).errors) {
                         shouldHaveSize(1)
-                        forExactly(1) { (errorKey, message) ->
-                            errorKey shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
-                            message shouldContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description
+                        first().should {
+                            it.header shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
+                            it.description shouldContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
+                            it.caseNumber.shouldNotBeNull()
                         }
                     }
                 }
@@ -183,11 +188,12 @@ internal class LineValidatorRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
+                    with((validationResult as ValidationResult.Error).errors) {
                         shouldHaveSize(1)
-                        forExactly(1) { (errorKey, message) ->
-                            errorKey shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
-                            message shouldContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO.description
+                        first().should {
+                            it.header shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
+                            it.description shouldContain ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
+                            it.caseNumber.shouldNotBeNull()
                         }
                     }
                 }
@@ -210,11 +216,12 @@ internal class LineValidatorRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
+                    with((validationResult as ValidationResult.Error).errors) {
                         shouldHaveSize(1)
-                        forExactly(1) { (errorKey, message) ->
-                            errorKey shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
-                            message shouldContain ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT.description
+                        first().should {
+                            it.header shouldBe ErrorKeys.UTBETALINGSDATO_ERROR
+                            it.description shouldContain ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
+                            it.caseNumber.shouldNotBeNull()
                         }
                     }
                 }
@@ -271,14 +278,14 @@ internal class LineValidatorRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
+                    with((validationResult as ValidationResult.Error).errors) {
                         shouldHaveSize(1)
-                        forExactly(1) { (errorKey, message) ->
-                            errorKey shouldBe ErrorKeys.TILLEGGSFRISTDATO_ERROR
-                            message shouldContain ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD.description
-                            message shouldContain tilleggsfristDato.toString()
-                            message shouldContain krav.saksnummerNav
-                            message shouldContain krav.linjenummer.toString()
+                        first().should {
+                            it.header shouldBe ErrorKeys.TILLEGGSFRISTDATO_ERROR
+                            it.description shouldContain ErrorMessages.TILLEGGSFRISTDATO_TOO_OLD
+                            it.description shouldContain tilleggsfristDato.toString()
+                            it.description shouldContain krav.linjenummer.toString()
+                            it.caseNumber.shouldNotBeNull()
                         }
                     }
                 }
@@ -317,11 +324,12 @@ internal class LineValidatorRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
+                    with((validationResult as ValidationResult.Error).errors) {
                         shouldHaveSize(1)
-                        forExactly(1) { (errorKey, message) ->
-                            errorKey shouldBe ErrorKeys.PERIODE_ERROR
-                            message shouldContain ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE.description
+                        first().should {
+                            it.header shouldBe ErrorKeys.PERIODE_ERROR
+                            it.description shouldContain ErrorMessages.PERIODE_TOM_IS_IN_INVALID_FUTURE
+                            it.caseNumber.shouldNotBeNull()
                         }
                     }
                 }
@@ -376,11 +384,12 @@ internal class LineValidatorRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
+                    with((validationResult as ValidationResult.Error).errors) {
                         shouldHaveSize(1)
-                        forExactly(1) { (errorKey, message) ->
-                            errorKey shouldBe ErrorKeys.PERIODE_ERROR
-                            message shouldContain ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM.description
+                        first().should {
+                            it.header shouldBe ErrorKeys.PERIODE_ERROR
+                            it.description shouldContain ErrorMessages.PERIODE_FOM_IS_AFTER_PERIODE_TOM
+                            it.caseNumber.shouldNotBeNull()
                         }
                     }
                 }
@@ -403,11 +412,12 @@ internal class LineValidatorRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
+                    with((validationResult as ValidationResult.Error).errors) {
                         shouldHaveSize(1)
-                        forExactly(1) { (errorKey, message) ->
-                            errorKey shouldBe ErrorKeys.PERIODE_ERROR
-                            message shouldContain ErrorMessages.PERIODE_FOM_WRONG_FORMAT.description
+                        first().should {
+                            it.header shouldBe ErrorKeys.PERIODE_ERROR
+                            it.description shouldContain ErrorMessages.PERIODE_FOM_WRONG_FORMAT
+                            it.caseNumber.shouldNotBeNull()
                         }
                     }
                 }
@@ -429,11 +439,12 @@ internal class LineValidatorRulesTest :
                 }
 
                 And("Feilmelding skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
+                    with((validationResult as ValidationResult.Error).errors) {
                         shouldHaveSize(1)
-                        forExactly(1) { (errorKey, message) ->
-                            errorKey shouldBe ErrorKeys.PERIODE_ERROR
-                            message shouldContain ErrorMessages.PERIODE_TOM_WRONG_FORMAT.description
+                        first().should {
+                            it.header shouldBe ErrorKeys.PERIODE_ERROR
+                            it.description shouldContain ErrorMessages.PERIODE_TOM_WRONG_FORMAT
+                            it.caseNumber.shouldNotBeNull()
                         }
                     }
                 }
@@ -457,11 +468,12 @@ internal class LineValidatorRulesTest :
             }
 
             And("Feilmelding skal returneres") {
-                with((validationResult as ValidationResult.Error).messages) {
+                with((validationResult as ValidationResult.Error).errors) {
                     shouldHaveSize(1)
-                    forExactly(1) { (errorKey, message) ->
-                        errorKey shouldBe ErrorKeys.KRAVTYPE_ERROR
-                        message shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description
+                    first().should {
+                        it.header shouldBe ErrorKeys.KRAVTYPE_ERROR
+                        it.description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                        it.caseNumber.shouldNotBeNull()
                     }
                 }
             }
@@ -484,11 +496,12 @@ internal class LineValidatorRulesTest :
             }
 
             And("Feilmelding skal returneres") {
-                with((validationResult as ValidationResult.Error).messages) {
+                with((validationResult as ValidationResult.Error).errors) {
                     shouldHaveSize(1)
-                    forExactly(1) { (errorKey, message) ->
-                        errorKey shouldBe ErrorKeys.SAKSNUMMER_ERROR
-                        message shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description
+                    first().should {
+                        it.header shouldBe ErrorKeys.SAKSNUMMER_ERROR
+                        it.description shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+                        it.caseNumber.shouldNotBeNull()
                     }
                 }
             }
@@ -511,11 +524,12 @@ internal class LineValidatorRulesTest :
             }
 
             And("Feilmelding skal returneres") {
-                with((validationResult as ValidationResult.Error).messages) {
+                with((validationResult as ValidationResult.Error).errors) {
                     shouldHaveSize(1)
-                    forExactly(1) { (errorKey, message) ->
-                        errorKey shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
-                        message shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT.description
+                    first().should {
+                        it.header shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+                        it.description shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
+                        it.caseNumber.shouldNotBeNull()
                     }
                 }
             }
@@ -538,11 +552,12 @@ internal class LineValidatorRulesTest :
             }
 
             And("Feilmelding skal returneres") {
-                with((validationResult as ValidationResult.Error).messages) {
+                with((validationResult as ValidationResult.Error).errors) {
                     shouldHaveSize(1)
-                    forExactly(1) { (errorKey, message) ->
-                        errorKey shouldBe ErrorKeys.GJELDERID_ERROR
-                        message shouldContain ErrorMessages.GJELDERID_MISSING.description
+                    first().should {
+                        it.header shouldBe ErrorKeys.GJELDERID_ERROR
+                        it.description shouldContain ErrorMessages.GJELDERID_MISSING
+                        it.caseNumber.shouldNotBeNull()
                     }
                 }
             }
@@ -565,11 +580,12 @@ internal class LineValidatorRulesTest :
             }
 
             And("Feilmelding skal returneres") {
-                with((validationResult as ValidationResult.Error).messages) {
+                with((validationResult as ValidationResult.Error).errors) {
                     shouldHaveSize(1)
-                    forExactly(1) { (errorKey, message) ->
-                        errorKey shouldBe ErrorKeys.HOVEDSTOL_ERROR
-                        message shouldContain ErrorMessages.BELOP_NEGATIVE.description
+                    first().should {
+                        it.header shouldBe ErrorKeys.HOVEDSTOL_ERROR
+                        it.description shouldContain ErrorMessages.BELOP_NEGATIVE
+                        it.caseNumber.shouldNotBeNull()
                     }
                 }
             }

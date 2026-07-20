@@ -7,14 +7,14 @@ import javax.sql.DataSource
 import com.jcraft.jsch.SftpException
 import mu.KotlinLogging
 
-import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.dto.slack.ErrorDetails
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.util.transaction
-import no.nav.sokos.ske.krav.validation.ErrorKeys
+import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_VALIDERING_AV_FIL
 import no.nav.sokos.ske.krav.validation.FileValidator
 import no.nav.sokos.ske.krav.validation.ValidationResult
 
@@ -94,7 +94,7 @@ class FtpService(
                 }
 
                 is ValidationResult.Error -> {
-                    handleValidationError(fileName, validationResult.messages, directory)
+                    handleValidationError(fileName, validationResult.errors, directory)
                     null
                 }
             }
@@ -103,7 +103,7 @@ class FtpService(
 
     private suspend fun handleValidationError(
         fileName: String,
-        errorMessages: List<Pair<ErrorKeys, String>>,
+        errorMessages: List<ErrorDetails>,
         directory: Directories,
     ) {
         moveFile(fileName, directory, Directories.FAILED)
@@ -112,17 +112,17 @@ class FtpService(
 
         dataSource.transaction { session ->
             errorMessages.forEach { (errorKey, message) ->
-                filValideringsfeilRepository.insertFilValideringsfeil(session, fileName, "${errorKey.value}: $message")
+                filValideringsfeilRepository.insertFilValideringsfeil(session, fileName, "$errorKey: $message")
             }
         }
     }
 
     private suspend fun logErrors(
         fileName: String,
-        errorMessages: List<Pair<ErrorKeys, String>>,
+        errorMessages: List<ErrorDetails>,
     ) {
-        logger.warn("*** Feil i validering av fil $fileName ***")
-        slackService.addError(fileName, "Feil i validering av fil", errorMessages.map { it.first.value to it.second })
+        logger.warn("*** $FEIL_I_VALIDERING_AV_FIL $fileName ***")
+        slackService.addErrors(fileName, FEIL_I_VALIDERING_AV_FIL, errorMessages)
         slackService.sendErrors()
     }
 }

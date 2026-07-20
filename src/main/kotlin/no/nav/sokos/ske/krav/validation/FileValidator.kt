@@ -6,6 +6,7 @@ import no.nav.sokos.ske.krav.copybook.KontrollLinjeHeader
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.copybook.ParseResult
 import no.nav.sokos.ske.krav.domain.Avsender
+import no.nav.sokos.ske.krav.dto.slack.ErrorDetails
 
 class FileValidator {
     fun validateFile(content: List<String>): ValidationResult =
@@ -13,15 +14,21 @@ class FileValidator {
             is ParseResult.Success -> {
                 val validationErrors = validateLines(parseResult.kontrollLinjeFooter, parseResult.kontrollLinjeHeader, parseResult.kravLinjer)
                 if (validationErrors.isNotEmpty()) {
-                    ValidationResult.Error(messages = validationErrors)
+                    ValidationResult.Error(errors = validationErrors)
                 } else {
                     ValidationResult.Success(parseResult.kravLinjer)
                 }
             }
 
             is ParseResult.Error -> {
-                val messages = parseResult.messages.map { ErrorKeys.PARSE_EXCEPTION to it }
-                ValidationResult.Error(messages = messages)
+                val messages =
+                    parseResult.messages.map { message ->
+                        ErrorDetails(
+                            header = ErrorKeys.PARSE_EXCEPTION,
+                            description = message,
+                        )
+                    }
+                ValidationResult.Error(errors = messages)
             }
         }
 
@@ -29,19 +36,19 @@ class FileValidator {
         lastLine: KontrollLinjeFooter,
         firstLine: KontrollLinjeHeader,
         kravLinjer: List<KravLinje>,
-    ): List<Pair<ErrorKeys, String>> =
+    ): List<ErrorDetails> =
         buildList {
             if (lastLine.antallTransaksjoner != kravLinjer.size) {
-                add(ErrorKeys.FEIL_I_ANTALL to "Antall krav: ${kravLinjer.size}, Antall i siste linje: ${lastLine.antallTransaksjoner}\n")
+                add(ErrorDetails(ErrorKeys.FEIL_I_ANTALL, "Antall krav: ${kravLinjer.size}, Antall i siste linje: ${lastLine.antallTransaksjoner}\n"))
             }
             if (kravLinjer.sumOf { it.belop + it.belopRente }.compareTo(lastLine.sumAlleTransaksjoner) != 0) {
-                add(ErrorKeys.FEIL_I_SUM to "Sum alle linjer: ${kravLinjer.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAlleTransaksjoner}\n")
+                add(ErrorDetails(ErrorKeys.FEIL_I_SUM, "Sum alle linjer: ${kravLinjer.sumOf { it.belop + it.belopRente }}, Sum siste linje: ${lastLine.sumAlleTransaksjoner}\n"))
             }
             if (firstLine.transaksjonsDato != lastLine.transaksjonTimestamp) {
-                add(ErrorKeys.FEIL_I_DATO to "Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonTimestamp}\n")
+                add(ErrorDetails(ErrorKeys.FEIL_I_DATO, "Dato første linje: ${firstLine.transaksjonsDato}, Dato siste linje: ${lastLine.transaksjonTimestamp}\n"))
             }
             if (kravLinjer.any { it.avsender.trim() == Avsender.OB04.name && it.fagsystemId.isBlank() }) {
-                add(ErrorKeys.FAGSYSTEMID_MANGLER to "fagsystemId mangler i en eller flere kravlinjer\n")
+                add(ErrorDetails(ErrorKeys.FAGSYSTEMID_MANGLER, "FagsystemId mangler i en eller flere kravlinjer\n"))
             }
         }
 }
