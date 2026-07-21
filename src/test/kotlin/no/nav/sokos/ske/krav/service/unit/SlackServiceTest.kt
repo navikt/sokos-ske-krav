@@ -1,270 +1,450 @@
 package no.nav.sokos.ske.krav.service.unit
 
-import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.inspectors.forAll
+import io.kotest.inspectors.forOne
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.collections.shouldNotBeEmpty
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import io.mockk.clearMocks
 import io.mockk.coJustRun
+import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
 
 import no.nav.sokos.ske.krav.client.SlackClient
-import no.nav.sokos.ske.krav.client.SlackService
-import no.nav.sokos.ske.krav.domain.TaggablePeople
-import no.nav.sokos.ske.krav.domain.TaggablePeople.LENE
-import no.nav.sokos.ske.krav.domain.TaggablePeople.LINE_ANITA
-import no.nav.sokos.ske.krav.domain.TaggablePeople.MARITA
-import no.nav.sokos.ske.krav.domain.TaggablePeople.STEINAR
-import no.nav.sokos.ske.krav.domain.TaggablePeople.TRINE
-import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
-import no.nav.sokos.ske.krav.validation.LineValidationRules.ErrorKeys.REFERANSENUMMERGAMMELSAK_MISSING
+import no.nav.sokos.ske.krav.dto.slack.ErrorDetails
+import no.nav.sokos.ske.krav.dto.slack.ExtraTags
+import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR
+import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.ORGANISASJONSNUMMER_FINNES_IKKE
+import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.ORGANISASJON_ER_SLETTET
+import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.PERSON_EKSISTERER_IKKE
+import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.PERSON_ER_DOED
+import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.PERSON_ER_SLETTET
+import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.REFERANSENUMMERGAMMELSAK_MANGLER
+import no.nav.sokos.ske.krav.service.SlackService
+import no.nav.sokos.ske.krav.util.shouldBe
+import no.nav.sokos.ske.krav.util.shouldContain
+import no.nav.sokos.ske.krav.validation.ErrorCategory
+import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_ASYNK_VALIDERING
+import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_LINJEVALIDERING
+import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_VALIDERING_AV_FIL
+import no.nav.sokos.ske.krav.validation.ErrorKeys
+import no.nav.sokos.ske.krav.validation.ErrorMessages
 
-internal class SlackServiceTest :
+private const val PRODUCT_LEADER = "productLeaderId"
+private const val DOMAIN_SPECIALIST = "domainSpecialistId"
+private const val TECHNICAL_SPECIALIST = "technicalSpecialistId"
+
+class SlackServiceTest :
     FunSpec({
+        val slackClient =
+            mockk<SlackClient> {
+                coJustRun { sendMessage(any<ErrorCategory>(), any<String>(), any<ExtraTags>(), any<List<ErrorDetails>>()) }
+            }
+        val slackService = SlackService(slackClient)
 
-        test("missing referansenummer gammel sak should tag produktleder with a specific error message for that") {
-            val errorSlots = mutableListOf<Map<String, List<String>>>()
-            val taggedPeopleSlot = mutableListOf<List<TaggablePeople>>()
+        afterTest {
+            slackService.clearErrorTracking()
+            clearMocks(slackClient, answers = false)
+        }
 
-            val slackClient =
-                mockk<SlackClient>(relaxed = true) {
-                    coJustRun { sendMessage(any<String>(), any<String>(), capture(errorSlots), capture(taggedPeopleSlot), any(), any()) }
-                }
-            val slackService = SlackService(slackClient)
+        test("addError legger en feil til SlackService") {
+            val filename = "file3.txt"
+            val errors =
+                ErrorDetails(
+                    ErrorKeys.PARSE_EXCEPTION,
+                    "Unexpected token in line 42",
+                )
 
             slackService.addError(
-                "file3.txt",
-                "Validation",
-                mapOf(
-                    REFERANSENUMMERGAMMELSAK_MISSING to listOf("hva som helst"),
-                ),
+                filename,
+                FEIL_I_VALIDERING_AV_FIL,
+                errors,
             )
 
-            slackService.sendErrors()
-
-            assertSoftly {
-                errorSlots[0][REFERANSENUMMERGAMMELSAK_MISSING] shouldContainExactly listOf(("hva som helst"))
-                taggedPeopleSlot[0] shouldContainExactly listOf(LENE)
+            val trackedErrors = slackService.trackedErrors()
+            trackedErrors shouldHaveSize 1
+            trackedErrors.first().should { fileError ->
+                fileError.alertTitle shouldBe FEIL_I_VALIDERING_AV_FIL
+                fileError.filename shouldBe filename
+                fileError.extraTags.peopleSlackId.should { peopleSlackId ->
+                    peopleSlackId shouldHaveSize 1
+                    peopleSlackId.single() shouldContain PRODUCT_LEADER
+                }
+                fileError.errorDetails.should { errorDetails ->
+                    errorDetails shouldHaveSize 1
+                    errorDetails.first().should {
+                        it.header shouldBe ErrorKeys.PARSE_EXCEPTION
+                        it.description shouldBe "Unexpected token in line 42"
+                        it.caseNumber.shouldBeNull()
+                    }
+                }
             }
         }
 
-        test("addError adds error messages to SlackService") {
-            val headerSlots = mutableListOf<String>()
-            val fileNameSlots = mutableListOf<String>()
-            val errorSlots = mutableListOf<Map<String, List<String>>>()
+        test("addErrors samler feil sammen når de har samme tittel og filnavn") {
+            val filename1 = "file1.txt"
+            val filename2 = "file2.txt"
 
-            val slackClient =
-                mockk<SlackClient>(relaxed = true) {
-                    coJustRun { sendMessage(capture(headerSlots), capture(fileNameSlots), capture(errorSlots), any<List<TaggablePeople>>(), any(), any()) }
+            val fileValidationErrors =
+                List(3) {
+                    ErrorDetails(
+                        ErrorKeys.PARSE_EXCEPTION,
+                        "Unexpected token in line 4$it",
+                    )
                 }
 
-            val slackService = SlackService(slackClient)
+            val lineValidationError1 =
+                ErrorDetails(
+                    ErrorKeys.VEDTAKSDATO_ERROR,
+                    ErrorMessages.VEDTAKSDATO_WRONG_FORMAT.description,
+                    "saksnummer-123",
+                )
 
-            slackService.addError(
-                "file3.txt",
-                "SyntaxError",
-                mapOf(
-                    "ParseProblem" to listOf("Unexpected token in line 42"),
-                ),
-            )
+            val lineValidationError2 =
+                ErrorDetails(
+                    ErrorKeys.KRAVTYPE_ERROR,
+                    ErrorMessages.KRAVTYPE_DOES_NOT_EXIST.description,
+                    "saksnummer-234",
+                )
 
-            slackService.sendErrors()
+            val lineValidationError3 =
+                ErrorDetails(
+                    ErrorKeys.SAKSNUMMER_ERROR,
+                    ErrorMessages.SAKSNUMMER_WRONG_FORMAT.description,
+                    "saksnummer",
+                )
 
-            headerSlots.size shouldBe 1
-            headerSlots[0] shouldBe "SyntaxError"
+            slackService.addErrors(filename1, FEIL_I_VALIDERING_AV_FIL, fileValidationErrors.take(2))
+            slackService.addError(filename2, FEIL_I_VALIDERING_AV_FIL, fileValidationErrors.last())
+            slackService.addError(filename1, FEIL_I_LINJEVALIDERING, lineValidationError1)
+            slackService.addError(filename2, FEIL_I_LINJEVALIDERING, lineValidationError2)
+            slackService.addError(filename2, FEIL_I_LINJEVALIDERING, lineValidationError3)
 
-            fileNameSlots.size shouldBe 1
-            fileNameSlots[0] shouldBe "file3.txt"
-
-            errorSlots.size shouldBe 1
-            errorSlots[0].size shouldBe 1
-            errorSlots[0]["ParseProblem"] shouldContainExactly listOf("Unexpected token in line 42")
-        }
-
-        test("consolidateErrors erstatter ikke meldinger når det er <=5 errors") {
-            val headerSlots = mutableListOf<String>()
-            val fileNameSlots = mutableListOf<String>()
-            val errorSlots = mutableListOf<Map<String, List<String>>>()
-
-            val slackClient =
-                mockk<SlackClient>(relaxed = true) {
-                    coJustRun {
-                        sendMessage(capture(headerSlots), capture(fileNameSlots), capture(errorSlots), any(), any(), any())
+            slackService.trackedErrors().should { trackedErrors ->
+                trackedErrors shouldHaveSize 4
+                trackedErrors.forOne { fileError ->
+                    fileError.alertTitle shouldBe FEIL_I_VALIDERING_AV_FIL
+                    fileError.filename shouldBe filename1
+                    fileError.errorDetails.should { errorDetails ->
+                        errorDetails shouldHaveSize 2
+                        errorDetails.forAll { (header, description, _) ->
+                            header shouldBe ErrorKeys.PARSE_EXCEPTION
+                            description shouldContain "Unexpected token in line 4[01]".toRegex()
+                        }
                     }
                 }
+                trackedErrors.forOne { fileError ->
+                    fileError.alertTitle shouldBe FEIL_I_VALIDERING_AV_FIL
+                    fileError.filename shouldBe filename2
+                    fileError.errorDetails.should { errorDetails ->
+                        errorDetails shouldHaveSize 1
+                        errorDetails.first().should {
+                            it.header shouldBe ErrorKeys.PARSE_EXCEPTION
+                            it.description shouldContain "Unexpected token in line 42"
+                        }
+                    }
+                }
+                trackedErrors.forOne { fileError ->
+                    fileError.alertTitle shouldBe FEIL_I_LINJEVALIDERING
+                    fileError.filename shouldBe filename1
+                    fileError.errorDetails.should { errorDetails ->
+                        errorDetails shouldHaveSize 1
+                        errorDetails.first().should {
+                            it.header shouldBe ErrorKeys.VEDTAKSDATO_ERROR
+                            it.description shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
+                            it.caseNumber shouldBe "saksnummer-123"
+                        }
+                    }
+                }
+                trackedErrors.forOne { fileError ->
+                    fileError.alertTitle shouldBe FEIL_I_LINJEVALIDERING
+                    fileError.filename shouldBe filename2
+                    fileError.errorDetails.should { errorDetails ->
+                        errorDetails shouldHaveSize 2
+                        errorDetails.forOne { (header, description, caseNumber) ->
+                            header shouldBe ErrorKeys.KRAVTYPE_ERROR
+                            description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                            caseNumber shouldBe "saksnummer-234"
+                        }
 
-            val slackService = SlackService(slackClient)
-
-            slackService.addError(
-                "file1.txt",
-                "Validation",
-                mapOf(
-                    "DateError" to listOf("Invalid date format on line 1"),
-                    "LengthError" to listOf("Field exceeds max length"),
-                ),
-            )
-
-            slackService.addError(
-                "file2.txt",
-                "Processing",
-                mapOf(
-                    "ParseError" to listOf("Invalid syntax in line 10"),
-                ),
-            )
-
-            slackService.sendErrors()
-
-            headerSlots.size shouldBe 2
-            headerSlots[0] shouldBe "Validation"
-            headerSlots[1] shouldBe "Processing"
-
-            fileNameSlots.size shouldBe 2
-            fileNameSlots[0] shouldBe "file1.txt"
-            fileNameSlots[1] shouldBe "file2.txt"
-
-            errorSlots.size shouldBe 2
-            errorSlots[0].size shouldBe 2
-            errorSlots[0]["DateError"] shouldContainExactly listOf("Invalid date format on line 1")
-            errorSlots[0]["LengthError"] shouldContainExactly listOf("Field exceeds max length")
-            errorSlots[1].size shouldBe 1
-            errorSlots[1]["ParseError"] shouldContainExactly listOf("Invalid syntax in line 10")
+                        errorDetails.forOne { (header, description, caseNumber) ->
+                            header shouldBe ErrorKeys.SAKSNUMMER_ERROR
+                            description shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+                            caseNumber shouldBe "saksnummer"
+                        }
+                    }
+                }
+            }
         }
 
-        test("sendErrors tagger riktige personer basert på kjent feiltype") {
-            val taggedPeopleSlot = mutableListOf<List<TaggablePeople>>()
-            val rutineLinkSlot = mutableListOf<String?>()
-
-            val slackClient =
-                mockk<SlackClient>(relaxed = true) {
-                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot), any()) }
-                }
-
-            val slackService = SlackService(slackClient)
-            slackService.addError("fil.txt", "Valideringsfeil", mapOf("PERSON_ER_DOED" to listOf("Person er død")))
-            slackService.sendErrors()
-
-            taggedPeopleSlot[0] shouldContainExactly listOf(LENE, TRINE)
-            rutineLinkSlot[0] shouldBe null
-        }
-
-        test("sendErrors tagger riktige personer og inkluderer rutinelenke for ORGANISASJON_ER_OPPHOERT") {
-            val taggedPeopleSlot = mutableListOf<List<TaggablePeople>>()
-            val rutineLinkSlot = mutableListOf<String?>()
-
-            val slackClient =
-                mockk<SlackClient>(relaxed = true) {
-                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot), any()) }
-                }
-
-            val slackService = SlackService(slackClient)
-            slackService.addError("fil.txt", "Valideringsfeil", mapOf("ORGANISASJON_ER_OPPHOERT" to listOf("Organisasjon er opphørt")))
-            slackService.sendErrors()
-
-            taggedPeopleSlot[0] shouldContainExactly listOf(MARITA, LINE_ANITA, STEINAR)
-            rutineLinkSlot[0] shouldBe "https://confluence.adeo.no/spaces/TOB/pages/791026050/Rutine+for+manuell+h%C3%A5ndtering+av+innkrevingskrav+til+skatteetaten+SKE"
-        }
-
-        test("sendErrors tagger Lene ved Fant ikke gyldig kravidentifikator") {
-            val taggedPeopleSlot = mutableListOf<List<TaggablePeople>>()
-            val rutineLinkSlot = mutableListOf<String?>()
-
-            val slackClient =
-                mockk<SlackClient>(relaxed = true) {
-                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot), any()) }
-                }
-
-            val slackService = SlackService(slackClient)
-            slackService.addError(
-                "fil.txt",
-                "Feil fra SKE",
-                mapOf(FeilResponse.CustomTitles.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR to listOf("Kravidentifikator ikke funnet")),
-            )
-            slackService.sendErrors()
-
-            taggedPeopleSlot[0] shouldContainExactly listOf(LENE)
-            rutineLinkSlot[0] shouldBe null
-        }
-
-        test("sendErrors tagger Lene når feiltypen er ukjent") {
-            val taggedPeopleSlot = mutableListOf<List<TaggablePeople>>()
-            val rutineLinkSlot = mutableListOf<String?>()
-
-            val slackClient =
-                mockk<SlackClient>(relaxed = true) {
-                    coJustRun { sendMessage(any<String>(), any<String>(), any<Map<String, List<String>>>(), capture(taggedPeopleSlot), captureNullable(rutineLinkSlot), any()) }
-                }
-
-            val slackService = SlackService(slackClient)
-            slackService.addError("fil.txt", "Valideringsfeil", mapOf("UKJENT_FEIL" to listOf("Noe gikk galt")))
-            slackService.sendErrors()
-
-            taggedPeopleSlot[0] shouldBe listOf(LENE)
-            rutineLinkSlot[0] shouldBe null
-        }
-
-        test("consolidateErrors erstatter meldinger når det er >5 errors") {
-            val headerSlots = mutableListOf<String>()
-            val fileNameSlots = mutableListOf<String>()
-            val errorSlots = mutableListOf<Map<String, List<String>>>()
-
-            val slackClient =
-                mockk<SlackClient>(relaxed = true) {
-                    coJustRun { sendMessage(capture(headerSlots), capture(fileNameSlots), capture(errorSlots), any<List<TaggablePeople>>(), any(), any()) }
-                }
-
-            val slackService = SlackService(slackClient)
-
-            val lengthErrorList =
-                listOf(
-                    "Field exceeds max length",
-                    "Field too short",
+        test("addError tagger alle riktige fagressurs og inkluderer rutinelenke når feilen er ORGANISASJON_ER_OPPHOERT") {
+            val error =
+                ErrorDetails(
+                    ExtraTags.ORGANISASJON_ER_OPPHOERT,
+                    "Organisasjon er opphoert.",
                 )
-            slackService.addError(
-                "file1.txt",
-                "Validation",
-                mapOf(
-                    "DateError" to
-                        listOf(
-                            "Invalid date format on line 1",
-                            "Invalid date format on line 2",
-                            "Invalid date format on line 3",
-                            "Invalid date format on line 4",
-                            "Invalid date format on line 5",
-                            "Invalid date format on line 6",
-                        ),
-                    "LengthError" to lengthErrorList,
-                ),
-            )
+            slackService.addError("file.txt", FEIL_I_ASYNK_VALIDERING, error)
 
-            val parseErrorList =
+            val trackedErrors = slackService.trackedErrors()
+            with(trackedErrors.single().extraTags) {
+                peopleSlackId.should {
+                    it shouldHaveSize 2
+                    it.forOne { slackId ->
+                        slackId shouldContain DOMAIN_SPECIALIST
+                    }
+                    it.forOne { slackId ->
+                        slackId shouldContain TECHNICAL_SPECIALIST
+                    }
+                }
+                rutineLink.shouldNotBeEmpty()
+            }
+        }
+
+        test("addError tagger produktlederen for alle de andre feilene") {
+            val errors =
                 listOf(
-                    "Invalid syntax in line 10",
-                    "Unexpected token at line 20",
-                    "Mismatched brackets on line 30",
-                    "Unterminated string in line 40",
-                    "Empty file in line 50",
+                    ErrorDetails(PERSON_EKSISTERER_IKKE, "Hva som helst"),
+                    ErrorDetails(PERSON_ER_DOED, "Hva som helst"),
+                    ErrorDetails(PERSON_ER_SLETTET, "Hva som helst"),
+                    ErrorDetails(ORGANISASJONSNUMMER_FINNES_IKKE, "Hva som helst"),
+                    ErrorDetails(ORGANISASJON_ER_SLETTET, "Hva som helst"),
+                    ErrorDetails(FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR, "Hva som helst"),
+                    ErrorDetails(REFERANSENUMMERGAMMELSAK_MANGLER, "Hva som helst"),
+                    ErrorDetails("Unknown error", "Hva som helst"),
                 )
-            slackService.addError(
-                "file2.txt",
-                "Processing",
-                mapOf(
-                    "ParseError" to parseErrorList,
-                ),
-            )
+
+            errors.forEachIndexed { index, errorDetails ->
+                slackService.addError("file$index.txt", FEIL_I_ASYNK_VALIDERING, errorDetails)
+            }
+
+            val trackedErrors = slackService.trackedErrors()
+            trackedErrors shouldHaveSize 8
+            trackedErrors.forAll { fileError ->
+                fileError.extraTags.peopleSlackId.should {
+                    it shouldHaveSize 1
+                    it.single() shouldContain PRODUCT_LEADER
+                }
+                fileError.extraTags.rutineLink.shouldBeEmpty()
+            }
+        }
+
+        test("addErrors tagger alle riktige personer når det er flere forskjellige feil") {
+            val error1 =
+                ErrorDetails(
+                    ExtraTags.ORGANISASJON_ER_OPPHOERT,
+                    "Organisasjon er opphoert.",
+                )
+
+            val error2 =
+                ErrorDetails(
+                    "PERSON_EKSISTERER_IKKE",
+                    "Person eksisterer ikke",
+                )
+
+            slackService.addErrors("file.txt", FEIL_I_ASYNK_VALIDERING, listOf(error1, error2))
+
+            val trackedErrors = slackService.trackedErrors()
+            with(trackedErrors.single().extraTags) {
+                peopleSlackId.should {
+                    it shouldHaveSize 3
+                    it.forOne { slackId ->
+                        slackId shouldContain DOMAIN_SPECIALIST
+                    }
+                    it.forOne { slackId ->
+                        slackId shouldContain TECHNICAL_SPECIALIST
+                    }
+                    it.forOne { slackId ->
+                        slackId shouldContain PRODUCT_LEADER
+                    }
+                }
+                rutineLink.shouldNotBeEmpty()
+            }
+        }
+
+        test("addErrors oppdaterer extraTags med nye personer når vi legger til en ny feil") {
+            val error1 =
+                ErrorDetails(
+                    "PERSON_EKSISTERER_IKKE",
+                    "Person eksisterer ikke",
+                )
+
+            val error2 =
+                ErrorDetails(
+                    ExtraTags.ORGANISASJON_ER_OPPHOERT,
+                    "Organisasjon er opphoert.",
+                )
+
+            slackService.addError("file.txt", FEIL_I_ASYNK_VALIDERING, error1)
+            slackService.addError("file.txt", FEIL_I_ASYNK_VALIDERING, error2)
+
+            val trackedErrors = slackService.trackedErrors()
+            with(trackedErrors.single().extraTags) {
+                peopleSlackId.should {
+                    it shouldHaveSize 3
+                    it.forOne { slackId ->
+                        slackId shouldContain DOMAIN_SPECIALIST
+                    }
+                    it.forOne { slackId ->
+                        slackId shouldContain TECHNICAL_SPECIALIST
+                    }
+                    it.forOne { slackId ->
+                        slackId shouldContain PRODUCT_LEADER
+                    }
+                }
+                rutineLink.shouldNotBeEmpty()
+            }
+        }
+
+        test("sendErrors erstatter ikke meldinger når det er <= 5 errors") {
+            val errors =
+                List(5) {
+                    ErrorDetails(
+                        ErrorKeys.PARSE_EXCEPTION,
+                        "Unexpected token in line 4$it",
+                    )
+                }
+
+            slackService.addErrors("file.txt", FEIL_I_VALIDERING_AV_FIL, errors)
+            slackService.sendErrors()
+
+            val errorsSlot = slot<List<ErrorDetails>>()
+            coVerify(exactly = 1) { slackClient.sendMessage(any<ErrorCategory>(), any<String>(), any<ExtraTags>(), capture(errorsSlot)) }
+            errorsSlot.captured.should {
+                it shouldHaveSize 5
+                it.forAll { (header, description, _) ->
+                    header shouldBe ErrorKeys.PARSE_EXCEPTION
+                    description shouldContain "Unexpected token in line 4[0-4]".toRegex()
+                }
+            }
+        }
+
+        test("sendErrors erstatter meldinger når det er >= 5 errors") {
+            val errors =
+                List(6) {
+                    ErrorDetails(
+                        ErrorKeys.PARSE_EXCEPTION,
+                        "Unexpected token in line 4$it",
+                        "saksnummer-11$it",
+                    )
+                }
+
+            slackService.addErrors("file.txt", FEIL_I_VALIDERING_AV_FIL, errors)
+            slackService.sendErrors()
+
+            val errorsSlot = slot<List<ErrorDetails>>()
+            coVerify(exactly = 1) { slackClient.sendMessage(any<ErrorCategory>(), any<String>(), any<ExtraTags>(), capture(errorsSlot)) }
+            errorsSlot.captured.should {
+                it shouldHaveSize 1
+                it.single().should { errorDetails ->
+                    errorDetails.header shouldBe ErrorKeys.PARSE_EXCEPTION
+                    errorDetails.description shouldBe "6 av samme type feil: ${ErrorKeys.PARSE_EXCEPTION.value}. Sjekk avstemming"
+                    errorDetails.caseNumber shouldBe "saksnummer-110, saksnummer-111, saksnummer-112, saksnummer-113, saksnummer-114, saksnummer-115"
+                }
+            }
+        }
+
+        test("sendErrors sender én slack melding per fil og feil type") {
+            val filename1 = "file1.txt"
+            val filename2 = "file2.txt"
+
+            val fileValidationErrors =
+                List(3) {
+                    ErrorDetails(
+                        ErrorKeys.PARSE_EXCEPTION,
+                        "Unexpected token in line 4$it",
+                    )
+                }
+
+            val asynkValideringErrors =
+                List(7) {
+                    ErrorDetails(
+                        ExtraTags.ORGANISASJON_ER_OPPHOERT,
+                        "Organisasjon er opphoert.",
+                        caseNumber = "saksnummer-11$it",
+                    )
+                }
+
+            slackService.addErrors(filename1, FEIL_I_VALIDERING_AV_FIL, fileValidationErrors.take(2))
+            slackService.addError(filename2, FEIL_I_VALIDERING_AV_FIL, fileValidationErrors.last())
+            slackService.addErrors(filename1, FEIL_I_ASYNK_VALIDERING, asynkValideringErrors.take(1))
+            slackService.addErrors(filename2, FEIL_I_ASYNK_VALIDERING, asynkValideringErrors.takeLast(6))
 
             slackService.sendErrors()
-            headerSlots.size shouldBe 2
-            headerSlots[0] shouldBe "Validation"
-            headerSlots[1] shouldBe "Processing"
 
-            fileNameSlots.size shouldBe 2
-            fileNameSlots[0] shouldBe "file1.txt"
-            fileNameSlots[1] shouldBe "file2.txt"
+            val alertCategories = mutableListOf<ErrorCategory>()
+            val filenames = mutableListOf<String>()
+            val extraTags = mutableListOf<ExtraTags>()
+            val errors = mutableListOf<List<ErrorDetails>>()
 
-            errorSlots.size shouldBe 2
-            errorSlots[0].size shouldBe 2
-            errorSlots[0]["DateError"] shouldContainExactly listOf("6 av samme type feil: DateError. Sjekk avstemming")
-            errorSlots[0]["LengthError"] shouldBe lengthErrorList
-            errorSlots[1].size shouldBe 1
-            errorSlots[1]["ParseError"] shouldBe parseErrorList
+            coVerify(exactly = 4) { slackClient.sendMessage(capture(alertCategories), capture(filenames), capture(extraTags), capture(errors)) }
+
+            alertCategories.shouldContainExactly(FEIL_I_VALIDERING_AV_FIL, FEIL_I_VALIDERING_AV_FIL, FEIL_I_ASYNK_VALIDERING, FEIL_I_ASYNK_VALIDERING)
+            filenames.shouldContainExactly(filename1, filename2, filename1, filename2)
+
+            extraTags shouldHaveSize 4
+            extraTags.take(2).forEach { tags ->
+                tags.peopleSlackId.should { slackId ->
+                    slackId shouldHaveSize 1
+                    slackId.single() shouldContain PRODUCT_LEADER
+                }
+                tags.rutineLink.shouldBeEmpty()
+            }
+
+            extraTags.takeLast(2).forEach { tags ->
+                tags.peopleSlackId.should { slackId ->
+                    slackId shouldHaveSize 2
+                    slackId.forOne {
+                        it shouldContain DOMAIN_SPECIALIST
+                    }
+                    slackId.forOne {
+                        it shouldContain TECHNICAL_SPECIALIST
+                    }
+                }
+                tags.rutineLink.shouldNotBeEmpty()
+            }
+
+            errors shouldHaveSize 4
+            errors.first().should {
+                it shouldHaveSize 2
+                it.forAll { (header, description, _) ->
+                    header shouldBe ErrorKeys.PARSE_EXCEPTION
+                    description shouldContain "Unexpected token in line 4[01]".toRegex()
+                }
+            }
+
+            errors[1].should {
+                it shouldHaveSize 1
+                it.single().should { errorDetails ->
+                    errorDetails.header shouldBe ErrorKeys.PARSE_EXCEPTION
+                    errorDetails.description shouldBe "Unexpected token in line 42"
+                    errorDetails.caseNumber.shouldBeNull()
+                }
+            }
+
+            errors[2].should {
+                it shouldHaveSize 1
+                it.single().should { errorDetails ->
+                    errorDetails.header shouldBe ExtraTags.ORGANISASJON_ER_OPPHOERT
+                    errorDetails.description shouldBe "Organisasjon er opphoert."
+                    errorDetails.caseNumber.shouldNotBeNull()
+                }
+            }
+
+            errors.last().should {
+                it shouldHaveSize 1
+                it.single().should { errorDetails ->
+                    errorDetails.header shouldBe ExtraTags.ORGANISASJON_ER_OPPHOERT
+                    errorDetails.description shouldContain "av samme type feil"
+                    errorDetails.caseNumber shouldContain "(saksnummer-11[1-6](, )?){6}".toRegex()
+                }
+            }
         }
     })

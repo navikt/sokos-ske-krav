@@ -14,6 +14,9 @@ updates:
         patterns:
           - "jvm"
           - "plugin.serialization"
+      ktor:
+        patterns:
+          - "io.ktor:*"
         update-types:
           - minor
           - patch
@@ -24,3 +27,16 @@ updates:
         exclude-patterns:
           - "jvm"
           - "plugin.serialization"
+          - "io.ktor:*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "Europe/Oslo"
+    groups:
+      github:
+        patterns:
+           - "*"

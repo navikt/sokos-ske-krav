@@ -11,8 +11,10 @@ import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.dto.slack.ErrorDetails
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.util.transaction
+import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_VALIDERING_AV_FIL
 import no.nav.sokos.ske.krav.validation.FileValidator
 import no.nav.sokos.ske.krav.validation.ValidationResult
 
@@ -34,6 +36,7 @@ class FtpService(
     private val sftpConfig: SftpConfig = SftpConfig(),
     private val fileValidator: FileValidator = FileValidator(),
     private val filValideringsfeilRepository: FilValideringsfeilRepository = FilValideringsfeilRepository.instance,
+    private val slackService: SlackService = SlackService(),
 ) {
     private val logger = KotlinLogging.logger { }
 
@@ -85,30 +88,41 @@ class FtpService(
         if (files.isEmpty()) return emptyList()
 
         return files.mapNotNull { (fileName, fileContent) ->
-            when (val validationResult = fileValidator.validateFile(fileContent, fileName)) {
+            when (val validationResult = fileValidator.validateFile(fileContent)) {
                 is ValidationResult.Success -> {
                     FtpFil(fileName, validationResult.kravLinjer)
                 }
 
                 is ValidationResult.Error -> {
-                    handleValidationError(fileName, validationResult.messages, directory)
+                    handleValidationError(fileName, validationResult.errors, directory)
                     null
                 }
             }
         }
     }
 
-    private fun handleValidationError(
+    private suspend fun handleValidationError(
         fileName: String,
-        errorMessages: List<Pair<String, String>>,
+        errorMessages: List<ErrorDetails>,
         directory: Directories,
     ) {
         moveFile(fileName, directory, Directories.FAILED)
+
+        logErrors(fileName, errorMessages)
 
         dataSource.transaction { session ->
             errorMessages.forEach { (errorKey, message) ->
                 filValideringsfeilRepository.insertFilValideringsfeil(session, fileName, "$errorKey: $message")
             }
         }
+    }
+
+    private suspend fun logErrors(
+        fileName: String,
+        errorMessages: List<ErrorDetails>,
+    ) {
+        logger.warn("*** $FEIL_I_VALIDERING_AV_FIL $fileName ***")
+        slackService.addErrors(fileName, FEIL_I_VALIDERING_AV_FIL, errorMessages)
+        slackService.sendErrors()
     }
 }

@@ -14,7 +14,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 
 import no.nav.sokos.ske.krav.client.SkeClient
-import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Feilmelding
@@ -22,6 +21,7 @@ import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.ske.responses.AvstemmingResponse
 import no.nav.sokos.ske.krav.dto.ske.responses.FeilResponse
+import no.nav.sokos.ske.krav.dto.slack.ErrorDetails
 import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
@@ -31,8 +31,13 @@ import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.decodeTo
 import no.nav.sokos.ske.krav.util.defineStatus
 import no.nav.sokos.ske.krav.util.transaction
+import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_FRA_SKE
+import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_LINJEVALIDERING
+import no.nav.sokos.ske.krav.validation.ErrorKeys.UKJENT_FEIL
 import no.nav.sokos.ske.krav.validation.LineValidator
+import no.nav.sokos.ske.krav.validation.ValidationResult
 
+// TODO: Convert to enum
 const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRING_RENTE = "ENDRING_RENTE"
 const val ENDRING_HOVEDSTOL = "ENDRING_HOVEDSTOL"
@@ -61,7 +66,7 @@ class SkeService(
             return
         }
 
-        resendKrav()
+        resendKrav(shouldAlert = false)
         sendNewFilesToSKE()
         delay(5000.milliseconds)
         resendKrav()
@@ -74,13 +79,13 @@ class SkeService(
         }
     }
 
-    private suspend fun resendKrav() {
+    private suspend fun resendKrav(shouldAlert: Boolean = true) {
         statusService.getMottaksStatus()
         val allKravForResending = kravRepository.getAllKravForResending()
         if (allKravForResending.isEmpty()) return
 
         logger.info("Resender ${allKravForResending.size} krav")
-        sendKrav(allKravForResending).also {
+        sendKrav(allKravForResending, shouldAlert).also {
             Metrics.numberOfKravResent.increment(it.size.toDouble())
         }
     }
@@ -108,17 +113,17 @@ class SkeService(
 
     private suspend fun processFile(file: FtpFil) {
         logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
-        val validatedLines = LineValidator(dataSource, filValideringsfeilRepository).validateNewLines(file)
 
-        handleValidationResults(file, validatedLines)
+        val validatedLines = LineValidator().validateNewLines(file.kravLinjer)
+        handleValidationResults(file.name, validatedLines)
 
-        dataSource.transaction { session ->
-            kravRepository.insertAllNewKrav(session, validatedLines, file.name)
-        }
         ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
     }
 
-    private suspend fun sendKrav(kravList: List<Krav>): List<RequestResult> {
+    private suspend fun sendKrav(
+        kravList: List<Krav>,
+        shouldAlert: Boolean = true,
+    ): List<RequestResult> {
         if (kravList.isNotEmpty()) logger.info("Sender ${kravList.size}")
 
         val allResponses =
@@ -127,7 +132,7 @@ class SkeService(
                 stoppKravService.sendAllStoppKrav(kravList.filter { it.kravtype == STOPP_KRAV })
 
         updateSentKrav(allResponses)
-        handleErrors(allResponses)
+        handleErrors(allResponses, shouldAlert)
         return allResponses
     }
 
@@ -234,15 +239,46 @@ class SkeService(
     }
 
     private fun handleValidationResults(
-        file: FtpFil,
-        validatedLines: List<KravLinje>,
+        filename: String,
+        validationResults: List<ValidationResult>,
     ) {
-        if (file.kravLinjer.size > validatedLines.size) {
-            logger.warn("Ved validering av linjer i fil ${file.name} har ${file.kravLinjer.size - validatedLines.size} linjer velideringsfeil ")
+        val allKrav = mutableListOf<KravLinje>()
+        val invalidKrav = mutableListOf<Pair<KravLinje, String>>()
+        val slackMessages = mutableListOf<ErrorDetails>()
+
+        validationResults.forEach { result ->
+            when (result) {
+                is ValidationResult.Error -> {
+                    slackMessages.addAll(result.errors)
+                    result.originalLines?.forEach { line ->
+                        invalidKrav.add(line to result.errors.joinToString { it.description })
+                        allKrav.add(line)
+                    }
+                }
+
+                is ValidationResult.Success -> {
+                    allKrav.addAll(result.kravLinjer)
+                }
+            }
         }
-        if (validatedLines.size >= 1000) {
+
+        if (invalidKrav.isNotEmpty()) {
+            logger.warn("Ved validering av linjer i fil $filename har ${invalidKrav.size} linjer valideringsfeil ")
+        }
+
+        if (slackMessages.isNotEmpty()) {
+            logger.warn("Feil i validering av linjer i fil $filename: ${slackMessages.joinToString { it.description }}")
+            slackService.addErrors(filename, FEIL_I_LINJEVALIDERING, slackMessages)
+        }
+
+        if (allKrav.size >= 1000) {
             logger.info("***Stor fil. Blokkerer kjøring***")
             haltRun = true
+        }
+
+        dataSource.transaction { session ->
+            kravRepository.insertAllNewKrav(session, allKrav, filename)
+            filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
         }
     }
 
@@ -252,8 +288,15 @@ class SkeService(
         shouldAlert: Boolean = true,
     ) {
         if (shouldAlert) {
-            val errorPair = feilResponse?.let { Pair(feilResponse.title, feilResponse.detail) } ?: Pair("Ukjent feil", "Kunne ikke parse feilresponse")
-            slackService.addError(requestResult.krav.filnavn, "Feil fra SKE", errorPair, requestResult.krav.saksnummerNAV)
+            val errorDetails =
+                feilResponse?.let {
+                    ErrorDetails(
+                        feilResponse.title,
+                        feilResponse.detail,
+                        requestResult.krav.saksnummerNAV,
+                    )
+                } ?: ErrorDetails(UKJENT_FEIL, "Kunne ikke parse feilresponse")
+            slackService.addError(requestResult.krav.filnavn, FEIL_FRA_SKE, errorDetails)
         }
 
         saveErrorMessage(
@@ -266,11 +309,14 @@ class SkeService(
         )
     }
 
-    private fun handleErrors(responses: List<RequestResult>) {
+    private fun handleErrors(
+        responses: List<RequestResult>,
+        shouldAlert: Boolean = true,
+    ) {
         responses
             .filterNot { it.httpStatusCode.isSuccess() }
             .forEach { result ->
-                handleError(result, result.feilResponse)
+                handleError(result, result.feilResponse, shouldAlert)
             }
     }
 

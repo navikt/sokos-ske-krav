@@ -1,24 +1,27 @@
 package no.nav.sokos.ske.krav.validation
 
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.inspectors.forAll
+import io.kotest.inspectors.forOne
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.mockk.mockk
+import io.kotest.matchers.string.shouldContain
 
-import no.nav.sokos.ske.krav.client.SlackService
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
-import no.nav.sokos.ske.krav.validation.FileValidator.ErrorKeys
+import no.nav.sokos.ske.krav.util.shouldBe
 
 internal class FileValidatorTest :
     BehaviorSpec({
         val controlLines = 2
-        val fileValidator = FileValidator(mockk<SlackService>(relaxed = true))
+        val fileValidator = FileValidator()
 
         Given("Fil er OK") {
             val fileName = "AllValideringOk.txt"
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
-                val validationResult = fileValidator.validateFile(content, fileName)
+                val validationResult = fileValidator.validateFile(content)
 
                 Then("Skal ValidationResult være Success") {
                     (validationResult is ValidationResult.Success) shouldBe true
@@ -34,14 +37,14 @@ internal class FileValidatorTest :
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
-                val validationResult = fileValidator.validateFile(content, fileName)
+                val validationResult = fileValidator.validateFile(content)
                 Then("Skal ValidationResult være Error") {
                     (validationResult is ValidationResult.Error) shouldBe true
                 }
                 And("Feilmeldingen skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
+                    with((validationResult as ValidationResult.Error).errors) {
                         size shouldBe 1
-                        first().first shouldBe ErrorKeys.FEIL_I_ANTALL
+                        first().header shouldBe ErrorKeys.FEIL_I_ANTALL
                     }
                 }
             }
@@ -52,14 +55,14 @@ internal class FileValidatorTest :
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
-                val validationResult = fileValidator.validateFile(content, fileName)
+                val validationResult = fileValidator.validateFile(content)
                 Then("Skal ValidationResult være Error") {
                     (validationResult is ValidationResult.Error) shouldBe true
                 }
                 And("Feilmeldingen skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
+                    with((validationResult as ValidationResult.Error).errors) {
                         size shouldBe 1
-                        first().first shouldBe ErrorKeys.FEIL_I_SUM
+                        first().header shouldBe ErrorKeys.FEIL_I_SUM
                     }
                 }
             }
@@ -70,14 +73,14 @@ internal class FileValidatorTest :
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
-                val validationResult = fileValidator.validateFile(content, fileName)
+                val validationResult = fileValidator.validateFile(content)
                 Then("Skal ValidationResult være Error") {
                     (validationResult is ValidationResult.Error) shouldBe true
                 }
                 And("Feilmeldingen skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
+                    with((validationResult as ValidationResult.Error).errors) {
                         size shouldBe 1
-                        first().first shouldBe ErrorKeys.FEIL_I_DATO
+                        first().header shouldBe ErrorKeys.FEIL_I_DATO
                     }
                 }
             }
@@ -88,17 +91,17 @@ internal class FileValidatorTest :
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
-                val validationResult = fileValidator.validateFile(content, fileName)
+                val validationResult = fileValidator.validateFile(content)
                 Then("Skal ValidationResult være Error") {
                     (validationResult is ValidationResult.Error) shouldBe true
                 }
                 And("Feilmeldingen skal returneres") {
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 4
-                        count { it.first == ErrorKeys.FEIL_I_DATO } shouldBe 1
-                        count { it.first == ErrorKeys.FEIL_I_SUM } shouldBe 1
-                        count { it.first == ErrorKeys.FEIL_I_ANTALL } shouldBe 1
-                        count { it.first == ErrorKeys.FAGSYSTEMID_MANGLER } shouldBe 1
+                    with((validationResult as ValidationResult.Error).errors) {
+                        shouldHaveSize(4)
+                        forOne { it.header shouldBe ErrorKeys.FEIL_I_DATO }
+                        forOne { it.header shouldBe ErrorKeys.FEIL_I_SUM }
+                        forOne { it.header shouldBe ErrorKeys.FEIL_I_ANTALL }
+                        forOne { it.header shouldBe ErrorKeys.FAGSYSTEMID_MANGLER }
                     }
                 }
             }
@@ -110,11 +113,13 @@ internal class FileValidatorTest :
 
             When("Filen valideres") {
                 Then("Skal parsingfeil registreres og melding skal inneholde 'Feil i parsing av BigDecimal'") {
-                    val validationResult = fileValidator.validateFile(content, fileName)
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 5
-                        count { it.first == ErrorKeys.PARSE_EXCEPTION } shouldBe 5
-                        count { it.first == ErrorKeys.PARSE_EXCEPTION && it.second.contains("Feil i parsing av BigDecimal") } shouldBe 5
+                    val validationResult = fileValidator.validateFile(content)
+                    with((validationResult as ValidationResult.Error).errors) {
+                        shouldHaveSize(5)
+                        forAll { (header, description, _) ->
+                            header shouldBe ErrorKeys.PARSE_EXCEPTION
+                            description shouldContain "Feil i parsing av BigDecimal"
+                        }
                     }
                 }
             }
@@ -126,11 +131,13 @@ internal class FileValidatorTest :
 
             When("Filen valideres") {
                 Then("Skal Exception kastes og melding skal inneholde 'Feil i parsing av Int'") {
-                    val validationResult = fileValidator.validateFile(content, fileName)
-                    with((validationResult as ValidationResult.Error).messages) {
-                        size shouldBe 1
-                        count { it.first == ErrorKeys.PARSE_EXCEPTION } shouldBe 1
-                        count { it.first == ErrorKeys.PARSE_EXCEPTION && it.second.contains("Feil i parsing av Int") } shouldBe 1
+                    val validationResult = fileValidator.validateFile(content)
+                    with((validationResult as ValidationResult.Error).errors) {
+                        shouldHaveSize(1)
+                        first().should {
+                            it.header shouldBe ErrorKeys.PARSE_EXCEPTION
+                            it.description shouldContain "Feil i parsing av Int"
+                        }
                     }
                 }
             }
@@ -141,7 +148,7 @@ internal class FileValidatorTest :
             val content = getFileContent(fileName)
 
             When("Filen valideres") {
-                val validationResult = fileValidator.validateFile(content, fileName)
+                val validationResult = fileValidator.validateFile(content)
 
                 Then("Skal ValidationResult være Success - BigDecimal scale-forskjell skal ikke gi FEIL_I_SUM ved null-sum") {
                     (validationResult is ValidationResult.Success) shouldBe true
