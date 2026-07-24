@@ -120,14 +120,14 @@ configurations.all {
             // #67 (GHSA-3qp7-7mw8-wx86 / CVE-2026-44249) and #68 (GHSA-x4gw-5cx5-pgmh / CVE-2026-45416)
             // affecting io.netty:netty-handler. Aligns all Netty modules to 4.2.15.Final.
             if (requested.group == "io.netty") {
-                useVersion("4.2.15.Final")
+                useVersion("4.2.1.Final")
                 because(
                     "Resolves production Dependabot alerts #67 (GHSA-3qp7-7mw8-wx86) and #68 (GHSA-x4gw-5cx5-pgmh). " +
                         "All Netty modules aligned to 4.2.15.Final (first patched version).",
                 )
             }
             if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-core") {
-                useVersion("2.21.1")
+                useVersion("2.22.1")
                 because("jackson-core: Number Length Constraint Bypass in Async Parser Leads to Potential DoS Condition. Affected version >= 2.19.0, < 2.21.1")
             }
         }
