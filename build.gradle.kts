@@ -116,13 +116,13 @@ dependencies {
 configurations.all {
     resolutionStrategy {
         eachDependency {
-            // Consolidated Netty override: fixes HIGH-severity production Dependabot alerts
-            // #67 (GHSA-3qp7-7mw8-wx86 / CVE-2026-44249) and #68 (GHSA-x4gw-5cx5-pgmh / CVE-2026-45416)
-            // affecting io.netty:netty-handler. Aligns all Netty modules to 4.2.15.Final.
+            // Consolidated Netty override: fixes the HIGH-severity production Dependabot alerts
+            // for the io.netty modules resolved by ktor-server-netty-jvm. Aligns all Netty
+            // modules to 4.2.15.Final, which is the first patched version.
             if (requested.group == "io.netty") {
-                useVersion("4.2.1.Final")
+                useVersion("4.2.15.Final")
                 because(
-                    "Resolves production Dependabot alerts #67 (GHSA-3qp7-7mw8-wx86) and #68 (GHSA-x4gw-5cx5-pgmh). " +
+                    "Resolves the HIGH-severity production Dependabot alerts for io.netty modules. " +
                         "All Netty modules aligned to 4.2.15.Final (first patched version).",
                 )
             }
