@@ -31,14 +31,14 @@ class FileParser(
             buildList {
                 headerResult.onFailure { e ->
                     when (e) {
-                        is ParseException -> add(e.message)
+                        is ParseException -> add("Feil i parsing av header: ${e.message}")
                         is NoSuchElementException -> add("Filen har ikke en første linje")
                         else -> throw e
                     }
                 }
                 footerResult.onFailure { e ->
                     when (e) {
-                        is ParseException -> add(e.message)
+                        is ParseException -> add("Feil i parsing av footer: ${e.message}")
                         is NoSuchElementException -> add("Filen har ikke en siste linje")
                         else -> throw e
                     }
