@@ -5,11 +5,8 @@ import kotlin.time.Duration.Companion.hours
 import kotlinx.serialization.Serializable
 
 import com.nimbusds.jose.jwk.RSAKey
-import com.typesafe.config.ConfigFactory
 import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.config.HoconApplicationConfig
 import io.ktor.server.config.getAs
-import io.ktor.server.config.withFallback
 
 object PropertiesConfig {
     lateinit var config: ApplicationConfig
@@ -58,18 +55,14 @@ object PropertiesConfig {
 }
 
 fun ApplicationConfig.mergeWithEnv(): ApplicationConfig {
-    val hoconConfig = HoconApplicationConfig(ConfigFactory.load())
     val environment =
         (System.getenv("NAIS_CLUSTER_NAME") ?: System.getProperty("NAIS_CLUSTER_NAME"))
             ?.lowercase()
             ?.substringBefore("-")
             ?: propertyOrNull("ktor.environment")?.getString()
             ?: "local"
-    val environmentConfig = ApplicationConfig("application-$environment.conf")
-    return environmentConfig overriding this overriding hoconConfig
+    return ApplicationConfig("application-$environment.conf")
 }
-
-infix fun ApplicationConfig.overriding(other: ApplicationConfig): ApplicationConfig = this.withFallback(other)
 
 enum class Profile {
     LOCAL,
