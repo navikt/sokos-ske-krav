@@ -54,15 +54,7 @@ object PropertiesConfig {
     }
 }
 
-fun ApplicationConfig.mergeWithEnv(): ApplicationConfig {
-    val environment =
-        (System.getenv("NAIS_CLUSTER_NAME") ?: System.getProperty("NAIS_CLUSTER_NAME"))
-            ?.lowercase()
-            ?.substringBefore("-")
-            ?: propertyOrNull("ktor.environment")?.getString()
-            ?: "local"
-    return ApplicationConfig("application-$environment.conf")
-}
+fun ApplicationConfig.mergeWithEnv(): ApplicationConfig = ApplicationConfig("application.conf")
 
 enum class Profile {
     LOCAL,

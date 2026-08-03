@@ -6,7 +6,7 @@ description: HOCON-basert konfigurasjon med PropertiesConfig singleton for Ktor 
 # Kotlin Application Configuration Skill
 
 This skill describes the HOCON + `PropertiesConfig` singleton pattern used in this project.
-Config is loaded from layered HOCON files via Ktor's `ApplicationConfig` API.
+Config is loaded from a HOCON file via Ktor's `ApplicationConfig` API.
 
 ## PropertiesConfig Singleton
 
@@ -73,7 +73,7 @@ private fun Application.module() {
 
 ## Sub-files
 
-- See [hocon-layering.md](hocon-layering.md) for the layered HOCON pattern (`mergeWithEnv()`) and example HOCON config files.
+- See [hocon-layering.md](hocon-layering.md) for the HOCON pattern (`mergeWithEnv()`) and example HOCON config files.
 - See [config-classes.md](config-classes.md) for typed config section data classes (`@Serializable`) and testing configuration with MockK.
 
 ## Benefits
