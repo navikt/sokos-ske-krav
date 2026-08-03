@@ -5,10 +5,10 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.4.0"
-    kotlin("plugin.serialization") version "2.4.0"
+    kotlin("jvm") version "2.4.10"
+    kotlin("plugin.serialization") version "2.4.10"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
-    id("org.jetbrains.kotlinx.kover") version "0.9.8"
+    id("org.jetbrains.kotlinx.kover") version "0.9.9"
 
     application
 }
@@ -33,7 +33,7 @@ val opentelemetryVersion = "2.29.0-alpha"
 
 // DB
 val hikaricpVersion = "7.1.0"
-val flywayVersion = "12.11.0"
+val flywayVersion = "13.0.0"
 val postgresqlVersion = "42.7.13"
 val kotliqueryVersion = "2.0.9"
 
