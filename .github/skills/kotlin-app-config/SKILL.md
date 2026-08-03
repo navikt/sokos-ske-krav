@@ -57,7 +57,7 @@ object PropertiesConfig {
 
 ```kotlin
 private fun Application.module() {
-    PropertiesConfig.load(environment.config.mergeWithEnv())
+    PropertiesConfig.load(loadConfig())
 
     val useAuthentication = PropertiesConfig.applicationProperties.useAuthentication
 
@@ -73,7 +73,7 @@ private fun Application.module() {
 
 ## Sub-files
 
-- See [hocon-layering.md](hocon-layering.md) for the HOCON pattern (`mergeWithEnv()`) and example HOCON config files.
+- See [hocon-layering.md](hocon-layering.md) for the HOCON pattern (`loadConfig()`) and example HOCON config files.
 - See [config-classes.md](config-classes.md) for typed config section data classes (`@Serializable`) and testing configuration with MockK.
 
 ## Benefits

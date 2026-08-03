@@ -54,7 +54,7 @@ object PropertiesConfig {
     }
 }
 
-fun mergeWithEnv(): ApplicationConfig = ApplicationConfig("application.conf")
+fun loadConfig(): ApplicationConfig = ApplicationConfig("application.conf")
 
 enum class Profile {
     LOCAL,
