@@ -138,6 +138,12 @@ application {
     mainClass.set("no.nav.sokos.ske.krav.ApplicationKt")
 }
 
+// Local development: use LocalApplication (test scope) so src/test/resources/application.conf is on the classpath
+tasks.named<JavaExec>("run") {
+    mainClass.set("no.nav.sokos.ske.krav.LocalApplicationKt")
+    classpath = sourceSets.test.get().runtimeClasspath
+}
+
 sourceSets {
     main {
         java {
