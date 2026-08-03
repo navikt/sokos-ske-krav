@@ -40,7 +40,7 @@ fun main() {
 private val logger = mu.KotlinLogging.logger {}
 
 @OptIn(Frontend::class)
-private fun Application.module() {
+internal fun Application.module() {
     PropertiesConfig.load(environment.config.mergeWithEnv())
 
     val useAuthentication = PropertiesConfig.applicationProperties.useAuthentication
