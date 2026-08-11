@@ -22,23 +22,23 @@ repositories {
 }
 
 val ktorVersion = "3.5.2"
-val jschVersion = "2.28.4"
+val jschVersion = "2.28.6"
 val nimbusVersion = "10.9.1"
 val kotlinxSerializationVersion = "1.11.0"
 val kotlinxDatetimeVersion = "0.8.0-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
 val prometheusVersion = "1.17.0"
-val opentelemetryVersion = "2.29.0-alpha"
+val opentelemetryVersion = "2.30.0-alpha"
 
 // DB
 val hikaricpVersion = "7.1.0"
-val flywayVersion = "13.0.0"
+val flywayVersion = "13.1.0"
 val postgresqlVersion = "42.7.13"
-val kotliqueryVersion = "2.0.9"
+val kotliqueryVersion = "2.1.0"
 
 // Test
-val kotestVersion = "6.2.2"
+val kotestVersion = "6.2.3"
 
 val mockkVersion = "1.14.11"
 val commonsVersion = "3.13.0"
@@ -47,7 +47,7 @@ val sshdSftpVersion = "2.19.0"
 
 // Logging
 val kotlinLoggingVersion = "3.0.5"
-val logbackVersion = "1.5.38"
+val logbackVersion = "1.6.1"
 val logstashVersion = "9.0"
 
 val resilience4jVersion = "2.4.0"
