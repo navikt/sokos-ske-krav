@@ -15,7 +15,6 @@ import org.testcontainers.jdbc.JdbcDatabaseDelegate
 import org.testcontainers.utility.DockerImageName
 
 import no.nav.sokos.ske.krav.config.PostgresDataSource
-import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
@@ -25,7 +24,6 @@ object DBListener : TestListener {
     private val container by lazy {
         PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:16.6")).apply {
             withReuse(false)
-            withUsername(PropertiesConfig.postgresConfig.adminUser)
             waitingFor(Wait.defaultWaitStrategy())
             start()
         }
