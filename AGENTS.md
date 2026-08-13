@@ -83,8 +83,8 @@ Internal HTML report pages are marked with `@RequiresOptIn annotation class Fron
 - Circuit breaker must be reset between tests: `beforeEach { CircuitBreakerManager.circuitBreaker.reset() }`.
 
 ## Environment Config
-Config is layered: `application-{env}.conf` overrides `application.conf`, merged with env vars.
-`env` is determined by `NAIS_CLUSTER_NAME` (e.g. `dev-fss` → profile `dev`). Locally, `application-local.conf` is used, which reads from `defaults.properties`.
+Config provided by individual application.conf-files, one for each environment, located in the `.nais/{environment}`-folders.
+Locally, `application.conf` is used, which reads from `defaults.properties`.
 
 ## Deployment
 - NAIS FSS platform, namespace `okonomi`.

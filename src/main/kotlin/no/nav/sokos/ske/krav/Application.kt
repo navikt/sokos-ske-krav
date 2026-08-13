@@ -21,7 +21,7 @@ import no.nav.sokos.ske.krav.config.PropertiesConfig.timerConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.config.applicationLifecycleConfig
 import no.nav.sokos.ske.krav.config.commonConfig
-import no.nav.sokos.ske.krav.config.mergeWithEnv
+import no.nav.sokos.ske.krav.config.loadConfig
 import no.nav.sokos.ske.krav.config.routingConfig
 import no.nav.sokos.ske.krav.config.securityConfig
 import no.nav.sokos.ske.krav.domain.StonadsType
@@ -40,8 +40,8 @@ fun main() {
 private val logger = mu.KotlinLogging.logger {}
 
 @OptIn(Frontend::class)
-private fun Application.module() {
-    PropertiesConfig.load(environment.config.mergeWithEnv())
+internal fun Application.module() {
+    PropertiesConfig.load(loadConfig())
 
     val useAuthentication = PropertiesConfig.applicationProperties.useAuthentication
     val applicationState = ApplicationState()

@@ -8,7 +8,7 @@ Services are regular classes with default-argument injection (no DI framework). 
 
 ## Bootstrap order (in `Application.module()`)
 
-1. `PropertiesConfig.load(environment.config.mergeWithEnv())` — first, exactly once
+1. `PropertiesConfig.load(ApplicationConfig("application.conf"))` — first, exactly once
 2. Construct `ApplicationState` and services
 3. `commonConfig()`, `applicationLifecycleConfig()`, `securityConfig()`, `routingConfig(...)`
 4. `PostgresDataSource.migrate()` when not local
