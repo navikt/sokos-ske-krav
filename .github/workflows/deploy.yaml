@@ -51,6 +51,19 @@ jobs:
       dockerfile: "./.nais/dev/Dockerfile"
       use-artifact: true
 
+  build-push-image-dev-gcp:
+    permissions:
+      contents: read
+      id-token: write
+    needs: [build-and-test]
+    name: Build push dev-gcp image
+    uses: navikt/mob-gha-workflows/.github/workflows/gradle-build-push-image.yaml@e80242212870d8674570d82f812590617942930c # ratchet:navikt/mob-gha-workflows/.github/workflows/gradle-build-push-image.yaml@v1.0.1
+    secrets: inherit
+    with:
+      image-suffix: "dev-gcp"
+      dockerfile: "./.nais/dev-gcp/Dockerfile"
+      use-artifact: true
+
   build-push-image-prod:
     permissions:
       contents: read
@@ -76,6 +89,20 @@ jobs:
       cluster: dev-fss
       resource: .nais/dev/naiserator-dev.yaml
       image: ${{ needs.build-push-image-dev.outputs.image }}
+
+  deploy-dev-gcp:
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+      deployments: write
+    needs: [build-push-image-dev-gcp]
+    name: Deploy to dev-gcp
+    uses: navikt/mob-gha-workflows/.github/workflows/nais-deploy.yaml@e80242212870d8674570d82f812590617942930c # ratchet:navikt/mob-gha-workflows/.github/workflows/nais-deploy.yaml@v1.0.1
+    with:
+      cluster: dev-gcp
+      resource: .nais/dev-gcp/naiserator-dev-gcp.yaml
+      image: ${{ needs.build-push-image-dev-gcp.outputs.image }}
 
   deploy-prod:
     permissions:

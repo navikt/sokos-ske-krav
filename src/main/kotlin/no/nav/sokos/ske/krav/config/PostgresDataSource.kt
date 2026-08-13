@@ -1,6 +1,5 @@
 package no.nav.sokos.ske.krav.config
 
-import java.time.Duration
 import javax.sql.DataSource
 
 import com.zaxxer.hikari.HikariConfig
@@ -10,7 +9,6 @@ import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig.postgresConfig
-import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 
 private val logger = KotlinLogging.logger {}
 
@@ -21,10 +19,8 @@ object PostgresDataSource {
 
     fun migrate() {
         val migrationConfig =
-            hikariConfig().apply {
-                connectionInitSql = """SET ROLE "${postgresConfig.adminUser}""""
-            }
-        dataSource(hikariConfig = migrationConfig, role = postgresConfig.adminUser).use { migrate(it) }
+            hikariConfig()
+        dataSource(hikariConfig = migrationConfig).use { migrate(it) }
     }
 
     fun migrate(dataSource: DataSource) {
@@ -40,39 +36,29 @@ object PostgresDataSource {
         logger.info { "Migration finished" }
     }
 
-    private fun dataSource(
-        hikariConfig: HikariConfig = hikariConfig(),
-        role: String = postgresConfig.user,
-    ): HikariDataSource =
-        if (PropertiesConfig.isLocal) {
-            HikariDataSource(hikariConfig)
-        } else {
-            logger.info { "VAULT PATH: $postgresConfig.vaultMountPath" }
-            logger.info { "VAULT ROLE: $role" }
-            HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
-                hikariConfig,
-                postgresConfig.vaultMountPath,
-                role,
-            )
-        }
+    private fun dataSource(hikariConfig: HikariConfig = hikariConfig()): HikariDataSource = HikariDataSource(hikariConfig)
 
     private fun hikariConfig(): HikariConfig =
         HikariConfig().apply {
             maximumPoolSize = 5
             minimumIdle = 1
             isAutoCommit = false
-            dataSource =
-                PGSimpleDataSource().apply {
-                    if (PropertiesConfig.isLocal) {
-                        user = postgresConfig.username
-                        password = postgresConfig.password
-                    }
-                    serverNames = arrayOf(postgresConfig.host)
-                    databaseName = postgresConfig.name
-                    portNumbers = intArrayOf(postgresConfig.port.toInt())
-                    connectionTimeout = Duration.ofSeconds(10).toMillis()
-                    maxLifetime = Duration.ofMinutes(30).toMillis()
-                    initializationFailTimeout = Duration.ofMinutes(30).toMillis()
+            when {
+                !(PropertiesConfig.isLocal) -> {
+                    jdbcUrl = postgresConfig.url
+                    logger.info { "Setting up PostgreSQL" }
                 }
+                else -> {
+                    logger.info { "Setting up local PostgreSQL" }
+                    this.dataSource =
+                        PGSimpleDataSource().apply {
+                            user = postgresConfig.username
+                            password = postgresConfig.password
+                            serverNames = arrayOf(postgresConfig.host)
+                            databaseName = postgresConfig.name
+                            portNumbers = intArrayOf(postgresConfig.port.toInt())
+                        }
+                }
+            }
         }
 }

@@ -59,6 +59,7 @@ fun loadConfig(): ApplicationConfig = ApplicationConfig("application.conf")
 enum class Profile {
     LOCAL,
     DEV,
+    DEV_GCP,
     TEST,
     PROD,
 }
@@ -111,11 +112,8 @@ data class PostgresConfig(
     val name: String,
     val username: String = "",
     val password: String = "",
-    val vaultMountPath: String,
-) {
-    val adminUser = "$name-admin"
-    val user = "$name-user"
-}
+    val url: String,
+)
 
 @Serializable
 data class SlackConfig(
