@@ -5,7 +5,6 @@ import javax.sql.DataSource
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -69,7 +68,7 @@ internal fun Application.module() {
     }
 
     launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
-    launchJob(skeService::checkForStangendeKrav, 24.minutes)
+    launchJob(skeService::checkForStangendeKrav, 24.hours)
     launchJob(::deleteOldData, 24.hours)
 }
 

@@ -22,7 +22,7 @@ import no.nav.sokos.ske.krav.util.transaction
 
 object DBListener : TestListener {
     private val container by lazy {
-        PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:18.4")).apply {
+        PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:16.6")).apply {
             withReuse(false)
             waitingFor(Wait.defaultWaitStrategy())
             start()
