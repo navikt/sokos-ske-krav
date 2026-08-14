@@ -67,7 +67,7 @@ class SkeService(
             return
         }
 
-        resendKrav(shouldAlert = true)
+        resendKrav(shouldAlert = false)
         sendNewFilesToSKE()
         delay(5000.milliseconds)
         resendKrav()
