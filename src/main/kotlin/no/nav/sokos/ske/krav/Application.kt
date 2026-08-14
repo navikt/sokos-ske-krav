@@ -63,6 +63,8 @@ internal fun Application.module() {
             Metrics.registerKravKodeCounter(kravKode)
         }
 
+    logger.info { "Application started with timerConfig: $timerConfig" }
+
     if (!timerConfig.useTimer) {
         return
     }
