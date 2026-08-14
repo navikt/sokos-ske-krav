@@ -47,6 +47,7 @@ class MaskinportenAccessTokenProvider(
 
     suspend fun getAccessToken(): String =
         mutex.withLock {
+            logger.info { "getAccessToken" }
             val nowPlusLimit = Instant.now().plus(timeLimit)
             val cachedToken = tokenCache.get()
 
@@ -62,6 +63,7 @@ class MaskinportenAccessTokenProvider(
     private suspend fun getMaskinportenToken(): AccessToken {
         val openIdConfiguration = client.get(maskinportenConfig.wellKnownUrl).body<OpenIdConfiguration>()
         val jwtAssertion = createJwtAssertion(openIdConfiguration.issuer)
+        logger.info { "Kaller Maskinporten..." }
         val response =
             client
                 .submitForm(

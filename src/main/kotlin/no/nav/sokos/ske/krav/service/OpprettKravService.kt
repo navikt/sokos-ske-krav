@@ -42,7 +42,6 @@ class OpprettKravService(
         val response = skeClient.opprettKrav(opprettKravRequest, krav.corrId)
         logger.info { "Response status: ${response.status}" }
         logger.info { "Response request time: ${response.requestTime}" }
-
         val responseBody = response.bodyAsText()
         logger.info { responseBody }
         val definertStatus = defineStatus(responseBody, response.status)

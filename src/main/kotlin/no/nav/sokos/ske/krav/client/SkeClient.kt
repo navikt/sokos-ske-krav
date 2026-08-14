@@ -32,6 +32,8 @@ private const val VALIDERINGSFEIL = "innkrevingsoppdrag/%s/valideringsfeil?kravi
 private const val HENT_SKE_KRAVIDENT = "innkrevingsoppdrag/%s/avstemming?kravidentifikatortype=OPPDRAGSGIVERS_KRAVIDENTIFIKATOR"
 private const val KLIENT_ID = "NAV/0.1"
 
+private val logger = mu.KotlinLogging.logger {}
+
 class SkeClient(
     private val tokenProvider: MaskinportenAccessTokenProvider = MaskinportenAccessTokenProvider(PropertiesConfig.maskinportenClientProperties, httpClient),
     private val skeEndpoint: String = PropertiesConfig.skeRestConfig.skeRestUrl,
@@ -107,6 +109,7 @@ class SkeClient(
         corrID: String,
     ): HttpRequestBuilder {
         val token = tokenProvider.getAccessToken()
+        logger.info("Har fått token")
         return HttpRequestBuilder().apply {
             url("$skeEndpoint$path")
             headers {
