@@ -67,7 +67,7 @@ class SkeService(
             return
         }
 
-        resendKrav(shouldAlert = false)
+        resendKrav(shouldAlert = true)
         sendNewFilesToSKE()
         delay(5000.milliseconds)
         resendKrav()
@@ -125,7 +125,7 @@ class SkeService(
         kravList: List<Krav>,
         shouldAlert: Boolean = true,
     ): List<RequestResult> {
-        if (kravList.isNotEmpty()) logger.info("Sender ${kravList.size}")
+        if (kravList.isNotEmpty()) logger.info("Sender ${kravList.size} krav til Skatteetaten")
 
         val allResponses =
             opprettKravService.sendAllOpprettKrav(kravList.filter { it.kravtype == NYTT_KRAV }) +
