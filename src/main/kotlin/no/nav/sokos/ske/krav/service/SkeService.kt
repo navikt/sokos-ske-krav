@@ -61,6 +61,7 @@ class SkeService(
     private var haltRun = false
 
     suspend fun handleNewKrav() {
+        logger.info("handleNewKrav blir kjørt")
         if (haltRun) {
             logger.info("*** Kjøring er blokkert ***")
             return

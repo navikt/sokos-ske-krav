@@ -67,6 +67,11 @@ internal fun Application.module() {
         return
     }
 
+    logger.debug("Debug visible here")
+    logger.info { "Info visible here" }
+    logger.error { "Error visible here" }
+    logger.warn { "Warning visible here" }
+
     launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
     launchJob(skeService::checkForStangendeKrav, 24.hours)
     launchJob(::deleteOldData, 24.hours)
@@ -91,6 +96,7 @@ private fun CoroutineScope.launchJob(
     function: suspend () -> Unit,
     delayDuration: Duration,
 ) = launch {
+    logger.info("Starting one job... ")
     while (true) {
         try {
             function()
