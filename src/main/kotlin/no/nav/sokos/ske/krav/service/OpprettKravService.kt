@@ -14,6 +14,8 @@ import no.nav.sokos.ske.krav.util.decodeTo
 import no.nav.sokos.ske.krav.util.defineStatus
 import no.nav.sokos.ske.krav.util.encodeToString
 
+private val logger = mu.KotlinLogging.logger {}
+
 class OpprettKravService(
     private val skeClient: SkeClient,
 ) {
@@ -23,6 +25,7 @@ class OpprettKravService(
         for (krav in kravList) {
             runCatching { requestResults.add(sendOpprettKrav(krav)) }.onFailure { e ->
                 if (e is CircuitBreakerException || e is CallNotPermittedException) {
+                    logger.info { "Circuit breaker is open, stopping sending krav. Exception: ${e.message}" }
                     break
                 } else {
                     throw e
