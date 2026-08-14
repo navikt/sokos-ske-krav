@@ -66,6 +66,7 @@ internal fun Application.module() {
     logger.info { "Application started with timerConfig: $timerConfig" }
 
     if (!timerConfig.useTimer) {
+        logger.info { "Timer er deaktivert, ske-krav kommer ikke til å gjøre noe" }
         return
     }
 
@@ -98,7 +99,6 @@ private fun CoroutineScope.launchJob(
     function: suspend () -> Unit,
     delayDuration: Duration,
 ) = launch {
-    logger.info("Starting one job... ")
     while (true) {
         try {
             function()

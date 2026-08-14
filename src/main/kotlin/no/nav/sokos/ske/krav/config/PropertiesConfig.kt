@@ -1,7 +1,7 @@
 package no.nav.sokos.ske.krav.config
 
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.hours
 import kotlinx.serialization.Serializable
 
 import com.nimbusds.jose.jwk.RSAKey
@@ -140,5 +140,5 @@ data class TimerConfig(
     val useTimer: Boolean,
     val schedulerIntervalPeriodInt: Int,
 ) {
-    val schedulerIntervalPeriod: Duration = schedulerIntervalPeriodInt.seconds
+    val schedulerIntervalPeriod: Duration = schedulerIntervalPeriodInt.hours
 }
