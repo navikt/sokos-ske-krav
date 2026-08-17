@@ -61,7 +61,6 @@ class SkeService(
     private var haltRun = false
 
     suspend fun handleNewKrav() {
-        logger.info("handleNewKrav blir kjørt")
         if (haltRun) {
             logger.info("*** Kjøring er blokkert ***")
             return
@@ -125,8 +124,6 @@ class SkeService(
         kravList: List<Krav>,
         shouldAlert: Boolean = true,
     ): List<RequestResult> {
-        if (kravList.isNotEmpty()) logger.info("Sender ${kravList.size} krav til Skatteetaten")
-
         val allResponses =
             opprettKravService.sendAllOpprettKrav(kravList.filter { it.kravtype == NYTT_KRAV }) +
                 endreKravService.sendAllEndreKrav(kravList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }) +
