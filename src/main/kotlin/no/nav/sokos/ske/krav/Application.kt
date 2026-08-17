@@ -63,10 +63,7 @@ internal fun Application.module() {
             Metrics.registerKravKodeCounter(kravKode)
         }
 
-    logger.info { "Application started with timerConfig: $timerConfig" }
-
     if (!timerConfig.useTimer) {
-        logger.info { "Timer er deaktivert, ske-krav kommer ikke til å gjøre noe" }
         return
     }
 
