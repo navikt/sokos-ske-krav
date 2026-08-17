@@ -54,6 +54,9 @@ spec:
   accessPolicy:
     outbound:
       external:
+        - host: innkrevingsoppdrag.innkreving.skatteetaten-test.no
+          ports:
+            - port: 443
         - host: b27drvl011.preprod.local
           ports:
             - port: 22
