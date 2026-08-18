@@ -45,7 +45,8 @@ object PostgresDataSource {
             isAutoCommit = false
             when {
                 !(PropertiesConfig.isLocal) -> {
-                    jdbcUrl = postgresConfig.url
+                    jdbcUrl = postgresConfig.url.takeIf { it.isNotBlank() }
+                        ?: "jdbc:postgresql://${postgresConfig.host}:${postgresConfig.port}/${postgresConfig.name}"
                     logger.info { "Setting up PostgreSQL" }
                 }
                 else -> {
