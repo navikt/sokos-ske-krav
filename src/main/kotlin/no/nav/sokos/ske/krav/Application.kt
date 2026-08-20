@@ -98,8 +98,9 @@ private fun CoroutineScope.launchJob(
         try {
             function()
             delay(delayDuration)
-        } catch (_: CancellationException) {
+        } catch (e: CancellationException) {
             logger.info { "Scheduled task cancelled" }
+            logger.error(marker = TEAM_LOGS_MARKER) { "Scheduled task cancelled: ${e.message}" }
             break
         } catch (e: Exception) {
             logger.error(marker = TEAM_LOGS_MARKER) { "Unhandled exception in scheduled task ${e.message}" }
