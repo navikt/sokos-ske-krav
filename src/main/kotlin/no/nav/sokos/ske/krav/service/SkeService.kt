@@ -124,8 +124,6 @@ class SkeService(
         kravList: List<Krav>,
         shouldAlert: Boolean = true,
     ): List<RequestResult> {
-        if (kravList.isNotEmpty()) logger.info("Sender ${kravList.size}")
-
         val allResponses =
             opprettKravService.sendAllOpprettKrav(kravList.filter { it.kravtype == NYTT_KRAV }) +
                 endreKravService.sendAllEndreKrav(kravList.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }) +

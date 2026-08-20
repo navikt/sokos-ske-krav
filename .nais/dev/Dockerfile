@@ -4,5 +4,4 @@ COPY build/install/*/lib /lib
 COPY .nais/dev/application.conf /app/
 
 ENV TZ="Europe/Oslo"
-# --enable-native-access=ALL-UNNAMED fjernes når ingen avhengigheter kaster WARNING etterhvert som Java 25 kommer med flere oppdateringer
 ENTRYPOINT ["java", "-cp", "/app:/lib/*", "no.nav.sokos.ske.krav.ApplicationKt"]

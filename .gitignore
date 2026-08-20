@@ -45,3 +45,4 @@ privKey
 privateKey
 /jdtls-data/*
 /.run/
+.tool-versions

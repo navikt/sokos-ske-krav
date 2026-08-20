@@ -11,6 +11,24 @@ spec:
   replicas:
     min: 1
     max: 1
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_18
+        diskAutoresize: true
+        pointInTimeRecovery: true
+        tier: db-custom-1-3840
+        databases:
+          - name: sokos-ske-krav
+            envVarPrefix: DB
+        flags:
+          - name: "cloudsql.enable_pgaudit"
+            value: "on"
+          - name: "pgaudit.log"
+            value: "write,ddl,role"
+          - name: "pgaudit.log_parameter"
+            value: "on"
+          - name: "cloudsql.logical_decoding"
+            value: "on"
   resources:
     limits:
       memory: 4096Mi
@@ -32,7 +50,7 @@ spec:
     initialDelay: 10
     periodSeconds: 5
     timeout: 5
-  webproxy: true
+
   prometheus:
     enabled: true
     path: /internal/metrics
@@ -43,14 +61,20 @@ spec:
     - secret: sokos-ske-krav-secrets
   ingresses:
     - https://sokos-ske-krav.intern.nav.no
+  accessPolicy:
+    outbound:
+      external:
+        - host: innkrevingsoppdrag.innkreving.skatteetaten.no
+        - host: filmottak.adeo.no
+          ports:
+            - port: 22
+      rules:
+        - application: logging
+          namespace: nais-system
+
   maskinporten:
     enabled: true
     scopes:
       consumes:
         - name: skatteetaten:innkrevingsoppdrag
-  vault:
-    enabled: true
 
-  env:
-    - name: JDK_JAVA_OPTIONS
-      value: -XX:MaxRAMPercentage=75 --enable-native-access=ALL-UNNAMED $(JAVA_PROXY_OPTIONS)
