@@ -64,7 +64,10 @@ internal fun Application.module() {
         }
 
     if (!timerConfig.useTimer) {
+        logger.info { "Scheduling of jobs is turned off" }
         return
+    } else {
+        logger.info { "Scheduling jobs" }
     }
 
     launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
