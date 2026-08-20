@@ -65,7 +65,7 @@ spec:
     outbound:
       external:
         - host: innkrevingsoppdrag.innkreving.skatteetaten.no
-        - host: sftp.nav.no
+        - host: filmottak.adeo.no
           ports:
             - port: 22
       rules:
