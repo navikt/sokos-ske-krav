@@ -68,6 +68,7 @@ spec:
         - host: filmottak.adeo.no
           ports:
             - port: 22
+        - host: hooks.slack.com
       rules:
         - application: logging
           namespace: nais-system
