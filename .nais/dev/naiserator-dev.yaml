@@ -58,6 +58,7 @@ spec:
         - host: b27drvl011.preprod.local
           ports:
             - port: 22
+        - host: hooks.slack.com
       rules:
         - application: logging
           namespace: nais-system
