@@ -103,6 +103,7 @@ private fun CoroutineScope.launchJob(
             logger.error(marker = TEAM_LOGS_MARKER) { "Scheduled task cancelled: ${e.javaClass.name} - ${e.message}" }
             break
         } catch (e: Exception) {
+            logger.info { "Unhandled exception in scheduled task ${e.javaClass.name}" }
             logger.error(marker = TEAM_LOGS_MARKER) { "Unhandled exception in scheduled task ${e.message}" }
             delay(delayDuration / 2)
         }
