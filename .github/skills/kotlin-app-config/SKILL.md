@@ -59,8 +59,6 @@ object PropertiesConfig {
 private fun Application.module() {
     PropertiesConfig.load(loadConfig())
 
-    val useAuthentication = PropertiesConfig.applicationProperties.useAuthentication
-
     if (!PropertiesConfig.isLocal) {
         PostgresDataSource.migrate()
     }
