@@ -42,7 +42,7 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
         }
         route("resending") {
             get {
-                call.respondHtmlTemplate(RapportTemplate(RapportType.RESENDING)) {
+                call.respondHtmlTemplate(RapportTemplate(RapportType.RESENDING, call)) {
                     title { +"Krav Som skal resendes" }
                     resendingContent { }
                 }
