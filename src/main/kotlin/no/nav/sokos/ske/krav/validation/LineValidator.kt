@@ -25,7 +25,10 @@ class LineValidator {
      * utbetalingsDato = foreldelsesfristensUtgangspunkt
      * vedtaksdato = fastsettelsesdato
      */
-    fun validate(krav: KravLinje): ValidationResult {
+    fun validate(
+        krav: KravLinje,
+        newService: Boolean = false, // TODO: Remove newService toggle when refactoring is done
+    ): ValidationResult {
         val errorMessages =
             buildList {
                 with(krav) {
@@ -146,7 +149,7 @@ class LineValidator {
         return if (errorMessages.isNotEmpty()) {
             ValidationResult.Error(errors = errorMessages, originalLines = listOf(krav.markedAsValidationError()))
         } else {
-            ValidationResult.Success(listOf(krav.markedAsValid()))
+            ValidationResult.Success(listOf(if (newService) krav.markedAsRead() else krav.markedAsValid()))
         }
     }
 
