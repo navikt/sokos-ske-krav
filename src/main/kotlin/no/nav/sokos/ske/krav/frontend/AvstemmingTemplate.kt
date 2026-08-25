@@ -18,6 +18,7 @@ import kotlinx.html.th
 import kotlinx.html.tr
 import kotlinx.html.ul
 
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.html.Template
 
 import no.nav.sokos.ske.krav.domain.Status
@@ -26,7 +27,9 @@ import no.nav.sokos.ske.krav.service.RapportService
 import no.nav.sokos.ske.krav.service.RapportService.RapportObjekt
 
 @Frontend
-class AvstemmingTemplate : Template<FlowContent> {
+class AvstemmingTemplate(
+    private val call: ApplicationCall,
+) : Template<FlowContent> {
     private val data = RapportService().kravSomSkalAvstemmes
     private val tableHeaders = RapportObjekt.headers
     private val avstemmingCSV = RapportObjekt.csvBuilder.buildCSV(data)

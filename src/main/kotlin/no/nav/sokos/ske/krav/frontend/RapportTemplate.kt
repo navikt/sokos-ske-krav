@@ -9,12 +9,9 @@ import kotlinx.html.h1
 import kotlinx.html.head
 import kotlinx.html.img
 import kotlinx.html.link
-import kotlinx.html.p
 import kotlinx.html.styleLink
 
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
 import io.ktor.server.html.Placeholder
 import io.ktor.server.html.Template
 import io.ktor.server.html.TemplatePlaceholder
@@ -42,12 +39,6 @@ class RapportTemplate(
         }
         body {
             div {
-                p { +"dette er en test" }
-                p { +(call.principal<JWTPrincipal>()!!["NAVident"] ?: throw IllegalStateException("Fant ikke NAVident")) }
-                p { +(call.principal<JWTPrincipal>()!!["name"] ?: throw IllegalStateException("Fant ikke navn")) }
-                p { +(call.principal<JWTPrincipal>()!!["preferred_username"] ?: throw IllegalStateException("Fant ikke epost")) }
-            }
-            div {
                 classes = setOf("table-krav")
                 div {
                     classes = setOf("header")
@@ -61,8 +52,8 @@ class RapportTemplate(
                 }
 
                 when (type) {
-                    RapportType.AVSTEMMING -> insert(AvstemmingTemplate(), avstemmingContent)
-                    RapportType.RESENDING -> insert(ResendingTemplate(), resendingContent)
+                    RapportType.AVSTEMMING -> insert(AvstemmingTemplate(call), avstemmingContent)
+                    RapportType.RESENDING -> insert(ResendingTemplate(call), resendingContent)
                 }
             }
         }

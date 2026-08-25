@@ -73,8 +73,6 @@ data class ApplicationProperties(
     val profile: Profile,
     val appName: String,
     val namespace: String,
-    val basicUsername: String,
-    val basicPassword: String,
 ) {
     val isLocal = profile == Profile.LOCAL
 }
