@@ -23,7 +23,7 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
     route("rapporter") {
         route("avstemming") {
             get {
-                call.respondHtmlTemplate(RapportTemplate(RapportType.AVSTEMMING)) {
+                call.respondHtmlTemplate(RapportTemplate(RapportType.AVSTEMMING, call)) {
                     title { +"Innkrevingsoppdrag med feil" }
                     avstemmingContent { }
                 }
