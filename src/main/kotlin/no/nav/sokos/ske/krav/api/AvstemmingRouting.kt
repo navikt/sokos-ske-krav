@@ -19,7 +19,7 @@ import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService
 import no.nav.sokos.ske.krav.service.RapportType
 
-val logger = KotlinLogging.logger { }
+private val logger = KotlinLogging.logger { }
 
 @OptIn(Frontend::class)
 fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
