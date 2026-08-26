@@ -10,6 +10,13 @@ body * {
     box-sizing: border-box;
 }
 
+.signature {
+    font-size: 0.8em;
+    color: #666;
+    text-align: left;
+    margin-top: 20px;
+}
+
 .header {
     background-color: #23262A;
     color: white;

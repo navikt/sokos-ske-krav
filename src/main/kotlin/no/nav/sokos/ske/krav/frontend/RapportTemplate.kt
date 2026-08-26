@@ -9,9 +9,12 @@ import kotlinx.html.h1
 import kotlinx.html.head
 import kotlinx.html.img
 import kotlinx.html.link
+import kotlinx.html.p
 import kotlinx.html.styleLink
 
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
 import io.ktor.server.html.Placeholder
 import io.ktor.server.html.Template
 import io.ktor.server.html.TemplatePlaceholder
@@ -38,6 +41,12 @@ class RapportTemplate(
             }
         }
         body {
+            div {
+                classes = setOf("signature")
+                p {
+                    +"Logget inn som: ${call.principal<JWTPrincipal>()?.get("name")}"
+                }
+            }
             div {
                 classes = setOf("table-krav")
                 div {
