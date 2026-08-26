@@ -43,9 +43,9 @@ class RapportTemplate(
         body {
             div {
                 classes = setOf("signature")
-                p {
-                    +"Logget inn som: ${call.principal<JWTPrincipal>()?.get("name")}"
-                }
+p {
+    +"Logget inn som: ${call.principal<JWTPrincipal>()?.get("name") ?: "Ikke innlogget"}"
+}
             }
             div {
                 classes = setOf("table-krav")
