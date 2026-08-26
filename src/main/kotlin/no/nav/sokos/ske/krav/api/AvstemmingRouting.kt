@@ -37,8 +37,8 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
                 val id = call.receiveParameters()["kravid"]
                 if (!id.isNullOrBlank()) {
                     val innloggetBruker = call.principal<io.ktor.server.auth.jwt.JWTPrincipal>()?.get("preferred_username")
-                    logger.info(marker = TEAM_LOGS_MARKER) { "$innloggetBruker oppdaterer status til rapportert for kravid: $id" }
-                    logger.info { "Oppdaterer status til rapportert for kravid: $id" }
+                    logger.info(marker = TEAM_LOGS_MARKER) { "$innloggetBruker oppdaterer status til rapportert for krav: $id" }
+                    logger.info { "Oppdaterer status til rapportert for krav: $id" }
                     rapportService.oppdaterStatusTilRapportert(id.toInt())
                 }
                 call.respondRedirect("/rapporter/avstemming")
