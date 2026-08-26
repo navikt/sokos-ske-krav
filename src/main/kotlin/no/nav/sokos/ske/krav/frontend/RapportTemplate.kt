@@ -61,8 +61,8 @@ class RapportTemplate(
                 }
 
                 when (type) {
-                    RapportType.AVSTEMMING -> insert(AvstemmingTemplate(call), avstemmingContent)
-                    RapportType.RESENDING -> insert(ResendingTemplate(call), resendingContent)
+                    RapportType.AVSTEMMING -> insert(AvstemmingTemplate(), avstemmingContent)
+                    RapportType.RESENDING -> insert(ResendingTemplate(), resendingContent)
                 }
             }
         }
