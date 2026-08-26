@@ -61,7 +61,7 @@ spec:
         extra:
           - "NAVident"
         groups:
-          - id: 5bf40c1a-0168-4fc2-9bcb-7b82e76a094e
+          - id: 0918ffcf-2cc4-4282-a1d0-757e116a1d9f
       allowAllUsers: false
   prometheus:
     enabled: true
