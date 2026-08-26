@@ -1,8 +1,6 @@
 package no.nav.sokos.ske.krav.api
 
 import io.ktor.http.ContentType.Text.CSV
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
 import io.ktor.server.html.respondHtmlTemplate
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.request.receiveParameters
@@ -17,7 +15,6 @@ import no.nav.sokos.ske.krav.frontend.RapportTemplate
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService
 import no.nav.sokos.ske.krav.service.RapportType
-import no.nav.sokos.ske.krav.util.logger
 
 @OptIn(Frontend::class)
 fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
@@ -26,7 +23,6 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
     route("rapporter") {
         route("avstemming") {
             get {
-                logger.info { "Authenticated user: ${call.principal<JWTPrincipal>()?.get("NAVident")}" }
                 call.respondHtmlTemplate(RapportTemplate(RapportType.AVSTEMMING, call)) {
                     title { +"Innkrevingsoppdrag med feil" }
                     avstemmingContent { }
@@ -46,7 +42,6 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
         }
         route("resending") {
             get {
-                logger.info { "Authenticated user: ${call.principal<JWTPrincipal>()?.get("NAVident")}" }
                 call.respondHtmlTemplate(RapportTemplate(RapportType.RESENDING, call)) {
                     title { +"Krav Som skal resendes" }
                     resendingContent { }
