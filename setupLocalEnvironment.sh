@@ -15,8 +15,11 @@ if ! gcloud auth print-identity-token &>/dev/null; then
     gcloud auth login
 fi
 
-log "Switching kubectl context to dev-fss / okonomi..."
-kubectl config use-context dev-fss
+log "Getting active gcloud user"
+DB_USER=$(gcloud auth list --format="value(account)" | grep nav)
+
+log "Switching kubectl context to dev-gcp / okonomi..."
+kubectl config use-context dev-gcp
 kubectl config set-context --current --namespace=okonomi
 
 log "Checking Vault authentication..."
@@ -39,6 +42,9 @@ BASIC_AUTH_PASSWORD
 SOKOS_SKE_KRAV_SLACKID_PRODUCTLEADER
 SOKOS_SKE_KRAV_SLACKID_DOMAINSPECIALISTS
 SOKOS_SKE_KRAV_SLACKID_TECHNICALSPECIALIST
+AZURE_OPENID_CONFIG_JWKS_URI
+AZURE_OPENID_CONFIG_ISSUER
+AZURE_APP_CLIENT_ID
 EOF
 )
 
@@ -59,21 +65,12 @@ log "Fetching SFTP private key from Vault..."
 PRIVATE_KEY=$(kubectl exec -n okonomi "$POD_NAME" -- cat /var/run/secrets/sokos-ske-krav-sftp-private-key/private-key)
 [ -z "$PRIVATE_KEY" ] && error "Failed to fetch SFTP private key"
 
-log "Fetching Postgres credentials from Vault..."
-POSTGRES_USER=$(vault kv get -field=data "$VAULT_PATH_POSTGRES")
-
-username=$(echo "$POSTGRES_USER" | awk -F 'username:' '{print $2}' | awk '{print $1}' | sed 's/]$//')
-password=$(echo "$POSTGRES_USER" | awk -F 'password:' '{print $2}' | awk '{print $1}' | sed 's/]$//')
-[ -z "$username" ] && error "Failed to parse Postgres username"
-[ -z "$password" ] && error "Failed to parse Postgres password"
-
 # ── Write output files ────────────────────────────────────────────────────────
 
 log "Writing defaults.properties..."
 {
     echo "$envValue"
-    echo "POSTGRES_USERNAME=$username"
-    echo "POSTGRES_PASSWORD=$password"
+    echo "DB_USER=$DB_USER"
 } > defaults.properties
 
 log "Writing privateKey..."

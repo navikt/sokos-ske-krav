@@ -19,6 +19,10 @@ object PropertiesConfig {
         config.property("application").getAs<ApplicationProperties>()
     }
 
+    val azureProperties by lazy {
+        config.property("azure").getAs<AzureProperties>()
+    }
+
     val sftpProperties by lazy {
         config.property("sftp").getAs<SftpProperties>()
     }
@@ -69,12 +73,16 @@ data class ApplicationProperties(
     val profile: Profile,
     val appName: String,
     val namespace: String,
-    val useAuthentication: Boolean,
-    val basicUsername: String,
-    val basicPassword: String,
 ) {
     val isLocal = profile == Profile.LOCAL
 }
+
+@Serializable
+data class AzureProperties(
+    val jwksUri: String,
+    val configIssuer: String,
+    val clientId: String,
+)
 
 @Serializable
 data class SftpProperties(

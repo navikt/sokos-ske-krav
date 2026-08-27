@@ -43,14 +43,13 @@ private val logger = mu.KotlinLogging.logger {}
 internal fun Application.module() {
     PropertiesConfig.load(loadConfig())
 
-    val useAuthentication = PropertiesConfig.applicationProperties.useAuthentication
     val applicationState = ApplicationState()
     val skeService = SkeService()
 
     commonConfig()
     applicationLifecycleConfig(applicationState)
     securityConfig()
-    routingConfig(useAuthentication, applicationState)
+    routingConfig(applicationState)
 
     if (!PropertiesConfig.isLocal) {
         PostgresDataSource.migrate()

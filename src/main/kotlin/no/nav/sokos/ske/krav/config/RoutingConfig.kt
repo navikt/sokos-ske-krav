@@ -8,14 +8,15 @@ import no.nav.sokos.ske.krav.api.avstemmingRoutes
 import no.nav.sokos.ske.krav.service.Frontend
 
 @OptIn(Frontend::class)
-fun Application.routingConfig(
-    useAuthentication: Boolean,
-    applicationState: ApplicationState,
-) {
+fun Application.routingConfig(applicationState: ApplicationState) {
     routing {
         internalNaisRoutes(applicationState)
-        authenticate(BASIC_AUTH_NAME, optional = !useAuthentication) {
+        if (PropertiesConfig.isLocal) {
             avstemmingRoutes()
+        } else {
+            authenticate {
+                avstemmingRoutes()
+            }
         }
     }
 }

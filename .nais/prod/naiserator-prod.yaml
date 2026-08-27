@@ -50,7 +50,19 @@ spec:
     initialDelay: 10
     periodSeconds: 5
     timeout: 5
-
+  azure:
+    sidecar:
+      enabled: true
+      autoLogin: true
+    application:
+      tenant: nav.no
+      enabled: true
+      claims:
+        extra:
+          - "NAVident"
+        groups:
+          - id: 0918ffcf-2cc4-4282-a1d0-757e116a1d9f
+      allowAllUsers: false
   prometheus:
     enabled: true
     path: /internal/metrics
