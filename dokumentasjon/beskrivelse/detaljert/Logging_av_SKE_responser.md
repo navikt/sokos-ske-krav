@@ -111,26 +111,7 @@ flowchart LR
 
 ---
 
-## 5. Spesialtilfeller
-
-### Kravidentifikator ikke funnet (404 fra avstemming)
-
-Når et endring-/stopp-krav ikke finnes hos SKE ved oppslag av kravidentifikator:
-
-| Data | Åpen logg | Slack |
-|------|-----------|-------|
-| `referansenummerGammelSak` | Ja — `"Fant ikke gyldig kravidentifikator for krav med referansenummerGammelSak: {ref}"` | Ja — i `detail`-feltet |
-| `saksnummerNAV` | Nei | Ja — i `detail` + som saksnummer |
-
-### Krav som «stanger» (eldre enn 24 timer uten reskontroføring)
-
-| Data | Åpen logg | Slack (via Grafana Alerting) |
-|------|-----------|------------------------------|
-| Antall krav + avsender + dager | Ja — `logger.error` med oppsummering | Ja — Grafana alert trigger → `#team-mob-alerts-*` |
-
----
-
-## 6. Oversikt over loggdestinasjoner
+## 5. Oversikt over loggdestinasjoner
 
 | Destinasjon | Hva logges | Hvem ser det | Kilde i kode |
 |-------------|-----------|--------------|--------------|

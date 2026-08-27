@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<title>Logging av SKE HTTP-responser</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad: true, theme: 'base', themeVariables: {background: '#ffffff', primaryTextColor: '#000000', lineColor: '#555555'}});</script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #1f2328; line-height: 1.6; }
+  h1 { border-bottom: 1px solid #d1d9e0; padding-bottom: 8px; }
+  h2 { border-bottom: 1px solid #d1d9e0; padding-bottom: 6px; margin-top: 32px; }
+  h3 { margin-top: 24px; }
+  hr { border: none; border-top: 1px solid #d1d9e0; margin: 24px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid #d1d9e0; padding: 8px 12px; text-align: left; }
+  th { background: #f6f8fa; font-weight: 600; }
+  code { background: #eff1f3; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 16px; border-radius: 6px; overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  .mermaid { text-align: center; margin: 20px 0; }
+  @media print { body { margin: 20px; } }
+</style>
+</head>
+<body>
+
+<h1>Logging av SKE HTTP-responser</h1>
+<p>Oversikt over hvilke felter fra SKE-responser som logges til åpen logg, Team Logs og Slack.</p>
+
+<hr>
+
+<h2>1. Responstyper fra SKE</h2>
+
+<h3>FeilResponse (synkron feil)</h3>
+<pre><code>{
+  "type": "innkrevingsoppdrag-eksisterer-ikke",
+  "title": "Innkrevingsoppdrag eksisterer ikke",
+  "status": 404,
+  "detail": "Fant ikke innkrevingsoppdrag med oppgitt kravidentifikator",
+  "instance": "/innkrevingsoppdrag/ABC123/mottaksstatus"
+}</code></pre>
+<p>Se <a href="https://skatteetaten.github.io/api-dokumentasjon/api/innkrevingsoppdrag?tab=Feilkoder">SKE feilkoder-dokumentasjon</a> for fullstendig liste over feiltyper.</p>
+
+<h3>ValideringsFeilResponse (asynkron validering via mottaksstatus)</h3>
+<pre><code>{
+  "valideringsfeil": [
+    { "error": "PERSON_EKSISTERER_IKKE", "message": "Personen eksisterer ikke i folkeregisteret" }
+  ]
+}</code></pre>
+<p>Se <a href="https://skatteetaten.github.io/api-dokumentasjon/api/innkrevingsoppdrag?tab=Feilkoder">SKE feilkoder-dokumentasjon</a> for fullstendig liste over valideringsfeil.</p>
+<hr>
+
+<h2>2. Loggdestinasjoner per felt – FeilResponse</h2>
+
+<div class="mermaid">
+flowchart LR
+    FR[FeilResponse fra SKE] --> title[title]
+    FR --> detail[detail]
+    FR --> status[status]
+    FR --> type[type]
+    FR --> instance[instance]
+    FR --> rawBody[rå response body]
+
+    title --> Slack
+    title --> OpenLog[Åpen logg]
+
+    detail --> Slack
+
+    type --> StatusMapping[defineStatus → intern Status]
+    status --> StatusMapping
+
+    rawBody --> TeamLogs[Team Logs ved parse-feil]
+
+    instance -.-> Ingen[Logges ikke]
+
+    style FR fill:#e8d5f5,stroke:#c4a4d9,color:#000
+    style Slack fill:#ffd4b8,stroke:#e6a87a,color:#000
+    style OpenLog fill:#b4d7ff,stroke:#7baed4,color:#000
+    style TeamLogs fill:#ffc4c4,stroke:#e69a9a,color:#000
+    style StatusMapping fill:#fff3b0,stroke:#e6d476,color:#000
+    style Ingen fill:#eeeeee,stroke:#cccccc,color:#999
+</div>
+
+<hr>
+
+<h2>3. Detaljert tabell – FeilResponse-felter</h2>
+
+<table>
+<thead>
+<tr><th>Felt</th><th>Åpen logg (Grafana Loki)</th><th>Slack</th><th>Team Logs</th></tr>
+</thead>
+<tbody>
+<tr><td><code>type</code></td><td>Nei</td><td>Nei (brukes kun til statusmapping)</td><td>Nei</td></tr>
+<tr><td><code>title</code></td><td>Ja — <code>"{kall} feilet: {title}"</code></td><td>Ja — vises som <strong>Feilmelding</strong>-header</td><td>Nei</td></tr>
+<tr><td><code>status</code></td><td>Nei</td><td>Nei</td><td>Nei</td></tr>
+<tr><td><code>detail</code></td><td>Nei</td><td>Ja — vises som <strong>Info</strong>-beskrivelse</td><td>Nei</td></tr>
+<tr><td><code>instance</code></td><td>Nei</td><td>Nei</td><td>Nei</td></tr>
+<tr><td>Rå response body</td><td>Nei</td><td>Nei</td><td>Ja — ved feil i JSON-parsing</td></tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>4. Loggdestinasjoner per felt – ValideringsFeilResponse</h2>
+
+<div class="mermaid">
+flowchart LR
+    VFR[ValideringsFeilResponse fra SKE] --> error[error]
+    VFR --> message[message]
+
+    error --> Slack
+
+    message --> Slack
+    message --> OpenLog[Åpen logg]
+
+    style VFR fill:#e8d5f5,stroke:#c4a4d9,color:#000
+    style Slack fill:#ffd4b8,stroke:#e6a87a,color:#000
+    style OpenLog fill:#b4d7ff,stroke:#7baed4,color:#000
+</div>
+
+<h3>Detaljert tabell</h3>
+
+<table>
+<thead>
+<tr><th>Felt</th><th>Åpen logg</th><th>Slack</th><th>Team Logs</th></tr>
+</thead>
+<tbody>
+<tr><td><code>error</code></td><td>Nei</td><td>Ja — vises som <strong>Feilmelding</strong>-header</td><td>Nei</td></tr>
+<tr><td><code>message</code></td><td>Ja — <code>"Asynk valideringsfeil mottatt: {message}"</code></td><td>Ja — vises som <strong>Info</strong>-beskrivelse</td><td>Nei</td></tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>5. Oversikt over loggdestinasjoner</h2>
+
+<table>
+<thead>
+<tr><th>Destinasjon</th><th>Hva logges</th><th>Hvem ser det</th><th>Kilde i kode</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Grafana Loki</strong> (åpen logg)</td><td><code>title</code>, aggregert statistikk, advarsler</td><td>Alle med tilgang til Grafana</td><td><code>logger.info/warn/error</code> uten marker</td></tr>
+<tr><td><strong>Team Logs</strong></td><td>Parse-feil med rå response body</td><td>Kun teamet</td><td><code>logger.error(marker = TEAM_LOGS_MARKER)</code></td></tr>
+<tr><td><strong>Slack</strong> (lukket kanal)</td><td><code>title</code> + <code>detail</code> + saksnummer</td><td>Teamet via Slack</td><td><code>SlackService</code> → <code>SlackClient</code></td></tr>
+<tr><td><strong>Slack</strong> (via Grafana Alerting)</td><td><code>logger.error</code>-meldinger (stangende krav)</td><td>Teamet via Slack</td><td>Grafana alert rules</td></tr>
+</tbody>
+</table>
+
+</body>
+</html>
