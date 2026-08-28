@@ -382,6 +382,20 @@ class KravRepository(
             ),
         )
 
+    fun finnKrav(
+        session: TransactionalSession,
+        saksnummerNAV: String,
+    ): Krav? =
+        session
+            .list(
+                queryOf(
+                    // language=SQL
+                    """select * from krav where saksnummer_nav = ?""",
+                    saksnummerNAV,
+                ),
+                extractor = mapToKrav,
+            ).singleOrNull()
+
     companion object {
         val instance by lazy { KravRepository() }
     }

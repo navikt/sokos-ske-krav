@@ -14,6 +14,9 @@ import io.ktor.server.routing.route
 import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
+import no.nav.sokos.ske.krav.frontend.FantIngenting
+import no.nav.sokos.ske.krav.frontend.FantKrav
+import no.nav.sokos.ske.krav.frontend.IntentingEnda
 import no.nav.sokos.ske.krav.frontend.LeitEtterKravTemplate
 import no.nav.sokos.ske.krav.frontend.RapportTemplate
 import no.nav.sokos.ske.krav.service.Frontend
@@ -62,10 +65,20 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
         }
     }
     route("/krav") {
-        get {
-            call.respondHtmlTemplate(LeitEtterKravTemplate()) {
+        get("") {
+            call.respondHtmlTemplate(LeitEtterKravTemplate(IntentingEnda())) {
             }
         }
         get("/") { call.respondRedirect("/krav") }
+        get("/{saksnummer}") {
+            val saksnummer = call.parameters["saksnummer"] ?: ""
+            val content =
+                when (val krav = RapportService().finnKrav(saksnummer)) {
+                    null -> FantIngenting(saksnummer)
+                    else -> FantKrav(krav)
+                }
+            call.respondHtmlTemplate(LeitEtterKravTemplate(content)) {
+            }
+        }
     }
 }
