@@ -73,6 +73,7 @@ spec:
     - secret: sokos-ske-krav-secrets
   ingresses:
     - https://sokos-ske-krav.intern.nav.no
+    - https://sokos-ske-krav.ansatt.nav.no
   accessPolicy:
     outbound:
       external:
