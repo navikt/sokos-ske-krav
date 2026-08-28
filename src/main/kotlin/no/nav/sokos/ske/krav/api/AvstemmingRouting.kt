@@ -14,6 +14,7 @@ import io.ktor.server.routing.route
 import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
+import no.nav.sokos.ske.krav.frontend.LeitEtterKravTemplate
 import no.nav.sokos.ske.krav.frontend.RapportTemplate
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService
@@ -59,5 +60,12 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
             }
             get("/") { call.respondRedirect("/rapporter/resending") }
         }
+    }
+    route("/krav") {
+        get {
+            call.respondHtmlTemplate(LeitEtterKravTemplate()) {
+            }
+        }
+        get("/") { call.respondRedirect("/krav") }
     }
 }
