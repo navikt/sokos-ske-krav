@@ -77,17 +77,43 @@ class FantKrav(
     override fun FlowContent.apply() {
         p { +"Krav" }
         dl {
-            dt { +"Avsender" }
-            dd { +krav.avsender }
-
-            dt { +"kravId" }
-            dd { krav.kravId }
-
-            dt { +"saksnummerNAV" }
-            dd { +krav.saksnummerNAV }
-
-            dt { +"status" }
-            dd { +"${krav.status}" }
+            kravFelter().forEach { (etikett, verdi) ->
+                dt { +etikett }
+                dd { +verdi }
+            }
         }
     }
+
+    private fun kravFelter() =
+        listOf(
+            "Avsender" to krav.avsender,
+            "Beløp" to krav.belop.toString(),
+            "Beløp rente" to krav.belopRente.toString(),
+            "Corr-id" to krav.corrId,
+            "Enhet behandlende" to krav.enhetBehandlende,
+            "Enhet bosted" to krav.enhetBosted,
+            "Fagsystem-id" to krav.fagsystemId,
+            "Filnavn" to krav.filnavn,
+            "Fremtidig ytelse" to krav.fremtidigYtelse.toString(),
+            "Gjelder-id" to krav.gjelderId,
+            "Kode årsak" to krav.kodeArsak,
+            "Kode hjemmel" to krav.kodeHjemmel,
+            "Krav-id" to krav.kravId.toString(),
+            "Kravidentifikator SKE" to krav.kravidentifikatorSKE,
+            "Kravkode" to krav.kravkode,
+            "Kravtype" to krav.kravtype,
+            "Linjenummer" to krav.linjenummer.toString(),
+            "Periode FOM" to krav.periodeFOM,
+            "Periode TOM" to krav.periodeTOM,
+            "Referansenummer gammel sak" to krav.referansenummerGammelSak,
+            "Saksnummer NAV" to krav.saksnummerNAV,
+            "Status" to krav.status.toString(),
+            "Tilleggsfrist" to (krav.tilleggsfrist?.toString() ?: "Ikke satt"),
+            "Tidspunkt opprettet" to krav.tidspunktOpprettet.toString(),
+            "Tidspunkt sendt" to (krav.tidspunktSendt?.toString() ?: "Ikke satt"),
+            "Tidspunkt siste status" to krav.tidspunktSisteStatus.toString(),
+            "Transaksjonsdato" to krav.transaksjonsDato,
+            "Utbetalingsdato" to krav.utbetalDato.toString(),
+            "Vedtaksdato" to krav.vedtaksDato.toString(),
+        ).sortedBy { it.first }
 }
