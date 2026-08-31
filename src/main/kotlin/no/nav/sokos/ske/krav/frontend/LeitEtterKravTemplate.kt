@@ -13,6 +13,7 @@ import kotlinx.html.dt
 import kotlinx.html.form
 import kotlinx.html.head
 import kotlinx.html.id
+import kotlinx.html.img
 import kotlinx.html.input
 import kotlinx.html.label
 import kotlinx.html.link
@@ -68,8 +69,11 @@ class FantIngenting(
     val saksnummerNav: String,
 ) : LeitEtterKravTrailer {
     override fun FlowContent.apply() {
-        p { classes = setOf("fant-ingenting", "leit-etter-krav-trailer") }
-        +"Fant ingenting på saksnummer $saksnummerNav"
+        p(classes = "fant-ingenting leit-etter-krav-trailer") { +"Fant ingenting på saksnummer $saksnummerNav" }
+        img(classes = "fant-ingenting-bilde") {
+            src = "/static/hello404.png"
+            alt = "Fant ikke krav"
+        }
     }
 }
 

@@ -30,6 +30,20 @@ class LeitEtterKravTemplateTest :
             }
         }
 
+        Given("Ikke-funnet-visning for et saksnummer") {
+            val html =
+                createHTML().div {
+                    insert(FantIngenting("SAK-999")) {}
+                }
+
+            Then("Skal vise tekstmelding og hello404-bilde") {
+                html shouldContain "Fant ingenting på saksnummer SAK-999"
+                html shouldContain "class=\"fant-ingenting-bilde\""
+                html shouldContain "src=\"/static/hello404.png\""
+                html shouldContain "alt=\"Fant ikke krav\""
+            }
+        }
+
         Given("Et krav med verdier i alle felt bortsett fra nullable felt") {
             val tidspunkt = LocalDateTime.parse("2026-08-29T12:30:45")
             val krav =
