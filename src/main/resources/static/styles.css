@@ -119,6 +119,9 @@ tr:nth-child(2n+1) {
 
 .fant-ingenting {
     margin-top: 1rem;
+    padding: 1rem 2rem;
+    width: 100%;
+    text-align: center;
 }
 
 .fant-ingenting-bilde {

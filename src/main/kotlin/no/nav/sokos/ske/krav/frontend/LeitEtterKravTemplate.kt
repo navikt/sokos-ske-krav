@@ -96,7 +96,7 @@ class FantIngenting(
     val saksnummerNav: String,
 ) : LeitEtterKravTrailer {
     override fun FlowContent.apply() {
-        p(classes = "fant-ingenting leit-etter-krav-trailer") { +"Fant ingenting på saksnummer $saksnummerNav" }
+        p(classes = "fant-ingenting") { +"Fant ingenting på saksnummer $saksnummerNav" }
         img(classes = "fant-ingenting-bilde") {
             src = "/static/hello404.png"
             alt = "Fant ikke krav"
