@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.api
 
 import io.ktor.http.ContentType.Text.CSV
+import io.ktor.http.encodeURLPathPart
 import io.ktor.server.auth.principal
 import io.ktor.server.html.respondHtmlTemplate
 import io.ktor.server.http.content.staticResources
@@ -66,6 +67,11 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
     }
     route("/krav") {
         get("") {
+            val saksnummerNav = call.request.queryParameters["saksnummerNav"].toTrimmedSaksnummerNav()
+            if (saksnummerNav != null) {
+                call.respondRedirect(kravLookupPath(saksnummerNav))
+                return@get
+            }
             call.respondHtmlTemplate(LeitEtterKravTemplate(IntentingEnda())) {
             }
         }
@@ -82,3 +88,7 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
         }
     }
 }
+
+internal fun String?.toTrimmedSaksnummerNav(): String? = this?.trim()?.takeIf { it.isNotEmpty() }
+
+internal fun kravLookupPath(saksnummer: String): String = "/krav/${saksnummer.encodeURLPathPart()}"

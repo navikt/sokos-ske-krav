@@ -3,6 +3,8 @@ package no.nav.sokos.ske.krav.frontend
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.HTML
+import kotlinx.html.InputType.submit
+import kotlinx.html.InputType.text
 import kotlinx.html.body
 import kotlinx.html.classes
 import kotlinx.html.dd
@@ -38,16 +40,16 @@ class LeitEtterKravTemplate(
         body {
             form {
                 classes = setOf("leit-etter-krav-form")
-                action = "/leit-etter-krav"
+                action = "/krav"
                 method = FormMethod.get
                 label { +"Saksnummer Nav:" }
                 input {
-                    type = kotlinx.html.InputType.text
+                    type = text
                     name = "saksnummerNav"
                     id = "saksnummerNav"
                 }
                 input {
-                    type = kotlinx.html.InputType.button
+                    type = submit
                     value = "Søk"
                 }
             }

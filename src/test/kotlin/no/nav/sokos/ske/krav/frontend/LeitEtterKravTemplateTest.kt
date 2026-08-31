@@ -4,6 +4,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 import kotlinx.html.div
+import kotlinx.html.html
 import kotlinx.html.stream.createHTML
 
 import io.kotest.core.spec.style.BehaviorSpec
@@ -16,6 +17,19 @@ import no.nav.sokos.ske.krav.domain.Status
 
 class LeitEtterKravTemplateTest :
     BehaviorSpec({
+        Given("LeitEtterKravTemplate rendres uten treff") {
+            val html =
+                createHTML().html {
+                    insert(LeitEtterKravTemplate(IntentingEnda())) {}
+                }
+
+            Then("Skal form sende GET mot /krav med submit-knapp") {
+                html shouldContain """<form action="/krav" class="leit-etter-krav-form" method="get">"""
+                html shouldContain """<input type="text" name="saksnummerNav" id="saksnummerNav">"""
+                html shouldContain """<input type="submit" value="Søk">"""
+            }
+        }
+
         Given("Et krav med verdier i alle felt bortsett fra nullable felt") {
             val tidspunkt = LocalDateTime.parse("2026-08-29T12:30:45")
             val krav =
