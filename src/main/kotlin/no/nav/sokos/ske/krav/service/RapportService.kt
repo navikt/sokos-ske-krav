@@ -59,6 +59,7 @@ class RapportService(
                 )
             }.distinctBy { it.kravID }
 
+    // FIXME: denne kalles én gang per krav. det blir veldig ineffektivt hvis det er mange krav. finn en bedre løsning.
     private fun getFeilmeldinger(krav: Krav): List<String> =
         if (krav.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL) {
             feilmeldingRepository
