@@ -3,7 +3,7 @@ package no.nav.sokos.ske.krav.frontend
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.HTML
-import kotlinx.html.InputType.submit
+import kotlinx.html.InputType.button
 import kotlinx.html.InputType.text
 import kotlinx.html.body
 import kotlinx.html.classes
@@ -75,7 +75,7 @@ class LeitEtterKravTemplate(
                         id = "saksnummerNav"
                     }
                     input {
-                        type = submit
+                        type = button
                         value = "Søk"
                     }
                 }
@@ -109,9 +109,12 @@ class FantKrav(
     override fun FlowContent.apply() {
         p { +"Krav" }
         dl {
+            classes = setOf("krav-def")
             kravFelter().forEach { (etikett, verdi) ->
-                dt { +etikett }
-                dd { +verdi }
+                div {
+                    this@dl.dt { +etikett }
+                    this@dl.dd { +verdi }
+                }
             }
         }
     }
