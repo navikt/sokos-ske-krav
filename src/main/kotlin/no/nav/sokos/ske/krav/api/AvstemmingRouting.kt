@@ -72,7 +72,7 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
                 call.respondRedirect(kravLookupPath(saksnummerNav))
                 return@get
             }
-            call.respondHtmlTemplate(LeitEtterKravTemplate(IntentingEnda())) {
+            call.respondHtmlTemplate(LeitEtterKravTemplate(IntentingEnda(), call)) {
             }
         }
         get("/") { call.respondRedirect("/krav") }
@@ -83,7 +83,7 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
                     null -> FantIngenting(saksnummer)
                     else -> FantKrav(krav)
                 }
-            call.respondHtmlTemplate(LeitEtterKravTemplate(content)) {
+            call.respondHtmlTemplate(LeitEtterKravTemplate(content, call)) {
             }
         }
     }

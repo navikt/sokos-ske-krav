@@ -8,9 +8,11 @@ import kotlinx.html.InputType.text
 import kotlinx.html.body
 import kotlinx.html.classes
 import kotlinx.html.dd
+import kotlinx.html.div
 import kotlinx.html.dl
 import kotlinx.html.dt
 import kotlinx.html.form
+import kotlinx.html.h1
 import kotlinx.html.head
 import kotlinx.html.id
 import kotlinx.html.img
@@ -20,6 +22,9 @@ import kotlinx.html.link
 import kotlinx.html.p
 import kotlinx.html.styleLink
 
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
 import io.ktor.server.html.Template
 import io.ktor.server.html.insert
 
@@ -29,6 +34,7 @@ import no.nav.sokos.ske.krav.service.Frontend
 @Frontend
 class LeitEtterKravTemplate(
     val trailer: LeitEtterKravTrailer,
+    val call: ApplicationCall,
 ) : Template<HTML> {
     override fun HTML.apply() {
         head {
@@ -39,22 +45,42 @@ class LeitEtterKravTemplate(
             }
         }
         body {
-            form {
-                classes = setOf("leit-etter-krav-form")
-                action = "/krav"
-                method = FormMethod.get
-                label { +"Saksnummer Nav:" }
-                input {
-                    type = text
-                    name = "saksnummerNav"
-                    id = "saksnummerNav"
-                }
-                input {
-                    type = submit
-                    value = "Søk"
+            div {
+                classes = setOf("signature")
+                p {
+                    +"Logget inn som: ${call.principal<JWTPrincipal>()?.get("name") ?: "Ikke innlogget"}"
                 }
             }
-            insert(trailer) {}
+            div {
+                classes = setOf("table-krav")
+                div {
+                    classes = setOf("header")
+                    img {
+                        classes = setOf("header-logo")
+                        src = "/static/NAV_logo_digital_White.svg"
+                    }
+                    h1 {
+                        +"Krav"
+                    }
+                }
+
+                form {
+                    classes = setOf("leit-etter-krav-form")
+                    action = "/krav"
+                    method = FormMethod.get
+                    label { +"Saksnummer Nav:" }
+                    input {
+                        type = text
+                        name = "saksnummerNav"
+                        id = "saksnummerNav"
+                    }
+                    input {
+                        type = submit
+                        value = "Søk"
+                    }
+                }
+                insert(trailer) {}
+            }
         }
     }
 }

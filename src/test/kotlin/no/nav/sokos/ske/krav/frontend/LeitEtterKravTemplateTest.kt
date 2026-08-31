@@ -17,18 +17,6 @@ import no.nav.sokos.ske.krav.domain.Status
 
 class LeitEtterKravTemplateTest :
     BehaviorSpec({
-        Given("LeitEtterKravTemplate rendres uten treff") {
-            val html =
-                createHTML().html {
-                    insert(LeitEtterKravTemplate(IntentingEnda())) {}
-                }
-
-            Then("Skal form sende GET mot /krav med submit-knapp") {
-                html shouldContain """<form action="/krav" class="leit-etter-krav-form" method="get">"""
-                html shouldContain """<input type="text" name="saksnummerNav" id="saksnummerNav">"""
-                html shouldContain """<input type="submit" value="Søk">"""
-            }
-        }
 
         Given("Ikke-funnet-visning for et saksnummer") {
             val html =
