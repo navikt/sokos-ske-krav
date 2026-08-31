@@ -29,6 +29,8 @@ class RapportService(
 
     fun oppdaterStatusTilRapportert(kravId: Int) = dataSource.transaction { session -> feilmeldingRepository.updateStatusForAvstemtKravToReported(session, kravId) }
 
+    fun oppdaterStatusTilIkkeSendt(kravId: Int) = dataSource.transaction { session -> kravRepository.updateStatusTilIkkeSendt(session, kravId) }
+
     fun finnKrav(saksnummerNAV: String): Krav? = dataSource.transaction { session -> kravRepository.finnKrav(session, saksnummerNAV) }
 
     private fun mapToRapportObjekt(liste: List<Krav>) =
@@ -106,6 +108,7 @@ class RapportService(
                     "Periode Tom",
                     "Feilmelding",
                     "Tidspunkt siste status",
+                    "Resend?",
                 )
 
             object CsvBuilder {

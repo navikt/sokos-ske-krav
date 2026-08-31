@@ -22,4 +22,11 @@ class AvstemmingRoutingTest :
                 kravLookupPath("SAK 123") shouldBe "/krav/SAK%20123"
             }
         }
+
+        Given("valg av static-servering") {
+            Then("Skal bruke filesystem-static kun lokalt") {
+                shouldUseFilesystemStatic(isLocal = true) shouldBe true
+                shouldUseFilesystemStatic(isLocal = false) shouldBe false
+            }
+        }
     })

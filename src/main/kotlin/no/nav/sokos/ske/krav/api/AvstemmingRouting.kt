@@ -14,6 +14,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import mu.KotlinLogging
 
+import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.frontend.FantIngenting
 import no.nav.sokos.ske.krav.frontend.FantKrav
@@ -45,6 +46,16 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
                     logger.info(marker = TEAM_LOGS_MARKER) { "$innloggetBruker oppdaterer status til rapportert for krav: $id" }
                     logger.info { "Oppdaterer status til rapportert for krav: $id" }
                     rapportService.oppdaterStatusTilRapportert(id.toInt())
+                }
+                call.respondRedirect("/rapporter/avstemming")
+            }
+            post("/resend") {
+                val id = call.receiveParameters()["kravid"]
+                if (!id.isNullOrBlank()) {
+                    val innloggetBruker = call.principal<io.ktor.server.auth.jwt.JWTPrincipal>()?.get("preferred_username")
+                    logger.info(marker = TEAM_LOGS_MARKER) { "$innloggetBruker oppdaterer status til KRAV_IKKE_SENDT for krav: $id" }
+                    logger.info { "Oppdaterer status til KRAV_IKKE_SENDT for krav: $id" }
+                    rapportService.oppdaterStatusTilIkkeSendt(id.toInt())
                 }
                 call.respondRedirect("/rapporter/avstemming")
             }
@@ -92,3 +103,5 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
 internal fun String?.toTrimmedSaksnummerNav(): String? = this?.trim()?.takeIf { it.isNotEmpty() }
 
 internal fun kravLookupPath(saksnummer: String): String = "/krav/${saksnummer.encodeURLPathPart()}"
+
+internal fun shouldUseFilesystemStatic(isLocal: Boolean = PropertiesConfig.isLocal): Boolean = isLocal

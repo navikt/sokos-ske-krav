@@ -33,6 +33,8 @@ class AvstemmingTemplate : Template<FlowContent> {
 
     private val updateURL = "/rapporter/avstemming/update"
     private val updateBtnTitle = "Sett til rapportert"
+    private val resendURL = "/rapporter/avstemming/resend"
+    private val resendBtnTitle = "Send på nytt"
     private val csvDownloadUrl = "/rapporter/avstemming/CSVdownload"
     private val csvDownloadBtnTitle = "Last ned CSV"
     private val inputDateFormat = DateTimeFormatter.ofPattern("yyyyMMdd")
@@ -99,6 +101,7 @@ class AvstemmingTemplate : Template<FlowContent> {
                         }
                     }
                     td { +it.tidspunktSisteStatus }
+                    td { resendKravForm(it.kravID, resendURL, resendBtnTitle) }
 
                     // TODO: Rapporter valideringsfeil
                     if (it.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL) {
@@ -127,4 +130,24 @@ class AvstemmingTemplate : Template<FlowContent> {
         runCatching {
             LocalDate.parse(dato, inputDateFormat).format(outputDateFormat)
         }.getOrDefault(dato)
+}
+
+internal fun FlowContent.resendKravForm(
+    kravId: String,
+    resendURL: String,
+    resendBtnTitle: String,
+) {
+    form {
+        action = resendURL
+        method = FormMethod.post
+        input {
+            type = InputType.hidden
+            name = "kravid"
+            value = kravId
+        }
+        button {
+            classes = setOf("btn")
+            +resendBtnTitle
+        }
+    }
 }

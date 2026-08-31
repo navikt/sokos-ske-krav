@@ -162,6 +162,22 @@ internal class RepositoryTestKrav :
             }
         }
 
+        test("updateStatusTilIkkeSendt skal oppdatere status med krav-id, og tidspunkt_siste_status skal settes til NOW") {
+            dataSource.transaction { session ->
+                val kravId = 19
+
+                val originalKrav = kravRepository.getAllKrav(session).first { krav -> krav.kravId == kravId.toLong() }
+                originalKrav.status shouldBe Status.RESKONTROFOERT
+                originalKrav.tidspunktSisteStatus.toString() shouldBe "2023-02-01T13:00"
+
+                kravRepository.updateStatusTilIkkeSendt(session, kravId)
+
+                val updatedKrav = kravRepository.getAllKrav(session).first { krav -> krav.kravId == kravId.toLong() }
+                updatedKrav.status shouldBe Status.KRAV_IKKE_SENDT
+                updatedKrav.tidspunktSisteStatus.toLocalDate() shouldBe LocalDate.now()
+            }
+        }
+
         test("updateEndringWithSkeKravIdentifikator skal sette kravidentifikator_ske med gitt saksnummerNav") {
             dataSource.transaction { session ->
                 val nyttKravSaksnummerNAV = "7770-navsaksnummer"

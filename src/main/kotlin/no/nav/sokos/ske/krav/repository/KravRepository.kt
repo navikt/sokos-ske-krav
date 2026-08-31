@@ -257,6 +257,27 @@ class KravRepository(
         )
     }
 
+    fun updateStatusTilIkkeSendt(
+        session: TransactionalSession,
+        kravId: Int,
+    ) {
+        session.update(
+            queryOf(
+                // language=SQL
+                """
+                update krav
+                    set status = :status,
+                    tidspunkt_siste_status = now()
+                where id = :id
+                """.trimIndent(),
+                mapOf(
+                    "status" to Status.KRAV_IKKE_SENDT.value,
+                    "id" to kravId,
+                ),
+            ),
+        )
+    }
+
     fun updateEndringWithSkeKravIdentifikator(
         session: TransactionalSession,
         saksnummerNav: String,
