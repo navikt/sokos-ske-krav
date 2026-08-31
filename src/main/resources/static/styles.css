@@ -130,13 +130,19 @@ tr:nth-child(2n+1) {
 
 .krav-def div {
     display: grid;
-    grid-template-columns: 140px 1fr;
+    grid-template-columns: 1fr 2fr;
     padding: 12px 0;
-    border-bottom: 1px solid #e5e7eb;
+    border-top: 1px solid #e5e7eb;
+}
+
+.krav-def div:nth-child(2n) {
+    background-color: #fbfcfc;
 }
 
 .krav-def dt {
     font-weight: 600;
+    padding-left: 1rem;
+    padding-right: 2rem;
     color: #4b5563;
 }
 
@@ -146,6 +152,12 @@ tr:nth-child(2n+1) {
 }
 
 .leit-etter-krav-form {
+    padding: 1rem 2rem;
     display: grid;
+    background-color: #fbfcfc;
     grid-template-columns: 2fr 5fr 1fr;
+}
+
+h2 {
+    color: #4b5563;
 }
