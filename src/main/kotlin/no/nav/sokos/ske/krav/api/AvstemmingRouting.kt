@@ -16,6 +16,7 @@ import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
+import no.nav.sokos.ske.krav.frontend.AdminPage
 import no.nav.sokos.ske.krav.frontend.FantIngenting
 import no.nav.sokos.ske.krav.frontend.FantKrav
 import no.nav.sokos.ske.krav.frontend.IngentingEnda
@@ -30,6 +31,10 @@ private val logger = KotlinLogging.logger { }
 @OptIn(Frontend::class)
 fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
     staticResources("/static", "static")
+
+    route("") {
+        get { call.respondHtmlTemplate(AdminPage(call)) {} }
+    }
 
     route("rapporter") {
         route("avstemming") {
