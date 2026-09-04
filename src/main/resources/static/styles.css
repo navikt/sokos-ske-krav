@@ -13,8 +13,8 @@ body * {
 .signature {
     font-size: 0.8em;
     color: #666;
-    text-align: right;
-    padding-right: 4rem;
+    text-align: left;
+    padding-right: 3rem;
 }
 
 .header {
@@ -163,4 +163,26 @@ tr:nth-child(2n+1) {
 
 h2 {
     color: #4b5563;
+}
+
+nav {
+    border-bottom: 1px solid black;
+}
+
+nav ol {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+nav ol li {
+    display: inline-block;
+}
+
+nav ol li a::after {
+    display: inline-block;
+    color: black;
+    content: ">";
+    font-size: 80%;
+    font-weight: bold;
+    padding: 0 3px;
 }
