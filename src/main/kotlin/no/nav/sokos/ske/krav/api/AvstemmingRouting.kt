@@ -18,7 +18,7 @@ import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.frontend.FantIngenting
 import no.nav.sokos.ske.krav.frontend.FantKrav
-import no.nav.sokos.ske.krav.frontend.IntentingEnda
+import no.nav.sokos.ske.krav.frontend.IngentingEnda
 import no.nav.sokos.ske.krav.frontend.LeitEtterKravTemplate
 import no.nav.sokos.ske.krav.frontend.RapportTemplate
 import no.nav.sokos.ske.krav.service.Frontend
@@ -83,7 +83,7 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
                 call.respondRedirect(kravLookupPath(saksnummerNav))
                 return@get
             }
-            call.respondHtmlTemplate(LeitEtterKravTemplate(IntentingEnda(), call)) {
+            call.respondHtmlTemplate(LeitEtterKravTemplate(IngentingEnda, call)) {
             }
         }
         get("/") { call.respondRedirect("/krav") }

@@ -88,7 +88,7 @@ class LeitEtterKravTemplate(
 
 sealed interface LeitEtterKravTrailer : Template<FlowContent>
 
-class IntentingEnda : LeitEtterKravTrailer {
+object IngentingEnda : LeitEtterKravTrailer {
     override fun FlowContent.apply() {}
 }
 
