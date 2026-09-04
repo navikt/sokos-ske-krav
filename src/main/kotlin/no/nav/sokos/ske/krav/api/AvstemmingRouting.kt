@@ -90,7 +90,7 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
         get("/{saksnummer}") {
             val saksnummer = call.parameters["saksnummer"] ?: ""
             val content =
-                when (val krav = RapportService().finnKrav(saksnummer)) {
+                when (val krav = rapportService.finnKrav(saksnummer)) {
                     null -> FantIngenting(saksnummer)
                     else -> FantKrav(krav)
                 }
