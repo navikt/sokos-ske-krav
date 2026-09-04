@@ -19,6 +19,7 @@ import kotlinx.html.th
 import kotlinx.html.tr
 import kotlinx.html.ul
 
+import io.ktor.http.encodeURLPathPart
 import io.ktor.server.html.Template
 
 import no.nav.sokos.ske.krav.domain.Status
@@ -86,7 +87,7 @@ class AvstemmingTemplate : Template<FlowContent> {
                     td { +it.stonadsType.toString() }
                     td {
                         a(href = "/krav/${it.saksnummerNAV}") {
-                            +it.saksnummerNAV
+                            +it.saksnummerNAV.encodeURLPathPart()
                         }
                     }
                     td { +it.referansenummerGammelSak }
