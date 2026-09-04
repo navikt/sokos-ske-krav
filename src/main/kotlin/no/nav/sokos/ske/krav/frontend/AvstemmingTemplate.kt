@@ -30,7 +30,7 @@ import no.nav.sokos.ske.krav.service.RapportService.RapportObjekt
 @Frontend
 class AvstemmingTemplate : Template<FlowContent> {
     private val data = RapportService().kravSomSkalAvstemmes
-    private val tableHeaders = RapportObjekt.headers
+    private val tableHeaders = RapportObjekt.headers.plus("Resend?")
     private val avstemmingCSV = RapportObjekt.csvBuilder.buildCSV(data)
 
     private val updateURL = "/rapporter/avstemming/update"

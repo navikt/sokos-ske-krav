@@ -109,7 +109,6 @@ class RapportService(
                     "Periode Tom",
                     "Feilmelding",
                     "Tidspunkt siste status",
-                    "Resend?",
                 )
 
             object CsvBuilder {
