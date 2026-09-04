@@ -5,7 +5,6 @@ import kotlinx.html.FormMethod
 import kotlinx.html.HTML
 import kotlinx.html.InputType.submit
 import kotlinx.html.InputType.text
-import kotlinx.html.a
 import kotlinx.html.body
 import kotlinx.html.classes
 import kotlinx.html.dd
@@ -20,16 +19,11 @@ import kotlinx.html.id
 import kotlinx.html.img
 import kotlinx.html.input
 import kotlinx.html.label
-import kotlinx.html.li
 import kotlinx.html.link
-import kotlinx.html.nav
-import kotlinx.html.ol
 import kotlinx.html.p
 import kotlinx.html.styleLink
 
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
 import io.ktor.server.html.Template
 import io.ktor.server.html.insert
 
@@ -50,14 +44,7 @@ class LeitEtterKravTemplate(
             }
         }
         body {
-            nav {
-                ol {
-                    li(classes = "signature") { +(call.principal<JWTPrincipal>()?.get("name") ?: "Ikke innlogget") }
-                    li { a(href = "/rapporter/resending") { +"Resending" } }
-                    li { a(href = "/rapporter/avstemming") { +"Avstemming" } }
-                    li { a(href = "/krav") { +"Kravsøk" } }
-                }
-            }
+            insert(NavTemplate(call)) {}
             div {
                 classes = setOf("table-krav")
                 div {
