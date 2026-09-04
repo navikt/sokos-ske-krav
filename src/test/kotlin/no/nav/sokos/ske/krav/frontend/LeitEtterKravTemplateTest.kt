@@ -4,7 +4,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 import kotlinx.html.div
-import kotlinx.html.html
 import kotlinx.html.stream.createHTML
 
 import io.kotest.core.spec.style.BehaviorSpec
