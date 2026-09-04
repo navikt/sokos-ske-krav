@@ -13,7 +13,7 @@ import no.nav.sokos.ske.krav.service.RapportService
 import no.nav.sokos.ske.krav.service.RapportService.RapportObjekt
 
 @Frontend
-class ResendingTemplate : Template<FlowContent> {
+class ResendingPart : Template<FlowContent> {
     private val data = RapportService().kravSomSkalResendes
     private val tableHeaders = RapportObjekt.headers
 

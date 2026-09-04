@@ -11,7 +11,7 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
 import io.ktor.server.html.Template
 
-class NavTemplate(
+class NavPart(
     private val call: ApplicationCall,
 ) : Template<FlowContent> {
     override fun FlowContent.apply() {

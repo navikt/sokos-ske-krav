@@ -101,7 +101,7 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
 }
 ```
 
-Templates live in `frontend/*Template.kt` (Ktor `kotlinx.html` DSL). `AvstemmingTemplate` renders the full operator page; `RapportTemplate` and `ResendingTemplate` share the outer layout.
+Templates live in `frontend/*Template.kt` (Ktor `kotlinx.html` DSL). `AvstemmingPart` renders the full operator page; `RapportPage` and `ResendingPart` share the outer layout.
 
 ### Flow
 

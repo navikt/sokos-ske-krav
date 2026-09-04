@@ -21,13 +21,13 @@ import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportType
 
 @Frontend
-class RapportTemplate(
+class RapportPage(
     private val type: RapportType,
     private val call: ApplicationCall,
 ) : Template<HTML> {
     val title = Placeholder<FlowContent>()
-    val avstemmingContent = TemplatePlaceholder<AvstemmingTemplate>()
-    val resendingContent = TemplatePlaceholder<ResendingTemplate>()
+    val avstemmingContent = TemplatePlaceholder<AvstemmingPart>()
+    val resendingContent = TemplatePlaceholder<ResendingPart>()
 
     override fun HTML.apply() {
         head {
@@ -38,7 +38,7 @@ class RapportTemplate(
             }
         }
         body {
-            insert(NavTemplate(call)) {}
+            insert(NavPart(call)) {}
             div {
                 classes = setOf("table-krav")
                 div {
@@ -53,8 +53,8 @@ class RapportTemplate(
                 }
 
                 when (type) {
-                    RapportType.AVSTEMMING -> insert(AvstemmingTemplate(), avstemmingContent)
-                    RapportType.RESENDING -> insert(ResendingTemplate(), resendingContent)
+                    RapportType.AVSTEMMING -> insert(AvstemmingPart(), avstemmingContent)
+                    RapportType.RESENDING -> insert(ResendingPart(), resendingContent)
                 }
             }
         }

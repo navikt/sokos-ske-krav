@@ -31,7 +31,7 @@ import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.service.Frontend
 
 @Frontend
-class LeitEtterKravTemplate(
+class LeitEtterKravPage(
     val trailer: LeitEtterKravTrailer,
     val call: ApplicationCall,
 ) : Template<HTML> {
@@ -44,7 +44,7 @@ class LeitEtterKravTemplate(
             }
         }
         body {
-            insert(NavTemplate(call)) {}
+            insert(NavPart(call)) {}
             div {
                 classes = setOf("table-krav")
                 div {

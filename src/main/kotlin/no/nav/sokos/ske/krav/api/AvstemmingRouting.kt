@@ -19,8 +19,8 @@ import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.frontend.FantIngenting
 import no.nav.sokos.ske.krav.frontend.FantKrav
 import no.nav.sokos.ske.krav.frontend.IngentingEnda
-import no.nav.sokos.ske.krav.frontend.LeitEtterKravTemplate
-import no.nav.sokos.ske.krav.frontend.RapportTemplate
+import no.nav.sokos.ske.krav.frontend.LeitEtterKravPage
+import no.nav.sokos.ske.krav.frontend.RapportPage
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService
 import no.nav.sokos.ske.krav.service.RapportType
@@ -34,7 +34,7 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
     route("rapporter") {
         route("avstemming") {
             get {
-                call.respondHtmlTemplate(RapportTemplate(RapportType.AVSTEMMING, call)) {
+                call.respondHtmlTemplate(RapportPage(RapportType.AVSTEMMING, call)) {
                     title { +"Innkrevingsoppdrag med feil" }
                     avstemmingContent { }
                 }
@@ -68,7 +68,7 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
         }
         route("resending") {
             get {
-                call.respondHtmlTemplate(RapportTemplate(RapportType.RESENDING, call)) {
+                call.respondHtmlTemplate(RapportPage(RapportType.RESENDING, call)) {
                     title { +"Krav Som skal resendes" }
                     resendingContent { }
                 }
@@ -83,7 +83,7 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
                 call.respondRedirect(kravLookupPath(saksnummerNav))
                 return@get
             }
-            call.respondHtmlTemplate(LeitEtterKravTemplate(IngentingEnda, call)) {
+            call.respondHtmlTemplate(LeitEtterKravPage(IngentingEnda, call)) {
             }
         }
         get("/") { call.respondRedirect("/krav") }
@@ -94,7 +94,7 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
                     null -> FantIngenting(saksnummer)
                     else -> FantKrav(krav)
                 }
-            call.respondHtmlTemplate(LeitEtterKravTemplate(content, call)) {
+            call.respondHtmlTemplate(LeitEtterKravPage(content, call)) {
             }
         }
     }
