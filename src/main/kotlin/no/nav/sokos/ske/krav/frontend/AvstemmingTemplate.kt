@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
+import kotlinx.html.a
 import kotlinx.html.button
 import kotlinx.html.classes
 import kotlinx.html.form
@@ -83,7 +84,11 @@ class AvstemmingTemplate : Template<FlowContent> {
                     // TODO: Status må også ha listevisning
                     td { +it.status.value }
                     td { +it.stonadsType.toString() }
-                    td { +it.saksnummerNAV }
+                    td {
+                        a(href = "/krav/${it.saksnummerNAV}") {
+                            +it.saksnummerNAV
+                        }
+                    }
                     td { +it.referansenummerGammelSak }
                     td { +it.belop.toString() }
                     td { +formatPeriodeDato(it.periodeFOM) }
