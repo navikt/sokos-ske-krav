@@ -40,7 +40,7 @@ h1{
 .table-krav {
     margin: 25px 100px 100px 75px;
     display: inline-block;
-
+    min-width: 50rem;
 }
 
 .actionbtn, .btn{
@@ -117,3 +117,50 @@ tr:nth-child(2n+1) {
     background-color: white;
 }
 
+.fant-ingenting {
+    margin-top: 1rem;
+    padding: 1rem 2rem;
+    width: 100%;
+    text-align: center;
+}
+
+.fant-ingenting-bilde {
+    display: block;
+    max-width: 320px;
+    width: 100%;
+    margin: 1rem auto 0;
+}
+
+.krav-def div {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    padding: 12px 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+.krav-def div:nth-child(2n) {
+    background-color: #fbfcfc;
+}
+
+.krav-def dt {
+    font-weight: 600;
+    padding-left: 1rem;
+    padding-right: 2rem;
+    color: #4b5563;
+}
+
+.krav-def dd {
+    margin: 0; /* Clear default browser indenting */
+    color: #111827;
+}
+
+.leit-etter-krav-form {
+    padding: 1rem 2rem;
+    display: grid;
+    background-color: #fbfcfc;
+    grid-template-columns: 2fr 5fr 1fr;
+}
+
+h2 {
+    color: #4b5563;
+}

@@ -1,6 +1,7 @@
 package no.nav.sokos.ske.krav.api
 
 import io.ktor.http.ContentType.Text.CSV
+import io.ktor.http.encodeURLPathPart
 import io.ktor.server.auth.principal
 import io.ktor.server.html.respondHtmlTemplate
 import io.ktor.server.http.content.staticResources
@@ -13,7 +14,12 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import mu.KotlinLogging
 
+import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
+import no.nav.sokos.ske.krav.frontend.FantIngenting
+import no.nav.sokos.ske.krav.frontend.FantKrav
+import no.nav.sokos.ske.krav.frontend.IngentingEnda
+import no.nav.sokos.ske.krav.frontend.LeitEtterKravTemplate
 import no.nav.sokos.ske.krav.frontend.RapportTemplate
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService
@@ -43,6 +49,16 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
                 }
                 call.respondRedirect("/rapporter/avstemming")
             }
+            post("/resend") {
+                val id = call.receiveParameters()["kravid"]?.toIntOrNull()
+                if (id != null) {
+                    val innloggetBruker = call.principal<io.ktor.server.auth.jwt.JWTPrincipal>()?.get("preferred_username")
+                    logger.info(marker = TEAM_LOGS_MARKER) { "$innloggetBruker oppdaterer status til KRAV_IKKE_SENDT for krav: $id" }
+                    logger.info { "Oppdaterer status til KRAV_IKKE_SENDT for krav: $id" }
+                    rapportService.oppdaterStatusTilIkkeSendt(id)
+                }
+                call.respondRedirect("/rapporter/avstemming")
+            }
 
             post("/CSVdownload") {
                 val csv = call.receiveParameters()["csv"].toString()
@@ -60,4 +76,32 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
             get("/") { call.respondRedirect("/rapporter/resending") }
         }
     }
+    route("/krav") {
+        get("") {
+            val saksnummerNav = call.request.queryParameters["saksnummerNav"].toTrimmedSaksnummerNav()
+            if (saksnummerNav != null) {
+                call.respondRedirect(kravLookupPath(saksnummerNav))
+                return@get
+            }
+            call.respondHtmlTemplate(LeitEtterKravTemplate(IngentingEnda, call)) {
+            }
+        }
+        get("/") { call.respondRedirect("/krav") }
+        get("/{saksnummer}") {
+            val saksnummer = call.parameters["saksnummer"] ?: ""
+            val content =
+                when (val krav = rapportService.finnKrav(saksnummer)) {
+                    null -> FantIngenting(saksnummer)
+                    else -> FantKrav(krav)
+                }
+            call.respondHtmlTemplate(LeitEtterKravTemplate(content, call)) {
+            }
+        }
+    }
 }
+
+internal fun String?.toTrimmedSaksnummerNav(): String? = this?.trim()?.takeIf { it.isNotEmpty() }
+
+internal fun kravLookupPath(saksnummer: String): String = "/krav/${saksnummer.encodeURLPathPart()}"
+
+internal fun shouldUseFilesystemStatic(isLocal: Boolean = PropertiesConfig.isLocal): Boolean = isLocal

@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
+import kotlinx.html.a
 import kotlinx.html.button
 import kotlinx.html.classes
 import kotlinx.html.form
@@ -18,6 +19,7 @@ import kotlinx.html.th
 import kotlinx.html.tr
 import kotlinx.html.ul
 
+import io.ktor.http.encodeURLPathPart
 import io.ktor.server.html.Template
 
 import no.nav.sokos.ske.krav.domain.Status
@@ -28,11 +30,13 @@ import no.nav.sokos.ske.krav.service.RapportService.RapportObjekt
 @Frontend
 class AvstemmingTemplate : Template<FlowContent> {
     private val data = RapportService().kravSomSkalAvstemmes
-    private val tableHeaders = RapportObjekt.headers
+    private val tableHeaders = RapportObjekt.headers.plus("Resend?")
     private val avstemmingCSV = RapportObjekt.csvBuilder.buildCSV(data)
 
     private val updateURL = "/rapporter/avstemming/update"
     private val updateBtnTitle = "Sett til rapportert"
+    private val resendURL = "/rapporter/avstemming/resend"
+    private val resendBtnTitle = "Send på nytt"
     private val csvDownloadUrl = "/rapporter/avstemming/CSVdownload"
     private val csvDownloadBtnTitle = "Last ned CSV"
     private val inputDateFormat = DateTimeFormatter.ofPattern("yyyyMMdd")
@@ -81,7 +85,11 @@ class AvstemmingTemplate : Template<FlowContent> {
                     // TODO: Status må også ha listevisning
                     td { +it.status.value }
                     td { +it.stonadsType.toString() }
-                    td { +it.saksnummerNAV }
+                    td {
+                        a(href = "/krav/${it.saksnummerNAV}") {
+                            +it.saksnummerNAV.encodeURLPathPart()
+                        }
+                    }
                     td { +it.referansenummerGammelSak }
                     td { +it.belop.toString() }
                     td { +formatPeriodeDato(it.periodeFOM) }
@@ -99,6 +107,7 @@ class AvstemmingTemplate : Template<FlowContent> {
                         }
                     }
                     td { +it.tidspunktSisteStatus }
+                    td { resendKravForm(it.kravID, resendURL, resendBtnTitle) }
 
                     // TODO: Rapporter valideringsfeil
                     if (it.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL) {
@@ -127,4 +136,24 @@ class AvstemmingTemplate : Template<FlowContent> {
         runCatching {
             LocalDate.parse(dato, inputDateFormat).format(outputDateFormat)
         }.getOrDefault(dato)
+}
+
+internal fun FlowContent.resendKravForm(
+    kravId: String,
+    resendURL: String,
+    resendBtnTitle: String,
+) {
+    form {
+        action = resendURL
+        method = FormMethod.post
+        input {
+            type = InputType.hidden
+            name = "kravid"
+            value = kravId
+        }
+        button {
+            classes = setOf("btn")
+            +resendBtnTitle
+        }
+    }
 }

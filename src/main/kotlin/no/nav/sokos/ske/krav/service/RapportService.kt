@@ -29,6 +29,10 @@ class RapportService(
 
     fun oppdaterStatusTilRapportert(kravId: Int) = dataSource.transaction { session -> feilmeldingRepository.updateStatusForAvstemtKravToReported(session, kravId) }
 
+    fun oppdaterStatusTilIkkeSendt(kravId: Int) = dataSource.transaction { session -> kravRepository.updateStatusTilIkkeSendt(session, kravId) }
+
+    fun finnKrav(saksnummerNAV: String): Krav? = dataSource.transaction { session -> kravRepository.finnKrav(session, saksnummerNAV) }
+
     private fun mapToRapportObjekt(liste: List<Krav>) =
         liste
             .map {
@@ -55,6 +59,7 @@ class RapportService(
                 )
             }.distinctBy { it.kravID }
 
+    // FIXME: denne kalles én gang per krav. det blir veldig ineffektivt hvis det er mange krav. finn en bedre løsning.
     private fun getFeilmeldinger(krav: Krav): List<String> =
         if (krav.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL) {
             feilmeldingRepository

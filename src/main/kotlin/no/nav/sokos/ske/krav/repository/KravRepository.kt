@@ -257,6 +257,27 @@ class KravRepository(
         )
     }
 
+    fun updateStatusTilIkkeSendt(
+        session: TransactionalSession,
+        kravId: Int,
+    ) {
+        session.update(
+            queryOf(
+                // language=SQL
+                """
+                update krav
+                    set status = :status,
+                    tidspunkt_siste_status = now()
+                where id = :id
+                """.trimIndent(),
+                mapOf(
+                    "status" to Status.KRAV_IKKE_SENDT.value,
+                    "id" to kravId,
+                ),
+            ),
+        )
+    }
+
     fun updateEndringWithSkeKravIdentifikator(
         session: TransactionalSession,
         saksnummerNav: String,
@@ -381,6 +402,20 @@ class KravRepository(
                 threshold,
             ),
         )
+
+    fun finnKrav(
+        session: TransactionalSession,
+        saksnummerNAV: String,
+    ): Krav? =
+        session
+            .list(
+                queryOf(
+                    // language=SQL
+                    """select * from krav where saksnummer_nav = ?""",
+                    saksnummerNAV,
+                ),
+                extractor = mapToKrav,
+            ).singleOrNull()
 
     companion object {
         val instance by lazy { KravRepository() }
