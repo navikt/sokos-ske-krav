@@ -33,10 +33,7 @@ class FileHandler(
     suspend fun processFiles() {
         val files = ftpService.getValidatedFiles()
 
-        if (files.isEmpty()) {
-            logger.info("*** Ingen nye filer ***")
-            return
-        }
+        if (files.isEmpty()) return
 
         val fileText = if (files.size == 1) "fil" else "filer"
         val dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"))
