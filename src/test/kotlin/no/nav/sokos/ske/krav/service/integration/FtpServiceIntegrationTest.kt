@@ -61,7 +61,7 @@ internal class FtpServiceIntegrationTest :
 
         beforeContainer { testCase ->
             if (testCase.isGivenTest()) {
-                clearAllDirectories()
+                SftpListener.clearAllDirectories()
                 clearDB()
             }
         }
@@ -74,7 +74,7 @@ internal class FtpServiceIntegrationTest :
 
         afterSpec {
             clearDB()
-            clearAllDirectories()
+            SftpListener.clearAllDirectories()
         }
 
         Given("Det finnes ingen fil i \"inbound\" på FTP-serveren") {
@@ -542,9 +542,3 @@ internal class FtpServiceIntegrationTest :
             }
         }
     })
-
-private fun clearAllDirectories() {
-    Directories.entries.forEach { directory ->
-        SftpListener.clearDirectory(directory)
-    }
-}

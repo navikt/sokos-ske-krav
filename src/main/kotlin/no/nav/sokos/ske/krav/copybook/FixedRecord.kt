@@ -42,6 +42,8 @@ data class KravLinje(
 
     fun isOpprettKrav() = !isEndring() && !isStopp()
 
+    fun markedAsRead() = copy(status = Status.KRAV_INNLEST_FRA_FIL.value)
+
     fun markedAsValid() = copy(status = Status.KRAV_IKKE_SENDT.value)
 
     fun markedAsValidationError() = copy(status = Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value)
