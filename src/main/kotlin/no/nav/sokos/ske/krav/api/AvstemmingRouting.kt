@@ -16,6 +16,7 @@ import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
+import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.frontend.AdminPage
 import no.nav.sokos.ske.krav.frontend.FantIngenting
 import no.nav.sokos.ske.krav.frontend.FantKrav
@@ -96,7 +97,7 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
             val saksnummer = call.parameters["saksnummer"] ?: ""
             val content =
                 when (val krav = rapportService.finnKrav(saksnummer)) {
-                    null -> FantIngenting(saksnummer)
+                    emptyList<Krav>() -> FantIngenting(saksnummer)
                     else -> FantKrav(krav)
                 }
             call.respondHtmlTemplate(LeitEtterKravPage(content, call)) {

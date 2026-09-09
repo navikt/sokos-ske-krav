@@ -31,7 +31,7 @@ class RapportService(
 
     fun oppdaterStatusTilIkkeSendt(kravId: Int) = dataSource.transaction { session -> kravRepository.updateStatusTilIkkeSendt(session, kravId) }
 
-    fun finnKrav(saksnummerNAV: String): Krav? = dataSource.transaction { session -> kravRepository.finnKrav(session, saksnummerNAV) }
+    fun finnKrav(saksnummerNAV: String) = dataSource.transaction { session -> kravRepository.finnKrav(session, saksnummerNAV) }
 
     private fun mapToRapportObjekt(liste: List<Krav>) =
         liste
