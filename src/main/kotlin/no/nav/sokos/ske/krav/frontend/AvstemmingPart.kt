@@ -100,8 +100,8 @@ class AvstemmingPart : Template<FlowContent> {
                             +it.feilmeldinger.first()
                         } else {
                             ul {
-                                it.feilmeldinger.forEach {
-                                    li { +it }
+                                it.feilmeldinger.groupingBy { s -> s }.eachCount().forEach {
+                                    li { +"${it.key} (${it.value})" }
                                 }
                             }
                         }
