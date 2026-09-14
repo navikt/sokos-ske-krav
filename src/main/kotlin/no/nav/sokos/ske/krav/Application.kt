@@ -11,7 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
@@ -52,11 +51,12 @@ internal fun Application.module() {
     val skeService = SkeService()
 
     commonConfig()
-    applicationLifecycleConfig(applicationState) {
-        runBlocking {
-            scheduler.stop()
-        }
-    }
+    applicationLifecycleConfig(
+        applicationState,
+        onShutdown = {
+            scheduler.stop("Application has been shutdown")
+        },
+    )
     securityConfig()
     routingConfig(applicationState)
 

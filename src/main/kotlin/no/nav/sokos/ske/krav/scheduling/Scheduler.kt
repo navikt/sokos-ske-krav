@@ -2,15 +2,14 @@ package no.nav.sokos.ske.krav.scheduling
 
 import java.time.Duration
 import java.time.LocalDateTime
+import java.util.concurrent.CancellationException
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 
 import mu.KotlinLogging
 
@@ -28,13 +27,11 @@ class Scheduler(
 
     @Volatile private var runningJob: Job? = null
 
-    suspend fun stop(timeout: Duration = Duration.ofSeconds(30)) {
+    fun stop(cancellationMessage: String) {
         stopped = true
         future?.cancel(false)
         val job = runningJob
-        if (job != null) {
-            withTimeoutOrNull(timeout.toMillis().milliseconds) { job.join() }
-        }
+        job?.cancel(CancellationException(cancellationMessage))
         executor.shutdown()
     }
 
