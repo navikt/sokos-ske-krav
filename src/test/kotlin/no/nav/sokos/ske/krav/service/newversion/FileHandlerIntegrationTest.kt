@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forExactly
 import io.kotest.inspectors.forNone
 import io.kotest.inspectors.forOne
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.config.SftpConfig
 import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.dto.slack.ErrorDetails
 import no.nav.sokos.ske.krav.dto.slack.ExtraTags
 import no.nav.sokos.ske.krav.listener.DBListener
@@ -128,7 +130,10 @@ internal class FileHandlerIntegrationTest :
                         dataSource.transaction { session ->
                             kravRepository.getAllKrav(session)
                         }
-                    allKrav.shouldHaveSize(10)
+                    allKrav shouldHaveSize 10
+                    allKrav.forAll {
+                        it.status shouldBe Status.KRAV_INNLEST_FRA_FIL
+                    }
                 }
 
                 And("Ingen feil skal lagres i databasen") {

@@ -24,7 +24,7 @@ private val logger = KotlinLogging.logger {}
 
 class FileHandler(
     private val ftpService: FtpService = FtpService(),
-    private val lineValidator: LineValidator = LineValidator(),
+    private val lineValidator: LineValidator = LineValidator(newService = true),
     private val dataSource: DataSource = PostgresDataSource.dataSource,
     private val kravRepository: KravRepository = KravRepository.instance,
     private val filValideringsfeilRepository: FilValideringsfeilRepository = FilValideringsfeilRepository.instance,

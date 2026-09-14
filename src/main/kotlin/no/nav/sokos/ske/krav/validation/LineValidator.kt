@@ -12,7 +12,9 @@ import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.validation.ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
 import no.nav.sokos.ske.krav.validation.ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
 
-class LineValidator {
+class LineValidator(
+    private val newService: Boolean = false, // TODO: Remove newService toggle when refactoring is done
+) {
     fun validateNewLines(kravLines: List<KravLinje>): List<ValidationResult> =
         kravLines.map { line ->
             Metrics.numberOfKravRead.increment()
@@ -25,10 +27,7 @@ class LineValidator {
      * utbetalingsDato = foreldelsesfristensUtgangspunkt
      * vedtaksdato = fastsettelsesdato
      */
-    fun validate(
-        krav: KravLinje,
-        newService: Boolean = false, // TODO: Remove newService toggle when refactoring is done
-    ): ValidationResult {
+    fun validate(krav: KravLinje): ValidationResult {
         val errorMessages =
             buildList {
                 with(krav) {
