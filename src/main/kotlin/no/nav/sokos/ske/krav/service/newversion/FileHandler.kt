@@ -24,7 +24,6 @@ private val logger = KotlinLogging.logger {}
 
 class FileHandler(
     private val ftpService: FtpService = FtpService(),
-    private val lineValidator: LineValidator = LineValidator(newService = true),
     private val dataSource: DataSource = PostgresDataSource.dataSource,
     private val kravRepository: KravRepository = KravRepository.instance,
     private val filValideringsfeilRepository: FilValideringsfeilRepository = FilValideringsfeilRepository.instance,
@@ -50,7 +49,7 @@ class FileHandler(
     private fun processFile(file: FtpFil) {
         logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
 
-        val validatedLines = lineValidator.validateNewLines(file.kravLinjer)
+        val validatedLines = LineValidator.validateNewLines(file.kravLinjer, newService = true)
         processValidationResults(file.name, validatedLines)
 
         ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)

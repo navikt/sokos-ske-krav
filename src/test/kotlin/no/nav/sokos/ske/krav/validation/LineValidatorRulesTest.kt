@@ -18,7 +18,6 @@ import no.nav.sokos.ske.krav.util.shouldContain
 
 internal class LineValidatorRulesTest :
     BehaviorSpec({
-        val lineValidator = LineValidator()
         val okLinje =
             KravLinje(
                 linjenummer = 1,
@@ -46,7 +45,7 @@ internal class LineValidatorRulesTest :
         Given("Vedtaksdato skal valideres") {
             When("Vedtaksdato er i fortid") {
                 val krav = okLinje.copy(vedtaksDato = LocalDate.now().minusDays(1))
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal ValidationResult være success") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Success>()
@@ -62,7 +61,7 @@ internal class LineValidatorRulesTest :
 
             When("Vedtaksdato er i dag") {
                 val krav = okLinje.copy(vedtaksDato = LocalDate.now())
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal ValidationResult være success") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Success>()
@@ -77,7 +76,7 @@ internal class LineValidatorRulesTest :
             }
             When("Vedtaksdato er i fremtid") {
                 val krav = okLinje.copy(vedtaksDato = LocalDate.now().plusDays(1))
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal validationResult være error") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Error>()
@@ -104,7 +103,7 @@ internal class LineValidatorRulesTest :
             }
             When("Vedtaksdato er feil formattert i fil") {
                 val krav = okLinje.copy(vedtaksDato = LineValidator.errorDate)
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal validationResult være error") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Error>()
@@ -135,7 +134,7 @@ internal class LineValidatorRulesTest :
             When("Utbetalingsdato er før vedtaksdato") {
                 val vedtaksdato = LocalDate.now()
                 val krav = okLinje.copy(utbetalDato = vedtaksdato.minusDays(1), vedtaksDato = vedtaksdato)
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal ValidationResult være success") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Success>()
@@ -152,7 +151,7 @@ internal class LineValidatorRulesTest :
             When("Utbetalingsdato er lik vedtaksdato") {
                 val vedtaksdato = LocalDate.now()
                 val krav = okLinje.copy(utbetalDato = vedtaksdato, vedtaksDato = vedtaksdato)
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal validationResult være error") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Error>()
@@ -181,7 +180,7 @@ internal class LineValidatorRulesTest :
             When("Utbetalingsdato er etter vedtaksdato") {
                 val vedtaksdato = LocalDate.now()
                 val krav = okLinje.copy(utbetalDato = vedtaksdato.plusDays(1), vedtaksDato = vedtaksdato)
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal validationResult være error") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Error>()
@@ -209,7 +208,7 @@ internal class LineValidatorRulesTest :
 
             When("Utbetalingsdato er ikke oppgitt (error date) for OB04 skal gi feil") {
                 val krav = okLinje.copy(utbetalDato = LineValidator.errorDate, avsender = Avsender.OB04.name)
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal validationResult være error") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Error>()
@@ -237,7 +236,7 @@ internal class LineValidatorRulesTest :
 
             When("Utbetalingsdato er ikke oppgitt (error date) for Arena skal være ok") {
                 val krav = okLinje.copy(utbetalDato = LineValidator.errorDate, avsender = Avsender.ARENA.name)
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal ValidationResult være success") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Success>()
@@ -255,7 +254,7 @@ internal class LineValidatorRulesTest :
             When("Tilleggsfristdato er ikke eldre enn 10 måneder") {
                 val tilleggsfristDato = LocalDate.now().minusMonths(5)
                 val krav = okLinje.copy(tilleggsfrist = tilleggsfristDato)
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal ValidationResult være success") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Success>()
@@ -271,7 +270,7 @@ internal class LineValidatorRulesTest :
             When("Tilleggsfristdato er eldre enn 10 måneder") {
                 val tilleggsfristDato = LocalDate.now().minusMonths(11)
                 val krav = okLinje.copy(tilleggsfrist = tilleggsfristDato)
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal validationResult være error") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Error>()
@@ -317,7 +316,7 @@ internal class LineValidatorRulesTest :
                         .replace("-", "")
 
                 val krav = okLinje.copy(periodeFOM = periodeFom, periodeTOM = periodeTom)
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal validationResult være error") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Error>()
@@ -345,7 +344,7 @@ internal class LineValidatorRulesTest :
 
             When("PeriodeFOM er før periodeTOM") {
                 val krav = okLinje.copy(periodeFOM = "20241209", periodeTOM = "20241210")
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal validationResult være success") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Success>()
@@ -361,7 +360,7 @@ internal class LineValidatorRulesTest :
 
             When("PeriodeFOM er lik periodeTOM") {
                 val krav = okLinje.copy(periodeFOM = "20241210", periodeTOM = "20241210")
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal validationResult være success") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Success>()
@@ -377,7 +376,7 @@ internal class LineValidatorRulesTest :
 
             When("PeriodeFOM er etter periodeTOM") {
                 val krav = okLinje.copy(periodeFOM = "20241211", periodeTOM = "20241210")
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal validationResult være error") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Error>()
@@ -405,7 +404,7 @@ internal class LineValidatorRulesTest :
 
             When("PeriodeFOM er feil formattert i fil") {
                 val krav = okLinje.copy(periodeFOM = LineValidator.errorDate.toString())
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal validationResult være error") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Error>()
@@ -432,7 +431,7 @@ internal class LineValidatorRulesTest :
             }
             When("PeriodeTOM er feil formattert i fil") {
                 val krav = okLinje.copy(periodeTOM = LineValidator.errorDate.toString())
-                val validationResult = lineValidator.validate(krav)
+                val validationResult = LineValidator.validate(krav)
 
                 Then("Skal validationResult være error") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Error>()
@@ -461,7 +460,7 @@ internal class LineValidatorRulesTest :
 
         Given("Et krav har ugyldig kravtype") {
             val krav = okLinje.copy(kravKode = "MJ AU", kodeHjemmel = "VO FF")
-            val validationResult = lineValidator.validate(krav)
+            val validationResult = LineValidator.validate(krav)
 
             Then("Skal validationResult være error") {
                 validationResult.shouldBeInstanceOf<ValidationResult.Error>()
@@ -489,7 +488,7 @@ internal class LineValidatorRulesTest :
 
         Given("Et krav har saksnummer som er feil formattert i fil") {
             val krav = okLinje.copy(saksnummerNav = "saksnummer_ø")
-            val validationResult = lineValidator.validate(krav)
+            val validationResult = LineValidator.validate(krav)
 
             Then("Skal validationResult være error") {
                 validationResult.shouldBeInstanceOf<ValidationResult.Error>()
@@ -517,7 +516,7 @@ internal class LineValidatorRulesTest :
 
         Given("Et krav har referansenummerGammelSak som er feil formattert i fil") {
             val krav = okLinje.copy(referansenummerGammelSak = "refnrgammel_ø")
-            val validationResult = lineValidator.validate(krav)
+            val validationResult = LineValidator.validate(krav)
 
             Then("Skal validationResult være error") {
                 validationResult.shouldBeInstanceOf<ValidationResult.Error>()
@@ -545,7 +544,7 @@ internal class LineValidatorRulesTest :
 
         Given("Et krav har blank gjelderId") {
             val krav = okLinje.copy(gjelderId = "   ")
-            val validationResult = lineValidator.validate(krav)
+            val validationResult = LineValidator.validate(krav)
 
             Then("Skal validationResult være error") {
                 validationResult.shouldBeInstanceOf<ValidationResult.Error>()
@@ -573,7 +572,7 @@ internal class LineValidatorRulesTest :
 
         Given("Et krav har negativt beløp") {
             val krav = okLinje.copy(belop = BigDecimal("-100.00"))
-            val validationResult = lineValidator.validate(krav)
+            val validationResult = LineValidator.validate(krav)
 
             Then("Skal validationResult være error") {
                 validationResult.shouldBeInstanceOf<ValidationResult.Error>()

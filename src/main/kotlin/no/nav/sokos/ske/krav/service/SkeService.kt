@@ -115,7 +115,7 @@ class SkeService(
     private suspend fun processFile(file: FtpFil) {
         logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
 
-        val validatedLines = LineValidator().validateNewLines(file.kravLinjer)
+        val validatedLines = LineValidator.validateNewLines(file.kravLinjer)
         handleValidationResults(file.name, validatedLines)
 
         ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
