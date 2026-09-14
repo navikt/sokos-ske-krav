@@ -41,7 +41,7 @@ class Scheduler(
     fun scheduleDailyAt(
         hour: Int,
         minute: Int = 0,
-        name: String? = null,
+        name: String = "",
         task: suspend () -> Unit,
     ) {
         scheduleNext(hour, minute, 0, name, task)
@@ -51,7 +51,7 @@ class Scheduler(
         hour: Int? = null,
         minute: Int? = null,
         second: Int? = null,
-        name: String? = null,
+        name: String = "",
         task: suspend () -> Unit,
     ) {
         val now = LocalDateTime.now()
@@ -81,8 +81,8 @@ class Scheduler(
                         try {
                             task()
                         } catch (e: Exception) {
-                            logger.error("Scheduled job failed: ${e::class.simpleName}")
-                            logger.error(TEAM_LOGS_MARKER, "Scheduled job failed: ", e)
+                            logger.error("Scheduled job \"$name\" failed: ${e::class.simpleName}")
+                            logger.error(TEAM_LOGS_MARKER, "Scheduled job \"$name\" failed: ", e)
                         } finally {
                             if (!stopped) {
                                 scheduleNext(hour, minute, second, name = name, task) // chain to next run
