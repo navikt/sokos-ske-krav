@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import javax.sql.DataSource
 
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 
@@ -60,7 +61,7 @@ class SkeService(
 ) {
     private var haltRun = false
 
-    suspend fun handleNewKrav() {
+    suspend fun handleNewKrav(waitTime: Duration = 5000.milliseconds) {
         if (haltRun) {
             logger.info("*** Kjøring er blokkert ***")
             return
@@ -68,7 +69,7 @@ class SkeService(
 
         resendKrav(shouldAlert = false)
         sendNewFilesToSKE()
-        delay(5000.milliseconds)
+        delay(waitTime)
         resendKrav()
 
         slackService.sendErrors()

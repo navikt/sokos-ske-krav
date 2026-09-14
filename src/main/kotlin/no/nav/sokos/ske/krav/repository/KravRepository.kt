@@ -406,7 +406,7 @@ class KravRepository(
     fun finnKrav(
         session: TransactionalSession,
         saksnummerNAV: String,
-    ): Krav? =
+    ): List<Krav> =
         session
             .list(
                 queryOf(
@@ -415,7 +415,7 @@ class KravRepository(
                     saksnummerNAV,
                 ),
                 extractor = mapToKrav,
-            ).singleOrNull()
+            )
 
     companion object {
         val instance by lazy { KravRepository() }

@@ -98,16 +98,18 @@ class FantIngenting(
 }
 
 class FantKrav(
-    val krav: Krav,
+    val krav: List<Krav>,
 ) : LeitEtterKravTrailer {
     override fun FlowContent.apply() {
-        h2 { +"Krav for sak ${krav.saksnummerNAV}" }
+        h2 { +"Krav for sak ${krav.first().saksnummerNAV}" }
         dl {
             classes = setOf("krav-def")
             kravFelter().forEach { (etikett, verdi) ->
                 div {
                     this@dl.dt { +etikett }
-                    this@dl.dd { +verdi }
+                    for (v in verdi) {
+                        this@dl.dd { +v }
+                    }
                 }
             }
         }
@@ -115,34 +117,34 @@ class FantKrav(
 
     private fun kravFelter() =
         listOf(
-            "Avsender" to krav.avsender,
-            "Beløp" to krav.belop.toString(),
-            "Beløp rente" to krav.belopRente.toString(),
-            "Corr-id" to krav.corrId,
-            "Enhet behandlende" to krav.enhetBehandlende,
-            "Enhet bosted" to krav.enhetBosted,
-            "Fagsystem-id" to krav.fagsystemId,
-            "Filnavn" to krav.filnavn,
-            "Fremtidig ytelse" to krav.fremtidigYtelse.toString(),
-            "Gjelder-id" to krav.gjelderId,
-            "Kode årsak" to krav.kodeArsak,
-            "Kode hjemmel" to krav.kodeHjemmel,
-            "Krav-id" to krav.kravId.toString(),
-            "Kravidentifikator SKE" to krav.kravidentifikatorSKE,
-            "Kravkode" to krav.kravkode,
-            "Kravtype" to krav.kravtype,
-            "Linjenummer" to krav.linjenummer.toString(),
-            "Periode FOM" to krav.periodeFOM,
-            "Periode TOM" to krav.periodeTOM,
-            "Referansenummer gammel sak" to krav.referansenummerGammelSak,
-            "Saksnummer NAV" to krav.saksnummerNAV,
-            "Status" to krav.status.toString(),
-            "Tilleggsfrist" to (krav.tilleggsfrist?.toString() ?: "Ikke satt"),
-            "Tidspunkt opprettet" to krav.tidspunktOpprettet.toString(),
-            "Tidspunkt sendt" to (krav.tidspunktSendt?.toString() ?: "Ikke satt"),
-            "Tidspunkt siste status" to krav.tidspunktSisteStatus.toString(),
-            "Transaksjonsdato" to krav.transaksjonsDato,
-            "Utbetalingsdato" to krav.utbetalDato.toString(),
-            "Vedtaksdato" to krav.vedtaksDato.toString(),
+            "Avsender" to krav.map(Krav::avsender),
+            "Beløp" to krav.map { it.belop.toString() },
+            "Beløp rente" to krav.map { it.belopRente.toString() },
+            "Corr-id" to krav.map(Krav::corrId),
+            "Enhet behandlende" to krav.map(Krav::enhetBehandlende),
+            "Enhet bosted" to krav.map(Krav::enhetBosted),
+            "Fagsystem-id" to krav.map(Krav::fagsystemId),
+            "Filnavn" to krav.map(Krav::filnavn),
+            "Fremtidig ytelse" to krav.map { it.fremtidigYtelse.toString() },
+            "Gjelder-id" to krav.map(Krav::gjelderId),
+            "Kode årsak" to krav.map(Krav::kodeArsak),
+            "Kode hjemmel" to krav.map(Krav::kodeHjemmel),
+            "Krav-id" to krav.map { it.kravId.toString() },
+            "Kravidentifikator SKE" to krav.map(Krav::kravidentifikatorSKE),
+            "Kravkode" to krav.map(Krav::kravkode),
+            "Kravtype" to krav.map(Krav::kravtype),
+            "Linjenummer" to krav.map { it.linjenummer.toString() },
+            "Periode FOM" to krav.map(Krav::periodeFOM),
+            "Periode TOM" to krav.map(Krav::periodeTOM),
+            "Referansenummer gammel sak" to krav.map(Krav::referansenummerGammelSak),
+            "Saksnummer NAV" to krav.map(Krav::saksnummerNAV),
+            "Status" to krav.map { it.status.toString() },
+            "Tilleggsfrist" to (krav.map { it.tilleggsfrist?.toString() ?: "Ikke satt" }),
+            "Tidspunkt opprettet" to krav.map { it.tidspunktOpprettet.toString() },
+            "Tidspunkt sendt" to (krav.map { it.tidspunktSendt?.toString() ?: "Ikke satt" }),
+            "Tidspunkt siste status" to krav.map { it.tidspunktSisteStatus.toString() },
+            "Transaksjonsdato" to krav.map(Krav::transaksjonsDato),
+            "Utbetalingsdato" to krav.map { it.utbetalDato.toString() },
+            "Vedtaksdato" to krav.map { it.vedtaksDato.toString() },
         ).sortedBy { it.first }
 }

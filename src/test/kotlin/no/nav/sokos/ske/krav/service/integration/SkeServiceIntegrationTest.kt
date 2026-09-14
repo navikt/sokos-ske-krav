@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.service.integration
 
+import kotlin.time.Duration.Companion.milliseconds
+
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
@@ -135,7 +137,7 @@ internal class SkeServiceIntegrationTest :
             When("Alle linjer er ok") {
                 DBListener.clearDB()
                 SftpListener.putFile("krav/TiNyeKrav.txt")
-                skeService.handleNewKrav()
+                skeService.handleNewKrav(1.milliseconds)
 
                 Then("Skal alle krav lagres i database") {
                     val allKrav =
@@ -159,7 +161,7 @@ internal class SkeServiceIntegrationTest :
                 resetState()
                 val fileName = "EnLinjeFeilKravtype.txt"
                 SftpListener.putFile("validering/linjevalidering/$fileName")
-                skeService.handleNewKrav()
+                skeService.handleNewKrav(1.milliseconds)
 
                 Then("Skal én feil og alle krav lagres i databasen") {
                     dataSource.transaction { session ->
@@ -213,7 +215,7 @@ internal class SkeServiceIntegrationTest :
                 resetState()
                 val fileName = "EnLinjeFlereFeil.txt"
                 SftpListener.putFile("validering/linjevalidering/$fileName")
-                skeService.handleNewKrav()
+                skeService.handleNewKrav(1.milliseconds)
 
                 Then("Skal én feil og alle krav lagres i databasen") {
                     dataSource.transaction { session ->
@@ -288,7 +290,7 @@ internal class SkeServiceIntegrationTest :
                 resetState()
                 val fileName = "SeksLinjerSammeTypeFeil.txt"
                 SftpListener.putFile("validering/linjevalidering/$fileName")
-                skeService.handleNewKrav()
+                skeService.handleNewKrav(1.milliseconds)
 
                 Then("Skal seks feil og alle krav lagres i databasen") {
                     dataSource.transaction { session ->
@@ -340,7 +342,7 @@ internal class SkeServiceIntegrationTest :
                 resetState()
                 val fileName = "SeksLinjerSammeOgUlikeFeil.txt"
                 SftpListener.putFile("validering/linjevalidering/$fileName")
-                skeService.handleNewKrav()
+                skeService.handleNewKrav(1.milliseconds)
 
                 Then("Skal seks feil og alle krav lagres i databasen") {
                     dataSource.transaction { session ->
@@ -461,7 +463,7 @@ internal class SkeServiceIntegrationTest :
             kravBefore.find { it.saksnummerNAV == "2222-migrert" } shouldBe null
             kravBefore.find { it.saksnummerNAV == "8888-migrert" } shouldBe null
 
-            skeService.handleNewKrav()
+            skeService.handleNewKrav(1.milliseconds)
 
             When("Kravet finnes i database") {
                 Then("skal endringer og avskrivinger oppdateres med kravidentifikatorSKE fra database") {
@@ -505,7 +507,7 @@ internal class SkeServiceIntegrationTest :
                 )
 
             Then("skal type krav avgjøres og lagres") {
-                skeService.handleNewKrav()
+                skeService.handleNewKrav(1.milliseconds)
                 val allKrav =
                     dataSource.transaction { session ->
                         kravRepository.getAllKrav(session)
@@ -554,7 +556,7 @@ internal class SkeServiceIntegrationTest :
                     kravRepository = kravRepository,
                 )
 
-            skeService.handleNewKrav()
+            skeService.handleNewKrav(1.milliseconds)
             val allKrav =
                 dataSource
                     .transaction { session ->
@@ -617,7 +619,7 @@ internal class SkeServiceIntegrationTest :
 
             Then("Skal ingen feil lagres i feilmeldingtabell") {
                 shouldThrow<CircuitBreakerException> {
-                    skeService.handleNewKrav()
+                    skeService.handleNewKrav(1.milliseconds)
                 }
 
                 feilmeldingRepository.getAllFeilmeldinger().filter { it.skeResponse.contains("403") }.shouldBeEmpty()
@@ -653,7 +655,7 @@ internal class SkeServiceIntegrationTest :
                 )
 
             Then("skal feilmelding sendes til Slack én gang per endring") {
-                skeService.handleNewKrav()
+                skeService.handleNewKrav(1.milliseconds)
 
                 coVerify(exactly = 2) {
                     slackServiceSpy.addError(any(), any(), any<ErrorDetails>())
@@ -682,7 +684,7 @@ internal class SkeServiceIntegrationTest :
                 )
 
             Then("skal det lagres i feilmeldingtabell") {
-                skeService.handleNewKrav()
+                skeService.handleNewKrav(1.milliseconds)
                 val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger()
                 feilmeldinger.filter { it.error == "422" }.shouldHaveSize(10)
                 val allKrav =
@@ -710,7 +712,7 @@ internal class SkeServiceIntegrationTest :
                 )
 
             Then("skal det logges rett antall krav per fil") {
-                skeService.handleNewKrav()
+                skeService.handleNewKrav(1.milliseconds)
 
                 val messages = logAppender.list.map { it.formattedMessage }
                 messages.filter { it == "Fil: TiNyeKrav.txt - Nye: 10, Endringer: 0, Stopp: 0" }.shouldHaveSize(1)
@@ -750,7 +752,7 @@ internal class SkeServiceIntegrationTest :
                 )
 
             Then("skal kravet resendes") {
-                skeService.handleNewKrav()
+                skeService.handleNewKrav(1.milliseconds)
                 val allKravAfter =
                     dataSource.transaction { session ->
                         kravRepository.getAllKrav(session)
@@ -786,7 +788,7 @@ internal class SkeServiceIntegrationTest :
                 )
 
             Then("skal feilmelding sendes til Slack kun én gang per krav selv om resend feiler igjen") {
-                skeService.handleNewKrav()
+                skeService.handleNewKrav(1.milliseconds)
 
                 coVerify(exactly = 4) {
                     slackServiceSpy.addError(any<String>(), any<ErrorCategory>(), any<ErrorDetails>())
