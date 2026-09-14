@@ -455,8 +455,8 @@ internal class FileHandlerIntegrationTest :
                             }.groupBy { it.filnavn }
 
                     allKrav shouldHaveSize 2
-                    allKrav["TiNyeKrav.txt"]?.shouldHaveSize(10)
-                    allKrav[file2]?.let { }
+                    allKrav["TiNyeKrav.txt"]?.groupBy { it.linjenummer }?.shouldHaveSize(10)
+                    allKrav[file2]?.groupBy { it.linjenummer }?.shouldHaveSize(101)
                 }
 
                 And("Ingen feil skal lagres i databasen") {
@@ -516,7 +516,7 @@ internal class FileHandlerIntegrationTest :
                 val fileName1 = "EnLinjeFeilKravtype.txt"
                 val fileName2 = "EnLinjeFlereFeil.txt"
 
-                SftpListener.putFiles(listOf("$path$fileName1", "$path/$fileName2"))
+                SftpListener.putFiles(listOf("$path$fileName1", "$path$fileName2"))
                 fileHandler.processFiles()
 
                 Then("Skal alle kravene fra begge filene lagres i databasen") {
