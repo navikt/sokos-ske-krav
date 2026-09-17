@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
+import io.opentelemetry.instrumentation.annotations.WithSpan
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.PostgresDataSource
@@ -61,6 +62,7 @@ class SkeService(
 ) {
     private var haltRun = false
 
+    @WithSpan
     suspend fun handleNewKrav(waitTime: Duration = 5000.milliseconds) {
         if (haltRun) {
             logger.info("*** Kjøring er blokkert ***")
@@ -351,6 +353,7 @@ class SkeService(
         }
     }
 
+    @WithSpan
     fun checkForStangendeKrav() {
         val now = LocalDate.now()
         val stangendeKrav =

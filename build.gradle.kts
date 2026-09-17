@@ -29,7 +29,7 @@ val kotlinxDatetimeVersion = "0.8.0-0.6.x-compat"
 
 val vaultVersion = "1.3.10"
 val prometheusVersion = "1.17.0"
-val opentelemetryVersion = "2.30.0-alpha"
+val opentelemetryVersion = "2.31.1"
 
 // DB
 val hikaricpVersion = "7.1.0"
@@ -88,7 +88,7 @@ dependencies {
     implementation("com.github.mwiede:jsch:$jschVersion")
 
     // Opentelemetry
-    implementation("io.opentelemetry.instrumentation:opentelemetry-ktor-3.0:$opentelemetryVersion")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:$opentelemetryVersion")
 
     // metrics
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
