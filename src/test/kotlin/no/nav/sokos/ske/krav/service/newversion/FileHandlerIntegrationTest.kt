@@ -53,13 +53,11 @@ internal class FileHandlerIntegrationTest :
             extensions(SftpListener, DBListener)
             val fileHandlerLogger = LoggerFactory.getLogger(FileHandler::class.java) as Logger
             val logAppender = ListAppender<ILoggingEvent>()
-
             val slackClient =
                 mockk<SlackClient> {
                     coJustRun { sendMessage(any<ErrorCategory>(), any<String>(), any<ExtraTags>(), any<List<ErrorDetails>>()) }
                 }
             val slackService = spyk(SlackService(slackClient), recordPrivateCalls = true)
-
             val ftpService =
                 FtpService(
                     dataSource = dataSource,
@@ -96,11 +94,13 @@ internal class FileHandlerIntegrationTest :
             }
 
             Given("Det finnes ingen fil i \"INBOUND\"") {
-                fileHandler.processFiles()
+                When("Vi prøver å prosessere filer") {
+                    fileHandler.processFiles()
 
-                Then("slutter vi prosessen uten å gjøre ingenting") {
-                    logAppender.list shouldHaveSize 0
-                    coVerify(exactly = 0) { slackService.sendErrors() }
+                    Then("slutter vi prosessen uten å gjøre noe") {
+                        logAppender.list shouldHaveSize 0
+                        coVerify(exactly = 0) { slackService.sendErrors() }
+                    }
                 }
             }
 
@@ -108,445 +108,478 @@ internal class FileHandlerIntegrationTest :
                 val filename = "FeilAntallKrav.txt"
                 SftpListener.putFile("validering/filvalidering/$filename")
 
-                fileHandler.processFiles()
+                When("Vi prosesserer filen") {
+                    fileHandler.processFiles()
 
-                Then("slutter vi prosessen uten å gjøre ingenting") {
-                    logAppender.list.forNone { it.formattedMessage.contains("*** Starter lagring av") }
-                }
+                    Then("slutter vi prosessen uten å gjøre noe") {
+                        logAppender.list.forNone { it.formattedMessage.contains("*** Starter lagring av") }
+                    }
 
-                And("både \"INBOUND\" og \"OUTBOUND\" er tomme") {
-                    ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
-                    ftpService.listFiles(Directories.OUTBOUND).shouldBeEmpty()
+                    And("både \"INBOUND\" og \"OUTBOUND\" er tomme") {
+                        ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
+                        ftpService.listFiles(Directories.OUTBOUND).shouldBeEmpty()
+                    }
                 }
             }
 
             Given(("Det finnes én fil i \"INBOUND\" som har alle linjene ok")) {
                 SftpListener.putFile("krav/TiNyeKrav.txt")
 
-                fileHandler.processFiles()
+                When("Vi prosesserer filen") {
+                    fileHandler.processFiles()
 
-                Then("Skal alle krav lagres i databasen") {
-                    val allKrav =
-                        dataSource.transaction { session ->
-                            kravRepository.getAllKrav(session)
+                    Then("Skal alle kravene lagres i databasen") {
+                        val allKrav =
+                            dataSource.transaction { session ->
+                                kravRepository.getAllKrav(session)
+                            }
+                        allKrav shouldHaveSize 10
+                        allKrav.forAll {
+                            it.status shouldBe Status.KRAV_INNLEST_FRA_FIL
                         }
-                    allKrav shouldHaveSize 10
-                    allKrav.forAll {
-                        it.status shouldBe Status.KRAV_INNLEST_FRA_FIL
                     }
-                }
 
-                And("Ingen feil skal lagres i databasen") {
-                    val allFilvalideringsFeil =
-                        dataSource.transaction { session ->
-                            filvalideringsFeilRepository.getAllValideringsFeil(session)
-                        }
+                    And("Ingen feil skal lagres i databasen") {
+                        val allFilvalideringsFeil =
+                            dataSource.transaction { session ->
+                                filvalideringsFeilRepository.getAllValideringsFeil(session)
+                            }
 
-                    allFilvalideringsFeil.shouldBeEmpty()
-                }
+                        allFilvalideringsFeil.shouldBeEmpty()
+                    }
 
-                And("Filen flyttes til \"OUTBOUND\"") {
-                    ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
-                    ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 1
+                    And("Filen flyttes til \"OUTBOUND\"") {
+                        ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
+                        ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 1
+                    }
                 }
             }
 
-            Given("Det finnes én fil i \"INBOUND\" som har én linje med én feil") {
+            Given("Det finnes én fil i \"INBOUND\" som har ett krav med en kravtype som ikke eksisterer") {
                 val fileName = "EnLinjeFeilKravtype.txt"
                 SftpListener.putFile("validering/linjevalidering/$fileName")
 
-                fileHandler.processFiles()
+                When("Vi prosesserer filen") {
+                    fileHandler.processFiles()
 
-                Then("Skal én feil og alle krav lagres i databasen") {
-                    dataSource.transaction { session ->
-                        kravRepository.getAllKrav(session).groupBy { it.linjenummer }.should { kravene ->
-                            kravene shouldHaveSize 10
-                            kravene.forValuesExactly(1) { it shouldHaveSize 2 }
+                    Then("Skal én feil og alle kravene lagres i databasen") {
+                        dataSource.transaction { session ->
+                            kravRepository.getAllKrav(session).groupBy { it.linjenummer }.should { kravene ->
+                                kravene shouldHaveSize 10
+                                kravene.forValuesExactly(1) { it shouldHaveSize 2 }
+                            }
+                            filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 1
                         }
-                        filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 1
                     }
-                }
 
-                And("Filen flyttes til \"OUTBOUND\"") {
-                    ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
-                    ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 1
-                }
+                    And("Filen flyttes til \"OUTBOUND\"") {
+                        ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
+                        ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 1
+                    }
 
-                When("Feilmeldinger håndteres") {
-                    Then("Skal én feilmelding dannes") {
-                        val addErrorFilenameSlot = slot<String>()
-                        val addErrorDetailsSlot = slot<List<ErrorDetails>>()
+                    And("Feilmeldingene håndteres") {
+                        Then("Skal én feilmelding dannes") {
+                            val addErrorFilenameSlot = slot<String>()
+                            val addErrorDetailsSlot = slot<List<ErrorDetails>>()
 
-                        coVerify(exactly = 1) {
-                            slackService.addErrors(capture(addErrorFilenameSlot), any<ErrorCategory>(), capture(addErrorDetailsSlot))
-                        }
-                        addErrorFilenameSlot.captured shouldBe fileName
-                        addErrorDetailsSlot.captured.should { errorDetails ->
-                            errorDetails shouldHaveSize 1
-                            errorDetails.first().should {
-                                it.header shouldBe ErrorKeys.KRAVTYPE_ERROR
-                                it.description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                            coVerify(exactly = 1) {
+                                slackService.addErrors(capture(addErrorFilenameSlot), any<ErrorCategory>(), capture(addErrorDetailsSlot))
+                            }
+                            addErrorFilenameSlot.captured shouldBe fileName
+                            addErrorDetailsSlot.captured.should { errorDetails ->
+                                errorDetails shouldHaveSize 1
+                                errorDetails.first().should {
+                                    it.header shouldBe ErrorKeys.KRAVTYPE_ERROR
+                                    it.description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                                }
                             }
                         }
-                    }
 
-                    And("Én alert med én feilmelding skal sendes") {
-                        val sendAlertFilenameSlot = slot<String>()
-                        val sendAlertErrorDetailsSlot = slot<List<ErrorDetails>>()
+                        And("Én alert med én feilmelding skal sendes") {
+                            val sendAlertFilenameSlot = slot<String>()
+                            val sendAlertErrorDetailsSlot = slot<List<ErrorDetails>>()
 
-                        coVerify(exactly = 1) {
-                            slackClient.sendMessage(any<ErrorCategory>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorDetailsSlot))
-                        }
-                        sendAlertFilenameSlot.captured shouldBe fileName
-                        sendAlertErrorDetailsSlot.captured.should { errorDetails ->
-                            errorDetails shouldHaveSize 1
-                            errorDetails.first().should {
-                                it.header shouldBe ErrorKeys.KRAVTYPE_ERROR
-                                it.description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
-                                it.caseNumber.shouldNotBeNull()
+                            coVerify(exactly = 1) {
+                                slackClient.sendMessage(any<ErrorCategory>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorDetailsSlot))
+                            }
+                            sendAlertFilenameSlot.captured shouldBe fileName
+                            sendAlertErrorDetailsSlot.captured.should { errorDetails ->
+                                errorDetails shouldHaveSize 1
+                                errorDetails.first().should {
+                                    it.header shouldBe ErrorKeys.KRAVTYPE_ERROR
+                                    it.description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                                    it.caseNumber.shouldNotBeNull()
+                                }
                             }
                         }
                     }
                 }
             }
 
-            Given("Det finnes én fil i \"INBOUND\" som har én linje med tre forskjellige feil") {
+            Given("Det finnes én fil i \"INBOUND\" som har ett krav med tre feiler: kravtypen eksisterer ikke, vedtaksdatoen er i fremtida og saksnummeret har feil format") {
                 val fileName = "EnLinjeFlereFeil.txt"
                 SftpListener.putFile("validering/linjevalidering/$fileName")
 
-                fileHandler.processFiles()
+                When("Vi prosesserer filen") {
+                    fileHandler.processFiles()
 
-                Then("Skal én feil og alle krav lagres i databasen") {
-                    dataSource.transaction { session ->
-                        kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 10
-                        filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 1
-                    }
-                }
-
-                And("Filen flyttes til \"OUTBOUND\"") {
-                    ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
-                    ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 1
-                }
-
-                When("Feilmeldinger håndteres") {
-                    Then("Skal tre feilmeldinger dannes") {
-                        val addErrorFilenameSlot = slot<String>()
-                        val addErrorDetailsSlot = slot<List<ErrorDetails>>()
-
-                        coVerify(exactly = 1) {
-                            slackService.addErrors(capture(addErrorFilenameSlot), any<ErrorCategory>(), capture(addErrorDetailsSlot))
-                        }
-                        addErrorFilenameSlot.captured shouldBe fileName
-                        addErrorDetailsSlot.captured.should { errorDetails ->
-                            errorDetails shouldHaveSize 3
-                            errorDetails.forExactly(1) { (header, description, caseNumber) ->
-                                header shouldBe ErrorKeys.KRAVTYPE_ERROR
-                                description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
-                                caseNumber.shouldNotBeNull()
-                            }
-                            errorDetails.forExactly(1) { (header, description, caseNumber) ->
-                                header shouldBe ErrorKeys.VEDTAKSDATO_ERROR
-                                description shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
-                                caseNumber.shouldNotBeNull()
-                            }
-                            errorDetails.forExactly(1) { (header, description, caseNumber) ->
-                                header shouldBe ErrorKeys.SAKSNUMMER_ERROR
-                                description shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
-                                caseNumber.shouldNotBeNull()
-                            }
+                    Then("Skal én feil og alle kravene lagres i databasen") {
+                        dataSource.transaction { session ->
+                            kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 10
+                            filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 1
                         }
                     }
 
-                    And("én alert med tre feilmeldinger skal sendes") {
-                        val sendAlertFilenameSlot = slot<String>()
-                        val sendAlertErrorMessageSlot = slot<List<ErrorDetails>>()
+                    And("Filen flyttes til \"OUTBOUND\"") {
+                        ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
+                        ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 1
+                    }
 
-                        coVerify(exactly = 1) {
-                            slackClient.sendMessage(any<ErrorCategory>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorMessageSlot))
+                    And("Feilmeldingene håndteres") {
+                        Then("Skal tre feilmeldinger dannes") {
+                            val addErrorFilenameSlot = slot<String>()
+                            val addErrorDetailsSlot = slot<List<ErrorDetails>>()
+
+                            coVerify(exactly = 1) {
+                                slackService.addErrors(capture(addErrorFilenameSlot), any<ErrorCategory>(), capture(addErrorDetailsSlot))
+                            }
+                            addErrorFilenameSlot.captured shouldBe fileName
+                            addErrorDetailsSlot.captured.should { errorDetails ->
+                                errorDetails shouldHaveSize 3
+                                errorDetails.forExactly(1) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.KRAVTYPE_ERROR
+                                    description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                                    caseNumber.shouldNotBeNull()
+                                }
+                                errorDetails.forExactly(1) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.VEDTAKSDATO_ERROR
+                                    description shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
+                                    caseNumber.shouldNotBeNull()
+                                }
+                                errorDetails.forExactly(1) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.SAKSNUMMER_ERROR
+                                    description shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+                                    caseNumber.shouldNotBeNull()
+                                }
+                            }
                         }
 
-                        sendAlertFilenameSlot.captured shouldBe fileName
-                        sendAlertErrorMessageSlot.captured.should { errorDetails ->
-                            errorDetails shouldHaveSize 3
-                            errorDetails.forExactly(1) { (header, description, caseNumber) ->
-                                header shouldBe ErrorKeys.KRAVTYPE_ERROR
-                                description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
-                                caseNumber.shouldNotBeNull()
+                        And("én alert med tre feilmeldinger skal sendes") {
+                            val sendAlertFilenameSlot = slot<String>()
+                            val sendAlertErrorMessageSlot = slot<List<ErrorDetails>>()
+
+                            coVerify(exactly = 1) {
+                                slackClient.sendMessage(any<ErrorCategory>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorMessageSlot))
                             }
 
-                            errorDetails.forExactly(1) { (header, description, caseNumber) ->
-                                header shouldBe ErrorKeys.VEDTAKSDATO_ERROR
-                                description shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
-                                caseNumber.shouldNotBeNull()
-                            }
+                            sendAlertFilenameSlot.captured shouldBe fileName
+                            sendAlertErrorMessageSlot.captured.should { errorDetails ->
+                                errorDetails shouldHaveSize 3
+                                errorDetails.forExactly(1) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.KRAVTYPE_ERROR
+                                    description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                                    caseNumber.shouldNotBeNull()
+                                }
 
-                            errorDetails.forExactly(1) { (header, description, caseNumber) ->
-                                header shouldBe ErrorKeys.SAKSNUMMER_ERROR
-                                description shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
-                                caseNumber.shouldNotBeNull()
+                                errorDetails.forExactly(1) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.VEDTAKSDATO_ERROR
+                                    description shouldContain ErrorMessages.VEDTAKSDATO_IS_IN_FUTURE
+                                    caseNumber.shouldNotBeNull()
+                                }
+
+                                errorDetails.forExactly(1) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.SAKSNUMMER_ERROR
+                                    description shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+                                    caseNumber.shouldNotBeNull()
+                                }
                             }
                         }
                     }
                 }
             }
 
-            Given("Det finnes én fil i \"INBOUND\" som har seks linjer med samme type feil") {
+            Given("Det finnes én fil i \"INBOUND\" som har seks krav med en kravtype som ikke eksiterer") {
                 val fileName = "SeksLinjerSammeTypeFeil.txt"
                 SftpListener.putFile("validering/linjevalidering/$fileName")
 
-                fileHandler.processFiles()
+                When("Vi prosesserer filen") {
+                    fileHandler.processFiles()
 
-                Then("Skal seks feil og alle krav lagres i databasen") {
-                    dataSource.transaction { session ->
-                        kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 10
-                        filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 6
-                    }
-                }
-
-                And("Filen flyttes til \"OUTBOUND\"") {
-                    ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
-                    ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 1
-                }
-
-                When("Feilmeldinger håndteres") {
-                    Then("Skal seks feilmeldinger dannes") {
-                        val addErrorFilenameSlot = slot<String>()
-                        val addErrorDetailsSlot = slot<List<ErrorDetails>>()
-
-                        coVerify(exactly = 1) {
-                            slackService.addErrors(capture(addErrorFilenameSlot), any<ErrorCategory>(), capture(addErrorDetailsSlot))
+                    Then("Skal seks feiler og alle kravene lagres i databasen") {
+                        dataSource.transaction { session ->
+                            kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 10
+                            filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 6
                         }
-                        addErrorFilenameSlot.captured shouldBe fileName
-                        addErrorDetailsSlot.captured.should { errorDetails ->
-                            errorDetails shouldHaveSize 6
-                            errorDetails.forExactly(6) { (header, description, caseNumber) ->
-                                header shouldBe ErrorKeys.KRAVTYPE_ERROR
-                                description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
-                                caseNumber.shouldNotBeNull()
+                    }
+
+                    And("Filen flyttes til \"OUTBOUND\"") {
+                        ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
+                        ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 1
+                    }
+
+                    And("Feilmeldingene håndteres") {
+                        Then("Skal seks feilmeldinger dannes") {
+                            val addErrorFilenameSlot = slot<String>()
+                            val addErrorDetailsSlot = slot<List<ErrorDetails>>()
+
+                            coVerify(exactly = 1) {
+                                slackService.addErrors(capture(addErrorFilenameSlot), any<ErrorCategory>(), capture(addErrorDetailsSlot))
+                            }
+                            addErrorFilenameSlot.captured shouldBe fileName
+                            addErrorDetailsSlot.captured.should { errorDetails ->
+                                errorDetails shouldHaveSize 6
+                                errorDetails.forExactly(6) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.KRAVTYPE_ERROR
+                                    description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                                    caseNumber.shouldNotBeNull()
+                                }
                             }
                         }
-                    }
 
-                    And("Én alert med én feilmelding skal sendes") {
-                        val sendAlertFilenameSlot = slot<String>()
-                        val sendAlertErrorDetailsSlot = slot<List<ErrorDetails>>()
+                        And("Én alert med én feilmelding skal sendes") {
+                            val sendAlertFilenameSlot = slot<String>()
+                            val sendAlertErrorDetailsSlot = slot<List<ErrorDetails>>()
 
-                        coVerify(exactly = 1) {
-                            slackClient.sendMessage(any<ErrorCategory>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorDetailsSlot))
-                        }
-                        sendAlertFilenameSlot.captured shouldBe fileName
-                        sendAlertErrorDetailsSlot.captured.should { errorDetails ->
-                            errorDetails shouldHaveSize 1
-                            errorDetails.first().should {
-                                it.header shouldBe ErrorKeys.KRAVTYPE_ERROR
-                                it.description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
-                                it.caseNumber.shouldNotBeNull()
+                            coVerify(exactly = 1) {
+                                slackClient.sendMessage(any<ErrorCategory>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorDetailsSlot))
+                            }
+                            sendAlertFilenameSlot.captured shouldBe fileName
+                            sendAlertErrorDetailsSlot.captured.should { errorDetails ->
+                                errorDetails shouldHaveSize 1
+                                errorDetails.first().should {
+                                    it.header shouldBe ErrorKeys.KRAVTYPE_ERROR
+                                    it.description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                                    it.caseNumber.shouldNotBeNull()
+                                }
                             }
                         }
                     }
                 }
             }
 
-            Given("Det finnes én fil i \"INBOUND\" som har seks linjer med samme type feil og tre av disse linjene har ulike feil") {
+            /*
+             * Krav 3: Kravtypen eksisterer ikke og saksnummeret har feil format
+             * Krav 4: Kravtypen eksisterer ikke
+             * Krav 5: Kravtypen eksisterer ikke
+             * Krav 6: Kravtypen eksisterer ikke og referensen til den gamle saken har feil format
+             * Krav 7: Kravtypen eksisterer ikke
+             * Krav 8: Kravtypen eksisterer ikke og vedtaksdatoen har feil format
+             * */
+            Given("Det finnes én fil i \"INBOUND\" som har seks krav som har feilene beskrevet i kommentaren") {
                 val fileName = "SeksLinjerSammeOgUlikeFeil.txt"
                 SftpListener.putFile("validering/linjevalidering/$fileName")
 
-                fileHandler.processFiles()
+                When("Vi prosesserer filen") {
+                    fileHandler.processFiles()
 
-                Then("Skal seks feil og alle krav lagres i databasen") {
-                    dataSource.transaction { session ->
-                        kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 10
-                        filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 6
-                    }
-                }
-
-                And("Filen flyttes til \"OUTBOUND\"") {
-                    ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
-                    ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 1
-                }
-
-                When("Feilmeldinger håndteres") {
-                    Then("Skal ni feilmeldinger dannes") {
-                        val addErrorFilenameSlot = slot<String>()
-                        val addErrorDetailsSlot = slot<List<ErrorDetails>>()
-
-                        coVerify(exactly = 1) {
-                            slackService.addErrors(capture(addErrorFilenameSlot), any<ErrorCategory>(), capture(addErrorDetailsSlot))
-                        }
-                        addErrorFilenameSlot.captured shouldBe fileName
-                        addErrorDetailsSlot.captured.should { errorDetails ->
-                            errorDetails shouldHaveSize 9
-                            errorDetails.forExactly(6) { (header, description, caseNumber) ->
-                                header shouldBe ErrorKeys.KRAVTYPE_ERROR
-                                description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
-                                caseNumber.shouldNotBeNull()
-                            }
-                            errorDetails.forExactly(1) { (header, description, caseNumber) ->
-                                header shouldBe ErrorKeys.VEDTAKSDATO_ERROR
-                                description shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
-                                caseNumber.shouldNotBeNull()
-                            }
-                            errorDetails.forExactly(1) { (header, description, caseNumber) ->
-                                header shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
-                                description shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
-                                caseNumber.shouldNotBeNull()
-                            }
-                            errorDetails.forExactly(1) { (header, description, caseNumber) ->
-                                header shouldBe ErrorKeys.SAKSNUMMER_ERROR
-                                description shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
-                                caseNumber.shouldNotBeNull()
-                            }
-                        }
-                    }
-                }
-
-                When("Én alert sendes") {
-                    val sendAlertFilenameSlot = slot<String>()
-                    val sendAlertErrorDetailsSlot = slot<List<ErrorDetails>>()
-
-                    coVerify(exactly = 1) {
-                        slackClient.sendMessage(any<ErrorCategory>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorDetailsSlot))
-                    }
-                    sendAlertFilenameSlot.captured shouldBe fileName
-                    val sendAlertErrorDetails = sendAlertErrorDetailsSlot.captured
-                    sendAlertErrorDetails shouldHaveSize 4
-
-                    Then("Skal de seks like feilmeldingene aggregeres til én") {
-                        sendAlertErrorDetails.forExactly(1) { (header, description, caseNumber) ->
-                            header shouldBe ErrorKeys.KRAVTYPE_ERROR
-                            description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
-                            caseNumber.shouldNotBeNull()
+                    Then("Skal seks feiler og alle kravene lagres i databasen") {
+                        dataSource.transaction { session ->
+                            kravRepository.getAllKrav(session).groupBy { it.linjenummer } shouldHaveSize 10
+                            filvalideringsFeilRepository.getAllValideringsFeil(session) shouldHaveSize 6
                         }
                     }
 
-                    And("De tre ulike feilmeldingene skall ikke aggregeres") {
-                        sendAlertErrorDetails.forExactly(1) { (header, description, caseNumber) ->
-                            header shouldBe ErrorKeys.VEDTAKSDATO_ERROR
-                            description shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
-                            caseNumber.shouldNotBeNull()
+                    And("Filen flyttes til \"OUTBOUND\"") {
+                        ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
+                        ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 1
+                    }
+
+                    And("Feilmeldingene håndteres") {
+                        Then("Skal ni feilmeldinger dannes") {
+                            val addErrorFilenameSlot = slot<String>()
+                            val addErrorDetailsSlot = slot<List<ErrorDetails>>()
+
+                            coVerify(exactly = 1) {
+                                slackService.addErrors(capture(addErrorFilenameSlot), any<ErrorCategory>(), capture(addErrorDetailsSlot))
+                            }
+                            addErrorFilenameSlot.captured shouldBe fileName
+                            addErrorDetailsSlot.captured.should { errorDetails ->
+                                errorDetails shouldHaveSize 9
+                                errorDetails.forExactly(6) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.KRAVTYPE_ERROR
+                                    description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                                    caseNumber.shouldNotBeNull()
+                                }
+                                errorDetails.forExactly(1) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.VEDTAKSDATO_ERROR
+                                    description shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
+                                    caseNumber.shouldNotBeNull()
+                                }
+                                errorDetails.forExactly(1) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+                                    description shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
+                                    caseNumber.shouldNotBeNull()
+                                }
+                                errorDetails.forExactly(1) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.SAKSNUMMER_ERROR
+                                    description shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+                                    caseNumber.shouldNotBeNull()
+                                }
+                            }
                         }
 
-                        sendAlertErrorDetails.forExactly(1) { (header, description, caseNumber) ->
-                            header shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
-                            description shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
-                            caseNumber.shouldNotBeNull()
-                        }
-                        sendAlertErrorDetails.forExactly(1) { (header, description, caseNumber) ->
-                            header shouldBe ErrorKeys.SAKSNUMMER_ERROR
-                            description shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
-                            caseNumber.shouldNotBeNull()
+                        And("Én alert sendes") {
+                            val sendAlertFilenameSlot = slot<String>()
+                            val sendAlertErrorDetailsSlot = slot<List<ErrorDetails>>()
+
+                            coVerify(exactly = 1) {
+                                slackClient.sendMessage(any<ErrorCategory>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorDetailsSlot))
+                            }
+                            sendAlertFilenameSlot.captured shouldBe fileName
+                            val sendAlertErrorDetails = sendAlertErrorDetailsSlot.captured
+                            sendAlertErrorDetails shouldHaveSize 4
+
+                            Then("Skal de seks like feilmeldingene aggregeres til én") {
+                                sendAlertErrorDetails.forExactly(1) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.KRAVTYPE_ERROR
+                                    description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
+                                    caseNumber.shouldNotBeNull()
+                                }
+                            }
+
+                            And("De tre ulike feilmeldingene skall ikke aggregeres") {
+                                sendAlertErrorDetails.forExactly(1) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.VEDTAKSDATO_ERROR
+                                    description shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
+                                    caseNumber.shouldNotBeNull()
+                                }
+
+                                sendAlertErrorDetails.forExactly(1) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
+                                    description shouldContain ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
+                                    caseNumber.shouldNotBeNull()
+                                }
+                                sendAlertErrorDetails.forExactly(1) { (header, description, caseNumber) ->
+                                    header shouldBe ErrorKeys.SAKSNUMMER_ERROR
+                                    description shouldContain ErrorMessages.SAKSNUMMER_WRONG_FORMAT
+                                    caseNumber.shouldNotBeNull()
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            Given("Det finnes to fil i \"INBOUND\" og begge har alle linjene ok") {
+            Given("Det finnes to filer i \"INBOUND\" og begge har alle linjene ok") {
                 val file1 = "krav/TiNyeKrav.txt"
                 val file2 = "AllValideringOk.txt"
 
                 SftpListener.putFiles(listOf(file1, file2))
-                fileHandler.processFiles()
 
-                Then("Skal alle kravene fra begge filene lagres i databasen") {
-                    val allKrav =
-                        dataSource
-                            .transaction { session ->
-                                kravRepository.getAllKrav(session)
-                            }.groupBy { it.filnavn }
+                When("Vi prosesserer filene") {
+                    fileHandler.processFiles()
 
-                    allKrav shouldHaveSize 2
-                    allKrav["TiNyeKrav.txt"]?.groupBy { it.linjenummer }?.shouldHaveSize(10)
-                    allKrav[file2]?.groupBy { it.linjenummer }?.shouldHaveSize(101)
-                }
+                    Then("Skal alle kravene fra begge filene lagres i databasen") {
+                        val allKrav =
+                            dataSource
+                                .transaction { session ->
+                                    kravRepository.getAllKrav(session)
+                                }.groupBy { it.filnavn }
 
-                And("Ingen feil skal lagres i databasen") {
-                    val allFilvalideringsFeil =
-                        dataSource.transaction { session ->
-                            filvalideringsFeilRepository.getAllValideringsFeil(session)
-                        }
+                        allKrav shouldHaveSize 2
+                        allKrav["TiNyeKrav.txt"]?.groupBy { it.linjenummer }?.shouldHaveSize(10)
+                        allKrav[file2]?.groupBy { it.linjenummer }?.shouldHaveSize(101)
+                    }
 
-                    allFilvalideringsFeil.shouldBeEmpty()
-                }
+                    And("Ingen feil skal lagres i databasen") {
+                        val allFilvalideringsFeil =
+                            dataSource.transaction { session ->
+                                filvalideringsFeilRepository.getAllValideringsFeil(session)
+                            }
 
-                And("Filen flyttes til \"OUTBOUND\"") {
-                    ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
-                    ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 2
+                        allFilvalideringsFeil.shouldBeEmpty()
+                    }
+
+                    And("Begge filene flyttes til \"OUTBOUND\"") {
+                        ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
+                        ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 2
+                    }
                 }
             }
 
-            Given("Det finnes to fil i \"INBOUND\" og én av de har én linje som er feil") {
+            Given("Det finnes to filer i \"INBOUND\" og én av de har ett krav med en kravtype some ikke eksisterer") {
                 val fileNameFeil = "EnLinjeFeilKravtype.txt"
                 val fileNameOK = "TiNyeKrav.txt"
 
                 SftpListener.putFiles(listOf("validering/linjevalidering/$fileNameFeil", "krav/$fileNameOK"))
-                fileHandler.processFiles()
 
-                Then("Skal kravene fra begge filene lagres i databasen") {
-                    dataSource.transaction { session ->
-                        val kravPerFil: Map<String, List<Krav>> = kravRepository.getAllKrav(session).groupBy { it.filnavn }
-                        kravPerFil shouldHaveSize 2
-                        kravPerFil.forOne { (fileName, kravene) ->
-                            fileName shouldBe fileNameFeil
-                            kravene shouldHaveSize 11
-                        }
-                        kravPerFil.forOne { (fileName, kravene) ->
-                            fileName shouldBe fileNameOK
-                            kravene shouldHaveSize 10
-                        }
-                    }
-                }
+                When("Vi prosesserer filene") {
+                    fileHandler.processFiles()
 
-                And("Bare én feil fra én fil skal lagres i databasen") {
-                    dataSource.transaction { session ->
-                        filvalideringsFeilRepository.getAllValideringsFeil(session).should { filValideringsfeil ->
-                            filValideringsfeil shouldHaveSize 1
-                            filValideringsfeil.single().filnavn shouldBe fileNameFeil
+                    Then("Skal kravene fra begge filene lagres i databasen") {
+                        dataSource.transaction { session ->
+                            val kravPerFil: Map<String, List<Krav>> = kravRepository.getAllKrav(session).groupBy { it.filnavn }
+                            kravPerFil shouldHaveSize 2
+                            kravPerFil.forOne { (fileName, kravene) ->
+                                fileName shouldBe fileNameFeil
+                                kravene shouldHaveSize 11
+                            }
+                            kravPerFil.forOne { (fileName, kravene) ->
+                                fileName shouldBe fileNameOK
+                                kravene shouldHaveSize 10
+                            }
                         }
                     }
-                }
 
-                And("Begge filene skal flyttes til `OUTBOUND`") {
-                    ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
-                    ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 2
+                    And("Bare én feil fra én fil skal lagres i databasen") {
+                        dataSource.transaction { session ->
+                            filvalideringsFeilRepository.getAllValideringsFeil(session).should { filValideringsfeil ->
+                                filValideringsfeil shouldHaveSize 1
+                                filValideringsfeil.single().filnavn shouldBe fileNameFeil
+                            }
+                        }
+                    }
+
+                    And("Begge filene skal flyttes til `OUTBOUND`") {
+                        ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
+                        ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 2
+                    }
                 }
             }
 
-            Given("Det finnes to fil i \"INBOUND\" og begge har én filvalideringsfeil") {
+            /*
+             * Fil 1: Ett krav med én feil: kravtypen eksisterer ikke.
+             * Fil 2: Ett krav med tre feiler: kravtypen eksisterer ikke, vedtaksdatoen er i fremtida og saksnummeret har feil format
+             * */
+            Given("Det finnes to filer i \"INBOUND\" og begge har én filvalideringsfeil") {
                 val path = "validering/linjevalidering/"
                 val fileName1 = "EnLinjeFeilKravtype.txt"
                 val fileName2 = "EnLinjeFlereFeil.txt"
 
                 SftpListener.putFiles(listOf("$path$fileName1", "$path$fileName2"))
-                fileHandler.processFiles()
 
-                Then("Skal alle kravene fra begge filene lagres i databasen") {
-                    dataSource.transaction { session ->
-                        val kravPerFil: Map<String, List<Krav>> = kravRepository.getAllKrav(session).groupBy { it.filnavn }
-                        kravPerFil shouldHaveSize 2
-                        kravPerFil.forOne { (fileName, kravene) ->
-                            fileName shouldBe fileName1
-                            kravene.groupBy { it.linjenummer } shouldHaveSize 10
-                        }
-                        kravPerFil.forOne { (fileName, kravene) ->
-                            fileName shouldBe fileName2
-                            kravene.groupBy { it.linjenummer } shouldHaveSize 10
-                        }
-                    }
-                }
+                When("Vi prosesserer filene") {
+                    fileHandler.processFiles()
 
-                And("Én feil per fil skal lagres i databasen") {
-                    dataSource.transaction { session ->
-                        filvalideringsFeilRepository.getAllValideringsFeil(session).should { filValideringsfeil ->
-                            filValideringsfeil shouldHaveSize 2
-                            filValideringsfeil.forOne { it.filnavn shouldBe fileName1 }
-                            filValideringsfeil.forOne { it.filnavn shouldBe fileName2 }
+                    Then("Skal alle kravene fra begge filene lagres i databasen") {
+                        dataSource.transaction { session ->
+                            val kravPerFil: Map<String, List<Krav>> = kravRepository.getAllKrav(session).groupBy { it.filnavn }
+                            kravPerFil shouldHaveSize 2
+                            kravPerFil.forOne { (fileName, kravene) ->
+                                fileName shouldBe fileName1
+                                kravene.groupBy { it.linjenummer } shouldHaveSize 10
+                            }
+                            kravPerFil.forOne { (fileName, kravene) ->
+                                fileName shouldBe fileName2
+                                kravene.groupBy { it.linjenummer } shouldHaveSize 10
+                            }
                         }
                     }
-                }
 
-                And("Begge filene skal flyttes til `OUTBOUND`") {
-                    ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
-                    ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 2
+                    And("Én feil per fil skal lagres i databasen") {
+                        dataSource.transaction { session ->
+                            filvalideringsFeilRepository.getAllValideringsFeil(session).should { filValideringsfeil ->
+                                filValideringsfeil shouldHaveSize 2
+                                filValideringsfeil.forOne { it.filnavn shouldBe fileName1 }
+                                filValideringsfeil.forOne { it.filnavn shouldBe fileName2 }
+                            }
+                        }
+                    }
+
+                    And("Begge filene skal flyttes til `OUTBOUND`") {
+                        ftpService.listFiles(Directories.INBOUND).shouldBeEmpty()
+                        ftpService.listFiles(Directories.OUTBOUND) shouldHaveSize 2
+                    }
                 }
             }
         },
