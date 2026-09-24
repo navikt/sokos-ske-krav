@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.opentelemetry.instrumentation.annotations.WithSpan
 
 import no.nav.sokos.ske.krav.config.ApplicationState
 import no.nav.sokos.ske.krav.config.PostgresDataSource
@@ -84,6 +85,7 @@ internal fun Application.module() {
     launchJob(::deleteOldData, 24.hours)
 }
 
+@WithSpan
 private fun deleteOldData(dataSource: DataSource = PostgresDataSource.dataSource) {
     dataSource.transaction { session ->
         val threshold = LocalDate.now().minusYears(10)
