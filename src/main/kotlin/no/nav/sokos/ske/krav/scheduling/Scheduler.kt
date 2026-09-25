@@ -30,8 +30,7 @@ class Scheduler(
     fun stop(cancellationMessage: String) {
         stopped = true
         future?.cancel(false)
-        val job = runningJob
-        job?.cancel(CancellationException(cancellationMessage))
+        runningJob?.cancel(CancellationException(cancellationMessage))
         executor.shutdown()
     }
 
@@ -44,14 +43,12 @@ class Scheduler(
         scheduleNext(hour, minute, 0, name, task)
     }
 
-    private fun scheduleNext(
+    fun defineNext(
+        now: LocalDateTime,
         hour: Int? = null,
         minute: Int? = null,
         second: Int? = null,
-        name: String = "",
-        task: suspend () -> Unit,
-    ) {
-        val now = LocalDateTime.now()
+    ): LocalDateTime {
         var next =
             now
                 .withHour(hour ?: now.hour)
@@ -69,23 +66,39 @@ class Scheduler(
             }
         }
 
+        return next
+    }
+
+    private fun scheduleNext(
+        hour: Int? = null,
+        minute: Int? = null,
+        second: Int? = null,
+        name: String = "",
+        task: suspend () -> Unit,
+    ) {
+        val now = LocalDateTime.now()
+        val next = defineNext(now, hour, minute, second)
         val delay = Duration.between(now, next).toMillis()
 
         future =
-            executor.schedule({
-                runningJob =
-                    scope.launch {
-                        try {
-                            task()
-                        } catch (e: Exception) {
-                            logger.error("Scheduled job \"$name\" failed: ${e::class.simpleName}")
-                            logger.error(TEAM_LOGS_MARKER, "Scheduled job \"$name\" failed: ", e)
-                        } finally {
-                            if (!stopped) {
-                                scheduleNext(hour, minute, second, name = name, task) // chain to next run
+            executor.schedule(
+                {
+                    runningJob =
+                        scope.launch {
+                            try {
+                                task()
+                            } catch (e: Exception) {
+                                logger.error("Scheduled job \"$name\" failed: ${e::class.simpleName}")
+                                logger.error(TEAM_LOGS_MARKER, "Scheduled job \"$name\" failed: ", e)
+                            } finally {
+                                if (!stopped) {
+                                    scheduleNext(hour, minute, second, name = name, task = task) // chain to next run
+                                }
                             }
                         }
-                    }
-            }, delay, TimeUnit.MILLISECONDS)
+                },
+                delay,
+                TimeUnit.MILLISECONDS,
+            )
     }
 }
