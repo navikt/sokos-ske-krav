@@ -7,6 +7,7 @@ import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 
+import no.nav.sokos.ske.krav.config.LOCAL_ZONE_ID
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.FilValideringsfeil
@@ -22,7 +23,7 @@ class FilValideringsfeilRepository(
             saksnummerNav = row.stringOrNull("saksnummer_nav") ?: "",
             kravLinje = row.stringOrNull("kravlinje") ?: "",
             feilmelding = row.string("feilmelding").trim(),
-            tidspunktOpprettet = row.localDateTime("tidspunkt_opprettet"),
+            tidspunktOpprettet = row.instant("tidspunkt_opprettet").atZone(LOCAL_ZONE_ID).toLocalDateTime(),
             rapporter = row.boolean("rapporter"),
         )
     }

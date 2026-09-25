@@ -11,20 +11,20 @@ Repository- og databaseaksessmønstre: object-repositories med Connection-extens
 
 ## DataSource
 
-`PostgresDataSource` is a singleton `object` using HikariCP. In non-local environments it integrates with Vault for credentials:
+`PostgresDataSource` is a singleton `object` using HikariCP and `PropertiesConfig.postgresConfig`:
 
 ```kotlin
 object PostgresDataSource {
     val dataSource: HikariDataSource by lazy { dataSource() }
 
     fun migrate() {
-        dataSource(role = postgresConfig.adminUser).use { migrate(it) }
+        val migrationConfig = hikariConfig()
+        dataSource(hikariConfig = migrationConfig).use { migrate(it) }
     }
 
-    fun migrate(dataSource: HikariDataSource) {
+    fun migrate(dataSource: DataSource) {
         Flyway.configure()
             .dataSource(dataSource)
-            .initSql("""SET ROLE "${postgresConfig.adminUser}"""")
             .lockRetryCount(-1)
             .validateMigrationNaming(true)
             .load()

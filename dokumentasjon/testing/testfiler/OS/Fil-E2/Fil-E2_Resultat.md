@@ -85,7 +85,7 @@ Se [sokos_ske_krav_public_krav-Fil-E2.xml](sokos_ske_krav_public_krav-Fil-E2.xml
 
 
 ## Feilmelding
-```select saksnummer_nav, error, melding, ske_response from feilmelding where saksnummer_nav in (select krav.saksnummer_nav from krav where filnavn = 'Fil-E2.txt' and DATE(tidspunkt_opprettet) = DATE(now()))``` (eller bruk timestamp)
+```select saksnummer_nav, error, melding, ske_response from feilmelding where saksnummer_nav in (select krav.saksnummer_nav from krav where filnavn = 'Fil-E2.txt' and DATE(tidspunkt_opprettet) = DATE(now()))``` (eller bruk et passende tidspunkt)
 Se [sokos_ske_krav_public_feilmelding-Fil-E2.xml](sokos_ske_krav_public_feilmelding-Fil-E2.xml)     
 
 | saksnummer_nav     | error | melding                                                                                   | ske_response                                                                                                                                                                                                                                                                                                                                                             |
