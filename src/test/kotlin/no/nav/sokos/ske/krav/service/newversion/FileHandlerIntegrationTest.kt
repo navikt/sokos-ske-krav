@@ -75,6 +75,8 @@ internal class FileHandlerIntegrationTest :
                 )
 
             beforeSpec {
+                DBListener.clearDB()
+                SftpListener.clearAllDirectories()
                 logAppender.start()
                 fileHandlerLogger.addAppender(logAppender)
             }
@@ -91,6 +93,8 @@ internal class FileHandlerIntegrationTest :
             afterSpec {
                 fileHandlerLogger.detachAppender(logAppender)
                 logAppender.stop()
+                DBListener.clearDB()
+                SftpListener.clearAllDirectories()
             }
 
             Given("Det finnes ingen fil i \"INBOUND\"") {
@@ -437,7 +441,7 @@ internal class FileHandlerIntegrationTest :
                                 }
                             }
 
-                            And("De tre ulike feilmeldingene skall ikke aggregeres") {
+                            And("De tre ulike feilmeldingene skal ikke aggregeres") {
                                 sendAlertErrorDetails.forExactly(1) { (header, description, caseNumber) ->
                                     header shouldBe ErrorKeys.VEDTAKSDATO_ERROR
                                     description shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
