@@ -1,5 +1,7 @@
 package no.nav.sokos.ske.krav.config
 
+import java.time.ZoneId
+
 import kotlinx.serialization.json.Json
 
 import io.ktor.http.HttpStatusCode
@@ -28,6 +30,7 @@ import org.slf4j.event.Level
 import no.nav.sokos.ske.krav.metrics.Metrics
 
 private val logger = KotlinLogging.logger {}
+val LOCAL_ZONE_ID = ZoneId.of("Europe/Oslo")
 
 val TEAM_LOGS_MARKER: Marker = MarkerFactory.getMarker("TEAM_LOGS")
 

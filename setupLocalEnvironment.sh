@@ -2,8 +2,6 @@
 set -euo pipefail
 
 readonly APP_NAME="sokos-ske-krav"
-readonly VAULT_PATH_POSTGRES="postgresql/preprod-fss/creds/sokos-ske-krav-user"
-export VAULT_ADDR=https://vault.adeo.no
 
 log() { echo "[$(date +%H:%M:%S)] $*"; }
 error() { echo "[$(date +%H:%M:%S)] ERROR: $*" >&2; exit 1; }
@@ -21,11 +19,6 @@ DB_USER=$(gcloud auth list --format="value(account)" | grep nav)
 log "Switching kubectl context to dev-gcp / okonomi..."
 kubectl config use-context dev-gcp
 kubectl config set-context --current --namespace=okonomi
-
-log "Checking Vault authentication..."
-if ! vault token lookup -format=json 2>/dev/null | jq -e '.data.display_name' 2>/dev/null ; then
-    vault login -method=oidc -no-print
-fi
 
 # ── Fetch env vars from pod ───────────────────────────────────────────────────
 
@@ -59,9 +52,9 @@ envValue=$(kubectl exec "$POD_NAME" -c "$APP_NAME" -- env \
     | sort)
 [ -z "$envValue" ] && error "No matching environment variables found in pod"
 
-# ── Fetch secrets from Vault ──────────────────────────────────────────────────
+# ── Fetch secrets from GCP ──────────────────────────────────────────────────
 
-log "Fetching SFTP private key from Vault..."
+log "Fetching SFTP private key from GCP..."
 PRIVATE_KEY=$(kubectl exec -n okonomi "$POD_NAME" -- cat /var/run/secrets/sokos-ske-krav-sftp-private-key/private-key)
 [ -z "$PRIVATE_KEY" ] && error "Failed to fetch SFTP private key"
 
