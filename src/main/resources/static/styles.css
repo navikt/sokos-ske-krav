@@ -107,8 +107,6 @@ th  {
     color: black;
     padding: 8px;
     white-space: nowrap;
-    max-width: fit-content;
-
 }
 tr:nth-child(2n) {
     background-color: #fbfcfc;
@@ -133,7 +131,7 @@ tr:nth-child(2n+1) {
 
 .krav-def div {
     display: grid;
-    grid-template-columns: 1fr 2fr 2fr;
+    grid-template-columns: 1fr 2fr 2fr 2fr;
     padding: 12px 0;
     border-top: 1px solid #e5e7eb;
 }
