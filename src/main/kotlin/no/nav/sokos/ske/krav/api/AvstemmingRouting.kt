@@ -84,20 +84,20 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
     }
     route("/krav") {
         get("") {
-            val saksnummerNav = call.request.queryParameters["saksnummerNav"].toTrimmedSaksnummerNav()
-            if (saksnummerNav != null) {
-                call.respondRedirect(kravLookupPath(saksnummerNav))
+            val leiteparameter = call.request.queryParameters["leiteparameter"].toTrimmedSaksnummerNav()
+            if (leiteparameter != null) {
+                call.respondRedirect(kravLookupPath(leiteparameter))
                 return@get
             }
             call.respondHtmlTemplate(LeitEtterKravPage(IngentingEnda, call)) {
             }
         }
         get("/") { call.respondRedirect("/krav") }
-        get("/{saksnummer}") {
-            val saksnummer = call.parameters["saksnummer"] ?: ""
+        get("/{leiteparameter}") {
+            val leiteparameter = call.parameters["leiteparameter"] ?: ""
             val content =
-                when (val krav = rapportService.finnKrav(saksnummer)) {
-                    emptyList<Krav>() -> FantIngenting(saksnummer)
+                when (val krav = rapportService.finnKrav(leiteparameter)) {
+                    emptyList<Krav>() -> FantIngenting(leiteparameter)
                     else -> FantKrav(krav)
                 }
             call.respondHtmlTemplate(LeitEtterKravPage(content, call)) {

@@ -62,11 +62,12 @@ class LeitEtterKravPage(
                     classes = setOf("leit-etter-krav-form")
                     action = "/krav"
                     method = FormMethod.get
-                    label { +"Saksnummer Nav:" }
+                    label { +"Leiteparameter    :" }
                     input {
                         type = text
-                        name = "saksnummerNav"
-                        id = "saksnummerNav"
+                        name = "leiteparameter"
+                        id = "leiteparameter"
+                        placeholder = "Saksnummer Nav eller kravidentifikator fra Skatteetaten"
                     }
                     input {
                         type = submit
@@ -86,10 +87,10 @@ object IngentingEnda : LeitEtterKravTrailer {
 }
 
 class FantIngenting(
-    val saksnummerNav: String,
+    val leiteparameter: String,
 ) : LeitEtterKravTrailer {
     override fun FlowContent.apply() {
-        p(classes = "fant-ingenting") { +"Fant ingenting på saksnummer $saksnummerNav" }
+        p(classes = "fant-ingenting") { +"Fant ingenting på leiteparameter $leiteparameter" }
         img(classes = "fant-ingenting-bilde") {
             src = "/static/hello404.png"
             alt = "Fant ikke krav"

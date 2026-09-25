@@ -405,14 +405,14 @@ class KravRepository(
 
     fun finnKrav(
         session: TransactionalSession,
-        saksnummerNAV: String,
+        leiteparameter: String,
     ): List<Krav> =
         session
             .list(
                 queryOf(
                     // language=SQL
-                    """select * from krav where saksnummer_nav = ?""",
-                    saksnummerNAV,
+                    """select * from krav where (saksnummer_nav = :leiteparameter or kravidentifikator_ske = :leiteparameter) order by id""",
+                    mapOf("leiteparameter" to leiteparameter),
                 ),
                 extractor = mapToKrav,
             )

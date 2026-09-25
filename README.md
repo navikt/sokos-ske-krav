@@ -93,18 +93,18 @@ Sensitive meldinger logges til [Team Logs](https://doc.nais.io/observability/log
 
 ### Kubectl
 
-For dev-fss:
+For dev-gcp:
 
 ```shell script
-kubectl config use-context dev-fss
+kubectl config use-context dev-gcp
 kubectl get pods -n okonomi | grep sokos-ske-krav
 kubectl logs -f sokos-ske-krav-<POD-ID> --namespace okonomi -c sokos-ske-krav
 ```
 
-For prod-fss:
+For prod-gcp:
 
 ```shell script
-kubectl config use-context prod-fss
+kubectl config use-context prod-gcp
 kubectl get pods -n okonomi | grep sokos-ske-krav
 kubectl logs -f sokos-ske-krav-<POD-ID> --namespace okonomi -c sokos-ske-krav
 ```
