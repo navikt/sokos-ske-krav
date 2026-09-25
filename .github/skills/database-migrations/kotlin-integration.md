@@ -2,18 +2,17 @@
 
 ## Kotlin Integration
 
-`PostgresDataSource` runs Flyway migrations at startup using the `adminUser` role (Vault-managed in non-local environments):
+`PostgresDataSource` is a singleton that configures HikariCP from `PropertiesConfig.postgresConfig` and runs Flyway migrations at startup.
 
 ```kotlin
 object PostgresDataSource {
     fun migrate() {
-        dataSource(role = postgresConfig.adminUser).use { migrate(it) }
+        dataSource().use { migrate(it) }
     }
 
-    fun migrate(dataSource: HikariDataSource) {
+    fun migrate(dataSource: DataSource) {
         Flyway.configure()
             .dataSource(dataSource)
-            .initSql("""SET ROLE "${postgresConfig.adminUser}"""")
             .lockRetryCount(-1)
             .validateMigrationNaming(true)
             .load()
