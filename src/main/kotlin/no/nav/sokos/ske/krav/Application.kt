@@ -7,6 +7,8 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -30,7 +32,7 @@ import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
-import no.nav.sokos.ske.krav.service.Frontend
+import no.nav.sokos.ske.krav.scheduling.Scheduler
 import no.nav.sokos.ske.krav.service.SkeService
 import no.nav.sokos.ske.krav.util.transaction
 
@@ -40,15 +42,22 @@ fun main() {
 
 private val logger = mu.KotlinLogging.logger {}
 
-@OptIn(Frontend::class)
 internal fun Application.module() {
     PropertiesConfig.load(loadConfig())
 
     val applicationState = ApplicationState()
+    val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    val scheduler = Scheduler(appScope)
+//    val fileHandler = FileHandler()
     val skeService = SkeService()
 
     commonConfig()
-    applicationLifecycleConfig(applicationState)
+    applicationLifecycleConfig(
+        applicationState,
+        onShutdown = {
+            scheduler.stop("Application has been shutdown")
+        },
+    )
     securityConfig()
     routingConfig(applicationState)
 
@@ -70,6 +79,7 @@ internal fun Application.module() {
         logger.info { "Scheduling jobs" }
     }
 
+//    scheduler.scheduleDailyAt(5, 0, "Schedule retrieving files from FTP server and processing them", fileHandler::processFiles)
     launchJob(skeService::handleNewKrav, timerConfig.schedulerIntervalPeriod)
     launchJob(skeService::checkForStangendeKrav, 24.hours)
     launchJob(::deleteOldData, 24.hours)

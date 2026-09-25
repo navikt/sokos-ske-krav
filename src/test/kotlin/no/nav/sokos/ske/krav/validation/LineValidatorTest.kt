@@ -19,10 +19,9 @@ import no.nav.sokos.ske.krav.util.shouldBe
 import no.nav.sokos.ske.krav.util.shouldContain
 import no.nav.sokos.ske.krav.util.shouldNotContain
 
-internal class LineValidatorIntegrationTest :
+internal class LineValidatorTest :
     BehaviorSpec({
         val fileValidator = FileValidator()
-        val lineValidator = LineValidator()
 
         fun getKravLinesFor(filename: String): List<KravLinje> {
             val fileContent = getFileContent(filename)
@@ -33,7 +32,7 @@ internal class LineValidatorIntegrationTest :
 
         Given("Alle linjer er ok") {
             val kravLines = getKravLinesFor("AllValideringOk.txt")
-            val validatedLines = lineValidator.validateNewLines(kravLines)
+            val validatedLines = LineValidator.validateNewLines(kravLines)
 
             Then("Skal validerering returnere ${kravLines.size} ValidationResult.Success") {
                 validatedLines shouldHaveSize kravLines.size
@@ -51,7 +50,7 @@ internal class LineValidatorIntegrationTest :
 
         Given("Én linje har én feil") {
             val kravLines = getKravLinesFor("validering/linjevalidering/EnLinjeFeilKravtype.txt")
-            val validatedLines = lineValidator.validateNewLines(kravLines)
+            val validatedLines = LineValidator.validateNewLines(kravLines)
             val okKrav = validatedLines.filterIsInstance<ValidationResult.Success>()
             val errorKrav = validatedLines.filterIsInstance<ValidationResult.Error>()
 
@@ -81,7 +80,7 @@ internal class LineValidatorIntegrationTest :
 
         Given("1 linje har 3 forskjellige feil") {
             val kravLines = getKravLinesFor("validering/linjevalidering/EnLinjeFlereFeil.txt")
-            val validatedLines = lineValidator.validateNewLines(kravLines)
+            val validatedLines = LineValidator.validateNewLines(kravLines)
             val okKrav = validatedLines.filterIsInstance<ValidationResult.Success>()
             val errorKrav = validatedLines.filterIsInstance<ValidationResult.Error>()
 
@@ -129,7 +128,7 @@ internal class LineValidatorIntegrationTest :
 
         Given("6 linjer har samme type feil") {
             val kravLines = getKravLinesFor("validering/linjevalidering/SeksLinjerSammeTypeFeil.txt")
-            val validatedLines = lineValidator.validateNewLines(kravLines)
+            val validatedLines = LineValidator.validateNewLines(kravLines)
             val okKrav = validatedLines.filterIsInstance<ValidationResult.Success>()
             val errorKrav = validatedLines.filterIsInstance<ValidationResult.Error>()
 
@@ -153,7 +152,7 @@ internal class LineValidatorIntegrationTest :
 
         Given("6 linjer har samme type feil og 3 av disse linjene har ulike feil") {
             val kravLines = getKravLinesFor("validering/linjevalidering/SeksLinjerSammeOgUlikeFeil.txt")
-            val validatedLines = lineValidator.validateNewLines(kravLines)
+            val validatedLines = LineValidator.validateNewLines(kravLines)
             val okKrav = validatedLines.filterIsInstance<ValidationResult.Success>()
             val errorKrav = validatedLines.filterIsInstance<ValidationResult.Error>()
 
@@ -200,7 +199,7 @@ internal class LineValidatorIntegrationTest :
                 val kravLines = getKravLinesFor("innsender/OppdragFil.txt").removeFagsystemIdForIndex(0)
 
                 Then("Skal validering returnere én ValidationResult.Error") {
-                    val validatedLines = lineValidator.validateNewLines(kravLines)
+                    val validatedLines = LineValidator.validateNewLines(kravLines)
                     validatedLines.first().shouldBeInstanceOf<ValidationResult.Error>()
                     validatedLines.subList(1, validatedLines.size).forAll {
                         it.shouldBeInstanceOf<ValidationResult.Success>()
@@ -212,7 +211,7 @@ internal class LineValidatorIntegrationTest :
                 val kravLines = getKravLinesFor("innsender/ArenaFil.txt").removeFagsystemIdForIndex(0)
 
                 Then("Skal validering returnere alle linjer som ValidationResult.Success") {
-                    lineValidator.validateNewLines(kravLines).forAll {
+                    LineValidator.validateNewLines(kravLines).forAll {
                         it.shouldBeInstanceOf<ValidationResult.Success>()
                     }
                 }
@@ -222,7 +221,7 @@ internal class LineValidatorIntegrationTest :
                 val kravLines = getKravLinesFor("innsender/PesysFil.txt").removeFagsystemIdForIndex(0)
 
                 Then("Skal validering returnere ValidationResult.Success") {
-                    lineValidator.validateNewLines(kravLines).forAll {
+                    LineValidator.validateNewLines(kravLines).forAll {
                         it.shouldBeInstanceOf<ValidationResult.Success>()
                     }
                 }
@@ -232,7 +231,7 @@ internal class LineValidatorIntegrationTest :
                 val kravLines = getKravLinesFor("innsender/InfotrygdFil.txt").removeFagsystemIdForIndex(0)
 
                 Then("Skal validering returnere ValidationResult.Success") {
-                    lineValidator.validateNewLines(kravLines).forAll {
+                    LineValidator.validateNewLines(kravLines).forAll {
                         it.shouldBeInstanceOf<ValidationResult.Success>()
                     }
                 }
@@ -246,7 +245,7 @@ internal class LineValidatorIntegrationTest :
 
             When("kravlinje er stopp") {
                 Then("Skal validering returnere en ValidationResult.Error") {
-                    val validatedKrav = lineValidator.validateNewLines(listOf(stoppKrav)).first()
+                    val validatedKrav = LineValidator.validateNewLines(listOf(stoppKrav)).first()
                     validatedKrav.shouldBeInstanceOf<ValidationResult.Error>()
                     validatedKrav.errors shouldHaveSize 1
                     validatedKrav.errors.first().should {
@@ -260,7 +259,7 @@ internal class LineValidatorIntegrationTest :
             When("kravlinje er opprett") {
                 val nyttKrav = kravLinje.find { it.isOpprettKrav() }?.removeReferansenummerGammelSak().shouldNotBeNull()
                 Then("Skal validering returnere ValidationResult.Success") {
-                    val validatedKrav = lineValidator.validateNewLines(listOf(nyttKrav)).first()
+                    val validatedKrav = LineValidator.validateNewLines(listOf(nyttKrav)).first()
                     validatedKrav.shouldBeInstanceOf<ValidationResult.Success>()
                 }
             }
@@ -274,7 +273,7 @@ internal class LineValidatorIntegrationTest :
             val endringKrav = stoppKrav.copy(belop = BigDecimal.ONE)
 
             When("KravLinje er stopp") {
-                val validatedKrav = lineValidator.validateNewLines(listOf(stoppKrav)).first()
+                val validatedKrav = LineValidator.validateNewLines(listOf(stoppKrav)).first()
                 Then("Skal validering returnere ValidationResult.Error") {
                     validatedKrav.shouldBeInstanceOf<ValidationResult.Error>()
                     validatedKrav.errors shouldHaveSize 1
@@ -287,7 +286,7 @@ internal class LineValidatorIntegrationTest :
             }
 
             When("Kravlinje er endring") {
-                val validatedKrav = lineValidator.validateNewLines(listOf(endringKrav)).first()
+                val validatedKrav = LineValidator.validateNewLines(listOf(endringKrav)).first()
                 Then("Skal validering returnere ValidationResult.Error") {
                     validatedKrav.shouldBeInstanceOf<ValidationResult.Error>()
                     validatedKrav.errors shouldHaveSize 1
@@ -301,7 +300,7 @@ internal class LineValidatorIntegrationTest :
 
             When("Kravlinje er opprett") {
                 val nyttKrav = kravLinje.find { it.isOpprettKrav() }?.invalidateReferensenummerGammelSak().shouldNotBeNull()
-                val validatedKrav = lineValidator.validateNewLines(listOf(nyttKrav)).first()
+                val validatedKrav = LineValidator.validateNewLines(listOf(nyttKrav)).first()
                 Then("Skal validering returnere ValidationResult.Error") {
                     validatedKrav.shouldBeInstanceOf<ValidationResult.Error>()
                     validatedKrav.errors shouldHaveSize 1

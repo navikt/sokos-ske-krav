@@ -92,4 +92,10 @@ object SftpListener : TestListener {
             }
         }
     }
+
+    fun clearAllDirectories() {
+        Directories.entries.forEach {
+            clearDirectory(it)
+        }
+    }
 }
