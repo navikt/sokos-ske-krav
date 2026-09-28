@@ -7,6 +7,7 @@ import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 
+import no.nav.sokos.ske.krav.config.LOCAL_ZONE_ID
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.util.transaction
@@ -25,7 +26,7 @@ class FeilmeldingRepository(
             melding = row.string("melding"),
             navRequest = row.string("nav_request"),
             skeResponse = row.string("ske_response"),
-            tidspunktOpprettet = row.localDateTime("tidspunkt_opprettet"),
+            tidspunktOpprettet = row.instant("tidspunkt_opprettet").atZone(LOCAL_ZONE_ID).toLocalDateTime(),
             rapporter = row.boolean("rapporter"),
         )
     }
@@ -139,7 +140,7 @@ class FeilmeldingRepository(
                 """
                 delete from feilmelding where tidspunkt_opprettet < ?
                 """.trimIndent(),
-                threshold,
+                threshold.atStartOfDay(LOCAL_ZONE_ID).toInstant(),
             ),
         )
 

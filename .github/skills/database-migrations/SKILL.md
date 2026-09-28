@@ -40,7 +40,7 @@ V1.0.3__rename_valideringsfeil_til_filvalidateringsfeil.sql
 ## Sub-files
 
 - See [schema.md](schema.md) for the full CREATE TABLE statements (migration file structure).
-- See [patterns.md](patterns.md) for best practices (primary keys, timestamps, indexes, constraints, data types) and migration patterns (adding columns, tables, altering columns).
+- See [patterns.md](patterns.md) for best practices (primary keys, timestamptz fields, indexes, constraints, data types) and migration patterns (adding columns, tables, altering columns).
 - See [kotlin-integration.md](kotlin-integration.md) for Kotlin integration (PostgresDataSource), testing migrations (DBListener, TestContainers), and PostgreSQL query optimization.
 
 ## Boundaries
@@ -49,7 +49,7 @@ V1.0.3__rename_valideringsfeil_til_filvalidateringsfeil.sql
 
 - Follow `V{major}.{minor}.{patch}__{description}.sql` naming
 - Add indexes for all foreign keys and frequently filtered columns
-- Include `tidspunkt_opprettet TIMESTAMP NOT NULL DEFAULT NOW()`
+- Include `tidspunkt_opprettet TIMESTAMPTZ NOT NULL DEFAULT NOW()`
 - Use `BIGSERIAL` for primary keys
 - Test migrations locally with `DBListener` before pushing
 

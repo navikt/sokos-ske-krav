@@ -7,6 +7,7 @@ import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.copybook.FileParser
 import no.nav.sokos.ske.krav.copybook.ParseResult
@@ -21,6 +22,7 @@ import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.transaction
+import no.nav.sokos.ske.krav.util.withJvmTimeZone
 
 internal class RepositoryTestKrav :
     FunSpec({
@@ -223,6 +225,26 @@ internal class RepositoryTestKrav :
                 val threshold = LocalDate.parse("2023-01-02")
                 val kravDeleted = kravRepository.deleteOldKrav(session, threshold)
                 kravDeleted shouldBe 18
+            }
+        }
+
+        test("deleteOldKrav skal bruke midnatt i Europe/Oslo som grense uavhengig av JVM-tidssonen") {
+            dataSource.transaction { session ->
+                session.execute(
+                    queryOf(
+                        """
+                        update krav set tidspunkt_opprettet = TIMESTAMPTZ '2023-01-02 00:30:00+01:00'
+                        where tidspunkt_opprettet = TIMESTAMPTZ '2023-01-02 11:00:00+01:00'
+                        """.trimIndent(),
+                    ),
+                )
+            }
+
+            withJvmTimeZone("UTC") {
+                dataSource.transaction { session ->
+                    val threshold = LocalDate.parse("2023-01-02")
+                    kravRepository.deleteOldKrav(session, threshold) shouldBe 18
+                }
             }
         }
 

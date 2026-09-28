@@ -13,8 +13,8 @@ id BIGSERIAL PRIMARY KEY,
 
 ```sql
 -- Always include created timestamp; add updated_at only if rows are updated in place
-tidspunkt_opprettet TIMESTAMP NOT NULL DEFAULT NOW(),
-tidspunkt_sendt     TIMESTAMP,          -- nullable: only set when sent
+tidspunkt_opprettet TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+tidspunkt_sendt     TIMESTAMPTZ,          -- nullable: only set when sent
 ```
 
 ### Indexes
@@ -51,7 +51,7 @@ VARCHAR(n)        -- For strings with known max length
 TEXT              -- For strings with unknown length (request/response bodies)
 BIGINT            -- For large numbers
 DOUBLE PRECISION  -- For amounts (belop, belopRente)
-TIMESTAMP         -- For date/time
+TIMESTAMPTZ       -- For timezone-aware date/time
 DATE              -- For dates only (vedtaksDato, periodeFOM/TOM as VARCHAR because of fixed-width format)
 BOOLEAN           -- For flags (rapporter)
 BIGSERIAL         -- For auto-incrementing IDs
@@ -75,9 +75,9 @@ ADD COLUMN tilleggsfrist DATE;
 
 CREATE TABLE ny_tabell (
     id                  BIGSERIAL PRIMARY KEY,
-    krav_id             BIGINT    NOT NULL REFERENCES krav(id) ON DELETE CASCADE,
+    krav_id             BIGINT       NOT NULL REFERENCES krav(id) ON DELETE CASCADE,
     data                TEXT,
-    tidspunkt_opprettet TIMESTAMP NOT NULL DEFAULT NOW()
+    tidspunkt_opprettet TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_ny_tabell_krav_id ON ny_tabell(krav_id);

@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.util
 
 import java.io.File
 import java.io.Reader
+import java.util.TimeZone
 import javax.sql.DataSource
 
 import kotlinx.io.Buffer
@@ -56,6 +57,23 @@ object FtpTestUtil {
 }
 
 fun TestCase.isGivenTest(): Boolean = name.prefix == "Given: "
+
+/**
+ * Kjører [block] med en gitt JVM-standardtidssone. pgjdbc forankrer en bundet [java.time.LocalDate]
+ * til midnatt i JVM-tidssonen, så sletterutinene må testes med andre soner enn Europe/Oslo.
+ */
+fun <T> withJvmTimeZone(
+    zoneId: String,
+    block: () -> T,
+): T {
+    val original = TimeZone.getDefault()
+    TimeZone.setDefault(TimeZone.getTimeZone(zoneId))
+    return try {
+        block()
+    } finally {
+        TimeZone.setDefault(original)
+    }
+}
 
 infix fun String.shouldBe(expected: ErrorKeys) = this.shouldBe(expected.value)
 

@@ -24,7 +24,7 @@ i [Confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=176706565
 * Java 25
 * Gradle
 * [Kotest](https://plugins.jetbrains.com/plugin/14080-kotest) plugin for å kjøre Kotest tester
-* [vault](https://github.com/navikt/utvikling/blob/main/docs/teknisk/Vault.md) for å kjøre `setupLocalEnvironment.sh`
+* `gcloud` and `kubectl` for å kjøre `setupLocalEnvironment.sh`
 * [jq](https://github.com/stedolan/jq) for å kjøre `setupLocalEnvironment.sh`
 
 ### Lokal utvikling
@@ -64,7 +64,7 @@ For å kjøre applikasjonen må du gjøre følgende:
 ### Drift og testing
 | Dokument                                           | Beskrivelse                                           |
 |----------------------------------------------------|-------------------------------------------------------|
-| [Drift](dokumentasjon/Drift.md)                             | BAU-oppgaver, nyttige SQL-kommandoer og Vault-aliaser |
+| [Drift](dokumentasjon/Drift.md)                             | BAU-oppgaver og nyttige SQL-kommandoer                 |
 | [Feilretting Guide](dokumentasjon/Feilretting_Guide.md)     | Feilscenarioer, årsaker og tiltak                     |
 | [Manuell testing](dokumentasjon/testing/Manuell_testing.md) | Steg-for-steg guide for manuell testing mot dev       |
 

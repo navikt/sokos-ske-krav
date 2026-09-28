@@ -48,7 +48,7 @@ class SftpConfig(
 }
 ```
 
-`SftpProperties.trimmedUsername` and `trimmedPrivateKeyPassword` strip whitespace from Vault-sourced values — always use the trimmed getters.
+`SftpProperties.trimmedUsername` and `trimmedPrivateKeyPassword` strip whitespace from configured values — always use the trimmed getters.
 
 ## Directories enum
 
