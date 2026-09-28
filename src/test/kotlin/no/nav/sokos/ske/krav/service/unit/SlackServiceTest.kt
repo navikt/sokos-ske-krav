@@ -3,7 +3,6 @@ package no.nav.sokos.ske.krav.service.unit
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forOne
-import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotBeEmpty
@@ -21,13 +20,6 @@ import io.mockk.slot
 import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.dto.slack.ErrorDetails
 import no.nav.sokos.ske.krav.dto.slack.ExtraTags
-import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR
-import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.ORGANISASJONSNUMMER_FINNES_IKKE
-import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.ORGANISASJON_ER_SLETTET
-import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.PERSON_EKSISTERER_IKKE
-import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.PERSON_ER_DOED
-import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.PERSON_ER_SLETTET
-import no.nav.sokos.ske.krav.dto.slack.ExtraTags.Companion.REFERANSENUMMERGAMMELSAK_MANGLER
 import no.nav.sokos.ske.krav.service.SlackService
 import no.nav.sokos.ske.krav.util.shouldBe
 import no.nav.sokos.ske.krav.util.shouldContain
@@ -74,10 +66,6 @@ class SlackServiceTest :
             trackedErrors.first().should { fileError ->
                 fileError.alertTitle shouldBe FEIL_I_VALIDERING_AV_FIL
                 fileError.filename shouldBe filename
-                fileError.extraTags.peopleSlackId.should { peopleSlackId ->
-                    peopleSlackId shouldHaveSize 1
-                    peopleSlackId.single() shouldContain PRODUCT_LEADER
-                }
                 fileError.errorDetails.should { errorDetails ->
                     errorDetails shouldHaveSize 1
                     errorDetails.first().should {
@@ -208,34 +196,6 @@ class SlackServiceTest :
             }
         }
 
-        test("addError tagger produktlederen for alle de andre feilene") {
-            val errors =
-                listOf(
-                    ErrorDetails(PERSON_EKSISTERER_IKKE, "Hva som helst"),
-                    ErrorDetails(PERSON_ER_DOED, "Hva som helst"),
-                    ErrorDetails(PERSON_ER_SLETTET, "Hva som helst"),
-                    ErrorDetails(ORGANISASJONSNUMMER_FINNES_IKKE, "Hva som helst"),
-                    ErrorDetails(ORGANISASJON_ER_SLETTET, "Hva som helst"),
-                    ErrorDetails(FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR, "Hva som helst"),
-                    ErrorDetails(REFERANSENUMMERGAMMELSAK_MANGLER, "Hva som helst"),
-                    ErrorDetails("Unknown error", "Hva som helst"),
-                )
-
-            errors.forEachIndexed { index, errorDetails ->
-                slackService.addError("file$index.txt", FEIL_I_ASYNK_VALIDERING, errorDetails)
-            }
-
-            val trackedErrors = slackService.trackedErrors()
-            trackedErrors shouldHaveSize 8
-            trackedErrors.forAll { fileError ->
-                fileError.extraTags.peopleSlackId.should {
-                    it shouldHaveSize 1
-                    it.single() shouldContain PRODUCT_LEADER
-                }
-                fileError.extraTags.rutineLink.shouldBeEmpty()
-            }
-        }
-
         test("addErrors tagger alle riktige personer når det er flere forskjellige feil") {
             val error1 =
                 ErrorDetails(
@@ -254,15 +214,12 @@ class SlackServiceTest :
             val trackedErrors = slackService.trackedErrors()
             with(trackedErrors.single().extraTags) {
                 peopleSlackId.should {
-                    it shouldHaveSize 3
+                    it shouldHaveSize 2
                     it.forOne { slackId ->
                         slackId shouldContain DOMAIN_SPECIALIST
                     }
                     it.forOne { slackId ->
                         slackId shouldContain TECHNICAL_SPECIALIST
-                    }
-                    it.forOne { slackId ->
-                        slackId shouldContain PRODUCT_LEADER
                     }
                 }
                 rutineLink.shouldNotBeEmpty()
@@ -288,15 +245,12 @@ class SlackServiceTest :
             val trackedErrors = slackService.trackedErrors()
             with(trackedErrors.single().extraTags) {
                 peopleSlackId.should {
-                    it shouldHaveSize 3
+                    it shouldHaveSize 2
                     it.forOne { slackId ->
                         slackId shouldContain DOMAIN_SPECIALIST
                     }
                     it.forOne { slackId ->
                         slackId shouldContain TECHNICAL_SPECIALIST
-                    }
-                    it.forOne { slackId ->
-                        slackId shouldContain PRODUCT_LEADER
                     }
                 }
                 rutineLink.shouldNotBeEmpty()
@@ -390,13 +344,6 @@ class SlackServiceTest :
             filenames.shouldContainExactly(filename1, filename2, filename1, filename2)
 
             extraTags shouldHaveSize 4
-            extraTags.take(2).forEach { tags ->
-                tags.peopleSlackId.should { slackId ->
-                    slackId shouldHaveSize 1
-                    slackId.single() shouldContain PRODUCT_LEADER
-                }
-                tags.rutineLink.shouldBeEmpty()
-            }
 
             extraTags.takeLast(2).forEach { tags ->
                 tags.peopleSlackId.should { slackId ->
