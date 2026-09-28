@@ -44,10 +44,6 @@ data class FileError(
                     error.isError(ORGANISASJON_ER_SLETTET) ||
                     error.isError(FANT_IKKE_GYLDIG_KRAVIDENTIFIKATOR) ||
                     error.isError(REFERANSENUMMERGAMMELSAK_MANGLER) -> {
-                    extraTags.peopleSlackId.add(slackConfig.slackIdProductLeader)
-                }
-                else -> {
-                    extraTags.peopleSlackId.add(slackConfig.slackIdProductLeader)
                 }
             }
         }
