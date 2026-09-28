@@ -400,7 +400,7 @@ class KravRepository(
             queryOf(
                 // language=SQL
                 """delete from krav where tidspunkt_opprettet < ?""",
-                threshold,
+                threshold.atStartOfDay(LOCAL_ZONE_ID).toInstant(),
             ),
         )
 

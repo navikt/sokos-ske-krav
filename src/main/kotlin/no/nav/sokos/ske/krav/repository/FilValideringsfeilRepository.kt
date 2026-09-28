@@ -106,7 +106,7 @@ class FilValideringsfeilRepository(
                 """
                 delete from filvalideringsfeil where tidspunkt_opprettet < ?
                 """.trimIndent(),
-                threshold,
+                threshold.atStartOfDay(LOCAL_ZONE_ID).toInstant(),
             ),
         )
 

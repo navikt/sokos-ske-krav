@@ -140,7 +140,7 @@ class FeilmeldingRepository(
                 """
                 delete from feilmelding where tidspunkt_opprettet < ?
                 """.trimIndent(),
-                threshold,
+                threshold.atStartOfDay(LOCAL_ZONE_ID).toInstant(),
             ),
         )
 

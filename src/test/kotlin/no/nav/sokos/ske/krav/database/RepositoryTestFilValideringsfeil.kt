@@ -6,6 +6,7 @@ import java.time.LocalDate
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
@@ -15,6 +16,7 @@ import no.nav.sokos.ske.krav.listener.DBListener.filvalideringsFeilRepository
 import no.nav.sokos.ske.krav.util.getAllValideringsFeil
 import no.nav.sokos.ske.krav.util.getFilValideringsFeilForFil
 import no.nav.sokos.ske.krav.util.transaction
+import no.nav.sokos.ske.krav.util.withJvmTimeZone
 
 internal class RepositoryTestFilValideringsfeil :
     FunSpec({
@@ -104,6 +106,21 @@ internal class RepositoryTestFilValideringsfeil :
                 val threshold = LocalDate.parse("2023-01-02")
                 val filValideringsfeilDeleted = filvalideringsFeilRepository.deleteOldFilValideringsfeil(session, threshold)
                 filValideringsfeilDeleted shouldBe 2
+            }
+        }
+
+        test("deleteOldFilValideringsFeil skal bruke midnatt i Europe/Oslo som grense uavhengig av JVM-tidssonen") {
+            dataSource.transaction { session ->
+                session.execute(
+                    queryOf("update filvalideringsfeil set tidspunkt_opprettet = TIMESTAMPTZ '2023-01-02 00:30:00+01:00' where id = 22"),
+                )
+            }
+
+            withJvmTimeZone("UTC") {
+                dataSource.transaction { session ->
+                    val threshold = LocalDate.parse("2023-01-02")
+                    filvalideringsFeilRepository.deleteOldFilValideringsfeil(session, threshold) shouldBe 2
+                }
             }
         }
 
