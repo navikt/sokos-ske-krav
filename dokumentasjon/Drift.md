@@ -2,7 +2,7 @@
 
 ## Nyttige lenker
 
-[Prod SFTP-informasjon finnes i Nais Console. Du må først åpne po-utbetaling-prod-gatewayen i Nais Console.]
+Prod SFTP-informasjon finnes i Nais Console. Du må først åpne po-utbetaling-prod-gatewayen i Nais Console.
 Slack kanaler: #team-best-slackbot-prod, #utbetaling-tilbakekreving-fi
 Alias for .zshrc eller .bashrc:
 - `alias py='python3'`
