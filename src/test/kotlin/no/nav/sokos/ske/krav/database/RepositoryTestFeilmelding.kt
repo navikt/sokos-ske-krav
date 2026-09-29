@@ -7,12 +7,14 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
 import no.nav.sokos.ske.krav.util.transaction
+import no.nav.sokos.ske.krav.util.withJvmTimeZone
 
 internal class RepositoryTestFeilmelding :
     FunSpec({
@@ -117,6 +119,26 @@ internal class RepositoryTestFeilmelding :
                 val threshold = LocalDate.parse("2023-01-02")
                 val feilmeldingDeleted = feilmeldingRepository.deleteOldFeilmeldinger(session, threshold)
                 feilmeldingDeleted shouldBe 2
+            }
+        }
+
+        test("deleteOldFeilmeldinger skal bruke midnatt i Europe/Oslo som grense uavhengig av JVM-tidssonen") {
+            dataSource.transaction { session ->
+                session.execute(
+                    queryOf(
+                        """
+                        update feilmelding set tidspunkt_opprettet = TIMESTAMPTZ '2023-01-02 00:30:00+01:00'
+                        where tidspunkt_opprettet = TIMESTAMPTZ '2023-01-02 11:00:00+01:00'
+                        """.trimIndent(),
+                    ),
+                )
+            }
+
+            withJvmTimeZone("UTC") {
+                dataSource.transaction { session ->
+                    val threshold = LocalDate.parse("2023-01-02")
+                    feilmeldingRepository.deleteOldFeilmeldinger(session, threshold) shouldBe 2
+                }
             }
         }
 

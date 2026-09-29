@@ -37,7 +37,7 @@ SFTP → FtpService → FileParser/FileValidator → LineValidator
 ```bash
 chmod 755 setupLocalEnvironment.sh && ./setupLocalEnvironment.sh
 ```
-Requires: naisdevice running, `vault` CLI, `jq`. Generates `defaults.properties` from Vault secrets.
+Requires: naisdevice running, authenticated `gcloud`, `kubectl`, and `jq`. Generates `defaults.properties` from the running application pod.
 
 ### Build & Run
 ```bash
@@ -102,4 +102,3 @@ Locally, `application.conf` is used, which reads from `defaults.properties`.
   git checkout -b my-branch origin/main --no-track
   git push -u origin my-branch
   ```
-

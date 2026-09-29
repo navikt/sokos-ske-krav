@@ -24,9 +24,9 @@ CREATE TABLE krav (
     status                VARCHAR(100)   NOT NULL,
     kravtype              VARCHAR(50),
     corr_id               VARCHAR(100)   NOT NULL,
-    tidspunkt_sendt       TIMESTAMP,
-    tidspunkt_siste_status TIMESTAMP,
-    tidspunkt_opprettet   TIMESTAMP      NOT NULL DEFAULT NOW(),
+    tidspunkt_sendt       TIMESTAMPTZ,
+    tidspunkt_siste_status TIMESTAMPTZ,
+    tidspunkt_opprettet   TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     avsender              VARCHAR(50)
 );
 
@@ -44,7 +44,7 @@ CREATE TABLE feilmelding (
     melding               TEXT,
     nav_request           TEXT,
     ske_response          TEXT,
-    tidspunkt_opprettet   TIMESTAMP      NOT NULL DEFAULT NOW(),
+    tidspunkt_opprettet   TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     rapporter             BOOLEAN        NOT NULL DEFAULT TRUE
 );
 
@@ -57,7 +57,7 @@ CREATE TABLE filvalideringsfeil (
     saksnummer_nav      VARCHAR(50),
     kravlinje           TEXT,
     feilmelding         TEXT,
-    tidspunkt_opprettet TIMESTAMP      NOT NULL DEFAULT NOW(),
+    tidspunkt_opprettet TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     rapporter           BOOLEAN        NOT NULL DEFAULT TRUE
 );
 ```

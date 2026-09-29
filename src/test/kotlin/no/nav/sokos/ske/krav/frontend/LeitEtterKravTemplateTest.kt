@@ -24,7 +24,7 @@ class LeitEtterKravTemplateTest :
                 }
 
             Then("Skal vise tekstmelding og hello404-bilde") {
-                html shouldContain "Fant ingenting på saksnummer SAK-999"
+                html shouldContain "Fant ingenting på leiteparameter SAK-999"
                 html shouldContain "class=\"fant-ingenting-bilde\""
                 html shouldContain "src=\"/static/hello404.png\""
                 html shouldContain "alt=\"Fant ikke krav\""

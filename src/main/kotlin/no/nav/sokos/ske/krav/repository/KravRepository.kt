@@ -8,6 +8,7 @@ import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 
+import no.nav.sokos.ske.krav.config.LOCAL_ZONE_ID
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Krav
@@ -48,9 +49,9 @@ class KravRepository(
             status = row.string("status").toStatus(),
             kravtype = row.string("kravtype"),
             corrId = row.string("corr_id"),
-            tidspunktSendt = row.localDateTimeOrNull("tidspunkt_sendt"),
-            tidspunktSisteStatus = row.localDateTime("tidspunkt_siste_status"),
-            tidspunktOpprettet = row.localDateTime("tidspunkt_opprettet"),
+            tidspunktSendt = row.instantOrNull("tidspunkt_sendt")?.atZone(LOCAL_ZONE_ID)?.toLocalDateTime(),
+            tidspunktSisteStatus = row.instant("tidspunkt_siste_status").atZone(LOCAL_ZONE_ID).toLocalDateTime(),
+            tidspunktOpprettet = row.instant("tidspunkt_opprettet").atZone(LOCAL_ZONE_ID).toLocalDateTime(),
             tilleggsfrist = row.localDateOrNull("tilleggsfrist"),
             avsender = row.stringOrNull("avsender") ?: "",
         )
@@ -399,20 +400,20 @@ class KravRepository(
             queryOf(
                 // language=SQL
                 """delete from krav where tidspunkt_opprettet < ?""",
-                threshold,
+                threshold.atStartOfDay(LOCAL_ZONE_ID).toInstant(),
             ),
         )
 
     fun finnKrav(
         session: TransactionalSession,
-        saksnummerNAV: String,
+        leiteparameter: String,
     ): List<Krav> =
         session
             .list(
                 queryOf(
                     // language=SQL
-                    """select * from krav where saksnummer_nav = ?""",
-                    saksnummerNAV,
+                    """select * from krav where (saksnummer_nav = :leiteparameter or kravidentifikator_ske = :leiteparameter) order by id""",
+                    mapOf("leiteparameter" to leiteparameter),
                 ),
                 extractor = mapToKrav,
             )

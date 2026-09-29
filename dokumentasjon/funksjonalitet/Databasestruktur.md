@@ -13,7 +13,7 @@ erDiagram
         varchar(40) kravidentifikator_ske
         varchar(40) saksnummer_nav
         decimal(12) belop
-        timestamp vedtaksdato
+        date vedtaksdato
         varchar(11) gjelder_id
         varchar(12) periode_fom
         varchar(12) periode_tom
@@ -26,14 +26,14 @@ erDiagram
         varchar(12) kode_arsak
         decimal(12) belop_rente
         varchar(11) fremtidig_ytelse
-        timestamp utbetaldato
+        date utbetaldato
         varchar(30) fagsystem_id
         text status
         text kravtype
         text corr_id
-        timestamp tidspunkt_sendt
-        timestamp tidspunkt_siste_status
-        timestamp tidspunkt_opprettet
+        timestamptz tidspunkt_sendt
+        timestamptz tidspunkt_siste_status
+        timestamptz tidspunkt_opprettet
         date tilleggsfrist
         text avsender
     }
@@ -48,7 +48,7 @@ erDiagram
         text melding
         text nav_request
         text ske_response
-        timestamp tidspunkt_opprettet
+        timestamptz tidspunkt_opprettet
         boolean rapporter
     }
 
@@ -59,7 +59,7 @@ erDiagram
         text saksnummer_nav
         text kravlinje
         text feilmelding
-        timestamp tidspunkt_opprettet
+        timestamptz tidspunkt_opprettet
         boolean rapporter
     }
 
@@ -80,7 +80,7 @@ Hovedtabellen som lagrer innkommende krav fra SKE. Hvert krav representerer én 
 | `kravidentifikator_ske`    | varchar(40) | SKEs unike identifikator for kravet                      |
 | `saksnummer_nav`           | varchar(40) | Tilhørende saksnummer i NAV                              |
 | `belop`                    | decimal(12) | Kravets beløp                                            |
-| `vedtaksdato`              | timestamp   | Dato for vedtaket                                        |
+| `vedtaksdato`              | date        | Dato for vedtaket                                        |
 | `gjelder_id`               | varchar(11) | Fødselsnummer/D-nummer kravet gjelder                    |
 | `periode_fom`              | varchar(12) | Periode fra og med                                       |
 | `periode_tom`              | varchar(12) | Periode til og med                                       |
@@ -93,14 +93,14 @@ Hovedtabellen som lagrer innkommende krav fra SKE. Hvert krav representerer én 
 | `kode_arsak`               | varchar(12) | Årsakskode                                               |
 | `belop_rente`              | decimal(12) | Rentebeløp                                               |
 | `fremtidig_ytelse`         | varchar(11) | Fremtidig ytelse                                         |
-| `utbetaldato`              | timestamp   | Utbetalingsdato                                          |
+| `utbetaldato`              | date        | Utbetalingsdato                                          |
 | `fagsystem_id`             | varchar(30) | ID i fagsystemet                                         |
 | `status`                   | text        | Kravets nåværende status                                 |
 | `kravtype`                 | text        | Type krav                                                |
 | `corr_id`                  | text        | Korrelasjon-ID for sporing                               |
-| `tidspunkt_sendt`          | timestamp   | Tidspunkt kravet ble sendt videre                        |
-| `tidspunkt_siste_status`   | timestamp   | Tidspunkt for siste statusendring (default: NOW())       |
-| `tidspunkt_opprettet`      | timestamp   | Tidspunkt kravet ble opprettet (default: NOW())          |
+| `tidspunkt_sendt`          | timestamptz | Tidspunkt kravet ble sendt videre                        |
+| `tidspunkt_siste_status`   | timestamptz | Tidspunkt for siste statusendring (default: NOW())       |
+| `tidspunkt_opprettet`      | timestamptz | Tidspunkt kravet ble opprettet (default: NOW())          |
 | `tilleggsfrist`            | date        | Eventuell tilleggsfrist for kravet *(lagt til i V1.0.4)* |
 | `avsender`                 | text        | Avsender av kravet, f.eks. `OB04` *(lagt til i V1.0.5)*  |
 
@@ -125,7 +125,7 @@ Lagrer feilmeldinger som oppstår ved behandling av krav mot NAV/SKE sine system
 | `melding`               | text      | Feilmeldingstekst                                                |
 | `nav_request`           | text      | Requesten sendt til NAV                                          |
 | `ske_response`          | text      | Responsen mottatt fra SKE                                        |
-| `tidspunkt_opprettet`   | timestamp | Tidspunkt feilmeldingen ble opprettet (default: NOW())           |
+| `tidspunkt_opprettet`   | timestamptz | Tidspunkt feilmeldingen ble opprettet (default: NOW())           |
 | `rapporter`             | boolean   | Om feilen skal rapporteres (default: true) *(lagt til i V1.0.1)* |
 
 **Indekser:** `idx_feilmelding_opprettet` på kolonnen `tidspunkt_opprettet`.
@@ -144,7 +144,7 @@ Lagrer valideringsfeil oppdaget ved innlesing av filer, før kravene sendes til 
 | `saksnummer_nav`      | text      | Saksnummer i NAV                                                 |
 | `kravlinje`           | text      | Den aktuelle kravlinjen som feilet validering                    |
 | `feilmelding`         | text      | Beskrivelse av valideringsfeilen                                 |
-| `tidspunkt_opprettet` | timestamp | Tidspunkt feilen ble registrert (default: NOW())                 |
+| `tidspunkt_opprettet` | timestamptz | Tidspunkt feilen ble registrert (default: NOW())                 |
 | `rapporter`           | boolean   | Om feilen skal rapporteres (default: true) *(lagt til i V1.0.2)* |
 
 **Indekser:** `idx_valideringsfeil_opprettet` på kolonnen `tidspunkt_opprettet`.
