@@ -88,8 +88,10 @@ class Scheduler(
                             try {
                                 task()
                             } catch (e: Exception) {
-                                logger.error("Scheduled job \"$name\" failed: ${e::class.simpleName}")
-                                logger.error(TEAM_LOGS_MARKER, "Scheduled job \"$name\" failed: ", e)
+                                if (e !is CancellationException) {
+                                    logger.error("Scheduled job \"$name\" failed: ${e::class.simpleName}")
+                                    logger.error(TEAM_LOGS_MARKER, "Scheduled job \"$name\" failed: ", e)
+                                }
                             } finally {
                                 if (!stopped) {
                                     scheduleNext(hour, minute, second, name = name, task = task) // chain to next run
