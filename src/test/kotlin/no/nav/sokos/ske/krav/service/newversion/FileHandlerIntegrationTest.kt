@@ -302,7 +302,7 @@ internal class FileHandlerIntegrationTest :
                 }
             }
 
-            Given("Det finnes én fil i \"INBOUND\" som har seks krav med en kravtype som ikke eksiterer") {
+            Given("Det finnes én fil i \"INBOUND\" som har seks krav med en kravtype som ikke eksisterer") {
                 val fileName = "SeksLinjerSammeTypeFeil.txt"
                 SftpListener.putFile("validering/linjevalidering/$fileName")
 
@@ -501,7 +501,7 @@ internal class FileHandlerIntegrationTest :
                 }
             }
 
-            Given("Det finnes to filer i \"INBOUND\" og én av de har ett krav med en kravtype some ikke eksisterer") {
+            Given("Det finnes to filer i \"INBOUND\" og én av de har ett krav med en kravtype som ikke eksisterer") {
                 val fileNameFeil = "EnLinjeFeilKravtype.txt"
                 val fileNameOK = "TiNyeKrav.txt"
 
