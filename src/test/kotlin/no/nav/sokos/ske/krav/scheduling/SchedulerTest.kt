@@ -3,6 +3,7 @@ package no.nav.sokos.ske.krav.scheduling
 import java.time.LocalDateTime
 import java.time.Month
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.common.ExperimentalKotest
 import io.kotest.common.KotestInternal
 import io.kotest.core.spec.style.FunSpec
@@ -18,6 +19,12 @@ class SchedulerTest :
         }
 
         val now = LocalDateTime.of(2026, Month.SEPTEMBER, 25, 11, 25, 5, 6)
+
+        test("Scheduler will throw an IllegalArgumentException if no time is sent as parameter") {
+            shouldThrow<IllegalArgumentException> {
+                scheduler.defineNext(now)
+            }
+        }
 
         test("Scheduling at an hour before the current hour increments the day by one") {
             scheduler.defineNext(now, hour = 10) shouldBe LocalDateTime.of(2026, Month.SEPTEMBER, 26, 10, 25, 0, 0)

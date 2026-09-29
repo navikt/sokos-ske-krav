@@ -49,6 +49,10 @@ class Scheduler(
         minute: Int? = null,
         second: Int? = null,
     ): LocalDateTime {
+        require(hour != null || minute != null || second != null) {
+            "At least one of hour, minute, second must be provided"
+        }
+
         var next =
             now
                 .withHour(hour ?: now.hour)
@@ -61,7 +65,7 @@ class Scheduler(
                 next = next.plusDays(1)
             } else if (minute != null) {
                 next = next.plusHours(1)
-            } else if (second != null) {
+            } else {
                 next = next.plusMinutes(1)
             }
         }
