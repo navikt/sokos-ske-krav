@@ -53,6 +53,7 @@ spec:
           - "NAVident"
         groups:
           - id: b9c50759-8b85-4502-bfee-530d1cdb49ba
+          - id: ca7bd542-a668-44e4-b4b3-74ac15355109
       allowAllUsers: false
   prometheus:
     enabled: true
