@@ -12,11 +12,18 @@ import no.nav.sokos.ske.krav.metrics.Metrics
 import no.nav.sokos.ske.krav.validation.ErrorKeys.REFERANSENUMMERGAMMELSAK_ERROR
 import no.nav.sokos.ske.krav.validation.ErrorMessages.REFERANSENUMMERGAMMELSAK_WRONG_FORMAT
 
-class LineValidator {
-    fun validateNewLines(kravLines: List<KravLinje>): List<ValidationResult> =
+object LineValidator {
+    private val dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+    val errorDate: LocalDate = LocalDate.parse("21240101", dateFormatter)
+
+    // TODO: Remove newService toggle when refactoring is done
+    fun validateNewLines(
+        kravLines: List<KravLinje>,
+        newService: Boolean = false,
+    ): List<ValidationResult> =
         kravLines.map { line ->
             Metrics.numberOfKravRead.increment()
-            validate(line)
+            validate(line, newService)
         }
 
     /*
@@ -24,8 +31,13 @@ class LineValidator {
      * https://skatteetaten.github.io/beta-apier/innkrevingsoppdrag/felles-valideringsregler
      * utbetalingsDato = foreldelsesfristensUtgangspunkt
      * vedtaksdato = fastsettelsesdato
+     *
+     * TODO: Remove newService toggle when refactoring is done
      */
-    fun validate(krav: KravLinje): ValidationResult {
+    fun validate(
+        krav: KravLinje,
+        newService: Boolean = false,
+    ): ValidationResult {
         val errorMessages =
             buildList {
                 with(krav) {
@@ -146,7 +158,7 @@ class LineValidator {
         return if (errorMessages.isNotEmpty()) {
             ValidationResult.Error(errors = errorMessages, originalLines = listOf(krav.markedAsValidationError()))
         } else {
-            ValidationResult.Success(listOf(krav.markedAsValid()))
+            ValidationResult.Success(listOf(if (newService) krav.markedAsRead() else krav.markedAsValid()))
         }
     }
 
@@ -233,9 +245,4 @@ class LineValidator {
         }.getOrElse {
             errorDate
         }
-
-    companion object {
-        private val dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
-        val errorDate: LocalDate = LocalDate.parse("21240101", dateFormatter)
-    }
 }
