@@ -17,6 +17,7 @@ import io.opentelemetry.instrumentation.annotations.WithSpan
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.PostgresDataSource
+import no.nav.sokos.ske.krav.config.UnleashConfig
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.domain.Krav
@@ -59,6 +60,7 @@ class SkeService(
     private val filValideringsfeilRepository: FilValideringsfeilRepository = FilValideringsfeilRepository.instance,
     private val feilmeldingRepository: FeilmeldingRepository = FeilmeldingRepository.instance,
     private val kravRepository: KravRepository = KravRepository.instance,
+    private val unleashConfig: UnleashConfig = UnleashConfig(),
 ) {
     private var haltRun = false
 
@@ -70,7 +72,9 @@ class SkeService(
         }
 
         resendKrav(shouldAlert = false)
-        sendNewFilesToSKE()
+        if (unleashConfig.isLesFilEnabled()) {
+            sendNewFilesToSKE()
+        }
         delay(waitTime)
         resendKrav()
 
@@ -83,13 +87,18 @@ class SkeService(
     }
 
     private suspend fun resendKrav(shouldAlert: Boolean = true) {
-        statusService.getMottaksStatus()
-        val allKravForResending = kravRepository.getAllKravForResending()
-        if (allKravForResending.isEmpty()) return
+        if (unleashConfig.isMottaksstatusEnabled()) {
+            statusService.getMottaksStatus()
+        }
 
-        logger.info("Resender ${allKravForResending.size} krav")
-        sendKrav(allKravForResending, shouldAlert).also {
-            Metrics.numberOfKravResent.increment(it.size.toDouble())
+        if (unleashConfig.isSendKravEnabled()) {
+            val allKravForResending = kravRepository.getAllKravForResending()
+            if (allKravForResending.isEmpty()) return
+
+            logger.info("Resender ${allKravForResending.size} krav")
+            sendKrav(allKravForResending, shouldAlert).also {
+                Metrics.numberOfKravResent.increment(it.size.toDouble())
+            }
         }
     }
 
@@ -108,9 +117,11 @@ class SkeService(
         }
 
         if (files.isNotEmpty()) {
-            updateSkeKravidentifikatorForEndringerAndStopp()
-            sendKrav(kravRepository.getAllUnsentKrav()).also(::logResult)
-            logger.info { "*** Ferdig med sending av ${files.size} $filtekst ***" }
+            if (unleashConfig.isSendKravEnabled()) {
+                updateSkeKravidentifikatorForEndringerAndStopp()
+                sendKrav(kravRepository.getAllUnsentKrav()).also(::logResult)
+                logger.info { "*** Ferdig med sending av ${files.size} $filtekst ***" }
+            }
         }
     }
 
