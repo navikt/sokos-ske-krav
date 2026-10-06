@@ -3,6 +3,14 @@ name: Deploy application manually
 on:
   workflow_dispatch:
     inputs:
+      deployment:
+        description: "What to deploy"
+        required: true
+        type: choice
+        options:
+          - application
+          - unleash
+        default: application
       environment:
         description: "Environment to deploy to"
         required: true
@@ -15,6 +23,7 @@ env:
 
 jobs:
   build-and-test:
+    if: ${{ inputs.deployment == 'application' }}
     permissions:
       contents: read
     name: Build and test
@@ -23,6 +32,7 @@ jobs:
       upload-artifact: true
 
   build-push-image-dev:
+    if: ${{ inputs.deployment == 'application' }}
     permissions:
       contents: read
       id-token: write
@@ -37,6 +47,7 @@ jobs:
       use-artifact: true
 
   deploy-dev:
+    if: ${{ inputs.deployment == 'application' }}
     permissions:
       contents: read
       id-token: write
@@ -49,3 +60,14 @@ jobs:
       cluster: dev-gcp
       resource: .nais/dev/naiserator-dev.yaml
       image: ${{ needs.build-push-image-dev.outputs.image }}
+
+  deploy-unleash-dev:
+    if: ${{ inputs.deployment == 'unleash' && inputs.environment == 'dev' }}
+    permissions:
+      id-token: write
+      contents: read
+    name: Deploy Unleash to dev-gcp
+    uses: navikt/mob-gha-workflows/.github/workflows/unleash-deploy.yaml@4e30b004e60632c052461b9ce66a0d802d580f89
+    with:
+      cluster: dev-gcp
+      resource: .nais/dev/unleash-dev.yaml

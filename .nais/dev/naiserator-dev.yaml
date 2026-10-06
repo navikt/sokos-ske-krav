@@ -74,6 +74,7 @@ spec:
           ports:
             - port: 22
         - host: hooks.slack.com
+        - host: okonomi-unleash-api.nav.cloud.nais.io
       rules:
         - application: logging
           namespace: nais-system
