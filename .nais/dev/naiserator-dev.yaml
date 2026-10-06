@@ -63,6 +63,7 @@ spec:
       mountPath: /var/run/secrets/sokos-ske-krav-sftp-private-key
   envFrom:
     - secret: sokos-ske-krav-secrets
+    - secret: sokos-ske-krav-unleash-api-token
   ingresses:
     - https://sokos-ske-krav.intern.dev.nav.no
   accessPolicy:

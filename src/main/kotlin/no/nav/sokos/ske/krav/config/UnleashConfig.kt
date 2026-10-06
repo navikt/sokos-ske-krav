@@ -7,7 +7,7 @@ import io.getunleash.util.UnleashConfig
 
 private val logger = mu.KotlinLogging.logger {}
 
-private const val TOBBLE_LES_FIL_SUFFIX = "les-fil.enabled"
+private const val TOGGLE_LES_FIL_SUFFIX = "les-fil.enabled"
 private const val TOGGLE_SEND_KRAV_SUFFIX = "send-krav.enabled"
 private const val TOGGLE_MOTTAKSSTATUS_SUFFIX = "mottaksstatus.enabled"
 
@@ -31,7 +31,7 @@ class UnleashConfig {
         return enabled
     }
 
-    fun isLesFilEnabled(): Boolean = isEnabled(TOBBLE_LES_FIL_SUFFIX)
+    fun isLesFilEnabled(): Boolean = isEnabled(TOGGLE_LES_FIL_SUFFIX)
 
     fun isSendKravEnabled(): Boolean = isEnabled(TOGGLE_SEND_KRAV_SUFFIX)
 
@@ -43,7 +43,7 @@ class UnleashConfig {
                 FakeUnleash().also { fakeUnleash ->
                     fakeUnleash.enable(toggleName(TOGGLE_SEND_KRAV_SUFFIX))
                     fakeUnleash.enable(toggleName(TOGGLE_MOTTAKSSTATUS_SUFFIX))
-                    fakeUnleash.enable(toggleName(TOBBLE_LES_FIL_SUFFIX))
+                    fakeUnleash.enable(toggleName(TOGGLE_LES_FIL_SUFFIX))
                 }
         } else {
             val config =
