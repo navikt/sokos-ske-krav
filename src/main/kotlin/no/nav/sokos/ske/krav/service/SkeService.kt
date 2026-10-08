@@ -106,10 +106,10 @@ class SkeService(
         val files = ftpService.getValidatedFiles()
         val filtekst = if (files.size == 1) "fil" else "filer"
         if (files.isNotEmpty()) {
-            val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"))
-            logger.info("*** Starter sending av ${files.size} $filtekst $datetime***")
+            logger.info("*** Validerer og lagrer ${files.size} $filtekst")
         } else {
             logger.info("*** Ingen nye filer ***")
+            return
         }
 
         files.forEach { file ->
@@ -118,6 +118,9 @@ class SkeService(
 
         if (files.isNotEmpty()) {
             if (unleashConfig.isSendKravEnabled()) {
+                val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"))
+                logger.info("*** Starter sending av ${files.size} $filtekst $datetime***")
+
                 updateSkeKravidentifikatorForEndringerAndStopp()
                 sendKrav(kravRepository.getAllUnsentKrav()).also(::logResult)
                 logger.info { "*** Ferdig med sending av ${files.size} $filtekst ***" }
