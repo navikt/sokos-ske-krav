@@ -1,0 +1,35 @@
+name: Deploy Unleash
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/unleash.yaml'
+      - '.nais/dev/unleash-dev.yaml'
+      - '.nais/prod/unleash-prod.yaml'
+
+env:
+  TZ: Europe/Oslo
+
+jobs:
+  deploy-dev:
+    permissions:
+      id-token: write
+      contents: read
+    name: Deploy to dev-gcp
+    uses: navikt/mob-gha-workflows/.github/workflows/unleash-deploy.yaml@4e30b004e60632c052461b9ce66a0d802d580f89 # ratchet:navikt/mob-gha-workflows/.github/workflows/unleash-deploy.yaml@v1.1.1
+    with:
+      cluster: dev-gcp
+      resource: .nais/dev/unleash-dev.yaml
+
+  deploy-prod:
+    permissions:
+      id-token: write
+      contents: read
+    needs: [ deploy-dev ]
+    name: Deploy to prod-gcp
+    uses: navikt/mob-gha-workflows/.github/workflows/unleash-deploy.yaml@4e30b004e60632c052461b9ce66a0d802d580f89 # ratchet:navikt/mob-gha-workflows/.github/workflows/unleash-deploy.yaml@v1.1.1
+    with:
+      cluster: prod-gcp
+      resource: .nais/prod/unleash-prod.yaml

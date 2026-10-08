@@ -2,6 +2,7 @@ package no.nav.sokos.ske.krav.config
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 import com.nimbusds.jose.jwk.RSAKey
@@ -51,6 +52,10 @@ object PropertiesConfig {
         config.property("timer").getAs<TimerConfig>()
     }
 
+    val unleashProperties by lazy {
+        config.property("unleash").getAs<UnleashProperties>()
+    }
+
     fun load(applicationConfig: ApplicationConfig) {
         if (!::config.isInitialized) {
             config = applicationConfig
@@ -72,9 +77,11 @@ enum class Profile {
 data class ApplicationProperties(
     val profile: Profile,
     val appName: String,
+    val podName: String,
     val namespace: String,
 ) {
     val isLocal = profile == Profile.LOCAL
+    val isTest = profile == Profile.TEST
 }
 
 @Serializable
@@ -149,3 +156,10 @@ data class TimerConfig(
 ) {
     val schedulerIntervalPeriod: Duration = schedulerIntervalPeriodInt.hours
 }
+
+@Serializable
+data class UnleashProperties(
+    @SerialName("unleashApi") val unleashAPI: String,
+    val apiKey: String,
+    val environment: String,
+)

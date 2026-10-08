@@ -18,6 +18,7 @@ on:
       - '.github/workflows/digestabot-automerge.yaml'
       - '.github/workflows/digestabot-update.yaml'
       - '.github/workflows/manual-deploy.yaml'
+      - '.github/workflows/unleash.yaml'
       - '.github/dependabot.yaml'
 
 env:

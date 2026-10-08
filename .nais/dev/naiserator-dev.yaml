@@ -63,6 +63,7 @@ spec:
       mountPath: /var/run/secrets/sokos-ske-krav-sftp-private-key
   envFrom:
     - secret: sokos-ske-krav-secrets
+    - secret: sokos-ske-krav-unleash-api-token
   ingresses:
     - https://sokos-ske-krav.intern.dev.nav.no
   accessPolicy:
@@ -73,6 +74,7 @@ spec:
           ports:
             - port: 22
         - host: hooks.slack.com
+        - host: okonomi-unleash-api.nav.cloud.nais.io
       rules:
         - application: logging
           namespace: nais-system
