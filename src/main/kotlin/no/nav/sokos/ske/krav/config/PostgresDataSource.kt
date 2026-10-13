@@ -49,12 +49,12 @@ object PostgresDataSource {
                         ?: "jdbc:postgresql://${postgresConfig.host}:${postgresConfig.port}/${postgresConfig.name}"
                     logger.info { "Setting up PostgreSQL" }
                 }
+
                 else -> {
                     logger.info { "Setting up local PostgreSQL" }
                     this.dataSource =
                         PGSimpleDataSource().apply {
                             user = postgresConfig.username
-                            password = postgresConfig.password
                             serverNames = arrayOf(postgresConfig.host)
                             databaseName = postgresConfig.name
                             portNumbers = intArrayOf(postgresConfig.port.toInt())

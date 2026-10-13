@@ -123,11 +123,11 @@ internal class CreateRequestsTest :
                 }
             }
 
-            When("tilleggsfrist er null og utbetalDato er blankDate") {
+            When("tilleggsfrist er null og utbetalDato er errorDate") {
                 val kravTable =
                     kravTableMockk(
                         tilleggsfristParam = null,
-                        utbetalDatoParam = LineValidator.blankDate,
+                        utbetalDatoParam = LineValidator.errorDate,
                     )
                 Then("Skal fastsettelsesDato være vedtaksDato og foreldelsesFristensUtgangspunkt være null") {
                     createOpprettKravRequest(kravTable).run {

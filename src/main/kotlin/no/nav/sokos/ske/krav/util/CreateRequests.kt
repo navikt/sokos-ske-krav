@@ -40,7 +40,6 @@ fun createOpprettKravRequest(krav: Krav) =
                     .toKotlinLocalDate()
                     .takeIf {
                         it != LineValidator.errorDate.toKotlinLocalDate() &&
-                            it != LineValidator.blankDate.toKotlinLocalDate() &&
                             it != krav.vedtaksDato.toKotlinLocalDate() &&
                             it < krav.vedtaksDato.toKotlinLocalDate()
                     }

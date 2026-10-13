@@ -207,8 +207,13 @@ internal class LineValidatorRulesTest :
                 }
             }
 
-            When("Utbetalingsdato er ikke oppgitt for OB04 skal være ok") {
-                val krav = okLinje.copy(utbetalDato = LineValidator.blankDate, avsender = Avsender.OB04.name)
+            When("Utbetalingsdato er blank for OB04") {
+                val krav =
+                    okLinje.copy(
+                        utbetalDato = LineValidator.errorDate,
+                        avsender = Avsender.OB04.name,
+                        utbetalDatoIsBlank = true,
+                    )
                 val validationResult = lineValidator.validate(krav)
 
                 Then("Skal ValidationResult være success") {
@@ -224,8 +229,13 @@ internal class LineValidatorRulesTest :
                 }
             }
 
-            When("Utbetalingsdato er ikke oppgitt for Arena skal være ok") {
-                val krav = okLinje.copy(utbetalDato = LineValidator.blankDate, avsender = Avsender.ARENA.name)
+            When("Utbetalingsdato er blank for Arena") {
+                val krav =
+                    okLinje.copy(
+                        utbetalDato = LineValidator.errorDate,
+                        avsender = Avsender.ARENA.name,
+                        utbetalDatoIsBlank = true,
+                    )
                 val validationResult = lineValidator.validate(krav)
 
                 Then("Skal ValidationResult være success") {

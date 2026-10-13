@@ -35,6 +35,7 @@ data class KravLinje(
     val status: String? = null,
     val tilleggsfrist: LocalDate? = null,
     val avsender: String,
+    val utbetalDatoIsBlank: Boolean = false,
 ) : FtpLinje {
     fun isStopp() = belop.toDouble().roundToLong() == 0L
 
