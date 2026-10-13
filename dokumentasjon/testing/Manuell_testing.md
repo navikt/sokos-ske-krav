@@ -89,7 +89,7 @@ Databasedump (med SQL kommandoer) av hva resultatene skal være i databasen ette
 
 Mappene for Arena, Pesys og Infotrygd under `testfiler/` er foreløpig tomme. Det finnes per i dag ingen dedikerte testfiler for disse avsenderne. Dersom du skal teste integrasjoner mot disse fagsystemene må testfiler opprettes manuelt.
 
-> **Merk:** For alle avsendere aksepteres tom/ugyldig utbetalingsdato. Feltet `foreldelsesfristensUtgangspunkt` utelates da fra requesten til SKE.
+> **Merk:** For alle avsendere aksepteres tom utbetalingsdato, og feltet `foreldelsesfristensUtgangspunkt` utelates da fra requesten til SKE. Ugyldige eller feilformaterte utbetalingsdatoer aksepteres ikke og skal gi linjevalideringsfeil.
 >
 > For `ARENA`, `PESYS` og `INFOTRYGD` aksepteres også tom/blank `fagsystemId` – feltet utelates da fra requesten til SKE.
 >

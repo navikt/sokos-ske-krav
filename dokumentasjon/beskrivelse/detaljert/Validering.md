@@ -53,7 +53,7 @@ Feltet tilsvarer `foreldelsesfristensUtgangspunkt` hos SKE.
 | Regel | Betingelse | Feilmelding |
 |---|---|---|
 | Tom dato | Tom dato aksepteres for alle avsendere og oversettes til sentinel-datoen `21240101` internt | – |
-| Ugyldig format | Ugyldig dato oversettes til sentinel-datoen `21240101` og aksepteres | – |
+| Ugyldig format | Når feltet ikke er tomt, må datoen være en gyldig kalenderdato på formatet `yyyyMMdd` | `"Utbetalingsdato er feil formattert i fil"` |
 | Før vedtaksdato | `utbetalingsdato < vedtaksdato` | `"Utbetalingsdato må være tidligere enn vedtaksdato"` |
 
 ### 2.3 Periode (FOM og TOM)
