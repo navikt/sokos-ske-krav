@@ -82,11 +82,19 @@ internal class FileParserTest :
             linjerUtenTilleggsfrist.size shouldBe 95
         }
 
-        test("Tom utbetalingsdato skal oversettes til errorDate") {
+        test("Tom utbetalingsdato skal oversettes til blankDate") {
             val result =
                 FileParser(
                     getFileContent("krav/TomUtbetalingsdato.txt"),
                 ).parseResult.shouldBeInstanceOf<ParseResult.Success>()
+
+            result.kravLinjer.first().utbetalDato shouldBe LineValidator.blankDate
+        }
+
+        test("Ugyldig utbetalingsdato skal oversettes til errorDate") {
+            val content = getFileContent("krav/TomUtbetalingsdato.txt").toMutableList()
+            content[1] = content[1].replaceRange(162, 170, "20230230")
+            val result = FileParser(content).parseResult.shouldBeInstanceOf<ParseResult.Success>()
 
             result.kravLinjer.first().utbetalDato shouldBe LineValidator.errorDate
         }

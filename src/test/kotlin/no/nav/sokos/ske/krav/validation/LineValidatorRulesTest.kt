@@ -207,8 +207,8 @@ internal class LineValidatorRulesTest :
                 }
             }
 
-            When("Utbetalingsdato er ikke oppgitt (error date) for OB04 skal være ok") {
-                val krav = okLinje.copy(utbetalDato = LineValidator.errorDate, avsender = Avsender.OB04.name)
+            When("Utbetalingsdato er ikke oppgitt for OB04 skal være ok") {
+                val krav = okLinje.copy(utbetalDato = LineValidator.blankDate, avsender = Avsender.OB04.name)
                 val validationResult = lineValidator.validate(krav)
 
                 Then("Skal ValidationResult være success") {
@@ -224,8 +224,8 @@ internal class LineValidatorRulesTest :
                 }
             }
 
-            When("Utbetalingsdato er ikke oppgitt (error date) for Arena skal være ok") {
-                val krav = okLinje.copy(utbetalDato = LineValidator.errorDate, avsender = Avsender.ARENA.name)
+            When("Utbetalingsdato er ikke oppgitt for Arena skal være ok") {
+                val krav = okLinje.copy(utbetalDato = LineValidator.blankDate, avsender = Avsender.ARENA.name)
                 val validationResult = lineValidator.validate(krav)
 
                 Then("Skal ValidationResult være success") {
@@ -235,6 +235,19 @@ internal class LineValidatorRulesTest :
                     with((validationResult as ValidationResult.Success).kravLinjer) {
                         shouldHaveSize(1)
                         first() shouldBe krav.markedAsValid()
+                    }
+                }
+            }
+
+            When("Utbetalingsdato er feil formattert") {
+                val krav = okLinje.copy(utbetalDato = LineValidator.errorDate)
+                val validationResult = lineValidator.validate(krav)
+
+                Then("Skal validationResult være error med feil format") {
+                    validationResult.shouldBeInstanceOf<ValidationResult.Error>()
+                    with((validationResult as ValidationResult.Error).errors) {
+                        shouldHaveSize(1)
+                        first().description shouldContain ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
                     }
                 }
             }

@@ -3,6 +3,7 @@ package no.nav.sokos.ske.krav.validation
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.ResolverStyle
 
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
@@ -182,7 +183,8 @@ class LineValidator {
         vedtaksDato: LocalDate,
     ): ErrorMessages? =
         when {
-            utbetalingsDato.isEqual(errorDate) -> null
+            utbetalingsDato.isEqual(blankDate) -> null
+            utbetalingsDato.isEqual(errorDate) -> ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
             utbetalingsDato.isBefore(vedtaksDato) -> null
             utbetalingsDato.isEqual(vedtaksDato) || utbetalingsDato.isAfter(vedtaksDato) -> ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
             else -> ErrorMessages.UNKNOWN_DATE_ERROR
@@ -234,7 +236,8 @@ class LineValidator {
         }
 
     companion object {
-        private val dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+        private val dateFormatter = DateTimeFormatter.ofPattern("uuuuMMdd").withResolverStyle(ResolverStyle.STRICT)
         val errorDate: LocalDate = LocalDate.parse("21240101", dateFormatter)
+        val blankDate: LocalDate = LocalDate.MIN
     }
 }
