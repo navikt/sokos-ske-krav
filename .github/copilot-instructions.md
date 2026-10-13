@@ -40,7 +40,7 @@ Status lifecycle: `KRAV_IKKE_SENDT → KRAV_SENDT → MOTTATT_UNDER_BEHANDLING �
 | `SkeClient` | Ktor HTTP client to SKE (Apache5 engine, proxy-aware, circuit-breaker-guarded) |
 | `StatusService` | Polls SKE for `mottaksStatus`; progresses krav to `RESKONTROFOERT` |
 | `RapportService` | Frontend-only (`@Frontend`) reconciliation of stuck krav |
-| `TraceUtils` | OpenTelemetry span + MDC helper; wrap every scheduler entry point |
+| `@WithSpan` | OpenTelemetry span annotation; annotate scheduler entry points and important processing methods |
 | `CircuitBreakerManager` | Resilience4j breaker wrapping every SKE call |
 | `StonadsType` | Enum mapping `(kravKode, kodeHjemmel) → stønadstype` |
 | `PropertiesConfig` | HOCON-backed singleton; load once at startup |
