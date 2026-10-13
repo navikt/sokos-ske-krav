@@ -52,8 +52,8 @@ Feltet tilsvarer `foreldelsesfristensUtgangspunkt` hos SKE.
 
 | Regel | Betingelse | Feilmelding |
 |---|---|---|
-| Gyldig format (kun OB04) | Dersom avsender er `OB04` MÅ datoen kunne parses | `"Utbetalingsdato er feil formattert i fil"` |
-| Tom tillatt for andre avsendere | For `ARENA`, `PESYS` og `INFOTRYGD` er tom/ugyldig dato akseptert | – |
+| Tom dato | Tom dato aksepteres for alle avsendere og oversettes til sentinel-datoen `21240101` internt | – |
+| Ugyldig format | Ugyldig dato oversettes til sentinel-datoen `21240101` og aksepteres | – |
 | Før vedtaksdato | `utbetalingsdato < vedtaksdato` | `"Utbetalingsdato må være tidligere enn vedtaksdato"` |
 
 ### 2.3 Periode (FOM og TOM)

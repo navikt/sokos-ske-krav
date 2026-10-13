@@ -12,6 +12,7 @@ import no.nav.sokos.ske.krav.copybook.KontrollLinjeFooter
 import no.nav.sokos.ske.krav.copybook.KontrollLinjeHeader
 import no.nav.sokos.ske.krav.copybook.ParseResult
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
+import no.nav.sokos.ske.krav.validation.LineValidator
 
 internal class FileParserTest :
     FunSpec({
@@ -79,6 +80,15 @@ internal class FileParserTest :
         test("Hvis tilleggsfrist ikke finnes skal vi få null på feltet") {
             val linjerUtenTilleggsfrist = altOkResult.kravLinjer.filter { it.tilleggsfrist == null }
             linjerUtenTilleggsfrist.size shouldBe 95
+        }
+
+        test("Tom utbetalingsdato skal oversettes til errorDate") {
+            val result =
+                FileParser(
+                    getFileContent("krav/TomUtbetalingsdato.txt"),
+                ).parseResult.shouldBeInstanceOf<ParseResult.Success>()
+
+            result.kravLinjer.first().utbetalDato shouldBe LineValidator.errorDate
         }
 
         test("Hvis tilleggsfrist finnes, skal vi få riktig dato utledet fra feltet") {

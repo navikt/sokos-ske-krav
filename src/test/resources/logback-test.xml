@@ -3,16 +3,10 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
     </appender>
-    <appender name="secureLog" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
-    </appender>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
-            <pattern>
-                %green(%d{HH:mm:ss}) [%X{X-Correlation-ID}] %cyan([%-5.5t]) %boldCyan(%0.-5p) %yellow(%logger{36})
-                %cyan(:) %m%n
-            </pattern>
+            <pattern>%green(%d{HH:mm:ss}) [%X{X-Correlation-ID}] %cyan([%-5.5t]) %boldCyan(%0.-5p) %yellow(%logger{36}) %cyan(:) %m%n</pattern>
         </layout>
     </appender>
 
@@ -20,7 +14,7 @@
         <appender-ref ref="CONSOLE"/>
     </root>
 
-    <logger name="no.nav.sokos.ske.krav" level="INFO" additivity="false"/>
+    <logger name="no.nav.sokos.ske.krav" level="INFO"/>
     <logger name="secureLogger" level="INFO" additivity="false">
         <appender-ref ref="${LOG_APPENDER:-secureLog}"/>
     </logger>

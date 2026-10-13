@@ -129,8 +129,9 @@ internal class CreateRequestsTest :
                         tilleggsfristParam = null,
                         utbetalDatoParam = LineValidator.errorDate,
                     )
-                Then("Skal foreldelsesFristensUtgangspunkt være null") {
+                Then("Skal fastsettelsesDato være vedtaksDato og foreldelsesFristensUtgangspunkt være null") {
                     createOpprettKravRequest(kravTable).run {
+                        fastsettelsesDato shouldBe kravTable.vedtaksDato.toKotlinLocalDate()
                         foreldelsesFristensUtgangspunkt shouldBe null
                         tilleggsfrist shouldBe null
                     }
