@@ -3,6 +3,7 @@ package no.nav.sokos.ske.krav.copybook
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.ResolverStyle
 
 import io.ktor.http.parsing.ParseException
 
@@ -94,7 +95,7 @@ class FileParser(
                 kodeArsak = getString(start = 119, end = 131),
                 belopRente = getBigDecimal(start = 131, end = 151),
                 fremtidigYtelse = getBigDecimal(start = 151, end = 162),
-                utbetalDato = getDate(start = 162, end = 170),
+                utbetalDato = getOptionalDate(start = 162, end = 170),
                 fagsystemId = getString(start = 170, end = 200),
                 tilleggsfrist = getOptionalDate(start = 200, end = 208),
                 avsender = avsender,
@@ -141,7 +142,7 @@ class FileParser(
         end: Int,
     ): LocalDate =
         runCatching {
-            LocalDate.parse(getString(start, end), DateTimeFormatter.ofPattern("yyyyMMdd"))
+            LocalDate.parse(getString(start, end), dateFormatter)
         }.getOrDefault(LineValidator.errorDate)
 
     private fun String.getOptionalDate(
@@ -153,4 +154,8 @@ class FileParser(
         } else {
             getDate(start, end)
         }
+
+    companion object {
+        private val dateFormatter = DateTimeFormatter.ofPattern("uuuuMMdd").withResolverStyle(ResolverStyle.STRICT)
+    }
 }

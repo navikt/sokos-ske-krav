@@ -145,7 +145,7 @@ class FantKrav(
             "Tidspunkt sendt" to (krav.map { it.tidspunktSendt?.toString() ?: "Ikke satt" }),
             "Tidspunkt siste status" to krav.map { it.tidspunktSisteStatus.toString() },
             "Transaksjonsdato" to krav.map(Krav::transaksjonsDato),
-            "Utbetalingsdato" to krav.map { it.utbetalDato.toString() },
+            "Utbetalingsdato" to krav.map { it.utbetalDato?.toString().orEmpty() },
             "Vedtaksdato" to krav.map { it.vedtaksDato.toString() },
         ).sortedBy { it.first }
 }

@@ -31,6 +31,6 @@ data class Krav(
     val tidspunktSisteStatus: LocalDateTime,
     val tilleggsfrist: LocalDate?,
     val transaksjonsDato: String,
-    val utbetalDato: LocalDate,
+    val utbetalDato: LocalDate?,
     val vedtaksDato: LocalDate,
 )

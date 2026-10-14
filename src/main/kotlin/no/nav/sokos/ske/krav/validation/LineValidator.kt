@@ -3,6 +3,7 @@ package no.nav.sokos.ske.krav.validation
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.ResolverStyle
 
 import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.domain.Avsender
@@ -39,7 +40,7 @@ class LineValidator {
                         )
                     }
 
-                    checkUtbetalingsDato(utbetalDato, vedtaksDato, avsender)?.let { message ->
+                    checkUtbetalingsDato(utbetalDato, vedtaksDato)?.let { message ->
                         add(
                             ErrorDetails(
                                 ErrorKeys.UTBETALINGSDATO_ERROR,
@@ -175,15 +176,16 @@ class LineValidator {
             else -> ErrorMessages.UNKNOWN_DATE_ERROR
         }
 
-    // Tillater tom utbetalingsdato for Arena, Pesys, Infotryd. Ellers må den være før vedtaksdato
+    // Tom utbetalingsdato representeres som null og er tillatt.
+    // Andre verdier som ikke kan parses til dato oversettes til errorDate, men er ugyldige.
+    // Oppgitt utbetalingsdato må være før vedtaksdato.
     private fun checkUtbetalingsDato(
-        utbetalingsDato: LocalDate,
+        utbetalingsDato: LocalDate?,
         vedtaksDato: LocalDate,
-        avsender: String,
     ): ErrorMessages? =
         when {
-            avsender.trim() == Avsender.OB04.name && utbetalingsDato.isEqual(errorDate) -> ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
-            utbetalingsDato.isEqual(errorDate) -> null
+            utbetalingsDato == null -> null
+            utbetalingsDato.isEqual(errorDate) -> ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
             utbetalingsDato.isBefore(vedtaksDato) -> null
             utbetalingsDato.isEqual(vedtaksDato) || utbetalingsDato.isAfter(vedtaksDato) -> ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO
             else -> ErrorMessages.UNKNOWN_DATE_ERROR
@@ -235,7 +237,7 @@ class LineValidator {
         }
 
     companion object {
-        private val dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+        private val dateFormatter = DateTimeFormatter.ofPattern("uuuuMMdd").withResolverStyle(ResolverStyle.STRICT)
         val errorDate: LocalDate = LocalDate.parse("21240101", dateFormatter)
     }
 }

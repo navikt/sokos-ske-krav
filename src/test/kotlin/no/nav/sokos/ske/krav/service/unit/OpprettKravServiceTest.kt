@@ -80,7 +80,7 @@ class OpprettKravServiceTest :
                     oppdragsgiversReferanse = kravMock.fagsystemId,
                     oppdragsgiversKravIdentifikator = kravMock.saksnummerNAV,
                     fastsettelsesDato = kravMock.vedtaksDato.toKotlinLocalDate(),
-                    foreldelsesFristensUtgangspunkt = kravMock.utbetalDato.toKotlinLocalDate(),
+                    foreldelsesFristensUtgangspunkt = kravMock.utbetalDato?.toKotlinLocalDate(),
                     tilleggsInformasjon =
                         TilleggsinformasjonNav(
                             ytelserForAvregning = YtelseForAvregningBeloep(beloep = kravMock.fremtidigYtelse.roundToLong()),

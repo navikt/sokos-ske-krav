@@ -25,7 +25,7 @@ Kravfiler kan komme fra ulike fagsystemer. Applikasjonen skiller mellom følgend
 | `PESYS`     | Pensjonssystemet (PESYS)                                 |
 | `INFOTRYGD` | Infotrygd fagsystem                                      |
 
-> **Merk:** Valideringsreglene for utbetalingsdato er strengere for `OB04` enn for de øvrige avsenderne. For `ARENA`, `PESYS` og `INFOTRYGD` er tom/ugyldig utbetalingsdato akseptert.
+> **Merk:** Tom utbetalingsdato aksepteres for alle avsendere. Den representeres internt som `null`, og feltet `foreldelsesfristensUtgangspunkt` utelates fra requesten til SKE. Ugyldige eller feilformaterte datoer aksepteres ikke og gir linjevalideringsfeil.
 
 ## Knyttet til krav
 

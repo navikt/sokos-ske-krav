@@ -93,7 +93,7 @@ Hovedtabellen som lagrer innkommende krav fra SKE. Hvert krav representerer én 
 | `kode_arsak`               | varchar(12) | Årsakskode                                               |
 | `belop_rente`              | decimal(12) | Rentebeløp                                               |
 | `fremtidig_ytelse`         | varchar(11) | Fremtidig ytelse                                         |
-| `utbetaldato`              | date        | Utbetalingsdato                                          |
+| `utbetaldato`              | date (NULL) | Utbetalingsdato; `NULL` når utbetalingsdatoen er blank  |
 | `fagsystem_id`             | varchar(30) | ID i fagsystemet                                         |
 | `status`                   | text        | Kravets nåværende status                                 |
 | `kravtype`                 | text        | Type krav                                                |

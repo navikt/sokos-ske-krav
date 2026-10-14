@@ -12,6 +12,9 @@ import no.nav.sokos.ske.krav.copybook.KontrollLinjeFooter
 import no.nav.sokos.ske.krav.copybook.KontrollLinjeHeader
 import no.nav.sokos.ske.krav.copybook.ParseResult
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
+import no.nav.sokos.ske.krav.validation.ErrorMessages
+import no.nav.sokos.ske.krav.validation.LineValidator
+import no.nav.sokos.ske.krav.validation.ValidationResult
 
 internal class FileParserTest :
     FunSpec({
@@ -79,6 +82,28 @@ internal class FileParserTest :
         test("Hvis tilleggsfrist ikke finnes skal vi få null på feltet") {
             val linjerUtenTilleggsfrist = altOkResult.kravLinjer.filter { it.tilleggsfrist == null }
             linjerUtenTilleggsfrist.size shouldBe 95
+        }
+
+        test("Tom utbetalingsdato skal oversettes til null") {
+            val result =
+                FileParser(
+                    getFileContent("krav/TomUtbetalingsdato.txt"),
+                ).parseResult.shouldBeInstanceOf<ParseResult.Success>()
+
+            result.kravLinjer.first().utbetalDato shouldBe null
+        }
+
+        test("Ugyldig utbetalingsdato skal gi linjevalideringsfeil") {
+            val content = getFileContent("krav/TomUtbetalingsdato.txt").toMutableList()
+            content[1] = content[1].replaceRange(162, 170, "20230230")
+            val result = FileParser(content).parseResult.shouldBeInstanceOf<ParseResult.Success>()
+
+            result.kravLinjer.first().utbetalDato shouldBe LineValidator.errorDate
+            result.kravLinjer.first().utbetalDato shouldBe LineValidator.errorDate
+            val validationResult = LineValidator().validate(result.kravLinjer.first()).shouldBeInstanceOf<ValidationResult.Error>()
+
+            validationResult.errors.first().description shouldBe
+                "${ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT}: (Utbetalingsdato: ${LineValidator.errorDate}). Linje: 1"
         }
 
         test("Hvis tilleggsfrist finnes, skal vi få riktig dato utledet fra feltet") {

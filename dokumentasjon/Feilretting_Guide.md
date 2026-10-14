@@ -89,3 +89,4 @@ Enkeltlinjer blir validert i [`LineValidator.kt`](../src/main/kotlin/no/nav/soko
     * FOM-dato kan ikke være etter TOM (dvs FOM kan være lik TOM)
     * TOM-dato kan være frem i tid, men ikke lenger frem enn inneværende måned
 * Utbetalingsdato må være før vedtaksdato
+* Utbetalingsdato må enten være tom eller en gyldig kalenderdato på formatet `yyyyMMdd`

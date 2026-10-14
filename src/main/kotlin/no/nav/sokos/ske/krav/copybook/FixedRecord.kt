@@ -30,7 +30,7 @@ data class KravLinje(
     val kodeArsak: String,
     val belopRente: BigDecimal,
     val fremtidigYtelse: BigDecimal,
-    val utbetalDato: LocalDate,
+    val utbetalDato: LocalDate?,
     val fagsystemId: String,
     val status: String? = null,
     val tilleggsfrist: LocalDate? = null,

@@ -220,6 +220,22 @@ internal class RepositoryTestKrav :
             lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL }.shouldHaveSize(1)
         }
 
+        test("insertAllNewKrav skal lagre blank utbetalingsdato som null") {
+            DBListener.clearDB()
+
+            val filnavn = "TomUtbetalingsdato.txt"
+            val kravlinjer = (FileParser(getFileContent("krav/$filnavn")).parseResult as ParseResult.Success).kravLinjer
+
+            val lagredeKrav =
+                dataSource.transaction { session ->
+                    kravRepository.insertAllNewKrav(session, kravlinjer, filnavn)
+                    kravRepository.getAllKrav(session)
+                }
+
+            lagredeKrav.shouldHaveSize(1)
+            lagredeKrav.first().utbetalDato shouldBe null
+        }
+
         test("deleteOldKrav skal slette alle kravene som ble opprettet før en spesifisert tid") {
             dataSource.transaction { session ->
                 val threshold = LocalDate.parse("2023-01-02")
