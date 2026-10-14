@@ -91,7 +91,6 @@ internal class FileParserTest :
                 ).parseResult.shouldBeInstanceOf<ParseResult.Success>()
 
             result.kravLinjer.first().utbetalDato shouldBe null
-            result.kravLinjer.first().utbetalDato shouldBe null
         }
 
         test("Ugyldig utbetalingsdato skal gi linjevalideringsfeil") {
