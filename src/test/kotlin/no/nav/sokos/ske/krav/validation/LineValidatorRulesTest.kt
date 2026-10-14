@@ -210,9 +210,8 @@ internal class LineValidatorRulesTest :
             When("Utbetalingsdato er blank for OB04") {
                 val krav =
                     okLinje.copy(
-                        utbetalDato = LineValidator.errorDate,
+                        utbetalDato = null,
                         avsender = Avsender.OB04.name,
-                        utbetalDatoIsBlank = true,
                     )
                 val validationResult = lineValidator.validate(krav)
 
@@ -232,9 +231,8 @@ internal class LineValidatorRulesTest :
             When("Utbetalingsdato er blank for Arena") {
                 val krav =
                     okLinje.copy(
-                        utbetalDato = LineValidator.errorDate,
+                        utbetalDato = null,
                         avsender = Avsender.ARENA.name,
-                        utbetalDatoIsBlank = true,
                     )
                 val validationResult = lineValidator.validate(krav)
 
@@ -255,7 +253,7 @@ internal class LineValidatorRulesTest :
 
                 Then("Skal validationResult være error med feil format") {
                     validationResult.shouldBeInstanceOf<ValidationResult.Error>()
-                    with((validationResult as ValidationResult.Error).errors) {
+                    with((validationResult).errors) {
                         shouldHaveSize(1)
                         first().description shouldContain ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
                     }

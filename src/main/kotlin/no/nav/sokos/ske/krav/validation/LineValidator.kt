@@ -40,7 +40,7 @@ class LineValidator {
                         )
                     }
 
-                    checkUtbetalingsDato(utbetalDato, utbetalDatoIsBlank, vedtaksDato)?.let { message ->
+                    checkUtbetalingsDato(utbetalDato, vedtaksDato)?.let { message ->
                         add(
                             ErrorDetails(
                                 ErrorKeys.UTBETALINGSDATO_ERROR,
@@ -176,16 +176,15 @@ class LineValidator {
             else -> ErrorMessages.UNKNOWN_DATE_ERROR
         }
 
-    // Tom utbetalingsdato oversettes til errorDate av parseren og er tillatt.
-    // Andre verdier som ikke kan parses til dato oversettes også til errorDate, men er ugyldige.
+    // Tom utbetalingsdato representeres som null og er tillatt.
+    // Andre verdier som ikke kan parses til dato oversettes til errorDate, men er ugyldige.
     // Oppgitt utbetalingsdato må være før vedtaksdato.
     private fun checkUtbetalingsDato(
-        utbetalingsDato: LocalDate,
-        utbetalingsDatoIsBlank: Boolean,
+        utbetalingsDato: LocalDate?,
         vedtaksDato: LocalDate,
     ): ErrorMessages? =
         when {
-            utbetalingsDatoIsBlank -> null
+            utbetalingsDato == null -> null
             utbetalingsDato.isEqual(errorDate) -> ErrorMessages.UTBETALINGSDATO_WRONG_FORMAT
             utbetalingsDato.isBefore(vedtaksDato) -> null
             utbetalingsDato.isEqual(vedtaksDato) || utbetalingsDato.isAfter(vedtaksDato) -> ErrorMessages.UTBETALINGSDATO_IS_NOT_BEFORE_VEDTAKSDATO

@@ -84,14 +84,14 @@ internal class FileParserTest :
             linjerUtenTilleggsfrist.size shouldBe 95
         }
 
-        test("Tom utbetalingsdato skal oversettes til errorDate og markeres som blank") {
+        test("Tom utbetalingsdato skal oversettes til null") {
             val result =
                 FileParser(
                     getFileContent("krav/TomUtbetalingsdato.txt"),
                 ).parseResult.shouldBeInstanceOf<ParseResult.Success>()
 
-            result.kravLinjer.first().utbetalDato shouldBe LineValidator.errorDate
-            result.kravLinjer.first().utbetalDatoIsBlank shouldBe true
+            result.kravLinjer.first().utbetalDato shouldBe null
+            result.kravLinjer.first().utbetalDato shouldBe null
         }
 
         test("Ugyldig utbetalingsdato skal gi linjevalideringsfeil") {
@@ -100,7 +100,7 @@ internal class FileParserTest :
             val result = FileParser(content).parseResult.shouldBeInstanceOf<ParseResult.Success>()
 
             result.kravLinjer.first().utbetalDato shouldBe LineValidator.errorDate
-            result.kravLinjer.first().utbetalDatoIsBlank shouldBe false
+            result.kravLinjer.first().utbetalDato shouldBe LineValidator.errorDate
             val validationResult = LineValidator().validate(result.kravLinjer.first()).shouldBeInstanceOf<ValidationResult.Error>()
 
             validationResult.errors.first().description shouldBe

@@ -138,6 +138,20 @@ internal class CreateRequestsTest :
                 }
             }
 
+            When("tilleggsfrist er null og utbetalDato er blank") {
+                val kravTable =
+                    kravTableMockk(
+                        tilleggsfristParam = null,
+                        utbetalDatoParam = null,
+                    )
+                Then("Skal foreldelsesFristensUtgangspunkt være null") {
+                    createOpprettKravRequest(kravTable).run {
+                        foreldelsesFristensUtgangspunkt shouldBe null
+                        tilleggsfrist shouldBe null
+                    }
+                }
+            }
+
             When("tilleggsfrist er null og utbetalDato er lik vedtaksDato") {
                 val vedtaksDato = LocalDate.of(2022, 5, 10)
                 val kravTable =
@@ -245,7 +259,7 @@ internal class CreateRequestsTest :
                         foreldelsesFristensUtgangspunkt shouldBe null
                         tilleggsfrist shouldBe kravTable.tilleggsfrist.toKotlinLocalDate()
                     } else {
-                        foreldelsesFristensUtgangspunkt shouldBe kravTable.utbetalDato.toKotlinLocalDate()
+                        foreldelsesFristensUtgangspunkt shouldBe kravTable.utbetalDato?.toKotlinLocalDate()
                         tilleggsfrist shouldBe null
                     }
 
@@ -406,7 +420,7 @@ fun kravTableMockk(
     periodeFomParam: String = "20010101",
     periodeTomParam: String = "20020202",
     vedtaksDatoParam: LocalDate = LocalDate.of(2022, 5, 10),
-    utbetalDatoParam: LocalDate = LocalDate.of(2022, 3, 1),
+    utbetalDatoParam: LocalDate? = LocalDate.of(2022, 3, 1),
     tilleggsfristParam: LocalDate? = null,
     fagsystemIdParam: String = "TEST-123",
     saksnummerNavParam: String = "SAK-456",

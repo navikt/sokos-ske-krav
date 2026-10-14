@@ -55,7 +55,7 @@ class LeitEtterKravTemplateTest :
                         kodeArsak = "A1",
                         belopRente = 10.25,
                         fremtidigYtelse = 20.75,
-                        utbetalDato = LocalDate.parse("2026-03-01"),
+                        utbetalDato = null,
                         fagsystemId = "FSID-1",
                         status = Status.KRAV_IKKE_SENDT,
                         kravtype = "NYTT",
@@ -137,13 +137,16 @@ class LeitEtterKravTemplateTest :
                 html shouldContain "<dd>A1</dd>"
                 html shouldContain "<dd>10.25</dd>"
                 html shouldContain "<dd>20.75</dd>"
-                html shouldContain "<dd>2026-03-01</dd>"
                 html shouldContain "<dd>FSID-1</dd>"
                 html shouldContain "<dd>KRAV_IKKE_SENDT</dd>"
                 html shouldContain "<dd>NYTT</dd>"
                 html shouldContain "<dd>corr-123</dd>"
                 html shouldContain "<dd>2026-08-29T12:30:45</dd>"
                 html shouldContain "<dd>OS</dd>"
+            }
+
+            Then("Skal rendre blank utbetalingsdato uten tekstverdien null") {
+                """<dt>Utbetalingsdato</dt>\s*<dd></dd>""".toRegex().containsMatchIn(html) shouldBe true
             }
         }
     })

@@ -37,8 +37,8 @@ fun createOpprettKravRequest(krav: Krav) =
                 null
             } else {
                 krav.utbetalDato
-                    .toKotlinLocalDate()
-                    .takeIf {
+                    ?.toKotlinLocalDate()
+                    ?.takeIf {
                         it != LineValidator.errorDate.toKotlinLocalDate() &&
                             it != krav.vedtaksDato.toKotlinLocalDate() &&
                             it < krav.vedtaksDato.toKotlinLocalDate()

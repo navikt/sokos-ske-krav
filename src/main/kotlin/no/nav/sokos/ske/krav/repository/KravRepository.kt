@@ -44,7 +44,7 @@ class KravRepository(
             kodeArsak = row.string("kode_arsak"),
             belopRente = row.double("belop_rente"),
             fremtidigYtelse = row.double("fremtidig_ytelse"),
-            utbetalDato = row.localDate("utbetaldato"),
+            utbetalDato = row.localDateOrNull("utbetaldato"),
             fagsystemId = row.string("fagsystem_id"),
             status = row.string("status").toStatus(),
             kravtype = row.string("kravtype"),

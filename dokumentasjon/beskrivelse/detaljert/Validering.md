@@ -35,7 +35,7 @@ Filvalidering kjøres på hele filen umiddelbart etter nedlasting fra SFTP. File
 
 Linjevalidering kjøres på hver enkelt kravlinje etter at filvalideringen er godkjent. Valideringsreglene speiler SKEs synkrone valideringsregler (se [SKE sin dokumentasjon](https://skatteetaten.github.io/api-dokumentasjon/api/innkrevingsoppdrag?tab=Feilkoder)).
 
-En spesialverdi brukes som sentinel-dato for feilformaterte datoer: `21240101` (år 2124). Alle datoer som ikke lar seg parse returneres som denne verdien for å gi meningsfylte feilmeldinger fremfor unntak.
+En spesialverdi brukes som sentinel-dato for feilformaterte, ikke-blanke datoer: `21240101` (år 2124). Dette gir meningsfylte feilmeldinger fremfor unntak.
 
 ### 2.1 Vedtaksdato
 
@@ -52,9 +52,11 @@ Feltet tilsvarer `foreldelsesfristensUtgangspunkt` hos SKE.
 
 | Regel | Betingelse | Feilmelding |
 |---|---|---|
-| Tom dato | Tom dato aksepteres for alle avsendere og oversettes til sentinel-datoen `21240101` internt | – |
+| Tom dato | Tom dato aksepteres for alle avsendere og representeres som `null` internt | – |
 | Ugyldig format | Når feltet ikke er tomt, må datoen være en gyldig kalenderdato på formatet `yyyyMMdd` | `"Utbetalingsdato er feil formattert i fil"` |
 | Før vedtaksdato | `utbetalingsdato < vedtaksdato` | `"Utbetalingsdato må være tidligere enn vedtaksdato"` |
+
+En blank dato gjenkjennes direkte som `utbetalDato == null`. Feilformaterte, ikke-blanke datoer representeres fortsatt med sentinel-datoen `21240101`. Den blanke verdien lagres som `NULL` i `krav.utbetaldato`; kolonnen er allerede nullable og krever ingen Flyway-migrering.
 
 ### 2.3 Periode (FOM og TOM)
 
