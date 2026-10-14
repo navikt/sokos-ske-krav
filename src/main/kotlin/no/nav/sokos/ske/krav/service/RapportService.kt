@@ -1,6 +1,9 @@
 package no.nav.sokos.ske.krav.service
 
+import java.time.format.DateTimeFormatter
 import javax.sql.DataSource
+
+import kotlin.String
 
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.domain.Krav
@@ -53,9 +56,14 @@ class RapportService(
                     it.periodeFOM,
                     it.periodeTOM,
                     getFeilmeldinger(it),
-                    with(it.tidspunktSisteStatus) {
-                        "$dayOfMonth/$monthValue/$year, $hour:$minute"
-                    },
+                    it.tidspunktSisteStatus.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
+                    it.kravidentifikatorSKE,
+                    it.kravtype,
+                    it.belopRente,
+                    it.utbetalDato?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) ?: "",
+                    it.tilleggsfrist?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) ?: "",
+                    it.fremtidigYtelse,
+                    it.gjelderId,
                 )
             }.distinctBy { it.kravID }
 
@@ -87,6 +95,13 @@ class RapportService(
         val periodeTOM: String,
         val feilmeldinger: List<String>,
         val tidspunktSisteStatus: String,
+        val kravidentifikatorSKE: String,
+        val kravtype: String,
+        val belopRente: Double,
+        val utbetaltDato: String,
+        val tilleggsfrist: String,
+        val fremtidigYtelse: Double,
+        val gjelderId: String,
     ) {
         companion object {
             val csvBuilder = CsvBuilder
@@ -109,6 +124,13 @@ class RapportService(
                     "Periode Tom",
                     "Feilmelding",
                     "Tidspunkt siste status",
+                    "Kravidentifikator SKE",
+                    "Kravtype",
+                    "Rentebeløp",
+                    "Utbetalingsdato",
+                    "Tilleggsfrist",
+                    "Fremtidig ytelse",
+                    "Gjelder-ID",
                 )
 
             object CsvBuilder {
@@ -135,6 +157,13 @@ class RapportService(
                                     it.periodeTOM.escapeCsvField(),
                                     it.feilmeldinger.joinToString(";").escapeCsvField(),
                                     it.tidspunktSisteStatus.escapeCsvField(),
+                                    it.kravidentifikatorSKE.escapeCsvField(),
+                                    it.kravtype.escapeCsvField(),
+                                    it.belopRente.toString().escapeCsvField(),
+                                    it.utbetaltDato.escapeCsvField(),
+                                    it.tilleggsfrist.escapeCsvField(),
+                                    it.fremtidigYtelse.toString().escapeCsvField(),
+                                    it.gjelderId.escapeCsvField(),
                                 )
                             appendLine(fields.joinToString(","))
                         }

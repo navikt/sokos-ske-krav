@@ -107,6 +107,13 @@ class AvstemmingPart : Template<FlowContent> {
                         }
                     }
                     td { +it.tidspunktSisteStatus }
+                    td { +it.kravidentifikatorSKE }
+                    td { +it.kravtype }
+                    td { +it.belopRente.toString() }
+                    td { +it.utbetaltDato }
+                    td { +it.tilleggsfrist }
+                    td { +it.fremtidigYtelse.toString() }
+                    td { +it.gjelderId }
                     td { resendKravForm(it.kravID, resendURL, resendBtnTitle) }
 
                     // TODO: Rapporter valideringsfeil
