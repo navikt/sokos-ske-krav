@@ -20,11 +20,9 @@ import io.mockk.coJustRun
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
-import kotliquery.TransactionalSession
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.client.SlackClient
-import no.nav.sokos.ske.krav.copybook.KravLinje
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
@@ -113,6 +111,7 @@ private val filValideringsfeilRepositoryMock = mockk<FilValideringsfeilRepositor
 private val feilmeldingRepositoryMock =
     mockk<FeilmeldingRepository> {
         justRun { insertFeilmelding(any(), any()) }
+        every { hasForeldelsesfristError(any<String>()) } returns false
     }
 
 private val kravRepositoryMock =
@@ -120,7 +119,7 @@ private val kravRepositoryMock =
         every { getAllUnsentKrav() } returns emptyList()
         every { getAllKravForResending() } returns emptyList()
         every { getSkeKravidentifikator(any<String>()) } returns "foo"
-        justRun { insertAllNewKrav(any<TransactionalSession>(), any<List<KravLinje>>(), "filnavn.txt") }
+        justRun { saveValidatedFile(any(), any(), any(), any(), any()) }
     }
 
 fun setupSkeServiceMock(

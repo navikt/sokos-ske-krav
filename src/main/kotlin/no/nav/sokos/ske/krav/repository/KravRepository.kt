@@ -11,6 +11,7 @@ import kotliquery.queryOf
 import no.nav.sokos.ske.krav.config.LOCAL_ZONE_ID
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.toStatus
@@ -367,10 +368,26 @@ class KravRepository(
         session: TransactionalSession,
         kravLinjer: List<KravLinje>,
         filnavn: String,
+        oppryddingsReferanser: Set<String> = emptySet(),
     ) {
         val params = mutableListOf<Map<String, Any?>>()
+
+        // Oppryddings-stopp fra OS skal ikke lagres
         kravLinjer.forEach { kravLinje ->
+            if (
+                kravLinje.isStopp() &&
+                kravLinje.avsender.trim() == Avsender.OB04.name &&
+                kravLinje.referansenummerGammelSak in oppryddingsReferanser
+            ) {
+                return@forEach
+            }
+
             when {
+                // Oppryddingsendringer skal aldri behandles som ordinære endringer.
+                kravLinje.isEndring() && kravLinje.referansenummerGammelSak in oppryddingsReferanser -> {
+                    params.add(insertKravNamesParams(kravLinje, NYTT_KRAV, filnavn))
+                }
+
                 kravLinje.isStopp() -> {
                     params.add(insertKravNamesParams(kravLinje, STOPP_KRAV, filnavn))
                 }
@@ -390,6 +407,19 @@ class KravRepository(
             insertKravQuery,
             params,
         )
+    }
+
+    fun saveValidatedFile(
+        kravLinjer: List<KravLinje>,
+        filnavn: String,
+        invalidKrav: List<Pair<KravLinje, String>>,
+        filValideringsfeilRepository: FilValideringsfeilRepository,
+        oppryddingsReferanser: Set<String>,
+    ) {
+        dataSource.transaction { session ->
+            insertAllNewKrav(session, kravLinjer, filnavn, oppryddingsReferanser)
+            filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filnavn, invalidKrav)
+        }
     }
 
     fun deleteOldKrav(

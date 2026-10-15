@@ -11,6 +11,7 @@ import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.copybook.FileParser
 import no.nav.sokos.ske.krav.copybook.ParseResult
+import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dataSource
@@ -234,6 +235,56 @@ internal class RepositoryTestKrav :
 
             lagredeKrav.shouldHaveSize(1)
             lagredeKrav.first().utbetalDato shouldBe null
+        }
+
+        test("insertAllNewKrav skal lagre oppryddingsendring som nytt krav og ignorere oppryddingsstopp") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+
+            val filnavn = "TiNyeKrav1Endring1Stopp.txt"
+            val kravlinjer = (FileParser(getFileContent("krav/$filnavn")).parseResult as ParseResult.Success).kravLinjer
+            val oppryddingsEndring = kravlinjer.first { it.isEndring() }
+            val oppryddingsStopp = kravlinjer.first { it.isStopp() }
+
+            dataSource.transaction { session ->
+                val oppryddingsReferanser = setOf(oppryddingsEndring.referansenummerGammelSak, oppryddingsStopp.referansenummerGammelSak)
+
+                kravRepository.insertAllNewKrav(
+                    session,
+                    kravlinjer,
+                    filnavn,
+                    oppryddingsReferanser,
+                )
+
+                val lagredeKrav = kravRepository.getAllKrav(session)
+                lagredeKrav.shouldHaveSize(kravlinjer.size - 1)
+                lagredeKrav.filter { it.kravtype == NYTT_KRAV }.shouldHaveSize(9)
+                lagredeKrav.filter { it.kravtype == ENDRING_RENTE || it.kravtype == ENDRING_HOVEDSTOL }.shouldHaveSize(0)
+                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(0)
+                lagredeKrav.none { it.saksnummerNAV == oppryddingsStopp.saksnummerNav } shouldBe true
+                lagredeKrav.single { it.saksnummerNAV == oppryddingsEndring.saksnummerNav }.kravtype shouldBe NYTT_KRAV
+            }
+        }
+
+        test("insertAllNewKrav skal lagre oppryddingsstopp fra andre avsendere enn OS") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+
+            val filnavn = "TiNyeKrav1Endring1Stopp.txt"
+            val kravlinjer = (FileParser(getFileContent("krav/$filnavn")).parseResult as ParseResult.Success).kravLinjer
+            val stoppKrav = kravlinjer.first { it.isStopp() }
+            val kravlinjerFraArena = kravlinjer.map { if (it == stoppKrav) it.copy(avsender = Avsender.ARENA.name) else it }
+
+            dataSource.transaction { session ->
+                val oppryddingsReferanser = setOf(stoppKrav.referansenummerGammelSak)
+
+                kravRepository.insertAllNewKrav(session, kravlinjerFraArena, filnavn, oppryddingsReferanser)
+
+                val lagredeKrav = kravRepository.getAllKrav(session)
+                lagredeKrav.shouldHaveSize(kravlinjer.size + 1)
+                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(1)
+                lagredeKrav.single { it.saksnummerNAV == stoppKrav.saksnummerNav }.avsender shouldBe Avsender.ARENA.name
+            }
         }
 
         test("deleteOldKrav skal slette alle kravene som ble opprettet før en spesifisert tid") {

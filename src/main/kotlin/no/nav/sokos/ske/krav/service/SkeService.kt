@@ -128,7 +128,7 @@ class SkeService(
         }
     }
 
-    private suspend fun processFile(file: FtpFil) {
+    private fun processFile(file: FtpFil) {
         logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
 
         val validatedLines = LineValidator().validateNewLines(file.kravLinjer)
@@ -291,10 +291,19 @@ class SkeService(
             haltRun = true
         }
 
-        dataSource.transaction { session ->
-            kravRepository.insertAllNewKrav(session, allKrav, filename)
-            filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
+        val oppryddingsReferanser =
+            allKrav
+                .asSequence()
+                .filter { it.isEndring() || it.isStopp() }
+                .map { it.referansenummerGammelSak }
+                .filter { it.isNotBlank() }
+                .filter { feilmeldingRepository.hasForeldelsesfristError(it) }
+                .toSet()
+
+        if (oppryddingsReferanser.isNotEmpty()) {
+            logger.info("Behandler ${oppryddingsReferanser.size} oppryddingsreferanse(r) fra $filename")
         }
+        kravRepository.saveValidatedFile(allKrav, filename, invalidKrav, filValideringsfeilRepository, oppryddingsReferanser)
     }
 
     private fun handleError(

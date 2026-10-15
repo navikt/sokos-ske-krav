@@ -44,6 +44,16 @@ internal class RepositoryTestFeilmelding :
             feilmelding3.first().corrId shouldBe "CORR457389"
         }
 
+        test("hasForeldelsesfristError skal kun returnere true for saksnummer med korrekt feilmelding") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+
+            feilmeldingRepository.hasForeldelsesfristError("2222-navsaksnr") shouldBe true
+            feilmeldingRepository.hasForeldelsesfristError("OB040000520015") shouldBe true
+            feilmeldingRepository.hasForeldelsesfristError("8888-navsaksnr") shouldBe false
+            feilmeldingRepository.hasForeldelsesfristError("ukjent-navsaksnummer") shouldBe false
+        }
+
         test("insertFeilmelding skal lagre én feilmelding") {
             DBListener.clearDB()
 

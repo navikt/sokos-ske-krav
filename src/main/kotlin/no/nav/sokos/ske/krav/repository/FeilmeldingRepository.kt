@@ -15,6 +15,29 @@ import no.nav.sokos.ske.krav.util.transaction
 class FeilmeldingRepository(
     private val dataSource: DataSource = PostgresDataSource.dataSource,
 ) {
+    fun hasForeldelsesfristError(saksnummerNav: String): Boolean =
+        dataSource.transaction { session ->
+            session.single(
+                queryOf(
+                    // language=SQL
+                    """
+                    select exists(
+                        select 1
+                        from feilmelding
+                        where saksnummer_nav = :saksnummerNav
+                          and melding like :melding
+                    ) as exists
+                    """.trimIndent(),
+                    mapOf(
+                        "saksnummerNav" to saksnummerNav,
+                        "melding" to "%$FORELDELSESFRIST_ERROR_MESSAGE%",
+                    ),
+                ),
+            ) { row ->
+                row.boolean("exists")
+            } ?: false
+        }
+
     val mapToFeilmelding: (Row) -> Feilmelding = { row ->
         Feilmelding(
             feilmeldingId = row.long("id"),
@@ -145,6 +168,8 @@ class FeilmeldingRepository(
         )
 
     companion object {
+        const val FORELDELSESFRIST_ERROR_MESSAGE = "foreldelsesfristensUtgangspunkt kan ikke være mer enn 2 år og 10 måneder tilbake i tid."
+
         val instance: FeilmeldingRepository by lazy { FeilmeldingRepository() }
     }
 }

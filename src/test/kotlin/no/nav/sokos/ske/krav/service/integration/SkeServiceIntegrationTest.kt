@@ -34,6 +34,8 @@ import no.nav.sokos.ske.krav.client.SlackClient
 import no.nav.sokos.ske.krav.config.CircuitBreakerException
 import no.nav.sokos.ske.krav.config.CircuitBreakerManager.circuitBreaker
 import no.nav.sokos.ske.krav.config.SftpConfig
+import no.nav.sokos.ske.krav.copybook.FileParser
+import no.nav.sokos.ske.krav.copybook.ParseResult
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.Status.HTTP403_INGEN_TILGANG
 import no.nav.sokos.ske.krav.domain.Status.KRAV_SENDT
@@ -53,6 +55,7 @@ import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.service.SkeService
 import no.nav.sokos.ske.krav.service.SlackService
+import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.getAllValideringsFeil
 import no.nav.sokos.ske.krav.util.http.Endpoint
@@ -518,6 +521,75 @@ internal class SkeServiceIntegrationTest :
                     get(ENDRING_HOVEDSTOL)?.shouldHaveSize(2)
                     get(NYTT_KRAV)?.shouldHaveSize(97)
                 }
+            }
+        }
+
+        Given("EN ENDRING er et oppryddingskrav etter foreldelsesfristfeil") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+            val fileName = "TestEndringMedAvstemmingAvKravident.txt"
+            val kravLinjer = (FileParser(getFileContent("krav/$fileName")).parseResult as ParseResult.Success).kravLinjer
+            val endring = kravLinjer.first { it.isEndring() }
+            SftpListener.putFiles(listOf("krav/$fileName"), Directories.INBOUND)
+
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    MockHttpClient.client(
+                        MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK),
+                        MockResponse(Endpoint.ENDRE_RENTER, nyEndringResponse(), HttpStatusCode.OK),
+                        MockResponse(Endpoint.ENDRE_HOVEDSTOL, nyEndringResponse(), HttpStatusCode.OK),
+                        MockResponse(Endpoint.AVSTEMMING, avstemmingResponse(), HttpStatusCode.OK),
+                    ),
+                    ftpService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
+
+            Then("skal ENDRING lagres og sendes som nytt krav") {
+                skeService.handleNewKrav(1.milliseconds)
+
+                val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
+                lagredeKrav.shouldHaveSize(13)
+                lagredeKrav.single { it.saksnummerNAV == endring.saksnummerNav }.apply {
+                    kravtype shouldBe NYTT_KRAV
+                    status shouldBe KRAV_SENDT
+                }
+                lagredeKrav.filter { it.saksnummerNAV == "8889-navsaksnr" }.apply {
+                    shouldHaveSize(2)
+                    count { it.kravtype == ENDRING_HOVEDSTOL } shouldBe 1
+                    count { it.kravtype == ENDRING_RENTE } shouldBe 1
+                }
+            }
+        }
+
+        Given("EN ENDRING og STOPP i en gyldig fixed-record-fil er oppryddingskrav") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+            val fileName = "OppryddingEndringOgStopp.txt"
+            SftpListener.putFiles(listOf("krav/$fileName"), Directories.INBOUND)
+
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    MockHttpClient.client(MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK)),
+                    ftpService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
+
+            Then("skal validere filen, lagre ENDRING som nytt krav, ignorere STOPP og bare sende opprett-kall") {
+                skeService.handleNewKrav(1.milliseconds)
+
+                val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
+                lagredeKrav.shouldHaveSize(9)
+                lagredeKrav.forAll {
+                    it.kravtype shouldBe NYTT_KRAV
+                    it.status shouldBe KRAV_SENDT
+                }
+                lagredeKrav.none { it.saksnummerNAV == "OB040000520015" } shouldBe true
+                lagredeKrav.single { it.saksnummerNAV == "OB040000595067" }.kravtype shouldBe NYTT_KRAV
+                ftpService.listFiles(Directories.OUTBOUND).contains(fileName) shouldBe true
             }
         }
 
