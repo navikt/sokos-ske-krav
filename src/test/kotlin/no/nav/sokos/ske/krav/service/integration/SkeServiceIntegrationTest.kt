@@ -593,6 +593,46 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
+        Given("EN oppryddingsendring er sendt med SKE-kravidentifikator") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+            val recoveryFileName = "OppryddingEndringOgStopp.txt"
+            val followUpFileName = "OppfolgingEtterOpprydding.txt"
+            SftpListener.putFile("krav/$recoveryFileName", Directories.INBOUND)
+
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    MockHttpClient.client(
+                        MockResponse(Endpoint.OPPRETT, nyttKravResponse("opprydding-ske-identifikator"), HttpStatusCode.OK),
+                        MockResponse(Endpoint.ENDRE_RENTER, nyEndringResponse(), HttpStatusCode.OK),
+                        MockResponse(Endpoint.ENDRE_HOVEDSTOL, nyEndringResponse(), HttpStatusCode.OK),
+                        MockResponse(Endpoint.AVSKRIVING, avskrivKravResponse(), HttpStatusCode.OK),
+                    ),
+                    ftpService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
+
+            When("en senere ENDRING og STOPP refererer til det gjenopprettede kravet") {
+                skeService.handleNewKrav(1.milliseconds)
+                SftpListener.putFile("krav/$followUpFileName", Directories.INBOUND)
+                skeService.handleNewKrav(1.milliseconds)
+
+                Then("skal ENDRING behandles som ordinære endringer og STOPP lagres og sendes") {
+                    val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
+                    val senereEndring = lagredeKrav.filter { it.saksnummerNAV == "OB040000599998" }
+                    val senereStopp = lagredeKrav.single { it.saksnummerNAV == "OB040000599999" }
+
+                    senereEndring.shouldHaveSize(2)
+                    senereEndring.map { it.kravtype }.toSet() shouldBe setOf(ENDRING_HOVEDSTOL, ENDRING_RENTE)
+                    senereEndring.forAll { it.status shouldBe KRAV_SENDT }
+                    senereStopp.kravtype shouldBe STOPP_KRAV
+                    senereStopp.status shouldBe KRAV_SENDT
+                }
+            }
+        }
+
         Given("Response fra SKE er OK") {
             DBListener.clearDB()
             DBListener.loadInitScripts(

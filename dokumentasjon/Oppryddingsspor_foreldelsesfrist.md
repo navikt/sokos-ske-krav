@@ -23,11 +23,9 @@ flowchart TD
     A[Gyldig kravlinje fra fil] --> B{Normal type?}
     B -->|NYTT_KRAV| N[Lagre som NYTT_KRAV]
     B -->|ENDRING eller STOPP| C[Les referansenummerGammelSak]
-    C --> D{Finnes feilmelding med samme saksnummer_nav?}
-    D -->|Nei| E[Normal klassifisering]
-    D -->|Ja| F{Melding inneholder foreldelsesfrist-teksten?}
-    F -->|Nei| E
-    F -->|Ja| G{Innkommende type?}
+    C --> D{Finnes uløst foreldelsesfrist-feil med samme saksnummer_nav?}
+    D -->|Nei eller tidligere opprydding er sendt| E[Normal klassifisering]
+    D -->|Ja| G{Innkommende type?}
     G -->|ENDRING| H[Lagre én rad som NYTT_KRAV]
     G -->|STOPP fra OB04| I[Ignorer linjen]
     G -->|STOPP fra annen avsender| K
@@ -53,7 +51,7 @@ sequenceDiagram
     participant SKE as SKE API
 
     OS->>SkeService: ENDRING eller STOPP med referansenummerGammelSak
-    SkeService->>DB: FeilmeldingRepository: søk feilmelding på saksnummer_nav og meldingsfragment
+    SkeService->>DB: FeilmeldingRepository: søk uløst feilmelding på saksnummer_nav og meldingsfragment
     alt Treff: ENDRING
         DB-->>SkeService: Foreldelsesfrist-feil funnet
         SkeService->>DB: Lagre som NYTT_KRAV
@@ -74,7 +72,7 @@ sequenceDiagram
 
 ## Avgrensning og oppslagsregel
 
-Ved innlesing beregner `SkeService` oppryddingsreferansene for linjer som normalt klassifiseres som `ENDRING` eller `STOPP`. For hver slik linje brukes `referansenummerGammelSak` som oppslag mot `feilmelding.saksnummer_nav` via `FeilmeldingRepository`.
+Ved innlesing samler `SkeService` først distinkte `referansenummerGammelSak` for linjer som normalt klassifiseres som `ENDRING` eller `STOPP`. Referansene slås deretter opp samlet mot `feilmelding.saksnummer_nav` via `FeilmeldingRepository`. Dette gir ett databaseoppslag per fil i stedet for ett oppslag per linje.
 
 Linjen går i oppryddingssporet bare når det finnes en historisk feilmelding hvor `melding` inneholder:
 
@@ -82,19 +80,21 @@ Linjen går i oppryddingssporet bare når det finnes en historisk feilmelding hv
 foreldelsesfristensUtgangspunkt kan ikke være mer enn 2 år og 10 måneder tilbake i tid.
 ```
 
+En slik feilmelding regnes som **løst** når et relatert krav har fått en ikke-blank SKE-kravidentifikator etter vellykket opprettelse. Et krav er relatert når det enten har samme `saksnummer_nav` som feilmeldingen, eller har dette saksnummeret som `referansenummerGammelSak`. Løste feilmeldinger beholdes for historikk og rapportering, men brukes ikke videre til å klassifisere nye linjer som opprydding. Dermed følger senere reelle `ENDRING`- og `STOPP`-linjer ordinær flyt.
+
 ## Effekt
 
-| Innkommende type | Treff i historisk feilmelding | Resultat |
+| Innkommende type | Treff i uløst historisk feilmelding | Resultat |
 | --- | --- | --- |
 | ENDRING | Ja | Én rad med `kravtype = NYTT_KRAV`; sendes via opprett-krav-endepunktet. |
 | STOPP fra `OB04` | Ja | Ignoreres; ingen database-rad og ingen utsending til SKE. |
 | STOPP fra annen avsender | Ja | Lagres og sendes som ordinær `STOPP_KRAV`. |
-| ENDRING eller STOPP | Nei | Normal flyt er uendret. |
+| ENDRING eller STOPP | Nei, eller tidligere opprydding er løst | Normal flyt er uendret. |
 | NYTT_KRAV | Ikke vurdert | Normal flyt er uendret. |
 
 ## Observability og drift
 
-`SkeService` beregner oppryddingsreferansene ved å bruke `FeilmeldingRepository`. `KravRepository` bruker deretter det ferdige settet når krav og linjevalideringsfeil lagres i én transaksjon. Det skrives kun aggregert ordinær logg uten saksnummer eller andre personopplysninger. En ignorert oppryddings-`STOPP` fra `OB04` er derfor ikke synlig som krav, feilmelding eller SKE-kall; dette er forventet oppførsel.
+`SkeService` beregner oppryddingsreferansene ved å bruke `FeilmeldingRepository`. `KravRepository` bruker deretter det ferdige settet når krav og linjevalideringsfeil lagres i én transaksjon. Oppslaget støttes av indeksen `idx_feilmelding_saksnummer_nav`. Det skrives kun aggregert ordinær logg uten saksnummer eller andre personopplysninger. En ignorert oppryddings-`STOPP` fra `OB04` er derfor ikke synlig som krav, feilmelding eller SKE-kall; dette er forventet oppførsel.
 
 Sporet er avgrenset til det eksakte meldingsfragmentet over. Hvis SKE endrer feilmeldingsteksten, vil kravene følge ordinær flyt til oppslagsregelen oppdateres.
 
@@ -110,3 +110,5 @@ Testene verifiserer:
 - STOPP fra andre avsendere som lagres som ordinær `STOPP_KRAV`
 - SFTP-innlesing og utsending av oppryddings-ENDRING via opprett-krav-ruten
 - at øvrige ENDRING-er i samme fil fortsatt bruker ordinær endringsrute
+- at en tidligere foreldelsesfrist-feil ikke lenger utløser oppryddingssporet etter vellykket opprettelse med SKE-kravidentifikator
+- at en senere `ENDRING` da lagres som `ENDRING_HOVEDSTOL` og `ENDRING_RENTE`, og at en senere `STOPP` lagres og sendes som `STOPP_KRAV`

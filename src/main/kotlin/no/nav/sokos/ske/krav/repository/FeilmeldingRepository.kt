@@ -27,9 +27,15 @@ class FeilmeldingRepository(
                         // language=SQL
                         """
                         select distinct saksnummer_nav
-                        from feilmelding
-                        where saksnummer_nav in ($placeholders)
-                          and melding like ?
+                        from feilmelding f
+                        where f.saksnummer_nav in ($placeholders)
+                          and f.melding like ?
+                          and not exists (
+                              select 1
+                              from krav k
+                              where (k.saksnummer_nav = f.saksnummer_nav or k.referansenummergammelsak = f.saksnummer_nav)
+                                and nullif(k.kravidentifikator_ske, '') is not null
+                          )
                         """.trimIndent(),
                         *saksnumreNav.toTypedArray(),
                         "%$FORELDELSESFRIST_ERROR_MESSAGE%",
