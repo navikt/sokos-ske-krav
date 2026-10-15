@@ -37,6 +37,13 @@ class ResendingPart : Template<FlowContent> {
                     td { +it.kodeHjemmel }
                     td { +it.status.value }
                     td { +it.tidspunktSisteStatus }
+                    td { +it.kravidentifikatorSKE }
+                    td { +it.kravtype }
+                    td { +it.belopRente.toString() }
+                    td { +it.utbetaltDato }
+                    td { +it.tilleggsfrist }
+                    td { +it.fremtidigYtelse.toString() }
+                    td { +it.gjelderId }
                 }
             }
         }
