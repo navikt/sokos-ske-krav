@@ -54,6 +54,19 @@ internal class RepositoryTestFeilmelding :
             feilmeldingRepository.hasForeldelsesfristError("ukjent-navsaksnummer") shouldBe false
         }
 
+        test("getSaksnumreWithForeldelsesfristError skal returnere bare saksnummer med korrekt feilmelding") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+
+            feilmeldingRepository.getSaksnumreWithForeldelsesfristError(
+                setOf("2222-navsaksnr", "OB040000520015", "8888-navsaksnr", "ukjent-navsaksnummer"),
+            ) shouldBe setOf("2222-navsaksnr", "OB040000520015")
+        }
+
+        test("getSaksnumreWithForeldelsesfristError skal returnere tomt sett uten databaseoppslag for tomt input") {
+            feilmeldingRepository.getSaksnumreWithForeldelsesfristError(emptySet()) shouldBe emptySet()
+        }
+
         test("insertFeilmelding skal lagre én feilmelding") {
             DBListener.clearDB()
 

@@ -111,7 +111,7 @@ private val filValideringsfeilRepositoryMock = mockk<FilValideringsfeilRepositor
 private val feilmeldingRepositoryMock =
     mockk<FeilmeldingRepository> {
         justRun { insertFeilmelding(any(), any()) }
-        every { hasForeldelsesfristError(any<String>()) } returns false
+        every { getSaksnumreWithForeldelsesfristError(any()) } returns emptySet()
     }
 
 private val kravRepositoryMock =

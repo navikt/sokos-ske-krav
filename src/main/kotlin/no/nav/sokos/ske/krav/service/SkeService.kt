@@ -297,13 +297,21 @@ class SkeService(
                 .filter { it.isEndring() || it.isStopp() }
                 .map { it.referansenummerGammelSak }
                 .filter { it.isNotBlank() }
-                .filter { feilmeldingRepository.hasForeldelsesfristError(it) }
                 .toSet()
 
-        if (oppryddingsReferanser.isNotEmpty()) {
-            logger.info("Behandler ${oppryddingsReferanser.size} oppryddingsreferanse(r) fra $filename")
+        val oppryddingsReferanserWithForeldelsesfristError =
+            feilmeldingRepository.getSaksnumreWithForeldelsesfristError(oppryddingsReferanser)
+
+        if (oppryddingsReferanserWithForeldelsesfristError.isNotEmpty()) {
+            logger.info("Behandler ${oppryddingsReferanserWithForeldelsesfristError.size} oppryddingsreferanse(r) fra $filename")
         }
-        kravRepository.saveValidatedFile(allKrav, filename, invalidKrav, filValideringsfeilRepository, oppryddingsReferanser)
+        kravRepository.saveValidatedFile(
+            allKrav,
+            filename,
+            invalidKrav,
+            filValideringsfeilRepository,
+            oppryddingsReferanserWithForeldelsesfristError,
+        )
     }
 
     private fun handleError(

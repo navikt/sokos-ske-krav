@@ -15,28 +15,32 @@ import no.nav.sokos.ske.krav.util.transaction
 class FeilmeldingRepository(
     private val dataSource: DataSource = PostgresDataSource.dataSource,
 ) {
-    fun hasForeldelsesfristError(saksnummerNav: String): Boolean =
-        dataSource.transaction { session ->
-            session.single(
-                queryOf(
-                    // language=SQL
-                    """
-                    select exists(
-                        select 1
+    fun getSaksnumreWithForeldelsesfristError(saksnumreNav: Set<String>): Set<String> {
+        if (saksnumreNav.isEmpty()) return emptySet()
+
+        val placeholders = saksnumreNav.joinToString(", ") { "?" }
+
+        return dataSource.transaction { session ->
+            session
+                .list(
+                    queryOf(
+                        // language=SQL
+                        """
+                        select distinct saksnummer_nav
                         from feilmelding
-                        where saksnummer_nav = :saksnummerNav
-                          and melding like :melding
-                    ) as exists
-                    """.trimIndent(),
-                    mapOf(
-                        "saksnummerNav" to saksnummerNav,
-                        "melding" to "%$FORELDELSESFRIST_ERROR_MESSAGE%",
+                        where saksnummer_nav in ($placeholders)
+                          and melding like ?
+                        """.trimIndent(),
+                        *saksnumreNav.toTypedArray(),
+                        "%$FORELDELSESFRIST_ERROR_MESSAGE%",
                     ),
-                ),
-            ) { row ->
-                row.boolean("exists")
-            } ?: false
+                ) { row ->
+                    row.string("saksnummer_nav")
+                }.toSet()
         }
+    }
+
+    fun hasForeldelsesfristError(saksnummerNav: String): Boolean = saksnummerNav in getSaksnumreWithForeldelsesfristError(setOf(saksnummerNav))
 
     val mapToFeilmelding: (Row) -> Feilmelding = { row ->
         Feilmelding(
