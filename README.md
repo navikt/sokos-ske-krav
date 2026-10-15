@@ -39,6 +39,9 @@ For å kjøre applikasjonen må du gjøre følgende:
      ```                                
   Denne vil opprette [defaults.properties](defaults.properties) med alle environment variabler du trenger for å kjøre
   applikasjonen som er definert i [PropertiesConfig](src/main/kotlin/no/nav/sokos/ske/krav/config/PropertiesConfig.kt).
+     ```
+    ./gradlew run
+    ```
 
 # 3. Dokumentasjon
 
