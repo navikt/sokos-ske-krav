@@ -44,6 +44,64 @@ internal class RepositoryTestFeilmelding :
             feilmelding3.first().corrId shouldBe "CORR457389"
         }
 
+        // Oppryddingssporet må ikke trigges av andre 422-feil. Testen avgrenser det til det
+        // eksakte foreldelsesfrist-feilmeldingsfragmentet og dekker både treff og ikke-treff.
+        test("hasForeldelsesfristError skal kun returnere true for saksnummer med korrekt feilmelding") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+
+            feilmeldingRepository.hasForeldelsesfristError("2222-navsaksnr") shouldBe true
+            feilmeldingRepository.hasForeldelsesfristError("OB040000520015") shouldBe true
+            feilmeldingRepository.hasForeldelsesfristError("8888-navsaksnr") shouldBe false
+            feilmeldingRepository.hasForeldelsesfristError("ukjent-navsaksnummer") shouldBe false
+        }
+
+        // Batch-oppslaget brukes ved filinnlesing. Det må bare returnere referanser som kan
+        // klassifiseres som opprydding, selv når input inneholder andre og ukjente saker.
+        test("getSaksnumreWithForeldelsesfristError skal returnere bare saksnummer med korrekt feilmelding") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+
+            feilmeldingRepository.getSaksnumreWithForeldelsesfristError(
+                setOf("2222-navsaksnr", "OB040000520015", "8888-navsaksnr", "ukjent-navsaksnummer"),
+            ) shouldBe setOf("2222-navsaksnr", "OB040000520015")
+        }
+
+        // Filer uten endring eller stopp skal ikke utløse et unødvendig databaseoppslag.
+        test("getSaksnumreWithForeldelsesfristError skal returnere tomt sett uten databaseoppslag for tomt input") {
+            feilmeldingRepository.getSaksnumreWithForeldelsesfristError(emptySet()) shouldBe emptySet()
+        }
+
+        // Etter vellykket recovery må den historiske feilen anses som løst, slik at senere
+        // oppfølging følger ordinær endrings- og stopprute fremfor et nytt oppryddingsløp.
+        test("getSaksnumreWithForeldelsesfristError skal ekskludere saksnummer med vellykket oppryddingskrav") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+
+            dataSource.transaction { session ->
+                session.update(
+                    queryOf(
+                        """
+                        insert into krav (
+                            filnavn, linjenummer, saksnummer_nav, kravidentifikator_ske, belop, vedtaksdato,
+                            gjelder_id, periode_fom, periode_tom, kravkode, referansenummergammelsak,
+                            transaksjonsdato, enhet_bosted, enhet_behandlende, kode_hjemmel, kode_arsak,
+                            belop_rente, fremtidig_ytelse, fagsystem_id, status, kravtype, corr_id
+                        ) values (
+                            'opprydding.txt', 1, 'OB040000599998', 'opprettet-ske-identifikator', 100.00, current_date,
+                            '12345678901', '20230101', '20230131', 'PE AP', 'OB040000595067',
+                            '20230526', '4803', '4819', 'T', '', 0.00, 0.00, 'fagsystem', 'KRAV_SENDT', 'NYTT_KRAV', 'opprydding-corr-id'
+                        )
+                        """.trimIndent(),
+                    ),
+                )
+            }
+
+            feilmeldingRepository.getSaksnumreWithForeldelsesfristError(
+                setOf("OB040000595067", "OB040000520015"),
+            ) shouldBe setOf("OB040000520015")
+        }
+
         test("insertFeilmelding skal lagre én feilmelding") {
             DBListener.clearDB()
 

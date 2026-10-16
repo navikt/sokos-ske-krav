@@ -521,6 +521,204 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
+        // Dette er grunnscenariet for oppryddingssporet: en korrigering etter en
+        // foreldelsesfrist-feil må opprettes på nytt, uten å endre øvrige ordinære endringer i filen.
+        Given("EN ENDRING er et oppryddingskrav etter foreldelsesfristfeil") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+            val fileName = "TestEndringMedAvstemmingAvKravident.txt"
+            SftpListener.putFiles(listOf("krav/$fileName"), Directories.INBOUND)
+
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    MockHttpClient.client(
+                        MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK),
+                        MockResponse(Endpoint.ENDRE_RENTER, nyEndringResponse(), HttpStatusCode.OK),
+                        MockResponse(Endpoint.ENDRE_HOVEDSTOL, nyEndringResponse(), HttpStatusCode.OK),
+                        MockResponse(Endpoint.AVSTEMMING, avstemmingResponse(), HttpStatusCode.OK),
+                    ),
+                    ftpService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
+
+            Then("skal ENDRING lagres og sendes som nytt krav") {
+                skeService.handleNewKrav(1.milliseconds)
+
+                val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
+                lagredeKrav.shouldHaveSize(13)
+                lagredeKrav.single { it.saksnummerNAV == "OB040000595067" }.apply {
+                    kravtype shouldBe NYTT_KRAV
+                    status shouldBe KRAV_SENDT
+                }
+                lagredeKrav.filter { it.saksnummerNAV == "8889-navsaksnr" }.apply {
+                    shouldHaveSize(2)
+                    count { it.kravtype == ENDRING_HOVEDSTOL } shouldBe 1
+                    count { it.kravtype == ENDRING_RENTE } shouldBe 1
+                }
+            }
+        }
+
+        // Testen dekker kombinasjonen som kan gi dobbelt gjeldsgrunnlag: recovery-ENDRING skal
+        // sendes som opprettelse, mens den matchende OS-STOPP-en ikke skal lagres eller sendes.
+        Given("EN ENDRING og STOPP i en gyldig fixed-record-fil er oppryddingskrav") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+            val fileName = "OppryddingEndringOgStopp.txt"
+            SftpListener.putFiles(listOf("krav/$fileName"), Directories.INBOUND)
+
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    MockHttpClient.client(MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK)),
+                    ftpService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
+
+            Then("skal validere filen, lagre ENDRING som nytt krav, ignorere STOPP og bare sende opprett-kall") {
+                skeService.handleNewKrav(1.milliseconds)
+
+                val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
+                lagredeKrav.shouldHaveSize(9)
+                lagredeKrav.forAll {
+                    it.kravtype shouldBe NYTT_KRAV
+                    it.status shouldBe KRAV_SENDT
+                }
+                lagredeKrav.none { it.saksnummerNAV == "OB040000520015" } shouldBe true
+                lagredeKrav.single { it.saksnummerNAV == "OB040000595067" }.kravtype shouldBe NYTT_KRAV
+                ftpService.listFiles(Directories.OUTBOUND).contains(fileName) shouldBe true
+            }
+        }
+
+        // Når recovery allerede er opprettet, skal senere oppfølging bruke vanlig endrings-
+        // og stopprute. Den må ikke bli stående i PENDING_* etter at avhengigheten er løst.
+        Given("EN oppryddingsendring er sendt med SKE-kravidentifikator") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+            val recoveryFileName = "OppryddingEndringOgStopp.txt"
+            val followUpFileName = "OppfolgingEtterOpprydding.txt"
+            SftpListener.putFile("krav/$recoveryFileName", Directories.INBOUND)
+
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    MockHttpClient.client(
+                        MockResponse(Endpoint.OPPRETT, nyttKravResponse("opprydding-ske-identifikator"), HttpStatusCode.OK),
+                        MockResponse(Endpoint.ENDRE_RENTER, nyEndringResponse(), HttpStatusCode.OK),
+                        MockResponse(Endpoint.ENDRE_HOVEDSTOL, nyEndringResponse(), HttpStatusCode.OK),
+                        MockResponse(Endpoint.AVSKRIVING, avskrivKravResponse(), HttpStatusCode.OK),
+                    ),
+                    ftpService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
+
+            When("en senere ENDRING og STOPP refererer til det gjenopprettede kravet") {
+                skeService.handleNewKrav(1.milliseconds)
+                SftpListener.putFile("krav/$followUpFileName", Directories.INBOUND)
+                skeService.handleNewKrav(1.milliseconds)
+
+                Then("skal ENDRING behandles som ordinære endringer og STOPP lagres og sendes") {
+                    val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
+                    val senereEndring = lagredeKrav.filter { it.saksnummerNAV == "OB040000599998" }
+                    val senereStopp = lagredeKrav.single { it.saksnummerNAV == "OB040000599999" }
+
+                    senereEndring.shouldHaveSize(2)
+                    senereEndring.map { it.kravtype }.toSet() shouldBe setOf(ENDRING_HOVEDSTOL, ENDRING_RENTE)
+                    senereEndring.forAll { it.status shouldBe KRAV_SENDT }
+                    senereStopp.kravtype shouldBe STOPP_KRAV
+                    senereStopp.status shouldBe KRAV_SENDT
+                }
+            }
+        }
+
+        // SFTP leverer filer alfabetisk, som kan plassere oppfølgingen før recovery-filen.
+        // Tjenesten må derfor prioritere recovery og sende den før den klassifiserer oppfølgingen.
+        Given("en oppryddingsendring og oppfølgingen dens leses i samme pollingrunde") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+            val recoveryFileName = "OppryddingEndringOgStopp.txt"
+            val followUpFileName = "OppfolgingEtterOpprydding.txt"
+            SftpListener.putFiles(listOf("krav/$recoveryFileName", "krav/$followUpFileName"), Directories.INBOUND)
+
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    MockHttpClient.client(
+                        MockResponse(Endpoint.OPPRETT, nyttKravResponse("opprydding-ske-identifikator"), HttpStatusCode.OK),
+                        MockResponse(Endpoint.ENDRE_RENTER, nyEndringResponse(), HttpStatusCode.OK),
+                        MockResponse(Endpoint.ENDRE_HOVEDSTOL, nyEndringResponse(), HttpStatusCode.OK),
+                        MockResponse(Endpoint.AVSKRIVING, avskrivKravResponse(), HttpStatusCode.OK),
+                    ),
+                    ftpService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
+
+            Then("skal opprette gjenopprettingen før oppfølgingen behandles som endring og stopp") {
+                skeService.handleNewKrav(1.milliseconds)
+
+                val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
+                val senereEndring = lagredeKrav.filter { it.saksnummerNAV == "OB040000599998" }
+                val senereStopp = lagredeKrav.single { it.saksnummerNAV == "OB040000599999" }
+
+                senereEndring.shouldHaveSize(2)
+                senereEndring.map { it.kravtype }.toSet() shouldBe setOf(ENDRING_HOVEDSTOL, ENDRING_RENTE)
+                senereEndring.forAll { it.status shouldBe KRAV_SENDT }
+                senereStopp.kravtype shouldBe STOPP_KRAV
+                senereStopp.status shouldBe KRAV_SENDT
+            }
+        }
+
+        // Uten SKE-identifikator kan ikke oppfølgingskrav sendes trygt. De skal likevel tas inn
+        // og flyttes ut av SFTP-inbound, men lagres som PENDING_* for manuell frigivelse senere.
+        Given("en oppryddingsendring ikke får SKE-kravidentifikator") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+            val recoveryFileName = "OppryddingEndringOgStopp.txt"
+            val followUpFileName = "OppfolgingEtterOpprydding.txt"
+            SftpListener.putFiles(listOf("krav/$recoveryFileName", "krav/$followUpFileName"), Directories.INBOUND)
+            val pendingRecoverySlackClient = mockk<SlackClient>(relaxed = true)
+            val pendingRecoverySlackService = SlackService(pendingRecoverySlackClient)
+
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    MockHttpClient.client(MockResponse(Endpoint.OPPRETT, genericFeilResponse(), HttpStatusCode.UnprocessableEntity)),
+                    ftpService,
+                    slackService = pendingRecoverySlackService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
+
+            Then("skal avhengig oppfølging lagres som pending og flyttes til outbound") {
+                skeService.handleNewKrav(1.milliseconds)
+
+                val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
+                lagredeKrav.filter { it.saksnummerNAV == "OB040000599998" }.apply {
+                    shouldHaveSize(2)
+                    map { it.status }.toSet() shouldBe setOf(Status.PENDING_ENDRING_HOVEDSTOL, Status.PENDING_ENDRING_RENTE)
+                }
+                lagredeKrav.single { it.saksnummerNAV == "OB040000599999" }.status shouldBe Status.PENDING_STOPP
+                ftpService.listFiles(Directories.OUTBOUND).contains(followUpFileName) shouldBe true
+            }
+
+            // Varslet er nødvendig fordi pending-rader ellers bare er synlige i rapportgrensesnittet.
+            // Verifikasjonen går helt til SlackClient for å sikre faktisk utsending, ikke bare kølegging.
+            And("skal sende Slack-varsel om krav som avventer manuell frigivelse") {
+                coVerify {
+                    pendingRecoverySlackClient.sendMessage(
+                        ErrorCategory.AVHENGIG_OPPRYDDINGSKRAV,
+                        followUpFileName,
+                        any<ExtraTags>(),
+                        any<List<ErrorDetails>>(),
+                    )
+                }
+            }
+        }
+
         Given("Response fra SKE er OK") {
             DBListener.clearDB()
             DBListener.loadInitScripts(

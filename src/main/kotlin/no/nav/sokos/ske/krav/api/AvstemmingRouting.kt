@@ -81,6 +81,27 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
             }
             get("/") { call.respondRedirect("/rapporter/resending") }
         }
+        route("pending-recovery") {
+            get {
+                call.respondHtmlTemplate(RapportPage(RapportType.PENDING_RECOVERY, call)) {
+                    title { +"Avventende oppryddingskrav" }
+                    pendingRecoveryContent { }
+                }
+            }
+            post("/release") {
+                val id = call.receiveParameters()["kravid"]?.toIntOrNull()
+                if (id != null) {
+                    // Endringen logges med innlogget bruker fordi frigivelse sender kravet inn i
+                    // den ordinære resend-køen og derfor er en operativ, sporbar beslutning.
+                    val innloggetBruker = call.principal<io.ktor.server.auth.jwt.JWTPrincipal>()?.get("preferred_username")
+                    logger.info(marker = TEAM_LOGS_MARKER) { "$innloggetBruker frigir avventende oppryddingskrav: $id" }
+                    logger.info { "Frigir avventende oppryddingskrav: $id" }
+                    rapportService.releasePendingKrav(id)
+                }
+                call.respondRedirect("/rapporter/pending-recovery")
+            }
+            get("/") { call.respondRedirect("/rapporter/pending-recovery") }
+        }
     }
     route("/krav") {
         get("") {

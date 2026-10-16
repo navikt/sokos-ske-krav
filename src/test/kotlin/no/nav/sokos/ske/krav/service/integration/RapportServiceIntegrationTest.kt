@@ -2,14 +2,18 @@ package no.nav.sokos.ske.krav.service.integration
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
+import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
+import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService
+import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.util.getAllKrav
 import no.nav.sokos.ske.krav.util.transaction
 
@@ -41,6 +45,31 @@ internal class RapportServiceIntegrationTest :
 
             dataSource.transaction { session ->
                 kravRepository.getAllKrav(session).first { it.kravId == 1L }.status shouldBe Status.KRAV_IKKE_SENDT
+            }
+        }
+
+        // Frigivelse fra rapportgrensesnittet skal bare gjøre kravet sendbart igjen.
+        // Kravtypen må bevares slik at eksisterende resend-logikk velger riktig SKE-endepunkt.
+        test("releasePendingKrav skal frigjøre pending endring og stopp til korrekt kravtype") {
+            dataSource.transaction { session ->
+                session.execute(queryOf("update krav set status = ?, kravtype = ? where id = ?", Status.PENDING_ENDRING_HOVEDSTOL.value, ENDRING_HOVEDSTOL, 1))
+                session.execute(queryOf("update krav set status = ?, kravtype = ? where id = ?", Status.PENDING_ENDRING_RENTE.value, ENDRING_RENTE, 2))
+                session.execute(queryOf("update krav set status = ?, kravtype = ? where id = ?", Status.PENDING_STOPP.value, STOPP_KRAV, 3))
+            }
+            val rapportService = RapportService(dataSource, feilmeldingRepository, kravRepository)
+
+            rapportService.releasePendingKrav(1)
+            rapportService.releasePendingKrav(2)
+            rapportService.releasePendingKrav(3)
+
+            dataSource.transaction { session ->
+                val krav = kravRepository.getAllKrav(session)
+                krav.first { it.kravId == 1L }.status shouldBe Status.KRAV_IKKE_SENDT
+                krav.first { it.kravId == 2L }.status shouldBe Status.KRAV_IKKE_SENDT
+                krav.first { it.kravId == 3L }.status shouldBe Status.KRAV_IKKE_SENDT
+                krav.first { it.kravId == 1L }.kravtype shouldBe ENDRING_HOVEDSTOL
+                krav.first { it.kravId == 2L }.kravtype shouldBe ENDRING_RENTE
+                krav.first { it.kravId == 3L }.kravtype shouldBe STOPP_KRAV
             }
         }
     })

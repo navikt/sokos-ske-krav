@@ -11,6 +11,7 @@ import kotliquery.queryOf
 import no.nav.sokos.ske.krav.config.LOCAL_ZONE_ID
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.toStatus
@@ -99,6 +100,43 @@ class KravRepository(
                 extractor = mapToKrav,
             )
         }
+
+    fun getAllPendingRecoveryKrav(): List<Krav> =
+        dataSource.transaction { session ->
+            session.list(
+                queryOf(
+                    """select * from krav where status in (?, ?, ?) order by tidspunkt_opprettet""",
+                    Status.PENDING_ENDRING_HOVEDSTOL.value,
+                    Status.PENDING_ENDRING_RENTE.value,
+                    Status.PENDING_STOPP.value,
+                ),
+                extractor = mapToKrav,
+            )
+        }
+
+    // En tidligere recovery uten identifikator betyr at SKE ikke kan motta avhengige endringer
+    // eller stopp ennå. Oppslag mot den lagrede raden skiller dette fra en recovery i samme fil.
+    fun getUnresolvedRecoveryReferences(references: Set<String>): Set<String> {
+        if (references.isEmpty()) return emptySet()
+
+        val placeholders = references.joinToString(", ") { "?" }
+        return dataSource.transaction { session ->
+            session
+                .list(
+                    queryOf(
+                        """
+                        select distinct saksnummer_nav from krav
+                        where saksnummer_nav in ($placeholders)
+                        and kravtype = ?
+                        and nullif(kravidentifikator_ske, '') is null
+                        """.trimIndent(),
+                        *references.toTypedArray(),
+                        NYTT_KRAV,
+                    ),
+                ) { row -> row.string("saksnummer_nav") }
+                .toSet()
+        }
+    }
 
     fun getAllKravForAvstemming(): List<Krav> =
         dataSource.transaction { session ->
@@ -279,6 +317,31 @@ class KravRepository(
         )
     }
 
+    fun releasePendingKrav(
+        session: TransactionalSession,
+        kravId: Int,
+    ) {
+        // Kravtypen er allerede riktig. Frigivelse endrer derfor kun status til den vanlige
+        // sendekøen, slik at eksisterende resend-logikk velger korrekt SKE-endepunkt.
+        session.update(
+            queryOf(
+                """
+                update krav
+                    set status = :status,
+                    tidspunkt_siste_status = now()
+                where id = :id and status in (:pending_hovedstol, :pending_rente, :pending_stopp)
+                """.trimIndent(),
+                mapOf(
+                    "id" to kravId,
+                    "status" to Status.KRAV_IKKE_SENDT.value,
+                    "pending_hovedstol" to Status.PENDING_ENDRING_HOVEDSTOL.value,
+                    "pending_rente" to Status.PENDING_ENDRING_RENTE.value,
+                    "pending_stopp" to Status.PENDING_STOPP.value,
+                ),
+            ),
+        )
+    }
+
     fun updateEndringWithSkeKravIdentifikator(
         session: TransactionalSession,
         saksnummerNav: String,
@@ -367,10 +430,40 @@ class KravRepository(
         session: TransactionalSession,
         kravLinjer: List<KravLinje>,
         filnavn: String,
+        oppryddingsReferanser: Set<String> = emptySet(),
+        pendingRecoveryReferences: Set<String> = emptySet(),
     ) {
         val params = mutableListOf<Map<String, Any?>>()
+
+        // OS sender STOPP sammen med selve recovery-filen. Den skal ikke sendes til SKE, men en
+        // STOPP fra en senere avhengig fil beholdes som PENDING_STOPP for operatørvurdering.
         kravLinjer.forEach { kravLinje ->
+            if (
+                kravLinje.isStopp() &&
+                kravLinje.avsender.trim() == Avsender.OB04.name &&
+                kravLinje.referansenummerGammelSak in oppryddingsReferanser &&
+                kravLinje.referansenummerGammelSak !in pendingRecoveryReferences
+            ) {
+                return@forEach
+            }
+
             when {
+                // Avhengige operasjoner lagres, men må ikke sendes før recovery har fått en SKE-id
+                // og en operatør har frigitt dem fra rapportgrensesnittet.
+                kravLinje.isEndring() && kravLinje.referansenummerGammelSak in pendingRecoveryReferences -> {
+                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.PENDING_ENDRING_HOVEDSTOL.value), ENDRING_HOVEDSTOL, filnavn))
+                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.PENDING_ENDRING_RENTE.value), ENDRING_RENTE, filnavn))
+                }
+
+                kravLinje.isStopp() && kravLinje.referansenummerGammelSak in pendingRecoveryReferences -> {
+                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.PENDING_STOPP.value), STOPP_KRAV, filnavn))
+                }
+
+                // Oppryddingsendringer skal aldri behandles som ordinære endringer.
+                kravLinje.isEndring() && kravLinje.referansenummerGammelSak in oppryddingsReferanser -> {
+                    params.add(insertKravNamesParams(kravLinje, NYTT_KRAV, filnavn))
+                }
+
                 kravLinje.isStopp() -> {
                     params.add(insertKravNamesParams(kravLinje, STOPP_KRAV, filnavn))
                 }
@@ -390,6 +483,22 @@ class KravRepository(
             insertKravQuery,
             params,
         )
+    }
+
+    fun saveValidatedFile(
+        kravLinjer: List<KravLinje>,
+        filnavn: String,
+        invalidKrav: List<Pair<KravLinje, String>>,
+        filValideringsfeilRepository: FilValideringsfeilRepository,
+        oppryddingsReferanser: Set<String>,
+        pendingRecoveryReferences: Set<String> = emptySet(),
+    ) {
+        // Krav og linjevalideringsfeil må lagres i samme transaksjon for at en flyttet SFTP-fil
+        // aldri skal etterlate en halvferdig database-registrering.
+        dataSource.transaction { session ->
+            insertAllNewKrav(session, kravLinjer, filnavn, oppryddingsReferanser, pendingRecoveryReferences)
+            filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filnavn, invalidKrav)
+        }
     }
 
     fun deleteOldKrav(
