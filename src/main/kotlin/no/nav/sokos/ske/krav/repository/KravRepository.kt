@@ -100,6 +100,24 @@ class KravRepository(
             )
         }
 
+    fun getAllUnsentEndringerAndStopp(fileName: String): List<Krav> =
+        dataSource.transaction { session ->
+            session.list(
+                queryOf(
+                    // language=SQL
+                    """select * from krav where status = :kravStatus and kravtype in(:rente, :hovedstol, :stopp) and filnavn = :fileName""",
+                    mapOf(
+                        "kravStatus" to Status.KRAV_IKKE_SENDT.value,
+                        "rente" to ENDRING_RENTE,
+                        "hovedstol" to ENDRING_HOVEDSTOL,
+                        "stopp" to STOPP_KRAV,
+                        "fileName" to fileName,
+                    ),
+                ),
+                extractor = mapToKrav,
+            )
+        }
+
     fun getAllKravForAvstemming(): List<Krav> =
         dataSource.transaction { session ->
             session.list(
@@ -144,6 +162,31 @@ class KravRepository(
                     Status.KRAV_IKKE_SENDT.value,
                 ),
                 extractor = mapToKrav,
+            )
+        }
+
+    fun getAllUnsentKrav(fileName: String): List<Krav> =
+        dataSource.transaction { session ->
+            session.list(
+                queryOf(
+                    // language=SQL
+                    """select * from krav where status = ? and filnavn = ? order by tidspunkt_opprettet asc""",
+                    Status.KRAV_IKKE_SENDT.value,
+                    fileName,
+                ),
+                extractor = mapToKrav,
+            )
+        }
+
+    fun getUnsentFileNamesSortedOnReceptionTime(): List<String> =
+        dataSource.transaction { session ->
+            session.list(
+                queryOf(
+                    // language=SQL
+                    """select filnavn, min(tidspunkt_opprettet) from krav where status = ? group by filnavn order by 2""",
+                    Status.KRAV_IKKE_SENDT.value,
+                ),
+                extractor = { row -> row.string("filnavn") },
             )
         }
 
