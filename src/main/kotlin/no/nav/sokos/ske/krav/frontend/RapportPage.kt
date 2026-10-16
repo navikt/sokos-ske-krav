@@ -28,6 +28,7 @@ class RapportPage(
     val title = Placeholder<FlowContent>()
     val avstemmingContent = TemplatePlaceholder<AvstemmingPart>()
     val resendingContent = TemplatePlaceholder<ResendingPart>()
+    val pendingRecoveryContent = TemplatePlaceholder<PendingRecoveryPart>()
 
     override fun HTML.apply() {
         head {
@@ -55,6 +56,7 @@ class RapportPage(
                 when (type) {
                     RapportType.AVSTEMMING -> insert(AvstemmingPart(), avstemmingContent)
                     RapportType.RESENDING -> insert(ResendingPart(), resendingContent)
+                    RapportType.PENDING_RECOVERY -> insert(PendingRecoveryPart(), pendingRecoveryContent)
                 }
             }
         }

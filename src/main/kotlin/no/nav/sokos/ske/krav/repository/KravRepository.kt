@@ -101,6 +101,41 @@ class KravRepository(
             )
         }
 
+    fun getAllPendingRecoveryKrav(): List<Krav> =
+        dataSource.transaction { session ->
+            session.list(
+                queryOf(
+                    """select * from krav where status in (?, ?, ?) order by tidspunkt_opprettet""",
+                    Status.PENDING_ENDRING_HOVEDSTOL.value,
+                    Status.PENDING_ENDRING_RENTE.value,
+                    Status.PENDING_STOPP.value,
+                ),
+                extractor = mapToKrav,
+            )
+        }
+
+    fun getUnresolvedRecoveryReferences(references: Set<String>): Set<String> {
+        if (references.isEmpty()) return emptySet()
+
+        val placeholders = references.joinToString(", ") { "?" }
+        return dataSource.transaction { session ->
+            session
+                .list(
+                    queryOf(
+                        """
+                        select distinct saksnummer_nav from krav
+                        where saksnummer_nav in ($placeholders)
+                        and kravtype = ?
+                        and nullif(kravidentifikator_ske, '') is null
+                        """.trimIndent(),
+                        *references.toTypedArray(),
+                        NYTT_KRAV,
+                    ),
+                ) { row -> row.string("saksnummer_nav") }
+                .toSet()
+        }
+    }
+
     fun getAllKravForAvstemming(): List<Krav> =
         dataSource.transaction { session ->
             session.list(
@@ -280,6 +315,29 @@ class KravRepository(
         )
     }
 
+    fun releasePendingKrav(
+        session: TransactionalSession,
+        kravId: Int,
+    ) {
+        session.update(
+            queryOf(
+                """
+                update krav
+                    set status = :status,
+                    tidspunkt_siste_status = now()
+                where id = :id and status in (:pending_hovedstol, :pending_rente, :pending_stopp)
+                """.trimIndent(),
+                mapOf(
+                    "id" to kravId,
+                    "status" to Status.KRAV_IKKE_SENDT.value,
+                    "pending_hovedstol" to Status.PENDING_ENDRING_HOVEDSTOL.value,
+                    "pending_rente" to Status.PENDING_ENDRING_RENTE.value,
+                    "pending_stopp" to Status.PENDING_STOPP.value,
+                ),
+            ),
+        )
+    }
+
     fun updateEndringWithSkeKravIdentifikator(
         session: TransactionalSession,
         saksnummerNav: String,
@@ -369,6 +427,7 @@ class KravRepository(
         kravLinjer: List<KravLinje>,
         filnavn: String,
         oppryddingsReferanser: Set<String> = emptySet(),
+        pendingRecoveryReferences: Set<String> = emptySet(),
     ) {
         val params = mutableListOf<Map<String, Any?>>()
 
@@ -377,12 +436,22 @@ class KravRepository(
             if (
                 kravLinje.isStopp() &&
                 kravLinje.avsender.trim() == Avsender.OB04.name &&
-                kravLinje.referansenummerGammelSak in oppryddingsReferanser
+                kravLinje.referansenummerGammelSak in oppryddingsReferanser &&
+                kravLinje.referansenummerGammelSak !in pendingRecoveryReferences
             ) {
                 return@forEach
             }
 
             when {
+                kravLinje.isEndring() && kravLinje.referansenummerGammelSak in pendingRecoveryReferences -> {
+                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.PENDING_ENDRING_HOVEDSTOL.value), ENDRING_HOVEDSTOL, filnavn))
+                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.PENDING_ENDRING_RENTE.value), ENDRING_RENTE, filnavn))
+                }
+
+                kravLinje.isStopp() && kravLinje.referansenummerGammelSak in pendingRecoveryReferences -> {
+                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.PENDING_STOPP.value), STOPP_KRAV, filnavn))
+                }
+
                 // Oppryddingsendringer skal aldri behandles som ordinære endringer.
                 kravLinje.isEndring() && kravLinje.referansenummerGammelSak in oppryddingsReferanser -> {
                     params.add(insertKravNamesParams(kravLinje, NYTT_KRAV, filnavn))
@@ -415,9 +484,10 @@ class KravRepository(
         invalidKrav: List<Pair<KravLinje, String>>,
         filValideringsfeilRepository: FilValideringsfeilRepository,
         oppryddingsReferanser: Set<String>,
+        pendingRecoveryReferences: Set<String> = emptySet(),
     ) {
         dataSource.transaction { session ->
-            insertAllNewKrav(session, kravLinjer, filnavn, oppryddingsReferanser)
+            insertAllNewKrav(session, kravLinjer, filnavn, oppryddingsReferanser, pendingRecoveryReferences)
             filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filnavn, invalidKrav)
         }
     }

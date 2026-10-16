@@ -19,7 +19,7 @@ import no.nav.sokos.ske.krav.util.transaction
 annotation class Frontend
 
 @Frontend
-enum class RapportType { AVSTEMMING, RESENDING }
+enum class RapportType { AVSTEMMING, RESENDING, PENDING_RECOVERY }
 
 @Frontend
 class RapportService(
@@ -29,10 +29,13 @@ class RapportService(
 ) {
     val kravSomSkalAvstemmes by lazy { mapToRapportObjekt(kravRepository.getAllKravForAvstemming()) }
     val kravSomSkalResendes by lazy { mapToRapportObjekt(kravRepository.getAllKravForResending()) }
+    val pendingRecoveryKrav by lazy { mapToRapportObjekt(kravRepository.getAllPendingRecoveryKrav()) }
 
     fun oppdaterStatusTilRapportert(kravId: Int) = dataSource.transaction { session -> feilmeldingRepository.updateStatusForAvstemtKravToReported(session, kravId) }
 
     fun oppdaterStatusTilIkkeSendt(kravId: Int) = dataSource.transaction { session -> kravRepository.updateStatusTilIkkeSendt(session, kravId) }
+
+    fun releasePendingKrav(kravId: Int) = dataSource.transaction { session -> kravRepository.releasePendingKrav(session, kravId) }
 
     fun finnKrav(leiteparameter: String) = dataSource.transaction { session -> kravRepository.finnKrav(session, leiteparameter) }
 

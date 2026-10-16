@@ -34,6 +34,7 @@ import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.decodeTo
 import no.nav.sokos.ske.krav.util.defineStatus
 import no.nav.sokos.ske.krav.util.transaction
+import no.nav.sokos.ske.krav.validation.ErrorCategory.AVHENGIG_OPPRYDDINGSKRAV
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_FRA_SKE
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_LINJEVALIDERING
 import no.nav.sokos.ske.krav.validation.ErrorKeys.UKJENT_FEIL
@@ -112,21 +113,28 @@ class SkeService(
             return
         }
 
-        files.forEach { file ->
+        files.sortedByDescending(::isPendingRecoveryFile).forEach { file ->
             processFile(file)
-        }
 
-        if (files.isNotEmpty()) {
             if (unleashConfig.isSendKravEnabled()) {
                 val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"))
-                logger.info("*** Starter sending av ${files.size} $filtekst $datetime***")
+                logger.info("*** Starter sending av filen ${file.name} $datetime***")
 
                 updateSkeKravidentifikatorForEndringerAndStopp()
                 sendKrav(kravRepository.getAllUnsentKrav()).also(::logResult)
-                logger.info { "*** Ferdig med sending av ${files.size} $filtekst ***" }
+                logger.info { "*** Ferdig med sending av filen ${file.name} ***" }
             }
         }
     }
+
+    private fun recoveryReferences(file: FtpFil): List<String> =
+        file.kravLinjer
+            .asSequence()
+            .filter { it.isEndring() && it.saksnummerNav == it.referansenummerGammelSak }
+            .map { it.referansenummerGammelSak }
+            .toList()
+
+    private fun isPendingRecoveryFile(file: FtpFil): Boolean = feilmeldingRepository.getSaksnumreWithForeldelsesfristError(recoveryReferences(file).toSet()).isNotEmpty()
 
     private fun processFile(file: FtpFil) {
         logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
@@ -302,6 +310,24 @@ class SkeService(
         val oppryddingsReferanserWithForeldelsesfristError =
             feilmeldingRepository.getSaksnumreWithForeldelsesfristError(oppryddingsReferanser)
 
+        val pendingReferencesInFile =
+            kravRepository.getUnresolvedRecoveryReferences(oppryddingsReferanserWithForeldelsesfristError)
+
+        if (pendingReferencesInFile.isNotEmpty()) {
+            val pendingKrav = allKrav.filter { it.referansenummerGammelSak in pendingReferencesInFile }
+            slackService.addErrors(
+                filename,
+                AVHENGIG_OPPRYDDINGSKRAV,
+                pendingKrav.map {
+                    ErrorDetails(
+                        header = AVHENGIG_OPPRYDDINGSKRAV.value,
+                        description = "Krav avventer manuell frigivelse etter oppryddingskrav",
+                        caseNumber = it.saksnummerNav,
+                    )
+                },
+            )
+        }
+
         if (oppryddingsReferanserWithForeldelsesfristError.isNotEmpty()) {
             logger.info("Behandler ${oppryddingsReferanserWithForeldelsesfristError.size} oppryddingsreferanse(r) fra $filename")
         }
@@ -311,6 +337,7 @@ class SkeService(
             invalidKrav,
             filValideringsfeilRepository,
             oppryddingsReferanserWithForeldelsesfristError,
+            pendingReferencesInFile,
         )
     }
 

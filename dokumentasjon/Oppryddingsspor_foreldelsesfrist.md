@@ -23,13 +23,14 @@ flowchart TD
     A[Gyldig kravlinje fra fil] --> B{Normal type?}
     B -->|NYTT_KRAV| N[Lagre som NYTT_KRAV]
     B -->|ENDRING eller STOPP| C[Les referansenummerGammelSak]
-    C --> D{Finnes uløst foreldelsesfrist-feil med samme saksnummer_nav?}
-    D -->|Nei eller tidligere opprydding er sendt| E[Normal klassifisering]
+    C --> D{Finnes foreldelsesfrist-feil med samme saksnummer?}
+    D -->|Nei eller tidligere opprydding er sendt| E[Normalt løp]
     D -->|Ja| G{Innkommende type?}
     G -->|ENDRING| H[Lagre én rad som NYTT_KRAV]
-    G -->|STOPP fra OB04| I[Ignorer linjen]
-    G -->|STOPP fra annen avsender| K
-    E -->|ENDRING| J[Lagre ENDRING_HOVEDSTOL og ENDRING_RENTE]
+    G -->|STOPP| M{Avsender?}
+    M -->|OS| I[Ignorer linjen]
+    M -->|Andre| K[Lagre STOPP_KRAV]
+    E -->|ENDRING| J[Lagre ENDRING]
     E -->|STOPP| K[Lagre STOPP_KRAV]
     N --> L[Flytt fil til outbound]
     H --> L
@@ -40,18 +41,22 @@ flowchart TD
 
 Oppslaget gjøres bare for linjer som allerede er klassifisert som `ENDRING` eller `STOPP`. Vanlige nye krav slår ikke opp i `feilmelding` og påvirkes ikke av oppryddingssporet.
 
+Når flere filer er tilgjengelige i samme pollingrunde, finner `SkeService` først alle **pending recoveries**: filer som inneholder en `ENDRING` der `saksnummerNav` er lik `referansenummerGammelSak`, og referansen fortsatt har en uløst foreldelsesfrist-feil. Disse filene prioriteres og sendes før andre filer.
+
+Når en senere fil har en `ENDRING` eller `STOPP` som refererer til en allerede lagret recovery uten SKE-kravidentifikator, lagres den med en avventende status i stedet for å følge ordinær utsending: `PENDING_ENDRING_HOVEDSTOL`, `PENDING_ENDRING_RENTE` eller `PENDING_STOPP`. STOPP i selve recovery-filen følger fortsatt den vanlige OS-regelen og ignoreres. Det opprettes en Slack-alarm, og operatøren kan se og frigjøre hvert krav fra **Avventende opprydding** under `/rapporter`. Frigivelse setter status til `KRAV_IKKE_SENDT`; da sendes kravet i tjenestens vanlige resend-løp.
+
 ## Utsending til SKE
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant OS as OS-fil
+    participant OS as Fil på SFTP
     participant SkeService
     participant DB as PostgreSQL
     participant SKE as SKE API
 
     OS->>SkeService: ENDRING eller STOPP med referansenummerGammelSak
-    SkeService->>DB: FeilmeldingRepository: søk uløst feilmelding på saksnummer_nav og meldingsfragment
+    SkeService->>DB: FeilmeldingRepository: søk etter "foreldelsesfrist" feil med saksnummer_nav og meldingsfragment
     alt Treff: ENDRING
         DB-->>SkeService: Foreldelsesfrist-feil funnet
         SkeService->>DB: Lagre som NYTT_KRAV
@@ -112,3 +117,5 @@ Testene verifiserer:
 - at øvrige ENDRING-er i samme fil fortsatt bruker ordinær endringsrute
 - at en tidligere foreldelsesfrist-feil ikke lenger utløser oppryddingssporet etter vellykket opprettelse med SKE-kravidentifikator
 - at en senere `ENDRING` da lagres som `ENDRING_HOVEDSTOL` og `ENDRING_RENTE`, og at en senere `STOPP` lagres og sendes som `STOPP_KRAV`
+- at gjenoppretting og avhengig oppfølging i samme pollingrunde behandles i riktig rekkefølge
+- at avhengige oppfølgingskrav lagres med `PENDING_*`-status og må frigjøres manuelt

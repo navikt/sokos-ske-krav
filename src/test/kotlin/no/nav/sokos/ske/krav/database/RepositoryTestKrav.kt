@@ -69,6 +69,18 @@ internal class RepositoryTestKrav :
             }
         }
 
+        test("pending recovery-krav skal ikke plukkes opp av ordinær sending eller resend") {
+            dataSource.transaction { session ->
+                session.execute(queryOf("update krav set status = ? where id = ?", Status.PENDING_ENDRING_HOVEDSTOL.value, 1))
+                session.execute(queryOf("update krav set status = ? where id = ?", Status.PENDING_ENDRING_RENTE.value, 2))
+                session.execute(queryOf("update krav set status = ? where id = ?", Status.PENDING_STOPP.value, 3))
+            }
+
+            kravRepository.getAllPendingRecoveryKrav().map { it.kravId }.toSet() shouldBe setOf(1L, 2L, 3L)
+            kravRepository.getAllUnsentKrav().none { it.kravId in setOf(1L, 2L, 3L) } shouldBe true
+            kravRepository.getAllKravForResending().none { it.kravId in setOf(1L, 2L, 3L) } shouldBe true
+        }
+
         test("getAllKravForAvstemming skal returnere alle krav som har en feilmelding med status rapporter=true") {
             DBListener.loadInitScripts("SQLscript/feilmeldinger/Feilmeldinger.sql")
 
