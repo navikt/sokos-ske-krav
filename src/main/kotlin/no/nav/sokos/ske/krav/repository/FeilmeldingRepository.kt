@@ -15,6 +15,8 @@ import no.nav.sokos.ske.krav.util.transaction
 class FeilmeldingRepository(
     private val dataSource: DataSource = PostgresDataSource.dataSource,
 ) {
+    // Bare den spesifikke foreldelsesfrist-feilen skal starte oppryddingssporet. Andre 422-feil
+    // må fortsette i ordinær feilhåndtering selv om de gjelder samme saksnummer.
     fun getSaksnumreWithForeldelsesfristError(saksnumreNav: Set<String>): Set<String> {
         if (saksnumreNav.isEmpty()) return emptySet()
 

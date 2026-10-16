@@ -9,6 +9,8 @@ enum class Status(
 ) {
     KRAV_INNLEST_FRA_FIL("KRAV_INNLEST_FRA_FIL"),
     KRAV_IKKE_SENDT("KRAV_IKKE_SENDT"),
+
+    // Avhengige oppfølgingskrav som må frigjøres manuelt før de kan sendes til SKE.
     PENDING_ENDRING_HOVEDSTOL("PENDING_ENDRING_HOVEDSTOL"),
     PENDING_ENDRING_RENTE("PENDING_ENDRING_RENTE"),
     PENDING_STOPP("PENDING_STOPP"),

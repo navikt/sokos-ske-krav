@@ -69,6 +69,9 @@ internal class RepositoryTestKrav :
             }
         }
 
+        // Pending-krav må være synlige for operatøren, men aldri kunne sendes automatisk
+        // før operatøren eksplisitt frigir dem. Dette hindrer at en avhengig endring eller
+        // stopp sendes med manglende eller feil SKE-kravidentifikator.
         test("pending recovery-krav skal ikke plukkes opp av ordinær sending eller resend") {
             dataSource.transaction { session ->
                 session.execute(queryOf("update krav set status = ? where id = ?", Status.PENDING_ENDRING_HOVEDSTOL.value, 1))
@@ -249,6 +252,8 @@ internal class RepositoryTestKrav :
             lagredeKrav.first().utbetalDato shouldBe null
         }
 
+        // SKE kan ikke endre et krav som ble avvist før opprettelse. Oppryddingsendringen må
+        // derfor lagres som NYTT_KRAV, mens den tilhørende OS-STOPP-en bevisst ikke skal sendes.
         test("insertAllNewKrav skal lagre oppryddingsendring som nytt krav og ignorere oppryddingsstopp") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
@@ -278,6 +283,8 @@ internal class RepositoryTestKrav :
             }
         }
 
+        // OS-unntaket gjelder ikke andre fagsystemer. Denne testen sikrer at en ellers lik
+        // STOPP fra Arena fortsatt lagres, slik at vi ikke mister en legitim kansellering.
         test("insertAllNewKrav skal lagre oppryddingsstopp fra andre avsendere enn OS") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")

@@ -15,6 +15,8 @@ import no.nav.sokos.ske.krav.service.RapportService
 @OptIn(Frontend::class)
 class PendingRecoveryTemplateTest :
     BehaviorSpec({
+        // Operatøren må se både hvorfor kravet er stoppet og en konkret handling for å
+        // frigjøre akkurat den raden. Dette beskytter HTML-kontrakten mellom oversikten og Ktor-ruten.
         Given("et avventende oppryddingskrav") {
             val krav =
                 RapportService.RapportObjekt(

@@ -521,6 +521,8 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
+        // Dette er grunnscenariet for oppryddingssporet: en korrigering etter en
+        // foreldelsesfrist-feil må opprettes på nytt, uten å endre øvrige ordinære endringer i filen.
         Given("EN ENDRING er et oppryddingskrav etter foreldelsesfristfeil") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
@@ -558,6 +560,8 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
+        // Testen dekker kombinasjonen som kan gi dobbelt gjeldsgrunnlag: recovery-ENDRING skal
+        // sendes som opprettelse, mens den matchende OS-STOPP-en ikke skal lagres eller sendes.
         Given("EN ENDRING og STOPP i en gyldig fixed-record-fil er oppryddingskrav") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
@@ -588,6 +592,8 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
+        // Når recovery allerede er opprettet, skal senere oppfølging bruke vanlig endrings-
+        // og stopprute. Den må ikke bli stående i PENDING_* etter at avhengigheten er løst.
         Given("EN oppryddingsendring er sendt med SKE-kravidentifikator") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
@@ -628,6 +634,8 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
+        // SFTP leverer filer alfabetisk, som kan plassere oppfølgingen før recovery-filen.
+        // Tjenesten må derfor prioritere recovery og sende den før den klassifiserer oppfølgingen.
         Given("en oppryddingsendring og oppfølgingen dens leses i samme pollingrunde") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
@@ -664,6 +672,8 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
+        // Uten SKE-identifikator kan ikke oppfølgingskrav sendes trygt. De skal likevel tas inn
+        // og flyttes ut av SFTP-inbound, men lagres som PENDING_* for manuell frigivelse senere.
         Given("en oppryddingsendring ikke får SKE-kravidentifikator") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
@@ -695,6 +705,8 @@ internal class SkeServiceIntegrationTest :
                 ftpService.listFiles(Directories.OUTBOUND).contains(followUpFileName) shouldBe true
             }
 
+            // Varslet er nødvendig fordi pending-rader ellers bare er synlige i rapportgrensesnittet.
+            // Verifikasjonen går helt til SlackClient for å sikre faktisk utsending, ikke bare kølegging.
             And("skal sende Slack-varsel om krav som avventer manuell frigivelse") {
                 coVerify {
                     pendingRecoverySlackClient.sendMessage(

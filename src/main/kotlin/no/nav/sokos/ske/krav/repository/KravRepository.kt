@@ -114,6 +114,8 @@ class KravRepository(
             )
         }
 
+    // En tidligere recovery uten identifikator betyr at SKE ikke kan motta avhengige endringer
+    // eller stopp ennå. Oppslag mot den lagrede raden skiller dette fra en recovery i samme fil.
     fun getUnresolvedRecoveryReferences(references: Set<String>): Set<String> {
         if (references.isEmpty()) return emptySet()
 
@@ -319,6 +321,8 @@ class KravRepository(
         session: TransactionalSession,
         kravId: Int,
     ) {
+        // Kravtypen er allerede riktig. Frigivelse endrer derfor kun status til den vanlige
+        // sendekøen, slik at eksisterende resend-logikk velger korrekt SKE-endepunkt.
         session.update(
             queryOf(
                 """
@@ -431,7 +435,8 @@ class KravRepository(
     ) {
         val params = mutableListOf<Map<String, Any?>>()
 
-        // Oppryddings-stopp fra OS skal ikke lagres
+        // OS sender STOPP sammen med selve recovery-filen. Den skal ikke sendes til SKE, men en
+        // STOPP fra en senere avhengig fil beholdes som PENDING_STOPP for operatørvurdering.
         kravLinjer.forEach { kravLinje ->
             if (
                 kravLinje.isStopp() &&
@@ -443,6 +448,8 @@ class KravRepository(
             }
 
             when {
+                // Avhengige operasjoner lagres, men må ikke sendes før recovery har fått en SKE-id
+                // og en operatør har frigitt dem fra rapportgrensesnittet.
                 kravLinje.isEndring() && kravLinje.referansenummerGammelSak in pendingRecoveryReferences -> {
                     params.add(insertKravNamesParams(kravLinje.copy(status = Status.PENDING_ENDRING_HOVEDSTOL.value), ENDRING_HOVEDSTOL, filnavn))
                     params.add(insertKravNamesParams(kravLinje.copy(status = Status.PENDING_ENDRING_RENTE.value), ENDRING_RENTE, filnavn))
@@ -486,6 +493,8 @@ class KravRepository(
         oppryddingsReferanser: Set<String>,
         pendingRecoveryReferences: Set<String> = emptySet(),
     ) {
+        // Krav og linjevalideringsfeil må lagres i samme transaksjon for at en flyttet SFTP-fil
+        // aldri skal etterlate en halvferdig database-registrering.
         dataSource.transaction { session ->
             insertAllNewKrav(session, kravLinjer, filnavn, oppryddingsReferanser, pendingRecoveryReferences)
             filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filnavn, invalidKrav)

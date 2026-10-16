@@ -15,6 +15,7 @@ import io.ktor.server.html.Template
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService
 
+// Egen oversikt gjør avhengige krav synlige uten å blande dem med automatisk resendbare krav.
 @Frontend
 class PendingRecoveryPart(
     private val data: List<RapportService.RapportObjekt> = RapportService().pendingRecoveryKrav,
@@ -39,6 +40,8 @@ class PendingRecoveryPart(
                     td { +krav.status.value }
                     td { +krav.kravtype }
                     td {
+                        // Hver rad frigjøres separat for å unngå at én godkjent oppfølging også
+                        // sender andre pending-operasjoner på samme sak.
                         form {
                             action = "/rapporter/pending-recovery/release"
                             method = FormMethod.post

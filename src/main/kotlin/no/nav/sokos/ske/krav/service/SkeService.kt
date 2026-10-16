@@ -113,6 +113,8 @@ class SkeService(
             return
         }
 
+        // En recovery må sendes først, ellers kan en alfabetisk tidligere oppfølgingsfil bli
+        // klassifisert mot et krav som fortsatt mangler SKE-identifikator.
         files.sortedByDescending(::isPendingRecoveryFile).forEach { file ->
             processFile(file)
 
@@ -314,6 +316,8 @@ class SkeService(
             kravRepository.getUnresolvedRecoveryReferences(oppryddingsReferanserWithForeldelsesfristError)
 
         if (pendingReferencesInFile.isNotEmpty()) {
+            // Pending-krav flyttes ut av SFTP-inbound, men varsles umiddelbart fordi de ellers
+            // venter på en eksplisitt operatørfrigivelse i rapportgrensesnittet.
             val pendingKrav = allKrav.filter { it.referansenummerGammelSak in pendingReferencesInFile }
             slackService.addErrors(
                 filename,
