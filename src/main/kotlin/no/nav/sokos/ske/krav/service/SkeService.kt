@@ -45,6 +45,7 @@ const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRING_RENTE = "ENDRING_RENTE"
 const val ENDRING_HOVEDSTOL = "ENDRING_HOVEDSTOL"
 const val STOPP_KRAV = "STOPP_KRAV"
+const val IGNORERES = "IGNORERES"
 
 private val logger = mu.KotlinLogging.logger {}
 

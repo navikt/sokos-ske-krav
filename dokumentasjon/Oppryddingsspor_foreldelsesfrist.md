@@ -14,7 +14,7 @@
 
 Vedtaksløsningene kan sende en korrigering som `ENDRING` etter at det opprinnelige kravet ble avvist av SKE fordi `foreldelsesfristensUtgangspunkt` var for langt tilbake i tid. Korrigeringen har tilleggsfrist, men SKE kan ikke endre et krav som aldri ble opprettet. Derfor behandles denne avgrensede kategorien som et nytt krav.
 
-OS (`avsender = OB04`) kan samtidig sende en `STOPP` (nullperiode) for samme sak. Denne OS-stoppen skal ikke lagres eller sendes til SKE. `STOPP` fra andre avsendere følger ordinær flyt, også når det finnes en historisk foreldelsesfrist-feil.
+OS (`avsender = OB04`) kan samtidig sende en `STOPP` (nullperiode) for samme sak. Denne OS-stoppen lagres med både `kravtype = IGNORERES` og `status = IGNORERES` for sporbarhet, men sendes ikke til SKE. `STOPP` fra andre avsendere følger ordinær flyt, også når det finnes en historisk foreldelsesfrist-feil.
 
 ## Beslutningsflyt ved innlesing
 
@@ -28,7 +28,7 @@ flowchart TD
     D -->|Ja| G{Innkommende type?}
     G -->|ENDRING| H[Lagre én rad som NYTT_KRAV]
     G -->|STOPP| M{Avsender?}
-    M -->|OS| I[Ignorer linjen]
+    M -->|OS| I[Lagre som IGNORERES]
     M -->|Andre| K[Lagre STOPP_KRAV]
     E -->|ENDRING| J[Lagre ENDRING]
     E -->|STOPP| K[Lagre STOPP_KRAV]
@@ -51,7 +51,7 @@ Oppryddingssporet følger en referansekjede med ett opprinnelig krav, ett oppryd
 
 Senere oppfølginger, som C, følger ordinær endrings- eller stopprute. De er ikke oppryddingskrav fordi referansen er B, ikke den opprinnelige avviste saken A. Hvis B ikke er effectuert når C behandles, håndteres eventuelle SKE-feil gjennom tjenestens ordinære feil- og avstemmingsflyt.
 
-STOPP i selve oppryddingsfilen følger fortsatt den vanlige OS-regelen og ignoreres.
+STOPP i selve oppryddingsfilen fra OS lagres med både `kravtype = IGNORERES` og `status = IGNORERES`, og holdes utenfor sending og resend.
 
 ## Utsending til SKE
 
@@ -73,7 +73,8 @@ sequenceDiagram
         SkeService->>DB: Oppdater status og SKE-kravidentifikator
     else Treff: STOPP fra OB04
         DB-->>SkeService: Foreldelsesfrist-feil funnet
-        Note over SkeService: Ingen rad lagres og ingen SKE-kall utføres
+        SkeService->>DB: Lagre som IGNORERES
+        Note over SkeService: Ingen SKE-kall utføres
     else Treff: STOPP fra annen avsender
         DB-->>SkeService: Foreldelsesfrist-feil funnet
         SkeService->>SkeService: Følg ordinær stopprute
@@ -100,14 +101,14 @@ En slik feilmelding regnes som **løst** når et relatert krav har fått en ikke
 | Innkommende type | Treff i uløst historisk feilmelding | Resultat |
 | --- | --- | --- |
 | ENDRING | Ja | Én rad med `kravtype = NYTT_KRAV`; sendes via opprett-krav-endepunktet. |
-| STOPP fra `OB04` | Ja | Ignoreres; ingen database-rad og ingen utsending til SKE. |
+| STOPP fra `OB04` | Ja | Lagres med både `kravtype = IGNORERES` og `status = IGNORERES`; ingen utsending til SKE. |
 | STOPP fra annen avsender | Ja | Lagres og sendes som ordinær `STOPP_KRAV`. |
 | ENDRING eller STOPP | Nei, eller tidligere opprydding er løst | Normal flyt er uendret. |
 | NYTT_KRAV | Ikke vurdert | Normal flyt er uendret. |
 
 ## Observability og drift
 
-`SkeService` beregner oppryddingsreferansene ved å bruke `FeilmeldingRepository`. `KravRepository` bruker deretter det ferdige settet når krav og linjevalideringsfeil lagres i én transaksjon. Oppslaget støttes av indeksen `idx_feilmelding_saksnummer_nav`. Det skrives kun aggregert ordinær logg uten saksnummer eller andre personopplysninger. En ignorert oppryddings-`STOPP` fra `OB04` er derfor ikke synlig som krav, feilmelding eller SKE-kall; dette er forventet oppførsel.
+`SkeService` beregner oppryddingsreferansene ved å bruke `FeilmeldingRepository`. `KravRepository` bruker deretter det ferdige settet når krav og linjevalideringsfeil lagres i én transaksjon. Oppslaget støttes av indeksen `idx_feilmelding_saksnummer_nav`. Det skrives kun aggregert ordinær logg uten saksnummer eller andre personopplysninger. En ignorert oppryddings-`STOPP` fra `OB04` er synlig i `krav` med typen `IGNORERES`, men gir ikke SKE-kall.
 
 Sporet er avgrenset til det eksakte meldingsfragmentet over. Hvis SKE endrer feilmeldingsteksten, vil kravene følge ordinær flyt til oppslagsregelen oppdateres.
 
@@ -119,7 +120,7 @@ Testene verifiserer:
 
 - oppslag med treff, ikke-treff og ukjent saksnummer
 - ENDRING som lagres som én `NYTT_KRAV`
-- STOPP fra `OB04` som ikke lagres
+- STOPP fra `OB04` som lagres med `kravtype = IGNORERES` uten utsending til SKE
 - STOPP fra andre avsendere som lagres som ordinær `STOPP_KRAV`
 - SFTP-innlesing og utsending av oppryddings-ENDRING via opprett-krav-ruten
 - at øvrige ENDRING-er i samme fil fortsatt bruker ordinær endringsrute

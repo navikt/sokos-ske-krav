@@ -49,6 +49,7 @@ import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.FtpService
+import no.nav.sokos.ske.krav.service.IGNORERES
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.service.SkeService
@@ -581,16 +582,16 @@ internal class SkeServiceIntegrationTest :
                     kravRepository = kravRepository,
                 )
 
-            Then("skal validere filen, lagre ENDRING som nytt krav, ignorere STOPP og bare sende opprett-kall") {
+            Then("skal validere filen, lagre ENDRING som nytt krav, beholde STOPP som ignorert og bare sende opprett-kall") {
                 skeService.handleNewKrav(1.milliseconds)
 
                 val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
-                lagredeKrav.shouldHaveSize(9)
-                lagredeKrav.forAll {
-                    it.kravtype shouldBe NYTT_KRAV
-                    it.status shouldBe KRAV_SENDT
+                lagredeKrav.shouldHaveSize(10)
+                lagredeKrav.filter { it.kravtype == NYTT_KRAV }.forAll { it.status shouldBe KRAV_SENDT }
+                lagredeKrav.single { it.saksnummerNAV == "OB040000520015" }.apply {
+                    kravtype shouldBe IGNORERES
+                    status shouldBe Status.IGNORERES
                 }
-                lagredeKrav.none { it.saksnummerNAV == "OB040000520015" } shouldBe true
                 lagredeKrav.single { it.saksnummerNAV == "OB040000595068" }.kravtype shouldBe NYTT_KRAV
                 ftpService.listFiles(Directories.OUTBOUND).contains(fileName) shouldBe true
             }

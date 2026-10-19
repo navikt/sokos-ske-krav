@@ -1,5 +1,6 @@
 package no.nav.sokos.ske.krav.validation
 
+import java.math.BigDecimal
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -49,6 +50,15 @@ internal class FileValidatorTest :
                     val validationResult = fileValidator.validateFile(Files.readAllLines(filsti)).shouldBeInstanceOf<ValidationResult.Success>()
                     validationResult.kravLinjer.forAll { it.vedtaksDato.year shouldBe 2025 }
                 }
+            }
+        }
+
+        Given("OriginalKrav_A.txt") {
+            val filsti = Path.of("dokumentasjon", "testing", "testfiler", "OS", "Oppryddingskjede", "OriginalKrav_A.txt")
+
+            Then("skal inneholde bare krav med positivt beløp og korrekt kontrollsum") {
+                val validationResult = fileValidator.validateFile(Files.readAllLines(filsti)).shouldBeInstanceOf<ValidationResult.Success>()
+                validationResult.kravLinjer.forAll { (it.belop > BigDecimal.ZERO) shouldBe true }
             }
         }
 

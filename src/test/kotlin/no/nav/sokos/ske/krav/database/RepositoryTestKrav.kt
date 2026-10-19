@@ -18,6 +18,7 @@ import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
+import no.nav.sokos.ske.krav.service.IGNORERES
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
@@ -245,8 +246,9 @@ internal class RepositoryTestKrav :
         }
 
         // SKE kan ikke endre et krav som ble avvist før opprettelse. Oppryddingsendringen må
-        // derfor lagres som NYTT_KRAV, mens den tilhørende OS-STOPP-en bevisst ikke skal sendes.
-        test("insertAllNewKrav skal lagre oppryddingsendring som nytt krav og ignorere oppryddingsstopp") {
+        // derfor lagres som NYTT_KRAV, mens den tilhørende OS-STOPP-en beholdes for sporbarhet
+        // med kravtypen IGNORERES og uten å kunne sendes.
+        test("insertAllNewKrav skal lagre oppryddingsendring som nytt krav og merke oppryddingsstopp som ignorert") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
 
@@ -266,11 +268,14 @@ internal class RepositoryTestKrav :
                 )
 
                 val lagredeKrav = kravRepository.getAllKrav(session)
-                lagredeKrav.shouldHaveSize(kravlinjer.size - 1)
+                lagredeKrav.shouldHaveSize(kravlinjer.size)
                 lagredeKrav.filter { it.kravtype == NYTT_KRAV }.shouldHaveSize(9)
                 lagredeKrav.filter { it.kravtype == ENDRING_RENTE || it.kravtype == ENDRING_HOVEDSTOL }.shouldHaveSize(0)
                 lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(0)
-                lagredeKrav.none { it.saksnummerNAV == oppryddingsStopp.saksnummerNav } shouldBe true
+                lagredeKrav.single { it.saksnummerNAV == oppryddingsStopp.saksnummerNav }.kravtype shouldBe IGNORERES
+                lagredeKrav.single { it.saksnummerNAV == oppryddingsStopp.saksnummerNav }.status shouldBe Status.IGNORERES
+                kravRepository.getAllUnsentKrav().none { it.saksnummerNAV == oppryddingsStopp.saksnummerNav } shouldBe true
+                kravRepository.getAllKravForResending().none { it.saksnummerNAV == oppryddingsStopp.saksnummerNav } shouldBe true
                 lagredeKrav.single { it.saksnummerNAV == oppryddingsEndring.saksnummerNav }.kravtype shouldBe NYTT_KRAV
             }
         }

@@ -72,7 +72,7 @@ sequenceDiagram
     SkeService->>Slack: sendErrors()
 ```
 
-> **Oppryddingsspor:** ENDRING og STOPP med en historisk foreldelsesfrist-feil følger et avgrenset sidespor før lagring. ENDRING behandles som `NYTT_KRAV`. Bare STOPP fra OS (`avsender = OB04`) ignoreres; stopp fra andre avsendere følger ordinær rute. Se [Oppryddingsspor for foreldelsesfristens utgangspunkt](../Oppryddingsspor_foreldelsesfrist.md) for beslutningsflyt og SKE-rute.
+> **Oppryddingsspor:** ENDRING og STOPP med en historisk foreldelsesfrist-feil følger et avgrenset sidespor før lagring. ENDRING behandles som `NYTT_KRAV`. STOPP fra OS (`avsender = OB04`) lagres med både `kravtype = IGNORERES` og `status = IGNORERES`, og sendes ikke til SKE; stopp fra andre avsendere følger ordinær rute. Se [Oppryddingsspor for foreldelsesfristens utgangspunkt](../Oppryddingsspor_foreldelsesfrist.md) for beslutningsflyt og SKE-rute.
 
 ---
 ## 2. Sending av krav til SKE

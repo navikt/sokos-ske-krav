@@ -17,6 +17,7 @@ import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.toStatus
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
+import no.nav.sokos.ske.krav.service.IGNORERES
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.util.transaction
@@ -125,12 +126,13 @@ class KravRepository(
             session.list(
                 queryOf(
                     // language=SQL
-                    """select * from krav where status in (?, ?, ?, ?, ?)""",
+                    """select * from krav where status in (?, ?, ?, ?, ?) and kravtype != ?""",
                     Status.KRAV_IKKE_SENDT.value,
                     Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND.value,
                     Status.HTTP500_ANNEN_SERVER_FEIL.value,
                     Status.HTTP500_INTERN_TJENERFEIL.value,
                     Status.HTTP503_UTILGJENGELIG_TJENESTE.value,
+                    IGNORERES,
                 ),
                 extractor = mapToKrav,
             )
@@ -141,8 +143,9 @@ class KravRepository(
             session.list(
                 queryOf(
                     // language=SQL
-                    """select * from krav where status = ?""",
+                    """select * from krav where status = ? and kravtype != ?""",
                     Status.KRAV_IKKE_SENDT.value,
+                    IGNORERES,
                 ),
                 extractor = mapToKrav,
             )
@@ -372,18 +375,20 @@ class KravRepository(
     ) {
         val params = mutableListOf<Map<String, Any?>>()
 
-        // OS sender STOPP sammen med selve oppryddingsfilen. Den skal ikke lagres eller sendes til SKE.
+        // OS sender STOPP sammen med selve oppryddingsfilen. Den beholdes for sporbarhet, men skal
+        // aldri sendes til SKE.
         kravLinjer.forEach { kravLinje ->
-            if (
+            val skalIgnoreres =
                 kravLinje.isStopp() &&
-                kravLinje.avsender.trim() == Avsender.OB04.name &&
-                kravLinje.referansenummerGammelSak in oppryddingsReferanser &&
-                kravLinje.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value
-            ) {
-                return@forEach
-            }
+                    kravLinje.avsender.trim() == Avsender.OB04.name &&
+                    kravLinje.referansenummerGammelSak in oppryddingsReferanser &&
+                    kravLinje.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value
 
             when {
+                skalIgnoreres -> {
+                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.IGNORERES.value), IGNORERES, filnavn))
+                }
+
                 // Oppryddingsendringer skal aldri behandles som ordinære endringer.
                 kravLinje.isEndring() && kravLinje.referansenummerGammelSak in oppryddingsReferanser -> {
                     params.add(insertKravNamesParams(kravLinje, NYTT_KRAV, filnavn))
