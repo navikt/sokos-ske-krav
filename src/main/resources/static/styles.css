@@ -184,3 +184,45 @@ nav ol li a::after {
     font-weight: bold;
     padding: 0 3px;
 }
+
+.testkonsoll {
+    max-width: 72rem;
+    margin: 3rem auto;
+    padding: 0 2rem;
+}
+
+.testkonsoll h1 {
+    padding-left: 0;
+    text-transform: none;
+}
+
+.testkonsoll-ingress {
+    max-width: 48rem;
+    font-size: 1.2rem;
+}
+
+.testkonsoll-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.testkonsoll-action,
+.testkonsoll-feedback {
+    background: white;
+    border: 1px solid #dcdcdc;
+    border-top: 5px solid #0067c5;
+    padding: 1.5rem;
+}
+
+.testkonsoll-feedback {
+    border-top-color: #2e7d32;
+    margin-top: 1.5rem;
+}
+
+.testkonsoll-action .btn {
+    border: 0;
+    cursor: pointer;
+    margin: 1rem 0 0;
+}

@@ -69,6 +69,13 @@ internal class RepositoryTestKrav :
             }
         }
 
+        test("finnKravForFilnavn skal returnere bare krav fra valgt filnavn") {
+            dataSource.transaction { session ->
+                kravRepository.finnKravForFilnavn(session, "KravForRepositoryBehaviourTest.txt").map { it.filnavn }.toSet() shouldBe setOf("KravForRepositoryBehaviourTest.txt")
+                kravRepository.finnKravForFilnavn(session, "finnes-ikke.txt") shouldBe emptyList()
+            }
+        }
+
         // Pending-krav må være synlige for operatøren, men aldri kunne sendes automatisk
         // før operatøren eksplisitt frigir dem. Dette hindrer at en avhengig endring eller
         // stopp sendes med manglende eller feil SKE-kravidentifikator.

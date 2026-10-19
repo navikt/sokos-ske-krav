@@ -42,6 +42,8 @@ class RapportService(
 
     fun finnKrav(leiteparameter: String) = dataSource.transaction { session -> kravRepository.finnKrav(session, leiteparameter) }
 
+    fun finnKravForFilnavn(filnavn: String) = dataSource.transaction { session -> kravRepository.finnKravForFilnavn(session, filnavn) }
+
     private fun mapToRapportObjekt(liste: List<Krav>) =
         liste
             .map {

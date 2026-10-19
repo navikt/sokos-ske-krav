@@ -1,10 +1,18 @@
 package no.nav.sokos.ske.krav.api
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.io.readByteArray
+
 import io.ktor.http.ContentType.Text.CSV
+import io.ktor.http.content.MultiPartData
+import io.ktor.http.content.PartData
+import io.ktor.http.content.forEachPart
 import io.ktor.http.encodeURLPathPart
+import io.ktor.http.encodeURLQueryComponent
 import io.ktor.server.auth.principal
 import io.ktor.server.html.respondHtmlTemplate
 import io.ktor.server.http.content.staticResources
+import io.ktor.server.request.receiveMultipart
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.response.respondText
@@ -12,29 +20,54 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import io.ktor.utils.io.readRemaining
 import mu.KotlinLogging
 
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
+import no.nav.sokos.ske.krav.config.isTestkonsollEnabled
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.frontend.AdminPage
 import no.nav.sokos.ske.krav.frontend.FantIngenting
 import no.nav.sokos.ske.krav.frontend.FantKrav
+import no.nav.sokos.ske.krav.frontend.FilnavnKravSokPage
 import no.nav.sokos.ske.krav.frontend.IngentingEnda
 import no.nav.sokos.ske.krav.frontend.LeitEtterKravPage
 import no.nav.sokos.ske.krav.frontend.RapportPage
+import no.nav.sokos.ske.krav.frontend.TestkonsollPage
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService
 import no.nav.sokos.ske.krav.service.RapportType
+import no.nav.sokos.ske.krav.testconsole.TestconsoleService
 
 private val logger = KotlinLogging.logger { }
 
 @OptIn(Frontend::class)
-fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
+fun Route.avstemmingRoutes(
+    rapportService: RapportService = RapportService(),
+    testconsoleService: TestconsoleService,
+) {
     staticResources("/static", "static")
 
     route("") {
         get { call.respondHtmlTemplate(AdminPage(call)) {} }
+    }
+
+    if (isTestkonsollEnabled()) {
+        route("testing") {
+            get {
+                val feedback = call.request.queryParameters["result"]
+                call.respondHtmlTemplate(TestkonsollPage(call, feedback)) {}
+            }
+            post("/last-opp-fil") {
+                val uploadedFile = call.receiveMultipart().readUploadedFile()
+                call.runTestAction("laste opp fil") {
+                    testconsoleService.lastOppFil(uploadedFile.first, uploadedFile.second)
+                }
+            }
+            post("/behandle-krav") { call.runTestAction("behandle krav", testconsoleService::behandleKrav) }
+            post("/hent-mottaksstatus") { call.runTestAction("hente mottaksstatus", testconsoleService::hentMottaksstatus) }
+        }
     }
 
     route("rapporter") {
@@ -104,6 +137,14 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
         }
     }
     route("/krav") {
+        get("/filnavn") {
+            val filnavn =
+                call.request.queryParameters["filnavn"]
+                    ?.trim()
+                    .orEmpty()
+            val krav = if (filnavn.isBlank()) emptyList() else rapportService.finnKravForFilnavn(filnavn)
+            call.respondHtmlTemplate(FilnavnKravSokPage(krav, filnavn, call)) {}
+        }
         get("") {
             val leiteparameter = call.request.queryParameters["leiteparameter"].toTrimmedSaksnummerNav()
             if (leiteparameter != null) {
@@ -125,6 +166,39 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
             }
         }
     }
+}
+
+private suspend fun MultiPartData.readUploadedFile(): Pair<String, ByteArray> {
+    var uploadedFile: Pair<String, ByteArray>? = null
+    forEachPart { part ->
+        if (part is PartData.FileItem && part.name == "fil" && uploadedFile == null) {
+            val filnavn = part.originalFileName ?: throw IllegalArgumentException("Filen mangler filnavn.")
+            uploadedFile = filnavn to part.provider().readRemaining().readByteArray()
+        }
+        part.release()
+    }
+    return uploadedFile ?: throw IllegalArgumentException("Velg en fil før opplasting.")
+}
+
+private suspend fun io.ktor.server.application.ApplicationCall.runTestAction(
+    action: String,
+    run: suspend () -> TestconsoleService.ActionResult,
+) {
+    val innloggetBruker = principal<io.ktor.server.auth.jwt.JWTPrincipal>()?.get("preferred_username")
+    logger.info(marker = TEAM_LOGS_MARKER) { "$innloggetBruker starter manuell handling: $action" }
+    val result =
+        try {
+            run().message
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            logger.error(marker = TEAM_LOGS_MARKER) { "$innloggetBruker fikk feil under manuell handling: $action. ${e.message}" }
+            "Handlingen feilet. Se applikasjonsloggene for detaljer."
+        }
+    if (!result.startsWith("Handlingen feilet")) {
+        logger.info { "Manuell handling fullført: $action. $result" }
+    }
+    respondRedirect("/testing?result=${result.encodeURLQueryComponent()}")
 }
 
 internal fun String?.toTrimmedSaksnummerNav(): String? = this?.trim()?.takeIf { it.isNotEmpty() }

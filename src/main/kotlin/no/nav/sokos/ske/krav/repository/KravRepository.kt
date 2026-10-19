@@ -579,6 +579,19 @@ class KravRepository(
                 extractor = mapToKrav,
             )
 
+    fun finnKravForFilnavn(
+        session: TransactionalSession,
+        filnavn: String,
+    ): List<Krav> =
+        session.list(
+            queryOf(
+                // language=SQL
+                """select * from krav where filnavn = :filnavn order by id""",
+                mapOf("filnavn" to filnavn),
+            ),
+            extractor = mapToKrav,
+        )
+
     companion object {
         val instance by lazy { KravRepository() }
     }

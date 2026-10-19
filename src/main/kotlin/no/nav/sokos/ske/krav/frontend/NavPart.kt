@@ -11,8 +11,11 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
 import io.ktor.server.html.Template
 
+import no.nav.sokos.ske.krav.config.isTestkonsollEnabled
+
 class NavPart(
     private val call: ApplicationCall,
+    private val showTestkonsoll: Boolean = isTestkonsollEnabled(),
 ) : Template<FlowContent> {
     override fun FlowContent.apply() {
         nav {
@@ -21,7 +24,11 @@ class NavPart(
                 li { a(href = "/rapporter/resending") { +"Resending" } }
                 li { a(href = "/rapporter/avstemming") { +"Avstemming" } }
                 li { a(href = "/rapporter/avventende-oppryddingskrav") { +"Krav som venter på opprydding" } }
+                if (showTestkonsoll) {
+                    li { a(href = "/testing") { +"Testkonsoll" } }
+                }
                 li { a(href = "/krav") { +"Kravsøk" } }
+                li { a(href = "/krav/filnavn") { +"Filnavnsøk" } }
             }
         }
     }
