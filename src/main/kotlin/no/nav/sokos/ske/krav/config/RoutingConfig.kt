@@ -6,16 +6,20 @@ import io.ktor.server.routing.routing
 
 import no.nav.sokos.ske.krav.api.avstemmingRoutes
 import no.nav.sokos.ske.krav.service.Frontend
+import no.nav.sokos.ske.krav.service.SkeService
 
 @OptIn(Frontend::class)
-fun Application.routingConfig(applicationState: ApplicationState) {
+fun Application.routingConfig(
+    applicationState: ApplicationState,
+    skeService: SkeService,
+) {
     routing {
         internalNaisRoutes(applicationState)
         if (PropertiesConfig.isLocal) {
-            avstemmingRoutes()
+            avstemmingRoutes(skeService)
         } else {
             authenticate {
-                avstemmingRoutes()
+                avstemmingRoutes(skeService)
             }
         }
     }

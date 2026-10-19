@@ -50,7 +50,7 @@ internal fun Application.module() {
     commonConfig()
     applicationLifecycleConfig(applicationState)
     securityConfig()
-    routingConfig(applicationState)
+    routingConfig(applicationState, skeService)
 
     if (!PropertiesConfig.isLocal) {
         PostgresDataSource.migrate()
