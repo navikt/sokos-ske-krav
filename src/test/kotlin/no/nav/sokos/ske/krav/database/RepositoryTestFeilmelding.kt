@@ -72,7 +72,7 @@ internal class RepositoryTestFeilmelding :
             feilmeldingRepository.getSaksnumreWithForeldelsesfristError(emptySet()) shouldBe emptySet()
         }
 
-        // Etter vellykket recovery må den historiske feilen anses som løst, slik at senere
+        // Etter vellykket opprettelse av oppryddingskrav må den historiske feilen anses som løst, slik at senere
         // oppfølging følger ordinær endrings- og stopprute fremfor et nytt oppryddingsløp.
         test("getSaksnumreWithForeldelsesfristError skal ekskludere saksnummer med vellykket oppryddingskrav") {
             DBListener.clearDB()

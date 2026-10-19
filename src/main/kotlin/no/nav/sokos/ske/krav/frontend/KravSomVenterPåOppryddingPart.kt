@@ -17,8 +17,8 @@ import no.nav.sokos.ske.krav.service.RapportService
 
 // Egen oversikt gjør avhengige krav synlige uten å blande dem med automatisk resendbare krav.
 @Frontend
-class PendingRecoveryPart(
-    private val data: List<RapportService.RapportObjekt> = RapportService().pendingRecoveryKrav,
+class KravSomVenterPåOppryddingPart(
+    private val data: List<RapportService.RapportObjekt> = RapportService().kravSomVenterPåOpprydding,
 ) : Template<FlowContent> {
     override fun FlowContent.apply() {
         table {
@@ -43,7 +43,7 @@ class PendingRecoveryPart(
                         // Hver rad frigjøres separat for å unngå at én godkjent oppfølging også
                         // sender andre pending-operasjoner på samme sak.
                         form {
-                            action = "/rapporter/pending-recovery/release"
+                            action = "/rapporter/avventende-oppryddingskrav/release"
                             method = FormMethod.post
                             hiddenInput {
                                 name = "kravid"

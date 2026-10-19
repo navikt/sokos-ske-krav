@@ -20,7 +20,7 @@ class NavPart(
                 li(classes = "signature") { +(call.principal<JWTPrincipal>()?.get("name") ?: "Ikke innlogget") }
                 li { a(href = "/rapporter/resending") { +"Resending" } }
                 li { a(href = "/rapporter/avstemming") { +"Avstemming" } }
-                li { a(href = "/rapporter/pending-recovery") { +"Avventende opprydding" } }
+                li { a(href = "/rapporter/avventende-oppryddingskrav") { +"Krav som venter på opprydding" } }
                 li { a(href = "/krav") { +"Kravsøk" } }
             }
         }

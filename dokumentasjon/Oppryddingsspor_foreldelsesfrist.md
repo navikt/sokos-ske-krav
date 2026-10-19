@@ -14,7 +14,7 @@
 
 Vedtaksløsningene kan sende en korrigering som `ENDRING` etter at det opprinnelige kravet ble avvist av SKE fordi `foreldelsesfristensUtgangspunkt` var for langt tilbake i tid. Korrigeringen har tilleggsfrist, men SKE kan ikke endre et krav som aldri ble opprettet. Derfor behandles denne avgrensede kategorien som et nytt krav.
 
-OS (`avsender = OB04`) kan samtidig sende en `STOPP` (nullperiode) for samme sak. Bare denne OS-stoppen skal ikke lagres eller sendes til SKE. `STOPP` fra andre avsendere følger ordinær flyt, også når det finnes en historisk foreldelsesfrist-feil.
+OS (`avsender = OB04`) kan samtidig sende en `STOPP` (nullperiode) for samme sak. Denne OS-stoppen skal ikke lagres eller sendes til SKE. `STOPP` fra andre avsendere følger ordinær flyt, også når det finnes en historisk foreldelsesfrist-feil.
 
 ## Beslutningsflyt ved innlesing
 
@@ -41,9 +41,17 @@ flowchart TD
 
 Oppslaget gjøres bare for linjer som allerede er klassifisert som `ENDRING` eller `STOPP`. Vanlige nye krav slår ikke opp i `feilmelding` og påvirkes ikke av oppryddingssporet.
 
-Når flere filer er tilgjengelige i samme pollingrunde, finner `SkeService` først alle **pending recoveries**: filer som inneholder en `ENDRING` der `saksnummerNav` er lik `referansenummerGammelSak`, og referansen fortsatt har en uløst foreldelsesfrist-feil. Disse filene prioriteres og sendes før andre filer.
+### Referansekjede for opprydding
 
-Når en senere fil har en `ENDRING` eller `STOPP` som refererer til en allerede lagret recovery uten SKE-kravidentifikator, lagres den med en avventende status i stedet for å følge ordinær utsending: `PENDING_ENDRING_HOVEDSTOL`, `PENDING_ENDRING_RENTE` eller `PENDING_STOPP`. STOPP i selve recovery-filen følger fortsatt den vanlige OS-regelen og ignoreres. Det opprettes en Slack-alarm, og operatøren kan se og frigjøre hvert krav fra **Avventende opprydding** under `/rapporter`. Frigivelse setter status til `KRAV_IKKE_SENDT`; da sendes kravet i tjenestens vanlige resend-løp.
+Oppryddingssporet følger en referansekjede med ett opprinnelig krav, ett oppryddingskrav og vilkårlig mange senere oppfølgingskrav:
+
+1. Det opprinnelige, avviste kravet har `saksnummer = A`.
+2. Oppryddingskravet kommer inn som `ENDRING` med et nytt `saksnummer = B` og `referansenummerGammelSak = A`. Det lagres som `NYTT_KRAV` og sendes til SKE med `oppdragsgiversKravIdentifikator = B`.
+3. En senere oppfølging får et nytt `saksnummer = C` og `referansenummerGammelSak = B`. Videre oppfølging kan fortsette kjeden, for eksempel `D` med `referansenummerGammelSak = C`.
+
+Hvis oppryddingskravet `B` mangler SKE-kravidentifikator, lagres alle senere krav i kjeden, inkludert `C` og `D`, med en avventende status i stedet for å følge ordinær utsending: `PENDING_ENDRING_HOVEDSTOL`, `PENDING_ENDRING_RENTE` eller `PENDING_STOPP`. Dette hindrer at et krav sendes til SKE før det oppryddende kravet er opprettet. En avventende status kan frigjøres manuelt i frontend når `B` har fått en SKE-kravidentifikator.
+
+STOPP i selve oppryddingsfilen følger fortsatt den vanlige OS-regelen og ignoreres. Det opprettes en Slack-alarm, og operatøren kan se og frigjøre hvert avventende krav fra **Krav som venter på opprydding** under `/rapporter`. Frigivelse er bare mulig etter at `B` har fått en SKE-kravidentifikator; uansett hvilket ledd i kjeden som frigjøres, følges referansene tilbake til `B`, identifikatoren fra `B` kopieres til det frigjorte kravet, status settes til `KRAV_IKKE_SENDT`, og kravet går gjennom tjenestens vanlige resend-løp.
 
 ## Utsending til SKE
 
@@ -117,5 +125,4 @@ Testene verifiserer:
 - at øvrige ENDRING-er i samme fil fortsatt bruker ordinær endringsrute
 - at en tidligere foreldelsesfrist-feil ikke lenger utløser oppryddingssporet etter vellykket opprettelse med SKE-kravidentifikator
 - at en senere `ENDRING` da lagres som `ENDRING_HOVEDSTOL` og `ENDRING_RENTE`, og at en senere `STOPP` lagres og sendes som `STOPP_KRAV`
-- at gjenoppretting og avhengig oppfølging i samme pollingrunde behandles i riktig rekkefølge
 - at avhengige oppfølgingskrav lagres med `PENDING_*`-status og må frigjøres manuelt

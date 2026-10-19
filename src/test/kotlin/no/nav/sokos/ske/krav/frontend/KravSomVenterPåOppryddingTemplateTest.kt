@@ -13,11 +13,11 @@ import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService
 
 @OptIn(Frontend::class)
-class PendingRecoveryTemplateTest :
+class KravSomVenterPåOppryddingTemplateTest :
     BehaviorSpec({
         // Operatøren må se både hvorfor kravet er stoppet og en konkret handling for å
         // frigjøre akkurat den raden. Dette beskytter HTML-kontrakten mellom oversikten og Ktor-ruten.
-        Given("et avventende oppryddingskrav") {
+        Given("et krav som venter på opprydding") {
             val krav =
                 RapportService.RapportObjekt(
                     kravID = "42",
@@ -49,11 +49,11 @@ class PendingRecoveryTemplateTest :
             Then("skal vise pending-status og en posthandling for frigivelse") {
                 val html =
                     createHTML().div {
-                        insert(PendingRecoveryPart(listOf(krav))) {}
+                        insert(KravSomVenterPåOppryddingPart(listOf(krav))) {}
                     }
 
                 html shouldContain "PENDING_ENDRING_HOVEDSTOL"
-                html shouldContain """<form action="/rapporter/pending-recovery/release" method="post">"""
+                html shouldContain """<form action="/rapporter/avventende-oppryddingskrav/release" method="post">"""
                 html shouldContain """<input type="hidden" name="kravid" value="42">"""
                 html shouldContain "Frigi"
             }

@@ -81,11 +81,11 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
             }
             get("/") { call.respondRedirect("/rapporter/resending") }
         }
-        route("pending-recovery") {
+        route("avventende-oppryddingskrav") {
             get {
-                call.respondHtmlTemplate(RapportPage(RapportType.PENDING_RECOVERY, call)) {
-                    title { +"Avventende oppryddingskrav" }
-                    pendingRecoveryContent { }
+                call.respondHtmlTemplate(RapportPage(RapportType.KRAV_SOM_VENTER_PÅ_OPPRYDDING, call)) {
+                    title { +"Krav som venter på opprydding" }
+                    kravSomVenterPåOppryddingContent { }
                 }
             }
             post("/release") {
@@ -94,13 +94,13 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
                     // Endringen logges med innlogget bruker fordi frigivelse sender kravet inn i
                     // den ordinære resend-køen og derfor er en operativ, sporbar beslutning.
                     val innloggetBruker = call.principal<io.ktor.server.auth.jwt.JWTPrincipal>()?.get("preferred_username")
-                    logger.info(marker = TEAM_LOGS_MARKER) { "$innloggetBruker frigir avventende oppryddingskrav: $id" }
-                    logger.info { "Frigir avventende oppryddingskrav: $id" }
-                    rapportService.releasePendingKrav(id)
+                    logger.info(marker = TEAM_LOGS_MARKER) { "$innloggetBruker frigir krav som venter på opprydding: $id" }
+                    logger.info { "Frigir krav som venter på opprydding: $id" }
+                    rapportService.frigiKravSomVenterPåOpprydding(id)
                 }
-                call.respondRedirect("/rapporter/pending-recovery")
+                call.respondRedirect("/rapporter/avventende-oppryddingskrav")
             }
-            get("/") { call.respondRedirect("/rapporter/pending-recovery") }
+            get("/") { call.respondRedirect("/rapporter/avventende-oppryddingskrav") }
         }
     }
     route("/krav") {

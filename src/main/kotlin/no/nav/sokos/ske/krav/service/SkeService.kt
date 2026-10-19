@@ -113,9 +113,7 @@ class SkeService(
             return
         }
 
-        // En recovery må sendes først, ellers kan en alfabetisk tidligere oppfølgingsfil bli
-        // klassifisert mot et krav som fortsatt mangler SKE-identifikator.
-        files.sortedByDescending(::isPendingRecoveryFile).forEach { file ->
+        files.forEach { file ->
             processFile(file)
 
             if (unleashConfig.isSendKravEnabled()) {
@@ -128,15 +126,6 @@ class SkeService(
             }
         }
     }
-
-    private fun recoveryReferences(file: FtpFil): List<String> =
-        file.kravLinjer
-            .asSequence()
-            .filter { it.isEndring() && it.saksnummerNav == it.referansenummerGammelSak }
-            .map { it.referansenummerGammelSak }
-            .toList()
-
-    private fun isPendingRecoveryFile(file: FtpFil): Boolean = feilmeldingRepository.getSaksnumreWithForeldelsesfristError(recoveryReferences(file).toSet()).isNotEmpty()
 
     private fun processFile(file: FtpFil) {
         logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
@@ -309,20 +298,20 @@ class SkeService(
                 .filter { it.isNotBlank() }
                 .toSet()
 
-        val oppryddingsReferanserWithForeldelsesfristError =
+        val oppryddingsReferanserMedForeldelsesfristfeil =
             feilmeldingRepository.getSaksnumreWithForeldelsesfristError(oppryddingsReferanser)
 
-        val pendingReferencesInFile =
-            kravRepository.getUnresolvedRecoveryReferences(oppryddingsReferanserWithForeldelsesfristError)
+        val referanserTilUbehandledeOppryddingskrav =
+            kravRepository.getReferanserTilUbehandledeOppryddingskrav(oppryddingsReferanser)
 
-        if (pendingReferencesInFile.isNotEmpty()) {
+        if (referanserTilUbehandledeOppryddingskrav.isNotEmpty()) {
             // Pending-krav flyttes ut av SFTP-inbound, men varsles umiddelbart fordi de ellers
             // venter på en eksplisitt operatørfrigivelse i rapportgrensesnittet.
-            val pendingKrav = allKrav.filter { it.referansenummerGammelSak in pendingReferencesInFile }
+            val avventendeKrav = allKrav.filter { it.referansenummerGammelSak in referanserTilUbehandledeOppryddingskrav }
             slackService.addErrors(
                 filename,
                 AVHENGIG_OPPRYDDINGSKRAV,
-                pendingKrav.map {
+                avventendeKrav.map {
                     ErrorDetails(
                         header = AVHENGIG_OPPRYDDINGSKRAV.value,
                         description = "Krav avventer manuell frigivelse etter oppryddingskrav",
@@ -332,16 +321,16 @@ class SkeService(
             )
         }
 
-        if (oppryddingsReferanserWithForeldelsesfristError.isNotEmpty()) {
-            logger.info("Behandler ${oppryddingsReferanserWithForeldelsesfristError.size} oppryddingsreferanse(r) fra $filename")
+        if (oppryddingsReferanserMedForeldelsesfristfeil.isNotEmpty()) {
+            logger.info("Behandler ${oppryddingsReferanserMedForeldelsesfristfeil.size} oppryddingsreferanse(r) fra $filename")
         }
         kravRepository.saveValidatedFile(
             allKrav,
             filename,
             invalidKrav,
             filValideringsfeilRepository,
-            oppryddingsReferanserWithForeldelsesfristError,
-            pendingReferencesInFile,
+            oppryddingsReferanserMedForeldelsesfristfeil,
+            referanserTilUbehandledeOppryddingskrav,
         )
     }
 

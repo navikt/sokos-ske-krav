@@ -72,16 +72,68 @@ internal class RepositoryTestKrav :
         // Pending-krav må være synlige for operatøren, men aldri kunne sendes automatisk
         // før operatøren eksplisitt frigir dem. Dette hindrer at en avhengig endring eller
         // stopp sendes med manglende eller feil SKE-kravidentifikator.
-        test("pending recovery-krav skal ikke plukkes opp av ordinær sending eller resend") {
+        test("krav som venter på opprydding skal ikke plukkes opp av ordinær sending eller resend") {
             dataSource.transaction { session ->
                 session.execute(queryOf("update krav set status = ? where id = ?", Status.PENDING_ENDRING_HOVEDSTOL.value, 1))
                 session.execute(queryOf("update krav set status = ? where id = ?", Status.PENDING_ENDRING_RENTE.value, 2))
                 session.execute(queryOf("update krav set status = ? where id = ?", Status.PENDING_STOPP.value, 3))
             }
 
-            kravRepository.getAllPendingRecoveryKrav().map { it.kravId }.toSet() shouldBe setOf(1L, 2L, 3L)
+            kravRepository.getAllKravSomVenterPåOpprydding().map { it.kravId }.toSet() shouldBe setOf(1L, 2L, 3L)
             kravRepository.getAllUnsentKrav().none { it.kravId in setOf(1L, 2L, 3L) } shouldBe true
             kravRepository.getAllKravForResending().none { it.kravId in setOf(1L, 2L, 3L) } shouldBe true
+        }
+
+        // Den avviste originalen har saksnummer A. Oppryddingskravet får saksnummer B og refererer
+        // til A; senere oppfølging C og D refererer til forrige ledd. Alle ledd etter B skal være
+        // avventende så lenge B mangler SKE-identifikator.
+        test("getReferanserTilUbehandledeOppryddingskrav skal følge hele referansekjeden") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfristMedAvvistOpprinnelig.sql")
+
+            kravRepository.getReferanserTilUbehandledeOppryddingskrav(setOf("2223-navsaksnr")) shouldBe emptySet()
+
+            dataSource.transaction { session ->
+                session.execute(
+                    queryOf(
+                        """
+                        insert into krav (
+                            filnavn, linjenummer, saksnummer_nav, kravidentifikator_ske, belop, vedtaksdato,
+                            gjelder_id, periode_fom, periode_tom, kravkode, referansenummergammelsak,
+                            transaksjonsdato, enhet_bosted, enhet_behandlende, kode_hjemmel, kode_arsak,
+                            belop_rente, fremtidig_ytelse, fagsystem_id, status, kravtype, corr_id
+                        ) values (
+                            'oppryddingskrav.txt', 1, '2223-navsaksnr', null, 100.00, current_date,
+                            '12345678901', '20230101', '20230131', 'PE AP', '2222-navsaksnr',
+                            '20230526', '4803', '4819', 'T', '', 0.00, 0.00, 'fagsystem', 'KRAV_IKKE_SENDT', 'NYTT_KRAV', 'oppryddingskrav-corr-id'
+                        )
+                        """.trimIndent(),
+                    ),
+                )
+            }
+
+            kravRepository.getReferanserTilUbehandledeOppryddingskrav(setOf("2223-navsaksnr")) shouldBe setOf("2223-navsaksnr")
+
+            dataSource.transaction { session ->
+                session.execute(
+                    queryOf(
+                        """
+                        insert into krav (
+                            filnavn, linjenummer, saksnummer_nav, kravidentifikator_ske, belop, vedtaksdato,
+                            gjelder_id, periode_fom, periode_tom, kravkode, referansenummergammelsak,
+                            transaksjonsdato, enhet_bosted, enhet_behandlende, kode_hjemmel, kode_arsak,
+                            belop_rente, fremtidig_ytelse, fagsystem_id, status, kravtype, corr_id
+                        ) values (
+                            'oppfolging.txt', 1, '2224-navsaksnr', null, 100.00, current_date,
+                            '12345678901', '20230101', '20230131', 'PE AP', '2223-navsaksnr',
+                            '20230526', '4803', '4819', 'T', '', 0.00, 0.00, 'fagsystem', 'PENDING_ENDRING_HOVEDSTOL', 'ENDRING_HOVEDSTOL', 'oppfolging-corr-id'
+                        )
+                        """.trimIndent(),
+                    ),
+                )
+            }
+
+            kravRepository.getReferanserTilUbehandledeOppryddingskrav(setOf("2224-navsaksnr")) shouldBe setOf("2224-navsaksnr")
         }
 
         test("getAllKravForAvstemming skal returnere alle krav som har en feilmelding med status rapporter=true") {
@@ -303,6 +355,29 @@ internal class RepositoryTestKrav :
                 lagredeKrav.shouldHaveSize(kravlinjer.size + 1)
                 lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(1)
                 lagredeKrav.single { it.saksnummerNAV == stoppKrav.saksnummerNav }.avsender shouldBe Avsender.ARENA.name
+            }
+        }
+
+        // En ugyldig linje må aldri få PENDING_*-status: den ville da vises i
+        // frigivelsesoversikten og kunne sendes uten at linjevalideringen ble kjørt på nytt.
+        test("insertAllNewKrav skal bevare valideringsstatus for avhengig endring og stopp") {
+            DBListener.clearDB()
+            val filnavn = "TiNyeKrav1Endring1Stopp.txt"
+            val kravlinjer = (FileParser(getFileContent("krav/$filnavn")).parseResult as ParseResult.Success).kravLinjer
+            val invalidEndring = kravlinjer.first { it.isEndring() }.markedAsValidationError()
+            val invalidStopp = kravlinjer.first { it.isStopp() }.markedAsValidationError()
+
+            dataSource.transaction { session ->
+                val pendingReferences = setOf(invalidEndring.referansenummerGammelSak, invalidStopp.referansenummerGammelSak)
+                kravRepository.insertAllNewKrav(session, listOf(invalidEndring, invalidStopp), filnavn, referanserTilUbehandledeOppryddingskrav = pendingReferences)
+
+                val lagredeKrav = kravRepository.getAllKrav(session)
+                // ENDRING består fortsatt av hovedstol og rente; begge må beholde valideringsstatusen.
+                lagredeKrav.shouldHaveSize(3)
+                lagredeKrav.forAll { it.status shouldBe Status.VALIDERINGSFEIL_AV_LINJE_I_FIL }
+                lagredeKrav.filter { it.kravtype == ENDRING_HOVEDSTOL || it.kravtype == ENDRING_RENTE }.shouldHaveSize(2)
+                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(1)
+                kravRepository.getAllKravSomVenterPåOpprydding().shouldHaveSize(0)
             }
         }
 
