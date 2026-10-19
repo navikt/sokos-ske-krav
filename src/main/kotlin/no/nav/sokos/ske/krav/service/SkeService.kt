@@ -174,6 +174,7 @@ class SkeService(
                     statusService.getMottaksStatus()
                 }
                 delay(2.minutes)
+                logger.info { "Ferdig med innsending av $fileName" }
             }
         }
         return fileNames.size
