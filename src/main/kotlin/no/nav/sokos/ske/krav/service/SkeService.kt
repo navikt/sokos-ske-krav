@@ -160,7 +160,12 @@ class SkeService(
             val kravListe = kravRepository.getAllUnsentKrav(fileName)
             logger.info("Sender ${kravListe.size} usendte krav i fila $fileName")
             if (!dryRun) {
+                if (unleashConfig.isMottaksstatusEnabled()) {
+                    statusService.getMottaksStatus()
+                    delay(10.seconds)
+                }
                 updateSkeKravidentifikatorForEndringerAndStopp(fileName)
+
                 sendKrav(kravListe).also(::logResult)
 
                 // må hente mottaksstatus så vi sover bittelitt
@@ -169,6 +174,7 @@ class SkeService(
                     statusService.getMottaksStatus()
                 }
                 delay(2.minutes)
+                logger.info { "Ferdig med innsending av $fileName" }
             }
         }
         return fileNames.size
