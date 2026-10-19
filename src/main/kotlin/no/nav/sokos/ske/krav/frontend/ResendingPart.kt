@@ -75,7 +75,6 @@ class ResendingPart : Template<FlowContent> {
                     td { +it.utbetaltDato }
                     td { +it.tilleggsfrist }
                     td { +it.fremtidigYtelse.toString() }
-                    td { +it.gjelderId }
                 }
             }
         }

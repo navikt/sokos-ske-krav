@@ -63,7 +63,6 @@ class RapportService(
                     it.utbetalDato?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) ?: "",
                     it.tilleggsfrist?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) ?: "",
                     it.fremtidigYtelse,
-                    it.gjelderId,
                 )
             }.distinctBy { it.kravID }
 
@@ -101,7 +100,6 @@ class RapportService(
         val utbetaltDato: String,
         val tilleggsfrist: String,
         val fremtidigYtelse: Double,
-        val gjelderId: String,
     ) {
         companion object {
             val csvBuilder = CsvBuilder
@@ -130,7 +128,6 @@ class RapportService(
                     "Utbetalingsdato",
                     "Tilleggsfrist",
                     "Fremtidig ytelse",
-                    "Gjelder-ID",
                 )
 
             object CsvBuilder {
@@ -163,7 +160,6 @@ class RapportService(
                                     it.utbetaltDato.escapeCsvField(),
                                     it.tilleggsfrist.escapeCsvField(),
                                     it.fremtidigYtelse.toString().escapeCsvField(),
-                                    it.gjelderId.escapeCsvField(),
                                 )
                             appendLine(fields.joinToString(","))
                         }
