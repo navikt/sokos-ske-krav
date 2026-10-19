@@ -597,7 +597,7 @@ internal class SkeServiceIntegrationTest :
         }
 
         // Når oppryddingskravet allerede er opprettet, skal senere oppfølging bruke vanlig endrings-
-        // og stopprute. Den må ikke bli stående i PENDING_* etter at avhengigheten er løst.
+        // og stopprute.
         Given("EN oppryddingsendring er sendt med SKE-kravidentifikator") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
@@ -642,24 +642,21 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
-        // Uten SKE-identifikator kan en senere fil som endrer eller stopper oppryddingskravet
-        // ikke sendes trygt. Den skal likevel tas inn og lagres som PENDING_* for manuell frigivelse.
+        // En senere oppfølging refererer til oppryddingskravets nye saksnummer og skal derfor
+        // følge ordinær endrings- og stopprute, selv om oppryddingskravet ikke er effectuert ennå.
         Given("en oppryddingsendring er lest inn uten SKE-kravidentifikator") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
             val oppryddingsfilnavn = "OppryddingEndringOgStopp.txt"
             val followUpFileName = "OppfolgingEtterOpprydding.txt"
             SftpListener.putFile("krav/$oppryddingsfilnavn", Directories.INBOUND)
-            val kravSomVenterPåOppryddingSlackClient = mockk<SlackClient>(relaxed = true)
-            val kravSomVenterPåOppryddingSlackService = SlackService(kravSomVenterPåOppryddingSlackClient)
-
             val skeService =
                 setupSkeServiceMockWithMockEngine(
                     MockHttpClient.client(
                         MockResponse(Endpoint.OPPRETT, genericFeilResponse(), HttpStatusCode.UnprocessableEntity),
+                        MockResponse(Endpoint.AVSTEMMING, genericFeilResponse(), HttpStatusCode.NotFound),
                     ),
                     ftpService,
-                    slackService = kravSomVenterPåOppryddingSlackService,
                     filValideringsfeilRepository = filvalideringsFeilRepository,
                     feilmeldingRepository = feilmeldingRepository,
                     kravRepository = kravRepository,
@@ -668,29 +665,16 @@ internal class SkeServiceIntegrationTest :
             skeService.handleNewKrav(1.milliseconds)
             SftpListener.putFile("krav/$followUpFileName", Directories.INBOUND)
 
-            Then("skal avhengig oppfølging lagres som pending og flyttes til outbound") {
+            Then("skal avhengig oppfølging lagres som ordinær endring og stopp og flyttes til outbound") {
                 skeService.handleNewKrav(1.milliseconds)
 
                 val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
                 lagredeKrav.filter { it.saksnummerNAV == "OB040000599998" }.apply {
                     shouldHaveSize(2)
-                    map { it.status }.toSet() shouldBe setOf(Status.PENDING_ENDRING_HOVEDSTOL, Status.PENDING_ENDRING_RENTE)
+                    map { it.kravtype }.toSet() shouldBe setOf(ENDRING_HOVEDSTOL, ENDRING_RENTE)
                 }
-                lagredeKrav.single { it.saksnummerNAV == "OB040000599999" }.status shouldBe Status.PENDING_STOPP
+                lagredeKrav.single { it.saksnummerNAV == "OB040000599999" }.kravtype shouldBe STOPP_KRAV
                 ftpService.listFiles(Directories.OUTBOUND).contains(followUpFileName) shouldBe true
-            }
-
-            // Varslet er nødvendig fordi pending-rader ellers bare er synlige i rapportgrensesnittet.
-            // Verifikasjonen går helt til SlackClient for å sikre faktisk utsending, ikke bare kølegging.
-            And("skal sende Slack-varsel om krav som avventer manuell frigivelse") {
-                coVerify {
-                    kravSomVenterPåOppryddingSlackClient.sendMessage(
-                        ErrorCategory.AVHENGIG_OPPRYDDINGSKRAV,
-                        followUpFileName,
-                        any<ExtraTags>(),
-                        any<List<ErrorDetails>>(),
-                    )
-                }
             }
         }
 

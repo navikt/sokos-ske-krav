@@ -83,7 +83,7 @@ Saksnumrene på kravene ender med Exxx der xxx er siffer og representerer filnum
 
 ### Test av oppryddingskjede og krav som venter på opprydding
 
-Denne testen dekker hele kjeden der et opprinnelig krav avvises på foreldelsesfrist, et oppryddingskrav opprettes, og senere oppfølging må vente til oppryddingskravet har en SKE-kravidentifikator.
+Denne testen dekker kjeden der et opprinnelig krav avvises på foreldelsesfrist, et oppryddingskrav opprettes, og senere oppfølging følger ordinær endrings- eller stopprute.
 
 Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskjede):
 
@@ -122,12 +122,12 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
 
 4. I loggene skal du se at filen er lest og at SKE-svaret for A ble behandlet som en feil. Ikke gå videre dersom feilmeldingen ikke er den spesifikke foreldelsesfrist-feilen.
 
-#### Del 2: Les inn B, C og D uten å sende dem
+#### Del 2: Les inn B og senere oppfølging
 
 1. Slå av utsending av krav i dev, slik at B, C og D lagres men ikke får SKE-kall. Bruk den vanlige feature-toggle-/driftsrutinen for `isSendKravEnabled`; ikke endre database-status manuelt.
 2. Last opp `Oppryddingskrav_B.txt` til `/inbound` og trigger innlesing. B skal lagres som `NYTT_KRAV`, med `saksnummer_nav = B` og `referansenummergammelsak = A`.
-3. Last opp `Oppfolging_C.txt` og trigger innlesing. C-radene som refererer til B skal få `PENDING_ENDRING_HOVEDSTOL`, `PENDING_ENDRING_RENTE` eller `PENDING_STOPP` etter kravtype.
-4. Last opp `Oppfolging_D.txt` og trigger innlesing. D-radene som refererer til C skal få tilsvarende `PENDING_*`-status. Dette verifiserer at ventingen følger hele referansekjeden, ikke bare ett ledd.
+3. Last opp `Oppfolging_C.txt` og trigger innlesing. C-radene som refererer til B skal lagres som ordinære `ENDRING_HOVEDSTOL`, `ENDRING_RENTE` eller `STOPP_KRAV` etter kravtype.
+4. `Oppfolging_D.txt` kan brukes som en ytterligere ordinær oppfølging, men har ingen særskilt oppryddingsbehandling.
 5. Verifiser databasen. Bytt ut plassholderne med de regenererte saksnumrene:
 
    ```sql
@@ -141,14 +141,13 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
 
    Forventet resultat:
 
-   - B har `kravtype = NYTT_KRAV`, mangler `kravidentifikator_ske` og er ikke `PENDING_*`.
-   - C har `referansenummergammelsak = B` og `PENDING_*`-status.
-   - D har `referansenummergammelsak = C` og `PENDING_*`-status.
-   - C og D finnes ikke i ordinær resend-kø.
+   - B har `kravtype = NYTT_KRAV`.
+   - C har `referansenummergammelsak = B` og ordinær endrings- eller stopp-`kravtype`.
+   - D har `referansenummergammelsak = C` og ordinær endrings- eller stopp-`kravtype`.
 
-6. Kontroller at B-, C- og D-filene er flyttet til `/outbound`. For C og D skal Slack også ha mottatt varsel om krav som venter på opprydding.
+6. Kontroller at B-, C- og D-filene er flyttet til `/outbound`.
 
-#### Del 3: Send B og frigjør C/D
+#### Del 3: Send B og følg opp C/D ved behov
 
 1. Slå på utsending av krav igjen og trigger behandling. B skal sendes via opprett-krav-ruten med `oppdragsgiversKravIdentifikator = B`.
 2. Trigger én gang til for mottaksstatus, og kontroller at B nå har en ikke-blank `kravidentifikator_ske`.
@@ -160,28 +159,12 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
    where saksnummer_nav = '<B>';
    ```
 
-3. Åpne rapporten **Krav som venter på opprydding** under `/rapporter` og frigjør én C-rad og én D-rad. Begynn gjerne med D for å verifisere at frigivelse følger referansekjeden tilbake til B.
-4. Kontroller direkte etter frigivelse:
-
-   ```sql
-   select id, saksnummer_nav, referansenummergammelsak, kravtype, status,
-          kravidentifikator_ske
-   from krav
-   where saksnummer_nav in ('<C>', '<D>');
-   ```
-
-   Den frigjorte raden skal ha `status = KRAV_IKKE_SENDT` og samme `kravidentifikator_ske` som B. Rader som ikke ble frigitt skal fortsatt ha `PENDING_*`.
-
-5. Trigger sending på nytt. Den frigjorte C- eller D-raden skal sendes i ordinær endrings- eller stopprute. Trigger deretter én gang til for mottaksstatus.
-6. Kontroller loggene for:
+3. Trigger sending på nytt. C- eller D-raden følger ordinær endrings- eller stopprute. Hvis B ikke er effectuert ennå, er en SKE-feil forventet og følges opp via ordinær avstemming. Trigger deretter én gang til for mottaksstatus.
+4. Kontroller loggene for:
    - filnavnene for A, B, C og D ved innlesing
    - SKE-feilen for A
    - at B sendes som opprett krav
-   - Slack-varsel for C og D
-   - operatørens frigivelse fra rapporten
-   - ordinær utsending av den frigjorte raden
-
-7. Frigi eventuelle gjenværende C-/D-rader og trigger sending på nytt, slik at testdata ikke blir stående i `PENDING_*`.
+   - ordinær utsending eller ordinær SKE-feil for C og D
                                        
 
 ## Tolkning av testresultater

@@ -114,27 +114,6 @@ fun Route.avstemmingRoutes(
             }
             get("/") { call.respondRedirect("/rapporter/resending") }
         }
-        route("avventende-oppryddingskrav") {
-            get {
-                call.respondHtmlTemplate(RapportPage(RapportType.KRAV_SOM_VENTER_PÅ_OPPRYDDING, call)) {
-                    title { +"Krav som venter på opprydding" }
-                    kravSomVenterPåOppryddingContent { }
-                }
-            }
-            post("/release") {
-                val id = call.receiveParameters()["kravid"]?.toIntOrNull()
-                if (id != null) {
-                    // Endringen logges med innlogget bruker fordi frigivelse sender kravet inn i
-                    // den ordinære resend-køen og derfor er en operativ, sporbar beslutning.
-                    val innloggetBruker = call.principal<io.ktor.server.auth.jwt.JWTPrincipal>()?.get("preferred_username")
-                    logger.info(marker = TEAM_LOGS_MARKER) { "$innloggetBruker frigir krav som venter på opprydding: $id" }
-                    logger.info { "Frigir krav som venter på opprydding: $id" }
-                    rapportService.frigiKravSomVenterPåOpprydding(id)
-                }
-                call.respondRedirect("/rapporter/avventende-oppryddingskrav")
-            }
-            get("/") { call.respondRedirect("/rapporter/avventende-oppryddingskrav") }
-        }
     }
     route("/krav") {
         get("/filnavn") {

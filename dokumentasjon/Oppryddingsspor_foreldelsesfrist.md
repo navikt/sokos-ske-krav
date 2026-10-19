@@ -43,15 +43,15 @@ Oppslaget gjøres bare for linjer som allerede er klassifisert som `ENDRING` ell
 
 ### Referansekjede for opprydding
 
-Oppryddingssporet følger en referansekjede med ett opprinnelig krav, ett oppryddingskrav og vilkårlig mange senere oppfølgingskrav:
+Oppryddingssporet følger en referansekjede med ett opprinnelig krav, ett oppryddingskrav og senere oppfølgingskrav:
 
 1. Det opprinnelige, avviste kravet har `saksnummer = A`.
 2. Oppryddingskravet kommer inn som `ENDRING` med et nytt `saksnummer = B` og `referansenummerGammelSak = A`. Det lagres som `NYTT_KRAV` og sendes til SKE med `oppdragsgiversKravIdentifikator = B`.
-3. En senere oppfølging får et nytt `saksnummer = C` og `referansenummerGammelSak = B`. Videre oppfølging kan fortsette kjeden, for eksempel `D` med `referansenummerGammelSak = C`.
+3. En senere oppfølging får et nytt `saksnummer = C` og `referansenummerGammelSak = B`.
 
-Hvis oppryddingskravet `B` mangler SKE-kravidentifikator, lagres alle senere krav i kjeden, inkludert `C` og `D`, med en avventende status i stedet for å følge ordinær utsending: `PENDING_ENDRING_HOVEDSTOL`, `PENDING_ENDRING_RENTE` eller `PENDING_STOPP`. Dette hindrer at et krav sendes til SKE før det oppryddende kravet er opprettet. En avventende status kan frigjøres manuelt i frontend når `B` har fått en SKE-kravidentifikator.
+Senere oppfølginger, som C, følger ordinær endrings- eller stopprute. De er ikke oppryddingskrav fordi referansen er B, ikke den opprinnelige avviste saken A. Hvis B ikke er effectuert når C behandles, håndteres eventuelle SKE-feil gjennom tjenestens ordinære feil- og avstemmingsflyt.
 
-STOPP i selve oppryddingsfilen følger fortsatt den vanlige OS-regelen og ignoreres. Det opprettes en Slack-alarm, og operatøren kan se og frigjøre hvert avventende krav fra **Krav som venter på opprydding** under `/rapporter`. Frigivelse er bare mulig etter at `B` har fått en SKE-kravidentifikator; uansett hvilket ledd i kjeden som frigjøres, følges referansene tilbake til `B`, identifikatoren fra `B` kopieres til det frigjorte kravet, status settes til `KRAV_IKKE_SENDT`, og kravet går gjennom tjenestens vanlige resend-løp.
+STOPP i selve oppryddingsfilen følger fortsatt den vanlige OS-regelen og ignoreres.
 
 ## Utsending til SKE
 
@@ -125,4 +125,4 @@ Testene verifiserer:
 - at øvrige ENDRING-er i samme fil fortsatt bruker ordinær endringsrute
 - at en tidligere foreldelsesfrist-feil ikke lenger utløser oppryddingssporet etter vellykket opprettelse med SKE-kravidentifikator
 - at en senere `ENDRING` da lagres som `ENDRING_HOVEDSTOL` og `ENDRING_RENTE`, og at en senere `STOPP` lagres og sendes som `STOPP_KRAV`
-- at avhengige oppfølgingskrav lagres med `PENDING_*`-status og må frigjøres manuelt
+- at senere oppfølgingskrav følger ordinær endrings- og stopprute

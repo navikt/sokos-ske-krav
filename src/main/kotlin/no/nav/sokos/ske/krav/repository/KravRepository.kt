@@ -15,7 +15,6 @@ import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.toStatus
-import no.nav.sokos.ske.krav.repository.FeilmeldingRepository.Companion.FORELDELSESFRIST_ERROR_MESSAGE
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
@@ -101,59 +100,6 @@ class KravRepository(
                 extractor = mapToKrav,
             )
         }
-
-    fun getAllKravSomVenterPåOpprydding(): List<Krav> =
-        dataSource.transaction { session ->
-            session.list(
-                queryOf(
-                    """select * from krav where status in (?, ?, ?) order by tidspunkt_opprettet""",
-                    Status.PENDING_ENDRING_HOVEDSTOL.value,
-                    Status.PENDING_ENDRING_RENTE.value,
-                    Status.PENDING_STOPP.value,
-                ),
-                extractor = mapToKrav,
-            )
-        }
-
-    // Et oppryddingskrav som er opprettet som NYTT_KRAV har et nytt saksnummer, men beholder
-    // referansen til det avviste kravet i referansenummergammelsak. Senere oppfølging kan danne
-    // en vilkårlig lang kjede og skal ligge på vent så lenge oppryddingskravet mangler SKE-id.
-    fun getReferanserTilUbehandledeOppryddingskrav(references: Set<String>): Set<String> {
-        if (references.isEmpty()) return emptySet()
-
-        val placeholders = references.joinToString(", ") { "?" }
-        return dataSource.transaction { session ->
-            session
-                .list(
-                    queryOf(
-                        """
-                        with recursive referansekjede as (
-                            select oppryddingskrav.id, oppryddingskrav.saksnummer_nav
-                            from krav oppryddingskrav
-                            join feilmelding on feilmelding.saksnummer_nav = oppryddingskrav.referansenummergammelsak
-                            where oppryddingskrav.kravtype = ?
-                            and nullif(oppryddingskrav.kravidentifikator_ske, '') is null
-                            and nullif(oppryddingskrav.referansenummergammelsak, '') is not null
-                            and feilmelding.melding like ?
-
-                            union
-
-                            select oppfolging.id, oppfolging.saksnummer_nav
-                            from krav oppfolging
-                            join referansekjede on oppfolging.referansenummergammelsak = referansekjede.saksnummer_nav
-                        )
-                        select distinct saksnummer_nav
-                        from referansekjede
-                        where saksnummer_nav in ($placeholders)
-                        """.trimIndent(),
-                        NYTT_KRAV,
-                        "%$FORELDELSESFRIST_ERROR_MESSAGE%",
-                        *references.toTypedArray(),
-                    ),
-                ) { row -> row.string("saksnummer_nav") }
-                .toSet()
-        }
-    }
 
     fun getAllKravForAvstemming(): List<Krav> =
         dataSource.transaction { session ->
@@ -334,61 +280,6 @@ class KravRepository(
         )
     }
 
-    fun frigiKravSomVenterPåOpprydding(
-        session: TransactionalSession,
-        kravId: Int,
-    ) {
-        // Frigivelse er bare trygg når det opprettede oppryddingskravet allerede har en
-        // SKE-identifikator.
-        // Identifikatoren kopieres atomisk før raden blir sendbar, slik at resend bruker
-        // oppryddingskravets SKE-identifikator.
-        session.update(
-            queryOf(
-                """
-                with recursive referansekjede as (
-                    select forelder.id, forelder.saksnummer_nav, forelder.referansenummergammelsak,
-                        forelder.kravidentifikator_ske, forelder.kravtype
-                    from krav forelder
-                    join krav avventende on avventende.id = :id
-                        and forelder.saksnummer_nav = avventende.referansenummergammelsak
-
-                    union
-
-                    select forelder.id, forelder.saksnummer_nav, forelder.referansenummergammelsak,
-                        forelder.kravidentifikator_ske, forelder.kravtype
-                    from krav forelder
-                    join referansekjede barn on forelder.saksnummer_nav = barn.referansenummergammelsak
-                )
-                update krav
-                    set status = :status,
-                    kravidentifikator_ske = (
-                        select kravidentifikator_ske
-                        from referansekjede
-                        where kravtype = :nytt_krav
-                        and nullif(kravidentifikator_ske, '') is not null
-                        order by id desc
-                        limit 1
-                    ),
-                    tidspunkt_siste_status = now()
-                where id = :id and status in (:pending_hovedstol, :pending_rente, :pending_stopp)
-                and exists (
-                    select 1 from referansekjede
-                    where kravtype = :nytt_krav
-                    and nullif(kravidentifikator_ske, '') is not null
-                )
-                """.trimIndent(),
-                mapOf(
-                    "id" to kravId,
-                    "status" to Status.KRAV_IKKE_SENDT.value,
-                    "pending_hovedstol" to Status.PENDING_ENDRING_HOVEDSTOL.value,
-                    "pending_rente" to Status.PENDING_ENDRING_RENTE.value,
-                    "pending_stopp" to Status.PENDING_STOPP.value,
-                    "nytt_krav" to NYTT_KRAV,
-                ),
-            ),
-        )
-    }
-
     fun updateEndringWithSkeKravIdentifikator(
         session: TransactionalSession,
         saksnummerNav: String,
@@ -478,39 +369,21 @@ class KravRepository(
         kravLinjer: List<KravLinje>,
         filnavn: String,
         oppryddingsReferanser: Set<String> = emptySet(),
-        referanserTilUbehandledeOppryddingskrav: Set<String> = emptySet(),
     ) {
         val params = mutableListOf<Map<String, Any?>>()
 
-        // OS sender STOPP sammen med selve oppryddingsfilen. Den skal ikke sendes til SKE, men en
-        // STOPP fra en senere avhengig fil beholdes som PENDING_STOPP for operatørvurdering.
+        // OS sender STOPP sammen med selve oppryddingsfilen. Den skal ikke lagres eller sendes til SKE.
         kravLinjer.forEach { kravLinje ->
             if (
                 kravLinje.isStopp() &&
                 kravLinje.avsender.trim() == Avsender.OB04.name &&
                 kravLinje.referansenummerGammelSak in oppryddingsReferanser &&
-                kravLinje.referansenummerGammelSak !in referanserTilUbehandledeOppryddingskrav &&
                 kravLinje.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value
             ) {
                 return@forEach
             }
 
             when {
-                // Avhengige operasjoner lagres, men må ikke sendes før oppryddingskravet har fått en SKE-id
-                // og en operatør har frigitt dem fra rapportgrensesnittet.
-                kravLinje.isEndring() &&
-                    kravLinje.referansenummerGammelSak in referanserTilUbehandledeOppryddingskrav &&
-                    kravLinje.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value -> {
-                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.PENDING_ENDRING_HOVEDSTOL.value), ENDRING_HOVEDSTOL, filnavn))
-                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.PENDING_ENDRING_RENTE.value), ENDRING_RENTE, filnavn))
-                }
-
-                kravLinje.isStopp() &&
-                    kravLinje.referansenummerGammelSak in referanserTilUbehandledeOppryddingskrav &&
-                    kravLinje.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value -> {
-                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.PENDING_STOPP.value), STOPP_KRAV, filnavn))
-                }
-
                 // Oppryddingsendringer skal aldri behandles som ordinære endringer.
                 kravLinje.isEndring() && kravLinje.referansenummerGammelSak in oppryddingsReferanser -> {
                     params.add(insertKravNamesParams(kravLinje, NYTT_KRAV, filnavn))
@@ -543,12 +416,11 @@ class KravRepository(
         invalidKrav: List<Pair<KravLinje, String>>,
         filValideringsfeilRepository: FilValideringsfeilRepository,
         oppryddingsReferanser: Set<String>,
-        referanserTilUbehandledeOppryddingskrav: Set<String> = emptySet(),
     ) {
         // Krav og linjevalideringsfeil må lagres i samme transaksjon for at en flyttet SFTP-fil
         // aldri skal etterlate en halvferdig database-registrering.
         dataSource.transaction { session ->
-            insertAllNewKrav(session, kravLinjer, filnavn, oppryddingsReferanser, referanserTilUbehandledeOppryddingskrav)
+            insertAllNewKrav(session, kravLinjer, filnavn, oppryddingsReferanser)
             filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filnavn, invalidKrav)
         }
     }

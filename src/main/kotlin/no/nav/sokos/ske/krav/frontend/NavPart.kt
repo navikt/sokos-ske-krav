@@ -23,7 +23,6 @@ class NavPart(
                 li(classes = "signature") { +(call.principal<JWTPrincipal>()?.get("name") ?: "Ikke innlogget") }
                 li { a(href = "/rapporter/resending") { +"Resending" } }
                 li { a(href = "/rapporter/avstemming") { +"Avstemming" } }
-                li { a(href = "/rapporter/avventende-oppryddingskrav") { +"Krav som venter på opprydding" } }
                 if (showTestkonsoll) {
                     li { a(href = "/testing") { +"Testkonsoll" } }
                 }

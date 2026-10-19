@@ -19,7 +19,7 @@ import no.nav.sokos.ske.krav.util.transaction
 annotation class Frontend
 
 @Frontend
-enum class RapportType { AVSTEMMING, RESENDING, KRAV_SOM_VENTER_PÅ_OPPRYDDING }
+enum class RapportType { AVSTEMMING, RESENDING }
 
 @Frontend
 class RapportService(
@@ -30,15 +30,9 @@ class RapportService(
     val kravSomSkalAvstemmes by lazy { mapToRapportObjekt(kravRepository.getAllKravForAvstemming()) }
     val kravSomSkalResendes by lazy { mapToRapportObjekt(kravRepository.getAllKravForResending()) }
 
-    // Pending-rader holdes utenfor resend-listen til en operatør aktivt frigir dem.
-    val kravSomVenterPåOpprydding by lazy { mapToRapportObjekt(kravRepository.getAllKravSomVenterPåOpprydding()) }
-
     fun oppdaterStatusTilRapportert(kravId: Int) = dataSource.transaction { session -> feilmeldingRepository.updateStatusForAvstemtKravToReported(session, kravId) }
 
     fun oppdaterStatusTilIkkeSendt(kravId: Int) = dataSource.transaction { session -> kravRepository.updateStatusTilIkkeSendt(session, kravId) }
-
-    // Frigivelse er en bevisst operatørhandling; den gjør kravet synlig for ordinær resend.
-    fun frigiKravSomVenterPåOpprydding(kravId: Int) = dataSource.transaction { session -> kravRepository.frigiKravSomVenterPåOpprydding(session, kravId) }
 
     fun finnKrav(leiteparameter: String) = dataSource.transaction { session -> kravRepository.finnKrav(session, leiteparameter) }
 

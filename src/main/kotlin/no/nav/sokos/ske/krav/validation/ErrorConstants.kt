@@ -9,7 +9,6 @@ enum class ErrorCategory(
     FEIL_I_OPPDATERING_AV_MOTTAKSSTATUS("Feil i oppdatering av mottaksstatus"),
     FEIL_I_HENTING_AV_VALIDERINGSFEIL("Feil i henting av valideringsfeil"),
     FEIL_I_ASYNK_VALIDERING("Asynk valideringsfeil"),
-    AVHENGIG_OPPRYDDINGSKRAV("Avhengig oppryddingskrav avventer manuell frigivelse"),
     ;
 
     override fun toString() = value

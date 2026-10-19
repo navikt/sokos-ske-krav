@@ -34,7 +34,6 @@ import no.nav.sokos.ske.krav.util.RequestResult
 import no.nav.sokos.ske.krav.util.decodeTo
 import no.nav.sokos.ske.krav.util.defineStatus
 import no.nav.sokos.ske.krav.util.transaction
-import no.nav.sokos.ske.krav.validation.ErrorCategory.AVHENGIG_OPPRYDDINGSKRAV
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_FRA_SKE
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_LINJEVALIDERING
 import no.nav.sokos.ske.krav.validation.ErrorKeys.UKJENT_FEIL
@@ -301,26 +300,6 @@ class SkeService(
         val oppryddingsReferanserMedForeldelsesfristfeil =
             feilmeldingRepository.getSaksnumreWithForeldelsesfristError(oppryddingsReferanser)
 
-        val referanserTilUbehandledeOppryddingskrav =
-            kravRepository.getReferanserTilUbehandledeOppryddingskrav(oppryddingsReferanser)
-
-        if (referanserTilUbehandledeOppryddingskrav.isNotEmpty()) {
-            // Pending-krav flyttes ut av SFTP-inbound, men varsles umiddelbart fordi de ellers
-            // venter på en eksplisitt operatørfrigivelse i rapportgrensesnittet.
-            val avventendeKrav = allKrav.filter { it.referansenummerGammelSak in referanserTilUbehandledeOppryddingskrav }
-            slackService.addErrors(
-                filename,
-                AVHENGIG_OPPRYDDINGSKRAV,
-                avventendeKrav.map {
-                    ErrorDetails(
-                        header = AVHENGIG_OPPRYDDINGSKRAV.value,
-                        description = "Krav avventer manuell frigivelse etter oppryddingskrav",
-                        caseNumber = it.saksnummerNav,
-                    )
-                },
-            )
-        }
-
         if (oppryddingsReferanserMedForeldelsesfristfeil.isNotEmpty()) {
             logger.info("Behandler ${oppryddingsReferanserMedForeldelsesfristfeil.size} oppryddingsreferanse(r) fra $filename")
         }
@@ -330,7 +309,6 @@ class SkeService(
             invalidKrav,
             filValideringsfeilRepository,
             oppryddingsReferanserMedForeldelsesfristfeil,
-            referanserTilUbehandledeOppryddingskrav,
         )
     }
 
