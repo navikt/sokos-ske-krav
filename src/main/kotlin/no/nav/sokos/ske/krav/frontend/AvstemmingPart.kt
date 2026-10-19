@@ -86,8 +86,8 @@ class AvstemmingPart : Template<FlowContent> {
                     td { +it.status.value }
                     td { +it.stonadsType.toString() }
                     td {
-                        a(href = "/krav/${it.saksnummerNAV}") {
-                            +it.saksnummerNAV.encodeURLPathPart()
+                        a(href = "/krav/${it.saksnummerNAV.encodeURLPathPart()}") {
+                            +it.saksnummerNAV
                         }
                     }
                     td { +it.referansenummerGammelSak }
