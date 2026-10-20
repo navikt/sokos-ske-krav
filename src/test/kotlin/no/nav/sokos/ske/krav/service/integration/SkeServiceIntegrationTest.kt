@@ -522,8 +522,8 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
-        // Dette er grunnscenariet for oppryddingssporet: en korrigering etter en
-        // foreldelsesfrist-feil må opprettes på nytt, uten å endre øvrige ordinære endringer i filen.
+        // 🤖 Dette er grunnscenariet for oppryddingssporet: en korrigering etter en
+        // 🤖 foreldelsesfrist-feil må opprettes på nytt, uten å endre øvrige ordinære endringer i filen.
         Given("EN ENDRING er et oppryddingskrav etter foreldelsesfristfeil") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfristMedAvvistOpprinnelig.sql")
@@ -565,8 +565,8 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
-        // Testen dekker kombinasjonen som kan gi dobbelt gjeldsgrunnlag: oppryddings-ENDRING skal
-        // sendes som opprettelse, mens den matchende OS-STOPP-en ikke skal lagres eller sendes.
+        // 🤖 Testen dekker kombinasjonen som kan gi dobbelt gjeldsgrunnlag: oppryddings-ENDRING skal
+        // 🤖 sendes som opprettelse, mens den matchende OS-STOPP-en ikke skal lagres eller sendes.
         Given("EN ENDRING og STOPP i en gyldig fixed-record-fil er oppryddingskrav") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
@@ -597,8 +597,8 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
-        // Når oppryddingskravet allerede er opprettet, skal senere oppfølging bruke vanlig endrings-
-        // og stopprute.
+        // 🤖 Når oppryddingskravet allerede er opprettet, skal senere oppfølging bruke vanlig endrings-
+        // 🤖 og stopprute.
         Given("EN oppryddingsendring er sendt med SKE-kravidentifikator") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
@@ -643,8 +643,8 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
-        // En senere oppfølging refererer til oppryddingskravets nye saksnummer og skal derfor
-        // følge ordinær endrings- og stopprute, selv om oppryddingskravet ikke er effectuert ennå.
+        // 🤖 En senere oppfølging refererer til oppryddingskravets nye saksnummer og skal derfor
+        // 🤖 følge ordinær endrings- og stopprute, selv om oppryddingskravet ikke er effectuert ennå.
         Given("en oppryddingsendring er lest inn uten SKE-kravidentifikator") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")

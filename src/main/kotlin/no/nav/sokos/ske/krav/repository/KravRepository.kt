@@ -418,8 +418,8 @@ class KravRepository(
     ) {
         val params = mutableListOf<Map<String, Any?>>()
 
-        // OS sender oppryddings-STOPP fordi OS må "nulle ut" perioder. Disse STOPPENE beholdes for sporbarhet, men skal
-        // aldri sendes til SKE. De lagres med status og kravtype IGNORERES
+        // 🤖 OS sender oppryddings-STOPP fordi OS må "nulle ut" perioder. Disse STOPPENE beholdes for sporbarhet, men skal
+        // 🤖 aldri sendes til SKE. De lagres med status og kravtype IGNORERES
         kravLinjer.forEach { kravLinje ->
             val skalIgnoreres =
                 kravLinje.isStopp() &&
@@ -432,7 +432,7 @@ class KravRepository(
                     params.add(insertKravNamesParams(kravLinje.copy(status = Status.IGNORERES.value), IGNORERES, filnavn))
                 }
 
-                // Oppryddingsendringer skal sendes inn som NYTT krav. Vi lagrer referansenummergammelsak i database.
+                // 🤖 Oppryddingsendringer skal sendes inn som NYTT krav. Vi lagrer referansenummergammelsak i database.
                 kravLinje.isEndring() && kravLinje.referansenummerGammelSak in oppryddingsReferanser -> {
                     params.add(insertKravNamesParams(kravLinje, NYTT_KRAV, filnavn))
                 }
@@ -484,7 +484,7 @@ class KravRepository(
                 extractor = mapToKrav,
             )
 
-    // For testkonsoll
+    // 🤖 For testkonsoll
     fun finnKravForFilnavn(
         session: TransactionalSession,
         filnavn: String,

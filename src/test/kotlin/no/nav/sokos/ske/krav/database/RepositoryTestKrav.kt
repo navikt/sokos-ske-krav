@@ -264,9 +264,9 @@ internal class RepositoryTestKrav :
             lagredeKrav.first().utbetalDato shouldBe null
         }
 
-        // SKE kan ikke endre et krav som ble avvist før opprettelse. Oppryddingsendringen må
-        // derfor lagres som NYTT_KRAV, mens den tilhørende OS-STOPP-en beholdes for sporbarhet
-        // med kravtypen IGNORERES og uten å kunne sendes.
+        // 🤖 SKE kan ikke endre et krav som ble avvist før opprettelse. Oppryddingsendringen må
+        // 🤖 derfor lagres som NYTT_KRAV, mens den tilhørende OS-STOPP-en beholdes for sporbarhet
+        // 🤖 med kravtypen IGNORERES og uten å kunne sendes.
         test("insertAllNewKrav skal lagre oppryddingsendring som nytt krav og merke oppryddingsstopp som ignorert") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
@@ -299,8 +299,8 @@ internal class RepositoryTestKrav :
             }
         }
 
-        // OS-unntaket gjelder ikke andre fagsystemer. Denne testen sikrer at en ellers lik
-        // STOPP fra Arena fortsatt lagres, slik at vi ikke mister en legitim kansellering.
+        // 🤖 OS-unntaket gjelder ikke andre fagsystemer. Denne testen sikrer at en ellers lik
+        // 🤖 STOPP fra Arena fortsatt lagres, slik at vi ikke mister en legitim kansellering.
         test("insertAllNewKrav skal lagre oppryddingsstopp fra andre avsendere enn OS") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")

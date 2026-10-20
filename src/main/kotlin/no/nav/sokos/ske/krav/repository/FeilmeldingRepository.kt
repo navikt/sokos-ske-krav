@@ -15,8 +15,8 @@ import no.nav.sokos.ske.krav.util.transaction
 class FeilmeldingRepository(
     private val dataSource: DataSource = PostgresDataSource.dataSource,
 ) {
-    // Bare den spesifikke foreldelsesfrist-feilen skal starte oppryddingssporet. Andre 422-feil
-    // må fortsette i ordinær feilhåndtering selv om de gjelder samme saksnummer.
+    // 🤖 Bare den spesifikke foreldelsesfrist-feilen skal starte oppryddingssporet. Andre 422-feil
+    // 🤖 må fortsette i ordinær feilhåndtering selv om de gjelder samme saksnummer.
     fun getSaksnumreWithForeldelsesfristError(saksnumreNav: Set<String>): Set<String> {
         if (saksnumreNav.isEmpty()) return emptySet()
 
@@ -36,13 +36,13 @@ class FeilmeldingRepository(
                           and not exists (
                               select 1
                               from krav k
-                              -- Finn den opprinnelige saken eller krav som peker tilbake på den.
+                               -- 🤖 Finn den opprinnelige saken eller krav som peker tilbake på den.
                               where (k.saksnummer_nav = f.saksnummer_nav or k.referansenummergammelsak = f.saksnummer_nav)
-                                -- NULL og tom streng betyr at kravet ikke er opprettet hos SKE.
+                                -- 🤖 NULL og tom streng betyr at kravet ikke er opprettet hos SKE.
                                 and nullif(k.kravidentifikator_ske, '') is not null
                           )
                         """.trimIndent(),
-                        // Bind saksnumrene i samme rekkefølge som plassholderne over.
+                        // 🤖 Bind saksnumrene i samme rekkefølge som plassholderne over.
                         *saksnumreNav.toTypedArray(),
                         "%$FORELDELSESFRIST_ERROR_MESSAGE%",
                     ),
