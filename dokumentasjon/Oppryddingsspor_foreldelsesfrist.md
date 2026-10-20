@@ -24,7 +24,7 @@ flowchart TD
     B -->|NYTT_KRAV| N[Lagre som NYTT_KRAV]
     B -->|ENDRING eller STOPP| C[Les referansenummerGammelSak]
     C --> D{Finnes foreldelsesfrist-feil med samme saksnummer?}
-    D -->|Nei eller tidligere opprydding er sendt| E[Normalt løp]
+    D -->|Nei| E[Normalt løp]
     D -->|Ja| G{Innkommende type?}
     G -->|ENDRING| H[Lagre én rad som NYTT_KRAV]
     G -->|STOPP| M{Avsender?}
@@ -49,7 +49,7 @@ Oppryddingssporet følger en referansekjede med ett opprinnelig krav, ett oppryd
 2. Oppryddingskravet kommer inn som `ENDRING` med et nytt `saksnummer = B` og `referansenummerGammelSak = A`. Det lagres som `NYTT_KRAV` og sendes til SKE med `oppdragsgiversKravIdentifikator = B`.
 3. En senere endring får et nytt `saksnummer = C` og `referansenummerGammelSak = B`.
 
-Senere endringer, som C, følger ordinær endrings- eller stopprute. De er ikke oppryddingskrav fordi referansen er B, ikke den opprinnelige avviste saken A. Hvis B ikke er effectuert når C behandles, håndteres eventuelle SKE-feil gjennom tjenestens ordinære feil- og avstemmingsflyt.
+Senere endringer, som C, følger ordinær endrings- eller stopprute. De er ikke oppryddingskrav fordi referansen er B, ikke den opprinnelige avviste saken A. Hvis B ikke er effektuert når C behandles, håndteres eventuelle SKE-feil gjennom tjenestens ordinære feil- og avstemmingsflyt.
 
 STOPP i selve oppryddingsfilen fra OS lagres med både `kravtype = IGNORERES` og `status = IGNORERES`, og holdes utenfor sending og resend.
 

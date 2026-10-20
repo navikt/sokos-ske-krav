@@ -12,12 +12,13 @@ Noen ganger vil FileZilla ikke kunne koble seg til SFTP (den vil stå og "spinne
 På MacOS og Linux kan den be om en `.ppk` nøkkel. Isåfall la FileZilla automatisk konvertere privatnøkkelen til .ppk og referer til denne.
 
 ### Trigge innlesing av fil
-Vi har to måter å trigge innlesing av filen på:
+Vi har tre måter å trigge behandling av filer på:
 1. Kjøre applikasjonen lokalt
 2. Restarte den kjørende pod'en via [nais console](https://console.nav.cloud.nais.io/team/okonomi/dev-fss/app/sokos-ske-krav). Trykk på `Restart app`.
    Hvis du skal teste en spesiell branch kan du bruke [workflowen for manuell deploy til dev](https://github.com/navikt/sokos-ske-krav/actions/workflows/manual-deploy.yaml)
+3. I local, dev og dev-gcp: åpne **Testkonsoll** i rapportgrensesnittet, last opp en `.txt`-fil og velg **Behandle krav**.
 
-**Alltid trigg innlesing to ganger** slik at kravene får korrekt mottaksstatus (og asynkrone valideringsfeil blir hentet)
+**Mottaksstatus hentes separat etter behandling.** Ved vanlig planlagt behandling eller restart må behandlingen normalt kjøres én gang til. I Testkonsoll kan du velge **Hent mottaksstatus** direkte. **Behandle krav** følger feature togglene for innlesing, resending og utsending, mens **Hent mottaksstatus** kjører direkte.
 
 ## Testfiler på SFTP
 
@@ -144,7 +145,7 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
 
 5. Kontroller at B- og C-filene er flyttet til `/outbound`.
 
-#### Del 3: Send B og følg opp C ved behov
+#### Del 3: Send B og behandle C ved behov
 
 1. Slå på utsending av krav igjen og trigger behandling. B skal sendes via opprett-krav-ruten med `oppdragsgiversKravIdentifikator = B`.
 2. Trigger én gang til for mottaksstatus, og kontroller at B nå har en ikke-blank `kravidentifikator_ske`.

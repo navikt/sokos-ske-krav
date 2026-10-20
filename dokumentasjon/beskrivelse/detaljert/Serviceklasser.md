@@ -26,12 +26,8 @@ Dokumentasjonen beskriver ansvar, avhengigheter og viktige detaljer for alle ser
   - [Avhengigheter](#avhengigheter-5)
   - [Krav som sjekkes](#krav-som-sjekkes)
   - [Metoder](#metoder-5)
-- [DatabaseService](#databaseservice)
-  - [Avhengigheter](#avhengigheter-6)
-  - [Metoder](#metoder-6)
-  - [Metrikker som inkrementeres ved updateSentKrav()](#metrikker-som-inkrementeres-ved-updatesentkrav)
 - [RapportService](#rapportservice)
-  - [Avhengigheter](#avhengigheter-7)
+  - [Avhengigheter](#avhengigheter-6)
   - [Egenskaper](#egenskaper)
   - [Metoder](#metoder-7)
   - [Dataklasse: RapportObjekt](#dataklasse-rapportobjekt)
@@ -55,9 +51,9 @@ Hoved-orkestratoren for hele behandlingsløpet. Koordinerer alle andre services 
 | [`OpprettKravService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/OpprettKravService.kt) | Sender nye krav til SKE                         |
 | [`EndreKravService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/EndreKravService.kt)   | Sender endringer til SKE                        |
 | [`StoppKravService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/StoppKravService.kt)   | Sender avskrivinger til SKE                     |
-| [`DatabaseService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/DatabaseService.kt)    | Lagrer og henter krav fra databasen             |
+| Repositorier (`KravRepository`, `FeilmeldingRepository`, `FilValideringsfeilRepository`)         | Lagrer og henter data i databasen               |
 | [`SkeClient`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SkeClient.kt)          | Henter SKE-kravidentifikator via avstemming-API |
-| [`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SlackService.kt)       | Sender feilmeldinger til Slack                  |
+| [`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SlackService.kt)      | Sender feilmeldinger til Slack                  |
 
 ### Viktige egenskaper
 
@@ -133,7 +129,7 @@ Håndterer all kommunikasjon med onprem SFTP-server der Oppdrag-Z (og snart Aren
 |------------------------------------------------------------------------------------------------|---------------------------------------|
 | [`SftpConfig`](../../../src/main/kotlin/no/nav/sokos/ske/krav/config/SftpConfig.kt)            | Oppretter og lukker SFTP-sesjon/kanal |
 | [`FileValidator`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/FileValidator.kt)  | Validerer filen som er lastet ned     |
-| [`DatabaseService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/DatabaseService.kt) | Lagrer filvalideringsfeil             |
+| [`FilValideringsfeilRepository`](../../../src/main/kotlin/no/nav/sokos/ske/krav/repository/FilValideringsfeilRepository.kt) | Lagrer filvalideringsfeil |
 
 ### Mapper-enum: `Directories`
 
@@ -178,7 +174,7 @@ Sender krav av typen `NYTT_KRAV` til SKE.
 | Avhengighet                                                                                    | Formål                                       |
 |------------------------------------------------------------------------------------------------|----------------------------------------------|
 | [`SkeClient`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SkeClient.kt)              | HTTP POST til `/innkrevingsoppdrag`          |
-| [`DatabaseService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/DatabaseService.kt) | Oppdaterer krav med resultater etter sending |
+| [`SkeService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SkeService.kt) | Oppdaterer krav med resultater etter sending |
 
 ### Metoder
 
@@ -209,7 +205,7 @@ Sender krav av typen `ENDRING_RENTE` og `ENDRING_HOVEDSTOL` til SKE. Fordi appli
 | Avhengighet                                                                                    | Formål                                                                                 |
 |------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
 | [`SkeClient`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SkeClient.kt)              | HTTP PUT til `/innkrevingsoppdrag/{id}/renter` og `/innkrevingsoppdrag/{id}/hovedstol` |
-| [`DatabaseService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/DatabaseService.kt) | Oppdaterer krav med resultater etter sending                                           |
+| [`SkeService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SkeService.kt) | Oppdaterer krav med resultater etter sending                                           |
 
 ### Metoder
 
@@ -248,7 +244,7 @@ Sender krav av typen `STOPP_KRAV` til SKE. Logikken er tilsvarende `OpprettKravS
 | Avhengighet                                                                                    | Formål                                         |
 |------------------------------------------------------------------------------------------------|------------------------------------------------|
 | [`SkeClient`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SkeClient.kt)              | HTTP POST til `/innkrevingsoppdrag/avskriving` |
-| [`DatabaseService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/DatabaseService.kt) | Oppdaterer krav med resultater etter sending   |
+| [`SkeService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SkeService.kt) | Oppdaterer krav med resultater etter sending   |
 
 ### Metoder
 
@@ -279,8 +275,9 @@ Sjekker og oppdaterer mottaksstatus for krav som er sendt til SKE men ikke endel
 | Avhengighet                                                                                    | Formål                                   |
 |------------------------------------------------------------------------------------------------|------------------------------------------|
 | [`SkeClient`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SkeClient.kt)              | GET mottaksstatus og GET valideringsfeil |
-| [`DatabaseService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/DatabaseService.kt) | Henter krav og oppdaterer status         |
-| [`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SlackService.kt)        | Varsler ved feil og valideringsfeil      |
+| [`KravRepository`](../../../src/main/kotlin/no/nav/sokos/ske/krav/repository/KravRepository.kt) | Henter krav og oppdaterer status         |
+| [`FeilmeldingRepository`](../../../src/main/kotlin/no/nav/sokos/ske/krav/repository/FeilmeldingRepository.kt) | Lagrer asynkrone valideringsfeil |
+| [`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SlackService.kt)       | Varsler ved feil og valideringsfeil      |
 
 ### Krav som sjekkes
 
@@ -289,7 +286,7 @@ Kun krav med statusene `KRAV_SENDT` eller `MOTTATT_UNDER_BEHANDLING` hentes ut f
 ### Metoder
 
 #### `getMottaksStatus()`
-Trigges av `SkeService` i starten og slutten av `handleNewKrav()`, samt ved manuelt kall på `GET /api/hentStatus`.
+Trigges av `SkeService` i starten og slutten av `handleNewKrav()`, samt fra Testkonsollens `POST /testing/hent-mottaksstatus` i local, dev og dev-gcp.
 
 For hvert krav:
 1. Bestemmer kravidentifikator via [`createKravidentifikatorPair()`](SKE_requests_og_feilhandtering.md#15-valg-av-kravidentifikator-ved-endre-og-stopp)
@@ -306,53 +303,6 @@ For hvert krav:
 
 ---
 
-## DatabaseService
-
-**Pakke:** `service`
-**Fil:** [`DatabaseService.kt`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/DatabaseService.kt)
-
-Abstraksjonslag mellom serviceklassene og repositoriene. Alle databaseoperasjoner går gjennom denne klassen.
-
-### Avhengigheter
-
-| Avhengighet                                                                                                                 | Formål                                         |
-|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------|
-| [`KravRepository`](../../../src/main/kotlin/no/nav/sokos/ske/krav/repository/KravRepository.kt)                             | CRUD mot `krav`-tabellen                       |
-| [`FeilmeldingRepository`](../../../src/main/kotlin/no/nav/sokos/ske/krav/repository/FeilmeldingRepository.kt)               | CRUD mot `feilmelding`-tabellen                |
-| [`FilValideringsfeilRepository`](../../../src/main/kotlin/no/nav/sokos/ske/krav/repository/FilValideringsfeilRepository.kt) | CRUD mot `filvalideringsfeil`-tabellen         |
-| `Metrics`                                                                                                                   | Inkrementerer Prometheus-metrikker ved sending |
-
-### Metoder
-
-| Metode                                                                 | Beskrivelse                                                                                                                                |
-|------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
-| `getSkeKravidentifikator(navref)`                                      | Slår opp SKE-kravidentifikator i databasen. Prøver først med `navref`, deretter med forrige referansenummer (`getPreviousReferansenummer`) |
-| `saveAllNewKrav(kravLinjer, filnavn)`                                  | Lagrer alle validerte kravlinjer fra en fil                                                                                                |
-| `saveLineValidationError(filnavn, kravlinje, feilmelding)`             | Lagrer linjevalideringsfeil i `filvalideringsfeil`                                                                                         |
-| `saveFileValidationError(filnavn, feilmelding)`                        | Lagrer filvalideringsfeil i `filvalideringsfeil`                                                                                           |
-| `updateSentKrav(results)`                                              | Oppdaterer krav i DB med status og SKE-kravidentifikator etter sending. Oppdaterer Prometheus-metrikker                                    |
-| `getAllKravForStatusCheck()`                                           | Returnerer krav med status `KRAV_SENDT` eller `MOTTATT_UNDER_BEHANDLING`                                                                   |
-| `getAllKravForAvstemming()`                                            | Returnerer krav med feilstatuser til bruk i rapportvisningen                                                                               |
-| `getAllKravForResending()`                                             | Returnerer krav med status `KRAV_IKKE_SENDT`                                                                                               |
-| `getAllUnsentKrav()`                                                   | Returnerer krav med status `KRAV_IKKE_SENDT` (brukes etter innlesing av ny fil)                                                            |
-| `getAllUnsentEndringerAndStopp()`                                      | Returnerer krav med status `KRAV_IKKE_SENDT` og kravtype `ENDRING_RENTE`, `ENDRING_HOVEDSTOL` eller `STOPP_KRAV` (brukes for å hente SKE-kravidentifikator via avstemming-API)             |
-| `updateStatus(mottakStatus, corrId)`                                   | Oppdaterer status på krav identifisert med `corrId`                                                                                        |
-| `updateEndringWithSkeKravIdentifikator(saksnummer, kravidentifikator)` | Lagrer SKEs kravidentifikator på endringskrav                                                                                              |
-| `updateStatusForAvstemtKravToReported(kravId)`                         | Markerer et krav som rapportert i avstemmingsvisningen                                                                                     |
-| `getFileValidationMessage(filNavn)`                                    | Henter filvalideringsfeil for en gitt fil                                                                                                  |
-
-### Metrikker som inkrementeres ved `updateSentKrav()`
-
-| Metrikk                   | Beskrivelse                                        |
-|---------------------------|----------------------------------------------------|
-| `numberOfKravSent`        | Totalt antall krav sendt                           |
-| `numberOfKravFeilet`      | Antall krav med ikke-2xx respons                   |
-| `numberOfNyeKrav`         | Antall `NYTT_KRAV` sendt                           |
-| `numberOfEndringerAvKrav` | Antall `ENDRING_RENTE` + `ENDRING_HOVEDSTOL` sendt |
-| `numberOfStoppAvKrav`     | Antall `STOPP_KRAV` sendt                          |
-
----
-
 ## RapportService
 
 **Pakke:** `service`
@@ -365,7 +315,7 @@ Produserer data til webgrensesnittet for funksjonelle feil
 
 | Avhengighet             | Formål                                     |
 |-------------------------|--------------------------------------------|
-| [`DatabaseService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/DatabaseService.kt)       | Henter krav for rapport                    |
+| [`KravRepository`](../../../src/main/kotlin/no/nav/sokos/ske/krav/repository/KravRepository.kt)       | Henter krav for rapport                    |
 | [`FeilmeldingRepository`](../../../src/main/kotlin/no/nav/sokos/ske/krav/repository/FeilmeldingRepository.kt) | Henter feilmeldinger tilknyttet hvert krav |
 
 ### Egenskaper

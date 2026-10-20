@@ -21,7 +21,7 @@ sequenceDiagram
     participant FtpService
     participant FileValidator
     participant LineValidator
-    participant DB as DatabaseService (PostgreSQL)
+    participant DB as Repositories (PostgreSQL)
     participant SKE as SKE REST-API (via SkeClient)
     participant Slack
     Scheduler->>SkeService: handleNewKrav()
@@ -55,7 +55,7 @@ sequenceDiagram
         alt Linje er ugyldig
             LineValidator->>DB: insertLineFilValideringsfeil()
         end
-        SkeService->>DB: saveAllNewKrav(validerteLinjer)
+        SkeService->>DB: insertAllNewKrav(validerteLinjer)
         SkeService->>FtpService: moveFile() til /outbound
         SkeService->>SKE: Hent SKE-kravidentifikator for endringer/stopp
         SkeService->>DB: getAllUnsentKrav()
@@ -72,7 +72,7 @@ sequenceDiagram
     SkeService->>Slack: sendErrors()
 ```
 
-> **Oppryddingsspor:** ENDRING og STOPP med en historisk foreldelsesfrist-feil følger et avgrenset sidespor før lagring. ENDRING behandles som `NYTT_KRAV`. STOPP fra OS (`avsender = OB04`) lagres med både `kravtype = IGNORERES` og `status = IGNORERES`, og sendes ikke til SKE; stopp fra andre avsendere følger ordinær rute. Se [Oppryddingsspor for foreldelsesfristens utgangspunkt](../Oppryddingsspor_foreldelsesfrist.md) for beslutningsflyt og SKE-rute.
+> **Oppryddingsspor:** ENDRING og STOPP som refererer direkte til et opprinnelig krav med en historisk foreldelsesfrist-feil, følger et avgrenset sidespor før lagring. ENDRING behandles som `NYTT_KRAV`. STOPP fra OS (`avsender = OB04`) lagres med både `kravtype = IGNORERES` og `status = IGNORERES`, og sendes ikke til SKE; stopp fra andre avsendere følger ordinær rute. Senere endringer refererer til oppryddingskravets nye saksnummer og følger ordinær rute. Se [Oppryddingsspor for foreldelsesfristens utgangspunkt](../Oppryddingsspor_foreldelsesfrist.md) for beslutningsflyt og SKE-rute.
 
 ---
 ## 2. Sending av krav til SKE
@@ -145,7 +145,7 @@ sequenceDiagram
     participant SkeService
     participant StatusService
     participant SKE as SKE REST-API
-    participant DB as DatabaseService
+    participant DB as Repositories
     participant Slack
     SkeService->>StatusService: getMottaksStatus()
     StatusService->>DB: getAllKravForStatusCheck()
