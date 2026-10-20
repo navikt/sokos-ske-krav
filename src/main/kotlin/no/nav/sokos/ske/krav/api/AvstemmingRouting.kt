@@ -34,16 +34,19 @@ import no.nav.sokos.ske.krav.frontend.FilnavnKravSokPage
 import no.nav.sokos.ske.krav.frontend.IngentingEnda
 import no.nav.sokos.ske.krav.frontend.LeitEtterKravPage
 import no.nav.sokos.ske.krav.frontend.RapportPage
+import no.nav.sokos.ske.krav.frontend.SendUsendtePage
 import no.nav.sokos.ske.krav.frontend.TestkonsollPage
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService
 import no.nav.sokos.ske.krav.service.RapportType
+import no.nav.sokos.ske.krav.service.SkeService
 import no.nav.sokos.ske.krav.testconsole.TestconsoleService
 
 private val logger = KotlinLogging.logger { }
 
 @OptIn(Frontend::class)
 fun Route.avstemmingRoutes(
+    skeService: SkeService,
     rapportService: RapportService = RapportService(),
     testconsoleService: TestconsoleService,
 ) {
@@ -98,7 +101,6 @@ fun Route.avstemmingRoutes(
                 }
                 call.respondRedirect("/rapporter/avstemming")
             }
-
             post("/CSVdownload") {
                 val csv = call.receiveParameters()["csv"].toString()
                 call.respondText(csv, CSV)
@@ -113,6 +115,22 @@ fun Route.avstemmingRoutes(
                 }
             }
             get("/") { call.respondRedirect("/rapporter/resending") }
+        }
+        route("resendUsendte") {
+            get {
+                call.respondHtmlTemplate(SendUsendtePage(call)) {
+                }
+            }
+            get("/") { call.respondRedirect("/rapporter/resendUsendte") }
+            post("/sendUnsent") {
+                val filer = call.receiveParameters()["filer"]?.toIntOrNull() ?: 5
+                val innloggetBruker = call.principal<io.ktor.server.auth.jwt.JWTPrincipal>()?.get("preferred_username")
+                logger.info(marker = TEAM_LOGS_MARKER) { "$innloggetBruker sender usendte filer, max: $filer" }
+                logger.info { "Sender usendte filer, max: $filer" }
+                println("Sender usendte filer, max: $filer")
+                val sendteFiler = skeService.sendUsendteFiler(filer)
+                call.respondText("Sendte $sendteFiler filer")
+            }
         }
     }
     route("/krav") {
