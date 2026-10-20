@@ -30,6 +30,7 @@ import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.frontend.AdminPage
 import no.nav.sokos.ske.krav.frontend.FantIngenting
 import no.nav.sokos.ske.krav.frontend.FantKrav
+import no.nav.sokos.ske.krav.frontend.FilnavnKravMedFeilmelding
 import no.nav.sokos.ske.krav.frontend.FilnavnKravSokPage
 import no.nav.sokos.ske.krav.frontend.IngentingEnda
 import no.nav.sokos.ske.krav.frontend.LeitEtterKravPage
@@ -139,7 +140,12 @@ fun Route.avstemmingRoutes(
                 call.request.queryParameters["filnavn"]
                     ?.trim()
                     .orEmpty()
-            val krav = if (filnavn.isBlank()) emptyList() else rapportService.finnKravForFilnavn(filnavn)
+            val krav =
+                if (filnavn.isBlank()) {
+                    emptyList()
+                } else {
+                    rapportService.finnKravForFilnavn(filnavn).map { (krav, feilmelding) -> FilnavnKravMedFeilmelding(krav, feilmelding) }
+                }
             call.respondHtmlTemplate(FilnavnKravSokPage(krav, filnavn, call)) {}
         }
         get("") {

@@ -43,13 +43,13 @@ Oppslaget gjøres bare for linjer som allerede er klassifisert som `ENDRING` ell
 
 ### Referansekjede for opprydding
 
-Oppryddingssporet følger en referansekjede med ett opprinnelig krav, ett oppryddingskrav og senere oppfølgingskrav:
+Oppryddingssporet følger en referansekjede med ett opprinnelig krav, ett oppryddingskrav og senere endringer:
 
 1. Det opprinnelige, avviste kravet har `saksnummer = A`.
 2. Oppryddingskravet kommer inn som `ENDRING` med et nytt `saksnummer = B` og `referansenummerGammelSak = A`. Det lagres som `NYTT_KRAV` og sendes til SKE med `oppdragsgiversKravIdentifikator = B`.
-3. En senere oppfølging får et nytt `saksnummer = C` og `referansenummerGammelSak = B`.
+3. En senere endring får et nytt `saksnummer = C` og `referansenummerGammelSak = B`.
 
-Senere oppfølginger, som C, følger ordinær endrings- eller stopprute. De er ikke oppryddingskrav fordi referansen er B, ikke den opprinnelige avviste saken A. Hvis B ikke er effectuert når C behandles, håndteres eventuelle SKE-feil gjennom tjenestens ordinære feil- og avstemmingsflyt.
+Senere endringer, som C, følger ordinær endrings- eller stopprute. De er ikke oppryddingskrav fordi referansen er B, ikke den opprinnelige avviste saken A. Hvis B ikke er effectuert når C behandles, håndteres eventuelle SKE-feil gjennom tjenestens ordinære feil- og avstemmingsflyt.
 
 STOPP i selve oppryddingsfilen fra OS lagres med både `kravtype = IGNORERES` og `status = IGNORERES`, og holdes utenfor sending og resend.
 
@@ -125,4 +125,4 @@ Testene verifiserer:
 - SFTP-innlesing og utsending av oppryddings-ENDRING via opprett-krav-ruten
 - at øvrige ENDRING-er i samme fil fortsatt bruker ordinær endringsrute
 - at en senere `ENDRING` med referanse til oppryddingskravets nye saksnummer lagres som `ENDRING_HOVEDSTOL` og `ENDRING_RENTE`, og at en senere `STOPP` lagres og sendes som `STOPP_KRAV`
-- at senere oppfølgingskrav følger ordinær endrings- og stopprute
+- at senere endringer følger ordinær endrings- og stopprute

@@ -484,18 +484,34 @@ class KravRepository(
                 extractor = mapToKrav,
             )
 
-    // 🤖 For testkonsoll
     fun finnKravForFilnavn(
         session: TransactionalSession,
         filnavn: String,
-    ): List<Krav> =
+    ): List<Pair<Krav, String?>> =
         session.list(
             queryOf(
                 // language=SQL
-                """select * from krav where filnavn = :filnavn order by id""",
+                """
+                select k.*, concat_ws(E'\n', f.feilmeldinger, v.feilmeldinger) as feilmelding
+                from krav k
+                left join (
+                    select krav_id, string_agg(melding, E'\n' order by id) as feilmeldinger
+                    from feilmelding
+                    group by krav_id
+                ) f on f.krav_id = k.id
+                left join (
+                    select filnavn, linjenummer, saksnummer_nav, string_agg(feilmelding, E'\n' order by id) as feilmeldinger
+                    from filvalideringsfeil
+                    group by filnavn, linjenummer, saksnummer_nav
+                ) v on v.filnavn = k.filnavn
+                    and v.linjenummer = k.linjenummer
+                    and v.saksnummer_nav = k.saksnummer_nav
+                where k.filnavn = :filnavn
+                order by k.id
+                """.trimIndent(),
                 mapOf("filnavn" to filnavn),
             ),
-            extractor = mapToKrav,
+            extractor = { row -> mapToKrav(row) to row.stringOrNull("feilmelding") },
         )
 
     companion object {

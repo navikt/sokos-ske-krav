@@ -161,8 +161,13 @@ private class KravDetaljer(
         ).sortedBy { it.first }
 }
 
+data class FilnavnKravMedFeilmelding(
+    val krav: Krav,
+    val feilmelding: String?,
+)
+
 class FilnavnKravSokPage(
-    private val krav: List<Krav>,
+    private val kravMedFeilmelding: List<FilnavnKravMedFeilmelding>,
     private val filnavn: String,
     private val call: ApplicationCall,
 ) : Template<HTML> {
@@ -196,10 +201,10 @@ class FilnavnKravSokPage(
                         value = "Søk"
                     }
                 }
-                if (krav.isEmpty() && filnavn.isNotBlank()) {
+                if (kravMedFeilmelding.isEmpty() && filnavn.isNotBlank()) {
                     p(classes = "fant-ingenting") { +"Fant ingen krav for filnavn $filnavn" }
-                } else if (krav.isNotEmpty()) {
-                    h2 { +"${krav.size} krav for $filnavn" }
+                } else if (kravMedFeilmelding.isNotEmpty()) {
+                    h2 { +"${kravMedFeilmelding.size} krav for $filnavn" }
                     table {
                         tr {
                             th { +"Krav-ID" }
@@ -208,8 +213,9 @@ class FilnavnKravSokPage(
                             th { +"Kravtype" }
                             th { +"Status" }
                             th { +"Kravidentifikator SKE" }
+                            th { +"Feilmelding" }
                         }
-                        krav.forEach { rad ->
+                        kravMedFeilmelding.forEach { (rad, feilmelding) ->
                             tr {
                                 td { +rad.kravId.toString() }
                                 td { +rad.saksnummerNAV }
@@ -217,6 +223,7 @@ class FilnavnKravSokPage(
                                 td { +rad.kravtype }
                                 td { +rad.status.value }
                                 td { +rad.kravidentifikatorSKE }
+                                td { +feilmelding.orEmpty() }
                             }
                         }
                     }

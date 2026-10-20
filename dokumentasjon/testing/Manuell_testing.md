@@ -83,7 +83,7 @@ Saksnumrene på kravene ender med Exxx der xxx er siffer og representerer filnum
 
 ### Test av oppryddingskjede og krav som venter på opprydding
 
-Denne testen dekker kjeden der et opprinnelig krav avvises på foreldelsesfrist, et oppryddingskrav opprettes, og senere oppfølging følger ordinær endrings- eller stopprute.
+Denne testen dekker kjeden der et opprinnelig krav avvises på foreldelsesfrist, et oppryddingskrav opprettes, og senere endringer følger ordinær endrings- eller stopprute.
 
 Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskjede):
 
@@ -91,7 +91,7 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
 | --- | --- | --- |
 | `OriginalKrav_A.txt` | Originalt krav | `saksnummer = A` |
 | `Oppryddingskrav_B.txt` | Oppryddingskrav | `saksnummer = B`, `referansenummerGammelSak = A` |
-| `Oppfolging_C.txt` | Første oppfølging | `saksnummer = C`, `referansenummerGammelSak = B` |
+| `Endringer_C.txt` | Første endring | `saksnummer = C`, `referansenummerGammelSak = B` |
 
 
 #### Forberedelse
@@ -121,11 +121,11 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
 
 4. I loggene skal du se at filen er lest og at SKE-svaret for A ble behandlet som en feil. Ikke gå videre dersom feilmeldingen ikke er den spesifikke foreldelsesfrist-feilen.
 
-#### Del 2: Les inn B og senere oppfølging
+#### Del 2: Les inn B og senere endringer
 
 1. Slå av utsending av krav i dev, slik at B og C lagres men ikke får SKE-kall. Bruk den vanlige feature-toggle-/driftsrutinen for `isSendKravEnabled`; ikke endre database-status manuelt.
 2. Last opp `Oppryddingskrav_B.txt` til `/inbound` og trigger innlesing. B skal lagres som `NYTT_KRAV`, med `saksnummer_nav = B` og `referansenummergammelsak = A`.
-3. Last opp `Oppfolging_C.txt` og trigger innlesing. C-radene som refererer til B skal lagres som ordinære `ENDRING_HOVEDSTOL`, `ENDRING_RENTE` eller `STOPP_KRAV` etter kravtype.
+3. Last opp `Endringer_C.txt` og trigger innlesing. C-radene som refererer til B skal lagres som ordinære `ENDRING_HOVEDSTOL`, `ENDRING_RENTE` eller `STOPP_KRAV` etter kravtype.
 4. Verifiser databasen. Bytt ut plassholderne med de regenererte saksnumrene:
 
    ```sql

@@ -597,13 +597,13 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
-        // 🤖 Når oppryddingskravet allerede er opprettet, skal senere oppfølging bruke vanlig endrings-
+        // 🤖 Når oppryddingskravet allerede er opprettet, skal senere endringer bruke vanlig endrings-
         // 🤖 og stopprute.
         Given("EN oppryddingsendring er sendt med SKE-kravidentifikator") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
             val oppryddingsfilnavn = "OppryddingEndringOgStopp.txt"
-            val followUpFileName = "OppfolgingEtterOpprydding.txt"
+            val endringerFileName = "EndringerEtterOpprydding.txt"
             SftpListener.putFile("krav/$oppryddingsfilnavn", Directories.INBOUND)
 
             val skeService =
@@ -626,7 +626,7 @@ internal class SkeServiceIntegrationTest :
 
             When("en senere ENDRING og STOPP refererer til det gjenopprettede kravet") {
                 skeService.handleNewKrav(1.milliseconds)
-                SftpListener.putFile("krav/$followUpFileName", Directories.INBOUND)
+                SftpListener.putFile("krav/$endringerFileName", Directories.INBOUND)
                 skeService.handleNewKrav(1.milliseconds)
 
                 Then("skal ENDRING behandles som ordinære endringer og STOPP lagres og sendes") {
@@ -643,13 +643,13 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
-        // 🤖 En senere oppfølging refererer til oppryddingskravets nye saksnummer og skal derfor
+        // 🤖 En senere endring refererer til oppryddingskravets nye saksnummer og skal derfor
         // 🤖 følge ordinær endrings- og stopprute, selv om oppryddingskravet ikke er effectuert ennå.
         Given("en oppryddingsendring er lest inn uten SKE-kravidentifikator") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
             val oppryddingsfilnavn = "OppryddingEndringOgStopp.txt"
-            val followUpFileName = "OppfolgingEtterOpprydding.txt"
+            val endringerFileName = "EndringerEtterOpprydding.txt"
             SftpListener.putFile("krav/$oppryddingsfilnavn", Directories.INBOUND)
             val skeService =
                 setupSkeServiceMockWithMockEngine(
@@ -664,9 +664,9 @@ internal class SkeServiceIntegrationTest :
                 )
 
             skeService.handleNewKrav(1.milliseconds)
-            SftpListener.putFile("krav/$followUpFileName", Directories.INBOUND)
+            SftpListener.putFile("krav/$endringerFileName", Directories.INBOUND)
 
-            Then("skal avhengig oppfølging lagres som ordinær endring og stopp og flyttes til outbound") {
+            Then("skal avhengige endringer lagres som ordinær endring og stopp og flyttes til outbound") {
                 skeService.handleNewKrav(1.milliseconds)
 
                 val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
@@ -675,7 +675,7 @@ internal class SkeServiceIntegrationTest :
                     map { it.kravtype }.toSet() shouldBe setOf(ENDRING_HOVEDSTOL, ENDRING_RENTE)
                 }
                 lagredeKrav.single { it.saksnummerNAV == "OB040000599999" }.kravtype shouldBe STOPP_KRAV
-                ftpService.listFiles(Directories.OUTBOUND).contains(followUpFileName) shouldBe true
+                ftpService.listFiles(Directories.OUTBOUND).contains(endringerFileName) shouldBe true
             }
         }
 

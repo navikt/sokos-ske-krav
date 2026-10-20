@@ -72,8 +72,27 @@ internal class RepositoryTestKrav :
 
         test("finnKravForFilnavn skal returnere bare krav fra valgt filnavn") {
             dataSource.transaction { session ->
-                kravRepository.finnKravForFilnavn(session, "KravForRepositoryBehaviourTest.txt").map { it.filnavn }.toSet() shouldBe setOf("KravForRepositoryBehaviourTest.txt")
+                kravRepository.finnKravForFilnavn(session, "KravForRepositoryBehaviourTest.txt").map { it.first.filnavn }.toSet() shouldBe setOf("KravForRepositoryBehaviourTest.txt")
                 kravRepository.finnKravForFilnavn(session, "finnes-ikke.txt") shouldBe emptyList()
+            }
+        }
+
+        test("finnKravForFilnavn skal inkludere SKE- og filvalideringsfeil") {
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/Feilmeldinger.sql")
+            dataSource.transaction { session ->
+                session.update(
+                    queryOf(
+                        """
+                        insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
+                        values ('KravForRepositoryBehaviourTest.txt', 1, '1110-navsaksnummer', 'kravlinje', 'Feil i filvalidering')
+                        """.trimIndent(),
+                    ),
+                )
+
+                kravRepository
+                    .finnKravForFilnavn(session, "KravForRepositoryBehaviourTest.txt")
+                    .single { it.first.saksnummerNAV == "1110-navsaksnummer" }
+                    .second shouldBe "feilmelding 422 1111\nFeil i filvalidering"
             }
         }
 
