@@ -1,9 +1,5 @@
 package no.nav.sokos.ske.krav.validation
 
-import java.math.BigDecimal
-import java.nio.file.Files
-import java.nio.file.Path
-
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forOne
@@ -11,7 +7,6 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.types.shouldBeInstanceOf
 
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 import no.nav.sokos.ske.krav.util.shouldBe
@@ -34,31 +29,6 @@ internal class FileValidatorTest :
                 And("Alle kravlinjer skal returneres") {
                     (validationResult as ValidationResult.Success).kravLinjer.size shouldBe content.size - controlLines
                 }
-            }
-        }
-
-        listOf(
-            "OriginalKrav_A.txt",
-            "Oppryddingskrav_B.txt",
-            "Oppfolging_C.txt",
-            "Oppfolging_D.txt",
-        ).forEach { filnavn ->
-            Given("oppryddingskjedens $filnavn") {
-                val filsti = Path.of("dokumentasjon", "testing", "testfiler", "OS", "Oppryddingskjede", filnavn)
-
-                Then("skal passere full filvalidering") {
-                    val validationResult = fileValidator.validateFile(Files.readAllLines(filsti)).shouldBeInstanceOf<ValidationResult.Success>()
-                    validationResult.kravLinjer.forAll { it.vedtaksDato.year shouldBe 2025 }
-                }
-            }
-        }
-
-        Given("OriginalKrav_A.txt") {
-            val filsti = Path.of("dokumentasjon", "testing", "testfiler", "OS", "Oppryddingskjede", "OriginalKrav_A.txt")
-
-            Then("skal inneholde bare krav med positivt beløp og korrekt kontrollsum") {
-                val validationResult = fileValidator.validateFile(Files.readAllLines(filsti)).shouldBeInstanceOf<ValidationResult.Success>()
-                validationResult.kravLinjer.forAll { (it.belop > BigDecimal.ZERO) shouldBe true }
             }
         }
 

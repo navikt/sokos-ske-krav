@@ -92,7 +92,7 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
 | `OriginalKrav_A.txt` | Originalt krav | `saksnummer = A` |
 | `Oppryddingskrav_B.txt` | Oppryddingskrav | `saksnummer = B`, `referansenummerGammelSak = A` |
 | `Oppfolging_C.txt` | Første oppfølging | `saksnummer = C`, `referansenummerGammelSak = B` |
-| `Oppfolging_D.txt` | Senere oppfølging | `saksnummer = D`, `referansenummerGammelSak = C` |
+
 
 #### Forberedelse
 
@@ -127,8 +127,7 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
 1. Slå av utsending av krav i dev, slik at B, C og D lagres men ikke får SKE-kall. Bruk den vanlige feature-toggle-/driftsrutinen for `isSendKravEnabled`; ikke endre database-status manuelt.
 2. Last opp `Oppryddingskrav_B.txt` til `/inbound` og trigger innlesing. B skal lagres som `NYTT_KRAV`, med `saksnummer_nav = B` og `referansenummergammelsak = A`.
 3. Last opp `Oppfolging_C.txt` og trigger innlesing. C-radene som refererer til B skal lagres som ordinære `ENDRING_HOVEDSTOL`, `ENDRING_RENTE` eller `STOPP_KRAV` etter kravtype.
-4. `Oppfolging_D.txt` kan brukes som en ytterligere ordinær oppfølging, men har ingen særskilt oppryddingsbehandling.
-5. Verifiser databasen. Bytt ut plassholderne med de regenererte saksnumrene:
+4Verifiser databasen. Bytt ut plassholderne med de regenererte saksnumrene:
 
    ```sql
    select id, filnavn, saksnummer_nav, referansenummergammelsak, kravtype,
