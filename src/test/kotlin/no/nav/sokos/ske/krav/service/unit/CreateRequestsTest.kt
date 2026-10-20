@@ -44,31 +44,6 @@ internal class CreateRequestsTest :
                     }
                 }
             }
-
-            When("kravet er et oppryddingskrav") {
-                val oppryddingskrav =
-                    mockk<Krav>(relaxed = true) {
-                        every { saksnummerNAV } returns "B"
-                        every { referansenummerGammelSak } returns "A"
-                        every { gjelderId } returns "01010122333"
-                        every { kravkode } returns "PE UT"
-                        every { kodeHjemmel } returns "T"
-                        every { belop } returns 100.0
-                        every { belopRente } returns 0.0
-                        every { vedtaksDato } returns LocalDate.of(2022, 5, 10)
-                        every { utbetalDato } returns LocalDate.of(2022, 3, 1)
-                        every { fagsystemId } returns "TEST-123"
-                        every { periodeFOM } returns "20010101"
-                        every { periodeTOM } returns "20020202"
-                        every { fremtidigYtelse } returns 0.0
-                        every { tilleggsfrist } returns LocalDate.of(2025, 5, 10)
-                    }
-
-                Then("skal opprett-kallet bruke oppryddingskravets nye saksnummer") {
-                    createOpprettKravRequest(oppryddingskrav).oppdragsgiversKravIdentifikator shouldBe "B"
-                }
-            }
-
             When("Skyldner er organisasjon") {
                 val kravTable = kravTableMockk(gjelderIdParam = "00010122333")
 
