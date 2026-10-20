@@ -458,21 +458,6 @@ class KravRepository(
         )
     }
 
-    fun saveValidatedFile(
-        kravLinjer: List<KravLinje>,
-        filnavn: String,
-        invalidKrav: List<Pair<KravLinje, String>>,
-        filValideringsfeilRepository: FilValideringsfeilRepository,
-        oppryddingsReferanser: Set<String>,
-    ) {
-        // Krav og linjevalideringsfeil må lagres i samme transaksjon for at en flyttet SFTP-fil
-        // aldri skal etterlate en halvferdig database-registrering.
-        dataSource.transaction { session ->
-            insertAllNewKrav(session, kravLinjer, filnavn, oppryddingsReferanser)
-            filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filnavn, invalidKrav)
-        }
-    }
-
     fun deleteOldKrav(
         session: TransactionalSession,
         threshold: LocalDate,

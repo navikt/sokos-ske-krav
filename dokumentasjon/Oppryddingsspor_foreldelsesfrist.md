@@ -108,7 +108,7 @@ En slik feilmelding regnes som **løst** når et relatert krav har fått en ikke
 
 ## Observability og drift
 
-`SkeService` beregner oppryddingsreferansene ved å bruke `FeilmeldingRepository`. `KravRepository` bruker deretter det ferdige settet når krav og linjevalideringsfeil lagres i én transaksjon. Oppslaget støttes av indeksen `idx_feilmelding_saksnummer_nav`. Det skrives kun aggregert ordinær logg uten saksnummer eller andre personopplysninger. En ignorert oppryddings-`STOPP` fra `OB04` er synlig i `krav` med typen `IGNORERES`, men gir ikke SKE-kall.
+`SkeService` beregner oppryddingsreferansene ved å bruke `FeilmeldingRepository` før krav og linjevalideringsfeil lagres i samme transaksjon. Det skrives kun aggregert ordinær logg uten saksnummer eller andre personopplysninger. En ignorert oppryddings-`STOPP` fra `OB04` er synlig i `krav` med typen `IGNORERES`, men gir ikke SKE-kall.
 
 Sporet er avgrenset til det eksakte meldingsfragmentet over. Hvis SKE endrer feilmeldingsteksten, vil kravene følge ordinær flyt til oppslagsregelen oppdateres.
 

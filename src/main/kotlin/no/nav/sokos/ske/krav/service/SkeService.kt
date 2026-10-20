@@ -119,19 +119,21 @@ class SkeService(
 
         files.forEach { file ->
             processFile(file)
+        }
 
+        if (files.isNotEmpty()) {
             if (unleashConfig.isSendKravEnabled()) {
                 val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"))
-                logger.info("*** Starter sending av filen ${file.name} $datetime***")
+                logger.info("*** Starter sending av ${files.size} $filtekst $datetime***")
 
                 updateSkeKravidentifikatorForEndringerAndStopp()
                 sendKrav(kravRepository.getAllUnsentKrav()).also(::logResult)
-                logger.info { "*** Ferdig med sending av filen ${file.name} ***" }
+                logger.info { "*** Ferdig med sending av ${files.size} $filtekst ***" }
             }
         }
     }
 
-    private fun processFile(file: FtpFil) {
+    private suspend fun processFile(file: FtpFil) {
         logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
 
         val validatedLines = LineValidator().validateNewLines(file.kravLinjer)
@@ -352,13 +354,10 @@ class SkeService(
         if (oppryddingsReferanserMedForeldelsesfristfeil.isNotEmpty()) {
             logger.info("Behandler ${oppryddingsReferanserMedForeldelsesfristfeil.size} oppryddingsreferanse(r) fra $filename")
         }
-        kravRepository.saveValidatedFile(
-            allKrav,
-            filename,
-            invalidKrav,
-            filValideringsfeilRepository,
-            oppryddingsReferanserMedForeldelsesfristfeil,
-        )
+        dataSource.transaction { session ->
+            kravRepository.insertAllNewKrav(session, allKrav, filename, oppryddingsReferanserMedForeldelsesfristfeil)
+            filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
+        }
     }
 
     private fun handleError(
