@@ -7,21 +7,21 @@ import io.ktor.server.routing.routing
 import no.nav.sokos.ske.krav.api.avstemmingRoutes
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.SkeService
-import no.nav.sokos.ske.krav.testconsole.TestconsoleService
+import no.nav.sokos.ske.krav.testconsole.TestkonsollService
 
 @OptIn(Frontend::class)
 fun Application.routingConfig(
     applicationState: ApplicationState,
     skeService: SkeService,
-    testconsoleService: TestconsoleService,
+    testkonsollService: TestkonsollService,
 ) {
     routing {
         internalNaisRoutes(applicationState)
         if (PropertiesConfig.isLocal) {
-            avstemmingRoutes(skeService, testconsoleService = testconsoleService)
+            avstemmingRoutes(skeService, testkonsollService = testkonsollService)
         } else {
             authenticate {
-                avstemmingRoutes(skeService, testconsoleService = testconsoleService)
+                avstemmingRoutes(skeService, testkonsollService = testkonsollService)
             }
         }
     }

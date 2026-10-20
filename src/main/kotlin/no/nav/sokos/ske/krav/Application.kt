@@ -33,7 +33,7 @@ import no.nav.sokos.ske.krav.repository.KravRepository
 import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.SkeService
 import no.nav.sokos.ske.krav.service.StatusService
-import no.nav.sokos.ske.krav.testconsole.TestconsoleService
+import no.nav.sokos.ske.krav.testconsole.TestkonsollService
 import no.nav.sokos.ske.krav.util.transaction
 
 fun main() {
@@ -52,7 +52,7 @@ internal fun Application.module() {
     commonConfig()
     applicationLifecycleConfig(applicationState)
     securityConfig()
-    routingConfig(applicationState, skeService, TestconsoleService(skeService, StatusService()))
+    routingConfig(applicationState, skeService, TestkonsollService(skeService, StatusService()))
 
     if (!PropertiesConfig.isLocal) {
         PostgresDataSource.migrate()

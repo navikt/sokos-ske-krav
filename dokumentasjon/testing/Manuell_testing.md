@@ -96,11 +96,10 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
 
 #### Forberedelse
 
-1. Kopier de fire filene til en lokal arbeidsmappe. Ikke last opp malfilene direkte til dev.
+1. Kopier de tre filene til en lokal arbeidsmappe. Ikke last opp malfilene direkte til dev.
 2. Bruk scriptet ditt for å gi alle saksnummer nye, unike verdier og for å sette referansenummer gammel sak. Behold disse koblingene etter regenerering:
    - `B.referansenummerGammelSak = A.saksnummer`
    - `C.referansenummerGammelSak = B.saksnummer`
-   - `D.referansenummerGammelSak = C.saksnummer`
 3. Kontroller spesielt begge kravlinjene med gammelreferanse i hver fil. I malfilene er det linje 2 og 7. De skal referere til tilsvarende saksnummer fra forrige ledd, ikke til originalen A.
 4. Gi filene unike filnavn før opplasting, for eksempel med dato og initialer. Filnavn brukes i databasen og gjør det mulig å avgrense SQL-oppslagene.
 5. Sørg for at A fortsatt gir SKE-feilen `foreldelsesfristensUtgangspunkt kan ikke være mer enn 2 år og 10 måneder tilbake i tid.` B må derimot være en gyldig korrigering, normalt ved at tilleggsfrist settes av regenereringsscriptet. Uten denne forskjellen testes ikke oppryddingssporet.
@@ -124,17 +123,17 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
 
 #### Del 2: Les inn B og senere oppfølging
 
-1. Slå av utsending av krav i dev, slik at B, C og D lagres men ikke får SKE-kall. Bruk den vanlige feature-toggle-/driftsrutinen for `isSendKravEnabled`; ikke endre database-status manuelt.
+1. Slå av utsending av krav i dev, slik at B og C lagres men ikke får SKE-kall. Bruk den vanlige feature-toggle-/driftsrutinen for `isSendKravEnabled`; ikke endre database-status manuelt.
 2. Last opp `Oppryddingskrav_B.txt` til `/inbound` og trigger innlesing. B skal lagres som `NYTT_KRAV`, med `saksnummer_nav = B` og `referansenummergammelsak = A`.
 3. Last opp `Oppfolging_C.txt` og trigger innlesing. C-radene som refererer til B skal lagres som ordinære `ENDRING_HOVEDSTOL`, `ENDRING_RENTE` eller `STOPP_KRAV` etter kravtype.
-4Verifiser databasen. Bytt ut plassholderne med de regenererte saksnumrene:
+4. Verifiser databasen. Bytt ut plassholderne med de regenererte saksnumrene:
 
    ```sql
    select id, filnavn, saksnummer_nav, referansenummergammelsak, kravtype,
           status, kravidentifikator_ske
    from krav
-   where saksnummer_nav in ('<B>', '<C>', '<D>')
-      or referansenummergammelsak in ('<A>', '<B>', '<C>')
+   where saksnummer_nav in ('<B>', '<C>')
+       or referansenummergammelsak in ('<A>', '<B>')
    order by id;
    ```
 
@@ -142,11 +141,10 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
 
    - B har `kravtype = NYTT_KRAV`.
    - C har `referansenummergammelsak = B` og ordinær endrings- eller stopp-`kravtype`.
-   - D har `referansenummergammelsak = C` og ordinær endrings- eller stopp-`kravtype`.
 
-6. Kontroller at B-, C- og D-filene er flyttet til `/outbound`.
+5. Kontroller at B- og C-filene er flyttet til `/outbound`.
 
-#### Del 3: Send B og følg opp C/D ved behov
+#### Del 3: Send B og følg opp C ved behov
 
 1. Slå på utsending av krav igjen og trigger behandling. B skal sendes via opprett-krav-ruten med `oppdragsgiversKravIdentifikator = B`.
 2. Trigger én gang til for mottaksstatus, og kontroller at B nå har en ikke-blank `kravidentifikator_ske`.
@@ -158,12 +156,12 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
    where saksnummer_nav = '<B>';
    ```
 
-3. Trigger sending på nytt. C- eller D-raden følger ordinær endrings- eller stopprute. Hvis B ikke er effectuert ennå, er en SKE-feil forventet og følges opp via ordinær avstemming. Trigger deretter én gang til for mottaksstatus.
+3. Trigger sending på nytt. C-raden følger ordinær endrings- eller stopprute. Hvis B ikke er effectuert ennå, er en SKE-feil forventet og følges opp via ordinær avstemming. Trigger deretter én gang til for mottaksstatus.
 4. Kontroller loggene for:
-   - filnavnene for A, B, C og D ved innlesing
+   - filnavnene for A, B og C ved innlesing
    - SKE-feilen for A
    - at B sendes som opprett krav
-   - ordinær utsending eller ordinær SKE-feil for C og D
+   - ordinær utsending eller ordinær SKE-feil for C
                                        
 
 ## Tolkning av testresultater

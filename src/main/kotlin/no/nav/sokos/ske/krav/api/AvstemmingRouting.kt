@@ -40,7 +40,7 @@ import no.nav.sokos.ske.krav.service.Frontend
 import no.nav.sokos.ske.krav.service.RapportService
 import no.nav.sokos.ske.krav.service.RapportType
 import no.nav.sokos.ske.krav.service.SkeService
-import no.nav.sokos.ske.krav.testconsole.TestconsoleService
+import no.nav.sokos.ske.krav.testconsole.TestkonsollService
 
 private val logger = KotlinLogging.logger { }
 
@@ -48,7 +48,7 @@ private val logger = KotlinLogging.logger { }
 fun Route.avstemmingRoutes(
     skeService: SkeService,
     rapportService: RapportService = RapportService(),
-    testconsoleService: TestconsoleService,
+    testkonsollService: TestkonsollService,
 ) {
     staticResources("/static", "static")
 
@@ -63,13 +63,13 @@ fun Route.avstemmingRoutes(
                 call.respondHtmlTemplate(TestkonsollPage(call, feedback)) {}
             }
             post("/last-opp-fil") {
-                val uploadedFile = call.receiveMultipart().readUploadedFile()
                 call.runTestAction("laste opp fil") {
-                    testconsoleService.lastOppFil(uploadedFile.first, uploadedFile.second)
+                    val uploadedFile = call.receiveMultipart().readUploadedFile()
+                    testkonsollService.lastOppFil(uploadedFile.first, uploadedFile.second)
                 }
             }
-            post("/behandle-krav") { call.runTestAction("behandle krav", testconsoleService::behandleKrav) }
-            post("/hent-mottaksstatus") { call.runTestAction("hente mottaksstatus", testconsoleService::hentMottaksstatus) }
+            post("/behandle-krav") { call.runTestAction("behandle krav", testkonsollService::behandleKrav) }
+            post("/hent-mottaksstatus") { call.runTestAction("hente mottaksstatus", testkonsollService::hentMottaksstatus) }
         }
     }
 
@@ -179,7 +179,7 @@ private suspend fun MultiPartData.readUploadedFile(): Pair<String, ByteArray> {
 
 private suspend fun io.ktor.server.application.ApplicationCall.runTestAction(
     action: String,
-    run: suspend () -> TestconsoleService.ActionResult,
+    run: suspend () -> TestkonsollService.ActionResult,
 ) {
     val innloggetBruker = principal<io.ktor.server.auth.jwt.JWTPrincipal>()?.get("preferred_username")
     logger.info(marker = TEAM_LOGS_MARKER) { "$innloggetBruker starter manuell handling: $action" }

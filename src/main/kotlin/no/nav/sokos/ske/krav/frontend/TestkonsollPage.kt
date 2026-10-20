@@ -39,7 +39,9 @@ class TestkonsollPage(
             insert(NavPart(call, showTestkonsoll)) {}
             main(classes = "testkonsoll") {
                 h1 { +"Manuell testkonsoll" }
-                p(classes = "testkonsoll-ingress") { +"Kjør avgrensede driftssteg i dev. Handlingene er manuelle og går utenom feature togglene; de erstatter ikke planlagt kjøring." }
+                p(
+                    classes = "testkonsoll-ingress",
+                ) { +"Kjør avgrensede driftssteg i dev. Behandle krav følger feature togglene, mens Hent mottaksstatus kjører direkte. Handlingene erstatter ikke planlagt kjøring." }
                 feedback?.let { message ->
                     div(classes = "testkonsoll-feedback") {
                         h2 { +"Resultat" }
@@ -48,8 +50,8 @@ class TestkonsollPage(
                 }
                 div(classes = "testkonsoll-actions") {
                     uploadAction()
-                    action("Behandle krav", "Kjører tjenestens ordinære behandling av /inbound-filer, resending og utsending.", "/testing/behandle-krav")
-                    action("Hent mottaksstatus", "Henter mottaksstatus for krav som venter på status fra SKE.", "/testing/hent-mottaksstatus")
+                    action("Behandle krav", "Kjører tjenestens ordinære behandling. Innlesing, resending og utsending avhenger av feature togglene.", "/testing/behandle-krav")
+                    action("Hent mottaksstatus", "Henter mottaksstatus direkte for krav som venter på status fra SKE, uavhengig av feature togglen.", "/testing/hent-mottaksstatus")
                 }
             }
         }
