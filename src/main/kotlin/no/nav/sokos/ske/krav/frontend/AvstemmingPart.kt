@@ -113,7 +113,6 @@ class AvstemmingPart : Template<FlowContent> {
                     td { +it.utbetaltDato }
                     td { +it.tilleggsfrist }
                     td { +it.fremtidigYtelse.toString() }
-                    td { +it.gjelderId }
                     td { resendKravForm(it.kravID, resendURL, resendBtnTitle) }
 
                     // TODO: Rapporter valideringsfeil
