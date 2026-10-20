@@ -72,36 +72,6 @@ internal class RepositoryTestFeilmelding :
             feilmeldingRepository.getSaksnumreWithForeldelsesfristError(emptySet()) shouldBe emptySet()
         }
 
-        // 🤖 Etter vellykket opprettelse av oppryddingskrav må den historiske feilen anses som løst, slik at senere
-        // 🤖 oppfølging følger ordinær endrings- og stopprute fremfor et nytt oppryddingsløp.
-        test("getSaksnumreWithForeldelsesfristError skal ekskludere saksnummer med vellykket oppryddingskrav") {
-            DBListener.clearDB()
-            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
-
-            dataSource.transaction { session ->
-                session.update(
-                    queryOf(
-                        """
-                        insert into krav (
-                            filnavn, linjenummer, saksnummer_nav, kravidentifikator_ske, belop, vedtaksdato,
-                            gjelder_id, periode_fom, periode_tom, kravkode, referansenummergammelsak,
-                            transaksjonsdato, enhet_bosted, enhet_behandlende, kode_hjemmel, kode_arsak,
-                            belop_rente, fremtidig_ytelse, fagsystem_id, status, kravtype, corr_id
-                        ) values (
-                            'opprydding.txt', 1, 'OB040000599998', 'opprettet-ske-identifikator', 100.00, current_date,
-                            '12345678901', '20230101', '20230131', 'PE AP', 'OB040000595067',
-                            '20230526', '4803', '4819', 'T', '', 0.00, 0.00, 'fagsystem', 'KRAV_SENDT', 'NYTT_KRAV', 'opprydding-corr-id'
-                        )
-                        """.trimIndent(),
-                    ),
-                )
-            }
-
-            feilmeldingRepository.getSaksnumreWithForeldelsesfristError(
-                setOf("OB040000595067", "OB040000520015"),
-            ) shouldBe setOf("OB040000520015")
-        }
-
         test("insertFeilmelding skal lagre én feilmelding") {
             DBListener.clearDB()
 

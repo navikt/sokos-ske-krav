@@ -32,15 +32,6 @@ class FeilmeldingRepository(
                         from feilmelding f
                         where f.saksnummer_nav in ($placeholders)
                           and f.melding like ?
-                          -- Denne sjekken sørger for at fremtidige legitime stopp på saken ikke blir tolket som opprydding. Mulig det ikke trengs
-                          and not exists (
-                              select 1
-                              from krav k
-                               -- 🤖 Finn den opprinnelige saken eller krav som peker tilbake på den.
-                              where (k.saksnummer_nav = f.saksnummer_nav or k.referansenummergammelsak = f.saksnummer_nav)
-                                -- 🤖 NULL og tom streng betyr at kravet ikke er opprettet hos SKE.
-                                and nullif(k.kravidentifikator_ske, '') is not null
-                          )
                         """.trimIndent(),
                         // 🤖 Bind saksnumrene i samme rekkefølge som plassholderne over.
                         *saksnumreNav.toTypedArray(),

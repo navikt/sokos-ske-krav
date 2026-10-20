@@ -94,16 +94,16 @@ Linjen går i oppryddingssporet bare når det finnes en historisk feilmelding hv
 foreldelsesfristensUtgangspunkt kan ikke være mer enn 2 år og 10 måneder tilbake i tid.
 ```
 
-En slik feilmelding regnes som **løst** når et relatert krav har fått en ikke-blank SKE-kravidentifikator etter vellykket opprettelse. Et krav er relatert når det enten har samme `saksnummer_nav` som feilmeldingen, eller har dette saksnummeret som `referansenummerGammelSak`. Løste feilmeldinger beholdes for historikk og rapportering, men brukes ikke videre til å klassifisere nye linjer som opprydding. Dermed følger senere reelle `ENDRING`- og `STOPP`-linjer ordinær flyt.
+En linje er et oppryddingskrav bare når `referansenummerGammelSak` er saksnummeret til det opprinnelige, avviste kravet. Når oppryddings-ENDRING-en er sendt som et nytt krav, refererer senere ENDRING-er og STOPP-er til det nye saksnummeret og følger derfor ordinær flyt uten å slå opp den opprinnelige feilen.
 
 ## Effekt
 
-| Innkommende type | Treff i uløst historisk feilmelding | Resultat |
+| Innkommende type | Treff i historisk feilmelding | Resultat |
 | --- | --- | --- |
 | ENDRING | Ja | Én rad med `kravtype = NYTT_KRAV`; sendes via opprett-krav-endepunktet. |
 | STOPP fra `OB04` | Ja | Lagres med både `kravtype = IGNORERES` og `status = IGNORERES`; ingen utsending til SKE. |
 | STOPP fra annen avsender | Ja | Lagres og sendes som ordinær `STOPP_KRAV`. |
-| ENDRING eller STOPP | Nei, eller tidligere opprydding er løst | Normal flyt er uendret. |
+| ENDRING eller STOPP | Nei | Normal flyt er uendret. |
 | NYTT_KRAV | Ikke vurdert | Normal flyt er uendret. |
 
 ## Observability og drift
@@ -124,6 +124,5 @@ Testene verifiserer:
 - STOPP fra andre avsendere som lagres som ordinær `STOPP_KRAV`
 - SFTP-innlesing og utsending av oppryddings-ENDRING via opprett-krav-ruten
 - at øvrige ENDRING-er i samme fil fortsatt bruker ordinær endringsrute
-- at en tidligere foreldelsesfrist-feil ikke lenger utløser oppryddingssporet etter vellykket opprettelse med SKE-kravidentifikator
-- at en senere `ENDRING` da lagres som `ENDRING_HOVEDSTOL` og `ENDRING_RENTE`, og at en senere `STOPP` lagres og sendes som `STOPP_KRAV`
+- at en senere `ENDRING` med referanse til oppryddingskravets nye saksnummer lagres som `ENDRING_HOVEDSTOL` og `ENDRING_RENTE`, og at en senere `STOPP` lagres og sendes som `STOPP_KRAV`
 - at senere oppfølgingskrav følger ordinær endrings- og stopprute
