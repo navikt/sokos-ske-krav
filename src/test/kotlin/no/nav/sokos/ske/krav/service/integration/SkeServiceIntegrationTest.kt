@@ -27,7 +27,6 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
-import kotliquery.queryOf
 import org.slf4j.LoggerFactory
 
 import no.nav.sokos.ske.krav.client.SkeClient
@@ -48,6 +47,7 @@ import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.listener.SftpListener
 import no.nav.sokos.ske.krav.service.Directories
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
+import no.nav.sokos.ske.krav.service.ENDRING_IGNORERES
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.service.IGNORERES
@@ -648,25 +648,9 @@ internal class SkeServiceIntegrationTest :
         Given("en saksbehandler sender ENDRING og STOPP med referanse til opprinnelig krav etter håndtert opprydding") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+            val oppryddingsfilnavn = "OppryddingEndringOgStopp.txt"
             val feilfeilnavn = "EndringerMedOriginalReferanseEtterOpprydding.txt"
-            dataSource.transaction { session ->
-                session.update(
-                    queryOf(
-                        """
-                        insert into krav (
-                            filnavn, linjenummer, saksnummer_nav, belop, vedtaksdato, gjelder_id,
-                            periode_fom, periode_tom, kravkode, referansenummergammelsak, transaksjonsdato,
-                            enhet_bosted, enhet_behandlende, kode_hjemmel, kode_arsak, belop_rente,
-                            fremtidig_ytelse, fagsystem_id, status, kravtype, corr_id, avsender
-                        ) values (
-                            'oppryddingsstopp.txt', 1, 'OB040000595067', 0.00, current_date, '06897998821',
-                            '20220701', '20221031', 'PE AP', 'OB040000595067', '20230524',
-                            '4803', '4819', 'T', '', 0.00, 0.00, 'OB04', 'IGNORERES', 'STOPP_IGNORERES', 'oppryddingsstopp-corr-id', 'OB04'
-                        )
-                        """.trimIndent(),
-                    ),
-                )
-            }
+            SftpListener.putFile("krav/$oppryddingsfilnavn", Directories.INBOUND)
             val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
             val skeService =
                 setupSkeServiceMockWithMockEngine(
@@ -678,12 +662,18 @@ internal class SkeServiceIntegrationTest :
                     kravRepository = kravRepository,
                 )
 
-            When("filen leses etter at første OS-STOPP ble ignorert") {
+            When("filen leses etter at oppryddings-ENDRING er lagret som NYTT_KRAV") {
+                skeService.handleNewKrav(1.milliseconds)
                 SftpListener.putFile("krav/$feilfeilnavn", Directories.INBOUND)
                 skeService.handleNewKrav(1.milliseconds)
 
-                Then("skal gjentatt STOPP ignoreres med egen status og varsle Slack én gang") {
+                Then("skal ENDRING og gjentatt STOPP ignoreres med egen status og varsle Slack én gang") {
                     val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
+                    lagredeKrav.filter { it.filnavn == feilfeilnavn && it.referansenummerGammelSak == "OB040000595067" }.apply {
+                        shouldHaveSize(2)
+                        map { it.kravtype }.toSet() shouldBe setOf(ENDRING_IGNORERES, STOPP_IGNORERES)
+                        forAll { it.status shouldBe Status.IGNORERES_ETTER_OPPRYDDING }
+                    }
                     lagredeKrav.single { it.filnavn == feilfeilnavn && it.belop == 0.0 }.apply {
                         kravtype shouldBe STOPP_IGNORERES
                         status shouldBe Status.IGNORERES_ETTER_OPPRYDDING

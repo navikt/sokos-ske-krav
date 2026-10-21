@@ -164,7 +164,7 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
    - at B sendes som opprett krav
     - ordinær utsending eller ordinær SKE-feil for C
 
-> **Gjentatt OS-STOPP:** Dersom en ny OS-STOPP fortsatt har `referansenummerGammelSak = A` etter at en første OS-STOPP for A er ignorert, lagres den med kravtypen `STOPP_IGNORERES` og status `IGNORERES_ETTER_OPPRYDDING`. Den sendes ikke til SKE, og Slack varsler. STOPP fra andre avsendere følger ordinær rute.
+> **Senere feilreferanse:** Dersom en ny ENDRING fortsatt har `referansenummerGammelSak = A` etter at A allerede er overstyrt av et `NYTT_KRAV` eller en første OS-STOPP, lagres den med kravtypen `ENDRING_IGNORERES` og status `IGNORERES_ETTER_OPPRYDDING`. En ny OS-STOPP får tilsvarende `STOPP_IGNORERES`. Linjene sendes ikke til SKE, og Slack varsler. STOPP fra andre avsendere følger ordinær rute.
                                        
 
 ## Tolkning av testresultater

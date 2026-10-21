@@ -17,6 +17,7 @@ import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
+import no.nav.sokos.ske.krav.service.ENDRING_IGNORERES
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.IGNORERES
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
@@ -354,12 +355,33 @@ internal class RepositoryTestKrav :
                     session,
                     listOf(stoppFraArena),
                     filnavn,
-                    ignorerteOppryddingsstoppReferanser = setOf(stoppFraArena.referansenummerGammelSak),
+                    overstyrteOppryddingsreferanser = setOf(stoppFraArena.referansenummerGammelSak),
                 )
 
                 kravRepository.getAllKrav(session).single().apply {
                     kravtype shouldBe STOPP_KRAV
                     status shouldBe Status.KRAV_INNLEST_FRA_FIL
+                }
+            }
+        }
+
+        test("insertAllNewKrav skal ignorere ENDRING etter første ignorerte OS-STOPP") {
+            DBListener.clearDB()
+
+            val filnavn = "TiNyeKrav1Endring1Stopp.txt"
+            val endringKrav = (FileParser(getFileContent("krav/$filnavn")).parseResult as ParseResult.Success).kravLinjer.first { it.isEndring() }
+
+            dataSource.transaction { session ->
+                kravRepository.insertAllNewKrav(
+                    session,
+                    listOf(endringKrav),
+                    filnavn,
+                    overstyrteOppryddingsreferanser = setOf(endringKrav.referansenummerGammelSak),
+                )
+
+                kravRepository.getAllKrav(session).single().apply {
+                    kravtype shouldBe ENDRING_IGNORERES
+                    status shouldBe Status.IGNORERES_ETTER_OPPRYDDING
                 }
             }
         }

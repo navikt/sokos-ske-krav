@@ -50,6 +50,7 @@ const val ENDRING_RENTE = "ENDRING_RENTE"
 const val ENDRING_HOVEDSTOL = "ENDRING_HOVEDSTOL"
 const val STOPP_KRAV = "STOPP_KRAV"
 const val IGNORERES = "IGNORERES"
+const val ENDRING_IGNORERES = "ENDRING_IGNORERES"
 const val STOPP_IGNORERES = "STOPP_IGNORERES"
 
 private val logger = mu.KotlinLogging.logger {}
@@ -358,18 +359,17 @@ class SkeService(
             logger.info("Behandler ${oppryddingsReferanserMedForeldelsesfristfeil.size} oppryddingsreferanse(r) fra $filename")
         }
 
-        val ignorerteOppryddingsstoppReferanser = kravRepository.getIgnorerteOppryddingsstoppReferanser(oppryddingsReferanserMedForeldelsesfristfeil)
+        val overstyrteOppryddingsreferanser = kravRepository.getOverstyrteOppryddingsreferanser(oppryddingsReferanserMedForeldelsesfristfeil)
         dataSource.transaction { session ->
-            kravRepository.insertAllNewKrav(session, allKrav, filename, oppryddingsReferanserMedForeldelsesfristfeil, ignorerteOppryddingsstoppReferanser)
+            kravRepository.insertAllNewKrav(session, allKrav, filename, oppryddingsReferanserMedForeldelsesfristfeil, overstyrteOppryddingsreferanser)
             filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
         }
 
         allKrav
             .asSequence()
             .filter {
-                it.isStopp() &&
-                    it.avsender.trim() == Avsender.OB04.name &&
-                    it.referansenummerGammelSak in ignorerteOppryddingsstoppReferanser
+                (it.isEndring() || (it.isStopp() && it.avsender.trim() == Avsender.OB04.name)) &&
+                    it.referansenummerGammelSak in overstyrteOppryddingsreferanser
             }.map { it.referansenummerGammelSak }
             .distinct()
             .forEach { opprinneligSaksnummer ->
@@ -377,8 +377,8 @@ class SkeService(
                     filename,
                     FEIL_I_OPPRYDDING,
                     ErrorDetails(
-                        header = "Stopp etter ignorert oppryddingsstopp",
-                        description = "Stopp med referanse til opprinnelig avvist krav ble ignorert fordi en tidligere OS-STOPP allerede er ignorert.",
+                        header = "Endring eller stopp etter overstyrt opprydding",
+                        description = "Endring eller stopp med referanse til opprinnelig avvist krav ble ignorert fordi referansen allerede er overstyrt som nytt krav eller ignorert stopp.",
                         caseNumber = opprinneligSaksnummer,
                     ),
                 )
