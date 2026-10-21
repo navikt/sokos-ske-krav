@@ -121,7 +121,7 @@ private val kravRepositoryMock =
         every { getAllUnsentKrav() } returns emptyList()
         every { getAllKravForResending() } returns emptyList()
         every { getSkeKravidentifikator(any<String>()) } returns "foo"
-        every { getHåndterteOppryddingsreferanser(any()) } returns emptySet()
+        every { getIgnorerteOppryddingsstoppReferanser(any()) } returns emptySet()
         justRun { insertAllNewKrav(any<TransactionalSession>(), any<List<KravLinje>>(), "filnavn.txt", any(), any()) }
     }
 

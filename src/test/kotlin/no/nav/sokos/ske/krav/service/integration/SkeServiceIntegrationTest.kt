@@ -27,6 +27,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
+import kotliquery.queryOf
 import org.slf4j.LoggerFactory
 
 import no.nav.sokos.ske.krav.client.SkeClient
@@ -51,6 +52,7 @@ import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.FtpService
 import no.nav.sokos.ske.krav.service.IGNORERES
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
+import no.nav.sokos.ske.krav.service.STOPP_IGNORERES
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.service.SkeService
 import no.nav.sokos.ske.krav.service.SlackService
@@ -589,7 +591,7 @@ internal class SkeServiceIntegrationTest :
                 lagredeKrav.shouldHaveSize(10)
                 lagredeKrav.filter { it.kravtype == NYTT_KRAV }.forAll { it.status shouldBe KRAV_SENDT }
                 lagredeKrav.single { it.saksnummerNAV == "OB040000520015" }.apply {
-                    kravtype shouldBe IGNORERES
+                    kravtype shouldBe STOPP_IGNORERES
                     status shouldBe Status.IGNORERES
                 }
                 lagredeKrav.single { it.saksnummerNAV == "OB040000595068" }.kravtype shouldBe NYTT_KRAV
@@ -646,9 +648,25 @@ internal class SkeServiceIntegrationTest :
         Given("en saksbehandler sender ENDRING og STOPP med referanse til opprinnelig krav etter håndtert opprydding") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
-            val oppryddingsfilnavn = "OppryddingEndringOgStopp.txt"
             val feilfeilnavn = "EndringerMedOriginalReferanseEtterOpprydding.txt"
-            SftpListener.putFile("krav/$oppryddingsfilnavn", Directories.INBOUND)
+            dataSource.transaction { session ->
+                session.update(
+                    queryOf(
+                        """
+                        insert into krav (
+                            filnavn, linjenummer, saksnummer_nav, belop, vedtaksdato, gjelder_id,
+                            periode_fom, periode_tom, kravkode, referansenummergammelsak, transaksjonsdato,
+                            enhet_bosted, enhet_behandlende, kode_hjemmel, kode_arsak, belop_rente,
+                            fremtidig_ytelse, fagsystem_id, status, kravtype, corr_id, avsender
+                        ) values (
+                            'oppryddingsstopp.txt', 1, 'OB040000595067', 0.00, current_date, '06897998821',
+                            '20220701', '20221031', 'PE AP', 'OB040000595067', '20230524',
+                            '4803', '4819', 'T', '', 0.00, 0.00, 'OB04', 'IGNORERES', 'STOPP_IGNORERES', 'oppryddingsstopp-corr-id', 'OB04'
+                        )
+                        """.trimIndent(),
+                    ),
+                )
+            }
             val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
             val skeService =
                 setupSkeServiceMockWithMockEngine(
@@ -660,19 +678,15 @@ internal class SkeServiceIntegrationTest :
                     kravRepository = kravRepository,
                 )
 
-            When("filen leses etter at oppryddingskravet har fått SKE-identifikator") {
-                skeService.handleNewKrav(1.milliseconds)
+            When("filen leses etter at første OS-STOPP ble ignorert") {
                 SftpListener.putFile("krav/$feilfeilnavn", Directories.INBOUND)
                 skeService.handleNewKrav(1.milliseconds)
 
-                Then("skal ENDRING og STOPP ignoreres med egen status og varsle Slack én gang") {
+                Then("skal gjentatt STOPP ignoreres med egen status og varsle Slack én gang") {
                     val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
-                    lagredeKrav.filter { it.saksnummerNAV == "OB040000599998" || it.saksnummerNAV == "OB040000599999" }.apply {
-                        shouldHaveSize(2)
-                        forAll {
-                            it.kravtype shouldBe IGNORERES
-                            it.status shouldBe Status.IGNORERES_ETTER_OPPRYDDING
-                        }
+                    lagredeKrav.single { it.filnavn == feilfeilnavn && it.belop == 0.0 }.apply {
+                        kravtype shouldBe STOPP_IGNORERES
+                        status shouldBe Status.IGNORERES_ETTER_OPPRYDDING
                     }
 
                     val errorDetailsSlot = slot<ErrorDetails>()

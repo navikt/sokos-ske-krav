@@ -19,6 +19,7 @@ import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.IGNORERES
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
+import no.nav.sokos.ske.krav.service.STOPP_IGNORERES
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.util.transaction
 
@@ -196,7 +197,7 @@ class KravRepository(
 
     fun getSkeKravidentifikator(navref: String): String = dataSource.transaction { session -> getSkeKravidentifikator(session, navref) }
 
-    fun getHåndterteOppryddingsreferanser(referanser: Set<String>): Set<String> {
+    fun getIgnorerteOppryddingsstoppReferanser(referanser: Set<String>): Set<String> {
         if (referanser.isEmpty()) return emptySet()
 
         val placeholders = referanser.joinToString(", ") { "?" }
@@ -210,10 +211,9 @@ class KravRepository(
                         from krav
                         where referansenummergammelsak in ($placeholders)
                           and kravtype = ?
-                          and nullif(kravidentifikator_ske, '') is not null
                         """.trimIndent(),
                         *referanser.toTypedArray(),
-                        NYTT_KRAV,
+                        STOPP_IGNORERES,
                     ),
                 ) { row ->
                     row.string("referansenummergammelsak")
@@ -440,7 +440,7 @@ class KravRepository(
         kravLinjer: List<KravLinje>,
         filnavn: String,
         oppryddingsReferanser: Set<String> = emptySet(),
-        håndterteOppryddingsreferanser: Set<String> = emptySet(),
+        ignorerteOppryddingsstoppReferanser: Set<String> = emptySet(),
     ) {
         val params = mutableListOf<Map<String, Any?>>()
 
@@ -448,8 +448,9 @@ class KravRepository(
         // 🤖 aldri sendes til SKE. De lagres med status og kravtype IGNORERES
         kravLinjer.forEach { kravLinje ->
             val skalIgnoreresEtterOpprydding =
-                (kravLinje.isEndring() || kravLinje.isStopp()) &&
-                    kravLinje.referansenummerGammelSak in håndterteOppryddingsreferanser &&
+                kravLinje.isStopp() &&
+                    kravLinje.avsender.trim() == Avsender.OB04.name &&
+                    kravLinje.referansenummerGammelSak in ignorerteOppryddingsstoppReferanser &&
                     kravLinje.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value
             val skalIgnoreres =
                 kravLinje.isStopp() &&
@@ -459,11 +460,11 @@ class KravRepository(
 
             when {
                 skalIgnoreresEtterOpprydding -> {
-                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.IGNORERES_ETTER_OPPRYDDING.value), IGNORERES, filnavn))
+                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.IGNORERES_ETTER_OPPRYDDING.value), STOPP_IGNORERES, filnavn))
                 }
 
                 skalIgnoreres -> {
-                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.IGNORERES.value), IGNORERES, filnavn))
+                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.IGNORERES.value), STOPP_IGNORERES, filnavn))
                 }
 
                 // 🤖 Oppryddingsendringer skal sendes inn som NYTT krav. Vi lagrer referansenummergammelsak i database.

@@ -21,6 +21,7 @@ import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.UnleashConfig
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
@@ -49,6 +50,7 @@ const val ENDRING_RENTE = "ENDRING_RENTE"
 const val ENDRING_HOVEDSTOL = "ENDRING_HOVEDSTOL"
 const val STOPP_KRAV = "STOPP_KRAV"
 const val IGNORERES = "IGNORERES"
+const val STOPP_IGNORERES = "STOPP_IGNORERES"
 
 private val logger = mu.KotlinLogging.logger {}
 
@@ -351,32 +353,36 @@ class SkeService(
 
         val oppryddingsReferanserMedForeldelsesfristfeil =
             feilmeldingRepository.getSaksnumreWithForeldelsesfristError(oppryddingsReferanser)
-        val håndterteOppryddingsreferanser = kravRepository.getHåndterteOppryddingsreferanser(oppryddingsReferanserMedForeldelsesfristfeil)
+
+        if (oppryddingsReferanserMedForeldelsesfristfeil.isNotEmpty()) {
+            logger.info("Behandler ${oppryddingsReferanserMedForeldelsesfristfeil.size} oppryddingsreferanse(r) fra $filename")
+        }
+
+        val ignorerteOppryddingsstoppReferanser = kravRepository.getIgnorerteOppryddingsstoppReferanser(oppryddingsReferanserMedForeldelsesfristfeil)
+        dataSource.transaction { session ->
+            kravRepository.insertAllNewKrav(session, allKrav, filename, oppryddingsReferanserMedForeldelsesfristfeil, ignorerteOppryddingsstoppReferanser)
+            filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
+        }
 
         allKrav
             .asSequence()
-            .filter { (it.isEndring() || it.isStopp()) && it.referansenummerGammelSak in håndterteOppryddingsreferanser }
-            .map { it.referansenummerGammelSak }
+            .filter {
+                it.isStopp() &&
+                    it.avsender.trim() == Avsender.OB04.name &&
+                    it.referansenummerGammelSak in ignorerteOppryddingsstoppReferanser
+            }.map { it.referansenummerGammelSak }
             .distinct()
             .forEach { opprinneligSaksnummer ->
                 slackService.addError(
                     filename,
                     FEIL_I_OPPRYDDING,
                     ErrorDetails(
-                        header = "Endring eller stopp etter håndtert opprydding",
-                        description = "Endring eller stopp med referanse til opprinnelig avvist krav ble ignorert. Kravet må referere til oppryddingskravets nye saksnummer.",
+                        header = "Stopp etter ignorert oppryddingsstopp",
+                        description = "Stopp med referanse til opprinnelig avvist krav ble ignorert fordi en tidligere OS-STOPP allerede er ignorert.",
                         caseNumber = opprinneligSaksnummer,
                     ),
                 )
             }
-
-        if (oppryddingsReferanserMedForeldelsesfristfeil.isNotEmpty()) {
-            logger.info("Behandler ${oppryddingsReferanserMedForeldelsesfristfeil.size} oppryddingsreferanse(r) fra $filename")
-        }
-        dataSource.transaction { session ->
-            kravRepository.insertAllNewKrav(session, allKrav, filename, oppryddingsReferanserMedForeldelsesfristfeil, håndterteOppryddingsreferanser)
-            filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
-        }
     }
 
     private fun handleError(

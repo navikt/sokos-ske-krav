@@ -20,6 +20,7 @@ import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.IGNORERES
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
+import no.nav.sokos.ske.krav.service.STOPP_IGNORERES
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 import no.nav.sokos.ske.krav.util.getAllKrav
@@ -310,7 +311,7 @@ internal class RepositoryTestKrav :
                 lagredeKrav.filter { it.kravtype == NYTT_KRAV }.shouldHaveSize(9)
                 lagredeKrav.filter { it.kravtype == ENDRING_RENTE || it.kravtype == ENDRING_HOVEDSTOL }.shouldHaveSize(0)
                 lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(0)
-                lagredeKrav.single { it.saksnummerNAV == oppryddingsStopp.saksnummerNav }.kravtype shouldBe IGNORERES
+                lagredeKrav.single { it.saksnummerNAV == oppryddingsStopp.saksnummerNav }.kravtype shouldBe STOPP_IGNORERES
                 lagredeKrav.single { it.saksnummerNAV == oppryddingsStopp.saksnummerNav }.status shouldBe Status.IGNORERES
                 kravRepository.getAllUnsentKrav().none { it.saksnummerNAV == oppryddingsStopp.saksnummerNav } shouldBe true
                 kravRepository.getAllKravForResending().none { it.saksnummerNAV == oppryddingsStopp.saksnummerNav } shouldBe true
@@ -338,6 +339,28 @@ internal class RepositoryTestKrav :
                 lagredeKrav.shouldHaveSize(kravlinjer.size + 1)
                 lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(1)
                 lagredeKrav.single { it.saksnummerNAV == stoppKrav.saksnummerNav }.avsender shouldBe Avsender.ARENA.name
+            }
+        }
+
+        test("insertAllNewKrav skal ikke ignorere STOPP fra andre avsendere etter håndtert opprydding") {
+            DBListener.clearDB()
+
+            val filnavn = "TiNyeKrav1Endring1Stopp.txt"
+            val stoppKrav = (FileParser(getFileContent("krav/$filnavn")).parseResult as ParseResult.Success).kravLinjer.first { it.isStopp() }
+            val stoppFraArena = stoppKrav.copy(avsender = Avsender.ARENA.name)
+
+            dataSource.transaction { session ->
+                kravRepository.insertAllNewKrav(
+                    session,
+                    listOf(stoppFraArena),
+                    filnavn,
+                    ignorerteOppryddingsstoppReferanser = setOf(stoppFraArena.referansenummerGammelSak),
+                )
+
+                kravRepository.getAllKrav(session).single().apply {
+                    kravtype shouldBe STOPP_KRAV
+                    status shouldBe Status.KRAV_INNLEST_FRA_FIL
+                }
             }
         }
 

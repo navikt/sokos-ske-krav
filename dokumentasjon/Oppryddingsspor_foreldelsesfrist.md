@@ -14,9 +14,9 @@
 
 Vedtaksløsningene kan sende en korrigering som `ENDRING` etter at det opprinnelige kravet ble avvist av SKE fordi `foreldelsesfristensUtgangspunkt` var for langt tilbake i tid. Korrigeringen har tilleggsfrist, men SKE kan ikke endre et krav som aldri ble opprettet. Derfor behandles denne avgrensede kategorien som et nytt krav.
 
-OS (`avsender = OB04`) kan samtidig sende en `STOPP` (nullperiode) for samme sak. Denne OS-stoppen lagres med både `kravtype = IGNORERES` og `status = IGNORERES` for sporbarhet, men sendes ikke til SKE. `STOPP` fra andre avsendere følger ordinær flyt, også når det finnes en historisk foreldelsesfrist-feil.
+OS (`avsender = OB04`) kan samtidig sende en `STOPP` (nullperiode) for samme sak. Denne OS-stoppen lagres med både `kravtype = STOPP_IGNORERES` og `status = IGNORERES` for sporbarhet, men sendes ikke til SKE. `STOPP` fra andre avsendere følger ordinær flyt, også når det finnes en historisk foreldelsesfrist-feil.
 
-Hvis et oppryddingskrav allerede har fått SKE-kravidentifikator, og en senere `ENDRING` eller `STOPP` fortsatt refererer direkte til det opprinnelig avviste kravet, lagres den med `kravtype = IGNORERES` og `status = IGNORERES_ETTER_OPPRYDDING`. Dette er en feilreferanse: den nye linjen skal i stedet referere til oppryddingskravets saksnummer. Linjen sendes ikke til SKE, og tjenesten varsler Slack.
+Hvis en første OS-STOPP for originalen allerede er lagret som `STOPP_IGNORERES` med status `IGNORERES`, blir neste OS-STOPP (`avsender = OB04`) med samme gamle referanse lagret med `kravtype = STOPP_IGNORERES` og `status = IGNORERES_ETTER_OPPRYDDING`. Linjen sendes ikke til SKE, og tjenesten varsler Slack. STOPP fra andre avsendere følger ordinær rute.
 
 ## Beslutningsflyt ved innlesing
 
@@ -103,9 +103,9 @@ En linje er et oppryddingskrav bare når `referansenummerGammelSak` er saksnumme
 | Innkommende type | Treff i historisk feilmelding | Resultat |
 | --- | --- | --- |
 | ENDRING | Ja | Én rad med `kravtype = NYTT_KRAV`; sendes via opprett-krav-endepunktet. |
-| STOPP fra `OB04` | Ja | Lagres med både `kravtype = IGNORERES` og `status = IGNORERES`; ingen utsending til SKE. |
+| Første STOPP fra `OB04` | Ja | Lagres med både `kravtype = STOPP_IGNORERES` og `status = IGNORERES`; ingen utsending til SKE. |
 | STOPP fra annen avsender | Ja | Lagres og sendes som ordinær `STOPP_KRAV`. |
-| ENDRING eller STOPP med direkte referanse til originalen etter håndtert opprydding | Ja | Lagres med `kravtype = IGNORERES` og `status = IGNORERES_ETTER_OPPRYDDING`; ingen utsending til SKE og Slack-varsel. |
+| Senere STOPP fra `OB04` med samme direkte referanse til originalen | Ja | Lagres med `kravtype = STOPP_IGNORERES` og `status = IGNORERES_ETTER_OPPRYDDING`; ingen utsending til SKE og Slack-varsel. |
 | ENDRING eller STOPP | Nei | Normal flyt er uendret. |
 | NYTT_KRAV | Ikke vurdert | Normal flyt er uendret. |
 
@@ -123,9 +123,9 @@ Testene verifiserer:
 
 - oppslag med treff, ikke-treff og ukjent saksnummer
 - ENDRING som lagres som én `NYTT_KRAV`
-- STOPP fra `OB04` som lagres med `kravtype = IGNORERES` uten utsending til SKE
+- første STOPP fra `OB04` som lagres med `kravtype = STOPP_IGNORERES` uten utsending til SKE
 - STOPP fra andre avsendere som lagres som ordinær `STOPP_KRAV`
-- ENDRING og STOPP som feilaktig refererer til originalen etter at oppryddingskravet er sendt, lagres med `IGNORERES_ETTER_OPPRYDDING` og gir ett Slack-varsel
+- gjentatt STOPP fra `OB04` med samme referanse til originalen lagres med `IGNORERES_ETTER_OPPRYDDING` og gir ett Slack-varsel
 - SFTP-innlesing og utsending av oppryddings-ENDRING via opprett-krav-ruten
 - at øvrige ENDRING-er i samme fil fortsatt bruker ordinær endringsrute
 - at en senere `ENDRING` med referanse til oppryddingskravets nye saksnummer lagres som `ENDRING_HOVEDSTOL` og `ENDRING_RENTE`, og at en senere `STOPP` lagres og sendes som `STOPP_KRAV`
