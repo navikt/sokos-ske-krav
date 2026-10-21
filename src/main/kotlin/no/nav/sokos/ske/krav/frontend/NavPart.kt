@@ -11,8 +11,11 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
 import io.ktor.server.html.Template
 
+import no.nav.sokos.ske.krav.config.isTestkonsollEnabled
+
 class NavPart(
     private val call: ApplicationCall,
+    private val showTestkonsoll: Boolean = isTestkonsollEnabled(),
 ) : Template<FlowContent> {
     override fun FlowContent.apply() {
         nav {
@@ -20,7 +23,11 @@ class NavPart(
                 li(classes = "signature") { +(call.principal<JWTPrincipal>()?.get("name") ?: "Ikke innlogget") }
                 li { a(href = "/rapporter/resending") { +"Resending" } }
                 li { a(href = "/rapporter/avstemming") { +"Avstemming" } }
+                if (showTestkonsoll) {
+                    li { a(href = "/testing") { +"Testkonsoll" } }
+                }
                 li { a(href = "/krav") { +"Kravsøk" } }
+                li { a(href = "/krav/filnavn") { +"Filnavnsøk" } }
                 li { a(href = "/rapporter/resendUsendte") { +"Send usendte filer" } }
                 // her kan vi legge inn link til endepunktet så kommer det en knapp øverst på siden
                 // men det hadde kanskje vært fint å ha en side med noe synlig tilbakemelding? evt må vi logge masse sånn at vi kan se hva som skjer

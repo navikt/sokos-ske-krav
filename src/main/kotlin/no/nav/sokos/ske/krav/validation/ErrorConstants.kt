@@ -9,6 +9,7 @@ enum class ErrorCategory(
     FEIL_I_OPPDATERING_AV_MOTTAKSSTATUS("Feil i oppdatering av mottaksstatus"),
     FEIL_I_HENTING_AV_VALIDERINGSFEIL("Feil i henting av valideringsfeil"),
     FEIL_I_ASYNK_VALIDERING("Asynk valideringsfeil"),
+    FEIL_I_OPPRYDDING("Feil i oppryddingsspor"),
     ;
 
     override fun toString() = value

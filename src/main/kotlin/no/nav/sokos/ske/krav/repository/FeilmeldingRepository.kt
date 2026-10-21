@@ -15,6 +15,36 @@ import no.nav.sokos.ske.krav.util.transaction
 class FeilmeldingRepository(
     private val dataSource: DataSource = PostgresDataSource.dataSource,
 ) {
+    // 🤖 Bare den spesifikke foreldelsesfrist-feilen skal starte oppryddingssporet. Andre 422-feil
+    // 🤖 må fortsette i ordinær feilhåndtering selv om de gjelder samme saksnummer.
+    fun getSaksnumreWithForeldelsesfristError(saksnumreNav: Set<String>): Set<String> {
+        if (saksnumreNav.isEmpty()) return emptySet()
+
+        val placeholders = saksnumreNav.joinToString(", ") { "?" }
+
+        return dataSource.transaction { session ->
+            session
+                .list(
+                    queryOf(
+                        // language=SQL
+                        """
+                        select distinct saksnummer_nav
+                        from feilmelding f
+                        where f.saksnummer_nav in ($placeholders)
+                          and f.melding like ?
+                        """.trimIndent(),
+                        // 🤖 Bind saksnumrene i samme rekkefølge som plassholderne over.
+                        *saksnumreNav.toTypedArray(),
+                        "%$FORELDELSESFRIST_ERROR_MESSAGE%",
+                    ),
+                ) { row ->
+                    row.string("saksnummer_nav")
+                }.toSet()
+        }
+    }
+
+    fun hasForeldelsesfristError(saksnummerNav: String): Boolean = saksnummerNav in getSaksnumreWithForeldelsesfristError(setOf(saksnummerNav))
+
     val mapToFeilmelding: (Row) -> Feilmelding = { row ->
         Feilmelding(
             feilmeldingId = row.long("id"),
@@ -145,6 +175,8 @@ class FeilmeldingRepository(
         )
 
     companion object {
+        const val FORELDELSESFRIST_ERROR_MESSAGE = "foreldelsesfristensUtgangspunkt kan ikke være mer enn 2 år og 10 måneder tilbake i tid."
+
         val instance: FeilmeldingRepository by lazy { FeilmeldingRepository() }
     }
 }

@@ -11,12 +11,16 @@ import kotliquery.queryOf
 import no.nav.sokos.ske.krav.config.LOCAL_ZONE_ID
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.toStatus
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
+import no.nav.sokos.ske.krav.service.ENDRING_IGNORERES
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
+import no.nav.sokos.ske.krav.service.IGNORERES
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
+import no.nav.sokos.ske.krav.service.STOPP_IGNORERES
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.util.transaction
 
@@ -142,12 +146,13 @@ class KravRepository(
             session.list(
                 queryOf(
                     // language=SQL
-                    """select * from krav where status in (?, ?, ?, ?, ?)""",
+                    """select * from krav where status in (?, ?, ?, ?, ?) and kravtype != ?""",
                     Status.KRAV_IKKE_SENDT.value,
                     Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND.value,
                     Status.HTTP500_ANNEN_SERVER_FEIL.value,
                     Status.HTTP500_INTERN_TJENERFEIL.value,
                     Status.HTTP503_UTILGJENGELIG_TJENESTE.value,
+                    IGNORERES,
                 ),
                 extractor = mapToKrav,
             )
@@ -158,8 +163,9 @@ class KravRepository(
             session.list(
                 queryOf(
                     // language=SQL
-                    """select * from krav where status = ?""",
+                    """select * from krav where status = ? and kravtype != ?""",
                     Status.KRAV_IKKE_SENDT.value,
+                    IGNORERES,
                 ),
                 extractor = mapToKrav,
             )
@@ -191,6 +197,31 @@ class KravRepository(
         }
 
     fun getSkeKravidentifikator(navref: String): String = dataSource.transaction { session -> getSkeKravidentifikator(session, navref) }
+
+    fun getOverstyrteOppryddingsreferanser(referanser: Set<String>): Set<String> {
+        if (referanser.isEmpty()) return emptySet()
+
+        val placeholders = referanser.joinToString(", ") { "?" }
+        return dataSource.transaction { session ->
+            session
+                .list(
+                    queryOf(
+                        // language=SQL
+                        """
+                        select distinct referansenummergammelsak
+                        from krav
+                        where referansenummergammelsak in ($placeholders)
+                          and kravtype in (?, ?)
+                        """.trimIndent(),
+                        *referanser.toTypedArray(),
+                        NYTT_KRAV,
+                        STOPP_IGNORERES,
+                    ),
+                ) { row ->
+                    row.string("referansenummergammelsak")
+                }.toSet()
+        }
+    }
 
     fun getSkeKravidentifikator(
         session: TransactionalSession,
@@ -410,10 +441,39 @@ class KravRepository(
         session: TransactionalSession,
         kravLinjer: List<KravLinje>,
         filnavn: String,
+        oppryddingsReferanser: Set<String> = emptySet(),
+        overstyrteOppryddingsreferanser: Set<String> = emptySet(),
     ) {
         val params = mutableListOf<Map<String, Any?>>()
+
+        // 🤖 OS sender oppryddings-STOPP fordi OS må "nulle ut" perioder. Disse STOPPENE beholdes for sporbarhet, men skal
+        // 🤖 aldri sendes til SKE. De lagres med status og kravtype IGNORERES
         kravLinjer.forEach { kravLinje ->
+            val skalIgnoreresEtterOpprydding =
+                (kravLinje.isEndring() || (kravLinje.isStopp() && kravLinje.avsender.trim() == Avsender.OB04.name)) &&
+                    kravLinje.referansenummerGammelSak in overstyrteOppryddingsreferanser &&
+                    kravLinje.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value
+            val skalIgnoreres =
+                kravLinje.isStopp() &&
+                    kravLinje.avsender.trim() == Avsender.OB04.name &&
+                    kravLinje.referansenummerGammelSak in oppryddingsReferanser &&
+                    kravLinje.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value
+
             when {
+                skalIgnoreresEtterOpprydding -> {
+                    val kravtype = if (kravLinje.isEndring()) ENDRING_IGNORERES else STOPP_IGNORERES
+                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.IGNORERES_ETTER_OPPRYDDING.value), kravtype, filnavn))
+                }
+
+                skalIgnoreres -> {
+                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.IGNORERES.value), STOPP_IGNORERES, filnavn))
+                }
+
+                // 🤖 Oppryddingsendringer skal sendes inn som NYTT krav. Vi lagrer referansenummergammelsak i database.
+                kravLinje.isEndring() && kravLinje.referansenummerGammelSak in oppryddingsReferanser -> {
+                    params.add(insertKravNamesParams(kravLinje, NYTT_KRAV, filnavn))
+                }
+
                 kravLinje.isStopp() -> {
                     params.add(insertKravNamesParams(kravLinje, STOPP_KRAV, filnavn))
                 }
@@ -460,6 +520,36 @@ class KravRepository(
                 ),
                 extractor = mapToKrav,
             )
+
+    fun finnKravForFilnavn(
+        session: TransactionalSession,
+        filnavn: String,
+    ): List<Pair<Krav, String?>> =
+        session.list(
+            queryOf(
+                // language=SQL
+                """
+                select k.*, concat_ws(E'\n', f.feilmeldinger, v.feilmeldinger) as feilmelding
+                from krav k
+                left join (
+                    select krav_id, string_agg(melding, E'\n' order by id) as feilmeldinger
+                    from feilmelding
+                    group by krav_id
+                ) f on f.krav_id = k.id
+                left join (
+                    select filnavn, linjenummer, saksnummer_nav, string_agg(feilmelding, E'\n' order by id) as feilmeldinger
+                    from filvalideringsfeil
+                    group by filnavn, linjenummer, saksnummer_nav
+                ) v on v.filnavn = k.filnavn
+                    and v.linjenummer = k.linjenummer
+                    and v.saksnummer_nav = k.saksnummer_nav
+                where k.filnavn = :filnavn
+                order by k.id
+                """.trimIndent(),
+                mapOf("filnavn" to filnavn),
+            ),
+            extractor = { row -> mapToKrav(row) to row.stringOrNull("feilmelding") },
+        )
 
     companion object {
         val instance by lazy { KravRepository() }

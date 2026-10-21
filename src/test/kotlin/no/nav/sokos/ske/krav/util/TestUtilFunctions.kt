@@ -113,6 +113,7 @@ private val filValideringsfeilRepositoryMock = mockk<FilValideringsfeilRepositor
 private val feilmeldingRepositoryMock =
     mockk<FeilmeldingRepository> {
         justRun { insertFeilmelding(any(), any()) }
+        every { getSaksnumreWithForeldelsesfristError(any()) } returns emptySet()
     }
 
 private val kravRepositoryMock =
@@ -120,7 +121,8 @@ private val kravRepositoryMock =
         every { getAllUnsentKrav() } returns emptyList()
         every { getAllKravForResending() } returns emptyList()
         every { getSkeKravidentifikator(any<String>()) } returns "foo"
-        justRun { insertAllNewKrav(any<TransactionalSession>(), any<List<KravLinje>>(), "filnavn.txt") }
+        every { getOverstyrteOppryddingsreferanser(any()) } returns emptySet()
+        justRun { insertAllNewKrav(any<TransactionalSession>(), any<List<KravLinje>>(), "filnavn.txt", any(), any()) }
     }
 
 fun setupSkeServiceMock(

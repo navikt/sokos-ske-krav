@@ -11,13 +11,17 @@ import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.copybook.FileParser
 import no.nav.sokos.ske.krav.copybook.ParseResult
+import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
+import no.nav.sokos.ske.krav.service.ENDRING_IGNORERES
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
+import no.nav.sokos.ske.krav.service.IGNORERES
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
+import no.nav.sokos.ske.krav.service.STOPP_IGNORERES
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
 import no.nav.sokos.ske.krav.util.FtpTestUtil.getFileContent
 import no.nav.sokos.ske.krav.util.getAllKrav
@@ -65,6 +69,32 @@ internal class RepositoryTestKrav :
             unsentKrav.shouldHaveSize(5)
             unsentKrav.forAll {
                 it.status shouldBe Status.KRAV_IKKE_SENDT
+            }
+        }
+
+        test("finnKravForFilnavn skal returnere bare krav fra valgt filnavn") {
+            dataSource.transaction { session ->
+                kravRepository.finnKravForFilnavn(session, "KravForRepositoryBehaviourTest.txt").map { it.first.filnavn }.toSet() shouldBe setOf("KravForRepositoryBehaviourTest.txt")
+                kravRepository.finnKravForFilnavn(session, "finnes-ikke.txt") shouldBe emptyList()
+            }
+        }
+
+        test("finnKravForFilnavn skal inkludere SKE- og filvalideringsfeil") {
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/Feilmeldinger.sql")
+            dataSource.transaction { session ->
+                session.update(
+                    queryOf(
+                        """
+                        insert into filvalideringsfeil (filnavn, linjenummer, saksnummer_nav, kravlinje, feilmelding)
+                        values ('KravForRepositoryBehaviourTest.txt', 1, '1110-navsaksnummer', 'kravlinje', 'Feil i filvalidering')
+                        """.trimIndent(),
+                    ),
+                )
+
+                kravRepository
+                    .finnKravForFilnavn(session, "KravForRepositoryBehaviourTest.txt")
+                    .single { it.first.saksnummerNAV == "1110-navsaksnummer" }
+                    .second shouldBe "feilmelding 422 1111\nFeil i filvalidering"
             }
         }
 
@@ -253,6 +283,107 @@ internal class RepositoryTestKrav :
 
             lagredeKrav.shouldHaveSize(1)
             lagredeKrav.first().utbetalDato shouldBe null
+        }
+
+        // 🤖 SKE kan ikke endre et krav som ble avvist før opprettelse. Oppryddingsendringen må
+        // 🤖 derfor lagres som NYTT_KRAV, mens den tilhørende OS-STOPP-en beholdes for sporbarhet
+        // 🤖 med kravtypen IGNORERES og uten å kunne sendes.
+        test("insertAllNewKrav skal lagre oppryddingsendring som nytt krav og merke oppryddingsstopp som ignorert") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+
+            val filnavn = "TiNyeKrav1Endring1Stopp.txt"
+            val kravlinjer = (FileParser(getFileContent("krav/$filnavn")).parseResult as ParseResult.Success).kravLinjer
+            val oppryddingsEndring = kravlinjer.first { it.isEndring() }
+            val oppryddingsStopp = kravlinjer.first { it.isStopp() }
+
+            dataSource.transaction { session ->
+                val oppryddingsReferanser = setOf(oppryddingsEndring.referansenummerGammelSak, oppryddingsStopp.referansenummerGammelSak)
+
+                kravRepository.insertAllNewKrav(
+                    session,
+                    kravlinjer,
+                    filnavn,
+                    oppryddingsReferanser,
+                )
+
+                val lagredeKrav = kravRepository.getAllKrav(session)
+                lagredeKrav.shouldHaveSize(kravlinjer.size)
+                lagredeKrav.filter { it.kravtype == NYTT_KRAV }.shouldHaveSize(9)
+                lagredeKrav.filter { it.kravtype == ENDRING_RENTE || it.kravtype == ENDRING_HOVEDSTOL }.shouldHaveSize(0)
+                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(0)
+                lagredeKrav.single { it.saksnummerNAV == oppryddingsStopp.saksnummerNav }.kravtype shouldBe STOPP_IGNORERES
+                lagredeKrav.single { it.saksnummerNAV == oppryddingsStopp.saksnummerNav }.status shouldBe Status.IGNORERES
+                kravRepository.getAllUnsentKrav().none { it.saksnummerNAV == oppryddingsStopp.saksnummerNav } shouldBe true
+                kravRepository.getAllKravForResending().none { it.saksnummerNAV == oppryddingsStopp.saksnummerNav } shouldBe true
+                lagredeKrav.single { it.saksnummerNAV == oppryddingsEndring.saksnummerNav }.kravtype shouldBe NYTT_KRAV
+            }
+        }
+
+        // 🤖 OS-unntaket gjelder ikke andre fagsystemer. Denne testen sikrer at en ellers lik
+        // 🤖 STOPP fra Arena fortsatt lagres, slik at vi ikke mister en legitim kansellering.
+        test("insertAllNewKrav skal lagre oppryddingsstopp fra andre avsendere enn OS") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+
+            val filnavn = "TiNyeKrav1Endring1Stopp.txt"
+            val kravlinjer = (FileParser(getFileContent("krav/$filnavn")).parseResult as ParseResult.Success).kravLinjer
+            val stoppKrav = kravlinjer.first { it.isStopp() }
+            val kravlinjerFraArena = kravlinjer.map { if (it == stoppKrav) it.copy(avsender = Avsender.ARENA.name) else it }
+
+            dataSource.transaction { session ->
+                val oppryddingsReferanser = setOf(stoppKrav.referansenummerGammelSak)
+
+                kravRepository.insertAllNewKrav(session, kravlinjerFraArena, filnavn, oppryddingsReferanser)
+
+                val lagredeKrav = kravRepository.getAllKrav(session)
+                lagredeKrav.shouldHaveSize(kravlinjer.size + 1)
+                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(1)
+                lagredeKrav.single { it.saksnummerNAV == stoppKrav.saksnummerNav }.avsender shouldBe Avsender.ARENA.name
+            }
+        }
+
+        test("insertAllNewKrav skal ikke ignorere STOPP fra andre avsendere etter håndtert opprydding") {
+            DBListener.clearDB()
+
+            val filnavn = "TiNyeKrav1Endring1Stopp.txt"
+            val stoppKrav = (FileParser(getFileContent("krav/$filnavn")).parseResult as ParseResult.Success).kravLinjer.first { it.isStopp() }
+            val stoppFraArena = stoppKrav.copy(avsender = Avsender.ARENA.name)
+
+            dataSource.transaction { session ->
+                kravRepository.insertAllNewKrav(
+                    session,
+                    listOf(stoppFraArena),
+                    filnavn,
+                    overstyrteOppryddingsreferanser = setOf(stoppFraArena.referansenummerGammelSak),
+                )
+
+                kravRepository.getAllKrav(session).single().apply {
+                    kravtype shouldBe STOPP_KRAV
+                    status shouldBe Status.KRAV_INNLEST_FRA_FIL
+                }
+            }
+        }
+
+        test("insertAllNewKrav skal ignorere ENDRING etter første ignorerte OS-STOPP") {
+            DBListener.clearDB()
+
+            val filnavn = "TiNyeKrav1Endring1Stopp.txt"
+            val endringKrav = (FileParser(getFileContent("krav/$filnavn")).parseResult as ParseResult.Success).kravLinjer.first { it.isEndring() }
+
+            dataSource.transaction { session ->
+                kravRepository.insertAllNewKrav(
+                    session,
+                    listOf(endringKrav),
+                    filnavn,
+                    overstyrteOppryddingsreferanser = setOf(endringKrav.referansenummerGammelSak),
+                )
+
+                kravRepository.getAllKrav(session).single().apply {
+                    kravtype shouldBe ENDRING_IGNORERES
+                    status shouldBe Status.IGNORERES_ETTER_OPPRYDDING
+                }
+            }
         }
 
         test("deleteOldKrav skal slette alle kravene som ble opprettet før en spesifisert tid") {

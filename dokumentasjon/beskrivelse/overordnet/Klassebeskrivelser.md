@@ -35,19 +35,17 @@ Sender krav av typen `ENDRING_RENTE` og `ENDRING_HOVEDSTOL`. Fordi applikasjonen
 Sender krav av typen `STOPP_KRAV` til SKE via [`SkeClient.stoppKrav()`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SkeClient.kt). Logikken tilsvarer [`OpprettKravService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/OpprettKravService.kt).
 ### [`StatusService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/StatusService.kt)
 Sjekker mottaksstatus for alle krav som er i tilstandene `KRAV_SENDT` eller `MOTTATT_UNDER_BEHANDLING`. For hvert krav kalles `GET /mottaksstatus` på SKE. Dersom SKE returnerer valideringsfeil hentes detaljene via `GET /valideringsfeil` og lagres i `feilmelding`-tabellen.
-### [`DatabaseService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/DatabaseService.kt)
-Abstraksjonslag mellom services og repositories. Delegerer alle databaseoperasjoner til [`KravRepository`](../../../src/main/kotlin/no/nav/sokos/ske/krav/repository/KravRepository.kt), [`FeilmeldingRepository`](../../../src/main/kotlin/no/nav/sokos/ske/krav/repository/FeilmeldingRepository.kt) og [`FilValideringsfeilRepository`](../../../src/main/kotlin/no/nav/sokos/ske/krav/repository/FilValideringsfeilRepository.kt), og håndterer oppretting og avslutning av databaseforbindelser via HikariCP.
+### Repositorier
+Databasetilgang går direkte via [`KravRepository`](../../../src/main/kotlin/no/nav/sokos/ske/krav/repository/KravRepository.kt), [`FeilmeldingRepository`](../../../src/main/kotlin/no/nav/sokos/ske/krav/repository/FeilmeldingRepository.kt) og [`FilValideringsfeilRepository`](../../../src/main/kotlin/no/nav/sokos/ske/krav/repository/FilValideringsfeilRepository.kt). Transaksjoner opprettes med `DBUtils.transaction` eller `DBUtils.asyncTransaction` rundt repository-kallene.
 ### [`RapportService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/RapportService.kt)    
 Produserer data til webgrensesnittet for avstemmings- og resendingsrapporter. Merket med `@Frontend`-annotasjon for å indikere at den kun skal brukes fra routing-laget. Henter krav med feilstatuser og mapper dem til [`RapportObjekt`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/RapportService.kt) med tilhørende feilmeldinger.
 
 ---
 ## Pakke: `validation`
 ### [`FileValidator`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/FileValidator.kt)
-Validerer en hel kravfil etter nedlasting fra SFTP. Parser header, kravlinjer og footer, og sjekker at antall og sum stemmer overens. Bruker [`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SlackService.kt) for å sende feilvarsel. Returnerer [`ValidationResult.Success`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/ValidationResult.kt) eller [`ValidationResult.Error`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/ValidationResult.kt).
+Validerer en hel kravfil etter nedlasting fra SFTP. Parser header, kravlinjer og footer, og sjekker at antall og sum stemmer overens. Bruker [`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SlackService.kt) for å sende feilvarsel. Returnerer [`ValidationResult.Success`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/ValidationResult.kt) eller [`ValidationResult.Error`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/ValidationResult.kt).
 ### [`LineValidator`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidator.kt)
-Itererer over alle kravlinjer i en fil og kaller [`LineValidationRules.runValidation()`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidationRules.kt) på hver linje. Linjer som feiler validering lagres i `filvalideringsfeil`-tabellen med status `VALIDERINGSFEIL_AV_LINJE_I_FIL`. Gyldige linjer settes til status `KRAV_IKKE_SENDT`.
-### [`LineValidationRules`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidationRules.kt)
-Inneholder alle forretningsreglene for linjevalidering (se [detaljert dokumentasjon](../detaljert/Validering.md)). Implementert som et statisk objekt med én offentlig funksjon `runValidation()`.
+Itererer over alle kravlinjer i en fil og anvender valideringsreglene i [`LineValidator`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidator.kt) på hver linje. Linjer som feiler validering lagres i `filvalideringsfeil`-tabellen med status `VALIDERINGSFEIL_AV_LINJE_I_FIL`. Gyldige linjer settes til status `KRAV_IKKE_SENDT`.
 
 ---
 ## Pakke: `client`
@@ -60,7 +58,7 @@ HTTP-klienten mot SKEs REST-API. Alle kall går gjennom [`CircuitBreakerManager`
 - `getMottaksStatus` – GET `/innkrevingsoppdrag/{id}/mottaksstatus`
 - `getValideringsfeil` – GET `/innkrevingsoppdrag/{id}/valideringsfeil`
 - `getSkeKravidentifikator` – GET `/innkrevingsoppdrag/{ref}/avstemming`
-### [`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SlackService.kt)
+### [`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SlackService.kt)
 Samler opp feilmeldinger i minnet gruppert per fil og feiltype, og sender dem samlet til Slack ved `sendErrors()`. Dersom mer enn 5 feil av samme type oppstår for et gitt krav, konsolideres de til én oppsummerende melding fordi slack har begrensning på antall like meldinger og hvis det er over n like meldinger vil ikke slack sende dem. 
 ### [`SlackClient`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SlackClient.kt)
 Teknisk HTTP-klient mot Slack Webhook-endepunktet. Bygger opp Slack-meldingsformatet og sender via POST.
@@ -77,7 +75,7 @@ Singleton som konfigurerer og holder Resilience4j CircuitBreaker-instansen. Stan
 - Automatisk overgang fra OPEN til HALF_OPEN
 ### [`SftpConfig`](../../../src/main/kotlin/no/nav/sokos/ske/krav/config/SftpConfig.kt)
 Konfigurerer og håndterer JSch SFTP-sesjoner med RSA-nøkkelautentisering. Tilbyr en `channel { }` høyere-ordens funksjon som sikrer at sesjon og kanal alltid lukkes etter bruk.
-### [`PostgresConfig`](../../../src/main/kotlin/no/nav/sokos/ske/krav/config/PostgresConfig.kt)
+### [`PostgresDataSource`](../../../src/main/kotlin/no/nav/sokos/ske/krav/config/PostgresDataSource.kt)
 Setter opp HikariCP connection pool mot PostgreSQL og kjører Flyway-migrasjoner ved oppstart (ikke i lokalt miljø).
 
 ---

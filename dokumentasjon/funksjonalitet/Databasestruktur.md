@@ -128,7 +128,9 @@ Lagrer feilmeldinger som oppstår ved behandling av krav mot NAV/SKE sine system
 | `tidspunkt_opprettet`   | timestamptz | Tidspunkt feilmeldingen ble opprettet (default: NOW())           |
 | `rapporter`             | boolean   | Om feilen skal rapporteres (default: true) *(lagt til i V1.0.1)* |
 
-**Indekser:** `idx_feilmelding_opprettet` på kolonnen `tidspunkt_opprettet`.
+**Indekser:**
+  - `idx_feilmelding_opprettet` på kolonnen `tidspunkt_opprettet`.
+  - `idx_feilmelding_saksnummer_nav` på kolonnen `saksnummer_nav`, brukt av oppryddingssporet for foreldelsesfrist.
 
 ---
 
@@ -163,3 +165,5 @@ Lagrer valideringsfeil oppdaget ved innlesing av filer, før kravene sendes til 
 | V1.0.5  | `V1.0.5__ny_kolonne_avsender_i_krav.sql`                      | Ny kolonne `avsender` i `krav`                                                                              |
 | V1.0.6  | `V1.0.6__oppdater_avsender_kolonne_med_OB04.sql`              | Setter `avsender = 'OB04'` for eksisterende rader der verdien er null                                       |
 | V1.0.7  | `V1.0.7__nye_indekser.sql`                                    | Nye indekser for tabellene `krav`, `feilmelding` og `filvalideringsfeil` på kolonnene `tidspunkt_opprettet` |
+| V1.0.8  | `V1.0.8__change_timestamp_to_timestamptz.sql`                 | Endrer tidsstempelkolonner til `timestamptz`                                                               |
+| V1.0.9  | `V1.0.9__index_feilmelding_saksnummer_nav.sql`                | Ny indeks på `feilmelding.saksnummer_nav` for oppslag i oppryddingssporet                                 |

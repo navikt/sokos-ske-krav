@@ -21,6 +21,7 @@ import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.UnleashConfig
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
@@ -38,6 +39,7 @@ import no.nav.sokos.ske.krav.util.defineStatus
 import no.nav.sokos.ske.krav.util.transaction
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_FRA_SKE
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_LINJEVALIDERING
+import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_OPPRYDDING
 import no.nav.sokos.ske.krav.validation.ErrorKeys.UKJENT_FEIL
 import no.nav.sokos.ske.krav.validation.LineValidator
 import no.nav.sokos.ske.krav.validation.ValidationResult
@@ -47,6 +49,9 @@ const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRING_RENTE = "ENDRING_RENTE"
 const val ENDRING_HOVEDSTOL = "ENDRING_HOVEDSTOL"
 const val STOPP_KRAV = "STOPP_KRAV"
+const val IGNORERES = "IGNORERES"
+const val ENDRING_IGNORERES = "ENDRING_IGNORERES"
+const val STOPP_IGNORERES = "STOPP_IGNORERES"
 
 private val logger = mu.KotlinLogging.logger {}
 
@@ -339,10 +344,45 @@ class SkeService(
             haltRun = true
         }
 
+        val oppryddingsReferanser =
+            allKrav
+                .asSequence()
+                .filter { it.isEndring() || it.isStopp() }
+                .map { it.referansenummerGammelSak }
+                .filter { it.isNotBlank() }
+                .toSet()
+
+        val oppryddingsReferanserMedForeldelsesfristfeil =
+            feilmeldingRepository.getSaksnumreWithForeldelsesfristError(oppryddingsReferanser)
+
+        if (oppryddingsReferanserMedForeldelsesfristfeil.isNotEmpty()) {
+            logger.info("Behandler ${oppryddingsReferanserMedForeldelsesfristfeil.size} oppryddingsreferanse(r) fra $filename")
+        }
+
+        val overstyrteOppryddingsreferanser = kravRepository.getOverstyrteOppryddingsreferanser(oppryddingsReferanserMedForeldelsesfristfeil)
         dataSource.transaction { session ->
-            kravRepository.insertAllNewKrav(session, allKrav, filename)
+            kravRepository.insertAllNewKrav(session, allKrav, filename, oppryddingsReferanserMedForeldelsesfristfeil, overstyrteOppryddingsreferanser)
             filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
         }
+
+        allKrav
+            .asSequence()
+            .filter {
+                (it.isEndring() || (it.isStopp() && it.avsender.trim() == Avsender.OB04.name)) &&
+                    it.referansenummerGammelSak in overstyrteOppryddingsreferanser
+            }.map { it.referansenummerGammelSak }
+            .distinct()
+            .forEach { opprinneligSaksnummer ->
+                slackService.addError(
+                    filename,
+                    FEIL_I_OPPRYDDING,
+                    ErrorDetails(
+                        header = "Endring eller stopp etter overstyrt opprydding",
+                        description = "Endring eller stopp med referanse til opprinnelig avvist krav ble ignorert fordi referansen allerede er overstyrt som nytt krav eller ignorert stopp.",
+                        caseNumber = opprinneligSaksnummer,
+                    ),
+                )
+            }
     }
 
     private fun handleError(

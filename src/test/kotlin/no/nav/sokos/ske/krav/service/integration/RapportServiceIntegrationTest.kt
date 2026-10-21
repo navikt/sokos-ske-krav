@@ -18,7 +18,8 @@ internal class RapportServiceIntegrationTest :
     FunSpec({
         extensions(DBListener)
 
-        beforeSpec {
+        beforeTest {
+            DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/status/KravSomSkalAvstemmes.sql", "SQLscript/feilmeldinger/FeilmeldingerSomSkalAvstemmes.sql")
         }
 
