@@ -643,6 +643,47 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
+        Given("en saksbehandler sender ENDRING og STOPP med referanse til opprinnelig krav etter håndtert opprydding") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+            val oppryddingsfilnavn = "OppryddingEndringOgStopp.txt"
+            val feilfeilnavn = "EndringerMedOriginalReferanseEtterOpprydding.txt"
+            SftpListener.putFile("krav/$oppryddingsfilnavn", Directories.INBOUND)
+            val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    MockHttpClient.client(MockResponse(Endpoint.OPPRETT, nyttKravResponse("opprydding-ske-identifikator"), HttpStatusCode.OK)),
+                    ftpService,
+                    slackService = slackServiceSpy,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
+
+            When("filen leses etter at oppryddingskravet har fått SKE-identifikator") {
+                skeService.handleNewKrav(1.milliseconds)
+                SftpListener.putFile("krav/$feilfeilnavn", Directories.INBOUND)
+                skeService.handleNewKrav(1.milliseconds)
+
+                Then("skal ENDRING og STOPP ignoreres med egen status og varsle Slack én gang") {
+                    val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
+                    lagredeKrav.filter { it.saksnummerNAV == "OB040000599998" || it.saksnummerNAV == "OB040000599999" }.apply {
+                        shouldHaveSize(2)
+                        forAll {
+                            it.kravtype shouldBe IGNORERES
+                            it.status shouldBe Status.IGNORERES_ETTER_OPPRYDDING
+                        }
+                    }
+
+                    val errorDetailsSlot = slot<ErrorDetails>()
+                    coVerify(exactly = 1) {
+                        slackServiceSpy.addError(feilfeilnavn, ErrorCategory.FEIL_I_OPPRYDDING, capture(errorDetailsSlot))
+                    }
+                    errorDetailsSlot.captured.caseNumber shouldBe "OB040000595067"
+                }
+            }
+        }
+
         // 🤖 En senere endring refererer til oppryddingskravets nye saksnummer og skal derfor
         // 🤖 følge ordinær endrings- og stopprute, selv om oppryddingskravet ikke er effectuert ennå.
         Given("en oppryddingsendring er lest inn uten SKE-kravidentifikator") {

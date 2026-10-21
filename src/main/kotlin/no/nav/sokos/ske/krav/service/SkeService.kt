@@ -38,6 +38,7 @@ import no.nav.sokos.ske.krav.util.defineStatus
 import no.nav.sokos.ske.krav.util.transaction
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_FRA_SKE
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_LINJEVALIDERING
+import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_OPPRYDDING
 import no.nav.sokos.ske.krav.validation.ErrorKeys.UKJENT_FEIL
 import no.nav.sokos.ske.krav.validation.LineValidator
 import no.nav.sokos.ske.krav.validation.ValidationResult
@@ -350,12 +351,30 @@ class SkeService(
 
         val oppryddingsReferanserMedForeldelsesfristfeil =
             feilmeldingRepository.getSaksnumreWithForeldelsesfristError(oppryddingsReferanser)
+        val håndterteOppryddingsreferanser = kravRepository.getHåndterteOppryddingsreferanser(oppryddingsReferanserMedForeldelsesfristfeil)
+
+        allKrav
+            .asSequence()
+            .filter { (it.isEndring() || it.isStopp()) && it.referansenummerGammelSak in håndterteOppryddingsreferanser }
+            .map { it.referansenummerGammelSak }
+            .distinct()
+            .forEach { opprinneligSaksnummer ->
+                slackService.addError(
+                    filename,
+                    FEIL_I_OPPRYDDING,
+                    ErrorDetails(
+                        header = "Endring eller stopp etter håndtert opprydding",
+                        description = "Endring eller stopp med referanse til opprinnelig avvist krav ble ignorert. Kravet må referere til oppryddingskravets nye saksnummer.",
+                        caseNumber = opprinneligSaksnummer,
+                    ),
+                )
+            }
 
         if (oppryddingsReferanserMedForeldelsesfristfeil.isNotEmpty()) {
             logger.info("Behandler ${oppryddingsReferanserMedForeldelsesfristfeil.size} oppryddingsreferanse(r) fra $filename")
         }
         dataSource.transaction { session ->
-            kravRepository.insertAllNewKrav(session, allKrav, filename, oppryddingsReferanserMedForeldelsesfristfeil)
+            kravRepository.insertAllNewKrav(session, allKrav, filename, oppryddingsReferanserMedForeldelsesfristfeil, håndterteOppryddingsreferanser)
             filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
         }
     }

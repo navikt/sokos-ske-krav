@@ -162,7 +162,9 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
    - filnavnene for A, B og C ved innlesing
    - SKE-feilen for A
    - at B sendes som opprett krav
-   - ordinær utsending eller ordinær SKE-feil for C
+    - ordinær utsending eller ordinær SKE-feil for C
+
+> **Feilreferanse etter håndtert opprydding:** Dersom en senere ENDRING eller STOPP fortsatt har `referansenummerGammelSak = A` etter at B har fått SKE-kravidentifikator, ignoreres linjen med status `IGNORERES_ETTER_OPPRYDDING`. Den sendes ikke til SKE, og Slack varsler at linjen må referere til B i stedet.
                                        
 
 ## Tolkning av testresultater

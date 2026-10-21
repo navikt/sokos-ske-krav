@@ -16,6 +16,8 @@ Vedtaksløsningene kan sende en korrigering som `ENDRING` etter at det opprinnel
 
 OS (`avsender = OB04`) kan samtidig sende en `STOPP` (nullperiode) for samme sak. Denne OS-stoppen lagres med både `kravtype = IGNORERES` og `status = IGNORERES` for sporbarhet, men sendes ikke til SKE. `STOPP` fra andre avsendere følger ordinær flyt, også når det finnes en historisk foreldelsesfrist-feil.
 
+Hvis et oppryddingskrav allerede har fått SKE-kravidentifikator, og en senere `ENDRING` eller `STOPP` fortsatt refererer direkte til det opprinnelig avviste kravet, lagres den med `kravtype = IGNORERES` og `status = IGNORERES_ETTER_OPPRYDDING`. Dette er en feilreferanse: den nye linjen skal i stedet referere til oppryddingskravets saksnummer. Linjen sendes ikke til SKE, og tjenesten varsler Slack.
+
 ## Beslutningsflyt ved innlesing
 
 ```mermaid
@@ -103,6 +105,7 @@ En linje er et oppryddingskrav bare når `referansenummerGammelSak` er saksnumme
 | ENDRING | Ja | Én rad med `kravtype = NYTT_KRAV`; sendes via opprett-krav-endepunktet. |
 | STOPP fra `OB04` | Ja | Lagres med både `kravtype = IGNORERES` og `status = IGNORERES`; ingen utsending til SKE. |
 | STOPP fra annen avsender | Ja | Lagres og sendes som ordinær `STOPP_KRAV`. |
+| ENDRING eller STOPP med direkte referanse til originalen etter håndtert opprydding | Ja | Lagres med `kravtype = IGNORERES` og `status = IGNORERES_ETTER_OPPRYDDING`; ingen utsending til SKE og Slack-varsel. |
 | ENDRING eller STOPP | Nei | Normal flyt er uendret. |
 | NYTT_KRAV | Ikke vurdert | Normal flyt er uendret. |
 
@@ -122,6 +125,7 @@ Testene verifiserer:
 - ENDRING som lagres som én `NYTT_KRAV`
 - STOPP fra `OB04` som lagres med `kravtype = IGNORERES` uten utsending til SKE
 - STOPP fra andre avsendere som lagres som ordinær `STOPP_KRAV`
+- ENDRING og STOPP som feilaktig refererer til originalen etter at oppryddingskravet er sendt, lagres med `IGNORERES_ETTER_OPPRYDDING` og gir ett Slack-varsel
 - SFTP-innlesing og utsending av oppryddings-ENDRING via opprett-krav-ruten
 - at øvrige ENDRING-er i samme fil fortsatt bruker ordinær endringsrute
 - at en senere `ENDRING` med referanse til oppryddingskravets nye saksnummer lagres som `ENDRING_HOVEDSTOL` og `ENDRING_RENTE`, og at en senere `STOPP` lagres og sendes som `STOPP_KRAV`

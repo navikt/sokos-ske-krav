@@ -196,6 +196,31 @@ class KravRepository(
 
     fun getSkeKravidentifikator(navref: String): String = dataSource.transaction { session -> getSkeKravidentifikator(session, navref) }
 
+    fun getHåndterteOppryddingsreferanser(referanser: Set<String>): Set<String> {
+        if (referanser.isEmpty()) return emptySet()
+
+        val placeholders = referanser.joinToString(", ") { "?" }
+        return dataSource.transaction { session ->
+            session
+                .list(
+                    queryOf(
+                        // language=SQL
+                        """
+                        select distinct referansenummergammelsak
+                        from krav
+                        where referansenummergammelsak in ($placeholders)
+                          and kravtype = ?
+                          and nullif(kravidentifikator_ske, '') is not null
+                        """.trimIndent(),
+                        *referanser.toTypedArray(),
+                        NYTT_KRAV,
+                    ),
+                ) { row ->
+                    row.string("referansenummergammelsak")
+                }.toSet()
+        }
+    }
+
     fun getSkeKravidentifikator(
         session: TransactionalSession,
         navref: String,
@@ -415,12 +440,17 @@ class KravRepository(
         kravLinjer: List<KravLinje>,
         filnavn: String,
         oppryddingsReferanser: Set<String> = emptySet(),
+        håndterteOppryddingsreferanser: Set<String> = emptySet(),
     ) {
         val params = mutableListOf<Map<String, Any?>>()
 
         // 🤖 OS sender oppryddings-STOPP fordi OS må "nulle ut" perioder. Disse STOPPENE beholdes for sporbarhet, men skal
         // 🤖 aldri sendes til SKE. De lagres med status og kravtype IGNORERES
         kravLinjer.forEach { kravLinje ->
+            val skalIgnoreresEtterOpprydding =
+                (kravLinje.isEndring() || kravLinje.isStopp()) &&
+                    kravLinje.referansenummerGammelSak in håndterteOppryddingsreferanser &&
+                    kravLinje.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value
             val skalIgnoreres =
                 kravLinje.isStopp() &&
                     kravLinje.avsender.trim() == Avsender.OB04.name &&
@@ -428,6 +458,10 @@ class KravRepository(
                     kravLinje.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value
 
             when {
+                skalIgnoreresEtterOpprydding -> {
+                    params.add(insertKravNamesParams(kravLinje.copy(status = Status.IGNORERES_ETTER_OPPRYDDING.value), IGNORERES, filnavn))
+                }
+
                 skalIgnoreres -> {
                     params.add(insertKravNamesParams(kravLinje.copy(status = Status.IGNORERES.value), IGNORERES, filnavn))
                 }
