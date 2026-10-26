@@ -293,9 +293,13 @@ internal class RepositoryTestKrav :
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
 
             val filnavn = "TiNyeKrav1Endring1Stopp.txt"
-            val kravlinjer = (FileParser(getFileContent("krav/$filnavn")).parseResult as ParseResult.Success).kravLinjer
+            val kravlinjer =
+                (FileParser(getFileContent("krav/$filnavn")).parseResult as ParseResult.Success)
+                    .kravLinjer
+                    .map { it.markedAsValid() }
             val oppryddingsEndring = kravlinjer.first { it.isEndring() }
             val oppryddingsStopp = kravlinjer.first { it.isStopp() }
+            val forventedeUsendteSaksnumre = kravlinjer.filterNot { it == oppryddingsStopp }.map { it.saksnummerNav }.toSet()
 
             dataSource.transaction { session ->
                 val oppryddingsReferanser = setOf(oppryddingsEndring.referansenummerGammelSak, oppryddingsStopp.referansenummerGammelSak)
@@ -314,10 +318,11 @@ internal class RepositoryTestKrav :
                 lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(0)
                 lagredeKrav.single { it.saksnummerNAV == oppryddingsStopp.saksnummerNav }.kravtype shouldBe STOPP_IGNORERES
                 lagredeKrav.single { it.saksnummerNAV == oppryddingsStopp.saksnummerNav }.status shouldBe Status.IGNORERES
-                kravRepository.getAllUnsentKrav().none { it.saksnummerNAV == oppryddingsStopp.saksnummerNav } shouldBe true
-                kravRepository.getAllKravForResending().none { it.saksnummerNAV == oppryddingsStopp.saksnummerNav } shouldBe true
                 lagredeKrav.single { it.saksnummerNAV == oppryddingsEndring.saksnummerNav }.kravtype shouldBe NYTT_KRAV
             }
+
+            kravRepository.getAllUnsentKrav().map { it.saksnummerNAV }.toSet() shouldBe forventedeUsendteSaksnumre
+            kravRepository.getAllKravForResending().map { it.saksnummerNAV }.toSet() shouldBe forventedeUsendteSaksnumre
         }
 
         // 🤖 OS-unntaket gjelder ikke andre fagsystemer. Denne testen sikrer at en ellers lik
