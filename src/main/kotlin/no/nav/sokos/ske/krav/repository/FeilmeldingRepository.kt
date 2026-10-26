@@ -43,8 +43,6 @@ class FeilmeldingRepository(
         }
     }
 
-    fun hasForeldelsesfristError(saksnummerNav: String): Boolean = saksnummerNav in getSaksnumreWithForeldelsesfristError(setOf(saksnummerNav))
-
     val mapToFeilmelding: (Row) -> Feilmelding = { row ->
         Feilmelding(
             feilmeldingId = row.long("id"),

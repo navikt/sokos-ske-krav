@@ -13,6 +13,7 @@ import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
+import no.nav.sokos.ske.krav.util.hasForeldelsesfristError
 import no.nav.sokos.ske.krav.util.transaction
 import no.nav.sokos.ske.krav.util.withJvmTimeZone
 
