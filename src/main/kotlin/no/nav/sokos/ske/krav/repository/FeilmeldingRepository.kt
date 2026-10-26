@@ -20,7 +20,7 @@ class FeilmeldingRepository(
     fun getSaksnumreWithForeldelsesfristError(saksnumreNav: Set<String>): Set<String> {
         if (saksnumreNav.isEmpty()) return emptySet()
 
-        val placeholders = saksnumreNav.joinToString(", ") { "?" }
+        val queryPlaceHolders = saksnumreNav.joinToString(", ") { "?" }
 
         return dataSource.transaction { session ->
             session
@@ -30,7 +30,7 @@ class FeilmeldingRepository(
                         """
                         select distinct saksnummer_nav
                         from feilmelding f
-                        where f.saksnummer_nav in ($placeholders)
+                        where f.saksnummer_nav in ($queryPlaceHolders)
                           and f.melding like ?
                         """.trimIndent(),
                         // 🤖 Bind saksnumrene i samme rekkefølge som plassholderne over.
