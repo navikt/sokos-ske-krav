@@ -451,7 +451,10 @@ class KravRepository(
         kravLinjer.forEach { kravLinje ->
             val erEndringEtterOpprydding =
                 kravLinje.isEndring() &&
-                    kravLinje.referansenummerGammelSak in (overstyrteOppryddingsreferanser + oppryddingsreferanserOverstyrtIFilen)
+                    (
+                        kravLinje.referansenummerGammelSak in overstyrteOppryddingsreferanser ||
+                            kravLinje.referansenummerGammelSak in oppryddingsreferanserOverstyrtIFilen
+                    )
             val erOsStoppEtterOpprydding =
                 kravLinje.isStopp() &&
                     kravLinje.avsender.trim() == Avsender.OB04.name &&
