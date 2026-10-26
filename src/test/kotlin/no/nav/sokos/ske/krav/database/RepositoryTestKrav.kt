@@ -19,7 +19,6 @@ import no.nav.sokos.ske.krav.listener.DBListener.kravRepository
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_IGNORERES
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
-import no.nav.sokos.ske.krav.service.IGNORERES
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_IGNORERES
 import no.nav.sokos.ske.krav.service.STOPP_KRAV

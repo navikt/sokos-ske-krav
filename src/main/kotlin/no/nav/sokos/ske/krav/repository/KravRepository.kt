@@ -18,7 +18,6 @@ import no.nav.sokos.ske.krav.domain.toStatus
 import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_IGNORERES
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
-import no.nav.sokos.ske.krav.service.IGNORERES
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_IGNORERES
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
@@ -146,13 +145,12 @@ class KravRepository(
             session.list(
                 queryOf(
                     // language=SQL
-                    """select * from krav where status in (?, ?, ?, ?, ?) and kravtype != ?""",
+                    """select * from krav where status in (?, ?, ?, ?, ?)""",
                     Status.KRAV_IKKE_SENDT.value,
                     Status.HTTP409_KRAV_ER_IKKE_RESKONTROFORT_RESEND.value,
                     Status.HTTP500_ANNEN_SERVER_FEIL.value,
                     Status.HTTP500_INTERN_TJENERFEIL.value,
                     Status.HTTP503_UTILGJENGELIG_TJENESTE.value,
-                    IGNORERES,
                 ),
                 extractor = mapToKrav,
             )
@@ -163,9 +161,8 @@ class KravRepository(
             session.list(
                 queryOf(
                     // language=SQL
-                    """select * from krav where status = ? and kravtype != ?""",
+                    """select * from krav where status = ?""",
                     Status.KRAV_IKKE_SENDT.value,
-                    IGNORERES,
                 ),
                 extractor = mapToKrav,
             )
@@ -201,7 +198,7 @@ class KravRepository(
     fun getOverstyrteOppryddingsreferanser(referanser: Set<String>): Set<String> {
         if (referanser.isEmpty()) return emptySet()
 
-        val placeholders = referanser.joinToString(", ") { "?" }
+        val queryPlaceholders = referanser.joinToString(", ") { "?" }
         return dataSource.transaction { session ->
             session
                 .list(
@@ -210,7 +207,7 @@ class KravRepository(
                         """
                         select distinct referansenummergammelsak
                         from krav
-                        where referansenummergammelsak in ($placeholders)
+                        where referansenummergammelsak in ($queryPlaceholders)
                           and kravtype in (?, ?)
                           and status <> ?
                         """.trimIndent(),
