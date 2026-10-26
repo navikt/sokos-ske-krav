@@ -736,6 +736,36 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
+        Given("en lokalt avvist oppryddingsendring finnes fra før") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfristMedLokaltAvvistOpprydding.sql")
+            val fileName = "EndringerMedOriginalReferanseEtterOpprydding.txt"
+            SftpListener.putFile("krav/$fileName", Directories.INBOUND)
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    MockHttpClient.client(MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK)),
+                    ftpService,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
+
+            Then("skal en gyldig erstatningsendring opprettes og sendes") {
+                skeService.handleNewKrav(1.milliseconds)
+
+                val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
+                lagredeKrav.single { it.filnavn == fileName && it.saksnummerNAV == "OB040000599998" }.apply {
+                    kravtype shouldBe NYTT_KRAV
+                    status shouldBe KRAV_SENDT
+                    referansenummerGammelSak shouldBe "OB040000595067"
+                }
+                lagredeKrav.single { it.corrId == "lokalt-avvist-opprydding-corr-id" }.apply {
+                    kravtype shouldBe NYTT_KRAV
+                    status shouldBe Status.VALIDERINGSFEIL_AV_LINJE_I_FIL
+                }
+            }
+        }
+
         // 🤖 En senere endring refererer til oppryddingskravets nye saksnummer og skal derfor
         // 🤖 følge ordinær endrings- og stopprute, selv om oppryddingskravet ikke er effectuert ennå.
         Given("en oppryddingsendring er lest inn uten SKE-kravidentifikator") {

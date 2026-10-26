@@ -212,10 +212,12 @@ class KravRepository(
                         from krav
                         where referansenummergammelsak in ($placeholders)
                           and kravtype in (?, ?)
+                          and status <> ?
                         """.trimIndent(),
                         *referanser.toTypedArray(),
                         NYTT_KRAV,
                         STOPP_IGNORERES,
+                        Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value,
                     ),
                 ) { row ->
                     row.string("referansenummergammelsak")
