@@ -50,7 +50,6 @@ import no.nav.sokos.ske.krav.service.ENDRING_HOVEDSTOL
 import no.nav.sokos.ske.krav.service.ENDRING_IGNORERES
 import no.nav.sokos.ske.krav.service.ENDRING_RENTE
 import no.nav.sokos.ske.krav.service.FtpService
-import no.nav.sokos.ske.krav.service.IGNORERES
 import no.nav.sokos.ske.krav.service.NYTT_KRAV
 import no.nav.sokos.ske.krav.service.STOPP_IGNORERES
 import no.nav.sokos.ske.krav.service.STOPP_KRAV
@@ -685,6 +684,46 @@ internal class SkeServiceIntegrationTest :
                     }
                     errorDetailsSlot.captured.caseNumber shouldBe "OB040000595067"
                 }
+            }
+        }
+
+        Given("to oppryddingsendringer i samme fil refererer til samme avviste krav") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+            val fileName = "ToOppryddingsendringerMedSammeReferanse.txt"
+            SftpListener.putFile("krav/$fileName", Directories.INBOUND)
+            val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    MockHttpClient.client(MockResponse(Endpoint.OPPRETT, nyttKravResponse(), HttpStatusCode.OK)),
+                    ftpService,
+                    slackService = slackServiceSpy,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
+
+            Then("skal bare første ENDRING opprettes og varsle om den ignorerte korrigeringen") {
+                skeService.handleNewKrav(1.milliseconds)
+
+                val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
+                lagredeKrav.filter { it.referansenummerGammelSak == "OB040000595067" }.apply {
+                    shouldHaveSize(2)
+                    single { it.saksnummerNAV == "OB040000595068" }.apply {
+                        kravtype shouldBe NYTT_KRAV
+                        status shouldBe KRAV_SENDT
+                    }
+                    single { it.saksnummerNAV == "OB040000595069" }.apply {
+                        kravtype shouldBe ENDRING_IGNORERES
+                        status shouldBe Status.IGNORERES_ETTER_OPPRYDDING
+                    }
+                }
+
+                val errorDetailsSlot = slot<ErrorDetails>()
+                coVerify(exactly = 1) {
+                    slackServiceSpy.addError(fileName, ErrorCategory.FEIL_I_OPPRYDDING, capture(errorDetailsSlot))
+                }
+                errorDetailsSlot.captured.caseNumber shouldBe "OB040000595067"
             }
         }
 

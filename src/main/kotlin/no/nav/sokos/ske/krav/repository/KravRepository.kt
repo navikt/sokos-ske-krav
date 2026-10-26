@@ -176,7 +176,7 @@ class KravRepository(
             session.list(
                 queryOf(
                     // language=SQL
-                    """select * from krav where status = ? and filnavn = ? order by tidspunkt_opprettet asc""",
+                    """select * from krav where status = ? and filnavn = ? order by tidspunkt_opprettet""",
                     Status.KRAV_IKKE_SENDT.value,
                     fileName,
                 ),
@@ -445,13 +445,20 @@ class KravRepository(
         overstyrteOppryddingsreferanser: Set<String> = emptySet(),
     ) {
         val params = mutableListOf<Map<String, Any?>>()
+        val oppryddingsreferanserOverstyrtIFilen = mutableSetOf<String>()
 
         // 🤖 OS sender oppryddings-STOPP fordi OS må "nulle ut" perioder. Disse STOPPENE beholdes for sporbarhet, men skal
         // 🤖 aldri sendes til SKE. De lagres med status og kravtype IGNORERES
         kravLinjer.forEach { kravLinje ->
+            val erEndringEtterOpprydding =
+                kravLinje.isEndring() &&
+                    kravLinje.referansenummerGammelSak in (overstyrteOppryddingsreferanser + oppryddingsreferanserOverstyrtIFilen)
+            val erOsStoppEtterOpprydding =
+                kravLinje.isStopp() &&
+                    kravLinje.avsender.trim() == Avsender.OB04.name &&
+                    kravLinje.referansenummerGammelSak in overstyrteOppryddingsreferanser
             val skalIgnoreresEtterOpprydding =
-                (kravLinje.isEndring() || (kravLinje.isStopp() && kravLinje.avsender.trim() == Avsender.OB04.name)) &&
-                    kravLinje.referansenummerGammelSak in overstyrteOppryddingsreferanser &&
+                (erEndringEtterOpprydding || erOsStoppEtterOpprydding) &&
                     kravLinje.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value
             val skalIgnoreres =
                 kravLinje.isStopp() &&
@@ -470,8 +477,11 @@ class KravRepository(
                 }
 
                 // 🤖 Oppryddingsendringer skal sendes inn som NYTT krav. Vi lagrer referansenummergammelsak i database.
-                kravLinje.isEndring() && kravLinje.referansenummerGammelSak in oppryddingsReferanser -> {
+                kravLinje.isEndring() &&
+                    kravLinje.referansenummerGammelSak in oppryddingsReferanser &&
+                    kravLinje.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value -> {
                     params.add(insertKravNamesParams(kravLinje, NYTT_KRAV, filnavn))
+                    oppryddingsreferanserOverstyrtIFilen.add(kravLinje.referansenummerGammelSak)
                 }
 
                 kravLinje.isStopp() -> {

@@ -137,7 +137,7 @@ class SkeService(
         }
     }
 
-    private suspend fun processFile(file: FtpFil) {
+    private fun processFile(file: FtpFil) {
         logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
 
         val validatedLines = LineValidator().validateNewLines(file.kravLinjer)
@@ -360,6 +360,15 @@ class SkeService(
         }
 
         val overstyrteOppryddingsreferanser = kravRepository.getOverstyrteOppryddingsreferanser(oppryddingsReferanserMedForeldelsesfristfeil)
+        val dupliserteOppryddingsreferanser =
+            allKrav
+                .filter {
+                    it.isEndring() &&
+                        it.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value &&
+                        it.referansenummerGammelSak in oppryddingsReferanserMedForeldelsesfristfeil
+                }.groupBy { it.referansenummerGammelSak }
+                .filterValues { it.size > 1 }
+                .keys
         dataSource.transaction { session ->
             kravRepository.insertAllNewKrav(session, allKrav, filename, oppryddingsReferanserMedForeldelsesfristfeil, overstyrteOppryddingsreferanser)
             filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
@@ -368,8 +377,14 @@ class SkeService(
         allKrav
             .asSequence()
             .filter {
-                (it.isEndring() || (it.isStopp() && it.avsender.trim() == Avsender.OB04.name)) &&
-                    it.referansenummerGammelSak in overstyrteOppryddingsreferanser
+                val erEndringEtterOpprydding =
+                    it.isEndring() &&
+                        it.referansenummerGammelSak in (overstyrteOppryddingsreferanser + dupliserteOppryddingsreferanser)
+                val erOsStoppEtterOpprydding =
+                    it.isStopp() &&
+                        it.avsender.trim() == Avsender.OB04.name &&
+                        it.referansenummerGammelSak in overstyrteOppryddingsreferanser
+                erEndringEtterOpprydding || erOsStoppEtterOpprydding
             }.map { it.referansenummerGammelSak }
             .distinct()
             .forEach { opprinneligSaksnummer ->
@@ -378,7 +393,9 @@ class SkeService(
                     FEIL_I_OPPRYDDING,
                     ErrorDetails(
                         header = "Endring eller stopp etter overstyrt opprydding",
-                        description = "Endring eller stopp med referanse til opprinnelig avvist krav ble ignorert fordi referansen allerede er overstyrt som nytt krav eller ignorert stopp.",
+                        description =
+                            "Endring eller stopp med referanse til opprinnelig avvist krav ble ignorert fordi referansen " +
+                                "allerede er overstyrt som nytt krav eller ignorert stopp, også i samme fil.",
                         caseNumber = opprinneligSaksnummer,
                     ),
                 )
