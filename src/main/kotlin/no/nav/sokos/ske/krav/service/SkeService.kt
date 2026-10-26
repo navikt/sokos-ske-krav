@@ -360,43 +360,38 @@ class SkeService(
         }
 
         val overstyrteOppryddingsreferanser = kravRepository.getOverstyrteOppryddingsreferanser(oppryddingsReferanserMedForeldelsesfristfeil)
-        val dupliserteOppryddingsreferanser =
-            allKrav
-                .filter {
-                    it.isEndring() &&
-                        it.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value &&
-                        it.referansenummerGammelSak in oppryddingsReferanserMedForeldelsesfristfeil
-                }.groupBy { it.referansenummerGammelSak }
-                .filterValues { it.size > 1 }
-                .keys
         dataSource.transaction { session ->
             kravRepository.insertAllNewKrav(session, allKrav, filename, oppryddingsReferanserMedForeldelsesfristfeil, overstyrteOppryddingsreferanser)
             filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
         }
 
+        val oppryddingsreferanserOverstyrtIFilen = mutableSetOf<String>()
         allKrav
             .asSequence()
             .filter {
-                val erEndringEtterOpprydding =
+                val erEndringEtterTidligereOpprydding =
+                    it.isEndring() && it.referansenummerGammelSak in overstyrteOppryddingsreferanser
+                val erEtterfolgendeEndringIFilen =
                     it.isEndring() &&
-                        it.referansenummerGammelSak in (overstyrteOppryddingsreferanser + dupliserteOppryddingsreferanser)
+                        it.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value &&
+                        it.referansenummerGammelSak in oppryddingsReferanserMedForeldelsesfristfeil &&
+                        !oppryddingsreferanserOverstyrtIFilen.add(it.referansenummerGammelSak)
                 val erOsStoppEtterOpprydding =
                     it.isStopp() &&
                         it.avsender.trim() == Avsender.OB04.name &&
                         it.referansenummerGammelSak in overstyrteOppryddingsreferanser
-                erEndringEtterOpprydding || erOsStoppEtterOpprydding
-            }.map { it.referansenummerGammelSak }
-            .distinct()
-            .forEach { opprinneligSaksnummer ->
+                erEndringEtterTidligereOpprydding || erEtterfolgendeEndringIFilen || erOsStoppEtterOpprydding
+            }.forEach { kravLinje ->
+                val type = if (kravLinje.isEndring()) "ENDRING" else "STOPP"
                 slackService.addError(
                     filename,
                     FEIL_I_OPPRYDDING,
                     ErrorDetails(
-                        header = "Endring eller stopp etter overstyrt opprydding",
+                        header = "$type etter overstyrt opprydding",
                         description =
-                            "Endring eller stopp med referanse til opprinnelig avvist krav ble ignorert fordi referansen " +
-                                "allerede er overstyrt som nytt krav eller ignorert stopp, også i samme fil.",
-                        caseNumber = opprinneligSaksnummer,
+                            "$type med saksnummer ${kravLinje.saksnummerNav} ble ignorert fordi referansenummergammelsak " +
+                                "${kravLinje.referansenummerGammelSak} allerede er overstyrt som nytt krav eller ignorert stopp.",
+                        caseNumber = kravLinje.saksnummerNav,
                     ),
                 )
             }

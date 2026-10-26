@@ -666,7 +666,7 @@ internal class SkeServiceIntegrationTest :
                 SftpListener.putFile("krav/$feilfeilnavn", Directories.INBOUND)
                 skeService.handleNewKrav(1.milliseconds)
 
-                Then("skal ENDRING og gjentatt STOPP ignoreres med egen status og varsle Slack én gang") {
+                Then("skal ENDRING og gjentatt STOPP ignoreres med egen status og varsle Slack separat") {
                     val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
                     lagredeKrav.filter { it.filnavn == feilfeilnavn && it.referansenummerGammelSak == "OB040000595067" }.apply {
                         shouldHaveSize(2)
@@ -678,11 +678,15 @@ internal class SkeServiceIntegrationTest :
                         status shouldBe Status.IGNORERES_ETTER_OPPRYDDING
                     }
 
-                    val errorDetailsSlot = slot<ErrorDetails>()
-                    coVerify(exactly = 1) {
-                        slackServiceSpy.addError(feilfeilnavn, ErrorCategory.FEIL_I_OPPRYDDING, capture(errorDetailsSlot))
+                    val errorDetailsSlots = mutableListOf<ErrorDetails>()
+                    coVerify(exactly = 2) {
+                        slackServiceSpy.addError(feilfeilnavn, ErrorCategory.FEIL_I_OPPRYDDING, capture(errorDetailsSlots))
                     }
-                    errorDetailsSlot.captured.caseNumber shouldBe "OB040000595067"
+                    errorDetailsSlots.map { it.header }.toSet() shouldBe setOf("ENDRING etter overstyrt opprydding", "STOPP etter overstyrt opprydding")
+                    errorDetailsSlots.forAll { errorDetails ->
+                        errorDetails.description shouldContain "saksnummer"
+                        errorDetails.description shouldContain "referansenummergammelsak OB040000595067"
+                    }
                 }
             }
         }
@@ -723,7 +727,12 @@ internal class SkeServiceIntegrationTest :
                 coVerify(exactly = 1) {
                     slackServiceSpy.addError(fileName, ErrorCategory.FEIL_I_OPPRYDDING, capture(errorDetailsSlot))
                 }
-                errorDetailsSlot.captured.caseNumber shouldBe "OB040000595067"
+                errorDetailsSlot.captured.apply {
+                    header shouldBe "ENDRING etter overstyrt opprydding"
+                    caseNumber shouldBe "OB040000595069"
+                    description shouldContain "saksnummer OB040000595069"
+                    description shouldContain "referansenummergammelsak OB040000595067"
+                }
             }
         }
 
