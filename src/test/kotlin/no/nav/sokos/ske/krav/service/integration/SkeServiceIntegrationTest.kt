@@ -736,6 +736,44 @@ internal class SkeServiceIntegrationTest :
             }
         }
 
+        Given("en lokalt ugyldig ENDRING refererer til et tidligere oppryddingskrav") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+            val oppryddingsfilnavn = "OppryddingEndringOgStopp.txt"
+            val ugyldigEndringFilnavn = "UgyldigEndringMedOriginalReferanseEtterOpprydding.txt"
+            SftpListener.putFile("krav/$oppryddingsfilnavn", Directories.INBOUND)
+            val slackServiceSpy = spyk(SlackService(mockk<SlackClient>(relaxed = true)), recordPrivateCalls = true)
+            val skeService =
+                setupSkeServiceMockWithMockEngine(
+                    MockHttpClient.client(MockResponse(Endpoint.OPPRETT, nyttKravResponse("opprydding-ske-identifikator"), HttpStatusCode.OK)),
+                    ftpService,
+                    slackService = slackServiceSpy,
+                    filValideringsfeilRepository = filvalideringsFeilRepository,
+                    feilmeldingRepository = feilmeldingRepository,
+                    kravRepository = kravRepository,
+                )
+
+            Then("skal ENDRING beholde valideringsfeilen uten oppryddingsvarsel") {
+                skeService.handleNewKrav(1.milliseconds)
+                SftpListener.putFile("krav/$ugyldigEndringFilnavn", Directories.INBOUND)
+                skeService.handleNewKrav(1.milliseconds)
+
+                val lagredeKrav = dataSource.transaction { session -> kravRepository.getAllKrav(session) }
+                lagredeKrav.filter { it.filnavn == ugyldigEndringFilnavn && it.saksnummerNAV == "OB040000599998" }.apply {
+                    shouldHaveSize(2)
+                    forAll { krav ->
+                        krav.status shouldBe Status.VALIDERINGSFEIL_AV_LINJE_I_FIL
+                        krav.referansenummerGammelSak shouldBe "OB040000595067"
+                    }
+                }
+                val errorDetails = mutableListOf<ErrorDetails>()
+                coVerify(exactly = 1) {
+                    slackServiceSpy.addError(ugyldigEndringFilnavn, ErrorCategory.FEIL_I_OPPRYDDING, capture(errorDetails))
+                }
+                errorDetails.single().header shouldBe "STOPP etter overstyrt opprydding"
+            }
+        }
+
         Given("en lokalt avvist oppryddingsendring finnes fra før") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfristMedLokaltAvvistOpprydding.sql")

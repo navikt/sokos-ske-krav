@@ -367,12 +367,12 @@ class SkeService(
         val oppryddingsreferanserOverstyrtIFilen = mutableSetOf<String>()
         allKrav
             .asSequence()
+            .filter { it.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }
             .filter {
                 val erEndringEtterTidligereOpprydding =
                     it.isEndring() && it.referansenummerGammelSak in overstyrteOppryddingsreferanser
                 val erEtterfolgendeEndringIFilen =
                     it.isEndring() &&
-                        it.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value &&
                         it.referansenummerGammelSak in oppryddingsReferanserMedForeldelsesfristfeil &&
                         !oppryddingsreferanserOverstyrtIFilen.add(it.referansenummerGammelSak)
                 val erOsStoppEtterOpprydding =
