@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Avstemmingsgrunnlag(
     val kilde: String,
-    val trekkgrunnlag: Double,
+    val trekkgrunnlag: String,
     val belop: Double,
     val renter: Double,
     val behandlendeEnhet: String,

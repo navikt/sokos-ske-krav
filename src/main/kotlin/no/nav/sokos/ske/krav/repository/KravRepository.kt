@@ -473,10 +473,10 @@ class KravRepository(
                     // language=SQL
                     """
                     select
-                           'KALLENDE SYSTEM?' as kilde,
-                           17.2 as trekkgrunnlag,
-                           belop,
+                           avsender as kilde,
+                           belop as belop,
                            belop_rente as renter,
+                           concat(krav.kode_arsak, ' ', kode_hjemmel) as trekkgrunnlag,
                            enhet_behandlende as behandlende_enhet,
                            enhet_bosted as boenhet,
                            filnavn as datafil,
@@ -500,7 +500,7 @@ class KravRepository(
                 extractor = { row ->
                     Avstemmingsgrunnlag(
                         kilde = row.string("kilde"),
-                        trekkgrunnlag = row.double("trekkgrunnlag"),
+                        trekkgrunnlag = row.string("trekkgrunnlag"),
                         belop = row.double("belop"),
                         renter = row.double("renter"),
                         behandlendeEnhet = row.string("behandlende_enhet"),
