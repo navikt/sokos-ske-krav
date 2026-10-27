@@ -1,8 +1,10 @@
 package no.nav.sokos.ske.krav.service
 
+import java.time.LocalDate
 import javax.sql.DataSource
 
 import no.nav.sokos.ske.krav.config.PostgresDataSource
+import no.nav.sokos.ske.krav.domain.Avstemmingsgrunnlag
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.StonadsType
@@ -32,6 +34,11 @@ class RapportService(
     fun oppdaterStatusTilIkkeSendt(kravId: Int) = dataSource.transaction { session -> kravRepository.updateStatusTilIkkeSendt(session, kravId) }
 
     fun finnKrav(leiteparameter: String) = dataSource.transaction { session -> kravRepository.finnKrav(session, leiteparameter) }
+
+    fun kvitterteKravTilAvstemming(
+        fom: LocalDate,
+        tom: LocalDate,
+    ): List<Avstemmingsgrunnlag> = dataSource.transaction { session -> kravRepository.getKvitterteKravForAvstemming(session, fom, tom) }
 
     private fun mapToRapportObjekt(liste: List<Krav>) =
         liste
@@ -118,23 +125,23 @@ class RapportService(
                         data.forEach {
                             val fields =
                                 listOf(
-                                    it.kravID.escapeCsvField(),
-                                    it.filnavn.escapeCsvField(),
-                                    it.linjenummer.escapeCsvField(),
-                                    it.vedtaksId.escapeCsvField(),
-                                    it.vedtaksDato.escapeCsvField(),
-                                    it.fagsystemId.escapeCsvField(),
-                                    it.kravkode.escapeCsvField(),
-                                    it.kodeHjemmel.escapeCsvField(),
-                                    it.status.value.escapeCsvField(),
-                                    it.stonadsType.toString().escapeCsvField(),
-                                    it.saksnummerNAV.escapeCsvField(),
-                                    it.referansenummerGammelSak.escapeCsvField(),
-                                    it.belop.toString().escapeCsvField(),
-                                    it.periodeFOM.escapeCsvField(),
-                                    it.periodeTOM.escapeCsvField(),
-                                    it.feilmeldinger.joinToString(";").escapeCsvField(),
-                                    it.tidspunktSisteStatus.escapeCsvField(),
+                                    it.kravID.escapeCsvField(), // "Krav-ID",
+                                    it.filnavn.escapeCsvField(), // "Filnavn",
+                                    it.linjenummer.escapeCsvField(), // "Linjenummer",
+                                    it.vedtaksId.escapeCsvField(), // "Vedtaks-ID",
+                                    it.vedtaksDato.escapeCsvField(), // "Vedtaksdato",
+                                    it.fagsystemId.escapeCsvField(), // "Fagsystem-ID",
+                                    it.kravkode.escapeCsvField(), // "Kravkode",
+                                    it.kodeHjemmel.escapeCsvField(), // "Hjemmelkode",
+                                    it.status.value.escapeCsvField(), // "Status",
+                                    it.stonadsType.toString().escapeCsvField(), // "Stønadstype",
+                                    it.saksnummerNAV.escapeCsvField(), // "Saksnummer Nav",
+                                    it.referansenummerGammelSak.escapeCsvField(), // "Ref.nr gammel sak",
+                                    it.belop.toString().escapeCsvField(), // "Beløp",
+                                    it.periodeFOM.escapeCsvField(), // "Periode Fom",
+                                    it.periodeTOM.escapeCsvField(), // "Periode Tom",
+                                    it.feilmeldinger.joinToString(";").escapeCsvField(), // "Feilmelding",
+                                    it.tidspunktSisteStatus.escapeCsvField(), // "Tidspunkt siste status",
                                 )
                             appendLine(fields.joinToString(","))
                         }

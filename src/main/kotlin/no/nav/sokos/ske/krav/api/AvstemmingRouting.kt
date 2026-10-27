@@ -1,11 +1,14 @@
 package no.nav.sokos.ske.krav.api
 
+import java.time.LocalDate
+
 import io.ktor.http.ContentType.Text.CSV
 import io.ktor.http.encodeURLPathPart
 import io.ktor.server.auth.principal
 import io.ktor.server.html.respondHtmlTemplate
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.request.receiveParameters
+import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
@@ -71,6 +74,30 @@ fun Route.avstemmingRoutes(rapportService: RapportService = RapportService()) {
                 call.respondText(csv, CSV)
             }
             get("/") { call.respondRedirect("/rapporter/avstemming") }
+            get("/oversikt/{fom}/{tom}") {
+                val fomstring = call.parameters["fom"]
+                val tomstring = call.parameters["tom"]
+                val fom =
+                    try {
+                        fomstring?.let { LocalDate.parse(it) }
+                    } catch (e: Exception) {
+                        null
+                    }
+                val tom =
+                    try {
+                        tomstring?.let { LocalDate.parse(it) }
+                    } catch (e: Exception) {
+                        null
+                    }
+
+                if (fom != null && tom != null) {
+                    call.respond(
+                        rapportService.kvitterteKravTilAvstemming(fom, tom),
+                    )
+                } else {
+                    call.respondRedirect("/rapporter/avstemming")
+                }
+            }
         }
         route("resending") {
             get {
