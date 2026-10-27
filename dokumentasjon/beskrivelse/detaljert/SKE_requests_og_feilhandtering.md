@@ -198,7 +198,7 @@ Feilmeldingen fanges av Grafana Alerting og varsles i `#team-mob-alerts-prod`.
 
 ## 7. Slack-varsling – konsolidering
 
-[`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SlackService.kt) samler feil i minnet per fil og per feiltype. Dersom mer enn 5 feil av samme type er registrert for en fil, erstattes de med én melding:
+[`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SlackService.kt) samler feil i minnet per fil og per feiltype. Dersom mer enn 5 feil av samme type er registrert for en fil, erstattes de med én melding:
 
 > `"N av samme type feil: <feiltype>. Sjekk avstemming"`
 
