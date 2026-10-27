@@ -324,9 +324,7 @@ internal class RepositoryTestKrav :
             kravRepository.getAllKravForResending().map { it.saksnummerNAV }.toSet() shouldBe forventedeUsendteSaksnumre
         }
 
-        // 🤖 OS-unntaket gjelder ikke andre fagsystemer. Denne testen sikrer at en ellers lik
-        // 🤖 STOPP fra Arena fortsatt lagres, slik at vi ikke mister en legitim kansellering.
-        test("insertAllNewKrav skal lagre oppryddingsstopp fra andre avsendere enn OS") {
+        test("insertAllNewKrav skal ignorere oppryddingsstopp fra andre avsendere enn OS") {
             DBListener.clearDB()
             DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
 
@@ -342,12 +340,16 @@ internal class RepositoryTestKrav :
 
                 val lagredeKrav = kravRepository.getAllKrav(session)
                 lagredeKrav.shouldHaveSize(kravlinjer.size + 1)
-                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(1)
-                lagredeKrav.single { it.saksnummerNAV == stoppKrav.saksnummerNav }.avsender shouldBe Avsender.ARENA.name
+                lagredeKrav.filter { it.kravtype == STOPP_KRAV }.shouldHaveSize(0)
+                lagredeKrav.single { it.saksnummerNAV == stoppKrav.saksnummerNav }.apply {
+                    avsender shouldBe Avsender.ARENA.name
+                    kravtype shouldBe STOPP_IGNORERES
+                    status shouldBe Status.IGNORERES
+                }
             }
         }
 
-        test("insertAllNewKrav skal ikke ignorere STOPP fra andre avsendere etter håndtert opprydding") {
+        test("insertAllNewKrav skal ignorere STOPP fra andre avsendere etter håndtert opprydding") {
             DBListener.clearDB()
 
             val filnavn = "TiNyeKrav1Endring1Stopp.txt"
@@ -363,8 +365,8 @@ internal class RepositoryTestKrav :
                 )
 
                 kravRepository.getAllKrav(session).single().apply {
-                    kravtype shouldBe STOPP_KRAV
-                    status shouldBe Status.KRAV_INNLEST_FRA_FIL
+                    kravtype shouldBe STOPP_IGNORERES
+                    status shouldBe Status.IGNORERES_ETTER_OPPRYDDING
                 }
             }
         }

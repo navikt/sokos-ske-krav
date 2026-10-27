@@ -14,9 +14,11 @@
 
 Vedtaksløsningene kan sende en korrigering som `ENDRING` etter at det opprinnelige kravet ble avvist av SKE fordi `foreldelsesfristensUtgangspunkt` var for langt tilbake i tid. Korrigeringen har tilleggsfrist, men SKE kan ikke endre et krav som aldri ble opprettet. Derfor behandles denne avgrensede kategorien som et nytt krav.
 
-OS (`avsender = OB04`) kan samtidig sende en `STOPP` (nullperiode) for samme sak. Denne OS-stoppen lagres med både `kravtype = STOPP_IGNORERES` og `status = IGNORERES` for sporbarhet, men sendes ikke til SKE. `STOPP` fra andre avsendere følger ordinær flyt, også når det finnes en historisk foreldelsesfrist-feil.
+En `STOPP` som direkte refererer til samme originale, avviste sak lagres med både `kravtype = STOPP_IGNORERES` og `status = IGNORERES` for sporbarhet, uavhengig av avsender. Den sendes ikke til SKE.
 
-Hvis originalreferansen allerede er overstyrt av en oppryddings-ENDRING lagret som `NYTT_KRAV`, eller av en første OS-STOPP lagret som `STOPP_IGNORERES`, blir senere ENDRING med samme gamle referanse lagret med `kravtype = ENDRING_IGNORERES` og senere OS-STOPP (`avsender = OB04`) med samme gamle referanse lagret med `kravtype = STOPP_IGNORERES`. Begge får status `IGNORERES_ETTER_OPPRYDDING`, sendes ikke til SKE og utløser Slack-varsel. STOPP fra andre avsendere følger ordinær rute.
+Hvis originalreferansen allerede er overstyrt av en oppryddings-ENDRING lagret som `NYTT_KRAV`, eller av en første OS-STOPP lagret som `STOPP_IGNORERES`, blir senere ENDRING med samme gamle referanse lagret med `kravtype = ENDRING_IGNORERES`, og alle senere STOPP med samme gamle referanse lagres med `kravtype = STOPP_IGNORERES`, uavhengig av avsender. Begge får status `IGNORERES_ETTER_OPPRYDDING`, sendes ikke til SKE og utløser Slack-varsel.
+
+Opprydding behandles per `referansenummerGammelSak`, ikke per nytt `saksnummerNav`. Bare første gyldige oppryddings-ENDRING for en originalreferanse kan bli `NYTT_KRAV`, også når flere korreksjoner ligger i samme fil. Senere gyldige korreksjoner med samme referanse ignoreres og varsles for å hindre dobbelt gjeldsgrunnlag i SKE. Lokalt valideringsfeilede linjer beholder `VALIDERINGSFEIL_AV_LINJE_I_FIL`; de overstyrer ikke referansen, påvirker ikke første-gyldig-regelen og får bare ordinært linjevalideringsvarsel.
 
 ## Beslutningsflyt ved innlesing
 
@@ -29,9 +31,7 @@ flowchart TD
     D -->|Nei| E[Normalt løp]
     D -->|Ja| G{Innkommende type?}
     G -->|ENDRING| H[Lagre én rad som NYTT_KRAV]
-    G -->|STOPP| M{Avsender?}
-    M -->|OS| I[Lagre som IGNORERES]
-    M -->|Andre| K[Lagre STOPP_KRAV]
+    G -->|STOPP| I[Lagre som STOPP_IGNORERES]
     E -->|ENDRING| J[Lagre ENDRING]
     E -->|STOPP| K[Lagre STOPP_KRAV]
     N --> L[Flytt fil til outbound]
@@ -53,7 +53,7 @@ Oppryddingssporet følger en referansekjede med ett opprinnelig krav, ett oppryd
 
 Senere endringer, som C, følger ordinær endrings- eller stopprute. De er ikke oppryddingskrav fordi referansen er B, ikke den opprinnelige avviste saken A. Hvis B ikke er effektuert når C behandles, håndteres eventuelle SKE-feil gjennom tjenestens ordinære feil- og avstemmingsflyt.
 
-STOPP i selve oppryddingsfilen fra OS lagres med både `kravtype = IGNORERES` og `status = IGNORERES`, og holdes utenfor sending og resend.
+STOPP i selve oppryddingsfilen som direkte refererer til originalkravet lagres med både `kravtype = STOPP_IGNORERES` og `status = IGNORERES`, og holdes utenfor sending og resend, uavhengig av avsender.
 
 ## Utsending til SKE
 
@@ -73,13 +73,10 @@ sequenceDiagram
         SkeService->>SKE: POST opprett krav
         SKE-->>SkeService: Respons
         SkeService->>DB: Oppdater status og SKE-kravidentifikator
-    else Treff: STOPP fra OB04
+    else Treff: STOPP
         DB-->>SkeService: Foreldelsesfrist-feil funnet
-        SkeService->>DB: Lagre som IGNORERES
+        SkeService->>DB: Lagre som STOPP_IGNORERES
         Note over SkeService: Ingen SKE-kall utføres
-    else Treff: STOPP fra annen avsender
-        DB-->>SkeService: Foreldelsesfrist-feil funnet
-        SkeService->>SkeService: Følg ordinær stopprute
     else Ikke treff
         DB-->>SkeService: Ingen relevant historisk feil
         SkeService->>SkeService: Følg ordinær endrings- eller stopprute
@@ -103,16 +100,18 @@ En linje er et oppryddingskrav bare når `referansenummerGammelSak` er saksnumme
 | Innkommende type | Treff i historisk feilmelding | Resultat |
 | --- | --- | --- |
 | ENDRING | Ja | Én rad med `kravtype = NYTT_KRAV`; sendes via opprett-krav-endepunktet. |
-| Første STOPP fra `OB04` | Ja | Lagres med både `kravtype = STOPP_IGNORERES` og `status = IGNORERES`; ingen utsending til SKE. |
-| STOPP fra annen avsender | Ja | Lagres og sendes som ordinær `STOPP_KRAV`. |
+| Første STOPP med direkte referanse til originalen | Ja | Lagres med både `kravtype = STOPP_IGNORERES` og `status = IGNORERES`, uavhengig av avsender; ingen utsending til SKE. |
 | Senere ENDRING med samme direkte referanse til originalen | Ja | Lagres med `kravtype = ENDRING_IGNORERES` og `status = IGNORERES_ETTER_OPPRYDDING`; ingen utsending til SKE og Slack-varsel. |
-| Senere STOPP fra `OB04` med samme direkte referanse til originalen | Ja | Lagres med `kravtype = STOPP_IGNORERES` og `status = IGNORERES_ETTER_OPPRYDDING`; ingen utsending til SKE og Slack-varsel. |
+| Senere STOPP med samme direkte referanse til originalen | Ja | Lagres med `kravtype = STOPP_IGNORERES` og `status = IGNORERES_ETTER_OPPRYDDING`, uavhengig av avsender; ingen utsending til SKE og Slack-varsel. |
+| Lokalt ugyldig ENDRING eller STOPP | Uansett | Beholder `VALIDERINGSFEIL_AV_LINJE_I_FIL`, påvirker ikke oppryddingssporet og varsles bare som linjevalideringsfeil. |
 | ENDRING eller STOPP | Nei | Normal flyt er uendret. |
 | NYTT_KRAV | Ikke vurdert | Normal flyt er uendret. |
 
 ## Observability og drift
 
-`SkeService` beregner oppryddingsreferansene ved å bruke `FeilmeldingRepository` før krav og linjevalideringsfeil lagres i samme transaksjon. Det skrives kun aggregert ordinær logg uten saksnummer eller andre personopplysninger. En ignorert oppryddings-`STOPP` fra `OB04` er synlig i `krav` med typen `IGNORERES`, men gir ikke SKE-kall.
+`SkeService` beregner oppryddingsreferansene ved å bruke `FeilmeldingRepository` før krav og linjevalideringsfeil lagres i samme transaksjon. Det skrives kun aggregert ordinær logg uten saksnummer eller andre personopplysninger. En ignorert oppryddings-`STOPP` er synlig i `krav` med typen `STOPP_IGNORERES`, men gir ikke SKE-kall.
+
+Slack skiller mellom `ENDRING etter overstyrt opprydding` og `STOPP etter overstyrt opprydding`. Hvert varsel inneholder både nytt `saksnummerNav` og originalt `referansenummerGammelSak`.
 
 Sporet er avgrenset til det eksakte meldingsfragmentet over. Hvis SKE endrer feilmeldingsteksten, vil kravene følge ordinær flyt til oppslagsregelen oppdateres.
 
@@ -124,10 +123,13 @@ Testene verifiserer:
 
 - oppslag med treff, ikke-treff og ukjent saksnummer
 - ENDRING som lagres som én `NYTT_KRAV`
-- første STOPP fra `OB04` som lagres med `kravtype = STOPP_IGNORERES` uten utsending til SKE
-- STOPP fra andre avsendere som lagres som ordinær `STOPP_KRAV`
+- første STOPP fra alle avsendere som lagres med `kravtype = STOPP_IGNORERES` uten utsending til SKE
+- senere STOPP fra alle avsendere som lagres med `STOPP_IGNORERES` og `IGNORERES_ETTER_OPPRYDDING`
 - ENDRING med samme direkte referanse til originalen etter en tidligere oppryddings-overstyring lagres med `ENDRING_IGNORERES` og `IGNORERES_ETTER_OPPRYDDING`
 - gjentatt STOPP fra `OB04` med samme referanse til originalen lagres med `IGNORERES_ETTER_OPPRYDDING` og gir ett Slack-varsel
+- bare første gyldige oppryddings-ENDRING med samme originalreferanse i én fil opprettes; senere gyldige korreksjoner ignoreres og varsles
+- en lokalt ugyldig oppryddingskorreksjon overstyrer ikke originalreferansen, og får ikke et ekstra oppryddingsvarsel
+- en gyldig erstatningskorreksjon etter en tidligere lokalt ugyldig oppryddingsrad opprettes og sendes som `NYTT_KRAV`
 - SFTP-innlesing og utsending av oppryddings-ENDRING via opprett-krav-ruten
 - at øvrige ENDRING-er i samme fil fortsatt bruker ordinær endringsrute
 - at en senere `ENDRING` med referanse til oppryddingskravets nye saksnummer lagres som `ENDRING_HOVEDSTOL` og `ENDRING_RENTE`, og at en senere `STOPP` lagres og sendes som `STOPP_KRAV`

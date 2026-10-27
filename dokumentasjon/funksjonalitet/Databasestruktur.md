@@ -105,8 +105,10 @@ Hovedtabellen som lagrer innkommende krav fra SKE. Hvert krav representerer én 
 | `avsender`                 | text        | Avsender av kravet, f.eks. `OB04` *(lagt til i V1.0.5)*  |
 
 **Indekser:** 
-  - `idxstatus` på kolonnen `status`.
-  - `idx_krav_opprettet` på kolonnen `tidspunkt_opprettet`.
+   - `idxstatus` på kolonnen `status`.
+   - `idx_krav_opprettet` på kolonnen `tidspunkt_opprettet`.
+   - `idx_krav_saksnummer_nav_med_ske_ident` og `idx_krav_gammelsak_med_ske_ident` for oppslag av SKE-kravidentifikatorer.
+   - `idx_krav_referansenummergammelsak` på `referansenummergammelsak`, brukt av oppryddingssporet også før en SKE-kravidentifikator finnes.
 
 ---
 
@@ -167,3 +169,4 @@ Lagrer valideringsfeil oppdaget ved innlesing av filer, før kravene sendes til 
 | V1.0.7  | `V1.0.7__nye_indekser.sql`                                    | Nye indekser for tabellene `krav`, `feilmelding` og `filvalideringsfeil` på kolonnene `tidspunkt_opprettet` |
 | V1.0.8  | `V1.0.8__change_timestamp_to_timestamptz.sql`                 | Endrer tidsstempelkolonner til `timestamptz`                                                               |
 | V1.0.9  | `V1.0.9__index_feilmelding_saksnummer_nav.sql`                | Ny indeks på `feilmelding.saksnummer_nav` for oppslag i oppryddingssporet                                 |
+| V1.0.10 | `V1.0.10__index_krav_referansenummergammelsak.sql`            | Ny ufiltrert indeks på `krav.referansenummergammelsak` for oppryddings- og referanseoppslag              |

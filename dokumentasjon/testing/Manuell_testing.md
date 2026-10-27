@@ -164,7 +164,7 @@ Testfilene ligger i [`testfiler/OS/Oppryddingskjede`](testfiler/OS/Oppryddingskj
    - at B sendes som opprett krav
     - ordinær utsending eller ordinær SKE-feil for C
 
-> **Senere feilreferanse:** Dersom en ny ENDRING fortsatt har `referansenummerGammelSak = A` etter at A allerede er overstyrt av et `NYTT_KRAV` eller en første OS-STOPP, lagres den med kravtypen `ENDRING_IGNORERES` og status `IGNORERES_ETTER_OPPRYDDING`. En ny OS-STOPP får tilsvarende `STOPP_IGNORERES`. Linjene sendes ikke til SKE, og Slack varsler. STOPP fra andre avsendere følger ordinær rute.
+> **STOPP med originalreferanse:** En gyldig STOPP som har `referansenummerGammelSak = A` lagres alltid som `STOPP_IGNORERES` og sendes ikke til SKE, uavhengig av avsender. Etter at A er overstyrt, får senere STOPP status `IGNORERES_ETTER_OPPRYDDING` og Slack-varsel med både nytt saksnummer og originalreferanse. En gyldig ny ENDRING med `referansenummerGammelSak = A` etter overstyring lagres tilsvarende med `ENDRING_IGNORERES`. Bare første gyldige oppryddings-ENDRING for A kan opprettes; senere gyldige korreksjoner med samme referanse ignoreres. Lokalt ugyldige linjer beholder valideringsfeilstatus og gir ikke et ekstra oppryddingsvarsel.
                                        
 
 ## Tolkning av testresultater

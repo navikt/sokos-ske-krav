@@ -11,7 +11,6 @@ import kotliquery.queryOf
 import no.nav.sokos.ske.krav.config.LOCAL_ZONE_ID
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
-import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.toStatus
@@ -446,8 +445,7 @@ class KravRepository(
         val params = mutableListOf<Map<String, Any?>>()
         val oppryddingsreferanserOverstyrtIFilen = mutableSetOf<String>()
 
-        // 🤖 OS sender oppryddings-STOPP fordi OS må "nulle ut" perioder. Disse STOPPENE beholdes for sporbarhet, men skal
-        // 🤖 aldri sendes til SKE. De lagres med status og kravtype IGNORERES
+        // 🤖 STOPP som direkte refererer til et avvist originalkrav beholdes for sporbarhet, men skal aldri sendes til SKE.
         kravLinjer.forEach { kravLinje ->
             val erEndringEtterOpprydding =
                 kravLinje.isEndring() &&
@@ -455,16 +453,14 @@ class KravRepository(
                         kravLinje.referansenummerGammelSak in overstyrteOppryddingsreferanser ||
                             kravLinje.referansenummerGammelSak in oppryddingsreferanserOverstyrtIFilen
                     )
-            val erOsStoppEtterOpprydding =
+            val erStoppEtterOpprydding =
                 kravLinje.isStopp() &&
-                    kravLinje.avsender.trim() == Avsender.OB04.name &&
                     kravLinje.referansenummerGammelSak in overstyrteOppryddingsreferanser
             val skalIgnoreresEtterOpprydding =
-                (erEndringEtterOpprydding || erOsStoppEtterOpprydding) &&
+                (erEndringEtterOpprydding || erStoppEtterOpprydding) &&
                     kravLinje.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value
             val skalIgnoreres =
                 kravLinje.isStopp() &&
-                    kravLinje.avsender.trim() == Avsender.OB04.name &&
                     kravLinje.referansenummerGammelSak in oppryddingsReferanser &&
                     kravLinje.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value
 

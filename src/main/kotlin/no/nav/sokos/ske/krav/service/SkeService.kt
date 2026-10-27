@@ -21,7 +21,6 @@ import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.config.UnleashConfig
 import no.nav.sokos.ske.krav.copybook.KravLinje
-import no.nav.sokos.ske.krav.domain.Avsender
 import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
@@ -375,11 +374,10 @@ class SkeService(
                     it.isEndring() &&
                         it.referansenummerGammelSak in oppryddingsReferanserMedForeldelsesfristfeil &&
                         !oppryddingsreferanserOverstyrtIFilen.add(it.referansenummerGammelSak)
-                val erOsStoppEtterOpprydding =
+                val erStoppEtterOpprydding =
                     it.isStopp() &&
-                        it.avsender.trim() == Avsender.OB04.name &&
                         it.referansenummerGammelSak in overstyrteOppryddingsreferanser
-                erEndringEtterTidligereOpprydding || erEtterfolgendeEndringIFilen || erOsStoppEtterOpprydding
+                erEndringEtterTidligereOpprydding || erEtterfolgendeEndringIFilen || erStoppEtterOpprydding
             }.forEach { kravLinje ->
                 val type = if (kravLinje.isEndring()) "ENDRING" else "STOPP"
                 slackService.addError(
