@@ -8,6 +8,8 @@ import javax.sql.DataSource
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 
 import io.ktor.client.statement.bodyAsText
@@ -71,12 +73,14 @@ class SkeService(
             return
         }
 
-        resendKrav(shouldAlert = false)
+        // etter at vi har sendt alle som har "hopet" seg opp så kan vi skru på lesFilEnabled og la resendinga kjøre
+        // når vi har rapportert alle feilene så kan vi også skru på sendKravEnabled
         if (unleashConfig.isLesFilEnabled()) {
+            resendKrav(shouldAlert = false)
             sendNewFilesToSKE()
+            delay(waitTime)
+            resendKrav()
         }
-        delay(waitTime)
-        resendKrav()
 
         slackService.sendErrors()
 
@@ -137,6 +141,45 @@ class SkeService(
         ftpService.moveFile(file.name, Directories.INBOUND, Directories.OUTBOUND)
     }
 
+    suspend fun sendUsendteFiler(
+        maxFiler: Int,
+        dryRun: Boolean = false,
+    ): Int {
+        var fileNames = kravRepository.getUnsentFileNamesSortedOnReceptionTime()
+        if (fileNames.isEmpty()) {
+            logger.info("Ingen usendte filer, returnerer")
+            return 0
+        }
+        logger.info("Totalt antall usendte filer: ${fileNames.size}")
+        if (fileNames.size > maxFiler) {
+            fileNames = fileNames.subList(0, maxFiler)
+        }
+
+        logger.info("Sender ${fileNames.size} usendte filer")
+        for (fileName in fileNames) {
+            val kravListe = kravRepository.getAllUnsentKrav(fileName)
+            logger.info("Sender ${kravListe.size} usendte krav i fila $fileName")
+            if (!dryRun) {
+                if (unleashConfig.isMottaksstatusEnabled()) {
+                    statusService.getMottaksStatus()
+                    delay(10.seconds)
+                }
+                updateSkeKravidentifikatorForEndringerAndStopp(fileName)
+
+                sendKrav(kravListe).also(::logResult)
+
+                // må hente mottaksstatus så vi sover bittelitt
+                delay(10.seconds)
+                if (unleashConfig.isMottaksstatusEnabled()) {
+                    statusService.getMottaksStatus()
+                }
+                delay(2.minutes)
+                logger.info { "Ferdig med innsending av $fileName" }
+            }
+        }
+        return fileNames.size
+    }
+
     private suspend fun sendKrav(
         kravList: List<Krav>,
         shouldAlert: Boolean = true,
@@ -163,8 +206,13 @@ class SkeService(
         }
     }
 
-    private suspend fun updateSkeKravidentifikatorForEndringerAndStopp() {
-        val unsentEndringerAndStopp = kravRepository.getAllUnsentEndringerAndStopp()
+    private suspend fun updateSkeKravidentifikatorForEndringerAndStopp(fileName: String? = null) {
+        val unsentEndringerAndStopp =
+            if (fileName != null) {
+                kravRepository.getAllUnsentEndringerAndStopp(fileName)
+            } else {
+                kravRepository.getAllUnsentEndringerAndStopp()
+            }
         val requestResults = mutableListOf<RequestResult>()
         val slackErrorsHandled = mutableSetOf<String>()
 

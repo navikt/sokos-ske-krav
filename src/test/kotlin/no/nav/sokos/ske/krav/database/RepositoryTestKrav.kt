@@ -47,7 +47,7 @@ internal class RepositoryTestKrav :
         ) {
             val kravForResending = kravRepository.getAllKravForResending()
 
-            kravForResending.shouldHaveSize(10)
+            kravForResending.shouldHaveSize(11)
             kravForResending.forAll {
                 it.status.shouldBeIn(
                     Status.KRAV_IKKE_SENDT,
@@ -62,10 +62,29 @@ internal class RepositoryTestKrav :
         test("getAllUnsentKrav skal returnere krav som har status KRAV_IKKE_SENDT") {
             val unsentKrav = kravRepository.getAllUnsentKrav()
 
-            unsentKrav.shouldHaveSize(4)
+            unsentKrav.shouldHaveSize(5)
             unsentKrav.forAll {
                 it.status shouldBe Status.KRAV_IKKE_SENDT
             }
+        }
+
+        test("getAllUnsentKrav skal returnere krav fra riktig fil som har status KRAV_IKKE_SENDT") {
+            val unsentKrav = kravRepository.getAllUnsentKrav("KravForRepositoryBehaviourTest.txt")
+            unsentKrav.shouldHaveSize(4)
+            val unsentKrav2 = kravRepository.getAllUnsentKrav("AnnenFilMedUsendtKrav.txt")
+            unsentKrav2.shouldHaveSize(1)
+            val unsentKrav3 = kravRepository.getAllUnsentKrav("AnnenFilMedIngenUsendteKrav.txt")
+            unsentKrav3.shouldHaveSize(0)
+            val unsentKrav4 = kravRepository.getAllUnsentKrav("FinsIkke.txt")
+            unsentKrav4.shouldHaveSize(0)
+        }
+
+        test("getUnsentFileNamesSortedOnReceptionTime skal returnere fila med krav som har status KRAV_IKKE_SENDT") {
+            val unsentFiles = kravRepository.getUnsentFileNamesSortedOnReceptionTime()
+
+            unsentFiles.shouldHaveSize(2)
+            unsentFiles[0] shouldBe "KravForRepositoryBehaviourTest.txt"
+            unsentFiles[1] shouldBe "AnnenFilMedUsendtKrav.txt"
         }
 
         test("getAllKravForAvstemming skal returnere alle krav som har en feilmelding med status rapporter=true") {
@@ -240,7 +259,7 @@ internal class RepositoryTestKrav :
             dataSource.transaction { session ->
                 val threshold = LocalDate.parse("2023-01-02")
                 val kravDeleted = kravRepository.deleteOldKrav(session, threshold)
-                kravDeleted shouldBe 18
+                kravDeleted shouldBe 19
             }
         }
 
@@ -259,7 +278,7 @@ internal class RepositoryTestKrav :
             withJvmTimeZone("UTC") {
                 dataSource.transaction { session ->
                     val threshold = LocalDate.parse("2023-01-02")
-                    kravRepository.deleteOldKrav(session, threshold) shouldBe 18
+                    kravRepository.deleteOldKrav(session, threshold) shouldBe 19
                 }
             }
         }

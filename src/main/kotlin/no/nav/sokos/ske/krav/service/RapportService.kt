@@ -3,6 +3,8 @@ package no.nav.sokos.ske.krav.service
 import java.time.LocalDate
 import javax.sql.DataSource
 
+import kotlin.String
+
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.domain.Avstemmingsgrunnlag
 import no.nav.sokos.ske.krav.domain.Krav
@@ -60,9 +62,13 @@ class RapportService(
                     it.periodeFOM,
                     it.periodeTOM,
                     getFeilmeldinger(it),
-                    with(it.tidspunktSisteStatus) {
-                        "$dayOfMonth/$monthValue/$year, $hour:$minute"
-                    },
+                    it.tidspunktSisteStatus.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
+                    it.kravidentifikatorSKE,
+                    it.kravtype,
+                    it.belopRente,
+                    it.utbetalDato?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) ?: "",
+                    it.tilleggsfrist?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) ?: "",
+                    it.fremtidigYtelse,
                 )
             }.distinctBy { it.kravID }
 
@@ -94,6 +100,12 @@ class RapportService(
         val periodeTOM: String,
         val feilmeldinger: List<String>,
         val tidspunktSisteStatus: String,
+        val kravidentifikatorSKE: String,
+        val kravtype: String,
+        val belopRente: Double,
+        val utbetaltDato: String,
+        val tilleggsfrist: String,
+        val fremtidigYtelse: Double,
     ) {
         companion object {
             val csvBuilder = CsvBuilder
@@ -116,6 +128,12 @@ class RapportService(
                     "Periode Tom",
                     "Feilmelding",
                     "Tidspunkt siste status",
+                    "Kravidentifikator SKE",
+                    "Kravtype",
+                    "Rentebeløp",
+                    "Utbetalingsdato",
+                    "Tilleggsfrist",
+                    "Fremtidig ytelse",
                 )
 
             object CsvBuilder {
@@ -125,23 +143,29 @@ class RapportService(
                         data.forEach {
                             val fields =
                                 listOf(
-                                    it.kravID.escapeCsvField(), // "Krav-ID",
-                                    it.filnavn.escapeCsvField(), // "Filnavn",
-                                    it.linjenummer.escapeCsvField(), // "Linjenummer",
-                                    it.vedtaksId.escapeCsvField(), // "Vedtaks-ID",
-                                    it.vedtaksDato.escapeCsvField(), // "Vedtaksdato",
-                                    it.fagsystemId.escapeCsvField(), // "Fagsystem-ID",
-                                    it.kravkode.escapeCsvField(), // "Kravkode",
-                                    it.kodeHjemmel.escapeCsvField(), // "Hjemmelkode",
-                                    it.status.value.escapeCsvField(), // "Status",
-                                    it.stonadsType.toString().escapeCsvField(), // "Stønadstype",
-                                    it.saksnummerNAV.escapeCsvField(), // "Saksnummer Nav",
-                                    it.referansenummerGammelSak.escapeCsvField(), // "Ref.nr gammel sak",
-                                    it.belop.toString().escapeCsvField(), // "Beløp",
-                                    it.periodeFOM.escapeCsvField(), // "Periode Fom",
-                                    it.periodeTOM.escapeCsvField(), // "Periode Tom",
-                                    it.feilmeldinger.joinToString(";").escapeCsvField(), // "Feilmelding",
-                                    it.tidspunktSisteStatus.escapeCsvField(), // "Tidspunkt siste status",
+                                    it.kravID.escapeCsvField(),
+                                    it.filnavn.escapeCsvField(),
+                                    it.linjenummer.escapeCsvField(),
+                                    it.vedtaksId.escapeCsvField(),
+                                    it.vedtaksDato.escapeCsvField(),
+                                    it.fagsystemId.escapeCsvField(),
+                                    it.kravkode.escapeCsvField(),
+                                    it.kodeHjemmel.escapeCsvField(),
+                                    it.status.value.escapeCsvField(),
+                                    it.stonadsType.toString().escapeCsvField(),
+                                    it.saksnummerNAV.escapeCsvField(),
+                                    it.referansenummerGammelSak.escapeCsvField(),
+                                    it.belop.toString().escapeCsvField(),
+                                    it.periodeFOM.escapeCsvField(),
+                                    it.periodeTOM.escapeCsvField(),
+                                    it.feilmeldinger.joinToString(";").escapeCsvField(),
+                                    it.tidspunktSisteStatus.escapeCsvField(),
+                                    it.kravidentifikatorSKE.escapeCsvField(),
+                                    it.kravtype.escapeCsvField(),
+                                    it.belopRente.toString().escapeCsvField(),
+                                    it.utbetaltDato.escapeCsvField(),
+                                    it.tilleggsfrist.escapeCsvField(),
+                                    it.fremtidigYtelse.toString().escapeCsvField(),
                                 )
                             appendLine(fields.joinToString(","))
                         }

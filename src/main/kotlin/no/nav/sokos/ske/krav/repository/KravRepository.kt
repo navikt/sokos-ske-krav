@@ -26,35 +26,35 @@ class KravRepository(
 ) {
     val mapToKrav: (Row) -> Krav = { row ->
         Krav(
-            kravId = row.long("id"),
-            filnavn = row.string("filnavn"),
-            linjenummer = row.int("linjenummer"),
-            saksnummerNAV = row.string("saksnummer_nav"),
-            kravidentifikatorSKE = row.stringOrNull("kravidentifikator_ske") ?: "",
+            avsender = row.stringOrNull("avsender") ?: "",
             belop = row.double("belop"),
-            vedtaksDato = row.localDate("vedtaksDato"),
+            belopRente = row.double("belop_rente"),
+            corrId = row.string("corr_id"),
+            enhetBehandlende = row.string("enhet_behandlende"),
+            enhetBosted = row.string("enhet_bosted"),
+            fagsystemId = row.string("fagsystem_id"),
+            filnavn = row.string("filnavn"),
+            fremtidigYtelse = row.double("fremtidig_ytelse"),
             gjelderId = row.string("gjelder_id"),
+            kodeArsak = row.string("kode_arsak"),
+            kodeHjemmel = row.string("kode_hjemmel"),
+            kravId = row.long("id"),
+            kravidentifikatorSKE = row.stringOrNull("kravidentifikator_ske") ?: "",
+            kravkode = row.string("kravkode"),
+            kravtype = row.string("kravtype"),
+            linjenummer = row.int("linjenummer"),
             periodeFOM = row.string("periode_fom"),
             periodeTOM = row.string("periode_tom"),
-            kravkode = row.string("kravkode"),
             referansenummerGammelSak = row.string("referansenummerGammelSak"),
             transaksjonsDato = row.string("transaksjonsDato"),
-            enhetBosted = row.string("enhet_bosted"),
-            enhetBehandlende = row.string("enhet_behandlende"),
-            kodeHjemmel = row.string("kode_hjemmel"),
-            kodeArsak = row.string("kode_arsak"),
-            belopRente = row.double("belop_rente"),
-            fremtidigYtelse = row.double("fremtidig_ytelse"),
             utbetalDato = row.localDateOrNull("utbetaldato"),
-            fagsystemId = row.string("fagsystem_id"),
+            saksnummerNAV = row.string("saksnummer_nav"),
             status = row.string("status").toStatus(),
-            kravtype = row.string("kravtype"),
-            corrId = row.string("corr_id"),
+            tidspunktOpprettet = row.instant("tidspunkt_opprettet").atZone(LOCAL_ZONE_ID).toLocalDateTime(),
             tidspunktSendt = row.instantOrNull("tidspunkt_sendt")?.atZone(LOCAL_ZONE_ID)?.toLocalDateTime(),
             tidspunktSisteStatus = row.instant("tidspunkt_siste_status").atZone(LOCAL_ZONE_ID).toLocalDateTime(),
-            tidspunktOpprettet = row.instant("tidspunkt_opprettet").atZone(LOCAL_ZONE_ID).toLocalDateTime(),
             tilleggsfrist = row.localDateOrNull("tilleggsfrist"),
-            avsender = row.stringOrNull("avsender") ?: "",
+            vedtaksDato = row.localDate("vedtaksDato"),
         )
     }
 
@@ -95,6 +95,24 @@ class KravRepository(
                         "rente" to ENDRING_RENTE,
                         "hovedstol" to ENDRING_HOVEDSTOL,
                         "stopp" to STOPP_KRAV,
+                    ),
+                ),
+                extractor = mapToKrav,
+            )
+        }
+
+    fun getAllUnsentEndringerAndStopp(fileName: String): List<Krav> =
+        dataSource.transaction { session ->
+            session.list(
+                queryOf(
+                    // language=SQL
+                    """select * from krav where status = :kravStatus and kravtype in(:rente, :hovedstol, :stopp) and filnavn = :fileName""",
+                    mapOf(
+                        "kravStatus" to Status.KRAV_IKKE_SENDT.value,
+                        "rente" to ENDRING_RENTE,
+                        "hovedstol" to ENDRING_HOVEDSTOL,
+                        "stopp" to STOPP_KRAV,
+                        "fileName" to fileName,
                     ),
                 ),
                 extractor = mapToKrav,
@@ -145,6 +163,31 @@ class KravRepository(
                     Status.KRAV_IKKE_SENDT.value,
                 ),
                 extractor = mapToKrav,
+            )
+        }
+
+    fun getAllUnsentKrav(fileName: String): List<Krav> =
+        dataSource.transaction { session ->
+            session.list(
+                queryOf(
+                    // language=SQL
+                    """select * from krav where status = ? and filnavn = ? order by tidspunkt_opprettet asc""",
+                    Status.KRAV_IKKE_SENDT.value,
+                    fileName,
+                ),
+                extractor = mapToKrav,
+            )
+        }
+
+    fun getUnsentFileNamesSortedOnReceptionTime(): List<String> =
+        dataSource.transaction { session ->
+            session.list(
+                queryOf(
+                    // language=SQL
+                    """select filnavn, min(tidspunkt_opprettet) from krav where status = ? group by filnavn order by 2""",
+                    Status.KRAV_IKKE_SENDT.value,
+                ),
+                extractor = { row -> row.string("filnavn") },
             )
         }
 
