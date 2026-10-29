@@ -11,6 +11,7 @@ import kotliquery.queryOf
 import no.nav.sokos.ske.krav.config.LOCAL_ZONE_ID
 import no.nav.sokos.ske.krav.config.PostgresDataSource
 import no.nav.sokos.ske.krav.copybook.KravLinje
+import no.nav.sokos.ske.krav.domain.Avstemmingsgrunnlag
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.toStatus
@@ -459,6 +460,64 @@ class KravRepository(
                     mapOf("leiteparameter" to leiteparameter),
                 ),
                 extractor = mapToKrav,
+            )
+
+    fun getKvitterteKravForAvstemming(
+        session: TransactionalSession,
+        fom: LocalDate,
+        tom: LocalDate,
+    ): List<Avstemmingsgrunnlag> =
+        session
+            .list(
+                queryOf(
+                    // language=SQL
+                    """
+                    select
+                           avsender as kilde,
+                           belop as belop,
+                           belop_rente as renter,
+                           concat(krav.kode_arsak, ' ', kode_hjemmel) as trekkgrunnlag,
+                           enhet_behandlende as behandlende_enhet,
+                           enhet_bosted as boenhet,
+                           filnavn as datafil,
+                           gjelder_id as foedselsnummer,
+                           kode_arsak as aarsakskode,
+                           kode_hjemmel as lovhjemmel,
+                           kravkode as ytelse,
+                           periode_fom as vedtaksperiode_fra_og_med,
+                           periode_tom as vedtaksperiode_til_og_med,
+                           referansenummergammelsak as ref_gml_vedtak,
+                           saksnummer_nav as saksnummer,
+                           transaksjonsdato as transaksjonsdato,
+                           vedtaksdato as vedtaksdato
+                    from krav
+                    where tidspunkt_sendt is not null
+                      and status in ('RESKONTROFOERT', 'MIGRERT')
+                      and tidspunkt_sendt between :fom and :tom
+                    """.trimIndent(),
+                    mapOf("fom" to fom, "tom" to tom),
+                ),
+                extractor = { row ->
+                    Avstemmingsgrunnlag(
+                        kilde = row.string("kilde"),
+                        trekkgrunnlag = row.string("trekkgrunnlag"),
+                        belop = row.double("belop"),
+                        renter = row.double("renter"),
+                        behandlendeEnhet = row.string("behandlende_enhet"),
+                        boenhet = row.string("boenhet"),
+                        datafil = row.string("datafil"),
+                        foedselsnummer = row.string("foedselsnummer"),
+                        aarsakskode = row.string("aarsakskode"),
+                        lovhjemmel = row.string("lovhjemmel"),
+                        ytelse = row.string("ytelse"),
+                        vedtaksperiodeFraOgMed = row.string("vedtaksperiode_fra_og_med"),
+                        vedtaksperiodeTilOgMed = row.string("vedtaksperiode_til_og_med"),
+                        refGmlVedtak = row.string("ref_gml_vedtak"),
+                        saksnummer = row.string("saksnummer"),
+                        transaksjonsdato = row.string("transaksjonsdato"),
+                        vedtaksdato = row.string("vedtaksdato"),
+                    )
+                },
             )
 
     companion object {

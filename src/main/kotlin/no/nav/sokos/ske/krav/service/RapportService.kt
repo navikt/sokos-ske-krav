@@ -1,11 +1,13 @@
 package no.nav.sokos.ske.krav.service
 
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.sql.DataSource
 
 import kotlin.String
 
 import no.nav.sokos.ske.krav.config.PostgresDataSource
+import no.nav.sokos.ske.krav.domain.Avstemmingsgrunnlag
 import no.nav.sokos.ske.krav.domain.Krav
 import no.nav.sokos.ske.krav.domain.Status
 import no.nav.sokos.ske.krav.domain.StonadsType
@@ -35,6 +37,11 @@ class RapportService(
     fun oppdaterStatusTilIkkeSendt(kravId: Int) = dataSource.transaction { session -> kravRepository.updateStatusTilIkkeSendt(session, kravId) }
 
     fun finnKrav(leiteparameter: String) = dataSource.transaction { session -> kravRepository.finnKrav(session, leiteparameter) }
+
+    fun kvitterteKravTilAvstemming(
+        fom: LocalDate,
+        tom: LocalDate,
+    ): List<Avstemmingsgrunnlag> = dataSource.transaction { session -> kravRepository.getKvitterteKravForAvstemming(session, fom, tom) }
 
     private fun mapToRapportObjekt(liste: List<Krav>) =
         liste
