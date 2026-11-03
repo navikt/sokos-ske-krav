@@ -80,11 +80,17 @@ fun Route.avstemmingRoutes(
             }
             get("/") { call.respondRedirect("/rapporter/avstemming") }
             get("/oversikt/{fom}/{tom}") {
-                val fom = call.parameters["fom"]?.let { LocalDate.parse(it) }
-                val tom = call.parameters["tom"]?.let { LocalDate.parse(it) }
-                call.respond(
-                    rapportService.kvitterteKravTilAvstemming(fom!!, tom!!).map { it.toKravDTO() },
-                )
+                try {
+                    val fom = call.parameters["fom"]?.let { LocalDate.parse(it) }
+                    val tom = call.parameters["tom"]?.let { LocalDate.parse(it) }
+                    call.respond(
+                        rapportService.kvitterteKravTilAvstemming(fom!!, tom!!).map { it.toKravDTO() },
+                    )
+                } catch (e: Exception) {
+                    logger.error(e) { "Feil ved parsing av fom/tom datoer: ${e.message}" }
+                    call.respondText("Feil ved parsing av fom/tom datoer: ${e.message}")
+                    return@get
+                }
             }
         }
         route("resending") {
