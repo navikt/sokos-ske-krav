@@ -1,6 +1,6 @@
 package no.nav.sokos.ske.krav.api
 
-import java.time.LocalDate
+import java.time.LocalDate.parse
 
 import io.ktor.http.ContentType.Text.CSV
 import io.ktor.http.encodeURLPathPart
@@ -81,14 +81,13 @@ fun Route.avstemmingRoutes(
             get("/") { call.respondRedirect("/rapporter/avstemming") }
             get("/oversikt/{fom}/{tom}") {
                 try {
-                    val fom = call.parameters["fom"]?.let { LocalDate.parse(it) }
-                    val tom = call.parameters["tom"]?.let { LocalDate.parse(it) }
+                    val fom = call.parameters["fom"]?.let { parse(it) } ?: throw IllegalArgumentException("Mangler dato")
+                    val tom = call.parameters["tom"]?.let { parse(it) } ?: throw IllegalArgumentException("Mangler dato")
                     call.respond(
-                        rapportService.kvitterteKravTilAvstemming(fom!!, tom!!).map { it.toKravDTO() },
+                        rapportService.kvitterteKravTilAvstemming(fom, tom).map(Krav::toKravDTO),
                     )
                 } catch (e: Exception) {
-                    logger.error(e) { "Feil ved parsing av fom/tom datoer: ${e.message}" }
-                    call.respondText("Feil ved parsing av fom/tom datoer: ${e.message}")
+                    call.respondText { "Feilmelding:${e.message}, Forventet format: /oversikt/{iso-dato}/{senere iso-dato}" }
                     return@get
                 }
             }
