@@ -20,6 +20,7 @@ import mu.KotlinLogging
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.domain.toKravDTO
 import no.nav.sokos.ske.krav.frontend.AdminPage
 import no.nav.sokos.ske.krav.frontend.FantIngenting
 import no.nav.sokos.ske.krav.frontend.FantKrav
@@ -96,7 +97,7 @@ fun Route.avstemmingRoutes(
 
                 if (fom != null && tom != null) {
                     call.respond(
-                        rapportService.kvitterteKravTilAvstemming(fom, tom),
+                        rapportService.kvitterteKravTilAvstemming(fom, tom).map { it.toKravDTO() },
                     )
                 } else {
                     call.respondRedirect("/rapporter/avstemming")
