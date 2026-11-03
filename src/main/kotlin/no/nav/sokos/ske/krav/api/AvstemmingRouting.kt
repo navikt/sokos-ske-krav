@@ -1,11 +1,14 @@
 package no.nav.sokos.ske.krav.api
 
+import java.time.LocalDate.parse
+
 import io.ktor.http.ContentType.Text.CSV
 import io.ktor.http.encodeURLPathPart
 import io.ktor.server.auth.principal
 import io.ktor.server.html.respondHtmlTemplate
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.request.receiveParameters
+import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
@@ -17,6 +20,7 @@ import mu.KotlinLogging
 import no.nav.sokos.ske.krav.config.PropertiesConfig
 import no.nav.sokos.ske.krav.config.TEAM_LOGS_MARKER
 import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.domain.toKravDTO
 import no.nav.sokos.ske.krav.frontend.AdminPage
 import no.nav.sokos.ske.krav.frontend.FantIngenting
 import no.nav.sokos.ske.krav.frontend.FantKrav
@@ -75,6 +79,18 @@ fun Route.avstemmingRoutes(
                 call.respondText(csv, CSV)
             }
             get("/") { call.respondRedirect("/rapporter/avstemming") }
+            get("/oversikt/{fom}/{tom}") {
+                try {
+                    val fom = call.parameters["fom"]?.let { parse(it) } ?: throw IllegalArgumentException("Mangler dato")
+                    val tom = call.parameters["tom"]?.let { parse(it) } ?: throw IllegalArgumentException("Mangler dato")
+                    call.respond(
+                        rapportService.kvitterteKravTilAvstemming(fom, tom).map(Krav::toKravDTO),
+                    )
+                } catch (e: Exception) {
+                    call.respondText { "Feilmelding:${e.message}, Forventet format: /oversikt/{iso-dato}/{senere iso-dato}" }
+                    return@get
+                }
+            }
         }
         route("resending") {
             get {

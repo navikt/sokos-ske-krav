@@ -1,5 +1,6 @@
 package no.nav.sokos.ske.krav.service
 
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.sql.DataSource
 
@@ -35,6 +36,11 @@ class RapportService(
     fun oppdaterStatusTilIkkeSendt(kravId: Int) = dataSource.transaction { session -> kravRepository.updateStatusTilIkkeSendt(session, kravId) }
 
     fun finnKrav(leiteparameter: String) = dataSource.transaction { session -> kravRepository.finnKrav(session, leiteparameter) }
+
+    fun kvitterteKravTilAvstemming(
+        fom: LocalDate,
+        tom: LocalDate,
+    ): List<Krav> = dataSource.transaction { session -> kravRepository.getKvitterteKravForAvstemming(session, fom, tom) }
 
     private fun mapToRapportObjekt(liste: List<Krav>) =
         liste

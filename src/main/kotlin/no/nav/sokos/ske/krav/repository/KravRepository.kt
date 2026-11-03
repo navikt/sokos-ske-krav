@@ -461,6 +461,26 @@ class KravRepository(
                 extractor = mapToKrav,
             )
 
+    fun getKvitterteKravForAvstemming(
+        session: TransactionalSession,
+        fom: LocalDate,
+        tom: LocalDate,
+    ): List<Krav> =
+        session
+            .list(
+                queryOf(
+                    // language=SQL
+                    """
+                    select * from krav
+                    where tidspunkt_sendt is not null
+                      and status in ('RESKONTROFOERT', 'MIGRERT')
+                      and tidspunkt_sendt between :fom and :tom
+                    """.trimIndent(),
+                    mapOf("fom" to fom, "tom" to tom),
+                ),
+                extractor = mapToKrav,
+            )
+
     companion object {
         val instance by lazy { KravRepository() }
     }
