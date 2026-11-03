@@ -80,28 +80,11 @@ fun Route.avstemmingRoutes(
             }
             get("/") { call.respondRedirect("/rapporter/avstemming") }
             get("/oversikt/{fom}/{tom}") {
-                val fomstring = call.parameters["fom"]
-                val tomstring = call.parameters["tom"]
-                val fom =
-                    try {
-                        fomstring?.let { LocalDate.parse(it) }
-                    } catch (e: Exception) {
-                        null
-                    }
-                val tom =
-                    try {
-                        tomstring?.let { LocalDate.parse(it) }
-                    } catch (e: Exception) {
-                        null
-                    }
-
-                if (fom != null && tom != null) {
-                    call.respond(
-                        rapportService.kvitterteKravTilAvstemming(fom, tom).map { it.toKravDTO() },
-                    )
-                } else {
-                    call.respondRedirect("/rapporter/avstemming")
-                }
+                val fom = call.parameters["fom"]?.let { LocalDate.parse(it) }
+                val tom = call.parameters["tom"]?.let { LocalDate.parse(it) }
+                call.respond(
+                    rapportService.kvitterteKravTilAvstemming(fom!!, tom!!).map { it.toKravDTO() },
+                )
             }
         }
         route("resending") {
