@@ -8,6 +8,11 @@ import no.nav.sokos.ske.krav.validation.ErrorCategory
 class SlackService(
     private val slackClient: SlackClient = SlackClient(),
 ) {
+    private companion object {
+        // Slack har maks 50 blocks. Vi bruker 7 faste around error blocks, så maks 43 feilmeldinger per payload.
+        const val MAX_ERROR_DETAILS_PER_MESSAGE = 43
+    }
+
     private val errorTracking: MutableList<FileError> = mutableListOf()
 
     fun trackedErrors() = errorTracking.toList()
@@ -28,17 +33,18 @@ class SlackService(
         errorDetails: List<ErrorDetails>,
     ) {
         errorTracking
-            .find { it.filename == filename && it.alertTitle == alertTitle }
+            .find { it.filename == filename }
             ?.let { fileError ->
+                fileError.alertTitles.add(alertTitle)
                 fileError.errorDetails.addAll(errorDetails)
                 fileError.updateExtraTags(errorDetails)
             }
             ?: run {
                 val fileError =
                     FileError(
-                        alertTitle = alertTitle,
                         filename = filename,
                         errorDetails = errorDetails.toMutableList(),
+                        alertTitles = mutableSetOf(alertTitle),
                     )
                 errorTracking.add(fileError)
             }
@@ -65,9 +71,18 @@ class SlackService(
                         allError.addAll(errors)
                     }
                 }
-            slackClient.sendMessage(fileError.alertTitle, fileError.filename, fileError.extraTags, allError)
+            allError
+                .chunked(MAX_ERROR_DETAILS_PER_MESSAGE)
+                .forEach { errorBatch ->
+                    slackClient.sendMessage(fileError.createAlertTitle(), fileError.filename, fileError.extraTags, errorBatch)
+                }
         }
 
         clearErrorTracking()
     }
+
+    private fun FileError.createAlertTitle(): String =
+        alertTitles
+            .sortedBy { it.ordinal }
+            .joinToString(separator = " | ") { it.value }
 }

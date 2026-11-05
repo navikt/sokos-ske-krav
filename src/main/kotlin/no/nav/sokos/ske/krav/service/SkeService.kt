@@ -38,6 +38,7 @@ import no.nav.sokos.ske.krav.util.defineStatus
 import no.nav.sokos.ske.krav.util.transaction
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_FRA_SKE
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_LINJEVALIDERING
+import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_OPPRYDDING
 import no.nav.sokos.ske.krav.validation.ErrorKeys.UKJENT_FEIL
 import no.nav.sokos.ske.krav.validation.LineValidator
 import no.nav.sokos.ske.krav.validation.ValidationResult
@@ -47,6 +48,8 @@ const val NYTT_KRAV = "NYTT_KRAV"
 const val ENDRING_RENTE = "ENDRING_RENTE"
 const val ENDRING_HOVEDSTOL = "ENDRING_HOVEDSTOL"
 const val STOPP_KRAV = "STOPP_KRAV"
+const val ENDRING_IGNORERES = "ENDRING_IGNORERES"
+const val STOPP_IGNORERES = "STOPP_IGNORERES"
 
 private val logger = mu.KotlinLogging.logger {}
 
@@ -132,7 +135,7 @@ class SkeService(
         }
     }
 
-    private suspend fun processFile(file: FtpFil) {
+    private fun processFile(file: FtpFil) {
         logger.info("Antall krav i ${file.name}: ${file.kravLinjer.size}")
 
         val validatedLines = LineValidator().validateNewLines(file.kravLinjer)
@@ -339,10 +342,56 @@ class SkeService(
             haltRun = true
         }
 
+        val oppryddingsReferanser =
+            allKrav
+                .asSequence()
+                .filter { it.isEndring() || it.isStopp() }
+                .map { it.referansenummerGammelSak }
+                .filter { it.isNotBlank() }
+                .toSet()
+
+        val oppryddingsReferanserMedForeldelsesfristfeil =
+            feilmeldingRepository.getSaksnumreWithForeldelsesfristError(oppryddingsReferanser)
+
+        if (oppryddingsReferanserMedForeldelsesfristfeil.isNotEmpty()) {
+            logger.info("Behandler ${oppryddingsReferanserMedForeldelsesfristfeil.size} oppryddingsreferanse(r) fra $filename")
+        }
+
+        val overstyrteOppryddingsreferanser = kravRepository.getOverstyrteOppryddingsreferanser(oppryddingsReferanserMedForeldelsesfristfeil)
         dataSource.transaction { session ->
-            kravRepository.insertAllNewKrav(session, allKrav, filename)
+            kravRepository.insertAllNewKrav(session, allKrav, filename, oppryddingsReferanserMedForeldelsesfristfeil, overstyrteOppryddingsreferanser)
             filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
         }
+
+        val oppryddingsreferanserOverstyrtIFilen = mutableSetOf<String>()
+        allKrav
+            .asSequence()
+            .filter { it.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }
+            .filter {
+                val erEndringEtterTidligereOpprydding =
+                    it.isEndring() && it.referansenummerGammelSak in overstyrteOppryddingsreferanser
+                val erEtterfolgendeEndringIFilen =
+                    it.isEndring() &&
+                        it.referansenummerGammelSak in oppryddingsReferanserMedForeldelsesfristfeil &&
+                        !oppryddingsreferanserOverstyrtIFilen.add(it.referansenummerGammelSak)
+                val erStoppEtterOpprydding =
+                    it.isStopp() &&
+                        it.referansenummerGammelSak in overstyrteOppryddingsreferanser
+                erEndringEtterTidligereOpprydding || erEtterfolgendeEndringIFilen || erStoppEtterOpprydding
+            }.forEach { kravLinje ->
+                val type = if (kravLinje.isEndring()) "ENDRING" else "STOPP"
+                slackService.addError(
+                    filename,
+                    FEIL_I_OPPRYDDING,
+                    ErrorDetails(
+                        header = "$type etter overstyrt opprydding",
+                        description =
+                            "$type med saksnummer ${kravLinje.saksnummerNav} ble ignorert fordi referansenummergammelsak " +
+                                "${kravLinje.referansenummerGammelSak} allerede er overstyrt som nytt krav eller ignorert stopp.",
+                        caseNumber = kravLinje.saksnummerNav,
+                    ),
+                )
+            }
     }
 
     private fun handleError(

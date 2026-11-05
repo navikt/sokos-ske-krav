@@ -13,6 +13,7 @@ import no.nav.sokos.ske.krav.domain.Feilmelding
 import no.nav.sokos.ske.krav.listener.DBListener
 import no.nav.sokos.ske.krav.listener.DBListener.dataSource
 import no.nav.sokos.ske.krav.listener.DBListener.feilmeldingRepository
+import no.nav.sokos.ske.krav.util.hasForeldelsesfristError
 import no.nav.sokos.ske.krav.util.transaction
 import no.nav.sokos.ske.krav.util.withJvmTimeZone
 
@@ -42,6 +43,34 @@ internal class RepositoryTestFeilmelding :
             feilmelding3.shouldHaveSize(1)
             feilmelding3.filter { it.error == "500" }.shouldHaveSize(1)
             feilmelding3.first().corrId shouldBe "CORR457389"
+        }
+
+        // 🤖 Oppryddingssporet må ikke trigges av andre 422-feil. Testen avgrenser det til det
+        // 🤖 eksakte foreldelsesfrist-feilmeldingsfragmentet og dekker både treff og ikke-treff.
+        test("hasForeldelsesfristError skal kun returnere true for saksnummer med korrekt feilmelding") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+
+            feilmeldingRepository.hasForeldelsesfristError("2222-navsaksnr") shouldBe true
+            feilmeldingRepository.hasForeldelsesfristError("OB040000520015") shouldBe true
+            feilmeldingRepository.hasForeldelsesfristError("8888-navsaksnr") shouldBe false
+            feilmeldingRepository.hasForeldelsesfristError("ukjent-navsaksnummer") shouldBe false
+        }
+
+        // 🤖 Batch-oppslaget brukes ved filinnlesing. Det må bare returnere referanser som kan
+        // 🤖 klassifiseres som opprydding, selv når input inneholder andre og ukjente saker.
+        test("getSaksnumreWithForeldelsesfristError skal returnere bare saksnummer med korrekt feilmelding") {
+            DBListener.clearDB()
+            DBListener.loadInitScripts("SQLscript/feilmeldinger/OppryddingForeldelsesfrist.sql")
+
+            feilmeldingRepository.getSaksnumreWithForeldelsesfristError(
+                setOf("2222-navsaksnr", "OB040000520015", "8888-navsaksnr", "ukjent-navsaksnummer"),
+            ) shouldBe setOf("2222-navsaksnr", "OB040000520015")
+        }
+
+        // 🤖 Filer uten endring eller stopp skal ikke utløse et unødvendig databaseoppslag.
+        test("getSaksnumreWithForeldelsesfristError skal returnere tomt sett uten databaseoppslag for tomt input") {
+            feilmeldingRepository.getSaksnumreWithForeldelsesfristError(emptySet()) shouldBe emptySet()
         }
 
         test("insertFeilmelding skal lagre én feilmelding") {

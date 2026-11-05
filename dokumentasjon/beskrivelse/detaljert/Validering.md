@@ -31,7 +31,7 @@ Filvalidering kjøres på hele filen umiddelbart etter nedlasting fra SFTP. File
 
 ---
 
-## 2. Linjevalidering ([`LineValidationRules`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidationRules.kt))
+## 2. Linjevalidering ([`LineValidator`](../../../src/main/kotlin/no/nav/sokos/ske/krav/validation/LineValidator.kt))
 
 Linjevalidering kjøres på hver enkelt kravlinje etter at filvalideringen er godkjent. Valideringsreglene speiler SKEs synkrone valideringsregler (se [SKE sin dokumentasjon](https://skatteetaten.github.io/api-dokumentasjon/api/innkrevingsoppdrag?tab=Feilkoder)).
 

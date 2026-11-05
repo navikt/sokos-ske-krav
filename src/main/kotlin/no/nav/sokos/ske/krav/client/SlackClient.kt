@@ -12,14 +12,13 @@ import no.nav.sokos.ske.krav.config.slackHttpClient
 import no.nav.sokos.ske.krav.dto.slack.ErrorDetails
 import no.nav.sokos.ske.krav.dto.slack.ExtraTags
 import no.nav.sokos.ske.krav.dto.slack.createSlackMessage
-import no.nav.sokos.ske.krav.validation.ErrorCategory
 
 class SlackClient(
     private val slackEndpoint: String = PropertiesConfig.slackConfig.url,
     private val client: HttpClient = slackHttpClient,
 ) {
     suspend fun sendMessage(
-        alertTitle: ErrorCategory,
+        alertTitle: String,
         filename: String,
         extraTags: ExtraTags,
         errorDetails: List<ErrorDetails>,

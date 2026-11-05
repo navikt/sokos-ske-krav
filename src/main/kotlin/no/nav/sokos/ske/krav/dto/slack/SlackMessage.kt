@@ -7,7 +7,6 @@ import kotlinx.serialization.Serializable
 import no.nav.sokos.ske.krav.dto.slack.BlockType.DIVIDER
 import no.nav.sokos.ske.krav.dto.slack.BlockType.HEADER
 import no.nav.sokos.ske.krav.dto.slack.BlockType.SECTION
-import no.nav.sokos.ske.krav.validation.ErrorCategory
 
 private const val TEXT_TYPE_PLAIN = "plain_text"
 private const val TEXT_TYPE_MRKDWN = "mrkdwn"
@@ -60,7 +59,7 @@ enum class BlockType {
 private val dividerBlock = Block(DIVIDER.toString())
 
 fun createSlackMessage(
-    alertTitle: ErrorCategory,
+    alertTitle: String,
     filename: String,
     extraTags: ExtraTags,
     errorDetails: List<ErrorDetails>,
@@ -81,10 +80,10 @@ fun createSlackMessage(
             add(dividerBlock)
         }
 
-    return Data("$EMOJI_PACKAGE ${alertTitle.value}", blocks)
+    return Data("$EMOJI_PACKAGE $alertTitle", blocks)
 }
 
-fun headerBlock(alertTitle: ErrorCategory) =
+fun headerBlock(alertTitle: String) =
     Block(
         type = HEADER.toString(),
         text =

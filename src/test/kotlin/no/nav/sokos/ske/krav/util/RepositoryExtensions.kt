@@ -5,8 +5,11 @@ import kotliquery.queryOf
 
 import no.nav.sokos.ske.krav.domain.FilValideringsfeil
 import no.nav.sokos.ske.krav.domain.Krav
+import no.nav.sokos.ske.krav.repository.FeilmeldingRepository
 import no.nav.sokos.ske.krav.repository.FilValideringsfeilRepository
 import no.nav.sokos.ske.krav.repository.KravRepository
+
+fun FeilmeldingRepository.hasForeldelsesfristError(saksnummerNav: String): Boolean = saksnummerNav in getSaksnumreWithForeldelsesfristError(setOf(saksnummerNav))
 
 fun FilValideringsfeilRepository.getAllValideringsFeil(session: TransactionalSession): List<FilValideringsfeil> =
     session.list(

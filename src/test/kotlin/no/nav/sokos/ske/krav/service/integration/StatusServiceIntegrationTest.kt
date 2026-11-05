@@ -40,6 +40,7 @@ import no.nav.sokos.ske.krav.util.http.MockResponsesBody
 import no.nav.sokos.ske.krav.util.isGivenTest
 import no.nav.sokos.ske.krav.util.transaction
 import no.nav.sokos.ske.krav.validation.ErrorCategory
+import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_ASYNK_VALIDERING
 
 internal class StatusServiceIntegrationTest :
     BehaviorSpec({
@@ -47,7 +48,7 @@ internal class StatusServiceIntegrationTest :
 
         val slackClient =
             mockk<SlackClient> {
-                coJustRun { sendMessage(any<ErrorCategory>(), any<String>(), any<ExtraTags>(), any<List<ErrorDetails>>()) }
+                coJustRun { sendMessage(any<String>(), any<String>(), any<ExtraTags>(), any<List<ErrorDetails>>()) }
             }
 
         val slackService = spyk(SlackService(slackClient))
@@ -125,7 +126,7 @@ internal class StatusServiceIntegrationTest :
             }
             Then("Alert skal ikke sendes") {
                 coVerify(exactly = 0) {
-                    slackClient.sendMessage(any<ErrorCategory>(), any<String>(), any<ExtraTags>(), any<List<ErrorDetails>>())
+                    slackClient.sendMessage(any<String>(), any<String>(), any<ExtraTags>(), any<List<ErrorDetails>>())
                 }
             }
         }
@@ -208,13 +209,15 @@ internal class StatusServiceIntegrationTest :
                 }
 
                 And("Én alert med fem feilmeldinger skal sendes") {
+                    val sendAlertHeader = slot<String>()
                     val sendAlertFilenameSlot = slot<String>()
                     val sendAlertExtraTags = slot<ExtraTags>()
                     val sendAlertMessagesSlot = slot<List<ErrorDetails>>()
 
                     coVerify(exactly = 1) {
-                        slackClient.sendMessage(any<ErrorCategory>(), capture(sendAlertFilenameSlot), capture(sendAlertExtraTags), capture(sendAlertMessagesSlot))
+                        slackClient.sendMessage(capture(sendAlertHeader), capture(sendAlertFilenameSlot), capture(sendAlertExtraTags), capture(sendAlertMessagesSlot))
                     }
+                    sendAlertHeader.captured shouldBe FEIL_I_ASYNK_VALIDERING.value
                     sendAlertFilenameSlot.captured shouldBe fileName
                     with(sendAlertMessagesSlot.captured) {
                         shouldHaveSize(5)

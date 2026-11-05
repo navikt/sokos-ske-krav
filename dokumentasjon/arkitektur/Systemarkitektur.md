@@ -49,7 +49,6 @@ flowchart TD
         endreKravService["EndreKravService"]
         stoppKravService["StoppKravService"]
         statusService["StatusService"]
-        databaseService["DatabaseService"]
         kravRepository["KravRepository"]
         feilmeldingRepo["FeilmeldingRepository"]
         filvalRepo["FilValideringsfeilRepository"]
