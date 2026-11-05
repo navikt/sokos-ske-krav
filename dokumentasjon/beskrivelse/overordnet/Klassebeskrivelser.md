@@ -59,7 +59,7 @@ HTTP-klienten mot SKEs REST-API. Alle kall går gjennom [`CircuitBreakerManager`
 - `getValideringsfeil` – GET `/innkrevingsoppdrag/{id}/valideringsfeil`
 - `getSkeKravidentifikator` – GET `/innkrevingsoppdrag/{ref}/avstemming`
 ### [`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SlackService.kt)
-Samler opp feilmeldinger i minnet gruppert per fil og feiltype, og sender dem samlet til Slack ved `sendErrors()`. Dersom mer enn 5 feil av samme type oppstår for et gitt krav, konsolideres de til én oppsummerende melding fordi slack har begrensning på antall like meldinger og hvis det er over n like meldinger vil ikke slack sende dem. 
+Samler opp feilmeldinger i minnet per fil, og sender dem samlet til Slack ved `sendErrors()`. Feilkategorier (f.eks. linjevalidering og SKE-feil) som tilhører samme fil sendes i samme varsling, med kombinert header. Dersom mer enn 5 feil av samme type oppstår for en fil, konsolideres de til én oppsummerende melding. For å holde seg innenfor Slack sin grense på 50 blocks per payload splittes varslingen i flere meldinger når en fil har mange feildetaljer (maks 43 feildetaljer per melding, siden 7 blocks er faste rundt innholdet).
 ### [`SlackClient`](../../../src/main/kotlin/no/nav/sokos/ske/krav/client/SlackClient.kt)
 Teknisk HTTP-klient mot Slack Webhook-endepunktet. Bygger opp Slack-meldingsformatet og sender via POST.
 ### [`MaskinportenAccessTokenProvider`](../../../src/main/kotlin/no/nav/sokos/ske/krav/security/MaskinportenAccessTokenProvider.kt)

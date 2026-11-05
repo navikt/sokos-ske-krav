@@ -6,6 +6,7 @@ import io.kotest.inspectors.forOne
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotBeEmpty
+import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -23,6 +24,7 @@ import no.nav.sokos.ske.krav.dto.slack.ExtraTags
 import no.nav.sokos.ske.krav.service.SlackService
 import no.nav.sokos.ske.krav.util.shouldBe
 import no.nav.sokos.ske.krav.util.shouldContain
+import no.nav.sokos.ske.krav.validation.ErrorCategory
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_ASYNK_VALIDERING
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_LINJEVALIDERING
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_VALIDERING_AV_FIL
@@ -368,5 +370,52 @@ class SlackServiceTest :
                     errorDetails.caseNumber shouldContain "(saksnummer-11[1-6](, )?){6}".toRegex()
                 }
             }
+        }
+
+        test("sendErrors splitter payload når antall feilmeldinger overstiger 43") {
+            val fileName = "file.txt"
+            val validationErrors =
+                List(30) {
+                    ErrorDetails(
+                        "ValidationError-$it",
+                        "Valideringsfeil $it",
+                        "saksnummer-v-$it",
+                    )
+                }
+            val skeErrors =
+                List(20) {
+                    ErrorDetails(
+                        "SkeError-$it",
+                        "SKE-feil $it",
+                        "saksnummer-s-$it",
+                    )
+                }
+
+            slackService.addErrors(fileName, FEIL_I_LINJEVALIDERING, validationErrors)
+            slackService.addErrors(fileName, ErrorCategory.FEIL_FRA_SKE, skeErrors)
+
+            slackService.sendErrors()
+
+            val headers = mutableListOf<String>()
+            val filenames = mutableListOf<String>()
+            val errors = mutableListOf<List<ErrorDetails>>()
+
+            coVerify(exactly = 2) {
+                slackClient.sendMessage(capture(headers), capture(filenames), any<ExtraTags>(), capture(errors))
+            }
+
+            headers.shouldContainExactly(
+                "${FEIL_I_LINJEVALIDERING.value} | ${ErrorCategory.FEIL_FRA_SKE.value}",
+                "${FEIL_I_LINJEVALIDERING.value} | ${ErrorCategory.FEIL_FRA_SKE.value}",
+            )
+            filenames.shouldContainExactly(fileName, fileName)
+
+            errors shouldHaveSize 2
+            errors[0].size shouldBe 43
+            errors[1].size shouldBe 7
+
+            val allHeaders = errors.flatten().map { it.header }
+            allHeaders shouldHaveSize 50
+            allHeaders.distinct().size shouldBeGreaterThan 43
         }
     })

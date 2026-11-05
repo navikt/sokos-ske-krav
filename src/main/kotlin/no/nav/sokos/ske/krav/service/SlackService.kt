@@ -8,6 +8,11 @@ import no.nav.sokos.ske.krav.validation.ErrorCategory
 class SlackService(
     private val slackClient: SlackClient = SlackClient(),
 ) {
+    private companion object {
+        // Slack har maks 50 blocks. Vi bruker 7 faste around error blocks, så maks 43 feilmeldinger per payload.
+        const val MAX_ERROR_DETAILS_PER_MESSAGE = 43
+    }
+
     private val errorTracking: MutableList<FileError> = mutableListOf()
 
     fun trackedErrors() = errorTracking.toList()
@@ -66,7 +71,11 @@ class SlackService(
                         allError.addAll(errors)
                     }
                 }
-            slackClient.sendMessage(fileError.createAlertTitle(), fileError.filename, fileError.extraTags, allError)
+            allError
+                .chunked(MAX_ERROR_DETAILS_PER_MESSAGE)
+                .forEach { errorBatch ->
+                    slackClient.sendMessage(fileError.createAlertTitle(), fileError.filename, fileError.extraTags, errorBatch)
+                }
         }
 
         clearErrorTracking()

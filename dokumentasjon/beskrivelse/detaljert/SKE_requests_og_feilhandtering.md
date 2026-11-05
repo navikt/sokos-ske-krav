@@ -196,10 +196,12 @@ Feilmeldingen fanges av Grafana Alerting og varsles i `#team-mob-alerts-prod`.
 
 ---
 
-## 7. Slack-varsling – konsolidering
+## 7. Slack-varsling – konsolidering og splitting
 
-[`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SlackService.kt) samler feil i minnet per fil og per feiltype. Dersom mer enn 5 feil av samme type er registrert for en fil, erstattes de med én melding:
+[`SlackService`](../../../src/main/kotlin/no/nav/sokos/ske/krav/service/SlackService.kt) samler feil i minnet per fil. Feilkategorier for samme fil (f.eks. linjevalidering, asynk validering og feil fra SKE) sendes i samme Slack-varsling med kombinert header. Dersom mer enn 5 feil av samme type er registrert for en fil, erstattes de med én melding:
 
 > `"N av samme type feil: <feiltype>. Sjekk avstemming"`
 
-Dette er fordi Slack har en grense for hvor mange like meldinger den kan sende, og hvis det er n like meldinger vil ingen av de sendes
+Dette er fordi Slack har en grense for hvor mange like meldinger den kan sende, og hvis det er n like meldinger vil ingen av de sendes.
+
+I tillegg har Slack en grense på 50 blocks per payload. Meldingen har 7 faste blocks rundt feildetaljene, derfor sendes maks 43 feildetaljer per payload. Dersom en fil har flere enn 43 feildetaljer etter konsolidering, splittes den automatisk i flere Slack-meldinger for samme fil.
