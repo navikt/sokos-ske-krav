@@ -15,9 +15,9 @@ import no.nav.sokos.ske.krav.validation.ErrorCategory
 import no.nav.sokos.ske.krav.validation.ErrorKeys
 
 data class FileError(
-    val alertTitle: ErrorCategory,
     val filename: String,
     val errorDetails: MutableList<ErrorDetails> = mutableListOf(),
+    val alertTitles: MutableSet<ErrorCategory> = mutableSetOf(),
 ) {
     val extraTags: ExtraTags = ExtraTags()
 

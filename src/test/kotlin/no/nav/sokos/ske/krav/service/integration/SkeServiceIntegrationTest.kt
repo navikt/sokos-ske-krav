@@ -117,7 +117,7 @@ internal class SkeServiceIntegrationTest :
                 )
             val slackClientMock =
                 mockk<SlackClient> {
-                    coJustRun { sendMessage(any<ErrorCategory>(), any<String>(), any<ExtraTags>(), any<List<ErrorDetails>>()) }
+                    coJustRun { sendMessage(any<String>(), any<String>(), any<ExtraTags>(), any<List<ErrorDetails>>()) }
                 }
             val slackService = spyk(SlackService(slackClientMock), recordPrivateCalls = true)
 
@@ -198,7 +198,7 @@ internal class SkeServiceIntegrationTest :
                         val sendAlertErrorDetailsSlot = slot<List<ErrorDetails>>()
 
                         coVerify(exactly = 1) {
-                            slackClientMock.sendMessage(any<ErrorCategory>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorDetailsSlot))
+                            slackClientMock.sendMessage(any<String>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorDetailsSlot))
                         }
                         sendAlertFilenameSlot.captured shouldBe fileName
                         sendAlertErrorDetailsSlot.captured.should { errorDetails ->
@@ -260,7 +260,7 @@ internal class SkeServiceIntegrationTest :
                         val sendAlertErrorMessageSlot = slot<List<ErrorDetails>>()
 
                         coVerify(exactly = 1) {
-                            slackClientMock.sendMessage(any<ErrorCategory>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorMessageSlot))
+                            slackClientMock.sendMessage(any<String>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorMessageSlot))
                         }
 
                         sendAlertFilenameSlot.captured shouldBe fileName
@@ -325,7 +325,7 @@ internal class SkeServiceIntegrationTest :
                         val sendAlertErrorDetailsSlot = slot<List<ErrorDetails>>()
 
                         coVerify(exactly = 1) {
-                            slackClientMock.sendMessage(any<ErrorCategory>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorDetailsSlot))
+                            slackClientMock.sendMessage(any<String>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorDetailsSlot))
                         }
                         sendAlertFilenameSlot.captured shouldBe fileName
                         sendAlertErrorDetailsSlot.captured.should { errorDetails ->
@@ -392,7 +392,7 @@ internal class SkeServiceIntegrationTest :
                         val sendAlertErrorDetailsSlot = slot<List<ErrorDetails>>()
 
                         coVerify(exactly = 1) {
-                            slackClientMock.sendMessage(any<ErrorCategory>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorDetailsSlot))
+                            slackClientMock.sendMessage(any<String>(), capture(sendAlertFilenameSlot), any<ExtraTags>(), capture(sendAlertErrorDetailsSlot))
                         }
                         sendAlertFilenameSlot.captured shouldBe fileName
                         val sendAlertErrorDetails = sendAlertErrorDetailsSlot.captured

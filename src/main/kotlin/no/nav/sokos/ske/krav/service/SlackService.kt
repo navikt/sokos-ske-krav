@@ -28,17 +28,18 @@ class SlackService(
         errorDetails: List<ErrorDetails>,
     ) {
         errorTracking
-            .find { it.filename == filename && it.alertTitle == alertTitle }
+            .find { it.filename == filename }
             ?.let { fileError ->
+                fileError.alertTitles.add(alertTitle)
                 fileError.errorDetails.addAll(errorDetails)
                 fileError.updateExtraTags(errorDetails)
             }
             ?: run {
                 val fileError =
                     FileError(
-                        alertTitle = alertTitle,
                         filename = filename,
                         errorDetails = errorDetails.toMutableList(),
+                        alertTitles = mutableSetOf(alertTitle),
                     )
                 errorTracking.add(fileError)
             }
@@ -65,9 +66,14 @@ class SlackService(
                         allError.addAll(errors)
                     }
                 }
-            slackClient.sendMessage(fileError.alertTitle, fileError.filename, fileError.extraTags, allError)
+            slackClient.sendMessage(fileError.createAlertTitle(), fileError.filename, fileError.extraTags, allError)
         }
 
         clearErrorTracking()
     }
+
+    private fun FileError.createAlertTitle(): String =
+        alertTitles
+            .sortedBy { it.ordinal }
+            .joinToString(separator = " | ") { it.value }
 }

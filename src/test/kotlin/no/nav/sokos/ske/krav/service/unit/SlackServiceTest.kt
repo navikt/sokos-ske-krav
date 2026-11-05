@@ -23,14 +23,12 @@ import no.nav.sokos.ske.krav.dto.slack.ExtraTags
 import no.nav.sokos.ske.krav.service.SlackService
 import no.nav.sokos.ske.krav.util.shouldBe
 import no.nav.sokos.ske.krav.util.shouldContain
-import no.nav.sokos.ske.krav.validation.ErrorCategory
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_ASYNK_VALIDERING
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_LINJEVALIDERING
 import no.nav.sokos.ske.krav.validation.ErrorCategory.FEIL_I_VALIDERING_AV_FIL
 import no.nav.sokos.ske.krav.validation.ErrorKeys
 import no.nav.sokos.ske.krav.validation.ErrorMessages
 
-private const val PRODUCT_LEADER = "productLeaderId"
 private const val DOMAIN_SPECIALIST = "domainSpecialistId"
 private const val TECHNICAL_SPECIALIST = "technicalSpecialistId"
 
@@ -38,7 +36,7 @@ class SlackServiceTest :
     FunSpec({
         val slackClient =
             mockk<SlackClient> {
-                coJustRun { sendMessage(any<ErrorCategory>(), any<String>(), any<ExtraTags>(), any<List<ErrorDetails>>()) }
+                coJustRun { sendMessage(any<String>(), any<String>(), any<ExtraTags>(), any<List<ErrorDetails>>()) }
             }
         val slackService = SlackService(slackClient)
 
@@ -64,7 +62,7 @@ class SlackServiceTest :
             val trackedErrors = slackService.trackedErrors()
             trackedErrors shouldHaveSize 1
             trackedErrors.first().should { fileError ->
-                fileError.alertTitle shouldBe FEIL_I_VALIDERING_AV_FIL
+                fileError.alertTitles shouldBe setOf(FEIL_I_VALIDERING_AV_FIL)
                 fileError.filename shouldBe filename
                 fileError.errorDetails.should { errorDetails ->
                     errorDetails shouldHaveSize 1
@@ -117,46 +115,29 @@ class SlackServiceTest :
             slackService.addError(filename2, FEIL_I_LINJEVALIDERING, lineValidationError3)
 
             slackService.trackedErrors().should { trackedErrors ->
-                trackedErrors shouldHaveSize 4
+                trackedErrors shouldHaveSize 2
                 trackedErrors.forOne { fileError ->
-                    fileError.alertTitle shouldBe FEIL_I_VALIDERING_AV_FIL
+                    fileError.alertTitles shouldBe setOf(FEIL_I_VALIDERING_AV_FIL, FEIL_I_LINJEVALIDERING)
                     fileError.filename shouldBe filename1
                     fileError.errorDetails.should { errorDetails ->
-                        errorDetails shouldHaveSize 2
+                        errorDetails shouldHaveSize 3
                         errorDetails.forAll { (header, description, _) ->
+                            when (header) {
+                                ErrorKeys.PARSE_EXCEPTION.value -> description shouldContain "Unexpected token in line 4[01]".toRegex()
+                                ErrorKeys.VEDTAKSDATO_ERROR.value -> description shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
+                            }
+                        }
+                    }
+                }
+                trackedErrors.forOne { fileError ->
+                    fileError.alertTitles shouldBe setOf(FEIL_I_VALIDERING_AV_FIL, FEIL_I_LINJEVALIDERING)
+                    fileError.filename shouldBe filename2
+                    fileError.errorDetails.should { errorDetails ->
+                        errorDetails shouldHaveSize 3
+                        errorDetails.forOne { (header, description, _) ->
                             header shouldBe ErrorKeys.PARSE_EXCEPTION
-                            description shouldContain "Unexpected token in line 4[01]".toRegex()
+                            description shouldContain "Unexpected token in line 42"
                         }
-                    }
-                }
-                trackedErrors.forOne { fileError ->
-                    fileError.alertTitle shouldBe FEIL_I_VALIDERING_AV_FIL
-                    fileError.filename shouldBe filename2
-                    fileError.errorDetails.should { errorDetails ->
-                        errorDetails shouldHaveSize 1
-                        errorDetails.first().should {
-                            it.header shouldBe ErrorKeys.PARSE_EXCEPTION
-                            it.description shouldContain "Unexpected token in line 42"
-                        }
-                    }
-                }
-                trackedErrors.forOne { fileError ->
-                    fileError.alertTitle shouldBe FEIL_I_LINJEVALIDERING
-                    fileError.filename shouldBe filename1
-                    fileError.errorDetails.should { errorDetails ->
-                        errorDetails shouldHaveSize 1
-                        errorDetails.first().should {
-                            it.header shouldBe ErrorKeys.VEDTAKSDATO_ERROR
-                            it.description shouldContain ErrorMessages.VEDTAKSDATO_WRONG_FORMAT
-                            it.caseNumber shouldBe "saksnummer-123"
-                        }
-                    }
-                }
-                trackedErrors.forOne { fileError ->
-                    fileError.alertTitle shouldBe FEIL_I_LINJEVALIDERING
-                    fileError.filename shouldBe filename2
-                    fileError.errorDetails.should { errorDetails ->
-                        errorDetails shouldHaveSize 2
                         errorDetails.forOne { (header, description, caseNumber) ->
                             header shouldBe ErrorKeys.KRAVTYPE_ERROR
                             description shouldContain ErrorMessages.KRAVTYPE_DOES_NOT_EXIST
@@ -270,7 +251,7 @@ class SlackServiceTest :
             slackService.sendErrors()
 
             val errorsSlot = slot<List<ErrorDetails>>()
-            coVerify(exactly = 1) { slackClient.sendMessage(any<ErrorCategory>(), any<String>(), any<ExtraTags>(), capture(errorsSlot)) }
+            coVerify(exactly = 1) { slackClient.sendMessage(any<String>(), any<String>(), any<ExtraTags>(), capture(errorsSlot)) }
             errorsSlot.captured.should {
                 it shouldHaveSize 5
                 it.forAll { (header, description, _) ->
@@ -294,7 +275,7 @@ class SlackServiceTest :
             slackService.sendErrors()
 
             val errorsSlot = slot<List<ErrorDetails>>()
-            coVerify(exactly = 1) { slackClient.sendMessage(any<ErrorCategory>(), any<String>(), any<ExtraTags>(), capture(errorsSlot)) }
+            coVerify(exactly = 1) { slackClient.sendMessage(any<String>(), any<String>(), any<ExtraTags>(), capture(errorsSlot)) }
             errorsSlot.captured.should {
                 it shouldHaveSize 1
                 it.single().should { errorDetails ->
@@ -305,7 +286,7 @@ class SlackServiceTest :
             }
         }
 
-        test("sendErrors sender én slack melding per fil og feil type") {
+        test("sendErrors sender én slack melding per fil") {
             val filename1 = "file1.txt"
             val filename2 = "file2.txt"
 
@@ -333,19 +314,22 @@ class SlackServiceTest :
 
             slackService.sendErrors()
 
-            val alertCategories = mutableListOf<ErrorCategory>()
+            val alertCategories = mutableListOf<String>()
             val filenames = mutableListOf<String>()
             val extraTags = mutableListOf<ExtraTags>()
             val errors = mutableListOf<List<ErrorDetails>>()
 
-            coVerify(exactly = 4) { slackClient.sendMessage(capture(alertCategories), capture(filenames), capture(extraTags), capture(errors)) }
+            coVerify(exactly = 2) { slackClient.sendMessage(capture(alertCategories), capture(filenames), capture(extraTags), capture(errors)) }
 
-            alertCategories.shouldContainExactly(FEIL_I_VALIDERING_AV_FIL, FEIL_I_VALIDERING_AV_FIL, FEIL_I_ASYNK_VALIDERING, FEIL_I_ASYNK_VALIDERING)
-            filenames.shouldContainExactly(filename1, filename2, filename1, filename2)
+            alertCategories.shouldContainExactly(
+                "${FEIL_I_VALIDERING_AV_FIL.value} | ${FEIL_I_ASYNK_VALIDERING.value}",
+                "${FEIL_I_VALIDERING_AV_FIL.value} | ${FEIL_I_ASYNK_VALIDERING.value}",
+            )
+            filenames.shouldContainExactly(filename1, filename2)
 
-            extraTags shouldHaveSize 4
+            extraTags shouldHaveSize 2
 
-            extraTags.takeLast(2).forEach { tags ->
+            extraTags.forEach { tags ->
                 tags.peopleSlackId.should { slackId ->
                     slackId shouldHaveSize 2
                     slackId.forOne {
@@ -358,27 +342,14 @@ class SlackServiceTest :
                 tags.rutineLink.shouldNotBeEmpty()
             }
 
-            errors shouldHaveSize 4
+            errors shouldHaveSize 2
             errors.first().should {
-                it shouldHaveSize 2
-                it.forAll { (header, description, _) ->
-                    header shouldBe ErrorKeys.PARSE_EXCEPTION
-                    description shouldContain "Unexpected token in line 4[01]".toRegex()
-                }
-            }
-
-            errors[1].should {
-                it shouldHaveSize 1
-                it.single().should { errorDetails ->
-                    errorDetails.header shouldBe ErrorKeys.PARSE_EXCEPTION
-                    errorDetails.description shouldBe "Unexpected token in line 42"
-                    errorDetails.caseNumber.shouldBeNull()
-                }
-            }
-
-            errors[2].should {
-                it shouldHaveSize 1
-                it.single().should { errorDetails ->
+                it shouldHaveSize 3
+                it.count { errorDetails ->
+                    errorDetails.header == ErrorKeys.PARSE_EXCEPTION.value &&
+                        errorDetails.description.contains("Unexpected token in line 4[01]".toRegex())
+                } shouldBe 2
+                it.forOne { errorDetails ->
                     errorDetails.header shouldBe ExtraTags.ORGANISASJON_ER_OPPHOERT
                     errorDetails.description shouldBe "Organisasjon er opphoert."
                     errorDetails.caseNumber.shouldNotBeNull()
@@ -386,8 +357,12 @@ class SlackServiceTest :
             }
 
             errors.last().should {
-                it shouldHaveSize 1
-                it.single().should { errorDetails ->
+                it shouldHaveSize 2
+                it.forOne { (header, description, _) ->
+                    header shouldBe ErrorKeys.PARSE_EXCEPTION
+                    description shouldBe "Unexpected token in line 42"
+                }
+                it.forOne { errorDetails ->
                     errorDetails.header shouldBe ExtraTags.ORGANISASJON_ER_OPPHOERT
                     errorDetails.description shouldContain "av samme type feil"
                     errorDetails.caseNumber shouldContain "(saksnummer-11[1-6](, )?){6}".toRegex()
