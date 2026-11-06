@@ -408,6 +408,31 @@ class KravRepository(
             mapToKrav,
         )
 
+    fun getIgnoredOppryddingKravForFil(
+        session: TransactionalSession,
+        filnavn: String,
+    ): List<Krav> =
+        session.list(
+            queryOf(
+                // language=SQL
+                """
+                select *
+                from krav
+                where filnavn = :filnavn
+                  and status = :status
+                  and kravtype in (:endring_ignoreres, :stopp_ignoreres)
+                order by id desc
+                """.trimIndent(),
+                mapOf(
+                    "filnavn" to filnavn,
+                    "status" to Status.IGNORERES_ETTER_OPPRYDDING.value,
+                    "endring_ignoreres" to ENDRING_IGNORERES,
+                    "stopp_ignoreres" to STOPP_IGNORERES,
+                ),
+            ),
+            mapToKrav,
+        )
+
     private val insertKravQuery =
         // language=SQL
         """
