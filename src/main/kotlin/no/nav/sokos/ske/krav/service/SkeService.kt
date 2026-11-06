@@ -16,6 +16,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import io.opentelemetry.instrumentation.annotations.WithSpan
+import kotliquery.TransactionalSession
 
 import no.nav.sokos.ske.krav.client.SkeClient
 import no.nav.sokos.ske.krav.config.PostgresDataSource
@@ -68,6 +69,25 @@ class SkeService(
     private val unleashConfig: UnleashConfig = UnleashConfig(),
 ) {
     private var haltRun = false
+
+    private data class OppryddingContext(
+        val oppryddingsReferanserMedForeldelsesfristfeil: Set<String>,
+        val overstyrteOppryddingsreferanser: Set<String>,
+    )
+
+    private data class IgnoredOppryddingVarsel(
+        val header: String,
+        val description: String,
+        val caseNumber: String,
+    )
+
+    private data class IgnoredOppryddingCandidate(
+        val kravLinje: KravLinje,
+        val type: String,
+        val header: String,
+        val melding: String,
+        val kravtype: String,
+    )
 
     @WithSpan
     suspend fun handleNewKrav(waitTime: Duration = 5000.milliseconds) {
@@ -342,6 +362,32 @@ class SkeService(
             haltRun = true
         }
 
+        val oppryddingContext = getOppryddingContext(allKrav, filename)
+        val ignoredOppryddingVarsler =
+            dataSource.transaction { session ->
+                kravRepository.insertAllNewKrav(
+                    session,
+                    allKrav,
+                    filename,
+                    oppryddingContext.oppryddingsReferanserMedForeldelsesfristfeil,
+                    oppryddingContext.overstyrteOppryddingsreferanser,
+                )
+                filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
+                saveIgnoredOppryddingFeilmeldinger(
+                    session = session,
+                    filename = filename,
+                    allKrav = allKrav,
+                    oppryddingContext = oppryddingContext,
+                )
+            }
+
+        sendIgnoredOppryddingVarsler(filename, ignoredOppryddingVarsler)
+    }
+
+    private fun getOppryddingContext(
+        allKrav: List<KravLinje>,
+        filename: String,
+    ): OppryddingContext {
         val oppryddingsReferanser =
             allKrav
                 .asSequence()
@@ -357,42 +403,158 @@ class SkeService(
             logger.info("Behandler ${oppryddingsReferanserMedForeldelsesfristfeil.size} oppryddingsreferanse(r) fra $filename")
         }
 
-        val overstyrteOppryddingsreferanser = kravRepository.getOverstyrteOppryddingsreferanser(oppryddingsReferanserMedForeldelsesfristfeil)
-        dataSource.transaction { session ->
-            kravRepository.insertAllNewKrav(session, allKrav, filename, oppryddingsReferanserMedForeldelsesfristfeil, overstyrteOppryddingsreferanser)
-            filValideringsfeilRepository.insertAllLineFilValideringsfeil(session, filename, invalidKrav)
+        val overstyrteOppryddingsreferanser =
+            kravRepository.getOverstyrteOppryddingsreferanser(oppryddingsReferanserMedForeldelsesfristfeil)
+
+        return OppryddingContext(oppryddingsReferanserMedForeldelsesfristfeil, overstyrteOppryddingsreferanser)
+    }
+
+    private fun saveIgnoredOppryddingFeilmeldinger(
+        session: TransactionalSession,
+        filename: String,
+        allKrav: List<KravLinje>,
+        oppryddingContext: OppryddingContext,
+    ): List<IgnoredOppryddingVarsel> {
+        val overstyrtReferanserIFilen = mutableSetOf<String>()
+        val candidates =
+            buildIgnoredOppryddingCandidates(
+                allKrav = allKrav,
+                oppryddingContext = oppryddingContext,
+                overstyrtReferanserIFilen = overstyrtReferanserIFilen,
+            )
+
+        if (candidates.isEmpty()) return emptyList()
+
+        val ignoredKravByCompositeKey =
+            kravRepository
+                .getIgnoredOppryddingKravForFil(session, filename)
+                .associateBy { ignoredKravKey(it.linjenummer, it.saksnummerNAV, it.referansenummerGammelSak, it.kravtype) }
+
+        val feilmeldinger = mutableListOf<Feilmelding>()
+        val varsler = mutableListOf<IgnoredOppryddingVarsel>()
+
+        candidates.forEach { candidate ->
+            val key =
+                ignoredKravKey(
+                    candidate.kravLinje.linjenummer,
+                    candidate.kravLinje.saksnummerNav,
+                    candidate.kravLinje.referansenummerGammelSak,
+                    candidate.kravtype,
+                )
+            val ignoredKrav = ignoredKravByCompositeKey[key] ?: return@forEach
+
+            feilmeldinger.add(
+                Feilmelding(
+                    feilmeldingId = 0L,
+                    kravId = ignoredKrav.kravId,
+                    corrId = ignoredKrav.corrId,
+                    saksnummerNav = ignoredKrav.saksnummerNAV,
+                    kravidentifikatorSKE = ignoredKrav.kravidentifikatorSKE,
+                    error = candidate.header,
+                    melding = candidate.melding,
+                    navRequest = "",
+                    skeResponse = "",
+                    tidspunktOpprettet = LocalDateTime.now(),
+                ),
+            )
+
+            varsler.add(
+                IgnoredOppryddingVarsel(
+                    header = candidate.header,
+                    description = candidate.melding,
+                    caseNumber = candidate.kravLinje.saksnummerNav,
+                ),
+            )
         }
 
-        val oppryddingsreferanserOverstyrtIFilen = mutableSetOf<String>()
+        if (feilmeldinger.isNotEmpty()) {
+            feilmeldingRepository.insertFeilmeldinger(session, feilmeldinger)
+        }
+
+        return varsler
+    }
+
+    private fun sendIgnoredOppryddingVarsler(
+        filename: String,
+        varsler: List<IgnoredOppryddingVarsel>,
+    ) {
+        varsler.forEach { varsel ->
+            slackService.addError(
+                filename,
+                FEIL_I_OPPRYDDING,
+                ErrorDetails(
+                    header = varsel.header,
+                    description = varsel.description,
+                    caseNumber = varsel.caseNumber,
+                ),
+            )
+        }
+    }
+
+    private fun isIgnoredKravEtterOverstyrtOpprydding(
+        kravLinje: KravLinje,
+        oppryddingsReferanserMedForeldelsesfristfeil: Set<String>,
+        overstyrteOppryddingsreferanser: Set<String>,
+        overstyrtReferanserIFilen: MutableSet<String>,
+    ): Boolean {
+        val erEndringEtterTidligereOpprydding =
+            kravLinje.isEndring() && kravLinje.referansenummerGammelSak in overstyrteOppryddingsreferanser
+        val erEtterfolgendeEndringIFilen =
+            kravLinje.isEndring() &&
+                kravLinje.referansenummerGammelSak in oppryddingsReferanserMedForeldelsesfristfeil &&
+                !overstyrtReferanserIFilen.add(kravLinje.referansenummerGammelSak)
+        val erStoppEtterOpprydding =
+            kravLinje.isStopp() &&
+                kravLinje.referansenummerGammelSak in overstyrteOppryddingsreferanser
+
+        return erEndringEtterTidligereOpprydding || erEtterfolgendeEndringIFilen || erStoppEtterOpprydding
+    }
+
+    private fun buildIgnoredOppryddingCandidates(
+        allKrav: List<KravLinje>,
+        oppryddingContext: OppryddingContext,
+        overstyrtReferanserIFilen: MutableSet<String>,
+    ): List<IgnoredOppryddingCandidate> {
+        val candidates = mutableListOf<IgnoredOppryddingCandidate>()
+
         allKrav
             .asSequence()
             .filter { it.status != Status.VALIDERINGSFEIL_AV_LINJE_I_FIL.value }
             .filter {
-                val erEndringEtterTidligereOpprydding =
-                    it.isEndring() && it.referansenummerGammelSak in overstyrteOppryddingsreferanser
-                val erEtterfolgendeEndringIFilen =
-                    it.isEndring() &&
-                        it.referansenummerGammelSak in oppryddingsReferanserMedForeldelsesfristfeil &&
-                        !oppryddingsreferanserOverstyrtIFilen.add(it.referansenummerGammelSak)
-                val erStoppEtterOpprydding =
-                    it.isStopp() &&
-                        it.referansenummerGammelSak in overstyrteOppryddingsreferanser
-                erEndringEtterTidligereOpprydding || erEtterfolgendeEndringIFilen || erStoppEtterOpprydding
+                isIgnoredKravEtterOverstyrtOpprydding(
+                    kravLinje = it,
+                    oppryddingsReferanserMedForeldelsesfristfeil = oppryddingContext.oppryddingsReferanserMedForeldelsesfristfeil,
+                    overstyrteOppryddingsreferanser = oppryddingContext.overstyrteOppryddingsreferanser,
+                    overstyrtReferanserIFilen = overstyrtReferanserIFilen,
+                )
             }.forEach { kravLinje ->
                 val type = if (kravLinje.isEndring()) "ENDRING" else "STOPP"
-                slackService.addError(
-                    filename,
-                    FEIL_I_OPPRYDDING,
-                    ErrorDetails(
-                        header = "$type etter overstyrt opprydding",
-                        description =
-                            "$type med saksnummer ${kravLinje.saksnummerNav} ble ignorert fordi referansenummergammelsak " +
-                                "${kravLinje.referansenummerGammelSak} allerede er overstyrt som nytt krav eller ignorert stopp.",
-                        caseNumber = kravLinje.saksnummerNav,
+                val header = "$type etter overstyrt opprydding"
+                val kravtype = if (kravLinje.isEndring()) ENDRING_IGNORERES else STOPP_IGNORERES
+                val melding =
+                    "$type med saksnummer ${kravLinje.saksnummerNav} ble ignorert fordi referansenummergammelsak " +
+                        "${kravLinje.referansenummerGammelSak} allerede er overstyrt som nytt krav eller ignorert stopp."
+
+                candidates.add(
+                    IgnoredOppryddingCandidate(
+                        kravLinje = kravLinje,
+                        type = type,
+                        header = header,
+                        melding = melding,
+                        kravtype = kravtype,
                     ),
                 )
             }
+
+        return candidates
     }
+
+    private fun ignoredKravKey(
+        linjenummer: Int,
+        saksnummerNav: String,
+        referansenummerGammelSak: String,
+        kravtype: String,
+    ): String = "$linjenummer|$saksnummerNav|$referansenummerGammelSak|$kravtype"
 
     private fun handleError(
         requestResult: RequestResult,

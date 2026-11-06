@@ -687,6 +687,14 @@ internal class SkeServiceIntegrationTest :
                         errorDetails.description shouldContain "saksnummer"
                         errorDetails.description shouldContain "referansenummergammelsak OB040000595067"
                     }
+
+                    val feilmeldinger = feilmeldingRepository.getAllFeilmeldinger().filter { it.error in setOf("ENDRING etter overstyrt opprydding", "STOPP etter overstyrt opprydding") }
+                    feilmeldinger.shouldHaveSize(2)
+                    feilmeldinger.map { it.error }.toSet() shouldBe setOf("ENDRING etter overstyrt opprydding", "STOPP etter overstyrt opprydding")
+                    feilmeldinger.forAll { feilmelding ->
+                        feilmelding.melding shouldContain "referansenummergammelsak OB040000595067"
+                        feilmelding.rapporter shouldBe true
+                    }
                 }
             }
         }
