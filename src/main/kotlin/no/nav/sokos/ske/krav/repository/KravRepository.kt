@@ -373,6 +373,41 @@ class KravRepository(
         )
     }
 
+    fun getIgnoredOppryddingKrav(
+        session: TransactionalSession,
+        filnavn: String,
+        linjenummer: Int,
+        saksnummerNav: String,
+        referansenummerGammelSak: String,
+        kravtype: String,
+    ): Krav? =
+        session.single(
+            queryOf(
+                // language=SQL
+                """
+                select *
+                from krav
+                where filnavn = :filnavn
+                  and linjenummer = :linjenummer
+                  and saksnummer_nav = :saksnummer_nav
+                  and referansenummergammelsak = :referansenummergammelsak
+                  and kravtype = :kravtype
+                  and status = :status
+                order by id desc
+                limit 1
+                """.trimIndent(),
+                mapOf(
+                    "filnavn" to filnavn,
+                    "linjenummer" to linjenummer,
+                    "saksnummer_nav" to saksnummerNav,
+                    "referansenummergammelsak" to referansenummerGammelSak,
+                    "kravtype" to kravtype,
+                    "status" to Status.IGNORERES_ETTER_OPPRYDDING.value,
+                ),
+            ),
+            mapToKrav,
+        )
+
     private val insertKravQuery =
         // language=SQL
         """

@@ -88,6 +88,45 @@ Itererer over alle validerte filer fra `FtpService` og kaller `processFile()` fo
 2. Lagrer gyldige og ugyldige linjer i databasen
 3. Flytter filen til `/outbound`
 
+#### `handleValidationResults(filename, validationResults)` *(privat)*
+Håndterer valideringsresultatet for én fil, og er nå bevisst delt i flere interne steg for oppryddingsflyten:
+
+1. Samler gyldige linjer, ugyldige linjer og Slack-feil fra `ValidationResult`
+2. Logger valideringsavvik og legger til Slack-feil for linjevalidering
+3. Setter `haltRun` ved store filer (≥ 1000 linjer)
+4. Kaller `getOppryddingContext()` for å beregne oppryddingsgrunnlag
+5. Lagrer krav + filvalideringsfeil i DB
+6. Kaller `handleIgnoredKravEtterOverstyrtOpprydding()` for varsling og feilmeldingslagring ved ignorerte oppryddingskrav
+
+#### `getOppryddingContext(allKrav, filename)` *(privat)*
+Bygger et oppryddingskontekst-objekt som brukes videre i lagring og varsling:
+
+1. Finner alle relevante `referansenummerGammelSak` fra ENDRING/STOPP-linjer i filen
+2. Henter referanser med tidligere foreldelsesfrist-feil via `FeilmeldingRepository.getSaksnumreWithForeldelsesfristError(...)`
+3. Logger antall oppryddingsreferanser når slike finnes
+4. Henter overstyrte oppryddingsreferanser via `KravRepository.getOverstyrteOppryddingsreferanser(...)`
+
+#### `handleIgnoredKravEtterOverstyrtOpprydding(filename, allKrav, oppryddingContext)` *(privat)*
+Itererer validerte linjer og håndterer linjer som skal ignoreres etter overstyrt opprydding:
+
+1. Bruker `isIgnoredKravEtterOverstyrtOpprydding(...)` til å avgjøre om linjen skal håndteres
+2. Oppretter og sender Slack-varsel (`FEIL_I_OPPRYDDING`) med tydelig ENDRING/STOPP-beskrivelse
+3. Kaller `saveIgnoredOppryddingFeilmelding(...)` for å persistere feilmelding i `feilmelding`-tabellen (`rapporter = true`)
+
+#### `isIgnoredKravEtterOverstyrtOpprydding(...)` *(privat)*
+Kapsler reglene for når en linje skal regnes som ignorert etter opprydding:
+
+- ENDRING som refererer til tidligere overstyrt oppryddingsreferanse
+- Etterfølgende ENDRING i samme fil på samme oppryddingsreferanse (kun første blir overstyring)
+- STOPP som refererer til tidligere overstyrt oppryddingsreferanse
+
+#### `saveIgnoredOppryddingFeilmelding(filename, kravLinje, type, melding)` *(privat)*
+Lagrer feilmelding for oppryddingslinjer som ignoreres:
+
+1. Finner tilhørende ignorert kravrad (`ENDRING_IGNORERES` / `STOPP_IGNORERES`) via `KravRepository.getIgnoredOppryddingKrav(...)`
+2. Oppretter `Feilmelding` med error-felt `"ENDRING etter overstyrt opprydding"` eller `"STOPP etter overstyrt opprydding"`
+3. Persisterer feilmeldingen via `FeilmeldingRepository.insertFeilmelding(...)`
+
 #### `updateSkeKravidentifikatorForEndringerAndStopp()` *(privat)*
 Kjøres én gang per `handleNewKrav()`-runde, etter at alle filer er prosessert. Henter alle usente krav av typen `ENDRING_RENTE`, `ENDRING_HOVEDSTOL` og `STOPP_KRAV` med status `KRAV_IKKE_SENDT`. For hvert krav:
 1. Sjekker om SKE-kravidentifikator allerede finnes i DB – bruker den i så fall direkte
