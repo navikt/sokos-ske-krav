@@ -1106,10 +1106,10 @@ internal class SkeServiceIntegrationTest :
                     kravRepository = kravRepository,
                 )
 
-            Then("skal feilmelding sendes til Slack kun én gang per krav selv om resend feiler igjen") {
+            Then("skal feilmelding sendes til Slack for begge resend-runder") {
                 skeService.handleNewKrav(1.milliseconds)
 
-                coVerify(exactly = 4) {
+                coVerify(exactly = 8) {
                     slackServiceSpy.addError(any<String>(), any<ErrorCategory>(), any<ErrorDetails>())
                 }
             }

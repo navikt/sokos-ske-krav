@@ -79,7 +79,7 @@ class SkeService(
         // etter at vi har sendt alle som har "hopet" seg opp så kan vi skru på lesFilEnabled og la resendinga kjøre
         // når vi har rapportert alle feilene så kan vi også skru på sendKravEnabled
         if (unleashConfig.isLesFilEnabled()) {
-            resendKrav(shouldAlert = false)
+            resendKrav()
             sendNewFilesToSKE()
             delay(waitTime)
             resendKrav()
